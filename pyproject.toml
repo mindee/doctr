@@ -63,6 +63,10 @@ tf = [
 torch = [
     "torch>=1.13.0",
     "torchvision>=0.14.0",
+    "timm>=0.6.12",
+    "nltk>=3.8",
+    "pytorch-lightning>=1.8.6",
+    "lightning-utilities>=0.5.0"
 ]
 testing = [
     "pytest>=5.3.2",
