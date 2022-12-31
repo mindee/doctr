@@ -212,7 +212,7 @@ A minimal demo app is provided for you to play with our end-to-end OCR models!
 
 #### Live demo
 
-Courtesy of :hugs: [HuggingFace](https://huggingface.co/) :hugs:, docTR has now a fully deployed version available on [Spaces](https://huggingface.co/spaces)!
+Courtesy of :hugs: [Hugging Face](https://huggingface.co/) :hugs:, docTR has now a fully deployed version available on [Spaces](https://huggingface.co/spaces)!
 Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr)
 
 #### Running it locally
