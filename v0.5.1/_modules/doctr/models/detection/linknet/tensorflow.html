@@ -295,7 +295,7 @@
 
 
 <span class="k">def</span> <span class="nf">decoder_block</span><span class="p">(</span><span class="n">in_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequential</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">Sequential</span><span class="p">([</span>
         <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
@@ -314,7 +314,7 @@
 
 
 <span class="k">class</span> <span class="nc">LinkNetFPN</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet Decoder module&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet Decoder module&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -346,7 +346,7 @@
 
 
 <span class="k">class</span> <span class="nc">LinkNet</span><span class="p">(</span><span class="n">_LinkNet</span><span class="p">,</span> <span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -405,7 +405,7 @@
         <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">,</span>
         <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on</span>
 <span class="sd">        &lt;https://github.com/tensorflow/addons/&gt;`_.</span>
 
 <span class="sd">        Args:</span>
@@ -510,7 +510,7 @@
 
 
 <div class="viewcode-block" id="linknet_resnet18"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet18">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -536,7 +536,7 @@
 
 
 <span class="k">def</span> <span class="nf">linknet_resnet18_rotation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -562,7 +562,7 @@
 
 
 <div class="viewcode-block" id="linknet_resnet34"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet34">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -588,7 +588,7 @@
 
 
 <div class="viewcode-block" id="linknet_resnet50"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet50">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -623,7 +623,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

@@ -326,7 +326,7 @@
 
 
 <span class="k">class</span> <span class="nc">SqueezeExcitation</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Squeeze and Excitation.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Squeeze and Excitation.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">squeeze_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
@@ -370,7 +370,7 @@
 
 
 <span class="k">class</span> <span class="nc">InvertedResidual</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;InvertedResidual for mobilenet</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;InvertedResidual for mobilenet</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        conf: configuration object for inverted residual</span>
@@ -435,7 +435,7 @@
 
 
 <span class="k">class</span> <span class="nc">MobileNetV3</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Implements MobileNetV3, inspired from both:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements MobileNetV3, inspired from both:</span>
 <span class="sd">    &lt;https://github.com/xiaochus/MobileNetV3/tree/master/model&gt;`_.</span>
 <span class="sd">    and &lt;https://pytorch.org/vision/stable/_modules/torchvision/models/mobilenetv3.html&gt;`_.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -548,7 +548,7 @@
 
 
 <div class="viewcode-block" id="mobilenet_v3_small"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
@@ -569,7 +569,7 @@
 
 
 <div class="viewcode-block" id="mobilenet_v3_small_r"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_, with rectangular pooling.</span>
 
@@ -590,7 +590,7 @@
 
 
 <div class="viewcode-block" id="mobilenet_v3_large"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
@@ -610,7 +610,7 @@
 
 
 <div class="viewcode-block" id="mobilenet_v3_large_r"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
@@ -630,7 +630,7 @@
 
 
 <div class="viewcode-block" id="mobilenet_v3_small_orientation"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_orientation">[docs]</a><span class="k">def</span> <span class="nf">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
@@ -660,7 +660,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

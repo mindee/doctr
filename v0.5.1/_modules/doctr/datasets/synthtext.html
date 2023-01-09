@@ -261,7 +261,7 @@
 
 
 <div class="viewcode-block" id="SynthText"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.SynthText">[docs]</a><span class="k">class</span> <span class="nc">SynthText</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;SynthText dataset from `&quot;Synthetic Data for Text Localisation in Natural Images&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;SynthText dataset from `&quot;Synthetic Data for Text Localisation in Natural Images&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/abs/1604.06646&gt;`_ | `&quot;repository&quot; &lt;https://github.com/ankush-me/SynthText&gt;`_ |</span>
 <span class="sd">    `&quot;website&quot; &lt;https://www.robots.ox.ac.uk/~vgg/data/scenetext/&gt;`_.</span>
 
@@ -315,7 +315,7 @@
                                               <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Unpacking SynthText&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)):</span>
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span><span class="w"> </span><span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">elt</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">txt</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">word</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
             <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
@@ -344,7 +344,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

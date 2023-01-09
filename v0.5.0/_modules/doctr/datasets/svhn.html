@@ -256,7 +256,7 @@
 
 
 <div class="viewcode-block" id="SVHN"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.SVHN">[docs]</a><span class="k">class</span> <span class="nc">SVHN</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;SVHN dataset from `&quot;The Street View House Numbers (SVHN) Dataset&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;SVHN dataset from `&quot;The Street View House Numbers (SVHN) Dataset&quot;</span>
 <span class="sd">    &lt;http://ufldl.stanford.edu/housenumbers/&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -309,7 +309,7 @@
 
                 <span class="c1"># File existence check</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)):</span>
-                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span><span class="w"> </span><span class="n">img_name</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
                 <span class="c1"># Unpack the information</span>
                 <span class="n">box</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="n">box_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
@@ -362,7 +362,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

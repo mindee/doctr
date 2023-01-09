@@ -277,7 +277,7 @@
     <span class="n">vocab_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">unknown_char</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;■&quot;</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Translate a string input in a given vocabulary</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Translate a string input in a given vocabulary</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input_string: input string to translate</span>
@@ -310,7 +310,7 @@
     <span class="n">input_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Given a predefined mapping, encode the string to a sequence of numbers</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a predefined mapping, encode the string to a sequence of numbers</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input_string: string to encode</span>
@@ -329,7 +329,7 @@
     <span class="n">input_seq</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">SequenceType</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span>
     <span class="n">mapping</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Given a predefined mapping, decode the sequence of numbers to a string</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Given a predefined mapping, decode the sequence of numbers to a string</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        input_seq: array to decode</span>
@@ -357,7 +357,7 @@
     <span class="n">dynamic_seq_length</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Encode character sequences using a given vocab as mapping</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Encode character sequences using a given vocab as mapping</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        sequences: the list of character sequences of size N</span>
@@ -416,7 +416,7 @@
 
 
 <span class="k">def</span> <span class="nf">crop_bboxes_from_image</span><span class="p">(</span><span class="n">img_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">],</span> <span class="n">geoms</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Crop a set of bounding boxes from an image</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Crop a set of bounding boxes from an image</span>
 <span class="sd">    Args:</span>
 <span class="sd">        img_path: path to the image</span>
 <span class="sd">        geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)</span>
@@ -433,7 +433,7 @@
 
 
 <span class="k">def</span> <span class="nf">pre_transform_multiclass</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">]]:</span>
-    <span class="sd">&quot;&quot;&quot;Converts multiclass target to relative coordinates.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Converts multiclass target to relative coordinates.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img: Image</span>
@@ -458,7 +458,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

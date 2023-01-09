@@ -284,7 +284,7 @@
 <section id="developer-mode-installation">
 <h3>Developer mode installation<a class="headerlink" href="#developer-mode-installation" title="Permalink to this heading">#</a></h3>
 <p>Install all additional dependencies with the following command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip install -e .<span class="o">[</span>dev<span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
 </pre></div>
 </div>
 </section>
@@ -298,20 +298,20 @@
 <section id="unit-tests">
 <h3>Unit tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading">#</a></h3>
 <p>In order to run the same unit tests as the CI workflows, you can run unittests locally:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make <span class="nb">test</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
 </section>
 <section id="code-quality">
 <h3>Code quality<a class="headerlink" href="#code-quality" title="Permalink to this heading">#</a></h3>
 <p>To run all quality checks together</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make quality
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>quality
 </pre></div>
 </div>
 <section id="lint-verification">
 <h4>Lint verification<a class="headerlink" href="#lint-verification" title="Permalink to this heading">#</a></h4>
 <p>To ensure that your incoming PR complies with the lint settings, you need to install <a class="reference external" href="https://flake8.pycqa.org/en/latest/">flake8</a> and run the following command from the repository’s root folder:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>flake8 ./
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>flake8<span class="w"> </span>./
 </pre></div>
 </div>
 <p>This will read the <code class="docutils literal notranslate"><span class="pre">.flake8</span></code> setting file and let you know whether your commits need some adjustments.</p>
@@ -319,7 +319,7 @@
 <section id="import-order">
 <h4>Import order<a class="headerlink" href="#import-order" title="Permalink to this heading">#</a></h4>
 <p>In order to ensure there is a common import order convention, run <a class="reference external" href="https://github.com/PyCQA/isort">isort</a> as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>isort **/*.py
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>isort<span class="w"> </span>**/*.py
 </pre></div>
 </div>
 <p>This will reorder the imports of your local files.</p>
@@ -327,7 +327,7 @@
 <section id="annotation-typing">
 <h4>Annotation typing<a class="headerlink" href="#annotation-typing" title="Permalink to this heading">#</a></h4>
 <p>Additionally, to catch type-related issues and have a cleaner codebase, annotation typing are expected. After installing <a class="reference external" href="https://github.com/python/mypy">mypy</a>, you can run the verifications as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mypy --config-file mypy.ini doctr/
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mypy<span class="w"> </span>--config-file<span class="w"> </span>mypy.ini<span class="w"> </span>doctr/
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">mypy.ini</span></code> file will be read to check your typing.</p>
@@ -335,7 +335,7 @@
 <section id="docstring-format">
 <h4>Docstring format<a class="headerlink" href="#docstring-format" title="Permalink to this heading">#</a></h4>
 <p>To keep a sane docstring structure, if you install <a class="reference external" href="https://github.com/PyCQA/pydocstyle">pydocstyle</a>, you can verify your docstrings as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pydocstyle doctr/
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pydocstyle<span class="w"> </span>doctr/
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">.pydocstyle</span></code> file will be read to configure this operation.</p>
@@ -344,7 +344,7 @@
 <section id="modifying-the-documentation">
 <h3>Modifying the documentation<a class="headerlink" href="#modifying-the-documentation" title="Permalink to this heading">#</a></h3>
 <p>In order to check locally your modifications to the documentation:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make docs-single-version
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>docs-single-version
 </pre></div>
 </div>
 <p>You can now open your local version of the documentation located at <code class="docutils literal notranslate"><span class="pre">docs/_build/index.html</span></code> in your browser</p>
@@ -385,7 +385,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

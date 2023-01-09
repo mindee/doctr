@@ -244,7 +244,7 @@
 
 
 <span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-    <span class="sd">&quot;&quot;&quot;Perform string comparison with multiple levels of tolerance</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform string comparison with multiple levels of tolerance</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        word1: a string</span>
@@ -265,7 +265,7 @@
 
 
 <div class="viewcode-block" id="TextMatch"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch">[docs]</a><span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements text match metric (word-level accuracy) for recognition task.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements text match metric (word-level accuracy) for recognition task.</span>
 
 <span class="sd">    The raw aggregated metric is computed as follows:</span>
 
@@ -302,7 +302,7 @@
         <span class="n">gt</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pred</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Update the state of the metric with new predictions</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the state of the metric with new predictions</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            gt: list of groung-truth character sequences</span>
@@ -321,7 +321,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TextMatch.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode</span>
@@ -346,7 +346,7 @@
 
 
 <span class="k">def</span> <span class="nf">box_iou</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of bounding boxes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of bounding boxes</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
@@ -375,7 +375,7 @@
 
 
 <div class="viewcode-block" id="LocalizationConfusion"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a><span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
@@ -431,7 +431,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 <div class="viewcode-block" id="LocalizationConfusion.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall, precision and meanIoU scores</span>
@@ -456,7 +456,7 @@
 
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
@@ -532,7 +532,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
 <div class="viewcode-block" id="OCRMetric.summary"><a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="nb">float</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall &amp; precision for each string comparison flexibility and the mean IoU</span>
@@ -579,7 +579,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

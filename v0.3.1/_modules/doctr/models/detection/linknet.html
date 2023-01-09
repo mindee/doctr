@@ -265,7 +265,7 @@
 
 
 <span class="k">class</span> <span class="nc">LinkNetPostProcessor</span><span class="p">(</span><span class="n">DetectionPostProcessor</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Implements a post processor for LinkNet model.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a post processor for LinkNet model.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        min_size_box: minimal length (pix) to keep a box</span>
@@ -289,7 +289,7 @@
         <span class="n">pred</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">bitmap</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Compute boxes from a bitmap/pred_map: find connected components then filter boxes</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute boxes from a bitmap/pred_map: find connected components then filter boxes</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            pred: Pred map from differentiable linknet output</span>
@@ -320,7 +320,7 @@
 
 
 <span class="k">def</span> <span class="nf">decoder_block</span><span class="p">(</span><span class="n">in_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequential</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">Sequential</span><span class="p">([</span>
         <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
@@ -339,7 +339,7 @@
 
 
 <span class="k">class</span> <span class="nc">LinkNetFPN</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet Encoder-Decoder module</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet Encoder-Decoder module</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -373,7 +373,7 @@
 
 
 <span class="k">class</span> <span class="nc">LinkNet</span><span class="p">(</span><span class="n">DetectionModel</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -468,7 +468,7 @@
         <span class="n">out_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Compute a batch of gts and masks from a list of boxes and a list of masks for each image</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute a batch of gts and masks from a list of boxes and a list of masks for each image</span>
 <span class="sd">        Then, it computes the loss function with proba_map, gts and masks</span>
 
 <span class="sd">        Args:</span>
@@ -536,7 +536,7 @@
 
 
 <div class="viewcode-block" id="linknet"><a class="viewcode-back" href="../../../../models.html#doctr.models.detection.linknet">[docs]</a><span class="k">def</span> <span class="nf">linknet</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Example::</span>
@@ -566,7 +566,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

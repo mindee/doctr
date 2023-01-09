@@ -262,11 +262,11 @@
 
 
 <div class="viewcode-block" id="DocumentFile"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.DocumentFile">[docs]</a><span class="k">class</span> <span class="nc">DocumentFile</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read a document from multiple extensions&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a document from multiple extensions&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="DocumentFile.from_pdf"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.DocumentFile.from_pdf">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Read a PDF file</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a PDF file</span>
 
 <span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
@@ -282,7 +282,7 @@
 
 <div class="viewcode-block" id="DocumentFile.from_url"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.DocumentFile.from_url">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Interpret a web page as a PDF document</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Interpret a web page as a PDF document</span>
 
 <span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_url(&quot;https://www.yoursite.com&quot;)</span>
@@ -298,7 +298,7 @@
 
 <div class="viewcode-block" id="DocumentFile.from_images"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.DocumentFile.from_images">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_images</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">],</span> <span class="n">AbstractFile</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Read an image file (or a collection of image files) and convert it into an image in numpy format</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Read an image file (or a collection of image files) and convert it into an image in numpy format</span>
 
 <span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; pages = DocumentFile.from_images([&quot;path/to/your/page1.png&quot;, &quot;path/to/your/page2.png&quot;])</span>
@@ -325,7 +325,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

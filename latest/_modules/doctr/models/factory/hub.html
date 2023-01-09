@@ -286,7 +286,7 @@
 
 
 <div class="viewcode-block" id="login_to_hub"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.factory.login_to_hub">[docs]</a><span class="k">def</span> <span class="nf">login_to_hub</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Login to huggingface hub&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Login to huggingface hub&quot;&quot;&quot;</span>
     <span class="n">access_token</span> <span class="o">=</span> <span class="n">HfFolder</span><span class="o">.</span><span class="n">get_token</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">access_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">_is_valid_token</span><span class="p">(</span><span class="n">access_token</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Huggingface Hub token found and valid&quot;</span><span class="p">)</span>
@@ -306,7 +306,7 @@
 
 
 <span class="k">def</span> <span class="nf">_save_model_and_config_for_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">save_dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
@@ -335,7 +335,7 @@
 
 
 <div class="viewcode-block" id="push_to_hf_hub"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.factory.push_to_hf_hub">[docs]</a><span class="k">def</span> <span class="nf">push_to_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">task</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Save model and its configuration on HF hub</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model and its configuration on HF hub</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.models import login_to_hub, push_to_hf_hub</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.recognition import crnn_mobilenet_v3_small</span>
@@ -370,7 +370,7 @@
 
 <span class="s2">    **Optical Character Recognition made seamless &amp; accessible to anyone, powered by TensorFlow 2 &amp; PyTorch**</span>
 
-<span class="s2">    ## Task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"></span>
+<span class="s2">    ## Task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
 
 <span class="s2">    https://github.com/mindee/doctr</span>
 
@@ -406,7 +406,7 @@
         <span class="n">arch</span> <span class="o">=</span> <span class="n">run_config</span><span class="o">.</span><span class="n">arch</span>
         <span class="n">readme</span> <span class="o">+=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;&quot;&quot;### Run Configuration</span>
-<span class="s2">                                  </span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                                  </span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
         <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AVAILABLE_ARCHS</span><span class="p">[</span><span class="n">task</span><span class="p">]:</span>  <span class="c1"># type: ignore</span>
@@ -431,7 +431,7 @@
 
 
 <div class="viewcode-block" id="from_hub"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.factory.from_hub">[docs]</a><span class="k">def</span> <span class="nf">from_hub</span><span class="p">(</span><span class="n">repo_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Instantiate &amp; load a pretrained model from HF hub.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Instantiate &amp; load a pretrained model from HF hub.</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.models import from_hub</span>
 <span class="sd">    &gt;&gt;&gt; model = from_hub(&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;)</span>
@@ -494,7 +494,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

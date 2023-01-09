@@ -247,7 +247,7 @@
 
 
 <div class="viewcode-block" id="read_pdf"><a class="viewcode-back" href="../../../io.html#doctr.io.read_pdf">[docs]</a><span class="k">def</span> <span class="nf">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">fitz</span><span class="o">.</span><span class="n">Document</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
 
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.documents import read_pdf</span>
@@ -281,7 +281,7 @@
     <span class="n">bgr_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">default_scales</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Convert a fitz page to a numpy-formatted image</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a fitz page to a numpy-formatted image</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        page: the page of a file read with PyMuPDF</span>
@@ -317,7 +317,7 @@
 
 
 <div class="viewcode-block" id="PDF"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF">[docs]</a><span class="k">class</span> <span class="nc">PDF</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;PDF document template</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;PDF document template</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        doc: input PDF document</span>
@@ -326,7 +326,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">doc</span> <span class="o">=</span> <span class="n">doc</span>
 
 <div class="viewcode-block" id="PDF.as_images"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.as_images">[docs]</a>    <span class="k">def</span> <span class="nf">as_images</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Convert all document pages to images</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert all document pages to images</span>
 
 <span class="sd">        Example::</span>
 <span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
@@ -340,13 +340,13 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">convert_page_to_numpy</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">]</span></div>
 
     <span class="k">def</span> <span class="nf">get_page_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the annotations for all words of a given page&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the annotations for all words of a given page&quot;&quot;&quot;</span>
 
         <span class="c1"># xmin, ymin, xmax, ymax, value, block_idx, line_idx, word_idx</span>
         <span class="k">return</span> <span class="p">[(</span><span class="n">info</span><span class="p">[:</span><span class="mi">4</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span> <span class="k">for</span> <span class="n">info</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">getTextWords</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
 
 <div class="viewcode-block" id="PDF.get_words"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_words">[docs]</a>    <span class="k">def</span> <span class="nf">get_words</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Bbox</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the annotations for all words in the document</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the annotations for all words in the document</span>
 
 <span class="sd">        Example::</span>
 <span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
@@ -364,7 +364,7 @@
                 <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">get_images</span><span class="p">(</span><span class="n">full</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
 
 <div class="viewcode-block" id="PDF.get_artefacts"><a class="viewcode-back" href="../../../io.html#doctr.io.PDF.get_artefacts">[docs]</a>    <span class="k">def</span> <span class="nf">get_artefacts</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]]:</span>
-        <span class="sd">&quot;&quot;&quot;Get the artefacts for the entire document</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the artefacts for the entire document</span>
 
 <span class="sd">        Example::</span>
 <span class="sd">            &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
@@ -387,7 +387,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

@@ -302,7 +302,7 @@
 
 <span class="k">class</span> <span class="nc">ResnetBlock</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
 
-    <span class="sd">&quot;&quot;&quot;Implements a resnet31 block with shortcut</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a resnet31 block with shortcut</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        conv_shortcut: Use of shortcut</span>
@@ -379,7 +379,7 @@
 
 
 <span class="k">class</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Implements a ResNet architecture</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a ResNet architecture</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        num_blocks: number of resnet block in each stage</span>
@@ -468,7 +468,7 @@
 
 
 <div class="viewcode-block" id="resnet18"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet18">[docs]</a><span class="k">def</span> <span class="nf">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Resnet-18 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-18 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -498,7 +498,7 @@
 
 
 <div class="viewcode-block" id="resnet31"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet31">[docs]</a><span class="k">def</span> <span class="nf">resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Resnet31 architecture with rectangular pooling windows as described in</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet31 architecture with rectangular pooling windows as described in</span>
 <span class="sd">    `&quot;Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_. Downsizing: (H, W) --&gt; (H/8, W/4)</span>
 
@@ -530,7 +530,7 @@
 
 
 <div class="viewcode-block" id="resnet34"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet34">[docs]</a><span class="k">def</span> <span class="nf">resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -560,7 +560,7 @@
 
 
 <div class="viewcode-block" id="resnet50"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet50">[docs]</a><span class="k">def</span> <span class="nf">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Resnet-50 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-50 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -596,7 +596,7 @@
 
 
 <span class="k">def</span> <span class="nf">resnet34_wide</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_ with twice as many output channels for each stage.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
@@ -636,7 +636,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2022, Mindee
+                Copyright &#169; 2021-2023, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
