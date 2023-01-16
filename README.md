@@ -99,6 +99,31 @@ You can also export them as a nested dict, more appropriate for JSON format:
 json_output = result.export()
 ```
 
+### Use the KIE predictor
+The KIE predictor is a more flexible predictor compared to OCR as your detection model can detect multiple classes in a document. For example, you can have a detection model to detect just dates and adresses in a document.
+
+The KIE predictor makes it possible to use detector with multiple classes with a recognition model and to have the whole pipeline already setup for you.
+
+```python
+from doctr.io import DocumentFile
+from doctr.models import kie_predictor
+
+# Model
+model = kie_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
+# PDF
+doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
+# Analyze
+result = model(doc)
+
+predictions = result.pages[0].predictions
+for class_name in predictions.keys():
+    list_predictions = predictions[class_name]
+    for prediction in list_predictions:
+        print(f"Prediction for {class_name}: {prediction}")
+```
+The KIE predictor results per page are in a dictionary format with each key representing a class name and it's value are the predictions for that class.
+
+
 ### If you are looking for support from the Mindee team
 [![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/releases/download/v0.5.1/doctr-need-help.png)](https://mindee.com/product/doctr)
 
@@ -247,7 +272,10 @@ Looking to integrate docTR into your API? Here is a template to get you started 
 #### Deploy your API locally
 Specific dependencies are required to run the API template, which you can install as follows:
 ```shell
-pip install -r api/requirements.txt
+cd api/
+pip install poetry
+make lock
+pip install -r requirements.txt
 ```
 You can now run your API locally:
 
@@ -262,7 +290,7 @@ PORT=8002 docker-compose up -d --build
 
 #### What you have deployed
 
-Your API should now be running locally on your port 8002. Access your automatically-built documentation at [http://localhost:8002/redoc](http://localhost:8002/redoc) and enjoy your three functional routes ("/detection", "/recognition", "/ocr"). Here is an example with Python to send a request to the OCR route:
+Your API should now be running locally on your port 8002. Access your automatically-built documentation at [http://localhost:8002/redoc](http://localhost:8002/redoc) and enjoy your three functional routes ("/detection", "/recognition", "/ocr", "/kie"). Here is an example with Python to send a request to the OCR route:
 
 ```python
 import requests

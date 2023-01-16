@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import pickle
 from typing import Dict, List
 
 import cv2
@@ -20,16 +21,17 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
             img = img.transpose(1, 2, 0)
 
         target = np.zeros(img.shape[:2], np.uint8)
-        boxes = targets[idx].copy()
-        boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
-        boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
-        boxes[:, :4] = boxes[:, :4].round().astype(int)
+        tgts = targets[idx].copy()
+        for key, boxes in tgts.items():
+            boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
+            boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
+            boxes[:, :4] = boxes[:, :4].round().astype(int)
 
-        for box in boxes:
-            if boxes.ndim == 3:
-                cv2.fillPoly(target, [np.int0(box)], 1)
-            else:
-                target[int(box[1]) : int(box[3]) + 1, int(box[0]) : int(box[2]) + 1] = 1
+            for box in boxes:
+                if boxes.ndim == 3:
+                    cv2.fillPoly(target, [np.int0(box)], 1)
+                else:
+                    target[int(box[1]) : int(box[3]) + 1, int(box[0]) : int(box[2]) + 1] = 1
         if nb_samples > 1:
             axes[0][idx].imshow(img)
             axes[1][idx].imshow(target.astype(bool))
@@ -81,3 +83,11 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
     plt.ylim(vals[min_idx] - 0.1 * delta, max_val + 0.2 * delta)
     plt.grid(True, linestyle="--", axis="x")
     plt.show(**kwargs)
+
+
+def load_backbone(model, weights_path):
+
+    pretrained_backbone_weights = pickle.load(open(weights_path, "rb"))
+    model.feat_extractor.set_weights(pretrained_backbone_weights[0])
+    model.fpn.set_weights(pretrained_backbone_weights[1])
+    return model

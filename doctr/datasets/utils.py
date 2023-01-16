@@ -20,7 +20,7 @@ from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extr
 
 from .vocabs import VOCABS
 
-__all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences"]
+__all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences", "pre_transform_multiclass"]
 
 ImageTensor = TypeVar("ImageTensor")
 
@@ -183,3 +183,19 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     if geoms.ndim == 2 and geoms.shape[1] == 4:
         return extract_crops(img, geoms.astype(dtype=int))
     raise ValueError("Invalid geometry format")
+
+
+def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.ndarray, Dict[str, List]]:
+    """Converts multiclass target to relative coordinates.
+
+    Args:
+        img: Image
+        target: tuple of target polygons and their classes names
+    """
+    boxes = convert_to_relative_coords(target[0], get_img_shape(img))
+    boxes_classes = target[1]
+    boxes_dict: Dict = {k: [] for k in sorted(set(boxes_classes))}
+    for k, poly in zip(boxes_classes, boxes):
+        boxes_dict[k].append(poly)
+    boxes_dict = {k: np.stack(v, axis=0) for k, v in boxes_dict.items()}
+    return img, boxes_dict

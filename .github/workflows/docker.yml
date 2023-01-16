@@ -28,14 +28,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - name: Install poetry
-        uses: abatilo/actions-poetry@v2.0.0
-        with:
-          poetry-version: 1.1.13
-      - name: Lock the requirements
-        run: |
-          cd api
-          make lock
       - name: Build & run docker
         run: cd api && docker-compose up -d --build
       - name: Ping server

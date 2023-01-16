@@ -27,8 +27,8 @@ class PatchEmbedding(nn.Module):
         self.grid_size = (self.patch_size[0], self.patch_size[1])
         self.num_patches = self.patch_size[0] * self.patch_size[1]
 
-        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))  # type: ignore[attr-defined]
-        self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))  # type: ignore[attr-defined]
+        self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
+        self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))
         self.proj = nn.Linear((channels * self.patch_size[0] * self.patch_size[1]), embed_dim)
 
     def interpolate_pos_encoding(self, embeddings: torch.Tensor, height: int, width: int) -> torch.Tensor:
