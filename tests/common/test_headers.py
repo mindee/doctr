@@ -7,9 +7,9 @@ from pathlib import Path
 def test_copyright_header():
     copyright_header = "".join(
         [
-            f"# Copyright (C) {2021}-{datetime.now().year}, Mindee.\n",
-            "# This program is licensed under the Apache License version 2.\n",
-            "# See LICENSE or go to <https://www.apache.org/licenses/LICENSE-2.0.txt> for full license details.\n",
+            f"# Copyright (C) {2021}-{datetime.now().year}, Mindee.\n\n",
+            "# This program is licensed under the Apache License 2.0.\n",
+            "# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.\n",
         ]
     )
     excluded_files = ["__init__.py"]
