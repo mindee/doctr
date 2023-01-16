@@ -14,11 +14,12 @@ def test_copyright_header():
     )
     excluded_files = ["__init__.py"]
     invalid_files = []
+    locations = [".github", "api/app", "demo", "docs", "doctr", "references", "scripts"]
 
-    for source_path in Path(__file__).parent.parent.joinpath("src").rglob("*.py"):
-        if source_path.name not in excluded_files:
-            source_path_content = source_path.read_text()
-            if copyright_header not in source_path_content:
-                invalid_files.append(source_path)
-
+    for location in locations:
+        for source_path in Path(__file__).parent.parent.parent.joinpath(location).rglob("*.py"):
+            if source_path.name not in excluded_files:
+                source_path_content = source_path.read_text()
+                if copyright_header not in source_path_content:
+                    invalid_files.append(source_path)
     assert len(invalid_files) == 0, f"Invalid copyright header in the following files: {invalid_files}"
