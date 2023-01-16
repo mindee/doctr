@@ -22,7 +22,7 @@ jobs:
         with:
           license: 'Apache-2.0'
           owner: 'Mindee'
-          starting-year: 2021
+          starting-year: 2022
           folders: '.github,api/app,demo,docs,doctr,references,scripts'
           ignores: 'version.py,__init__.py'
 
