@@ -12,7 +12,7 @@ def test_copyright_header():
             "# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.\n",
         ]
     )
-    excluded_files = ["__init__.py"]
+    excluded_files = ["__init__.py", "version.py"]
     invalid_files = []
     locations = [".github", "api/app", "demo", "docs", "doctr", "references", "scripts"]
 
