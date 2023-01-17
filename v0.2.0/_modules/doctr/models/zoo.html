@@ -182,15 +182,35 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
-</ul>
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to docTR</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 </ul>
 
 </div>
@@ -225,55 +245,225 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.zoo</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
+
 <span class="kn">from</span> <span class="nn">.detection.zoo</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="kn">from</span> <span class="nn">.kie_predictor</span> <span class="kn">import</span> <span class="n">KIEPredictor</span>
+<span class="kn">from</span> <span class="nn">.predictor</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
 <span class="kn">from</span> <span class="nn">.recognition.zoo</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;kie_predictor&quot;</span><span class="p">]</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_predictor&quot;</span><span class="p">]</span>
 
-
-<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">det_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">reco_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 
     <span class="c1"># Detection</span>
-    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">)</span>
+    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># Recognition</span>
-    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">)</span>
+    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span>
+        <span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span>
+    <span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span><span class="n">det_predictor</span><span class="p">,</span> <span class="n">reco_predictor</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">OCRPredictor</span><span class="p">(</span>
+        <span class="n">det_predictor</span><span class="p">,</span>
+        <span class="n">reco_predictor</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+        <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
+        <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
 
 
-<div class="viewcode-block" id="ocr_predictor"><a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_predictor">[docs]</a><span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
-    <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span>
-    <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="ocr_predictor"><a class="viewcode-back" href="../../../modules/models.html#doctr.models.ocr_predictor">[docs]</a><span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_predictor(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = ocr_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        arch: name of the architecture to use (&#39;db_sar_vgg&#39;, &#39;db_sar_resnet&#39;, &#39;db_crnn_vgg&#39;, &#39;db_crnn_resnet&#39;)</span>
+<span class="sd">        det_arch: name of the detection architecture or the model itself to use</span>
+<span class="sd">            (e.g. &#39;db_resnet50&#39;, &#39;db_mobilenet_v3_large&#39;)</span>
+<span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
+<span class="sd">            (e.g. &#39;crnn_vgg16_bn&#39;, &#39;sar_resnet31&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
+<span class="sd">        pretrained_backbone: If True, returns a model with a pretrained backbone</span>
+<span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
+<span class="sd">            without rotated textual elements.</span>
+<span class="sd">        preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before</span>
+<span class="sd">            running the detection model on it.</span>
+<span class="sd">        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.</span>
+<span class="sd">        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</span>
+<span class="sd">            (potentially rotated) as straight bounding boxes.</span>
+<span class="sd">        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each</span>
+<span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
+<span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        OCR predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="p">,</span> <span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">reco_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+        <span class="n">export_as_straight_boxes</span><span class="o">=</span><span class="n">export_as_straight_boxes</span><span class="p">,</span>
+        <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
+        <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_kie_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">det_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="n">reco_bs</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEPredictor</span><span class="p">:</span>
+
+    <span class="c1"># Detection</span>
+    <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Recognition</span>
+    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span>
+        <span class="n">reco_arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">KIEPredictor</span><span class="p">(</span>
+        <span class="n">det_predictor</span><span class="p">,</span>
+        <span class="n">reco_predictor</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+        <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
+        <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="kie_predictor"><a class="viewcode-back" href="../../../modules/models.html#doctr.models.kie_predictor">[docs]</a><span class="k">def</span> <span class="nf">kie_predictor</span><span class="p">(</span>
+    <span class="n">det_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">export_as_straight_boxes</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_orientation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEPredictor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;End-to-end KIE architecture using one model for localization, and another for text recognition.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = ocr_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        det_arch: name of the detection architecture or the model itself to use</span>
+<span class="sd">            (e.g. &#39;db_resnet50&#39;, &#39;db_mobilenet_v3_large&#39;)</span>
+<span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
+<span class="sd">            (e.g. &#39;crnn_vgg16_bn&#39;, &#39;sar_resnet31&#39;)</span>
+<span class="sd">        pretrained: If True, returns a model pre-trained on our OCR dataset</span>
+<span class="sd">        pretrained_backbone: If True, returns a model with a pretrained backbone</span>
+<span class="sd">        assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</span>
+<span class="sd">            without rotated textual elements.</span>
+<span class="sd">        preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before</span>
+<span class="sd">            running the detection model on it.</span>
+<span class="sd">        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.</span>
+<span class="sd">        export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</span>
+<span class="sd">            (potentially rotated) as straight bounding boxes.</span>
+<span class="sd">        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each</span>
+<span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        detect_language: if True, the language prediction will be added to the predictions for each</span>
+<span class="sd">            page. Doing so will slightly deteriorate the overall latency.</span>
+<span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        KIE predictor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_kie_predictor</span><span class="p">(</span>
+        <span class="n">det_arch</span><span class="p">,</span>
+        <span class="n">reco_arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
+        <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+        <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+        <span class="n">export_as_straight_boxes</span><span class="o">=</span><span class="n">export_as_straight_boxes</span><span class="p">,</span>
+        <span class="n">detect_orientation</span><span class="o">=</span><span class="n">detect_orientation</span><span class="p">,</span>
+        <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

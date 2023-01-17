@@ -182,20 +182,35 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
 </ul>
 
 </div>
@@ -230,17 +245,18 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.datasets.loader</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
 
-<span class="kn">from</span> <span class="nn">.multithreading</span> <span class="kn">import</span> <span class="n">multithread_exec</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">doctr.utils.multithreading</span> <span class="kn">import</span> <span class="n">multithread_exec</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;DataLoader&quot;</span><span class="p">]</span>
 
@@ -262,22 +278,22 @@
     <span class="k">return</span> <span class="n">tf_data</span>
 
 
-<div class="viewcode-block" id="DataLoader"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.loader.DataLoader">[docs]</a><span class="k">class</span> <span class="nc">DataLoader</span><span class="p">:</span>
+<div class="viewcode-block" id="DataLoader"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.loader.DataLoader">[docs]</a><span class="k">class</span> <span class="nc">DataLoader</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a dataset wrapper for fast data loading</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import FUNSD, DataLoader</span>
-<span class="sd">        &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
-<span class="sd">        &gt;&gt;&gt; train_loader = DataLoader(train_set, batch_size=32)</span>
-<span class="sd">        &gt;&gt;&gt; train_iter = iter(train_loader)</span>
-<span class="sd">        &gt;&gt;&gt; images, targets = next(train_iter)</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import CORD, DataLoader</span>
+<span class="sd">    &gt;&gt;&gt; train_set = CORD(train=True, download=True)</span>
+<span class="sd">    &gt;&gt;&gt; train_loader = DataLoader(train_set, batch_size=32)</span>
+<span class="sd">    &gt;&gt;&gt; train_iter = iter(train_loader)</span>
+<span class="sd">    &gt;&gt;&gt; images, targets = next(train_iter)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        dataset: the dataset</span>
 <span class="sd">        shuffle: whether the samples should be shuffled before passing it to the iterator</span>
 <span class="sd">        batch_size: number of elements in each batch</span>
 <span class="sd">        drop_last: if `True`, drops the last batch if it isn&#39;t full</span>
-<span class="sd">        workers: number of workers to use for data loading</span>
+<span class="sd">        num_workers: number of workers to use for data loading</span>
+<span class="sd">        collate_fn: function to merge samples into a batch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -286,16 +302,23 @@
         <span class="n">shuffle</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">drop_last</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">collate_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span> <span class="o">=</span> <span class="n">batch_size</span>
         <span class="n">nb</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_batches</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span> <span class="k">if</span> <span class="n">drop_last</span> <span class="k">else</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nb</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">collate_fn</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s1">&#39;collate_fn&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">default_collate</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">workers</span> <span class="o">=</span> <span class="n">workers</span>
+        <span class="k">if</span> <span class="n">collate_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="n">collate_fn</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">,</span> <span class="s2">&quot;collate_fn&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="n">default_collate</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span> <span class="o">=</span> <span class="n">collate_fn</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_batches</span>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># Updates indices after each epoch</span>
@@ -312,9 +335,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_yielded</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_batches</span><span class="p">:</span>
             <span class="c1"># Get next indices</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_yielded</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">idx</span><span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">),</span> <span class="n">idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)]</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">[</span><span class="n">idx</span> <span class="p">:</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="p">),</span> <span class="n">idx</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">)]</span>
 
-            <span class="n">samples</span> <span class="o">=</span> <span class="n">multithread_exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">workers</span><span class="p">)</span>
+            <span class="n">samples</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">multithread_exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">threads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_workers</span><span class="p">))</span>
 
             <span class="n">batch_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collate_fn</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
 

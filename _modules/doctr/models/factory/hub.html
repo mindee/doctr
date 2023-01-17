@@ -245,7 +245,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.factory.hub</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2022, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -260,7 +260,13 @@
 <span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">huggingface_hub</span> <span class="kn">import</span> <span class="n">HfApi</span><span class="p">,</span> <span class="n">HfFolder</span><span class="p">,</span> <span class="n">Repository</span><span class="p">,</span> <span class="n">hf_hub_download</span><span class="p">,</span> <span class="n">snapshot_download</span>
+<span class="kn">from</span> <span class="nn">huggingface_hub</span> <span class="kn">import</span> <span class="p">(</span>  <span class="c1"># type: ignore[attr-defined]</span>
+    <span class="n">HfApi</span><span class="p">,</span>
+    <span class="n">HfFolder</span><span class="p">,</span>
+    <span class="n">Repository</span><span class="p">,</span>
+    <span class="n">hf_hub_download</span><span class="p">,</span>
+    <span class="n">snapshot_download</span><span class="p">,</span>
+<span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">doctr</span> <span class="kn">import</span> <span class="n">models</span>
 <span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">is_tf_available</span><span class="p">,</span> <span class="n">is_torch_available</span>

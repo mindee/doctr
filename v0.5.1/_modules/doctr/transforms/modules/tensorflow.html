@@ -190,7 +190,10 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -242,10 +245,10 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.transforms.modules.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
@@ -258,9 +261,24 @@
 
 <span class="kn">from</span> <span class="nn">..functional.tensorflow</span> <span class="kn">import</span> <span class="n">random_shadow</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Compose&#39;</span><span class="p">,</span> <span class="s1">&#39;Resize&#39;</span><span class="p">,</span> <span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="s1">&#39;LambdaTransformation&#39;</span><span class="p">,</span> <span class="s1">&#39;ToGray&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomBrightness&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;RandomContrast&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomSaturation&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomHue&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomGamma&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomJpegQuality&#39;</span><span class="p">,</span> <span class="s1">&#39;GaussianBlur&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;ChannelShuffle&#39;</span><span class="p">,</span> <span class="s1">&#39;GaussianNoise&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomHorizontalFlip&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomShadow&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;Compose&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Resize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Normalize&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LambdaTransformation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ToGray&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomBrightness&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomContrast&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomSaturation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomHue&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomGamma&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomJpegQuality&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GaussianBlur&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ChannelShuffle&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;GaussianNoise&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomHorizontalFlip&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomShadow&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <div class="viewcode-block" id="Compose"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.Compose">[docs]</a><span class="k">class</span> <span class="nc">Compose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -275,7 +293,7 @@
 <span class="sd">        transforms: list of transformation modules</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;transforms&quot;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="n">transforms</span>
@@ -301,10 +319,11 @@
 <span class="sd">        preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros</span>
 <span class="sd">        symmetric_pad: if `True` while preserving aspect ratio, the padding will be done symmetrically</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">output_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]],</span>
-        <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">,</span>
+        <span class="n">method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;bilinear&quot;</span><span class="p">,</span>
         <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -389,6 +408,7 @@
 <span class="sd">        mean: average value per channel</span>
 <span class="sd">        std: standard deviation per channel</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">],</span> <span class="n">std</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">std</span><span class="p">)</span>
@@ -413,6 +433,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        fn: the function to be applied to the input tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span>
 
@@ -428,6 +449,7 @@
 <span class="sd">    &gt;&gt;&gt; transfo = ToGray()</span>
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_output_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_output_channels</span> <span class="o">=</span> <span class="n">num_output_channels</span>
 
@@ -449,6 +471,7 @@
 <span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
 <span class="sd">        p: probability to apply transformation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span> <span class="o">=</span> <span class="n">max_delta</span>
 
@@ -471,7 +494,8 @@
 <span class="sd">    Args:</span>
 <span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor&lt;1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -493,7 +517,8 @@
 <span class="sd">    Args:</span>
 <span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor&lt;1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">delta</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -514,6 +539,7 @@
 <span class="sd">    Args:</span>
 <span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_delta</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_delta</span> <span class="o">=</span> <span class="n">max_delta</span>
 
@@ -538,6 +564,7 @@
 <span class="sd">        min_gain: lower bound for constant multiplier</span>
 <span class="sd">        max_gain: upper bound for constant multiplier</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">min_gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
@@ -572,6 +599,7 @@
 <span class="sd">        min_quality: int between [0, 100]</span>
 <span class="sd">        max_quality: int between [0, 100]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_quality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">60</span><span class="p">,</span> <span class="n">max_quality</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span> <span class="o">=</span> <span class="n">min_quality</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_quality</span> <span class="o">=</span> <span class="n">max_quality</span>
@@ -580,9 +608,7 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;min_quality=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span><span class="si">}</span><span class="s2">&quot;</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_jpeg_quality</span><span class="p">(</span>
-            <span class="n">img</span><span class="p">,</span> <span class="n">min_jpeg_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span><span class="p">,</span> <span class="n">max_jpeg_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_quality</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_jpeg_quality</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">min_jpeg_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">min_quality</span><span class="p">,</span> <span class="n">max_jpeg_quality</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">max_quality</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="GaussianBlur"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.GaussianBlur">[docs]</a><span class="k">class</span> <span class="nc">GaussianBlur</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -597,6 +623,7 @@
 <span class="sd">        kernel_shape: size of the blurring kernel</span>
 <span class="sd">        std: min and max value of the standard deviation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kernel_shape</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]],</span> <span class="n">std</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kernel_shape</span> <span class="o">=</span> <span class="n">kernel_shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">std</span>
@@ -608,7 +635,9 @@
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">tfa</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">gaussian_filter2d</span><span class="p">(</span>
-            <span class="n">img</span><span class="p">,</span> <span class="n">filter_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_shape</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+            <span class="n">img</span><span class="p">,</span>
+            <span class="n">filter_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_shape</span><span class="p">,</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 
@@ -634,7 +663,8 @@
 <span class="sd">        mean : mean of the gaussian distribution</span>
 <span class="sd">        std : std of the gaussian distribution</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">std</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">=</span> <span class="n">std</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">mean</span>
@@ -644,8 +674,7 @@
         <span class="n">noise</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">std</span>
         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
-                <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">+</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">noise</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
-                <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">+</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">noise</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">noise</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -670,15 +699,12 @@
 <span class="sd">    Args:</span>
 <span class="sd">        p : probability of Horizontal Flip</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
-            <span class="bp">self</span><span class="p">,</span>
-            <span class="n">img</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
-            <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Args:</span>
 <span class="sd">            img: Image to be flipped.</span>
@@ -706,9 +732,10 @@
 <span class="sd">    Args:</span>
 <span class="sd">        opacity_range : minimum and maximum opacity of the shade</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">opacity_range</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">opacity_range</span> <span class="o">=</span> <span class="n">opacity_range</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">opacity_range</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="mf">.2</span><span class="p">,</span> <span class="mf">.8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">opacity_range</span> <span class="o">=</span> <span class="n">opacity_range</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">opacity_range</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="k">else</span> <span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="c1"># Reshape the distribution</span>
@@ -719,7 +746,7 @@
                     <span class="mi">0</span><span class="p">,</span>
                     <span class="mi">255</span><span class="p">,</span>
                 <span class="p">),</span>
-                <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span>
+                <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">random_shadow</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opacity_range</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>

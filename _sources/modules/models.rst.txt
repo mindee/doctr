@@ -81,6 +81,8 @@ doctr.models.zoo
 
 .. autofunction:: doctr.models.ocr_predictor
 
+.. autofunction:: doctr.models.kie_predictor
+
 
 doctr.models.factory
 --------------------

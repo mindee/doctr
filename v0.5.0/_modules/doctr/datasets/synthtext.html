@@ -184,21 +184,29 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
@@ -237,47 +245,53 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.datasets.synthtext</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
+<span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">io</span> <span class="k">as</span> <span class="n">sio</span>
 <span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="n">crop_bboxes_from_image</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;SynthText&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SynthText&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="SynthText"><a class="viewcode-back" href="../../../datasets.html#doctr.datasets.SynthText">[docs]</a><span class="k">class</span> <span class="nc">SynthText</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
+<div class="viewcode-block" id="SynthText"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.SynthText">[docs]</a><span class="k">class</span> <span class="nc">SynthText</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SynthText dataset from `&quot;Synthetic Data for Text Localisation in Natural Images&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/abs/1604.06646&gt;`_ | `&quot;repository&quot; &lt;https://github.com/ankush-me/SynthText&gt;`_ |</span>
 <span class="sd">    `&quot;website&quot; &lt;https://www.robots.ox.ac.uk/~vgg/data/scenetext/&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.datasets import SynthText</span>
-<span class="sd">        &gt;&gt;&gt; train_set = SynthText(train=True, download=True)</span>
-<span class="sd">        &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&amp;src=0</span>
+<span class="sd">        :align: center</span>
+
+<span class="sd">    &gt;&gt;&gt; from doctr.datasets import SynthText</span>
+<span class="sd">    &gt;&gt;&gt; train_set = SynthText(train=True, download=True)</span>
+<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
+<span class="sd">        recognition_task: whether the dataset should be used for recognition task</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">URL</span> <span class="o">=</span> <span class="s1">&#39;https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip&#39;</span>
-    <span class="n">SHA256</span> <span class="o">=</span> <span class="s1">&#39;28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1&#39;</span>
+    <span class="n">URL</span> <span class="o">=</span> <span class="s2">&quot;https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip&quot;</span>
+    <span class="n">SHA256</span> <span class="o">=</span> <span class="s2">&quot;28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">recognition_task</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
@@ -286,42 +300,79 @@
             <span class="kc">None</span><span class="p">,</span>
             <span class="n">file_hash</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">extract_archive</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">kwargs</span>
+            <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">recognition_task</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
-
-        <span class="c1"># Load mat data</span>
-        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s1">&#39;SynthText&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
-        <span class="n">mat_data</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s1">&#39;gt.mat&#39;</span><span class="p">))</span>
-        <span class="n">train_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mat_data</span><span class="p">[</span><span class="s1">&#39;imnames&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.9</span><span class="p">)</span>
-        <span class="n">set_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="n">paths</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="s1">&#39;imnames&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">set_slice</span><span class="p">]</span>
-        <span class="n">boxes</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="s1">&#39;wordBB&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">set_slice</span><span class="p">]</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="s1">&#39;txt&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">set_slice</span><span class="p">]</span>
-        <span class="k">del</span> <span class="n">mat_data</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
-        <span class="k">for</span> <span class="n">img_path</span><span class="p">,</span> <span class="n">word_boxes</span><span class="p">,</span> <span class="n">txt</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">boxes</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span>
-                                              <span class="n">desc</span><span class="o">=</span><span class="s1">&#39;Unpacking SynthText&#39;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)):</span>
+        <span class="c1"># Load mat data</span>
+        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;SynthText&quot;</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SHA256</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span>
+        <span class="c1"># define folder to write SynthText recognition dataset</span>
+        <span class="n">reco_folder_name</span> <span class="o">=</span> <span class="s2">&quot;SynthText_recognition_train&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="s2">&quot;SynthText_recognition_test&quot;</span>
+        <span class="n">reco_folder_name</span> <span class="o">=</span> <span class="s2">&quot;Poly_&quot;</span> <span class="o">+</span> <span class="n">reco_folder_name</span> <span class="k">if</span> <span class="n">use_polygons</span> <span class="k">else</span> <span class="n">reco_folder_name</span>
+        <span class="n">reco_folder_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">reco_folder_name</span><span class="p">)</span>
+        <span class="n">reco_images_counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="n">recognition_task</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_from_folder</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">recognition_task</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">mat_data</span> <span class="o">=</span> <span class="n">sio</span><span class="o">.</span><span class="n">loadmat</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s2">&quot;gt.mat&quot;</span><span class="p">))</span>
+        <span class="n">train_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mat_data</span><span class="p">[</span><span class="s2">&quot;imnames&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="mf">0.9</span><span class="p">)</span>
+        <span class="n">set_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">paths</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="s2">&quot;imnames&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">set_slice</span><span class="p">]</span>
+        <span class="n">boxes</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="s2">&quot;wordBB&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">set_slice</span><span class="p">]</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">mat_data</span><span class="p">[</span><span class="s2">&quot;txt&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">set_slice</span><span class="p">]</span>
+        <span class="k">del</span> <span class="n">mat_data</span>
+
+        <span class="k">for</span> <span class="n">img_path</span><span class="p">,</span> <span class="n">word_boxes</span><span class="p">,</span> <span class="n">txt</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">iterable</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">boxes</span><span class="p">,</span> <span class="n">labels</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Unpacking SynthText&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+        <span class="p">):</span>
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">])):</span>
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span><span class="w"> </span><span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">elt</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">txt</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">word</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
-            <span class="n">word_boxes</span> <span class="o">=</span> <span class="n">word_boxes</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="k">if</span> <span class="n">word_boxes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">word_boxes</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
+            <span class="n">word_boxes</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">word_boxes</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">word_boxes</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span>
+                <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">word_boxes</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="p">)</span>
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">use_polygons</span><span class="p">:</span>
+                <span class="c1"># xmin, ymin, xmax, ymax</span>
                 <span class="n">word_boxes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">word_boxes</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">word_boxes</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">word_boxes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)))</span>
+            <span class="k">if</span> <span class="n">recognition_task</span><span class="p">:</span>
+                <span class="n">crops</span> <span class="o">=</span> <span class="n">crop_bboxes_from_image</span><span class="p">(</span><span class="n">img_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">geoms</span><span class="o">=</span><span class="n">word_boxes</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># write data to disk</span>
+                        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reco_images_counter</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                            <span class="n">tmp_img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">crop</span><span class="p">)</span>
+                            <span class="n">tmp_img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">reco_images_counter</span><span class="si">}</span><span class="s2">.png&quot;</span><span class="p">))</span>
+                            <span class="n">reco_images_counter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">word_boxes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="n">recognition_task</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_read_from_folder</span><span class="p">(</span><span class="n">reco_folder_path</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_read_from_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;*.png&quot;</span><span class="p">)):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">img_path</span><span class="p">)[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span><span class="si">}</span><span class="s2">.txt&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span></div>
 </pre></div>
         </article>
       </div>

@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Preparing your model for inference" href="using_model_export.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Choose a ready to use dataset" href="using_datasets.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 5.3.0 and Furo 2022.12.07 -->
         <title>Choosing the right model - docTR documentation</title>
@@ -191,7 +191,10 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -261,14 +264,14 @@ Our latest detection models works with rotated and skewed documents!</p>
 <h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this heading">#</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="models.html#doctr.models.detection.linknet_resnet18">linknet_resnet18</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.detection.db_resnet50">db_resnet50</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.detection.db_mobilenet_v3_large">db_mobilenet_v3_large</a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18" title="doctr.models.detection.linknet_resnet18"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_resnet50" title="doctr.models.detection.db_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_mobilenet_v3_large" title="doctr.models.detection.db_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_mobilenet_v3_large</span></code></a></p></li>
 </ul>
 <p>We also provide 2 models working with any kind of rotated documents:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="models.html#doctr.models.detection.linknet_resnet18_rotation">linknet_resnet18_rotation</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.detection.db_resnet50_rotation">db_resnet50_rotation</a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18_rotation" title="doctr.models.detection.linknet_resnet18_rotation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18_rotation</span></code></a></p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50_rotation</span></code></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -321,14 +324,14 @@ Our latest detection models works with rotated and skewed documents!</p>
 </tbody>
 </table>
 </div>
-<p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+<p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>c5.x12large &lt;https://aws.amazon.com/ec2/instance-types/c5/&gt;</cite> AWS instance (CPU Xeon Platinum 8275L).</p>
 </section>
 <section id="detection-predictors">
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this heading">#</a></h3>
-<p><a class="reference external" href="models.html#doctr.models.detection.detection_predictor">detection_predictor</a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
+<p><a class="reference internal" href="../modules/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detection_predictor</span></code></a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
@@ -357,16 +360,16 @@ Explanations about the metrics being used are available in <a class="reference i
 <h3>Available architectures<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
-<li><p><a class="reference external" href="models.html#doctr.models.recognition.crnn_vgg16_bn">crnn_vgg16_bn</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.recognition.crnn_mobilenet_v3_small">crnn_mobilenet_v3_small</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.recognition.crnn_mobilenet_v3_large">crnn_mobilenet_v3_large</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.recognition.sar_resnet31">sar_resnet31</a></p></li>
-<li><p><a class="reference external" href="models.html#doctr.models.recognition.master">master</a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_vgg16_bn" title="doctr.models.recognition.crnn_vgg16_bn"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_small" title="doctr.models.recognition.crnn_mobilenet_v3_small"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_small</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_large" title="doctr.models.recognition.crnn_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_large</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.sar_resnet31" title="doctr.models.recognition.sar_resnet31"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sar_resnet31</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.master" title="doctr.models.recognition.master"><code class="xref py py-meth docutils literal notranslate"><span class="pre">master</span></code></a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
-<div class="table-wrapper docutils container" id="id5">
-<table class="docutils align-default" id="id5">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
+<div class="table-wrapper docutils container" id="id3">
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">#</a></caption>
 <colgroup>
 <col style="width: 17%" />
 <col style="width: 17%" />
@@ -423,7 +426,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </tbody>
 </table>
 </div>
-<p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+<p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metric being used (exact match) are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p>While most of our recognition models were trained on our french vocab (cf. <a class="reference internal" href="../modules/datasets.html#vocabs"><span class="std std-ref">Supported Vocabs</span></a>), you can easily access the vocab of any model as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
@@ -432,11 +435,11 @@ Explanations about the metric being used (exact match) are available in <a class
 </pre></div>
 </div>
 <p><em>Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>c5.x12large &lt;https://aws.amazon.com/ec2/instance-types/c5/&gt;</cite> AWS instance (CPU Xeon Platinum 8275L).</p>
 </section>
 <section id="recognition-predictors">
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this heading">#</a></h3>
-<p><a class="reference external" href="models.html#doctr.models.recognition.recognition_predictor">recognition_predictor</a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
+<p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">recognition_predictor</span></code></a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
@@ -449,8 +452,8 @@ Explanations about the metric being used (exact match) are available in <a class
 <section id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this heading">#</a></h2>
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
-<section id="id3">
-<h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
+<section id="id2">
+<h3>Available architectures<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
 <p>You can use any combination of detection and recognition models supporte by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -554,10 +557,10 @@ Explanations about the metric being used (exact match) are available in <a class
 </tbody>
 </table>
 </div>
-<p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">Available Datasets</span></a>).
+<p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <cite>c5.x12large &lt;https://aws.amazon.com/ec2/instance-types/c5/&gt;</cite> AWS instance (CPU Xeon Platinum 8275L).</p>
 <p>Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -719,7 +722,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </section>
 <section id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this heading">#</a></h3>
-<p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference external" href="models.html#doctr.models.ocr_predictor">ocr_predictor</a>.</p>
+<p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference internal" href="../modules/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ocr_predictor</span></code></a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -813,8 +816,8 @@ To get a better understanding of our document model, check our <a class="referen
 <p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
-  <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-  <span class="n">xml_element</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xml_element</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>For reference, here is a sample XML byte string output:</p>
@@ -850,12 +853,12 @@ To get a better understanding of our document model, check our <a class="referen
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="using_model_export.html">
+          <a class="next-page" href="using_datasets.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Preparing your model for inference</div>
+                <div class="title">Choose a ready to use dataset</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -912,7 +915,7 @@ To get a better understanding of our document model, check our <a class="referen
 </ul>
 </li>
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
-<li><a class="reference internal" href="#id3">Available architectures</a></li>
+<li><a class="reference internal" href="#id2">Available architectures</a></li>
 <li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
 <li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
 </ul>

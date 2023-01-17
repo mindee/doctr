@@ -184,21 +184,29 @@
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/installing.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../utils.html">doctr.utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
@@ -237,38 +245,61 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.classification.resnet.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
+<span class="kn">from</span> <span class="nn">tensorflow.keras.applications</span> <span class="kn">import</span> <span class="n">ResNet50</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
 
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ResNet&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet18&#39;</span><span class="p">,</span> <span class="s1">&#39;resnet31&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ResNet&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet31&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet50&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet34_wide&quot;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;resnet18&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
-        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
-        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="s1">&#39;https://github.com/mindee/doctr/releases/download/v0.4.1/resnet18-d4634669.zip&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;resnet18&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/resnet18-d4634669.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s1">&#39;resnet31&#39;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">&#39;mean&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
-        <span class="s1">&#39;std&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
-        <span class="s1">&#39;input_shape&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s1">&#39;classes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s1">&#39;french&#39;</span><span class="p">]),</span>
-        <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">&quot;resnet31&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.0/resnet31-5a47a60b.zip&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;resnet34&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.0/resnet34-5dcc97ca.zip&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;resnet50&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.0/resnet50-e75e4cdf.zip&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;resnet34_wide&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.0/resnet34_wide-c1271816.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -283,13 +314,8 @@
 <span class="sd">        kernel_size: size of square kernels</span>
 <span class="sd">        strides: strides to use in the first convolution of the block</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">output_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="n">conv_shortcut</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">conv_shortcut</span><span class="p">:</span>
@@ -298,20 +324,18 @@
                     <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span>
                         <span class="n">filters</span><span class="o">=</span><span class="n">output_channels</span><span class="p">,</span>
                         <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
-                        <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">,</span>
+                        <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
                         <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                         <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">kernel_initializer</span><span class="o">=</span><span class="s1">&#39;he_normal&#39;</span>
+                        <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
                     <span class="p">),</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">()</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
                 <span class="p">]</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Lambda</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">conv_resnetblock</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="p">)</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s1">&#39;relu&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_resnetblock</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">conv_resnetblock</span><span class="p">(</span>
@@ -320,14 +344,11 @@
         <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">[</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">),</span>
             <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">),</span>
         <span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">conv_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">clone</span> <span class="o">+</span> <span class="n">conv_out</span><span class="p">)</span>
@@ -336,14 +357,9 @@
 
 
 <span class="k">def</span> <span class="nf">resnet_stage</span><span class="p">(</span>
-    <span class="n">num_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-    <span class="n">shortcut</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-    <span class="n">downsample</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">num_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shortcut</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">downsample</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]:</span>
-    <span class="n">_layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">ResnetBlock</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="o">=</span><span class="n">shortcut</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span> <span class="k">if</span> <span class="n">downsample</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="p">]</span>
+    <span class="n">_layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ResnetBlock</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="o">=</span><span class="n">shortcut</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span> <span class="k">if</span> <span class="n">downsample</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)]</span>
 
     <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">):</span>
         <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ResnetBlock</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
@@ -361,6 +377,7 @@
 <span class="sd">        stage_conv: whether to add a conv_sequence after each stage</span>
 <span class="sd">        stage_pooling: pooling to add after each stage (if None, no pooling)</span>
 <span class="sd">        origin_stem: whether to use the orginal ResNet stem or ResNet-31&#39;s</span>
+<span class="sd">        stem_channels: number of output channels of the stem convolutions</span>
 <span class="sd">        attn_module: attention module to use in each stage</span>
 <span class="sd">        include_top: whether the classifier head should be instantiated</span>
 <span class="sd">        num_classes: number of output classes</span>
@@ -375,44 +392,49 @@
         <span class="n">stage_conv</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span>
         <span class="n">stage_pooling</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
         <span class="n">origin_stem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">stem_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
         <span class="n">attn_module</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="nb">int</span><span class="p">],</span> <span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+        <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">input_shape</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 
+        <span class="n">inplanes</span> <span class="o">=</span> <span class="n">stem_channels</span>
         <span class="k">if</span> <span class="n">origin_stem</span><span class="p">:</span>
             <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;same&#39;</span><span class="p">),</span>
+                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">7</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">),</span>
             <span class="p">]</span>
-            <span class="n">inplanes</span> <span class="o">=</span> <span class="mi">64</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
-                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">),</span>
+                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">inplanes</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">input_shape</span><span class="p">),</span>
+                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">inplanes</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">),</span>
             <span class="p">]</span>
-            <span class="n">inplanes</span> <span class="o">=</span> <span class="mi">128</span>
 
-        <span class="k">for</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">,</span> <span class="n">down</span><span class="p">,</span> <span class="n">conv</span><span class="p">,</span> <span class="n">pool</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">,</span> <span class="n">stage_downsample</span><span class="p">,</span> <span class="n">stage_conv</span><span class="p">,</span>
-                                                        <span class="n">stage_pooling</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">n_blocks</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">,</span> <span class="n">down</span><span class="p">,</span> <span class="n">conv</span><span class="p">,</span> <span class="n">pool</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">num_blocks</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">,</span> <span class="n">stage_downsample</span><span class="p">,</span> <span class="n">stage_conv</span><span class="p">,</span> <span class="n">stage_pooling</span>
+        <span class="p">):</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">resnet_stage</span><span class="p">(</span><span class="n">n_blocks</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">,</span> <span class="n">out_chan</span> <span class="o">!=</span> <span class="n">inplanes</span><span class="p">,</span> <span class="n">down</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">attn_module</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attn_module</span><span class="p">(</span><span class="n">out_chan</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">conv</span><span class="p">:</span>
-                <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
+                <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">pool</span><span class="p">:</span>
-                <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">))</span>
+                <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">MaxPool2D</span><span class="p">(</span><span class="n">pool_size</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;valid&quot;</span><span class="p">))</span>
             <span class="n">inplanes</span> <span class="o">=</span> <span class="n">out_chan</span>
 
         <span class="k">if</span> <span class="n">include_top</span><span class="p">:</span>
-            <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">),</span>
-            <span class="p">])</span>
+            <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
+                    <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">),</span>
+                <span class="p">]</span>
+            <span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
 
 
 <span class="k">def</span> <span class="nf">_resnet</span><span class="p">(</span>
@@ -424,31 +446,39 @@
     <span class="n">stage_conv</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span>
     <span class="n">stage_pooling</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]],</span>
     <span class="n">origin_stem</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;num_classes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_classes&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;classes&#39;</span><span class="p">]))</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_shape&#39;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;input_shape&#39;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">]))</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_shape&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;input_shape&quot;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span>
+
+    <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">)</span>
 
     <span class="c1"># Build the model</span>
-    <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet</span><span class="p">(</span><span class="n">num_blocks</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">,</span> <span class="n">stage_downsample</span><span class="p">,</span> <span class="n">stage_conv</span><span class="p">,</span> <span class="n">stage_pooling</span><span class="p">,</span> <span class="n">origin_stem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet</span><span class="p">(</span>
+        <span class="n">num_blocks</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">,</span> <span class="n">stage_downsample</span><span class="p">,</span> <span class="n">stage_conv</span><span class="p">,</span> <span class="n">stage_pooling</span><span class="p">,</span> <span class="n">origin_stem</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">])</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
 
-<div class="viewcode-block" id="resnet18"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.resnet18">[docs]</a><span class="k">def</span> <span class="nf">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<div class="viewcode-block" id="resnet18"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet18">[docs]</a><span class="k">def</span> <span class="nf">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-18 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet18</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet18(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet18</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet18(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
@@ -458,7 +488,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
-        <span class="s1">&#39;resnet18&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;resnet18&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
         <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">],</span>
@@ -470,17 +500,16 @@
     <span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="resnet31"><a class="viewcode-back" href="../../../../../models.html#doctr.models.classification.resnet31">[docs]</a><span class="k">def</span> <span class="nf">resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<div class="viewcode-block" id="resnet31"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet31">[docs]</a><span class="k">def</span> <span class="nf">resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet31 architecture with rectangular pooling windows as described in</span>
 <span class="sd">    `&quot;Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_. Downsizing: (H, W) --&gt; (H/8, W/4)</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import resnet31</span>
-<span class="sd">        &gt;&gt;&gt; model = resnet31(pretrained=False)</span>
-<span class="sd">        &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">        &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet31</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet31(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
@@ -490,7 +519,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
-        <span class="s1">&#39;resnet31&#39;</span><span class="p">,</span>
+        <span class="s2">&quot;resnet31&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
         <span class="p">[</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">],</span>
@@ -498,8 +527,115 @@
         <span class="p">[</span><span class="kc">True</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
         <span class="p">[(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
         <span class="kc">False</span><span class="p">,</span>
+        <span class="n">stem_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="resnet34"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet34">[docs]</a><span class="k">def</span> <span class="nf">resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet34</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet34(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained: boolean, True if model is pretrained</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A classification model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
+        <span class="s2">&quot;resnet34&quot;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="resnet50"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet50">[docs]</a><span class="k">def</span> <span class="nf">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-50 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet50</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet50(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained: boolean, True if model is pretrained</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A classification model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="s2">&quot;resnet50&quot;</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">]))</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_shape&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="s2">&quot;resnet50&quot;</span><span class="p">][</span><span class="s2">&quot;input_shape&quot;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="s2">&quot;resnet50&quot;</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span>
+
+    <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="s2">&quot;resnet50&quot;</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">ResNet50</span><span class="p">(</span>
+        <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">pooling</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">input_shape</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">],</span>
+        <span class="n">classes</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">],</span>
+        <span class="n">classifier_activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">_cfg</span>
+
+    <span class="c1"># Load pretrained parameters</span>
+    <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="s2">&quot;resnet50&quot;</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">model</span></div>
+
+
+<span class="k">def</span> <span class="nf">resnet34_wide</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_ with twice as many output channels for each stage.</span>
+
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import resnet34_wide</span>
+<span class="sd">    &gt;&gt;&gt; model = resnet34_wide(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        pretrained: boolean, True if model is pretrained</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A classification model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
+        <span class="s2">&quot;resnet34_wide&quot;</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="p">,</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">128</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">1024</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">],</span>
+        <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span><span class="p">,</span>
+        <span class="kc">True</span><span class="p">,</span>
+        <span class="n">stem_channels</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
         </article>
       </div>

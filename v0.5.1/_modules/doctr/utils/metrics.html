@@ -190,7 +190,10 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -242,10 +245,10 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.utils.metrics</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
@@ -254,8 +257,17 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
 <span class="kn">from</span> <span class="nn">unidecode</span> <span class="kn">import</span> <span class="n">unidecode</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;box_ioa&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;polygon_iou&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">,</span> <span class="s1">&#39;DetectionMetric&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;TextMatch&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;box_iou&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;box_ioa&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mask_iou&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;polygon_iou&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nms&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LocalizationConfusion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;OCRMetric&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DetectionMetric&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
@@ -269,12 +281,12 @@
 <span class="sd">        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their</span>
 <span class="sd">            unidecode counterparts and their lower-case unidecode counterparts match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">raw_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span><span class="p">)</span>
-    <span class="n">caseless_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
-    <span class="n">unidecode_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">))</span>
+    <span class="n">raw_match</span> <span class="o">=</span> <span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span>
+    <span class="n">caseless_match</span> <span class="o">=</span> <span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">unidecode_match</span> <span class="o">=</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span>
 
     <span class="c1"># Warning: the order is important here otherwise the pair (&quot;EUR&quot;, &quot;€&quot;) cannot be matched</span>
-    <span class="n">unicase_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">unicase_match</span> <span class="o">=</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">unidecode_match</span><span class="p">,</span> <span class="n">unicase_match</span>
 
@@ -371,7 +383,7 @@
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">iou_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">l1</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -401,7 +413,7 @@
 <span class="sd">        the IoA matrix of shape (N, M)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">ioa_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">ioa_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">l1</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -433,7 +445,7 @@
     <span class="k">if</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;both boolean masks should have the same spatial shape&quot;</span><span class="p">)</span>
 
-    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">iou_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">axes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
@@ -445,10 +457,7 @@
 
 
 <span class="k">def</span> <span class="nf">polygon_iou</span><span class="p">(</span>
-    <span class="n">polys_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">polys_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
-    <span class="n">use_broadcasting</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">polys_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">polys_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span> <span class="n">use_broadcasting</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of rotated bounding boxes</span>
 
@@ -465,7 +474,7 @@
     <span class="k">if</span> <span class="n">polys_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;expects boxes to be in format (N, 4, 2)&quot;</span><span class="p">)</span>
 
-    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">polys_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">iou_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">polys_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">polys_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">use_broadcasting</span><span class="p">:</span>
@@ -494,7 +503,7 @@
 <span class="sd">        the boolean mask of the specified shape</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">mask</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
     <span class="c1"># Get absolute coords</span>
     <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
         <span class="n">abs_box</span> <span class="o">=</span> <span class="n">box</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -520,15 +529,15 @@
 <span class="sd">        the boolean masks of shape (N, H, W)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+    <span class="n">masks</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="c1"># Get absolute coordinates</span>
-        <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="nb">int</span><span class="p">:</span>
             <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">boxes</span>
             <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">+</span> <span class="mi">1</span>
@@ -539,7 +548,7 @@
     <span class="k">return</span> <span class="n">masks</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform non-max suppression, borrowed from &lt;https://github.com/rbgirshick/fast-rcnn&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -675,7 +684,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span></div>
 
 
 <div class="viewcode-block" id="OCRMetric"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric">[docs]</a><span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
@@ -751,8 +760,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
-                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span> <span class="s2">&quot;and the predictions&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -808,7 +818,7 @@
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">=</span> <span class="mi">0</span>
@@ -888,8 +898,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
-                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span> <span class="s2">&quot;and the predictions&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -930,7 +941,7 @@
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
 </pre></div>
         </article>
