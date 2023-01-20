@@ -82,7 +82,7 @@ class RecognitionPredictor(nn.Module):
                 batch = batch.to(self.device)
                 # batch = batch.half()
             char_logits = self.model(batch)
-            if type(char_logits) != torch.Tensor():
+            if not torch.is_tensor(char_logits):
                 char_logits = torch.tensor(char_logits)
             raw += [self.postprocessor(char_logits)]
 
