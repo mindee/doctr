@@ -7,7 +7,6 @@ from doctr.models.utils import conv_sequence_pt, load_pretrained_params
 
 
 def test_load_pretrained_params(tmpdir_factory):
-
     model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))
     # Retrieve this URL
     url = "https://github.com/mindee/doctr/releases/download/v0.2.1/tmp_checkpoint-6f0ce0e6.pt"
@@ -29,7 +28,6 @@ def test_load_pretrained_params(tmpdir_factory):
 
 
 def test_conv_sequence():
-
     assert len(conv_sequence_pt(3, 8, kernel_size=3)) == 1
     assert len(conv_sequence_pt(3, 8, True, kernel_size=3)) == 2
     assert len(conv_sequence_pt(3, 8, False, True, kernel_size=3)) == 2

@@ -76,7 +76,6 @@ class LinkNetFPN(nn.Module):
         )
 
     def forward(self, feats: List[torch.Tensor]) -> torch.Tensor:
-
         out = feats[-1]
         for decoder, fmap in zip(self.decoders[::-1], feats[:-1][::-1]):
             out = decoder(out) + fmap
@@ -109,7 +108,6 @@ class LinkNet(nn.Module, _LinkNet):
         cfg: Optional[Dict[str, Any]] = None,
         class_names: List[str] = [CLASS_NAME],
     ) -> None:
-
         super().__init__()
         self.class_names = class_names
         num_classes: int = len(self.class_names)
@@ -167,7 +165,6 @@ class LinkNet(nn.Module, _LinkNet):
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
-
         feats = self.feat_extractor(x)
         logits = self.fpn([feats[str(idx)] for idx in range(len(feats))])
         logits = self.classifier(logits)
@@ -252,7 +249,6 @@ def _linknet(
     pretrained_backbone: bool = True,
     **kwargs: Any,
 ) -> LinkNet:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Build the feature extractor

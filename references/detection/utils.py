@@ -86,7 +86,6 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
 
 
 def load_backbone(model, weights_path):
-
     pretrained_backbone_weights = pickle.load(open(weights_path, "rb"))
     model.feat_extractor.set_weights(pretrained_backbone_weights[0])
     model.fpn.set_weights(pretrained_backbone_weights[1])

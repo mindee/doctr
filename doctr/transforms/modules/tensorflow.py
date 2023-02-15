@@ -103,7 +103,6 @@ class Resize(NestedObject):
         img: tf.Tensor,
         target: Optional[np.ndarray] = None,
     ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
-
         input_dtype = img.dtype
 
         img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio)

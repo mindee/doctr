@@ -121,7 +121,6 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
     model.train()
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_loader, parent=mb):
-
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
@@ -172,7 +171,6 @@ def evaluate(model, val_loader, metric, amp=False):
 
 
 def main(args):
-
     print(args)
 
     if args.push_to_hub:

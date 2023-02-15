@@ -56,7 +56,6 @@ def record_lr(
     loss_recorder = []
 
     for batch_idx, (images, targets) in enumerate(train_loader):
-
         images = batch_transforms(images)
 
         # Forward, Backward & update
@@ -123,7 +122,6 @@ def evaluate(model, val_loader, batch_transforms):
 
 
 def collate_fn(samples):
-
     images, targets = zip(*samples)
     images = tf.stack(images, axis=0)
 
@@ -131,7 +129,6 @@ def collate_fn(samples):
 
 
 def main(args):
-
     print(args)
 
     if args.push_to_hub:
@@ -270,7 +267,6 @@ def main(args):
 
     # W&B
     if args.wb:
-
         run = wandb.init(
             name=exp_name,
             project="character-classification",

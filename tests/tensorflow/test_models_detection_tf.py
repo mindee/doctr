@@ -80,7 +80,6 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
 
 @pytest.fixture(scope="session")
 def test_detectionpredictor(mock_pdf):  # noqa: F811
-
     batch_size = 4
     predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size), detection.db_resnet50(input_shape=(512, 512, 3))
@@ -101,7 +100,6 @@ def test_detectionpredictor(mock_pdf):  # noqa: F811
 
 @pytest.fixture(scope="session")
 def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
-
     batch_size = 4
     predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=batch_size),

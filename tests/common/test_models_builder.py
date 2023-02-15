@@ -16,7 +16,6 @@ boxes_2[:2] *= boxes_2[2:4]
 
 
 def test_documentbuilder():
-
     num_pages = 2
 
     # Don't resolve lines
@@ -61,7 +60,6 @@ def test_documentbuilder():
 
 
 def test_kiedocumentbuilder():
-
     num_pages = 2
 
     # Don't resolve lines

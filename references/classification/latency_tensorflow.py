@@ -21,7 +21,6 @@ from doctr.models import classification
 
 
 def main(args):
-
     if args.gpu:
         gpu_devices = tf.config.experimental.list_physical_devices("GPU")
         if any(gpu_devices):

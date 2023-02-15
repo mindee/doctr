@@ -26,7 +26,6 @@ def mock_vocab():
 
 @pytest.fixture(scope="session")
 def mock_pdf(tmpdir_factory):
-
     # Page 1
     text_img = synthesize_text_img("I am a jedi!", background_color=(255, 255, 255), text_color=(0, 0, 0))
     page = Image.new(text_img.mode, (1240, 1754), (255, 255, 255))

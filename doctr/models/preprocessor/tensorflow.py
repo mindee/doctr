@@ -37,7 +37,6 @@ class PreProcessor(NestedObject):
         fp16: bool = False,
         **kwargs: Any,
     ) -> None:
-
         self.batch_size = batch_size
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time

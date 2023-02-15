@@ -30,7 +30,6 @@ class DetectionPredictor(NestedObject):
         pre_processor: PreProcessor,
         model: keras.Model,
     ) -> None:
-
         self.pre_processor = pre_processor
         self.model = model
 
@@ -39,7 +38,6 @@ class DetectionPredictor(NestedObject):
         pages: List[Union[np.ndarray, tf.Tensor]],
         **kwargs: Any,
     ) -> List[Dict[str, np.ndarray]]:
-
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")

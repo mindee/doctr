@@ -50,7 +50,6 @@ class VGG(Sequential):
         input_shape: Optional[Tuple[int, int, int]] = None,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-
         _layers = []
         # Specify input_shape only for the first layer
         kwargs = {"input_shape": input_shape}
@@ -69,7 +68,6 @@ class VGG(Sequential):
 def _vgg(
     arch: str, pretrained: bool, num_blocks: List[int], planes: List[int], rect_pools: List[bool], **kwargs: Any
 ) -> VGG:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])

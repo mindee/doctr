@@ -60,7 +60,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-
     print(args)
 
     if not isinstance(args.workers, int):

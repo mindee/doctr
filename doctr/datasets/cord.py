@@ -52,7 +52,6 @@ class CORD(VisionDataset):
         recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
-
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(
             url,

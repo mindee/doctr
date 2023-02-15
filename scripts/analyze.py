@@ -22,7 +22,6 @@ if is_tf_available():
 
 
 def main(args):
-
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     if args.path.lower().endswith(".pdf"):

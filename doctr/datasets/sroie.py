@@ -51,7 +51,6 @@ class SROIE(VisionDataset):
         recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
-
         url, sha256 = self.TRAIN if train else self.TEST
         super().__init__(
             url,
@@ -68,7 +67,6 @@ class SROIE(VisionDataset):
         np_dtype = np.float32
 
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking SROIE", total=len(os.listdir(tmp_root))):
-
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")

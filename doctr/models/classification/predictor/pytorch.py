@@ -28,7 +28,6 @@ class CropOrientationPredictor(nn.Module):
         pre_processor: PreProcessor,
         model: nn.Module,
     ) -> None:
-
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
@@ -38,7 +37,6 @@ class CropOrientationPredictor(nn.Module):
         self,
         crops: List[Union[np.ndarray, torch.Tensor]],
     ) -> List[int]:
-
         # Dimension check
         if any(crop.ndim != 3 for crop in crops):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")

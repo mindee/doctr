@@ -163,7 +163,6 @@ def encode_sequences(
 
 
 def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tuple[ImageTensor, Dict[str, Any]]:
-
     target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))
     return img, target
 

@@ -12,7 +12,6 @@ from ..core import RecognitionPostProcessor
 
 
 class _MASTER:
-
     vocab: str
     max_length: int
 
@@ -52,6 +51,5 @@ class _MASTERPostProcessor(RecognitionPostProcessor):
         self,
         vocab: str,
     ) -> None:
-
         super().__init__(vocab)
         self._embedding = list(vocab) + ["<eos>"] + ["<sos>"] + ["<pad>"]

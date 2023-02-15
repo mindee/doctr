@@ -145,7 +145,6 @@ def test_rotate_image():
     ],
 )
 def test_convert_to_relative_coords(abs_geoms, img_size, rel_geoms):
-
     assert np.all(geometry.convert_to_relative_coords(abs_geoms, img_size) == rel_geoms)
 
     # Wrong format

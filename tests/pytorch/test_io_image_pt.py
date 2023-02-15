@@ -6,7 +6,6 @@ from doctr.io import decode_img_as_tensor, read_img_as_tensor, tensor_from_numpy
 
 
 def test_read_img_as_tensor(mock_image_path):
-
     img = read_img_as_tensor(mock_image_path)
 
     assert isinstance(img, torch.Tensor)
@@ -20,7 +19,6 @@ def test_read_img_as_tensor(mock_image_path):
 
 
 def test_decode_img_as_tensor(mock_image_stream):
-
     img = decode_img_as_tensor(mock_image_stream)
 
     assert isinstance(img, torch.Tensor)
@@ -34,7 +32,6 @@ def test_decode_img_as_tensor(mock_image_stream):
 
 
 def test_tensor_from_numpy(mock_image_stream):
-
     with pytest.raises(ValueError):
         tensor_from_numpy(np.zeros((256, 256, 3)), torch.int64)
 

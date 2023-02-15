@@ -32,13 +32,11 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 class SAREncoder(nn.Module):
     def __init__(self, in_feats: int, rnn_units: int, dropout_prob: float = 0.0) -> None:
-
         super().__init__()
         self.rnn = nn.LSTM(in_feats, rnn_units, 2, batch_first=True, dropout=dropout_prob)
         self.linear = nn.Linear(rnn_units, rnn_units)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-
         # (N, L, C) --> (N, T, C)
         encoded = self.rnn(x)[0]
         # (N, C)
@@ -58,7 +56,6 @@ class AttentionModule(nn.Module):
         features: torch.Tensor,  # (N, C, H, W)
         hidden_state: torch.Tensor,  # (N, C)
     ) -> torch.Tensor:
-
         H_f, W_f = features.shape[2:]
 
         # (N, feat_chans, H, W) --> (N, attention_units, H, W)
@@ -101,7 +98,6 @@ class SARDecoder(nn.Module):
         feat_chans: int = 512,
         dropout_prob: float = 0.0,
     ) -> None:
-
         super().__init__()
         self.vocab_size = vocab_size
         self.max_length = max_length
@@ -119,7 +115,6 @@ class SARDecoder(nn.Module):
         holistic: torch.Tensor,  # (N, C)
         gt: Optional[torch.Tensor] = None,  # (N, L)
     ) -> torch.Tensor:
-
         if gt is not None:
             gt_embedding = self.embed_tgt(gt)
 
@@ -193,7 +188,6 @@ class SAR(nn.Module, RecognitionModel):
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-
         super().__init__()
         self.vocab = vocab
         self.exportable = exportable
@@ -229,7 +223,6 @@ class SAR(nn.Module, RecognitionModel):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-
         features = self.feat_extractor(x)["features"]
         # NOTE: use max instead of functional max_pool2d which leads to ONNX incompatibility (kernel_size)
         # Vertical max pooling (N, C, H, W) --> (N, C, W)
@@ -332,7 +325,6 @@ def _sar(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> SAR:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config

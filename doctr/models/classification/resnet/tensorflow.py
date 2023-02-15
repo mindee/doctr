@@ -69,7 +69,6 @@ class ResnetBlock(layers.Layer):
     """
 
     def __init__(self, output_channels: int, conv_shortcut: bool, strides: int = 1, **kwargs) -> None:
-
         super().__init__(**kwargs)
         if conv_shortcut:
             self.shortcut = Sequential(
@@ -152,7 +151,6 @@ class ResNet(Sequential):
         cfg: Optional[Dict[str, Any]] = None,
         input_shape: Optional[Tuple[int, int, int]] = None,
     ) -> None:
-
         inplanes = stem_channels
         if origin_stem:
             _layers = [
@@ -201,7 +199,6 @@ def _resnet(
     origin_stem: bool = True,
     **kwargs: Any,
 ) -> ResNet:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])

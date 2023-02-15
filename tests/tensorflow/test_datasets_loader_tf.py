@@ -7,7 +7,6 @@ from doctr.datasets import DataLoader
 
 class MockDataset:
     def __init__(self, input_size):
-
         self.data: List[Tuple[float, bool]] = [
             (1, True),
             (0, False),
@@ -31,7 +30,6 @@ class MockDatasetBis(MockDataset):
 
 
 def test_dataloader():
-
     loader = DataLoader(
         MockDataset((32, 32)),
         shuffle=True,

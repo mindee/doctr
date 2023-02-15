@@ -75,7 +75,6 @@ def test_resize():
     ],
 )
 def test_invert_colorize(rgb_min):
-
     transfo = ColorInversion(min_val=rgb_min)
     input_t = torch.ones((8, 3, 32, 32), dtype=torch.float32)
     out = transfo(input_t)

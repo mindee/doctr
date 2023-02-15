@@ -83,7 +83,6 @@ class VisionTransformer(Sequential):
         include_top: bool = True,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-
         _layers = [
             PatchEmbedding(input_shape, d_model),
             EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, activation_fct=GELU()),
@@ -100,7 +99,6 @@ def _vit(
     pretrained: bool,
     **kwargs: Any,
 ) -> VisionTransformer:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])

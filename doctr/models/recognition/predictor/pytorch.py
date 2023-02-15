@@ -31,7 +31,6 @@ class RecognitionPredictor(nn.Module):
         model: nn.Module,
         split_wide_crops: bool = True,
     ) -> None:
-
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
@@ -46,7 +45,6 @@ class RecognitionPredictor(nn.Module):
         crops: Sequence[Union[np.ndarray, torch.Tensor]],
         **kwargs: Any,
     ) -> List[Tuple[str, float]]:
-
         if len(crops) == 0:
             return []
         # Dimension check

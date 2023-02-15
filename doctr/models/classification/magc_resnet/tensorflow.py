@@ -128,7 +128,6 @@ def _magc_resnet(
     origin_stem: bool = True,
     **kwargs: Any,
 ) -> ResNet:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])

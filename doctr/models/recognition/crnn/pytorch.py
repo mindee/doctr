@@ -199,7 +199,6 @@ class CRNN(RecognitionModel, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -237,7 +236,6 @@ def _crnn(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> CRNN:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Feature extractor

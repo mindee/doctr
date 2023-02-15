@@ -21,7 +21,6 @@ from doctr.models import recognition
 
 @torch.no_grad()
 def main(args):
-
     device = torch.device("cuda:0" if args.gpu else "cpu")
 
     # Pretrained imagenet model

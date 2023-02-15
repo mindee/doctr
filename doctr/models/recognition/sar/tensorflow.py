@@ -38,7 +38,6 @@ class SAREncoder(layers.Layer, NestedObject):
     """
 
     def __init__(self, rnn_units: int, dropout_prob: float = 0.0) -> None:
-
         super().__init__()
         self.rnn = Sequential(
             [
@@ -65,7 +64,6 @@ class AttentionModule(layers.Layer, NestedObject):
     """
 
     def __init__(self, attention_units: int) -> None:
-
         super().__init__()
         self.hidden_state_projector = layers.Conv2D(
             attention_units,
@@ -99,7 +97,6 @@ class AttentionModule(layers.Layer, NestedObject):
         hidden_state: tf.Tensor,
         **kwargs: Any,
     ) -> tf.Tensor:
-
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, H, W, vgg_units) -> (N, H, W, attention_units)
         features_projection = self.features_projector(features, **kwargs)
@@ -143,7 +140,6 @@ class SARDecoder(layers.Layer, NestedObject):
         num_decoder_cells: int = 2,
         dropout_prob: float = 0.0,
     ) -> None:
-
         super().__init__()
         self.vocab_size = vocab_size
         self.max_length = max_length
@@ -165,7 +161,6 @@ class SARDecoder(layers.Layer, NestedObject):
         gt: Optional[tf.Tensor] = None,
         **kwargs: Any,
     ) -> tf.Tensor:
-
         if gt is not None:
             gt_embedding = self.embed_tgt(gt, **kwargs)
 
@@ -247,7 +242,6 @@ class SAR(Model, RecognitionModel):
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-
         super().__init__()
         self.vocab = vocab
         self.exportable = exportable
@@ -309,7 +303,6 @@ class SAR(Model, RecognitionModel):
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
-
         features = self.feat_extractor(x, **kwargs)
         # vertical max pooling --> (N, C, W)
         pooled_features = tf.reduce_max(features, axis=1)
@@ -380,7 +373,6 @@ def _sar(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> SAR:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config

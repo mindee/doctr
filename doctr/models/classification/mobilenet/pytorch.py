@@ -68,7 +68,6 @@ def _mobilenet_v3(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> mobilenetv3.MobileNetV3:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 

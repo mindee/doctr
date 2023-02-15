@@ -34,7 +34,6 @@ class RecognitionPredictor(NestedObject):
         model: RecognitionModel,
         split_wide_crops: bool = True,
     ) -> None:
-
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model
@@ -48,7 +47,6 @@ class RecognitionPredictor(NestedObject):
         crops: List[Union[np.ndarray, tf.Tensor]],
         **kwargs: Any,
     ) -> List[Tuple[str, float]]:
-
         if len(crops) == 0:
             return []
         # Dimension check

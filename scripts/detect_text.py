@@ -29,7 +29,6 @@ OTHER_EXTENSIONS = [".pdf"]
 
 
 def _process_file(model, file_path: Path, out_format: str) -> None:
-
     if out_format not in ["txt", "json", "xml"]:
         raise ValueError(f"Unsupported output format: {out_format}")
 
@@ -60,7 +59,6 @@ def _process_file(model, file_path: Path, out_format: str) -> None:
 
 
 def main(args):
-
     detection_model = detection.__dict__[args.detection](
         pretrained=True,
         bin_thresh=args.bin_thresh,
