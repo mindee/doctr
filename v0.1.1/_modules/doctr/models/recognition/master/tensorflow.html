@@ -466,7 +466,6 @@
 
         <span class="c1"># Final dimension include EOS/SOS/PAD</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
-
             <span class="n">source_mask</span><span class="p">,</span> <span class="n">target_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_source_and_target_mask</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="n">ys</span><span class="p">)</span>
             <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="n">source_mask</span><span class="p">,</span> <span class="n">target_mask</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -512,7 +511,6 @@
 
 
 <span class="k">def</span> <span class="nf">_master</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">backbone_fn</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
-
     <span class="n">pretrained_backbone</span> <span class="o">=</span> <span class="n">pretrained_backbone</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">pretrained</span>
 
     <span class="c1"># Patch the config</span>
