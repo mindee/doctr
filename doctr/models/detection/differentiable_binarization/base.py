@@ -36,7 +36,6 @@ class DBPostProcessor(DetectionPostProcessor):
         bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
     ) -> None:
-
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
         self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
@@ -268,7 +267,6 @@ class _DBNet:
         output_shape: Tuple[int, int, int, int],
         channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):

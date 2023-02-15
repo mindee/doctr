@@ -26,7 +26,6 @@ ARCHS: List[str] = [
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
-
     if isinstance(arch, str):
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")

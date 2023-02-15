@@ -227,7 +227,6 @@ class MASTER(_MASTER, nn.Module):
 
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
-
             source_mask, target_mask = self.make_source_and_target_mask(encoded, ys)
             output = self.decoder(ys, encoded, source_mask, target_mask)
             logits = self.linear(output)
@@ -272,7 +271,6 @@ def _master(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> MASTER:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config

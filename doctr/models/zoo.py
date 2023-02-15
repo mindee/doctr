@@ -27,7 +27,6 @@ def _predictor(
     detect_language: bool = False,
     **kwargs,
 ) -> OCRPredictor:
-
     # Detection
     det_predictor = detection_predictor(
         det_arch,
@@ -130,7 +129,6 @@ def _kie_predictor(
     detect_language: bool = False,
     **kwargs,
 ) -> KIEPredictor:
-
     # Detection
     det_predictor = detection_predictor(
         det_arch,

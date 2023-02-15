@@ -17,7 +17,6 @@ def test_visiondataset():
 
 
 def test_abstractdataset(mock_image_path):
-
     with pytest.raises(ValueError):
         datasets.datasets.AbstractDataset("my/fantasy/folder")
 

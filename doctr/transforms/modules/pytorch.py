@@ -38,7 +38,6 @@ class Resize(T.Resize):
         img: torch.Tensor,
         target: Optional[np.ndarray] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, np.ndarray]]:
-
         if isinstance(self.size, int):
             target_ratio = img.shape[-2] / img.shape[-1]
         else:

@@ -46,7 +46,6 @@ class IIIT5K(VisionDataset):
         recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
-
         super().__init__(
             self.URL,
             None,

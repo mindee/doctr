@@ -6,13 +6,11 @@ from doctr.transforms.functional.base import expand_line
 
 
 def test_imagetransform():
-
     transfo = T.ImageTransform(lambda x: 1 - x)
     assert transfo(0, 1) == (1, 1)
 
 
 def test_samplecompose():
-
     transfos = [lambda x, y: (1 - x, y), lambda x, y: (x, 2 * y)]
     transfo = T.SampleCompose(transfos)
     assert transfo(0, 1) == (1, 2)

@@ -32,7 +32,6 @@ ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_orientation"]
 
 
 def _crop_orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> CropOrientationPredictor:
-
     if arch not in ORIENTATION_ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 

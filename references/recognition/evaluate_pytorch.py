@@ -59,7 +59,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-
     print(args)
 
     torch.backends.cudnn.benchmark = True

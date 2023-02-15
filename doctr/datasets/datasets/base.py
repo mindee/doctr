@@ -18,7 +18,6 @@ __all__ = ["_AbstractDataset", "_VisionDataset"]
 
 
 class _AbstractDataset:
-
     data: List[Any] = []
     _pre_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None
 
@@ -29,7 +28,6 @@ class _AbstractDataset:
         sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
         pre_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
     ) -> None:
-
         if not Path(root).is_dir():
             raise ValueError(f"expected a path to a reachable folder: {root}")
 
@@ -46,7 +44,6 @@ class _AbstractDataset:
         raise NotImplementedError
 
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
-
         # Read image
         img, target = self._read_sample(index)
         # Pre-transforms (format conversion at run-time etc.)

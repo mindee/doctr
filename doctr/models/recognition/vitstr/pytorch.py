@@ -62,7 +62,6 @@ class ViTSTR(_ViTSTR, nn.Module):
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-
         super().__init__()
         self.vocab = vocab
         self.exportable = exportable
@@ -82,7 +81,6 @@ class ViTSTR(_ViTSTR, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
 
         if target is not None:
@@ -186,7 +184,6 @@ def _vitstr(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config

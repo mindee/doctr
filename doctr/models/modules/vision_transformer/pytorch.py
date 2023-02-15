@@ -16,7 +16,6 @@ class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
     def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int) -> None:
-
         super().__init__()
         channels, height, width = input_shape
         # calculate patch size

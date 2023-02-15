@@ -179,7 +179,6 @@ class InvertedResidual(layers.Layer):
         inputs: tf.Tensor,
         **kwargs: Any,
     ) -> tf.Tensor:
-
         out = self.block(inputs, **kwargs)
         if self.use_res_connect:
             out = tf.add(out, inputs)
@@ -202,7 +201,6 @@ class MobileNetV3(Sequential):
         cfg: Optional[Dict[str, Any]] = None,
         input_shape: Optional[Tuple[int, int, int]] = None,
     ) -> None:
-
         _layers = [
             Sequential(
                 conv_sequence(
@@ -236,7 +234,6 @@ class MobileNetV3(Sequential):
 
 
 def _mobilenet_v3(arch: str, pretrained: bool, rect_strides: bool = False, **kwargs: Any) -> MobileNetV3:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])

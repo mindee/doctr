@@ -31,7 +31,6 @@ class CropOrientationPredictor(NestedObject):
         pre_processor: PreProcessor,
         model: keras.Model,
     ) -> None:
-
         self.pre_processor = pre_processor
         self.model = model
 
@@ -39,7 +38,6 @@ class CropOrientationPredictor(NestedObject):
         self,
         crops: List[Union[np.ndarray, tf.Tensor]],
     ) -> List[int]:
-
         # Dimension check
         if any(crop.ndim != 3 for crop in crops):
             raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")

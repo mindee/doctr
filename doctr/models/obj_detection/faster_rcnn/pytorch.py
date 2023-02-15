@@ -24,7 +24,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 def _fasterrcnn(arch: str, pretrained: bool, **kwargs: Any) -> FasterRCNN:
-
     _kwargs = {
         "image_mean": default_cfgs[arch]["mean"],
         "image_std": default_cfgs[arch]["std"],

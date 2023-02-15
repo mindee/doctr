@@ -23,7 +23,6 @@ class DetectionPostProcessor(NestedObject):
     """
 
     def __init__(self, box_thresh: float = 0.5, bin_thresh: float = 0.5, assume_straight_pages: bool = True) -> None:
-
         self.box_thresh = box_thresh
         self.bin_thresh = bin_thresh
         self.assume_straight_pages = assume_straight_pages

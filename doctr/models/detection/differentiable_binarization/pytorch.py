@@ -57,7 +57,6 @@ class FeaturePyramidNetwork(nn.Module):
         out_channels: int,
         deform_conv: bool = False,
     ) -> None:
-
         super().__init__()
 
         out_chans = out_channels // len(in_channels)
@@ -127,7 +126,6 @@ class DBNet(_DBNet, nn.Module):
         cfg: Optional[Dict[str, Any]] = None,
         class_names: List[str] = [CLASS_NAME],
     ) -> None:
-
         super().__init__()
         self.class_names = class_names
         num_classes: int = len(self.class_names)
@@ -293,7 +291,6 @@ def _dbnet(
     pretrained_backbone: bool = True,
     **kwargs: Any,
 ) -> DBNet:
-
     # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
     pretrained_backbone = pretrained_backbone and not arch.split("_")[1].startswith("resnet")
     pretrained_backbone = pretrained_backbone and not pretrained

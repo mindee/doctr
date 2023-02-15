@@ -46,7 +46,6 @@ class FUNSD(VisionDataset):
         recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
-
         super().__init__(
             self.URL,
             self.FILE_NAME,

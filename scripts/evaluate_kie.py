@@ -34,7 +34,6 @@ def _pct(val):
 
 
 def main(args):
-
     if not args.rotation:
         args.eval_straight = True
 

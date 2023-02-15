@@ -33,7 +33,6 @@ elif is_torch_available():
 
 
 def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, **kwargs: Any) -> DetectionPredictor:
-
     if isinstance(arch, str):
         if arch not in ARCHS + ROT_ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")

@@ -21,7 +21,6 @@ from doctr.models.preprocessor import PreProcessor
     ],
 )
 def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, expected_value):
-
     processor = PreProcessor(output_size, batch_size)
 
     # Invalid input type

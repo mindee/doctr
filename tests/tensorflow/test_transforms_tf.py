@@ -50,7 +50,6 @@ def test_resize():
 
 
 def test_compose():
-
     output_size = (16, 16)
     transfo = T.Compose([T.Resize((32, 32)), T.Resize(output_size)])
     input_t = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
@@ -85,7 +84,6 @@ def test_normalize(input_shape):
 
 
 def test_lambatransformation():
-
     transfo = T.LambdaTransformation(lambda x: x / 2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
@@ -94,7 +92,6 @@ def test_lambatransformation():
 
 
 def test_togray():
-
     transfo = T.ToGray()
     r = tf.fill([8, 32, 32, 1], 0.2)
     g = tf.fill([8, 32, 32, 1], 0.6)
@@ -120,7 +117,6 @@ def test_togray():
     ],
 )
 def test_invert_colorize(rgb_min):
-
     transfo = T.ColorInversion(min_val=rgb_min)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
@@ -139,7 +135,6 @@ def test_invert_colorize(rgb_min):
 
 
 def test_brightness():
-
     transfo = T.RandomBrightness(max_delta=0.1)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     out = transfo(input_t)
@@ -168,7 +163,6 @@ def test_contrast():
 
 
 def test_saturation():
-
     transfo = T.RandomSaturation(delta=0.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
@@ -186,7 +180,6 @@ def test_saturation():
 
 
 def test_hue():
-
     transfo = T.RandomHue(max_delta=0.2)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 0.5), dtype=tf.float32)
     input_t = tf.image.hsv_to_rgb(input_t)
@@ -204,7 +197,6 @@ def test_hue():
 
 
 def test_gamma():
-
     transfo = T.RandomGamma(min_gamma=1.0, max_gamma=2.0, min_gain=0.8, max_gain=1.0)
     input_t = tf.cast(tf.fill([8, 32, 32, 3], 2.0), dtype=tf.float32)
     out = transfo(input_t)
@@ -219,7 +211,6 @@ def test_gamma():
 
 
 def test_jpegquality():
-
     transfo = T.RandomJpegQuality(min_quality=50)
     input_t = tf.cast(tf.fill([32, 32, 3], 1), dtype=tf.float32)
     out = transfo(input_t)

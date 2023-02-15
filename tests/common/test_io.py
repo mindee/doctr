@@ -32,7 +32,6 @@ def test_read_pdf(mock_pdf):
 
 
 def test_read_img_as_numpy(tmpdir_factory, mock_pdf):
-
     # Wrong input type
     with pytest.raises(TypeError):
         _ = io.read_img_as_numpy(123)
@@ -88,7 +87,6 @@ def test_document_file(mock_pdf, mock_image_stream):
 
 
 def test_pdf(mock_pdf):
-
     pages = io.DocumentFile.from_pdf(mock_pdf)
 
     # As images

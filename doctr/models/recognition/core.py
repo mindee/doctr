@@ -48,7 +48,6 @@ class RecognitionPostProcessor(NestedObject):
         self,
         vocab: str,
     ) -> None:
-
         self.vocab = vocab
         self._embedding = list(self.vocab) + ["<eos>"]
 

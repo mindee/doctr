@@ -41,7 +41,6 @@ class DocArtefacts(VisionDataset):
         use_polygons: bool = False,
         **kwargs: Any,
     ) -> None:
-
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.train = train
 

@@ -35,7 +35,6 @@ def _vgg(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> tv_vgg.VGG:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 

@@ -91,7 +91,6 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
         x: List[tf.Tensor],
         **kwargs: Any,
     ) -> tf.Tensor:
-
         # Channel mapping
         results = [block(fmap, **kwargs) for block, fmap in zip(self.inner_blocks, x)]
         # Upsample & sum
@@ -128,7 +127,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         cfg: Optional[Dict[str, Any]] = None,
         class_names: List[str] = [CLASS_NAME],
     ) -> None:
-
         super().__init__()
         self.class_names = class_names
         num_classes: int = len(self.class_names)
@@ -233,7 +231,6 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
-
         feat_maps = self.feat_extractor(x, **kwargs)
         feat_concat = self.fpn(feat_maps, **kwargs)
         logits = self.probability_head(feat_concat, **kwargs)
@@ -270,7 +267,6 @@ def _db_resnet(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> DBNet:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
@@ -310,7 +306,6 @@ def _db_mobilenet(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> DBNet:
-
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config

@@ -175,7 +175,6 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
     repo = Repository(local_dir=local_cache_dir, clone_from=repo_url, use_auth_token=True)
 
     with repo.commit(commit_message):
-
         _save_model_and_config_for_hf_hub(model, repo.local_dir, arch=arch, task=task)
         readme_path = Path(repo.local_dir) / "README.md"
         readme_path.write_text(readme)

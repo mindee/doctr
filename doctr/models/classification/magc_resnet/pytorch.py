@@ -71,7 +71,6 @@ class MAGC(nn.Module):
         )
 
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
-
         batch, _, height, width = inputs.size()
         # (N * headers, C / headers, H , W)
         x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
@@ -113,7 +112,6 @@ def _magc_resnet(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ResNet:
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 

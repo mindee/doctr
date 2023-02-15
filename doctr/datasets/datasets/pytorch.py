@@ -47,7 +47,6 @@ class AbstractDataset(_AbstractDataset):
 
     @staticmethod
     def collate_fn(samples: List[Tuple[torch.Tensor, Any]]) -> Tuple[torch.Tensor, List[Any]]:
-
         images, targets = zip(*samples)
         images = torch.stack(images, dim=0)
 

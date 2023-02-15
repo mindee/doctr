@@ -31,7 +31,6 @@ class CharacterGenerator(_CharacterGenerator):
 
     @staticmethod
     def collate_fn(samples):
-
         images, targets = zip(*samples)
         images = tf.stack(images, axis=0)
 

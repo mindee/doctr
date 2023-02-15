@@ -219,7 +219,6 @@ class LinkNet(_LinkNet, keras.Model):
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
-
         feat_maps = self.feat_extractor(x, **kwargs)
         logits = self.fpn(feat_maps, **kwargs)
         logits = self.classifier(logits, **kwargs)

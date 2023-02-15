@@ -12,7 +12,6 @@ from doctr.transforms import Resize
 
 
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
-
     # Fetch one sample
     img, target = ds[0]
     assert isinstance(img, tf.Tensor)
@@ -40,7 +39,6 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
 
 
 def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
-
     # Fetch one sample
     img, label = ds[0]
     assert isinstance(img, tf.Tensor)
@@ -57,7 +55,6 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
 
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):
-
     input_size = (1024, 1024)
 
     ds = datasets.DetectionDataset(
@@ -135,7 +132,6 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     [False, True],
 )
 def test_ocrdataset(mock_ocrdataset, use_polygons):
-
     input_size = (512, 512)
 
     ds = datasets.OCRDataset(
@@ -155,7 +151,6 @@ def test_ocrdataset(mock_ocrdataset, use_polygons):
 
 
 def test_charactergenerator():
-
     input_size = (32, 32)
     vocab = "abcdef"
 
@@ -181,7 +176,6 @@ def test_charactergenerator():
 
 
 def test_wordgenerator():
-
     input_size = (32, 128)
     wordlen_range = (1, 10)
     vocab = "abcdef"
