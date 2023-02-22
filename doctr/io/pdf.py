@@ -45,12 +45,7 @@ class PdfRenderer:
         """
 
         pdf = pdfium.PdfDocument(file, password=password)
-
-        if page_indices:
-            self._len = len(page_indices)
-        else:
-            self._len = len(pdf)
-
+        self._len = len(page_indices) if page_indices else len(pdf)
         self._generator = pdf.render(
             pdfium.PdfBitmap.to_numpy,
             scale=scale, page_indices=page_indices, rev_byteorder=rgb_mode, **kwargs
