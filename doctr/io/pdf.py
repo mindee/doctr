@@ -55,7 +55,10 @@ class PdfRenderer:
         return self._len
 
     def __next__(self) -> np.ndarray:
+        self._len -= 1
         return next(self._generator)
 
     def __iter__(self) -> Generator[np.ndarray, None, None]:
-        yield from self._generator
+        for page in self._generator:
+            self._len -= 1
+            yield page
