@@ -29,7 +29,7 @@ class PdfRenderer:
         Read a PDF file and convert it to images in numpy format.
         This class behaves like an iterator with known length.
 
-        >>> from doctr.documents import PdfRenderer
+        >>> from doctr.io.pdf import PdfRenderer
         >>> doc = PdfRenderer("path/to/your/doc.pdf")
         >>> n_pages = len(doc)
         >>> first_page = next(doc)
