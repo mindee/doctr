@@ -41,11 +41,8 @@ class PdfRenderer:
             scale: rendering scale (1 corresponds to 72dpi)
             rgb_mode: if True, the output will be RGB, otherwise BGR
             password: a password to unlock the document, if encrypted
-            kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render_to`
+            kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render`
         """
-
-        if isinstance(file, Path):  # v3 compat
-            file = str(file)
 
         pdf = pdfium.PdfDocument(file, password=password)
 
@@ -54,11 +51,10 @@ class PdfRenderer:
         else:
             self._len = len(pdf)
 
-        render_kwargs = dict(scale=scale, page_indices=page_indices, rev_byteorder=rgb_mode, **kwargs)
-        if hasattr(pdf, "render_to"):  # v3 compat
-            self._generator = (p for p, _ in pdf.render_to(pdfium.BitmapConv.numpy_ndarray, **render_kwargs))
-        else:  # upcoming v4
-            self._generator = pdf.render(pdfium.PdfBitmap.to_numpy, **render_kwargs)
+        self._generator = pdf.render(
+            pdfium.PdfBitmap.to_numpy,
+            scale=scale, page_indices=page_indices, rev_byteorder=rgb_mode, **kwargs
+        )
 
     def __len__(self) -> int:
         return self._len
