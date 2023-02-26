@@ -15,7 +15,8 @@ __all__ = ["recognition_predictor"]
 
 
 ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master', 
-                    'crnn_efficientnet_b0', 'crnn_efficientnet_b3', 'crnn_efficientnetv2_m']
+                    'crnn_efficientnet_b0', 'crnn_efficientnet_b0_onnx', 'crnn_efficientnet_b3', 'crnn_efficientnet_b3_onnx',
+                    'crnn_efficientnetv2_m', 'crnn_efficientnetv2_m_onnx', 'crnn_efficientnetv2_mV2', 'crnn_efficientnetv2_mV2_onnx', "parseq_large"]
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
@@ -23,10 +24,9 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     if isinstance(arch, str):
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
-
         _model = recognition.__dict__[arch](pretrained=pretrained)
     else:
-        if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER)):
+        if not isinstance(arch, (recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.PARSEQ)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 

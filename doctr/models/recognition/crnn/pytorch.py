@@ -23,7 +23,9 @@ from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ['CRNN', 'crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small',
-           'crnn_mobilenet_v3_large', 'crnn_efficientnet_b0', 'crnn_efficientnet_b3', 'crnn_efficientnetv2_m']
+           'crnn_mobilenet_v3_large', 'crnn_efficientnet_b0', 'crnn_efficientnet_b0_onnx',
+           'crnn_efficientnet_b3', 'crnn_efficientnet_b3_onnx', 'crnn_efficientnetv2_m',
+           'crnn_efficientnetv2_m_onnx', 'crnn_efficientnetv2_mV2', 'crnn_efficientnetv2_mV2_onnx']
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "crnn_vgg16_bn": {
@@ -33,7 +35,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "vocab": VOCABS["legacy_french"],
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_vgg16_bn-9762b0b0.pt&src=0",
     },
-        'crnn_vgg16_bn_onnx': {
+    'crnn_vgg16_bn_onnx': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
@@ -61,6 +63,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'vocab': VOCABS['french'] + " ",
         'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnet_b0.pt'
     },
+    'crnn_efficientnet_b0_onnx': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_onnx_models/crnn_effnet_b0.onnx'
+    },
     'crnn_efficientnet_b3': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
@@ -68,12 +77,40 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'vocab': VOCABS['french'] + " ",
         'url': "https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnet_b3.pt",
     },
+    'crnn_efficientnet_b3_onnx': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_onnx_models/crnn_effnet_b3.onnx'
+    },
     'crnn_efficientnetv2_m': {
         'mean': (0.694, 0.695, 0.693),
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'] + " ",
         'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnetv2_m.pt'
+    },
+    'crnn_efficientnetv2_m_onnx': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_onnx_models/crnn_effnetv2_m.onnx'
+    },
+    'crnn_efficientnetv2_mV2': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_onnx_models/crnn_effnetv2_mV2.pt'
+    },
+    'crnn_efficientnetv2_mV2_onnx': {
+        'mean': (0.694, 0.695, 0.693),
+        'std': (0.299, 0.296, 0.301),
+        'input_shape': (3, 32, 128),
+        'vocab': VOCABS['french'] + " ",
+        'url': 'https://github.com/h2oai/doctr/releases/download/efficientnet_onnx_models/crnn_effnetv2_mV2.onnx'
     },
 }
 
@@ -293,18 +330,23 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
 
     return _crnn("crnn_vgg16_bn", pretrained, vgg16_bn_r, ignore_keys=["linear.weight", "linear.bias"], **kwargs)
 
-class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
-    """Onnx converted crnn_vgg16_bn_onnx"""
+class _crnn_onnx(RecognitionModel, nn.Module):
+    """Onnx converted models"""
     def __init__(
         self,
-        pretrained = True
+        pretrained = True,
+        model_name = None
     ) -> None:
         super().__init__()
-        self.vocab = default_cfgs["crnn_vgg16_bn_onnx"]["vocab"]
-        self.cfg = default_cfgs["crnn_vgg16_bn_onnx"]
+        self.vocab = default_cfgs[model_name]["vocab"]
+        self.cfg = default_cfgs[model_name]
 
         self.postprocessor = CTCPostProcessor(vocab=self.vocab)
         self.device = torch.cuda.is_available()
+        if os.environ["CUDA_VISIBLE_DEVICES"] == "":
+            self.device = "cpu"
+        elif len(os.environ["CUDA_VISIBLE_DEVICES"]) > 0:
+            self.device = "cuda"
         model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
         if self.device:
             self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
@@ -323,6 +365,115 @@ class crnn_vgg16_bn_onnx(RecognitionModel, nn.Module):
         else:
             logits = self.compiled_model_onnx([x.detach().cpu().numpy()])[self.output_layer_onnx]
         return logits
+    
+def crnn_efficientnet_b0_onnx(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnetb0 onnx
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn_onnx(
+        True,
+        'crnn_efficientnet_b0_onnx',
+        **kwargs,
+    )
+def crnn_efficientnet_b3_onnx(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnetb3 onnx
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn_onnx(
+        True,
+        'crnn_efficientnet_b3_onnx',
+        **kwargs,
+    )
+    
+def crnn_efficientnetv2_m_onnx(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnetv2_m onnx
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn_onnx(
+        True,
+        'crnn_efficientnetv2_m_onnx',
+        **kwargs,
+    )
+    
+def crnn_efficientnetv2_mV2_onnx(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnetv2_m onnx
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn_onnx(
+        True,
+        'crnn_efficientnetv2_mV2_onnx',
+        **kwargs,
+    )
+
+def crnn_vgg16_bn_onnx(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with vgg16_bn onnx
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn_onnx(
+        True,
+        "crnn_vgg16_bn_onnx",
+        **kwargs,
+    )
 
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
@@ -424,7 +575,7 @@ def crnn_efficientnet_b3(pretrained: bool = False, **kwargs: Any) -> CRNN:
     )
 
 def crnn_efficientnetv2_m(pretrained: bool = False, **kwargs: Any) -> CRNN:
-    """CRNN with efficientnet_b7
+    """CRNN with efficientnetv2_m
 
     >>> import torch
     >>> from doctr.models import crnn_convnext_tiny
@@ -441,6 +592,30 @@ def crnn_efficientnetv2_m(pretrained: bool = False, **kwargs: Any) -> CRNN:
     kwargs["rnn_units"] = 512
     return _crnn(
         'crnn_efficientnetv2_m',
+        pretrained,
+        efficientnetv2_m,
+        ignore_keys=['linear.weight', 'linear.bias'],
+        **kwargs,
+    )
+    
+def crnn_efficientnetv2_mV2(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with efficientnetv2_m
+
+    >>> import torch
+    >>> from doctr.models import crnn_convnext_tiny
+    >>> model = crnn_convnext_tiny(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+    kwargs["rnn_units"] = 512
+    return _crnn(
+        'crnn_efficientnetv2_mV2',
         pretrained,
         efficientnetv2_m,
         ignore_keys=['linear.weight', 'linear.bias'],
