@@ -368,28 +368,17 @@ class db_resnet50_onnx(_DBNet, nn.Module):
         self.cfg = default_cfgs["db_resnet50_onnx"]
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
-        self.device = torch.cuda.is_available()
-        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
-            self.device = "cpu"
-        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
-            self.device = "cuda"
         model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
-        if self.device:
-            self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
-        else:
-            self.ie = Core()
-            self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
-            self.compiled_model_onnx = self.ie.compile_model(model=model_path, device_name="CPU")
-            self.output_layer_onnx = self.compiled_model_onnx.output(0)
+        self.ie = Core()
+        self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
+        self.compiled_model_onnx = self.ie.compile_model(model=model_path, device_name="CPU")
+        self.output_layer_onnx = self.compiled_model_onnx.output(0)
     @torch.no_grad()
     def forward(
         self,
         batch: torch.Tensor,
     ):
-        if self.device:
-            pred_map = self.sess.run(None, {"input":batch.detach().cpu().numpy()})[0]
-        else:
-            pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+        pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
         
         return pred_map
 class db_resnet50_rotation_onnx(_DBNet, nn.Module):
@@ -402,28 +391,18 @@ class db_resnet50_rotation_onnx(_DBNet, nn.Module):
         self.cfg = default_cfgs["db_resnet50_rotation_onnx"]
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
-        self.device = torch.cuda.is_available()
-        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
-            self.device = "cpu"
-        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
-            self.device = "cuda"
         model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
-        if self.device:
-            self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
-        else:
-            self.ie = Core()
-            self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
-            self.compiled_model_onnx = self.ie.compile_model(model=model_path, device_name="CPU")
-            self.output_layer_onnx = self.compiled_model_onnx.output(0)
+
+        self.ie = Core()
+        self.ie.set_property({'CACHE_DIR': os.path.join(os.path.expanduser('~'), '.cache', 'doctr', 'models')})
+        self.compiled_model_onnx = self.ie.compile_model(model=model_path, device_name="CPU")
+        self.output_layer_onnx = self.compiled_model_onnx.output(0)
     @torch.no_grad()
     def forward(
         self,
         batch: torch.Tensor,
     ):
-        if self.device:
-            pred_map = self.sess.run(None, {"input":batch.detach().cpu().numpy()})[0]
-        else:
-            pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
+        pred_map = self.compiled_model_onnx([batch.detach().cpu().numpy()])[self.output_layer_onnx]
         
         return pred_map
 

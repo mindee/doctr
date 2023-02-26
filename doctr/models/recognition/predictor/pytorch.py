@@ -38,9 +38,9 @@ class RecognitionPredictor(nn.Module):
         self.postprocessor = self.model.postprocessor
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
-            self.device = "cpu"
+            self.device = torch.device("cpu")
         elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
-            self.device = "cuda"
+            self.device = torch.device("cuda")
         if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
             # self.model = nn.DataParallel(self.model)
             self.model = self.model.to(self.device)
