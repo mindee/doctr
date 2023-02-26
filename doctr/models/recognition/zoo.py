@@ -15,7 +15,8 @@ __all__ = ["recognition_predictor"]
 
 
 ARCHS: List[str] = ['crnn_vgg16_bn', 'crnn_vgg16_bn_onnx', 'crnn_mobilenet_v3_small', 'crnn_mobilenet_v3_large', 'sar_resnet31', 'master', 
-                    'crnn_efficientnet_b0', 'crnn_efficientnet_b3', 'crnn_efficientnetv2_m', "parseq_large"]
+                    'crnn_efficientnet_b0', 'crnn_efficientnet_b0_onnx', 'crnn_efficientnet_b3', 'crnn_efficientnet_b3_onnx',
+                    'crnn_efficientnetv2_m', 'crnn_efficientnetv2_m_onnx', 'crnn_efficientnetv2_mV2', 'crnn_efficientnetv2_mV2_onnx', "parseq_large"]
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:

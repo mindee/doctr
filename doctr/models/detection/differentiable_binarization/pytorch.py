@@ -369,6 +369,10 @@ class db_resnet50_onnx(_DBNet, nn.Module):
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
         self.device = torch.cuda.is_available()
+        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
+            self.device = "cpu"
+        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
+            self.device = "cuda"
         model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
         if self.device:
             self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])
@@ -399,6 +403,10 @@ class db_resnet50_rotation_onnx(_DBNet, nn.Module):
         self.assume_straight_pages = True
         self.postprocessor = DBPostProcessor(assume_straight_pages=self.assume_straight_pages)
         self.device = torch.cuda.is_available()
+        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
+            self.device = "cpu"
+        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
+            self.device = "cuda"
         model_path = str(download_from_url(self.cfg["url"], cache_subdir='models'))
         if self.device:
             self.sess = ort.InferenceSession(model_path, providers=['CUDAExecutionProvider'])

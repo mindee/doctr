@@ -8,7 +8,7 @@ from typing import Any, List, Sequence, Tuple, Union
 import numpy as np
 import torch
 from torch import nn
-
+import os
 from doctr.models.preprocessor import PreProcessor
 
 from ._utils import remap_preds, split_crops
@@ -37,6 +37,10 @@ class RecognitionPredictor(nn.Module):
         self.model = model.eval()
         self.postprocessor = self.model.postprocessor
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
+            self.device = "cpu"
+        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
+            self.device = "cuda"
         if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
             # self.model = nn.DataParallel(self.model)
             self.model = self.model.to(self.device)
@@ -82,7 +86,7 @@ class RecognitionPredictor(nn.Module):
                 batch = batch.to(self.device)
                 # batch = batch.half()
             char_logits = self.model(batch)
-            if type(char_logits) != torch.Tensor():
+            if not torch.is_tensor(char_logits):
                 char_logits = torch.tensor(char_logits)
             raw += [self.postprocessor(char_logits)]
 
