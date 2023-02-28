@@ -75,7 +75,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         'std': (0.299, 0.296, 0.301),
         'input_shape': (3, 32, 128),
         'vocab': VOCABS['french'] + " ",
-        'url': "https://github.com/h2oai/doctr/releases/download/efficientnet_crnnv2/crnn_effnet_b3.pt",
+        'url': "https://github.com/h2oai/doctr/releases/download/efficientnet_onnx_models/crnn_effnet_b3.pt",
     },
     'crnn_efficientnet_b3_onnx': {
         'mean': (0.694, 0.695, 0.693),
