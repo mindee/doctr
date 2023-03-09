@@ -175,7 +175,7 @@ def main(rank: int, world_size: int, args):
         raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
 
     # create default process group
-    device = torch.cuda.device(args.devices[rank])
+    device = torch.device('cuda', args.devices[rank])
     dist.init_process_group(args.backend, rank=rank, world_size=world_size)
     # create local model
     model = model.to(device)
