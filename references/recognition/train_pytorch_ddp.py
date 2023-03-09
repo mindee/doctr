@@ -35,7 +35,7 @@ import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 
 
-def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+def fit_one_epoch(model, device, rank, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
@@ -301,19 +301,23 @@ def main(rank: int, world_size: int, args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+        fit_one_epoch(model, device, rank, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, device, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            # FIXME
-            #torch.save(model.state_dict(), f"./{exp_name}.pt")
+            if rank == 0:
+                # All processes should see same parameters as they all start from same
+                # random parameters and gradients are synchronized in backward passes.
+                # Therefore, saving it in one process is sufficient.
+                print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+                torch.save(model.state_dict(), f"./{exp_name}.pt")
             min_loss = val_loss
-        mb.write(
-            f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-            f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
-        )
+        if rank == 0:
+            mb.write(
+                f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+                f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
+            )
         # W&B
         if args.wb:
             wandb.log(
