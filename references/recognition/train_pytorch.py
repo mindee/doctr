@@ -5,8 +5,18 @@
 
 import os
 
-os.environ["USE_TORCH"] = "1"
+from torch.autograd import Variable
 
+os.environ["USE_TORCH"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+
+import torch
+
+import torch.nn as nn
+import torch.optim as optim
+import torch.nn.functional as F
+import torch.backends.cudnn as cudnn
+from collections import OrderedDict
 import datetime
 import hashlib
 import logging
@@ -23,21 +33,22 @@ from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
 
 from doctr import transforms as T
-from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
+from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator, encode_sequences
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
 from utils import plot_recorder, plot_samples
+from typing import List, Tuple
 
 
 def record_lr(
-    model: torch.nn.Module,
-    train_loader: DataLoader,
-    batch_transforms,
-    optimizer,
-    start_lr: float = 1e-7,
-    end_lr: float = 1,
-    num_it: int = 100,
-    amp: bool = False,
+        model: torch.nn.Module,
+        train_loader: DataLoader,
+        batch_transforms,
+        optimizer,
+        start_lr: float = 1e-7,
+        end_lr: float = 1,
+        num_it: int = 100,
+        amp: bool = False,
 ):
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
@@ -55,15 +66,16 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
 
-    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
     loss_recorder = []
 
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     for batch_idx, (images, targets) in enumerate(train_loader):
-        if torch.cuda.is_available():
-            images = images.cuda()
+
+        images = images.to(device)
+        # targets = targets.to(device)
 
         images = batch_transforms(images)
 
@@ -80,7 +92,7 @@ def record_lr(
             scaler.step(optimizer)
             scaler.update()
         else:
-            train_loss = model(images, targets)["loss"]
+            train_loss = model(images, targets)["loss"].cuda()
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -101,20 +113,29 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+def build_target(
+        gts: List[str],
+        vocab: str,
+        max_length: int,
+) -> Tuple[np.ndarray, List[int]]:
+    encoded = encode_sequences(sequences=gts, vocab=vocab, target_size=max_length, eos=len(vocab))
+    seq_len = [len(word) for word in gts]
+    return encoded, seq_len
+
+
+def fit_one_epoch(model, vocab, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_loader, parent=mb):
-        if torch.cuda.is_available():
-            images = images.cuda()
+
+        encoded, seq_len = build_target(targets, vocab, args.max_chars)
         images = batch_transforms(images)
-
-        train_loss = model(images, targets)["loss"]
-
+        # train_loss = model(images, targets)["loss"]
         optimizer.zero_grad()
+
         if amp:
             with torch.cuda.amp.autocast():
                 train_loss = model(images, targets)["loss"]
@@ -126,7 +147,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             scaler.step(optimizer)
             scaler.update()
         else:
-            train_loss = model(images, targets)["loss"]
+            # train_loss = model(images, targets)["loss"]
+            train_loss = model(images, encoded, seq_len)["loss"].cuda()
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -145,8 +167,10 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Validation loop
     val_loss, batch_cnt = 0, 0
     for images, targets in val_loader:
-        if torch.cuda.is_available():
-            images = images.cuda()
+
+        images = images.to(device)
+        targets = targets.to(device)
+
         images = batch_transforms(images)
         if amp:
             with torch.cuda.amp.autocast():
@@ -177,9 +201,9 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    torch.backends.cudnn.benchmark = True
+    # torch.backends.cudnn.benchmark = True
 
-    vocab = VOCABS[args.vocab]
+    vocab = "".join(OrderedDict.fromkeys(VOCABS['korean']))
     fonts = args.font.split(",")
 
     # Load val data generator
@@ -233,20 +257,12 @@ def main(args):
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
-    # GPU
-    if isinstance(args.device, int):
-        if not torch.cuda.is_available():
-            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-        if args.device >= torch.cuda.device_count():
-            raise ValueError("Invalid device index")
-    # Silent default switch to GPU if available
-    elif torch.cuda.is_available():
-        args.device = 0
-    else:
-        logging.warning("No accessible GPU, targe device set to CPU.")
-    if torch.cuda.is_available():
-        torch.cuda.set_device(args.device)
-        model = model.cuda()
+    # DataParallel
+    model = model.to(device)
+    if device == 'cuda':
+        model = nn.DataParallel(model)
+        # model = model.to(device)
+        cudnn.benchmark = True
 
     # Metrics
     val_metric = TextMatch()
@@ -315,6 +331,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
+
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in " f"{len(train_loader)} batches)")
 
     if args.show_samples:
@@ -369,13 +386,15 @@ def main(args):
 
     # Create loss queue
     min_loss = np.inf
-    # Training loop
+    # Training loopfit_one_epoch
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+
+        fit_one_epoch(model, vocab, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
+
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
@@ -431,12 +450,12 @@ def parse_args():
     parser.add_argument("--max-chars", type=int, default=12, help="Maximum number of characters per synthetic sample")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
-    parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
-    parser.add_argument("--device", default=None, type=int, help="device")
+    parser.add_argument("-b", "--batch_size", type=int, default=32, help="batch size for training")
+    # parser.add_argument("--device", default=None, type=int, help="device")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
+    parser.add_argument("-j", "--workers", type=int, default=2, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for training")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
@@ -454,6 +473,7 @@ def parse_args():
     parser.add_argument("--sched", type=str, default="cosine", help="scheduler to use")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
+
     args = parser.parse_args()
 
     return args
@@ -461,4 +481,5 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     main(args)
