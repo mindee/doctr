@@ -49,7 +49,7 @@ dependencies = [
     "tqdm>=4.30.0",
     "rapidfuzz>=1.6.0",
     "huggingface-hub>=0.4.0",
-    "openvino==2022.2.0",
+    "openvino==2022.3.0",
     "onnxruntime-gpu>=1.12.1; sys_platform == 'linux'",
     "onnxruntime>=1.12.1; sys_platform == 'darwin'",
 ]
