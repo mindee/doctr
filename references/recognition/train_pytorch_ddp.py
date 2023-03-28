@@ -33,6 +33,7 @@ import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data.distributed import DistributedSampler
 
 
 def fit_one_epoch(model, device, rank, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
@@ -108,7 +109,7 @@ def main(rank: int, world_size: int, args):
     """
     print(args)
 
-    if args.push_to_hub:
+    if rank == 0 and args.push_to_hub:
         login_to_hub()
 
     if not isinstance(args.workers, int):
@@ -119,45 +120,46 @@ def main(rank: int, world_size: int, args):
     vocab = VOCABS[args.vocab]
     fonts = args.font.split(",")
 
-    # Load val data generator
-    st = time.time()
-    if isinstance(args.val_path, str):
-        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-            val_hash = hashlib.sha256(f.read()).hexdigest()
+    if rank == 0:
+        # Load val data generator
+        st = time.time()
+        if isinstance(args.val_path, str):
+            with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+                val_hash = hashlib.sha256(f.read()).hexdigest()
 
-        val_set = RecognitionDataset(
-            img_folder=os.path.join(args.val_path, "images"),
-            labels_path=os.path.join(args.val_path, "labels.json"),
-            img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-        )
-    else:
-        val_hash = None
-        # Load synthetic data generator
-        val_set = WordGenerator(
-            vocab=vocab,
-            min_chars=args.min_chars,
-            max_chars=args.max_chars,
-            num_samples=args.val_samples * len(vocab),
-            font_family=fonts,
-            img_transforms=Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                ]
-            ),
-        )
+            val_set = RecognitionDataset(
+                img_folder=os.path.join(args.val_path, "images"),
+                labels_path=os.path.join(args.val_path, "labels.json"),
+                img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+            )
+        else:
+            val_hash = None
+            # Load synthetic data generator
+            val_set = WordGenerator(
+                vocab=vocab,
+                min_chars=args.min_chars,
+                max_chars=args.max_chars,
+                num_samples=args.val_samples * len(vocab),
+                font_family=fonts,
+                img_transforms=Compose(
+                    [
+                        T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                        # Ensure we have a 90% split of white-background images
+                        T.RandomApply(T.ColorInversion(), 0.9),
+                    ]
+                ),
+            )
 
-    val_loader = DataLoader(
-        val_set,
-        batch_size=args.batch_size,
-        drop_last=False,
-        num_workers=args.workers,
-        sampler=SequentialSampler(val_set),
-        pin_memory=torch.cuda.is_available(),
-        collate_fn=val_set.collate_fn,
-    )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)")
+        val_loader = DataLoader(
+            val_set,
+            batch_size=args.batch_size,
+            drop_last=False,
+            num_workers=args.workers,
+            sampler=SequentialSampler(val_set),
+            pin_memory=torch.cuda.is_available(),
+            collate_fn=val_set.collate_fn,
+        )
+        print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -185,7 +187,7 @@ def main(rank: int, world_size: int, args):
     # Metrics
     val_metric = TextMatch()
 
-    if args.test_only:
+    if rank == 0 and args.test_only:
         print("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(model, device, val_loader, batch_transforms, val_metric, amp=args.amp)
         print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
@@ -245,13 +247,13 @@ def main(rank: int, world_size: int, args):
         batch_size=args.batch_size,
         drop_last=True,
         num_workers=args.workers,
-        sampler=RandomSampler(train_set),
+        sampler=DistributedSampler(train_set, num_replicas=world_size, rank=rank, shuffle=True, drop_last=True),
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
     print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in " f"{len(train_loader)} batches)")
 
-    if args.show_samples:
+    if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
         plot_samples(x, target)
         return
@@ -275,7 +277,7 @@ def main(rank: int, world_size: int, args):
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
     # W&B
-    if args.wb:
+    if rank == 0 and args.wb:
         run = wandb.init(
             name=exp_name,
             project="text-recognition",
@@ -303,36 +305,36 @@ def main(rank: int, world_size: int, args):
     for epoch in mb:
         fit_one_epoch(model, device, rank, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
-        # Validation loop at the end of each epoch
-        val_loss, exact_match, partial_match = evaluate(model, device, val_loader, batch_transforms, val_metric, amp=args.amp)
-        if val_loss < min_loss:
-            if rank == 0:
+        if rank == 0:
+            # Validation loop at the end of each epoch
+            val_loss, exact_match, partial_match = evaluate(model, device, val_loader, batch_transforms, val_metric, amp=args.amp)
+            if val_loss < min_loss:
                 # All processes should see same parameters as they all start from same
                 # random parameters and gradients are synchronized in backward passes.
                 # Therefore, saving it in one process is sufficient.
                 print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
                 torch.save(model.state_dict(), f"./{exp_name}.pt")
             min_loss = val_loss
-        if rank == 0:
             mb.write(
                 f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                 f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
             )
-        # W&B
+            # W&B
+            if args.wb:
+                wandb.log(
+                    {
+                        "val_loss": val_loss,
+                        "exact_match": exact_match,
+                        "partial_match": partial_match,
+                    }
+                )
+
+    if rank == 0:
         if args.wb:
-            wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "exact_match": exact_match,
-                    "partial_match": partial_match,
-                }
-            )
+            run.finish()
 
-    if args.wb:
-        run.finish()
-
-    if args.push_to_hub:
-        push_to_hf_hub(model, exp_name, task="recognition", run_config=args)
+        if args.push_to_hub:
+            push_to_hf_hub(model, exp_name, task="recognition", run_config=args)
 
 
 def parse_args():
