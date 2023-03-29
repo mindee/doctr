@@ -8,14 +8,10 @@ You will only need to install [Git](https://git-scm.com/book/en/v2/Getting-Start
 
 ### Starting your web server
 
-You will need to clone the repository first:
+You will need to clone the repository first, go into `api` folder and start the api:
 ```shell
 git clone https://github.com/mindee/doctr.git
-```
-then change in the api folder, where you can start your container:
-
-```shell
-make lock
+cd doctr/api
 make run
 ```
 Once completed, your [FastAPI](https://fastapi.tiangolo.com/) server should be running on port 8080.
