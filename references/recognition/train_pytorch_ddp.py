@@ -9,17 +9,20 @@ os.environ["USE_TORCH"] = "1"
 
 import datetime
 import hashlib
-import logging
-import multiprocessing as mp
+import multiprocessing
 import time
 from pathlib import Path
 
 import numpy as np
 import torch
+import torch.distributed as dist
+import torch.multiprocessing as mp
 import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
+from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, SequentialSampler
+from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
 
 from doctr import transforms as T
@@ -29,14 +32,7 @@ from doctr.utils.metrics import TextMatch
 from utils import plot_samples
 
 
-import torch
-import torch.distributed as dist
-import torch.multiprocessing as mp
-from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.utils.data.distributed import DistributedSampler
-
-
-def fit_one_epoch(model, device, rank, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
@@ -113,7 +109,7 @@ def main(rank: int, world_size: int, args):
         login_to_hub()
 
     if not isinstance(args.workers, int):
-        args.workers = min(16, mp.cpu_count())
+        args.workers = min(16, multiprocessing.cpu_count())
 
     torch.backends.cudnn.benchmark = True
 
@@ -159,7 +155,9 @@ def main(rank: int, world_size: int, args):
             pin_memory=torch.cuda.is_available(),
             collate_fn=val_set.collate_fn,
         )
-        print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)")
+        print(
+            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)"
+        )
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -177,19 +175,22 @@ def main(rank: int, world_size: int, args):
         raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
 
     # create default process group
-    device = torch.device('cuda', args.devices[rank])
+    device = torch.device("cuda", args.devices[rank])
     dist.init_process_group(args.backend, rank=rank, world_size=world_size)
     # create local model
     model = model.to(device)
     # construct DDP model
     model = DDP(model, device_ids=[device])
 
-    # Metrics
-    val_metric = TextMatch()
+    if rank == 0:
+        # Metrics
+        val_metric = TextMatch()
 
     if rank == 0 and args.test_only:
         print("Running evaluation")
-        val_loss, exact_match, partial_match = evaluate(model, device, val_loader, batch_transforms, val_metric, amp=args.amp)
+        val_loss, exact_match, partial_match = evaluate(
+            model, device, val_loader, batch_transforms, val_metric, amp=args.amp
+        )
         print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         return
 
@@ -303,11 +304,13 @@ def main(rank: int, world_size: int, args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, device, rank, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+        fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
         if rank == 0:
             # Validation loop at the end of each epoch
-            val_loss, exact_match, partial_match = evaluate(model, device, val_loader, batch_transforms, val_metric, amp=args.amp)
+            val_loss, exact_match, partial_match = evaluate(
+                model, device, val_loader, batch_transforms, val_metric, amp=args.amp
+            )
             if val_loss < min_loss:
                 # All processes should see same parameters as they all start from same
                 # random parameters and gradients are synchronized in backward passes.
@@ -368,7 +371,7 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
-    parser.add_argument("--backend", default='gloo', type=str, help="Backend to use for `torch.distributed.init_process_group`")
+    parser.add_argument("--backend", default="gloo", type=str, help="Backend to use for Torch DDP")
     parser.add_argument("--devices", default=None, nargs="+", type=int, help="GPU devices to use for training")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
@@ -403,8 +406,4 @@ if __name__ == "__main__":
     # initialization mode.
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "29500"
-    mp.spawn(main,
-        args=(nprocs, args),
-        nprocs=nprocs,
-        join=True
-    )
+    mp.spawn(main, args=(nprocs, args), nprocs=nprocs, join=True)
