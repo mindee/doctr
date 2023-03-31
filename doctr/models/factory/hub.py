@@ -13,7 +13,7 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
-from huggingface_hub import (  # type: ignore[attr-defined]
+from huggingface_hub import (
     HfApi,
     HfFolder,
     Repository,
