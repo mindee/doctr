@@ -60,7 +60,7 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
 Via Git
 =======
 
-Install the library in developper mode:
+Install the library in developer mode:
 
 .. tabs::
 
