@@ -27,10 +27,6 @@ def test_read_pdf(mock_pdf):
     # render all pages
     _check_doc_content(doc, 2)
 
-    with open(mock_pdf, "rb") as f:
-        doc = io.PdfRenderer(f.read())
-    _check_doc_content(doc, 2)
-
     # Wrong input type
     with pytest.raises(TypeError):
         _ = next(io.PdfRenderer(123))

@@ -8,7 +8,7 @@ from typing import Any, Generator, List, Optional
 import numpy as np
 import pypdfium2 as pdfium
 
-from doctr.utils.common_types import AbstractFile
+from doctr.utils.common_types import AbstractPath
 
 __all__ = ["PdfRenderer"]
 
@@ -16,7 +16,7 @@ __all__ = ["PdfRenderer"]
 class PdfRenderer:
     def __init__(
         self,
-        file: AbstractFile,
+        file: AbstractPath,
         scale: float = 2,
         page_indices: Optional[List[int]] = None,
         password: Optional[str] = None,
