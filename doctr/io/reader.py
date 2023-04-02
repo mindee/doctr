@@ -8,7 +8,7 @@ from typing import List, Sequence, Union
 
 import numpy as np
 
-from doctr.utils.common_types import AbstractFile
+from doctr.utils.common_types import AbstractFile, AbstractPath
 
 from .html import read_html
 from .image import read_img_as_numpy
@@ -21,7 +21,7 @@ class DocumentFile:
     """Read a document from multiple extensions"""
 
     @classmethod
-    def from_pdf(cls, file: AbstractFile, **kwargs) -> PdfRenderer:
+    def from_pdf(cls, file: AbstractPath, **kwargs) -> PdfRenderer:
         """Read a PDF file
 
         >>> from doctr.documents import DocumentFile
