@@ -23,10 +23,10 @@ def test_read_pdf(mock_pdf):
 
     # length can be accessed without actually rendering the pdf
     assert len(doc) == 2
-    
+
     # render all pages
     _check_doc_content(doc, 2)
-    
+
     # length decreases with each rendered page
     assert len(doc) == 0
 
