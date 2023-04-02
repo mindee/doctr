@@ -4,8 +4,8 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, List, Tuple, Union
 from collections import abc
+from typing import Any, List, Tuple, Union
 
 import numpy as np
 import torch

@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Optional, List, Generator
+from typing import Any, Generator, List, Optional
 
 import numpy as np
 import pypdfium2 as pdfium
