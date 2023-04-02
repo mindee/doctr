@@ -38,6 +38,7 @@ class PdfRenderer:
         Args:
             file: the path to the PDF file
             scale: rendering scale (1 corresponds to 72dpi)
+            page_indices: indices of the pages to include
             rgb_mode: if True, the output will be RGB, otherwise BGR
             password: a password to unlock the document, if encrypted
             kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render`
