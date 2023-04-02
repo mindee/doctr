@@ -26,7 +26,7 @@ def main(args):
     model = ocr_predictor(args.detection, args.recognition, pretrained=True)
 
     if args.path.lower().endswith(".pdf"):
-        #TODO avoid casting to list
+        # TODO avoid casting to list
         doc = list(DocumentFile.from_pdf(args.path))
     else:
         doc = DocumentFile.from_images(args.path)
