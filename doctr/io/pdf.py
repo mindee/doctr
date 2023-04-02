@@ -14,7 +14,6 @@ __all__ = ["PdfRenderer"]
 
 
 class PdfRenderer:
-
     def __init__(
         self,
         file: AbstractFile,
@@ -47,20 +46,14 @@ class PdfRenderer:
         pdf = pdfium.PdfDocument(file, password=password)
         self._len = len(page_indices) if page_indices else len(pdf)
         self._generator = pdf.render(
-            pdfium.PdfBitmap.to_numpy,
-            scale=scale, page_indices=page_indices, rev_byteorder=rgb_mode, **kwargs
+            pdfium.PdfBitmap.to_numpy, scale=scale, page_indices=page_indices, rev_byteorder=rgb_mode, **kwargs
         )
 
     def __len__(self) -> int:
         return self._len
 
     def __next__(self) -> np.ndarray:
-        self._len -= 1
         return next(self._generator)
 
     def __iter__(self) -> Generator[np.ndarray, None, None]:
-        while True:
-            try:
-                yield next(self)
-            except StopIteration:
-                break
+        yield from self._generator
