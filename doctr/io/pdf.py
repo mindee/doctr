@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any, Optional, List, Generator
-from pathlib import Path
 
 import numpy as np
 import pypdfium2 as pdfium
@@ -59,6 +58,8 @@ class PdfRenderer:
         return next(self._generator)
 
     def __iter__(self) -> Generator[np.ndarray, None, None]:
-        for page in self._generator:
-            self._len -= 1
-            yield page
+        while True:
+            try:
+                yield next(self)
+            except StopIteration:
+                break

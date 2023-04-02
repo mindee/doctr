@@ -108,7 +108,7 @@ class PreProcessor(NestedObject):
 
             batches = [x]
 
-        # FIXME avoid casting to list
+        # TODO avoid casting to list
         if isinstance(x, abc.Iterable):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))

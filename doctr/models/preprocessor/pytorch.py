@@ -110,7 +110,7 @@ class PreProcessor(nn.Module):
                 x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
             batches = [x]
 
-        # FIXME avoid casting to list
+        # TODO avoid casting to list
         elif isinstance(x, abc.Iterable):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
