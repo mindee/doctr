@@ -15,7 +15,7 @@ def _check_doc_content(doc_tensors, num_pages):
         assert isinstance(page, np.ndarray)
         assert page.dtype == np.uint8
         i += 1
-    assert i == num_pages == len(doc_tensors)
+    assert i == num_pages
 
 
 def test_read_pdf(mock_pdf):
@@ -23,8 +23,12 @@ def test_read_pdf(mock_pdf):
 
     # length can be accessed without actually rendering the pdf
     assert len(doc) == 2
-
+    
+    # render all pages
     _check_doc_content(doc, 2)
+    
+    # length decreases with each rendered page
+    assert len(doc) == 0
 
     with open(mock_pdf, "rb") as f:
         doc = io.PdfRenderer(f.read())
