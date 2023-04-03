@@ -170,10 +170,6 @@ def main(rank: int, world_size: int, args):
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
-    # GPU
-    if not torch.cuda.is_available():
-        raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-
     # create default process group
     device = torch.device("cuda", args.devices[rank])
     dist.init_process_group(args.backend, rank=rank, world_size=world_size)
@@ -371,7 +367,7 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
-    parser.add_argument("--backend", default="gloo", type=str, help="Backend to use for Torch DDP")
+    parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for Torch DDP")
     parser.add_argument("--devices", default=None, nargs="+", type=int, help="GPU devices to use for training")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
@@ -400,6 +396,10 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
+    if not torch.cuda.is_available():
+        raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
+    if not isinstance(args.devices, list):
+        args.devices = list(range(torch.cuda.device_count()))
     nprocs = len(args.devices)
     # Environment variables which need to be
     # set when using c10d's default "env"
