@@ -5,7 +5,9 @@
 
 from typing import List
 
+# https://github.com/maxbachmann/RapidFuzz/blob/0fd8371665c713f1302de58ad2755e68df913688/src/rapidfuzz/string_metric.py#L80
 from rapidfuzz.distance.Levenshtein import distance as levenshtein
+
 
 __all__ = ["merge_strings", "merge_multi_strings"]
 
