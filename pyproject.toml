@@ -48,7 +48,7 @@ dependencies = [
     "mplcursors>=0.3",
     "unidecode>=1.0.0",
     "tqdm>=4.30.0",
-    "rapidfuzz>=1.6.0",
+    "rapidfuzz>=3.0.0",
     "huggingface-hub>=0.4.0",
 ]
 
