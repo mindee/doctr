@@ -269,7 +269,7 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
 )
 def test_sroie(input_size, num_samples, rotate, recognition, mock_sroie_dataset):
     # monkeypatch the path to temporary dataset
-    datasets.SROIE.TRAIN = (mock_sroie_dataset, None)
+    datasets.SROIE.TRAIN = (mock_sroie_dataset, None, "sroie2019_train_task1.zip")
 
     ds = datasets.SROIE(
         train=True,
