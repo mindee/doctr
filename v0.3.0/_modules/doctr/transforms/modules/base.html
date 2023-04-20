@@ -182,35 +182,20 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/installing.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../notebooks.html">docTR Notebooks</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../modules/utils.html">doctr.utils</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../contributing/contributing.html">Contributing to docTR</a></li>
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../installing.html">Installation</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../documents.html">doctr.documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../utils.html">doctr.utils</a></li>
 </ul>
 
 </div>
@@ -245,130 +230,34 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.transforms.modules.base</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License 2.0.</span>
-<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License version 2.</span>
+<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
-<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span>
 
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
-
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">functional</span> <span class="k">as</span> <span class="n">F</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SampleCompose&quot;</span><span class="p">,</span> <span class="s2">&quot;ImageTransform&quot;</span><span class="p">,</span> <span class="s2">&quot;ColorInversion&quot;</span><span class="p">,</span> <span class="s2">&quot;OneOf&quot;</span><span class="p">,</span> <span class="s2">&quot;RandomApply&quot;</span><span class="p">,</span> <span class="s2">&quot;RandomRotate&quot;</span><span class="p">,</span> <span class="s2">&quot;RandomCrop&quot;</span><span class="p">]</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span> <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">]</span>
 
 
-<span class="k">class</span> <span class="nc">SampleCompose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a wrapper that will apply transformations sequentially on both image and target</span>
-
-<span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
-<span class="sd">                &gt;&gt;&gt; transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
-<span class="sd">                &gt;&gt;&gt; out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))</span>
-
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
-<span class="sd">                &gt;&gt;&gt; transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
-<span class="sd">                &gt;&gt;&gt; out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        transforms: list of transformation modules</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;sample_transforms&quot;</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sample_transforms</span> <span class="o">=</span> <span class="n">transforms</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_transforms</span><span class="p">:</span>
-            <span class="n">x</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">target</span>
-
-
-<span class="k">class</span> <span class="nc">ImageTransform</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a transform wrapper to turn an image-only transformation into an image+target transform</span>
-
-<span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
-<span class="sd">                &gt;&gt;&gt; out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)</span>
-
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
-<span class="sd">                &gt;&gt;&gt; out, _ = transfo(torch.rand(8, 64, 64, 3), None)</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        transform: the image transformation module to wrap</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;img_transform&quot;</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span> <span class="o">=</span> <span class="n">transform</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
-
-
-<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
 <span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
 
-<span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
-
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(8, 64, 64, 3))</span>
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        min_val: range [min_val, 1] to colorize RGB pixels</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">min_val</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span> <span class="o">=</span> <span class="n">min_val</span>
 
@@ -379,34 +268,20 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">invert_colors</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
 
-<span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import OneOf</span>
-<span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
-
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import OneOf</span>
-<span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transforms: list of transformations, one only will be picked</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;transforms&quot;</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;transforms&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">]])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transforms</span> <span class="o">=</span> <span class="n">transforms</span>
@@ -418,35 +293,20 @@
         <span class="k">return</span> <span class="n">transfo</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
 
-<span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
-<span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
-
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
-<span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
+<span class="sd">    Example::</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import Normalize</span>
+<span class="sd">        &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transform: transformation to apply</span>
 <span class="sd">        p: probability to apply</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transform</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">Any</span><span class="p">],</span> <span class="n">Any</span><span class="p">],</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">transform</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
 
@@ -457,64 +317,6 @@
         <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">img</span></div>
-
-
-<div class="viewcode-block" id="RandomRotate"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomRotate">[docs]</a><span class="k">class</span> <span class="nc">RandomRotate</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly rotate a tensor image and its boxes</span>
-
-<span class="sd">    .. image:: https://doctr-static.mindee.com/models?id=v0.4.0/rotation_illustration.png&amp;src=0</span>
-<span class="sd">        :align: center</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in</span>
-<span class="sd">            [-max_angle, max_angle]</span>
-<span class="sd">        expand: whether the image should be padded before the rotation</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">max_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">5.0</span><span class="p">,</span> <span class="n">expand</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span> <span class="o">=</span> <span class="n">max_angle</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">expand</span> <span class="o">=</span> <span class="n">expand</span>
-
-    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;max_angle=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span><span class="si">}</span><span class="s2">, expand=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">expand</span><span class="si">}</span><span class="s2">&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-        <span class="n">angle</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_angle</span><span class="p">)</span>
-        <span class="n">r_img</span><span class="p">,</span> <span class="n">r_polys</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">rotate_sample</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">expand</span><span class="p">)</span>
-        <span class="c1"># Removes deleted boxes</span>
-        <span class="n">is_kept</span> <span class="o">=</span> <span class="p">(</span><span class="n">r_polys</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">r_polys</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span>
-        <span class="k">return</span> <span class="n">r_img</span><span class="p">,</span> <span class="n">r_polys</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]</span></div>
-
-
-<div class="viewcode-block" id="RandomCrop"><a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomCrop">[docs]</a><span class="k">class</span> <span class="nc">RandomCrop</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly crop a tensor image and its boxes</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        scale: tuple of floats, relative (min_area, max_area) of the crop</span>
-<span class="sd">        ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.08</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">ratio</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">1.33</span><span class="p">))</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">scale</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="n">ratio</span>
-
-    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;scale=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="si">}</span><span class="s2">, ratio=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ratio</span><span class="si">}</span><span class="s2">&quot;</span>
-
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]:</span>
-        <span class="n">scale</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">ratio</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ratio</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-        <span class="c1"># Those might overflow</span>
-        <span class="n">crop_h</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">)</span>
-        <span class="n">crop_w</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">scale</span> <span class="o">/</span> <span class="n">ratio</span><span class="p">)</span>
-        <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">crop_w</span><span class="p">),</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">crop_h</span><span class="p">)</span>
-        <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="n">xmin</span> <span class="o">+</span> <span class="n">crop_w</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">+</span> <span class="n">crop_h</span>
-        <span class="c1"># Clip them</span>
-        <span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">ymax</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">croped_img</span><span class="p">,</span> <span class="n">crop_boxes</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">crop_detection</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">],</span> <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">,</span> <span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">croped_img</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">crop_boxes</span><span class="p">)</span></div>
 </pre></div>
         </article>
       </div>

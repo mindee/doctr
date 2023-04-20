@@ -190,10 +190,7 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -245,14 +242,14 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.classification.zoo</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License 2.0.</span>
-<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License version 2.</span>
+<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">is_tf_available</span>
+<span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">is_tf_available</span><span class="p">,</span> <span class="n">is_torch_available</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">classification</span>
 <span class="kn">from</span> <span class="nn">..preprocessor</span> <span class="kn">import</span> <span class="n">PreProcessor</span>
@@ -260,42 +257,39 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;crop_orientation_predictor&quot;</span><span class="p">]</span>
 
-<span class="n">ARCHS</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;magc_resnet31&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;resnet18&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;resnet31&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;resnet34&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;resnet50&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;resnet34_wide&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;vgg16_bn_r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;vit_s&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;vit_b&quot;</span><span class="p">,</span>
-<span class="p">]</span>
-<span class="n">ORIENTATION_ARCHS</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">]</span>
+
+<span class="k">if</span> <span class="n">is_tf_available</span><span class="p">():</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mobilenet_v3_small_orientation&#39;</span><span class="p">]</span>
+<span class="k">elif</span> <span class="n">is_torch_available</span><span class="p">():</span>
+    <span class="n">ARCHS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;mobilenet_v3_small_orientation&#39;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">_crop_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CropOrientationPredictor</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ORIENTATION_ARCHS</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">_crop_orientation_predictor</span><span class="p">(</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CropOrientationPredictor</span><span class="p">:</span>
+
+    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown architecture &#39;</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
     <span class="c1"># Load directly classifier from backbone</span>
     <span class="n">_model</span> <span class="o">=</span> <span class="n">classification</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">)</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;std&quot;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">])</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;batch_size&quot;</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
-    <span class="n">input_shape</span> <span class="o">=</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;std&#39;</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;std&#39;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;batch_size&#39;</span><span class="p">,</span> <span class="mi">64</span><span class="p">)</span>
+    <span class="n">input_shape</span> <span class="o">=</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tf_available</span><span class="p">()</span> <span class="k">else</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;input_shape&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">:]</span>
     <span class="n">predictor</span> <span class="o">=</span> <span class="n">CropOrientationPredictor</span><span class="p">(</span>
-        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symmetric_pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">_model</span>
+        <span class="n">PreProcessor</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">symmetric_pad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">_model</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">predictor</span>
 
 
 <div class="viewcode-block" id="crop_orientation_predictor"><a class="viewcode-back" href="../../../../modules/models.html#doctr.models.classification.crop_orientation_predictor">[docs]</a><span class="k">def</span> <span class="nf">crop_orientation_predictor</span><span class="p">(</span>
-    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;mobilenet_v3_small_orientation&#39;</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CropOrientationPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Orientation classification architecture.</span>
 

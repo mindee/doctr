@@ -936,46 +936,6 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="doctr.models.kie_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">kie_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'db_resnet50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">KIEPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#kie_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.kie_predictor" title="Permalink to this definition">#</a></dt>
-<dd><p>End-to-end KIE architecture using one model for localization, and another for text recognition.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>det_arch</strong> – name of the detection architecture or the model itself to use
-(e.g. ‘db_resnet50’, ‘db_mobilenet_v3_large’)</p></li>
-<li><p><strong>reco_arch</strong> – name of the recognition architecture or the model itself to use
-(e.g. ‘crnn_vgg16_bn’, ‘sar_resnet31’)</p></li>
-<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our OCR dataset</p></li>
-<li><p><strong>pretrained_backbone</strong> – If True, returns a model with a pretrained backbone</p></li>
-<li><p><strong>assume_straight_pages</strong> – if True, speeds up the inference by assuming you only pass straight pages
-without rotated textual elements.</p></li>
-<li><p><strong>preserve_aspect_ratio</strong> – If True, pad the input document image to preserve the aspect ratio before
-running the detection model on it.</p></li>
-<li><p><strong>symmetric_pad</strong> – if True, pad the image symmetrically instead of padding at the bottom-right.</p></li>
-<li><p><strong>export_as_straight_boxes</strong> – when assume_straight_pages is set to False, export final predictions
-(potentially rotated) as straight bounding boxes.</p></li>
-<li><p><strong>detect_orientation</strong> – if True, the estimated general page orientation will be added to the predictions for each
-page. Doing so will slightly deteriorate the overall latency.</p></li>
-<li><p><strong>detect_language</strong> – if True, the language prediction will be added to the predictions for each
-page. Doing so will slightly deteriorate the overall latency.</p></li>
-<li><p><strong>kwargs</strong> – keyword args of <cite>OCRPredictor</cite></p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>KIE predictor</p>
-</dd>
-</dl>
-</dd></dl>
-
 </section>
 <section id="doctr-models-factory">
 <h2>doctr.models.factory<a class="headerlink" href="#doctr-models-factory" title="Permalink to this heading">#</a></h2>
@@ -1128,7 +1088,6 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 </li>
 <li><a class="reference internal" href="#doctr-models-zoo">doctr.models.zoo</a><ul>
 <li><a class="reference internal" href="#doctr.models.ocr_predictor"><code class="docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a></li>
-<li><a class="reference internal" href="#doctr.models.kie_predictor"><code class="docutils literal notranslate"><span class="pre">kie_predictor()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#doctr-models-factory">doctr.models.factory</a><ul>

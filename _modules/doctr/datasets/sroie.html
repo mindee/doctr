@@ -245,7 +245,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.datasets.sroie</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -285,12 +285,10 @@
     <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.1.1/sroie2019_train_task1.zip&amp;src=0&quot;</span><span class="p">,</span>
         <span class="s2">&quot;d4fa9e60abb03500d83299c845b9c87fd9c9430d1aeac96b83c5d0bb0ab27f6f&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;sroie2019_train_task1.zip&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.1.1/sroie2019_test.zip&amp;src=0&quot;</span><span class="p">,</span>
         <span class="s2">&quot;41b3c746a20226fddc80d86d4b2a903d43b5be4f521dd1bbe759dbf8844745e2&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;sroie2019_test.zip&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -300,10 +298,11 @@
         <span class="n">recognition_task</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">url</span><span class="p">,</span> <span class="n">sha256</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRAIN</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEST</span>
+
+        <span class="n">url</span><span class="p">,</span> <span class="n">sha256</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRAIN</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEST</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">url</span><span class="p">,</span>
-            <span class="n">name</span><span class="p">,</span>
+            <span class="kc">None</span><span class="p">,</span>
             <span class="n">sha256</span><span class="p">,</span>
             <span class="kc">True</span><span class="p">,</span>
             <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">recognition_task</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
@@ -316,6 +315,7 @@
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
 
         <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Unpacking SROIE&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">))):</span>
+
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">)):</span>
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span><span class="w"> </span><span class="n">img_path</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
