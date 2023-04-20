@@ -5,7 +5,14 @@ function deploy_doc(){
     fi
     COMMIT=$(git rev-parse --short HEAD)
     echo "Creating doc at commit" $COMMIT "and pushing to folder $2"
-    pip install -U ..
+    # Hotfix
+    if [ "$1" \< "dcbb21f" ]
+        then
+            pip install -U ..
+            pip install rapidfuzz==2.15.1
+        else
+            pip install -U ..
+        fi
     if [ ! -z "$2" ]
     then
         if [ "$2" == "latest" ]; then
