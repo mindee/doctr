@@ -172,7 +172,7 @@ known_third_party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogres
 
 [tool.ruff]
 ignore = ["E402", "F403", "E731"]
-exclude = [".github", ".git", "venv*", "docs", "build"]
+exclude = [".git", "venv*", "build"]
 line-length = 120
 target-version = "py38"
 
