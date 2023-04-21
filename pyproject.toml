@@ -70,7 +70,7 @@ testing = [
     "requests>=2.20.0",
 ]
 quality = [
-    "flake8>=3.9.0",
+    "ruff>=0.0.260",
     "isort>=5.7.0",
     "black>=22.1,<24.0",
     "mypy>=0.812",
