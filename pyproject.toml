@@ -75,6 +75,7 @@ quality = [
     "black>=22.1,<24.0",
     "mypy>=0.812",
     "pydocstyle[toml]>=6.1.1",
+    "pre-commit>=2.17.0",
 ]
 docs = [
     "sphinx>=3.0.0,!=3.5.0",
