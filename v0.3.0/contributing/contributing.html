@@ -288,6 +288,7 @@
 <h3>Developer mode installation<a class="headerlink" href="#developer-mode-installation" title="Permalink to this heading">#</a></h3>
 <p>Install all additional dependencies with the following command:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 </section>
@@ -311,37 +312,12 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>quality
 </pre></div>
 </div>
-<section id="lint-verification">
-<h4>Lint verification<a class="headerlink" href="#lint-verification" title="Permalink to this heading">#</a></h4>
-<p>To ensure that your incoming PR complies with the lint settings, you need to install <a class="reference external" href="https://flake8.pycqa.org/en/latest/">flake8</a> and run the following command from the repository’s root folder:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>flake8<span class="w"> </span>./
+<section id="code-style-verification">
+<h4>Code style verification<a class="headerlink" href="#code-style-verification" title="Permalink to this heading">#</a></h4>
+<p>To run all style checks together</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>style
 </pre></div>
 </div>
-<p>This will read the <code class="docutils literal notranslate"><span class="pre">.flake8</span></code> setting file and let you know whether your commits need some adjustments.</p>
-</section>
-<section id="import-order">
-<h4>Import order<a class="headerlink" href="#import-order" title="Permalink to this heading">#</a></h4>
-<p>In order to ensure there is a common import order convention, run <a class="reference external" href="https://github.com/PyCQA/isort">isort</a> as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>isort<span class="w"> </span>**/*.py
-</pre></div>
-</div>
-<p>This will reorder the imports of your local files.</p>
-</section>
-<section id="annotation-typing">
-<h4>Annotation typing<a class="headerlink" href="#annotation-typing" title="Permalink to this heading">#</a></h4>
-<p>Additionally, to catch type-related issues and have a cleaner codebase, annotation typing are expected. After installing <a class="reference external" href="https://github.com/python/mypy">mypy</a>, you can run the verifications as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mypy<span class="w"> </span>--config-file<span class="w"> </span>mypy.ini<span class="w"> </span>doctr/
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">mypy.ini</span></code> file will be read to check your typing.</p>
-</section>
-<section id="docstring-format">
-<h4>Docstring format<a class="headerlink" href="#docstring-format" title="Permalink to this heading">#</a></h4>
-<p>To keep a sane docstring structure, if you install <a class="reference external" href="https://github.com/PyCQA/pydocstyle">pydocstyle</a>, you can verify your docstrings as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pydocstyle<span class="w"> </span>doctr/
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">.pydocstyle</span></code> file will be read to configure this operation.</p>
 </section>
 </section>
 <section id="modifying-the-documentation">
@@ -427,10 +403,7 @@
 <li><a class="reference internal" href="#commits">Commits</a></li>
 <li><a class="reference internal" href="#unit-tests">Unit tests</a></li>
 <li><a class="reference internal" href="#code-quality">Code quality</a><ul>
-<li><a class="reference internal" href="#lint-verification">Lint verification</a></li>
-<li><a class="reference internal" href="#import-order">Import order</a></li>
-<li><a class="reference internal" href="#annotation-typing">Annotation typing</a></li>
-<li><a class="reference internal" href="#docstring-format">Docstring format</a></li>
+<li><a class="reference internal" href="#code-style-verification">Code style verification</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#modifying-the-documentation">Modifying the documentation</a></li>
