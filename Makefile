@@ -2,7 +2,7 @@
 # this target runs checks on all files
 quality:
 	isort . -c
-	flake8 ./
+	ruff check .
 	black --check .
 	mypy doctr/
 	pydocstyle doctr/
@@ -11,6 +11,7 @@ quality:
 style:
 	isort .
 	black .
+	ruff --fix .
 
 # Run tests for the library
 test:

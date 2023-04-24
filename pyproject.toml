@@ -70,7 +70,7 @@ testing = [
     "requests>=2.20.0",
 ]
 quality = [
-    "flake8>=3.9.0",
+    "ruff>=0.0.260",
     "isort>=5.7.0",
     "black>=22.1,<24.0",
     "mypy>=0.812",
@@ -101,7 +101,7 @@ dev = [
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     # Quality
-    "flake8>=3.9.0",
+    "ruff>=0.0.260",
     "isort>=5.7.0",
     "black>=22.1,<24.0",
     "mypy>=0.812",
@@ -169,6 +169,18 @@ line_length = 120
 src_paths = ["doctr", "tests", "scripts", "references", "demo", "docs", "api"]
 skip_glob = "**/__init__.py"
 known_third_party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress"]
+
+[tool.ruff]
+ignore = ["E402", "F403", "E731"]
+exclude = [".git", "venv*", "build"]
+line-length = 120
+target-version = "py38"
+
+[tool.ruff.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+[tool.ruff.flake8-quotes]
+docstring-quotes = "double"
 
 [tool.pydocstyle]
 select = "D300,D301,D417"

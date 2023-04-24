@@ -7,7 +7,7 @@ on:
     branches: main
 
 jobs:
-  flake8:
+  ruff:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -20,11 +20,11 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - name: Run flake8
+      - name: Run ruff
         run: |
-          pip install flake8
-          flake8 --version
-          flake8
+          pip install ruff
+          ruff --version
+          ruff check --diff .
 
   black:
     runs-on: ${{ matrix.os }}
