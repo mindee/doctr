@@ -151,7 +151,10 @@ class InvertedResidual(layers.Layer):
         _layers.extend(
             [
                 layers.DepthwiseConv2D(
-                    kernel_size=conf.kernel, strides=conf.stride, depth_multiplier=1, padding="same"
+                    kernel_size=conf.kernel,
+                    strides=conf.stride[0] if isinstance(conf.stride, tuple) else conf.stride,
+                    depth_multiplier=1,
+                    padding="same",
                 ),
                 layers.BatchNormalization(),
             ]
