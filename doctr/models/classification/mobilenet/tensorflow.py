@@ -149,14 +149,12 @@ class InvertedResidual(layers.Layer):
 
         # depth-wise
         _layers.extend(
-            conv_sequence(
-                conf.expanded_channels,
-                act_fn,
-                kernel_size=conf.kernel,
-                strides=conf.stride,
-                bn=True,
-                groups=conf.expanded_channels,
-            )
+            [
+                layers.DepthwiseConv2D(
+                    kernel_size=conf.kernel, strides=conf.stride, depth_multiplier=1, padding="same"
+                ),
+                layers.BatchNormalization(),
+            ]
         )
 
         if conf.use_se:
