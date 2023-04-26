@@ -150,9 +150,10 @@ class InvertedResidual(layers.Layer):
         # depth-wise
         _layers.extend(
             [
-                layers.DepthwiseConv2D(
+                layers.SeparableConv2D(
+                    conf.expanded_channels,
                     kernel_size=conf.kernel,
-                    strides=conf.stride[0] if isinstance(conf.stride, tuple) else conf.stride,
+                    strides=conf.stride,
                     depth_multiplier=1,
                     padding="same",
                 ),
