@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: [3.8]
+        python: ["3.10"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
@@ -50,11 +50,11 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: [3.8]
+        python: ["3.10"]
     needs: pypi-publish
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8
+      - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}

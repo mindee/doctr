@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: [3.8]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
@@ -69,4 +69,3 @@ jobs:
           screen -dm streamlit run demo/app.py
           sleep 10
           curl http://localhost:8501/docs
-
