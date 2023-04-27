@@ -17,9 +17,9 @@ jobs:
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v2
-      - if: matrix.os == 'macos-latest'
-        name: Install MacOS prerequisites
-        run: brew install cairo pango gdk-pixbuf libffi
+      #- if: matrix.os == 'macos-latest'
+        #name: Install MacOS prerequisites
+        #run: brew install cairo pango gdk-pixbuf libffi
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
