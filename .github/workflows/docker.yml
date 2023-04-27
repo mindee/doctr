@@ -10,7 +10,7 @@ jobs:
   docker-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Build docker image
         run: docker build . -t doctr-tf-py3.10-slim
       - name: Run docker container
@@ -23,8 +23,8 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.10"]
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
