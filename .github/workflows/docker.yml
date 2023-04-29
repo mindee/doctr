@@ -12,16 +12,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build docker image
-        run: docker build . -t doctr-tf-py3.10-slim
+        run: docker build . -t doctr-tf-py3.8-slim
       - name: Run docker container
-        run: docker run doctr-tf-py3.10-slim python -c 'import doctr'
+        run: docker run doctr-tf-py3.8-slim python -c 'import doctr'
 
   pytest-api:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.10"]
+        python: ["3.8"]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
