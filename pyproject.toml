@@ -54,9 +54,9 @@ dependencies = [
 
 [project.optional-dependencies]
 tf = [
-    "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/issues/454
+    "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
     "tensorflow-addons>=0.17.1",
-    "tf2onnx>=1.14.0",
+    "tf2onnx>=1.14.0,<2.0.0",
 ]
 torch = [
     "torch>=1.8.0",
