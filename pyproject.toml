@@ -59,8 +59,9 @@ tf = [
     "tf2onnx>=1.14.0,<2.0.0",
 ]
 torch = [
-    "torch>=1.8.0",
-    "torchvision>=0.9.0",
+    "torch>=1.12.0,<3.0.0",
+    "torchvision>=0.13.0",
+    "onnx>=1.12.0,<3.0.0",
 ]
 testing = [
     "pytest>=5.3.2",
@@ -93,8 +94,9 @@ dev = [
     "tensorflow-addons>=0.17.1",
     "tf2onnx>=1.14.0,<2.0.0",
     # PyTorch
-    "torch>=1.8.0",
-    "torchvision>=0.9.0",
+    "torch>=1.12.0,<3.0.0",
+    "torchvision>=0.13.0",
+    "onnx>=1.12.0,<3.0.0",
     # Testing
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
