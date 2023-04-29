@@ -98,10 +98,9 @@ def test_crop_orientation_model(mock_text_box):
         ["resnet50", (32, 32, 3), (126,)],
         ["magc_resnet31", (32, 32, 3), (126,)],
         ["vit_b", (32, 32, 3), (126,)],
-        # Disabled for now
-        # ["mobilenet_v3_small", (512, 512, 3), (126,)],
-        # ["mobilenet_v3_large", (512, 512, 3), (126,)],
-        # ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
+        ["mobilenet_v3_small", (512, 512, 3), (126,)],
+        ["mobilenet_v3_large", (512, 512, 3), (126,)],
+        ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):
