@@ -88,9 +88,9 @@ docs = [
 ]
 dev = [
     # Tensorflow
-    "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/issues/454
+    "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
     "tensorflow-addons>=0.17.1",
-    "tf2onnx>=1.14.0",
+    "tf2onnx>=1.14.0,<2.0.0",
     # PyTorch
     "torch>=1.8.0",
     "torchvision>=0.9.0",
