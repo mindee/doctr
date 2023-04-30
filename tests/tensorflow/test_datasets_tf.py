@@ -388,7 +388,7 @@ def test_funsd(input_size, num_samples, rotate, recognition, mock_funsd_dataset)
 )
 def test_cord(input_size, num_samples, rotate, recognition, mock_cord_dataset):
     # monkeypatch the path to temporary dataset
-    datasets.CORD.TRAIN = (mock_cord_dataset, None)
+    datasets.CORD.TRAIN = (mock_cord_dataset, None, "cord_train.zip")
 
     ds = datasets.CORD(
         train=True,

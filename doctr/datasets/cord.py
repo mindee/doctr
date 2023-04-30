@@ -38,11 +38,13 @@ class CORD(VisionDataset):
     TRAIN = (
         "https://doctr-static.mindee.com/models?id=v0.1.1/cord_train.zip&src=0",
         "45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8",
+        "cord_train.zip"
     )
 
     TEST = (
         "https://doctr-static.mindee.com/models?id=v0.1.1/cord_test.zip&src=0",
         "8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58",
+        "cord_test.zip"
     )
 
     def __init__(
@@ -52,10 +54,10 @@ class CORD(VisionDataset):
         recognition_task: bool = False,
         **kwargs: Any,
     ) -> None:
-        url, sha256 = self.TRAIN if train else self.TEST
+        url, sha256, name = self.TRAIN if train else self.TEST
         super().__init__(
             url,
-            None,
+            name,
             sha256,
             True,
             pre_transforms=convert_target_to_relative if not recognition_task else None,
