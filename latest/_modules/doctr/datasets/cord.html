@@ -285,11 +285,13 @@
     <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.1.1/cord_train.zip&amp;src=0&quot;</span><span class="p">,</span>
         <span class="s2">&quot;45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cord_train.zip&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.1.1/cord_test.zip&amp;src=0&quot;</span><span class="p">,</span>
         <span class="s2">&quot;8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;cord_test.zip&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -299,10 +301,10 @@
         <span class="n">recognition_task</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">url</span><span class="p">,</span> <span class="n">sha256</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRAIN</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEST</span>
+        <span class="n">url</span><span class="p">,</span> <span class="n">sha256</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TRAIN</span> <span class="k">if</span> <span class="n">train</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">TEST</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">url</span><span class="p">,</span>
-            <span class="kc">None</span><span class="p">,</span>
+            <span class="n">name</span><span class="p">,</span>
             <span class="n">sha256</span><span class="p">,</span>
             <span class="kc">True</span><span class="p">,</span>
             <span class="n">pre_transforms</span><span class="o">=</span><span class="n">convert_target_to_relative</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">recognition_task</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
