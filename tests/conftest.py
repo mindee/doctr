@@ -627,3 +627,30 @@ def mock_mjsynth_dataset(tmpdir_factory, mock_image_stream):
         with open(fn, "wb") as f:
             f.write(file.getbuffer())
     return str(root), str(label_file)
+
+
+@pytest.fixture(scope="session")
+def mock_iiithws_dataset(tmpdir_factory, mock_image_stream):
+    root = tmpdir_factory.mktemp("datasets")
+    iiithws_root = root.mkdir("iiit-hws")
+    image_folder = iiithws_root.mkdir("Images_90K_Normalized")
+    image_sub_folder = image_folder.mkdir("1")
+    label_file = iiithws_root.join("IIIT-HWS-90K.txt")
+    labels = [
+        "./iiit-hws/Images_90K_Normalized/1/499_5_3_0_0.png I 1 0\n",
+        "./iiit-hws/Images_90K_Normalized/1/117_1_3_0_0.png am 1 0\n",
+        "./iiit-hws/Images_90K_Normalized/1/80_7_3_0_0.png a 1 0\n",
+        "./iiit-hws/Images_90K_Normalized/1/585_3_2_0_0.png Jedi 1 0\n",
+        "./iiit-hws/Images_90K_Normalized/1/222_5_3_0_0.png ! 1 0\n",
+    ]
+
+    with open(label_file, "w") as f:
+        for label in labels:
+            f.write(label)
+
+    file = BytesIO(mock_image_stream)
+    for label in labels:
+        fn = image_sub_folder.join(label.split()[0].split("/")[-1])
+        with open(fn, "wb") as f:
+            f.write(file.getbuffer())
+    return str(root), str(label_file)

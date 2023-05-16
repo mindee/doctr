@@ -574,3 +574,15 @@ def test_mjsynth_dataset(mock_mjsynth_dataset):
     assert len(ds) == 4  # Actual set has 7581382 train and 1337891 test samples
     assert repr(ds) == f"MJSynth(train={True})"
     _validate_dataset_recognition_part(ds, input_size)
+
+
+def test_iiithws_dataset(mock_iiithws_dataset):
+    input_size = (32, 128)
+    ds = datasets.IIITHWS(
+        *mock_iiithws_dataset,
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True),
+    )
+
+    assert len(ds) == 4  # Actual set has 7141797 train and 793533 test samples
+    assert repr(ds) == f"IIITHWS(train={True})"
+    _validate_dataset_recognition_part(ds, input_size)
