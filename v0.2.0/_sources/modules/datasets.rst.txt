@@ -30,6 +30,8 @@ doctr.datasets
 
 .. autoclass:: MJSynth
 
+.. autoclass:: IIITHWS
+
 .. autoclass:: DocArtefacts
 
 Synthetic dataset generator

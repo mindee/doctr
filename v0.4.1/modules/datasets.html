@@ -517,6 +517,36 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.IIITHWS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">IIITHWS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/iiithws.html#IIITHWS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.IIITHWS" title="Permalink to this definition">#</a></dt>
+<dd><p>IIITHWS dataset from <a class="reference external" href="https://arxiv.org/pdf/1608.04224.pdf">“Generating Synthetic Data for Text Recognition”</a> | <a class="reference external" href="https://github.com/kris314/hwnet">“repository”</a> |
+<a class="reference external" href="https://cvit.iiit.ac.in/research/projects/cvit-projects/matchdocimgs">“website”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: This is a pure recognition dataset without bounding box labels.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">IIITHWS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IIITHWS</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/iiit-hws/Images_90K_Normalized&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IIIT-HWS-90K.txt&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">IIITHWS</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/iiit-hws/Images_90K_Normalized&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IIIT-HWS-90K.txt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the file with the labels</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="doctr.datasets.DocArtefacts">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">DocArtefacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/doc_artefacts.html#DocArtefacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.DocArtefacts" title="Permalink to this definition">#</a></dt>
 <dd><p>Object detection dataset for non-textual elements in documents.
@@ -690,9 +720,9 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <span id="vocabs"></span><h2>Supported Vocabs<a class="headerlink" href="#supported-vocabs" title="Permalink to this heading">#</a></h2>
 <p>Since textual content has to be encoded properly for models to interpret them efficiently, docTR supports multiple sets
 of vocabs.</p>
-<div class="table-wrapper colwidths-given docutils container" id="id3">
-<table class="docutils align-default" id="id3">
-<caption><span class="caption-text">docTR Vocabs</span><a class="headerlink" href="#id3" title="Permalink to this table">#</a></caption>
+<div class="table-wrapper colwidths-given docutils container" id="id5">
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">docTR Vocabs</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
 <colgroup>
 <col style="width: 27%" />
 <col style="width: 7%" />
@@ -881,6 +911,7 @@ of vocabs.</p>
 <li><a class="reference internal" href="#doctr.datasets.IC13"><code class="docutils literal notranslate"><span class="pre">IC13</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.IMGUR5K"><code class="docutils literal notranslate"><span class="pre">IMGUR5K</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.MJSynth"><code class="docutils literal notranslate"><span class="pre">MJSynth</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.IIITHWS"><code class="docutils literal notranslate"><span class="pre">IIITHWS</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.DocArtefacts"><code class="docutils literal notranslate"><span class="pre">DocArtefacts</span></code></a></li>
 </ul>
 </li>
