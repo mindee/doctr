@@ -4,12 +4,15 @@ import tempfile
 import cv2
 import numpy as np
 import onnxruntime
+import psutil
 import pytest
 import tensorflow as tf
 
 from doctr.models import classification
 from doctr.models.classification.predictor import CropOrientationPredictor
 from doctr.models.utils import export_model_to_onnx
+
+system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
@@ -89,21 +92,55 @@ def test_crop_orientation_model(mock_text_box):
 
 # temporarily fix to avoid killing the CI (tf2onnx v1.14 memory leak issue)
 # ref.: https://github.com/mindee/doctr/pull/1201
-@pytest.mark.skipif(os.getenv("SLOW", "0") == "0", reason="slow test")
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
         ["vgg16_bn_r", (32, 32, 3), (126,)],
-        ["resnet18", (32, 32, 3), (126,)],
-        ["resnet31", (32, 32, 3), (126,)],
-        ["resnet34", (32, 32, 3), (126,)],
-        ["resnet34_wide", (32, 32, 3), (126,)],
-        ["resnet50", (32, 32, 3), (126,)],
-        ["magc_resnet31", (32, 32, 3), (126,)],
-        ["vit_b", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (512, 512, 3), (126,)],
         ["mobilenet_v3_large", (512, 512, 3), (126,)],
         ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
+        pytest.param(
+            "resnet18",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory > 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "resnet31",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory > 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "resnet34",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "resnet34_wide",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "resnet50",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "magc_resnet31",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "vit_b",
+            (32, 32, 3),
+            (126,),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

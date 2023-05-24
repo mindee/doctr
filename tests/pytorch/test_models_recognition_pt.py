@@ -2,6 +2,7 @@ import os
 import tempfile
 
 import onnxruntime
+import psutil
 import pytest
 import torch
 
@@ -12,6 +13,8 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.pytorch import SARPostProcessor
 from doctr.models.recognition.vitstr.pytorch import ViTSTRPostProcessor
 from doctr.models.utils import export_model_to_onnx
+
+system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
@@ -102,15 +105,20 @@ def test_recognition_zoo(arch_name):
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
 
 
-@pytest.mark.skipif(os.getenv("SLOW", "0") == "0", reason="slow test")
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
         ["crnn_vgg16_bn", (3, 32, 128)],
         ["crnn_mobilenet_v3_small", (3, 32, 128)],
         ["crnn_mobilenet_v3_large", (3, 32, 128)],
-        ["sar_resnet31", (3, 32, 128)],
-        ["master", (3, 32, 128)],
+        pytest.param(
+            "sar_resnet31",
+            (3, 32, 128),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "master", (3, 32, 128), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
+        ),
         ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
     ],
 )
