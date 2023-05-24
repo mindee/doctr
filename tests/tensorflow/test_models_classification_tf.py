@@ -87,7 +87,8 @@ def test_crop_orientation_model(mock_text_box):
     assert classifier([text_box_0, text_box_90, text_box_180, text_box_270]) == [0, 1, 2, 3]
 
 
-# temporary fix to avoid killing the CI (tf2onnx v1.14 memory leak issue)
+# temporarily fix to avoid killing the CI (tf2onnx v1.14 memory leak issue)
+# ref.: https://github.com/mindee/doctr/pull/1201
 @pytest.mark.skipif(os.getenv("SLOW", "0") == "0", reason="slow test")
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
