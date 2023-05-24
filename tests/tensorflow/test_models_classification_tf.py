@@ -99,17 +99,12 @@ def test_crop_orientation_model(mock_text_box):
         ["mobilenet_v3_small", (512, 512, 3), (126,)],
         ["mobilenet_v3_large", (512, 512, 3), (126,)],
         ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
-        pytest.param(
-            "resnet18",
-            (32, 32, 3),
-            (126,),
-            marks=pytest.mark.skipif(system_available_memory > 16, reason="to less memory"),
-        ),
+        ["resnet18", (32, 32, 3), (126,)],
         pytest.param(
             "resnet31",
             (32, 32, 3),
             (126,),
-            marks=pytest.mark.skipif(system_available_memory > 16, reason="to less memory"),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
         ),
         pytest.param(
             "resnet34",
