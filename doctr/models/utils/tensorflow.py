@@ -141,6 +141,7 @@ def export_model_to_onnx(
     large_model = kwargs.get("large_model", False)
     model_proto, _ = tf2onnx.convert.from_keras(
         model,
+        opset=17,
         input_signature=dummy_input,
         output_path=f"{model_name}.zip" if large_model else f"{model_name}.onnx",
         **kwargs,
