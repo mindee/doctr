@@ -25,6 +25,7 @@ ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
+USE_TF = '0' # line to delete
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
 
 
