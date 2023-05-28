@@ -58,6 +58,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "decode_ar": True,
         "refine_iters": 1,
         "dropout":0.1,
+        "vocab": VOCABS["french"],
+        "input_shape": (3, 32, 128),
         }
 }
 
@@ -231,7 +233,7 @@ def parseq(pretrained: bool = False, **kwargs: Any):
     return _parseq(
         "parseq",
         pretrained,
-        parseq,
+        parseq_model,
         "1",
         embedding_units=384,
         ignore_keys=["head.weight", "head.bias"],
@@ -242,7 +244,7 @@ def parseq(pretrained: bool = False, **kwargs: Any):
 """ mettre dans from ...classification import parseq_model  """
 class parseq_model(CrossEntropySystem):
 
-    def __init__(self, cfg,**kwargs):
+    def __init__(self, cfg, **kwargs):
     
         self.charset_train=cfg['charset_train']
         self.charset_test=cfg['charset_test']

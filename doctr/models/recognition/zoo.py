@@ -22,6 +22,7 @@ ARCHS: List[str] = [
     "master",
     "vitstr_small",
     "vitstr_base",
+    "parseq",
 ]
 
 
