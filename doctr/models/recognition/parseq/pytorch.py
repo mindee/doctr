@@ -67,7 +67,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class parseq(PARSeq, nn.Module):
+class PARSeq(_PARSeq, nn.Module):
     def __init__(
         self,
         feature_extractor,
@@ -76,7 +76,7 @@ class parseq(PARSeq, nn.Module):
         max_length: int = 25,
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from paper
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = default_cfgs,
+        cfg: Dict[str, Any] = default_cfgs,
     ) -> None:
     
         super().__init__()
@@ -166,6 +166,7 @@ class parseq(PARSeq, nn.Module):
         return ce_loss.mean()
 
 
+
 class ViTSTRPostProcessor(_ViTSTRPostProcessor):
     """Post processor for ViTSTR architecture
 
@@ -191,6 +192,46 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
         ]
 
         return list(zip(word_values, probs.numpy().tolist()))
+
+
+
+def _parseq(
+    arch: str,
+    pretrained: bool,
+    backbone_fn: Callable[[bool], nn.Module],
+    layer: str,
+    pretrained_backbone: bool = False,  # NOTE: training from scratch without a pretrained backbone works better
+    ignore_keys: Optional[List[str]] = None,
+    **kwargs: Any,
+) -> ViTSTR:
+    pretrained_backbone = pretrained_backbone and not pretrained
+
+    # Patch the config
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
+    _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
+
+    kwargs["vocab"] = _cfg["vocab"]
+    kwargs["input_shape"] = _cfg["input_shape"]
+
+    # Feature extractor
+    feat_extractor = IntermediateLayerGetter(
+        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
+        {layer: "features"},
+    )
+
+    # Build the model
+    model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
+    # Load pretrained parameters
+    if pretrained:
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # remove the last layer weights
+        _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+
+    return model
+
+
 
 
 def _vitstr(
@@ -230,27 +271,13 @@ def _vitstr(
     return model
 
 
-def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
-    """ViTSTR-Small as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
-    <https://arxiv.org/pdf/2105.08582.pdf>`_.
+def parseq(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
 
-    >>> import torch
-    >>> from doctr.models import vitstr_small
-    >>> model = vitstr_small(pretrained=False)
-    >>> input_tensor = torch.rand((1, 3, 32, 128))
-    >>> out = model(input_tensor)
 
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _vitstr(
-        "vitstr_small",
+    return _parseq(
+        "parseq",
         pretrained,
-        vit_s,
+        parseq,
         "1",
         embedding_units=384,
         ignore_keys=["head.weight", "head.bias"],
@@ -258,35 +285,12 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     )
 
 
-def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
-    """ViTSTR-Base as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"
-    <https://arxiv.org/pdf/2105.08582.pdf>`_.
-
-    >>> import torch
-    >>> from doctr.models import vitstr_base
-    >>> model = vitstr_base(pretrained=False)
-    >>> input_tensor = torch.rand((1, 3, 32, 128))
-    >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-
-    Returns:
-        text recognition architecture
-    """
-
-    return _vitstr(
-        "vitstr_base",
-        pretrained,
-        vit_b,
-        "1",
-        embedding_units=768,
-        ignore_keys=["head.weight", "head.bias"],
-        **kwargs,
-    )
     
     
- 
+"""    
+mettre le code plus bas dans .base comme ViTstr
+from .base import _ViTSTR, _ViTSTRPostProcessor
+"""
 # Scene Text Recognition Model Hub
 # Copyright 2022 Darwin Bautista
 #
@@ -304,7 +308,7 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
 
 
 
-class PARSeq(CrossEntropySystem):
+class _PARSeq(CrossEntropySystem):
 
     def __init__(self, cfg,**kwargs):
     
