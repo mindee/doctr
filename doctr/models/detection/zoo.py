@@ -11,6 +11,11 @@ from .. import detection
 from ..preprocessor import PreProcessor
 from .predictor import DetectionPredictor
 
+if is_torch_available():
+    import torch
+elif is_tf_available():
+    import tensorflow as tf
+
 __all__ = ["detection_predictor"]
 
 ARCHS: List[str]
@@ -32,7 +37,9 @@ elif is_torch_available():
     ROT_ARCHS = ["db_resnet50_rotation"]
 
 
-def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, **kwargs: Any) -> DetectionPredictor:
+def _predictor(
+    arch: Any, pretrained: bool, assume_straight_pages: bool = True, dtype: str = "float32", **kwargs: Any
+) -> DetectionPredictor:
     if isinstance(arch, str):
         if arch not in ARCHS + ROT_ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
@@ -57,6 +64,11 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
 
+    if is_torch_available and dtype in ("float16", "bfloat16"):
+        _model = _model.to(dtype=getattr(torch, dtype))
+    elif is_tf_available and dtype in ("float16", "bfloat16"):
+        tf.keras.mixed_precision.set_global_policy(dtype)
+
     kwargs.pop("pretrained_backbone", None)
 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
@@ -70,7 +82,11 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
 
 
 def detection_predictor(
-    arch: Any = "db_resnet50", pretrained: bool = False, assume_straight_pages: bool = True, **kwargs: Any
+    arch: Any = "db_resnet50",
+    pretrained: bool = False,
+    dtype: str = "float32",
+    assume_straight_pages: bool = True,
+    **kwargs: Any,
 ) -> DetectionPredictor:
     """Text detection architecture.
 
@@ -83,10 +99,11 @@ def detection_predictor(
     Args:
         arch: name of the architecture or model itself to use (e.g. 'db_resnet50')
         pretrained: If True, returns a model pre-trained on our text detection dataset
+        dtype: dtype precision of the model (e.g. 'float32', 'float16', 'bfloat16')
         assume_straight_pages: If True, fit straight boxes to the page
 
     Returns:
         Detection predictor
     """
 
-    return _predictor(arch, pretrained, assume_straight_pages, **kwargs)
+    return _predictor(arch, pretrained, dtype, assume_straight_pages, **kwargs)

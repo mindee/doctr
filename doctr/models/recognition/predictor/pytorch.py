@@ -68,9 +68,10 @@ class RecognitionPredictor(nn.Module):
         processed_batches = self.pre_processor(crops)
 
         # Forward it
-        _device = next(self.model.parameters()).device
+        _params = next(self.model.parameters())
         raw = [
-            self.model(batch.to(device=_device), return_preds=True, **kwargs)["preds"] for batch in processed_batches
+            self.model(batch.to(device=_params.device, dtype=_params.dtype), return_preds=True, **kwargs)["preds"]
+            for batch in processed_batches
         ]
 
         # Process outputs
