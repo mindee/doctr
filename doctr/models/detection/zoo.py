@@ -64,9 +64,9 @@ def _predictor(
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
 
-    if is_torch_available and dtype in ("float16", "bfloat16"):
+    if is_torch_available() and dtype in ("float16", "bfloat16"):
         _model = _model.to(dtype=getattr(torch, dtype))
-    elif is_tf_available and dtype in ("float16", "bfloat16"):
+    elif is_tf_available() and dtype in ("float32", "float16", "bfloat16"):
         tf.keras.mixed_precision.set_global_policy(dtype)
 
     kwargs.pop("pretrained_backbone", None)
