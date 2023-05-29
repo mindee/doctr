@@ -27,8 +27,11 @@ def select_gpu_device() -> Tuple[str, str]:
             if os.environ.get("CUDA_VISIBLE_DEVICES") == "":
                 selected_gpu_device = 'cpu'
         case 'mps':
-            # FIXME make arm mps acceleration work
-            # selected_gpu_device=mps
+            # FIXME detected mps selects cpu here because of the many bugs present in the mps implementation of
+            #   torch'es 1.13 LSTM.  As of 5/29/2023, they appear to be actively fixing them.  I did try with torch
+            #   2.0.1 and while the bugs look different it's still broken.  Revisit when later versions of torch
+            #   are available.
+            # pass
             selected_gpu_device = 'cpu'
         case 'cpu':
             pass
