@@ -97,7 +97,7 @@ class PARSeq(CrossEntropySystem):
         # Perm/attn mask stuff
         self.rng = np.random.default_rng()
         self.max_gen_perms = self.perm_num // 2 if self.perm_mirrored else self.perm_num
-
+        
         # We don't predict <bos> nor <pad>
         self.head = nn.Linear(self.embed_dim, len(self.tokenizer) - 2)
         self.text_embed = TokenEmbedding(len(self.tokenizer), self.embed_dim)
@@ -106,8 +106,6 @@ class PARSeq(CrossEntropySystem):
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_label_length + 1, self.embed_dim))
         self.dropout = nn.Dropout(p=self.dropout)
         # Encoder has its own init.
-        named_apply(partial(init_weights, exclude=['encoder']), self)
-        nn.init.trunc_normal_(self.pos_queries, std=.02)
 
     @torch.jit.ignore
     def no_weight_decay(self):

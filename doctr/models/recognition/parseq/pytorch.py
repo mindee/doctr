@@ -89,8 +89,6 @@ class PARSeq(_PARSeq,nn.Module):
 
         self.feat_extractor = feature_extractor
 
-        self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
-
     def forward(
         self,
         x: torch.Tensor,
@@ -114,11 +112,7 @@ class PARSeq(_PARSeq,nn.Module):
         B, N, E = features.size()
         #features = features.reshape(B * N, E)
         logits = features
-        decoded_features = logits[:, 1:]  # remove cls_token
-
-        print('ok2')
-        print(decoded_features)
-        print(decoded_features.shape)
+        decoded_features = logits  # remove cls_token
 
         out: Dict[str, Any] = {}
         if self.exportable:
@@ -130,8 +124,21 @@ class PARSeq(_PARSeq,nn.Module):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(decoded_features)
+            logits = decoded_features
+            
+            pred = logits.softmax(-1)
 
+            label, confidence = self.feat_extractor.tokenizer.decode(pred)
+            
+            out_idxs = logits.argmax(-1)     
+            probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
+            # Take the minimum confidence of the sequence
+            probs = probs.min(dim=1).values.detach().cpu()
+
+            # Manual decoding
+        
+            out['preds']=  list(zip(label, probs.numpy().tolist()))
+            
         if target is not None:
             out["loss"] = self.compute_loss(decoded_features, gt, seq_len)
 
@@ -167,34 +174,6 @@ class PARSeq(_PARSeq,nn.Module):
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.mean()
-
-class PARSeqPostProcessor(_PARSeqPostProcessor):
-    """Post processor for ViTSTR architecture
-
-    Args:
-        vocab: string containing the ordered sequence of supported characters
-    """
-    def __call__(
-        self,
-        logits: torch.Tensor,
-    ) -> List[Tuple[str, float]]:
-        # compute pred with argmax for attention models
-        out_idxs = logits.argmax(-1)
-        probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
-        # Take the minimum confidence of the sequence
-        print(probs)
-        probs = probs.numpy().tolist()
-        probs=[i for i in probs]        
-        # Manual decoding
-        word_values = [
-            "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
-            for encoded_seq in out_idxs.cpu().numpy()
-        ]
-        print(word_values,probs)
-
-        return list(zip(word_values, probs))
-
-
         
 
 def _parseq(
@@ -233,9 +212,7 @@ def _parseq(
 
     return model
 
-
 def parseq(pretrained: bool = False, **kwargs: Any):
-
 
     return _parseq(
         "parseq",

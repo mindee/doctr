@@ -67,4 +67,3 @@ class _PARSeqPostProcessor(RecognitionPostProcessor):
     ) -> None:
         super().__init__(vocab)
         self._embedding = list(vocab) + ["<eos>", "<sos>", "<pad>"]
-  

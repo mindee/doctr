@@ -21,7 +21,7 @@ def load_pretrained_params_local(model,path):
     for key in state_dict:
         state_dict_corr['feat_extractor.'+key]=state_dict[key]
         state_dict_corr[key]=state_dict[key]
-    
+    model.load_state_dict(state_dict_corr, strict=False)
     
 def load_pretrained_params(
     model: nn.Module,
