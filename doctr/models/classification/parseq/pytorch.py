@@ -15,7 +15,7 @@ import numpy as np
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
 
-from ...utils.pytorch import load_pretrained_params
+from ...utils.pytorch import load_pretrained_params_local
 
 from .modules import *
 from functools import partial
@@ -27,8 +27,10 @@ __all__ = ["parseq"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "parseq": {
-        "charset_train": "0123456789abcdefghijklmnopqrstuvwxyz", # verify from the model
-        "charset_test": "0123456789abcdefghijklmnopqrstuvwxyz" ,
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "charset_train": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+        "charset_test": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" ,
         "max_label_length": 25 ,
         "batch_size": 384,
         "lr": 7e-4,
@@ -52,7 +54,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "vocab": VOCABS["french"],
         "input_shape": (3, 32, 128),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_b-103002d1.pt&src=0",
+        "url": "/home/nikkokks/Desktop/github/parseq-bb5792a6.pt",
         }
 }
 
@@ -310,8 +312,8 @@ def _parseq(
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
-
+        load_pretrained_params_local(model, default_cfgs[arch]["url"])
+        
     return model
 
 def parseq(pretrained: bool = False, **kwargs: Any):

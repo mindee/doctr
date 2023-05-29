@@ -11,9 +11,18 @@ from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ["load_pretrained_params", "conv_sequence_pt", "export_model_to_onnx"]
+__all__ = ["load_pretrained_params_local","load_pretrained_params", "conv_sequence_pt", "export_model_to_onnx"]
 
 
+def load_pretrained_params_local(model,path):
+    state_dict = torch.load(path, map_location="cpu")
+    state_dict_corr =  {}
+
+    for key in state_dict:
+        state_dict_corr['feat_extractor.'+key]=state_dict[key]
+        state_dict_corr[key]=state_dict[key]
+    
+    
 def load_pretrained_params(
     model: nn.Module,
     url: Optional[str] = None,

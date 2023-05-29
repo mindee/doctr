@@ -12,7 +12,7 @@ from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from ...utils.pytorch import load_pretrained_params
+from ...utils.pytorch import load_pretrained_params_local
 
 import math
 from functools import partial
@@ -37,30 +37,34 @@ __all__ = ["parseq"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "parseq": {
-        "charset_train":"0123456789abcdefghijklmnopqrstuvwxyz", # verify from the model
-        "charset_test":"0123456789abcdefghijklmnopqrstuvwxyz" ,
-        "max_label_length":25 ,
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "charset_train": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
+        "charset_test": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" ,
+        "max_label_length": 25 ,
         "batch_size": 384,
         "lr": 7e-4,
         "warmup_pct": 0.075,
         "weight_decay": 0.0,
         "img_size": [ 32, 128 ],
-        "patch_size":[ 4, 8 ] ,
-        "embed_dim":384 ,
+        "patch_size": [ 4, 8 ] ,
+        "embed_dim": 384 ,
         "enc_num_heads": 6,
         "enc_mlp_ratio": 4,
         "enc_depth": 12,
         "dec_num_heads": 12,
         "dec_mlp_ratio": 4 ,
-        "dec_depth":1,
+        "dec_depth": 1,
         "perm_num": 6 ,
-        "perm_forward":True ,
+        "perm_forward": True ,
         "perm_mirrored": True ,
         "decode_ar": True,
         "refine_iters": 1,
-        "dropout":0.1,
+        "dropout": 0.1,
         "vocab": VOCABS["french"],
         "input_shape": (3, 32, 128),
+        "classes": list(VOCABS["french"]),
+        "url": "/home/nikkokks/Desktop/github/parseq-bb5792a6.pt",
         }
 }
 
@@ -77,7 +81,7 @@ class PARSeq(_PARSeq,nn.Module):
         cfg: Dict[str, Any] = default_cfgs,
     ) -> None:
     
-        super().__init__(cfg)
+        super().__init__()
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
@@ -211,11 +215,11 @@ def _parseq(
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Feature extractor
-    feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
-        {layer: "features"},
-    )
-
+    #feat_extractor = IntermediateLayerGetter(
+    #    backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
+    #    {layer: "features"},
+    #)
+    feat_extractor = backbone_fn(_cfg)
     # Build the model
     model = PARSeq(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
@@ -223,7 +227,7 @@ def _parseq(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        load_pretrained_params_local(model, default_cfgs[arch]["url"])
 
     return model
 

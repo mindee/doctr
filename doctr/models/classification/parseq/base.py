@@ -24,7 +24,7 @@ class BatchResult:
     loss_numel: int
 
 
-class BaseSystem(ABC):
+class BaseSystem(ABC,nn.Module):
 
     def __init__(self, tokenizer: BaseTokenizer, charset_test: str,
                  batch_size: int, lr: float, warmup_pct: float, weight_decay: float) -> None:
