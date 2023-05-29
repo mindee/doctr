@@ -17,7 +17,6 @@ from ...utils.pytorch import load_pretrained_params
 
 __all__ = ["vit_s", "vit_b"]
 
-
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
@@ -34,7 +33,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_s-cd3472bd.pt&src=0",
     },
 }
-
 
 class ClassifierHead(nn.Module):
     """Classifier head for Vision Transformer
@@ -96,7 +94,6 @@ class VisionTransformer(nn.Sequential):
         super().__init__(*_layers)
         self.cfg = cfg
 
-
 def _vit(
     arch: str,
     pretrained: bool,
@@ -123,7 +120,6 @@ def _vit(
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
-
 
 def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-S architecture
@@ -155,7 +151,6 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
         ignore_keys=["2.head.weight", "2.head.bias"],
         **kwargs,
     )
-
 
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-B architecture as described in
