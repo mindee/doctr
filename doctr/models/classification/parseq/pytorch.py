@@ -84,7 +84,7 @@ class PARSeq(CrossEntropySystem):
         self.decode_ar=cfg['decode_ar']
         self.refine_iters=cfg['refine_iters']
         self.dropout=cfg['dropout']
-        
+        self._device='cpu'
         self.cfg = cfg
      
         super().__init__(self.charset_train, self.charset_test, self.batch_size, self.lr, self.warmup_pct, self.weight_decay)

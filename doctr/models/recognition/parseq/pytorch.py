@@ -74,7 +74,6 @@ class PARSeq(_PARSeq,nn.Module):
         self,
         feature_extractor,
         vocab: str,
-        embedding_units: int,
         max_length: int = 25,
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from paper
         exportable: bool = False,
@@ -89,7 +88,6 @@ class PARSeq(_PARSeq,nn.Module):
         self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
-        self.head = nn.Linear(embedding_units, len(self.vocab) + 3)
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
@@ -100,7 +98,8 @@ class PARSeq(_PARSeq,nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-        features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
+        
+        features = self.feat_extractor(x)
 
         if target is not None:
             _gt, _seq_len = self.build_target(target)
@@ -110,13 +109,16 @@ class PARSeq(_PARSeq,nn.Module):
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
-        # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
         features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # (batch_size, max_length + 1, d_model)
+
         B, N, E = features.size()
-        features = features.reshape(B * N, E)
-        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch_size, max_length + 1, vocab + 3)
+        #features = features.reshape(B * N, E)
+        logits = features
         decoded_features = logits[:, 1:]  # remove cls_token
+
+        print('ok2')
+        print(decoded_features)
+        print(decoded_features.shape)
 
         out: Dict[str, Any] = {}
         if self.exportable:
@@ -172,25 +174,25 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
     Args:
         vocab: string containing the ordered sequence of supported characters
     """
-
     def __call__(
         self,
         logits: torch.Tensor,
     ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
-        # N x L
         probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
         # Take the minimum confidence of the sequence
-        probs = probs.min(dim=1).values.detach().cpu()
-
+        print(probs)
+        probs = probs.numpy().tolist()
+        probs=[i for i in probs]        
         # Manual decoding
         word_values = [
             "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
             for encoded_seq in out_idxs.cpu().numpy()
         ]
+        print(word_values,probs)
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        return list(zip(word_values, probs))
 
 
         
@@ -240,7 +242,6 @@ def parseq(pretrained: bool = False, **kwargs: Any):
         pretrained,
         parseq_model,
         "1",
-        embedding_units=384,
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )
