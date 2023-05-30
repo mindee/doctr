@@ -10,7 +10,9 @@ from doctr.models import ocr_predictor
 from doctr.models.predictor import OCRPredictor
 
 DET_ARCHS = ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet50_rotation"]
+
 RECO_ARCHS = ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "master", "sar_resnet31"]
+
 
 
 def load_predictor(det_arch: str, reco_arch: str, device) -> OCRPredictor:
