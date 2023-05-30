@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 128),
-        "vocab": VOCABS["french"],
+        "vocab": VOCABS["latin"],
         "url": None,
     },
 }
@@ -64,7 +64,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.feat_extractor = feature_extractor
         self.head = nn.Linear(embedding_units, len(self.vocab) + 3)
 
-        self.postprocessor = PARSeqPostProcessor(vocab=self.vocab, tokenizer=self.feat_extractor.tokenizer)
+        self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
     def forward(
         self,
@@ -135,11 +135,20 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         logits: torch.Tensor,
     ) -> List[Tuple[str, float]]:
     
-        pred = logits.softmax(-1)
-        word_values, probs = self.tokenizer.decode(pred)
-        probs = [prob[:-1].min() for prob in probs]
+        # compute pred with argmax for attention models
+        out_idxs = logits.argmax(-1)
+        # N x L
+        probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
+        # Take the minimum confidence of the sequence
+        probs = probs.min(dim=1).values.detach().cpu()
 
-        return list(zip(word_values, probs))
+        # Manual decoding
+        word_values = [
+            "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
+            for encoded_seq in out_idxs.cpu().numpy()
+        ]
+
+        return list(zip(word_values, probs.numpy().tolist()))
 
 
 def _parseq(

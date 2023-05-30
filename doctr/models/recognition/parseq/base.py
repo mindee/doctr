@@ -61,8 +61,6 @@ class _PARSeqPostProcessor(RecognitionPostProcessor):
     def __init__(
         self,
         vocab: str,
-        tokenizer
     ) -> None:
         super().__init__(vocab)
-        self._embedding = list(vocab) + ["<eos>", "<sos>", "<pad>"]
-        self.tokenizer = tokenizer
+        self._embedding =["<eos>"] + list(vocab) + ["<sos>",  "<pad>"]

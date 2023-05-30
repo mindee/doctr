@@ -17,11 +17,9 @@ from doctr.models.modules.transformer import EncoderBlock
 
 from ...utils.pytorch import load_pretrained_params_local
 
-from .modules import *
+from .base import *
 from functools import partial
 from .visiontransformers import named_apply,init_weights
-
-from .base import CrossEntropySystem
 
 __all__ = ["parseq"]
 
@@ -30,7 +28,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "charset_train": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
-        "charset_test": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" ,
+        "charset_test": "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~",
         "max_label_length": 25 ,
         "batch_size": 384,
         "lr": 7e-4,
@@ -51,14 +49,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "decode_ar": True,
         "refine_iters": 1,
         "dropout": 0.1,
-        "vocab": VOCABS["french"],
+        "vocab": VOCABS["latin"],
         "input_shape": (3, 32, 128),
-        "classes": list(VOCABS["french"]),
+        "classes": list(VOCABS["latin"]),
         "url": "/home/nikkokks/Desktop/github/parseq-bb5792a6.pt",
         }
 }
 
-class PARSeq(CrossEntropySystem):
+class PARSeq(nn.Module):
     """
     PARSeq architecture as described in
     `"Scene Text Recognition with Permuted Autoregressive Sequence Models",
@@ -91,9 +89,13 @@ class PARSeq(CrossEntropySystem):
         self.refine_iters=cfg['refine_iters']
         self.dropout=cfg['dropout']
         self._device='cpu'
+        self.vocab=cfg['vocab']
+        self.bos_id=len(self.vocab)+1
+        self.pad_id=len(self.vocab)+2
+        self.eos_id=0
         self.cfg = cfg
      
-        super().__init__(self.charset_train, self.charset_test, self.batch_size, self.lr, self.warmup_pct, self.weight_decay)
+        super().__init__()
 
         self.encoder = Encoder(self.img_size, self.patch_size, embed_dim=self.embed_dim, depth=self.enc_depth, num_heads=self.enc_num_heads,
                                mlp_ratio=self.enc_mlp_ratio)
@@ -105,8 +107,10 @@ class PARSeq(CrossEntropySystem):
         self.max_gen_perms = self.perm_num // 2 if self.perm_mirrored else self.perm_num
         
         # We don't predict <bos> nor <pad>
-        self.head = nn.Linear(self.embed_dim, len(self.tokenizer) - 2)
-        self.text_embed = TokenEmbedding(len(self.tokenizer), self.embed_dim)
+        print(len(self.vocab))
+        print(self.vocab)
+        self.head = nn.Linear(self.embed_dim, len(self.vocab)+1)
+        self.text_embed = TokenEmbedding(len(self.vocab)+3, self.embed_dim)
 
         # +1 for <eos>
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_label_length + 1, self.embed_dim))
@@ -312,7 +316,7 @@ def _parseq(
 
     # Build the model
     model = PARSeq(cfg=_cfg, **kwargs)
-    _cfg["num_classes"] = len(model.tokenizer)-2
+    _cfg["num_classes"] = len(model.vocab)-2
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
