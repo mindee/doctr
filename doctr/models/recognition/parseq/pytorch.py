@@ -120,7 +120,19 @@ class PARSeq(_PARSeq, nn.Module):
         Returns:
             The loss of the model on the batch
         """
-        # TODO
+        # Input length : number of steps
+        input_len = model_output.shape[1]
+        # Add one for additional <eos> token (sos disappear in shift!)
+        seq_len = seq_len + 1
+        # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
+        # The "masked" first gt char is <sos>. Delete last logit of the model output.
+        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
+        # Compute mask, remove 1 timestep here as well
+        mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] >= seq_len[:, None]
+        cce[mask_2d] = 0
+
+        ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
+        return ce_loss.mean()
 
 
 class PARSeqPostProcessor(_PARSeqPostProcessor):
