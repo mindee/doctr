@@ -24,6 +24,7 @@ from doctr.models.utils import export_model_to_onnx
         ["master", (3, 32, 128), False],
         ["vitstr_small", (3, 32, 128), False],
         ["vitstr_base", (3, 32, 128), False],
+        ["parseq", (3, 32, 128), False],
     ],
 )
 def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
@@ -81,6 +82,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
         "master",
         "vitstr_small",
         "vitstr_base",
+        "parseq",
     ],
 )
 def test_recognition_zoo(arch_name):
@@ -112,6 +114,7 @@ def test_recognition_zoo(arch_name):
         ["sar_resnet31", (3, 32, 128)],
         ["master", (3, 32, 128)],
         ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
+        ["parseq", (3, 32, 128)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):

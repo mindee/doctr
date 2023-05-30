@@ -59,8 +59,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 class PARSeq(CrossEntropySystem):
-
-    def __init__(self, cfg, **kwargs):
+    """
+    PARSeq architecture as described in
+    `"Scene Text Recognition with Permuted Autoregressive Sequence Models",
+    <https://arxiv.org/pdf/2207.06966>`_.
+    Args:
+        cfg: config dictionnary
+    """
+    def __init__(self, cfg: Dict[str, Any], **kwargs):
 
         self.charset_train=cfg['charset_train']
         self.charset_test=cfg['charset_test']
@@ -315,15 +321,13 @@ def _parseq(
     return model
 
 def parseq(pretrained: bool = False, **kwargs: Any):
-    """VisionTransformer-S architecture
-    `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_. Patches: (H, W) -> (H/8, W/8)
-
-    NOTE: unofficial config used in ViTSTR and ParSeq
+    """Parseq architecture
+    `"Scene Text Recognition with Permuted Autoregressive Sequence Models",
+    <https://arxiv.org/pdf/2207.06966>`_. 
 
     >>> import torch
-    >>> from doctr.models import vit_s
-    >>> model = vit_s(pretrained=False)
+    >>> from doctr.models import parseq
+    >>> model = parseq(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 32, 32), dtype=tf.float32)
     >>> out = model(input_tensor)
 

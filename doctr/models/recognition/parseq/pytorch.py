@@ -70,6 +70,19 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class PARSeq(_PARSeq,nn.Module):
+    """
+    Implements a PARSeq architecture as described in `"Scene Text Recognition 
+    with Permuted Autoregressive Sequence Models" 
+    <https://arxiv.org/pdf/2207.06966>`_.
+    Args:
+        feature_extractor: the backbone serving as feature extractor
+        vocab: vocabulary used for encoding
+        embedding_units: number of embedding units
+        max_length: maximum word length handled by the model
+        input_shape: input shape of the image
+        exportable: onnx exportable returns only logits
+        cfg: dictionary containing information about the model
+    """
     def __init__(
         self,
         feature_extractor,
@@ -212,8 +225,20 @@ def _parseq(
 
     return model
 
-def parseq(pretrained: bool = False, **kwargs: Any):
-
+def parseq(pretrained: bool = False, **kwargs: Any):   
+    """
+    parseq as described in `"Scene Text Recognition with Permuted Autoregressive Sequence Models"
+    <https://arxiv.org/pdf/2207.06966>`_.
+    >>> import torch
+    >>> from doctr.models import parseq
+    >>> model = parseq(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 128))
+    >>> out = model(input_tensor)
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+    Returns:
+        text recognition architecture
+    """
     return _parseq(
         "parseq",
         pretrained,

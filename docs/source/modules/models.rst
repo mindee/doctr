@@ -33,6 +33,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.vit_b
 
+.. autofunction:: doctr.models.classification.parseq
+
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 
@@ -75,6 +77,7 @@ doctr.models.recognition
 
 .. autofunction:: doctr.models.recognition.recognition_predictor
 
+.. autofunction:: doctr.models.recogntion.parseq
 
 doctr.models.zoo
 ----------------

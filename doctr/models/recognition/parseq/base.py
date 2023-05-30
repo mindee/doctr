@@ -17,9 +17,6 @@ from typing import Optional, Tuple, List
 import torch
 import torch.nn.functional as F
 
-# create a custom script including this nltk function
-#from nltk import edit_distance
-
 from torch import Tensor
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import OneCycleLR
