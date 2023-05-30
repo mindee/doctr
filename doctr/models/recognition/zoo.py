@@ -13,8 +13,6 @@ from .predictor import RecognitionPredictor
 
 if is_torch_available():
     import torch
-elif is_tf_available():
-    import tensorflow as tf
 
 __all__ = ["recognition_predictor"]
 
@@ -31,7 +29,7 @@ ARCHS: List[str] = [
 ]
 
 
-def _predictor(arch: Any, pretrained: bool, dtype: str = "float32", **kwargs: Any) -> RecognitionPredictor:
+def _predictor(arch: Any, pretrained: bool, precision: str = "float32", **kwargs: Any) -> RecognitionPredictor:
     if isinstance(arch, str):
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
@@ -46,10 +44,8 @@ def _predictor(arch: Any, pretrained: bool, dtype: str = "float32", **kwargs: An
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 
-    if is_torch_available() and dtype in ("float16", "bfloat16"):
-        _model = _model.to(dtype=getattr(torch, dtype))
-    elif is_tf_available() and dtype in ("float32", "float16", "bfloat16"):
-        tf.keras.mixed_precision.set_global_policy(dtype)
+    if is_torch_available() and precision in ("float16", "bfloat16"):
+        _model = _model.to(dtype=getattr(torch, precision))
 
     kwargs.pop("pretrained_backbone", None)
 
@@ -63,7 +59,7 @@ def _predictor(arch: Any, pretrained: bool, dtype: str = "float32", **kwargs: An
 
 
 def recognition_predictor(
-    arch: Any = "crnn_vgg16_bn", pretrained: bool = False, dtype: str = "float32", **kwargs: Any
+    arch: Any = "crnn_vgg16_bn", pretrained: bool = False, precision: str = "float32", **kwargs: Any
 ) -> RecognitionPredictor:
     """Text recognition architecture.
 
@@ -77,10 +73,10 @@ def recognition_predictor(
     Args:
         arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')
         pretrained: If True, returns a model pre-trained on our text recognition dataset
-        dtype: dtype precision of the model (e.g. 'float32', 'float16', 'bfloat16')
+        precision: precision of the model (e.g. 'float32', 'float16', 'bfloat16') (effects PyTorch only)
 
     Returns:
         Recognition predictor
     """
 
-    return _predictor(arch, pretrained, dtype, **kwargs)
+    return _predictor(arch, pretrained, precision, **kwargs)

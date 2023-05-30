@@ -13,8 +13,6 @@ from .predictor import DetectionPredictor
 
 if is_torch_available():
     import torch
-elif is_tf_available():
-    import tensorflow as tf
 
 __all__ = ["detection_predictor"]
 
@@ -38,7 +36,7 @@ elif is_torch_available():
 
 
 def _predictor(
-    arch: Any, pretrained: bool, dtype: str = "float32", assume_straight_pages: bool = True, **kwargs: Any
+    arch: Any, pretrained: bool, precision: str = "float32", assume_straight_pages: bool = True, **kwargs: Any
 ) -> DetectionPredictor:
     if isinstance(arch, str):
         if arch not in ARCHS + ROT_ARCHS:
@@ -64,10 +62,8 @@ def _predictor(
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
 
-    if is_torch_available() and dtype in ("float16", "bfloat16"):
-        _model = _model.to(dtype=getattr(torch, dtype))
-    elif is_tf_available() and dtype in ("float32", "float16", "bfloat16"):
-        tf.keras.mixed_precision.set_global_policy(dtype)
+    if is_torch_available() and precision in ("float16", "bfloat16"):
+        _model = _model.to(dtype=getattr(torch, precision))
 
     kwargs.pop("pretrained_backbone", None)
 
@@ -84,7 +80,7 @@ def _predictor(
 def detection_predictor(
     arch: Any = "db_resnet50",
     pretrained: bool = False,
-    dtype: str = "float32",
+    precision: str = "float32",
     assume_straight_pages: bool = True,
     **kwargs: Any,
 ) -> DetectionPredictor:
@@ -99,11 +95,11 @@ def detection_predictor(
     Args:
         arch: name of the architecture or model itself to use (e.g. 'db_resnet50')
         pretrained: If True, returns a model pre-trained on our text detection dataset
-        dtype: dtype precision of the model (e.g. 'float32', 'float16', 'bfloat16')
+        precision: precision of the model (e.g. 'float32', 'float16', 'bfloat16') (effects PyTorch only)
         assume_straight_pages: If True, fit straight boxes to the page
 
     Returns:
         Detection predictor
     """
 
-    return _predictor(arch, pretrained, dtype, assume_straight_pages, **kwargs)
+    return _predictor(arch, pretrained, precision, assume_straight_pages, **kwargs)
