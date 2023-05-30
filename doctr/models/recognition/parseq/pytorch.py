@@ -64,7 +64,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.feat_extractor = feature_extractor
         self.head = nn.Linear(embedding_units, len(self.vocab) + 3)
 
-        self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
+        self.postprocessor = PARSeqPostProcessor(vocab=self.vocab, tokenizer=self.feat_extractor.tokenizer)
 
     def forward(
         self,
@@ -96,7 +96,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         if target is None or return_preds:
             # Post-process boxes
-            out["preds"] = self.postprocessor(decoded_features, tokenizer=self.feat_extractor.tokenizer)
+            out["preds"] = self.postprocessor(decoded_features)
 
         if target is not None:
             out["loss"] = self.compute_loss(decoded_features, gt, seq_len)
@@ -133,11 +133,10 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
     def __call__(
         self,
         logits: torch.Tensor,
-        tokenizer
     ) -> List[Tuple[str, float]]:
     
         pred = logits.softmax(-1)
-        word_values, probs = tokenizer.decode(pred)
+        word_values, probs = self.tokenizer.decode(pred)
         probs = [prob[:-1].min() for prob in probs]
 
         return list(zip(word_values, probs))
