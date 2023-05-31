@@ -180,7 +180,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.bos_id=self.postprocessor._embedding.index("<sos>")
         self.eos_id=self.postprocessor._embedding.index("<eos>")
         
-        self._device='cuda'
+
 
     def forward(
         self,
@@ -203,9 +203,9 @@ class PARSeq(_PARSeq, nn.Module):
         pos_queries = self.pos_queries[:, :num_steps].expand(bs, -1, -1)
         
         # Special case for the forward permutation. Faster than using `generate_attn_masks()`
-        tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), float('-inf'), device=self._device), 1)
+        tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), float('-inf'), device=memory.device), 1)
 
-        tgt_in = torch.full((bs, num_steps), self.pad_id, dtype=torch.long, device=self._device)
+        tgt_in = torch.full((bs, num_steps), self.pad_id, dtype=torch.long, device=memory.device)
         tgt_in[:, 0] = self.bos_id
 
         logits = []
