@@ -10,12 +10,13 @@ import torch
 from torch import nn
 from torch import Tensor
 
+
 import numpy as np
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
 
-from ...utils.pytorch import load_pretrained_params_local
+from ...utils.pytorch import load_pretrained_params
 
 from .base import *
 from functools import partial

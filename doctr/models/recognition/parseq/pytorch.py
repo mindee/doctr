@@ -12,15 +12,15 @@ import torch
 from torch import nn
 from torch import Tensor
 from torch.nn import functional as F
+from torch.nn.modules import transformer
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
 
-
-from ...utils.pytorch import load_pretrained_params_local
-from .base import _PARSeq, _PARSeqPostProcessor
-from ...classification.parseq.base import *
+from ...utils.pytorch import load_pretrained_params
+from .base import _PARSeq, _PARSeqPostProcessor, DecoderLayer, TokenEmbedding
 from ...classification import vit_s
+
 __all__ = ["PARSeq", "parseq"]
 
 
@@ -53,10 +53,27 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "vocab": VOCABS["latin"],
         "input_shape": (3, 32, 128),
         "classes": list(VOCABS["latin"]),
-        "url": "/home/nikkokks/Desktop/github/parseq-bb5792a6.pt",
+        "url": None,
         }
 }
 
+class PARSeqDecoder(nn.Module):
+    __constants__ = ['norm']
+
+    def __init__(self, decoder_layer, num_layers, norm):
+        super().__init__()
+        self.layers = transformer._get_clones(decoder_layer, num_layers)
+        self.num_layers = num_layers
+        self.norm = norm
+
+    def forward(self, query, content, memory, query_mask: Optional[Tensor] = None, content_mask: Optional[Tensor] = None,
+                content_key_padding_mask: Optional[Tensor] = None):
+        for i, mod in enumerate(self.layers):
+            last = i == len(self.layers) - 1
+            query, content = mod(query, content, memory, query_mask, content_mask, content_key_padding_mask,
+                                 update_content=not last)
+        query = self.norm(query)
+        return query
 
 class PARSeq(_PARSeq, nn.Module):
     """Implements a PARSeq architecture as described in `"Scene Text Recognition
@@ -116,7 +133,7 @@ class PARSeq(_PARSeq, nn.Module):
         #self.encoder = Encoder(self.img_size, self.patch_size, embed_dim=self.embed_dim, depth=self.enc_depth, num_heads=self.enc_num_heads,
         #                       mlp_ratio=self.enc_mlp_ratio)
         decoder_layer = DecoderLayer(self.embed_dim, self.dec_num_heads, self.embed_dim * self.dec_mlp_ratio, self.dropout)
-        self.decoder = Decoder(decoder_layer, num_layers=self.dec_depth, norm=nn.LayerNorm(self.embed_dim))
+        self.decoder = PARSeqDecoder(decoder_layer, num_layers=self.dec_depth, norm=nn.LayerNorm(self.embed_dim))
 
         # Perm/attn mask stuff
         self.rng = np.random.default_rng()
@@ -340,8 +357,8 @@ def _parseq(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
-        #load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
-        load_pretrained_params_local(model, default_cfgs[arch]["url"])
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+
     return model
 
 
