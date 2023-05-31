@@ -1,8 +1,0 @@
-if True:
-     from doctr.models import ocr_predictor
-     from doctr.io import DocumentFile
-     model = ocr_predictor(det_arch='db_resnet50', reco_arch='parseq', pretrained=True)
-     single_img_doc = DocumentFile.from_images("1.jpeg")
-     result = model(single_img_doc)
- 
-
