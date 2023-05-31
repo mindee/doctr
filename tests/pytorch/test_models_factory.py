@@ -47,6 +47,7 @@ def test_push_to_hf_hub():
         ["sar_resnet31", "recognition", "Felix92/doctr-dummy-torch-sar-resnet31"],
         ["master", "recognition", "Felix92/doctr-dummy-torch-master"],
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
+        # ["parseq","recognition","Felix92/doctr-dummy-torch-parseq"], TODO @Felix: upload dummy after model merged
         [
             "fasterrcnn_mobilenet_v3_large_fpn",
             "obj_detection",

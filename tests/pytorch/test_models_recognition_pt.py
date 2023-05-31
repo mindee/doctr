@@ -9,6 +9,7 @@ import torch
 from doctr.models import recognition
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
 from doctr.models.recognition.master.pytorch import MASTERPostProcessor
+from doctr.models.recognition.parseq.pytorch import PARSeqPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.pytorch import SARPostProcessor
 from doctr.models.recognition.vitstr.pytorch import ViTSTRPostProcessor
@@ -27,6 +28,7 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["master", (3, 32, 128), False],
         ["vitstr_small", (3, 32, 128), False],
         ["vitstr_base", (3, 32, 128), False],
+        ["parseq", (3, 32, 128), False],
     ],
 )
 def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
@@ -61,6 +63,7 @@ def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
         [SARPostProcessor, [2, 119, 30]],
         [ViTSTRPostProcessor, [2, 119, 30]],
         [MASTERPostProcessor, [2, 119, 30]],
+        [PARSeqPostProcessor, [2, 119, 30]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -84,6 +87,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
         "master",
         "vitstr_small",
         "vitstr_base",
+        "parseq",
     ],
 )
 def test_recognition_zoo(arch_name):
@@ -120,6 +124,7 @@ def test_recognition_zoo(arch_name):
             "master", (3, 32, 128), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
         ),
         ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
+        ["parseq", (3, 32, 128)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
