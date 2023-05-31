@@ -172,14 +172,15 @@ class PARSeq(_PARSeq, nn.Module):
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
         self.dropout = nn.Dropout(0.1)
 
-        self.head = nn.Linear(embedding_units, self.vocab_size + 3)
+        self.head = nn.Linear(embedding_units, self.vocab_size )
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
         
         self.pad_id=self.postprocessor._embedding.index("<pad>")
         self.bos_id=self.postprocessor._embedding.index("<sos>")
         self.eos_id=self.postprocessor._embedding.index("<eos>")
-        self._device='cpu'
+        
+        self._device='cuda'
 
     def forward(
         self,
@@ -203,34 +204,29 @@ class PARSeq(_PARSeq, nn.Module):
         
         # Special case for the forward permutation. Faster than using `generate_attn_masks()`
         tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), float('-inf'), device=self._device), 1)
-        self.decode_ar=True
-        if self.decode_ar:
-            tgt_in = torch.full((bs, num_steps), self.pad_id, dtype=torch.long, device=self._device)
-            tgt_in[:, 0] = self.bos_id
 
-            logits = []
-            for i in range(num_steps):
+        tgt_in = torch.full((bs, num_steps), self.pad_id, dtype=torch.long, device=self._device)
+        tgt_in[:, 0] = self.bos_id
 
-                j = i + 1  # next token index
-                # Efficient decoding:
-                # Input the context up to the ith token. We use only one query (at position = i) at a time.
-                # This works because of the lookahead masking effect of the canonical (forward) AR context.
-                # Past tokens have no access to future tokens, hence are fixed once computed.
+        logits = []
 
-                tgt_out = self.decode(tgt_in[:, :j], memory, tgt_mask[:j, :j], tgt_query=pos_queries[:, i:j],
+        for i in range(num_steps):
+            j = i + 1  # next token index
+            tgt_out = self.decode(tgt_in[:, :j], memory, tgt_mask[:j, :j], tgt_query=pos_queries[:, i:j],
                                       tgt_query_mask=query_mask[i:j, :j])
 
-                # the next token probability is in the output's ith token position
-                p_i = self.head(tgt_out)
-                logits.append(p_i)
-                if j < num_steps:
-                    # greedy decode. add the next token index to the target input
-                    tgt_in[:, j] = p_i.squeeze().argmax(-1)
-                    # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
-                    if (tgt_in == self.eos_id).any(dim=-1).all():
-                        break
+            # the next token probability is in the output's ith token position
+            p_i = self.head(tgt_out)
+            logits.append(p_i)
+            if j < num_steps:
+                # greedy decode. add the next token index to the target input
+                tgt_in[:, j] = p_i.squeeze().argmax(-1)
+                # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
+                if (tgt_in[:,:j] == self.eos_id).any(dim=-1).all():
 
-            logits = torch.cat(logits, dim=1)
+                    break
+
+        logits = torch.cat(logits, dim=1)
 
         if target is not None:
             _gt, _seq_len = self.build_target(target)
@@ -247,10 +243,10 @@ class PARSeq(_PARSeq, nn.Module):
 
         if target is None or return_preds:
             # Post-process boxes
-            print(logits)
             out["preds"] = self.postprocessor(logits)
 
         if target is not None:
+
             out["loss"] = self.compute_loss(logits, gt, seq_len)
 
 
@@ -279,6 +275,7 @@ class PARSeq(_PARSeq, nn.Module):
         seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
+
         cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
         # Compute mask, remove 1 timestep here as well
         mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] >= seq_len[:, None]
