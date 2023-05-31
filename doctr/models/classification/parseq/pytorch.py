@@ -19,7 +19,7 @@ from ...utils.pytorch import load_pretrained_params_local
 
 from .base import *
 from functools import partial
-from .visiontransformers import named_apply,init_weights
+
 
 __all__ = ["parseq"]
 
