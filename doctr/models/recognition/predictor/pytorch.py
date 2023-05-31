@@ -10,7 +10,6 @@ import torch
 from torch import nn
 import os
 from doctr.models.preprocessor import PreProcessor
-from doctr.utils.gpu import select_gpu_device
 
 from ._utils import remap_preds, split_crops
 
@@ -32,19 +31,20 @@ class RecognitionPredictor(nn.Module):
         model: nn.Module,
         split_wide_crops: bool = True,
     ) -> None:
+
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
         self.postprocessor = self.model.postprocessor
-
-        detected_device, selected_device = select_gpu_device()
-        if "onnx" in str((type(self.model))):
-            selected_device = 'cpu'
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
+            self.device = torch.device("cpu")
+        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
+            self.device = torch.device("cuda")
+        if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
             # self.model = nn.DataParallel(self.model)
+            self.model = self.model.to(self.device)
             # self.model = self.model.half()
-        self.device = torch.device(selected_device)
-        self.model = self.model.to(self.device)
-
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
@@ -56,6 +56,7 @@ class RecognitionPredictor(nn.Module):
         crops: Sequence[Union[np.ndarray, torch.Tensor]],
         **kwargs: Any,
     ) -> List[Tuple[str, float]]:
+
         if len(crops) == 0:
             return []
         # Dimension check
