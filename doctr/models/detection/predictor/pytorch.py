@@ -13,6 +13,8 @@ from doctr.models.preprocessor import PreProcessor
 
 __all__ = ["DetectionPredictor"]
 
+from doctr.utils.gpu import select_gpu_device
+
 
 class DetectionPredictor(nn.Module):
     """Implements an object able to localize text elements in a document
@@ -27,29 +29,26 @@ class DetectionPredictor(nn.Module):
         pre_processor: PreProcessor,
         model: nn.Module,
     ) -> None:
-
         super().__init__()
         self.model = model.eval()
         self.pre_processor = pre_processor
         self.postprocessor = self.model.postprocessor
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        if os.environ.get("CUDA_VISIBLE_DEVICES", []) == "":
-            self.device = torch.device("cpu")
-        elif len(os.environ.get("CUDA_VISIBLE_DEVICES", [])) > 0:
-            self.device = torch.device("cuda")
-        if "onnx" not in str((type(self.model))) and (self.device == torch.device("cuda")):
+
+        detected_device, selected_device = select_gpu_device()
+        if "onnx" in str((type(self.model))):
+            selected_device = 'cpu'
             # self.model = nn.DataParallel(self.model)
             # self.model = self.model.half()
-            self.model = self.model.to(self.device)
+        self.device = torch.device(selected_device)
+        self.model = self.model.to(self.device)
 
     @torch.no_grad()
     def forward(
         self,
         pages: List[Union[np.ndarray, torch.Tensor]],
-        return_model_output = False,
+        return_model_output=False,
         **kwargs: Any,
     ) -> List[np.ndarray]:
-
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
