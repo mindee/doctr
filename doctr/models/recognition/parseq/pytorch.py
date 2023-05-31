@@ -11,6 +11,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 from torch import nn
+from torch import Tensor
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
@@ -20,6 +21,9 @@ from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFee
 from ...classification import vit_s
 from ...utils.pytorch import load_pretrained_params
 from .base import _PARSeq, _PARSeqPostProcessor
+
+import copy
+
 
 __all__ = ["PARSeq", "parseq"]
 
@@ -49,6 +53,26 @@ class CharEmbedding(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return math.sqrt(self.d_model) * self.embedding(x)
 
+"""
+
+class Decoder(nn.Module):
+    __constants__ = ['norm']
+
+    def __init__(self, decoder_layer, num_layers, norm):
+        super().__init__()
+        self.layers = transformer._get_clones(decoder_layer, num_layers)
+        self.num_layers = num_layers
+        self.norm = norm
+
+    def forward(self, query, content, memory, query_mask: Optional[Tensor] = None, content_mask: Optional[Tensor] = None,
+                content_key_padding_mask: Optional[Tensor] = None):
+        for i, mod in enumerate(self.layers):
+            last = i == len(self.layers) - 1
+            query, content = mod(query, content, memory, query_mask, content_mask, content_key_padding_mask,
+                                 update_content=not last)
+        query = self.norm(query)
+        return query
+"""
 
 class PARSeqDecoder(nn.Module):
     """Implements decoder module of the PARSeq model
@@ -91,9 +115,10 @@ class PARSeqDecoder(nn.Module):
         memory: torch.Tensor,
         tgt_mask: Optional[torch.Tensor],
     ):
-        target += self.attention_dropout(self.attention(normalized_target, kv_target, kv_target, mask=tgt_mask))
-        target += self.cross_attention_dropout(self.cross_attention(self.attention_norm(target), memory, memory))
-        target += self.feed_forward_dropout(self.position_feed_forward(self.cross_attention_norm(target)))
+
+        target = target.clone() + self.attention_dropout(self.attention(normalized_target, kv_target, kv_target, mask=tgt_mask))
+        target = target.clone() + self.cross_attention_dropout(self.cross_attention(self.attention_norm(target), memory, memory))
+        target = target.clone() +self.feed_forward_dropout(self.position_feed_forward(self.cross_attention_norm(target)))
         return target
 
     def forward(self, query, content, memory, query_mask: Optional[torch.Tensor] = None):
@@ -101,6 +126,9 @@ class PARSeqDecoder(nn.Module):
         content_norm = self.content_norm(content)
         query = self.forward_stream(query, query_norm, content_norm, memory, query_mask)
         return self.output_norm(query)
+
+
+
 
 
 class PARSeq(_PARSeq, nn.Module):
@@ -123,7 +151,7 @@ class PARSeq(_PARSeq, nn.Module):
         feature_extractor,
         vocab: str,
         embedding_units: int,
-        max_length: int = 25,
+        max_length: int = 65,
         input_shape: Tuple[int, int, int] = (3, 32, 128),
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -133,10 +161,12 @@ class PARSeq(_PARSeq, nn.Module):
         self.exportable = exportable
         self.cfg = cfg
         self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
-        self.vocab_size = len(vocab)
+        self.vocab_size = len(vocab) + 3 
 
         self.feat_extractor = feature_extractor
+        
         self.embed_tgt = CharEmbedding(self.vocab_size, embedding_units)
+
         self.decoder = PARSeqDecoder(embedding_units)
 
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
@@ -158,16 +188,19 @@ class PARSeq(_PARSeq, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-    
-        max_length = self.max_length
+        
+        memory = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
+
+        if self.training and target is None:
+            raise ValueError("Need to provide labels during training")
+
+        max_length = self.max_length 
         bs = x.shape[0]
         num_steps = max_length + 1
 
-        memory = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
-
         # Query positions up to `num_steps`
         pos_queries = self.pos_queries[:, :num_steps].expand(bs, -1, -1)
-
+        
         # Special case for the forward permutation. Faster than using `generate_attn_masks()`
         tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), float('-inf'), device=self._device), 1)
         self.decode_ar=True
@@ -177,13 +210,16 @@ class PARSeq(_PARSeq, nn.Module):
 
             logits = []
             for i in range(num_steps):
+
                 j = i + 1  # next token index
                 # Efficient decoding:
                 # Input the context up to the ith token. We use only one query (at position = i) at a time.
                 # This works because of the lookahead masking effect of the canonical (forward) AR context.
                 # Past tokens have no access to future tokens, hence are fixed once computed.
-                tgt_out = self.decoder(tgt_in[:, :j], memory, tgt_mask[:j, :j], tgt_query=pos_queries[:, i:j],
+
+                tgt_out = self.decode(tgt_in[:, :j], memory, tgt_mask[:j, :j], tgt_query=pos_queries[:, i:j],
                                       tgt_query_mask=query_mask[i:j, :j])
+
                 # the next token probability is in the output's ith token position
                 p_i = self.head(tgt_out)
                 logits.append(p_i)
@@ -191,43 +227,15 @@ class PARSeq(_PARSeq, nn.Module):
                     # greedy decode. add the next token index to the target input
                     tgt_in[:, j] = p_i.squeeze().argmax(-1)
                     # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
-                    if testing and (tgt_in == self.eos_id).any(dim=-1).all():
+                    if (tgt_in == self.eos_id).any(dim=-1).all():
                         break
 
             logits = torch.cat(logits, dim=1)
-        else:
-            # No prior context, so input is just <bos>. We query all positions.
-            tgt_in = torch.full((bs, 1), self.bos_id, dtype=torch.long, device=self._device)
-            tgt_out = self.decoder(tgt_in, memory, tgt_query=pos_queries)
-            logits = self.head(tgt_out)
-
-        if self.refine_iters:
-            # For iterative refinement, we always use a 'cloze' mask.
-            # We can derive it from the AR forward mask by unmasking the token context to the right.
-            query_mask[torch.triu(torch.ones(num_steps, num_steps, dtype=torch.bool, device=self._device), 2)] = 0
-            bos = torch.full((bs, 1), self.bos_id, dtype=torch.long, device=self._device)
-            for i in range(self.refine_iters):
-                # Prior context is the previous output.
-                tgt_in = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
-                tgt_padding_mask = ((tgt_in == self.eos_id).int().cumsum(-1) > 0)  # mask tokens beyond the first EOS token.
-                tgt_out = self.decoder(tgt_in, memory, tgt_mask, tgt_padding_mask,
-                                      tgt_query=pos_queries, tgt_query_mask=query_mask[:, :tgt_in.shape[1]])
-                logits = self.head(tgt_out)
-
-        return logits
-
-
 
         if target is not None:
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
-
-        if self.training and target is None:
-            raise ValueError("Need to provide labels during training")
-
-
-        # TODO: decoding -> decode_ar looks like the MASTER model positionwise decoding
 
         out: Dict[str, Any] = {}
         if self.exportable:
@@ -239,6 +247,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         if target is None or return_preds:
             # Post-process boxes
+            print(logits)
             out["preds"] = self.postprocessor(logits)
 
         if target is not None:
@@ -278,7 +287,19 @@ class PARSeq(_PARSeq, nn.Module):
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.mean()
 
-
+    def decode(self, tgt: torch.Tensor, memory: torch.Tensor, tgt_mask: Optional[Tensor] = None,
+               tgt_padding_mask: Optional[Tensor] = None, tgt_query: Optional[Tensor] = None,
+               tgt_query_mask: Optional[Tensor] = None):
+        N, L = tgt.shape
+        # <bos> stands for the null context. We only supply position information for characters after <bos>.
+        null_ctx = self.embed_tgt(tgt[:, :1])
+        tgt_emb = self.pos_queries[:, :L - 1] + self.embed_tgt(tgt[:, 1:])
+        tgt_emb = self.dropout(torch.cat([null_ctx, tgt_emb], dim=1))
+        if tgt_query is None:
+            tgt_query = self.pos_queries[:, :L].expand(N, -1, -1)
+        tgt_query = self.dropout(tgt_query)
+        return self.decoder(tgt_query, tgt_emb, memory, tgt_query_mask)
+        
 class PARSeqPostProcessor(_PARSeqPostProcessor):
     """Post processor for PARSeq architecture
 
