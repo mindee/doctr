@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import math
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -29,6 +30,23 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": None,
     },
 }
+
+
+class CharEmbedding(nn.Module):
+    """Implements the character embedding module
+
+    Args:
+        vocab_size: size of the vocabulary
+        d_model: dimension of the model
+    """
+
+    def __init__(self, vocab_size: int, d_model: int):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, d_model)
+        self.d_model = d_model
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return math.sqrt(self.d_model) * self.embedding(x)
 
 
 class PARSeqDecoder(nn.Module):
@@ -117,7 +135,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.vocab_size = len(vocab)
 
         self.feat_extractor = feature_extractor
-        self.embed_tgt = nn.Embedding(embedding_units, self.vocab_size + 3)
+        self.embed_tgt = CharEmbedding(self.vocab_size, embedding_units)
         self.decoder = PARSeqDecoder(embedding_units)
 
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
@@ -193,24 +211,6 @@ class PARSeq(_PARSeq, nn.Module):
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.mean()
-
-    def decode(self, encoded: torch.Tensor) -> torch.Tensor:
-        """Decode function for prediction
-
-        Args:
-            encoded: input tensor
-
-        Return:
-            A Tuple of torch.Tensor: predictions, logits
-        """
-        b = encoded.size(0)
-
-        # Padding symbol + SOS at the beginning
-        ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)  # pad
-        ys[:, 0] = self.vocab_size + 1  # sos
-
-        # TODO:
-        return logits
 
 
 class PARSeqPostProcessor(_PARSeqPostProcessor):
