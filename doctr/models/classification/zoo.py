@@ -27,7 +27,6 @@ ARCHS: List[str] = [
     "vgg16_bn_r",
     "vit_s",
     "vit_b",
-    "parseq",
 ]
 ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_orientation"]
 
