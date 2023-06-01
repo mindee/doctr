@@ -17,12 +17,7 @@ from doctr.utils.repr import NestedObject
 
 
 @pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages",
-    [
-        [True, False],
-        [False, False],
-        [True, True],
-    ],
+    "assume_straight_pages, straighten_pages", [[True, False], [False, False], [True, True],],
 )
 def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
     det_bsize = 4
@@ -78,12 +73,7 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
     det_predictor = detection_predictor("db_resnet50", pretrained=True, batch_size=2, assume_straight_pages=True)
     reco_predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, batch_size=128)
 
-    predictor = OCRPredictor(
-        det_predictor,
-        reco_predictor,
-        assume_straight_pages=True,
-        straighten_pages=True,
-    )
+    predictor = OCRPredictor(det_predictor, reco_predictor, assume_straight_pages=True, straighten_pages=True,)
 
     out = predictor(doc)
 
@@ -123,12 +113,7 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
 
 
 @pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages",
-    [
-        [True, False],
-        [False, False],
-        [True, True],
-    ],
+    "assume_straight_pages, straighten_pages", [[True, False], [False, False], [True, True],],
 )
 def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
     det_bsize = 4
@@ -184,12 +169,7 @@ def test_trained_kie_predictor(mock_tilted_payslip):
     det_predictor = detection_predictor("db_resnet50", pretrained=True, batch_size=2, assume_straight_pages=True)
     reco_predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, batch_size=128)
 
-    predictor = KIEPredictor(
-        det_predictor,
-        reco_predictor,
-        assume_straight_pages=True,
-        straighten_pages=True,
-    )
+    predictor = KIEPredictor(det_predictor, reco_predictor, assume_straight_pages=True, straighten_pages=True,)
 
     out = predictor(doc)
 
@@ -265,10 +245,7 @@ def _test_kiepredictor(predictor):
 
 
 @pytest.mark.parametrize(
-    "det_arch, reco_arch",
-    [
-        ["db_mobilenet_v3_large", "crnn_vgg16_bn"],
-    ],
+    "det_arch, reco_arch", [["db_mobilenet_v3_large", "crnn_vgg16_bn"],],
 )
 def test_zoo_models(det_arch, reco_arch):
     # Model

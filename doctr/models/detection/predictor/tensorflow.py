@@ -25,19 +25,11 @@ class DetectionPredictor(NestedObject):
 
     _children_names: List[str] = ["pre_processor", "model"]
 
-    def __init__(
-        self,
-        pre_processor: PreProcessor,
-        model: keras.Model,
-    ) -> None:
+    def __init__(self, pre_processor: PreProcessor, model: keras.Model,) -> None:
         self.pre_processor = pre_processor
         self.model = model
 
-    def __call__(
-        self,
-        pages: List[Union[np.ndarray, tf.Tensor]],
-        **kwargs: Any,
-    ) -> List[Dict[str, np.ndarray]]:
+    def __call__(self, pages: List[Union[np.ndarray, tf.Tensor]], **kwargs: Any,) -> List[Dict[str, np.ndarray]]:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")

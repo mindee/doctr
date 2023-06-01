@@ -321,11 +321,7 @@ def main(rank: int, world_size: int, args):
             # W&B
             if args.wb:
                 wandb.log(
-                    {
-                        "val_loss": val_loss,
-                        "exact_match": exact_match,
-                        "partial_match": partial_match,
-                    }
+                    {"val_loss": val_loss, "exact_match": exact_match, "partial_match": partial_match,}
                 )
 
     if rank == 0:

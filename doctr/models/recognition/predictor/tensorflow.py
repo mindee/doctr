@@ -28,12 +28,7 @@ class RecognitionPredictor(NestedObject):
 
     _children_names: List[str] = ["pre_processor", "model"]
 
-    def __init__(
-        self,
-        pre_processor: PreProcessor,
-        model: RecognitionModel,
-        split_wide_crops: bool = True,
-    ) -> None:
+    def __init__(self, pre_processor: PreProcessor, model: RecognitionModel, split_wide_crops: bool = True,) -> None:
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model
@@ -42,11 +37,7 @@ class RecognitionPredictor(NestedObject):
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
         self.target_ar = 6  # Target aspect ratio
 
-    def __call__(
-        self,
-        crops: List[Union[np.ndarray, tf.Tensor]],
-        **kwargs: Any,
-    ) -> List[Tuple[str, float]]:
+    def __call__(self, crops: List[Union[np.ndarray, tf.Tensor]], **kwargs: Any,) -> List[Tuple[str, float]]:
         if len(crops) == 0:
             return []
         # Dimension check

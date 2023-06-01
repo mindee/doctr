@@ -36,10 +36,7 @@ def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title=cfg.PROJECT_NAME,
-        version=cfg.VERSION,
-        description=cfg.PROJECT_DESCRIPTION,
-        routes=app.routes,
+        title=cfg.PROJECT_NAME, version=cfg.VERSION, description=cfg.PROJECT_DESCRIPTION, routes=app.routes,
     )
     app.openapi_schema = openapi_schema
     return app.openapi_schema

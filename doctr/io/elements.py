@@ -137,11 +137,7 @@ class Line(Element):
     _children_names: List[str] = ["words"]
     words: List[Word] = []
 
-    def __init__(
-        self,
-        words: List[Word],
-        geometry: Optional[Union[BoundingBox, np.ndarray]] = None,
-    ) -> None:
+    def __init__(self, words: List[Word], geometry: Optional[Union[BoundingBox, np.ndarray]] = None,) -> None:
         # Resolve the geometry using the smallest enclosing bounding box
         if geometry is None:
             # Check whether this is a rotated or straight box
@@ -159,9 +155,7 @@ class Line(Element):
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update(
-            {
-                "words": [Word.from_dict(_dict) for _dict in save_dict["words"]],
-            }
+            {"words": [Word.from_dict(_dict) for _dict in save_dict["words"]],}
         )
         return cls(**kwargs)
 
@@ -533,10 +527,7 @@ class Document(Element):
     _children_names: List[str] = ["pages"]
     pages: List[Page] = []
 
-    def __init__(
-        self,
-        pages: List[Page],
-    ) -> None:
+    def __init__(self, pages: List[Page],) -> None:
         super().__init__(pages=pages)
 
     def render(self, page_break: str = "\n\n\n\n") -> str:
@@ -589,8 +580,5 @@ class KIEDocument(Document):
     _children_names: List[str] = ["pages"]
     pages: List[KIEPage] = []  # type: ignore[assignment]
 
-    def __init__(
-        self,
-        pages: List[KIEPage],
-    ) -> None:
+    def __init__(self, pages: List[KIEPage],) -> None:
         super().__init__(pages=pages)  # type: ignore[arg-type]

@@ -117,14 +117,7 @@ def test_polygon_iou(rbox1, rbox2, iou, abs_tol):
 
 
 @pytest.mark.parametrize(
-    "box, shape, mask",
-    [
-        [
-            [[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]],
-            (2, 2),
-            [[True, False], [False, False]],
-        ],
-    ],
+    "box, shape, mask", [[[[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]], (2, 2), [[True, False], [False, False]],],],
 )
 def test_rbox_to_mask(box, shape, mask):
     masks = metrics.rbox_to_mask(np.asarray(box)[None, ...], shape)
@@ -260,36 +253,15 @@ def test_ocr_metric(gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, reca
     # Shape check
     with pytest.raises(AssertionError):
         metric.update(
-            np.asarray(_gboxes),
-            np.zeros((0, 4)),
-            _gwords,
-            ["I", "have", "a", "bad", "feeling", "about", "this"],
+            np.asarray(_gboxes), np.zeros((0, 4)), _gwords, ["I", "have", "a", "bad", "feeling", "about", "this"],
         )
 
 
 @pytest.mark.parametrize(
     "gt_boxes, gt_classes, pred_boxes, pred_classes, iou_thresh, recall, precision, mean_iou",
     [
-        [  # Perfect match
-            [[[0, 0, 0.5, 0.5]]],
-            [[0]],
-            [[[0, 0, 0.5, 0.5]]],
-            [[0]],
-            0.5,
-            1,
-            1,
-            1,
-        ],
-        [  # Bad match
-            [[[0, 0, 0.5, 0.5]]],
-            [[0]],
-            [[[0, 0, 0.5, 0.5]]],
-            [[1]],
-            0.5,
-            0,
-            0,
-            1,
-        ],
+        [[[[0, 0, 0.5, 0.5]]], [[0]], [[[0, 0, 0.5, 0.5]]], [[0]], 0.5, 1, 1, 1,],  # Perfect match
+        [[[[0, 0, 0.5, 0.5]]], [[0]], [[[0, 0, 0.5, 0.5]]], [[1]], 0.5, 0, 0, 1,],  # Bad match
         [  # No preds on 2nd sample
             [[[0, 0, 0.5, 0.5]], [[0, 0, 0.5, 0.5]]],
             [[0], [1]],

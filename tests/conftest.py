@@ -159,11 +159,7 @@ def mock_ocrdataset(tmpdir_factory, mock_image_stream):
                 {"value": "jedi", "geometry": (0.5, 0.5, 0.1, 0.1, 0)},
             ]
         },
-        "mock_image_file_2.jpg": {
-            "typed_words": [
-                {"value": "!", "geometry": (0.2, 0.2, 0.1, 0.1, 0)},
-            ]
-        },
+        "mock_image_file_2.jpg": {"typed_words": [{"value": "!", "geometry": (0.2, 0.2, 0.1, 0.1, 0)},]},
     }
     with open(label_file, "w") as f:
         json.dump(label, f)

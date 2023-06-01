@@ -42,10 +42,7 @@ def test_classification_architectures(arch_name, input_shape, output_size):
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_shape",
-    [
-        ["mobilenet_v3_small_orientation", (128, 128, 3)],
-    ],
+    "arch_name, input_shape", [["mobilenet_v3_small_orientation", (128, 128, 3)],],
 )
 def test_classification_models(arch_name, input_shape):
     batch_size = 8
@@ -59,10 +56,7 @@ def test_classification_models(arch_name, input_shape):
 
 
 @pytest.mark.parametrize(
-    "arch_name",
-    [
-        "mobilenet_v3_small_orientation",
-    ],
+    "arch_name", ["mobilenet_v3_small_orientation",],
 )
 def test_classification_zoo(arch_name):
     batch_size = 16

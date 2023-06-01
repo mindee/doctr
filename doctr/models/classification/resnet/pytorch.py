@@ -135,11 +135,7 @@ class ResNet(nn.Sequential):
 
         if include_top:
             _layers.extend(
-                [
-                    nn.AdaptiveAvgPool2d(1),
-                    nn.Flatten(1),
-                    nn.Linear(output_channels[-1], num_classes, bias=True),
-                ]
+                [nn.AdaptiveAvgPool2d(1), nn.Flatten(1), nn.Linear(output_channels[-1], num_classes, bias=True),]
             )
 
         super().__init__(*_layers)
@@ -185,11 +181,7 @@ def _resnet(
 
 
 def _tv_resnet(
-    arch: str,
-    pretrained: bool,
-    arch_fn,
-    ignore_keys: Optional[List[str]] = None,
-    **kwargs: Any,
+    arch: str, pretrained: bool, arch_fn, ignore_keys: Optional[List[str]] = None, **kwargs: Any,
 ) -> TVResNet:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
@@ -230,13 +222,7 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A resnet18 model
     """
 
-    return _tv_resnet(
-        "resnet18",
-        pretrained,
-        tv_resnet18,
-        ignore_keys=["fc.weight", "fc.bias"],
-        **kwargs,
-    )
+    return _tv_resnet("resnet18", pretrained, tv_resnet18, ignore_keys=["fc.weight", "fc.bias"], **kwargs,)
 
 
 def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
@@ -289,13 +275,7 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A resnet34 model
     """
 
-    return _tv_resnet(
-        "resnet34",
-        pretrained,
-        tv_resnet34,
-        ignore_keys=["fc.weight", "fc.bias"],
-        **kwargs,
-    )
+    return _tv_resnet("resnet34", pretrained, tv_resnet34, ignore_keys=["fc.weight", "fc.bias"], **kwargs,)
 
 
 def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
@@ -347,10 +327,4 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A resnet50 model
     """
 
-    return _tv_resnet(
-        "resnet50",
-        pretrained,
-        tv_resnet50,
-        ignore_keys=["fc.weight", "fc.bias"],
-        **kwargs,
-    )
+    return _tv_resnet("resnet50", pretrained, tv_resnet50, ignore_keys=["fc.weight", "fc.bias"], **kwargs,)

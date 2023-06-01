@@ -40,11 +40,7 @@ class IIIT5K(VisionDataset):
     SHA256 = "7872c9efbec457eb23f3368855e7738f72ce10927f52a382deb4966ca0ffa38e"
 
     def __init__(
-        self,
-        train: bool = True,
-        use_polygons: bool = False,
-        recognition_task: bool = False,
-        **kwargs: Any,
+        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
     ) -> None:
         super().__init__(
             self.URL,

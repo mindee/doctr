@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-
 import math
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -21,7 +20,7 @@ from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFee
 
 from ...classification import vit_s
 from ...utils.pytorch import load_pretrained_params
-from .base import _PARSeq, _PARSeqPostProcessor,DecoderLayer
+from .base import _PARSeq, _PARSeqPostProcessor, DecoderLayer
 
 import copy
 
@@ -37,6 +36,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": None,
     },
 }
+
 
 class CharEmbedding(nn.Module):
     """Implements the character embedding module
@@ -55,9 +55,8 @@ class CharEmbedding(nn.Module):
         return math.sqrt(self.d_model) * self.embedding(x)
 
 
-
 class PARSeqDecoder(nn.Module):
-    __constants__ = ['norm']
+    __constants__ = ["norm"]
 
     def __init__(self, decoder_layer, norm, num_layers=12):
         super().__init__()
@@ -65,12 +64,20 @@ class PARSeqDecoder(nn.Module):
         self.num_layers = num_layers
         self.norm = norm
 
-    def forward(self, query, content, memory, query_mask: Optional[Tensor] = None, content_mask: Optional[Tensor] = None,
-                content_key_padding_mask: Optional[Tensor] = None):
+    def forward(
+        self,
+        query,
+        content,
+        memory,
+        query_mask: Optional[Tensor] = None,
+        content_mask: Optional[Tensor] = None,
+        content_key_padding_mask: Optional[Tensor] = None,
+    ):
         for i, mod in enumerate(self.layers):
             last = i == len(self.layers) - 1
-            query, content = mod(query, content, memory, query_mask, content_mask, content_key_padding_mask,
-                                 update_content=not last)
+            query, content = mod(
+                query, content, memory, query_mask, content_mask, content_key_padding_mask, update_content=not last
+            )
         query = self.norm(query)
         return query
 
@@ -105,28 +112,28 @@ class PARSeq(_PARSeq, nn.Module):
         self.exportable = exportable
         self.cfg = cfg
         self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
-        self.vocab_size = len(vocab) + 3  
+        self.vocab_size = len(vocab) + 3
 
         self.feat_extractor = feature_extractor
-        
+
         self.embed_tgt = CharEmbedding(self.vocab_size, embedding_units)
 
         self.decoder_layer = DecoderLayer(d_model=embedding_units)
         self.decoder = PARSeqDecoder(self.decoder_layer, norm=nn.LayerNorm(embedding_units), num_layers=12)
-        
+
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
         self.dropout = nn.Dropout(0.1)
 
-        self.head = nn.Linear(embedding_units, self.vocab_size )
+        self.head = nn.Linear(embedding_units, self.vocab_size)
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
-        
-        self.pad_id=self.postprocessor._embedding.index("<pad>")
-        self.bos_id=self.postprocessor._embedding.index("<sos>")
-        self.eos_id=self.postprocessor._embedding.index("<eos>")
-        
-        nn.init.trunc_normal_(self.pos_queries, std=.02)
-        
+
+        self.pad_id = self.postprocessor._embedding.index("<pad>")
+        self.bos_id = self.postprocessor._embedding.index("<sos>")
+        self.eos_id = self.postprocessor._embedding.index("<eos>")
+
+        nn.init.trunc_normal_(self.pos_queries, std=0.02)
+
     def forward(
         self,
         x: torch.Tensor,
@@ -134,12 +141,11 @@ class PARSeq(_PARSeq, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-    
+
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
-
-        max_length = self.max_length -3 
+        max_length = self.max_length - 1
         bs = x.shape[0]
         # +1 for <eos> at end of sequence.
         num_steps = max_length + 1
@@ -149,7 +155,7 @@ class PARSeq(_PARSeq, nn.Module):
         pos_queries = self.pos_queries[:, :num_steps].expand(bs, -1, -1)
 
         # Special case for the forward permutation. Faster than using `generate_attn_masks()`
-        tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), float('-inf'), device=memory.device), 1)
+        tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), float("-inf"), device=memory.device), 1)
 
         tgt_in = torch.full((bs, num_steps), self.pad_id, dtype=torch.long, device=memory.device)
         tgt_in[:, 0] = self.bos_id
@@ -157,8 +163,13 @@ class PARSeq(_PARSeq, nn.Module):
         logits = []
         for i in range(num_steps):
             j = i + 1  # next token index
-            tgt_out = self.decode(tgt_in[:, :j], memory, tgt_mask[:j, :j], tgt_query=pos_queries[:, i:j],
-                                  tgt_query_mask=query_mask[i:j, :j])
+            tgt_out = self.decode(
+                tgt_in[:, :j],
+                memory,
+                tgt_mask[:j, :j],
+                tgt_query=pos_queries[:, i:j],
+                tgt_query_mask=query_mask[i:j, :j],
+            )
             # the next token probability is in the output's ith token position
             p_i = self.head(tgt_out)
             logits.append(p_i)
@@ -189,18 +200,12 @@ class PARSeq(_PARSeq, nn.Module):
             out["preds"] = self.postprocessor(logits)
 
         if target is not None:
-
             out["loss"] = self.compute_loss(logits, gt, seq_len)
-
 
         return out
 
     @staticmethod
-    def compute_loss(
-        model_output: torch.Tensor,
-        gt: torch.Tensor,
-        seq_len: torch.Tensor,
-    ) -> torch.Tensor:
+    def compute_loss(model_output: torch.Tensor, gt: torch.Tensor, seq_len: torch.Tensor,) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -227,20 +232,26 @@ class PARSeq(_PARSeq, nn.Module):
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
         return ce_loss.mean()
 
-
-    def decode(self, tgt: torch.Tensor, memory: torch.Tensor, tgt_mask: Optional[Tensor] = None,
-               tgt_padding_mask: Optional[Tensor] = None, tgt_query: Optional[Tensor] = None,
-               tgt_query_mask: Optional[Tensor] = None):
+    def decode(
+        self,
+        tgt: torch.Tensor,
+        memory: torch.Tensor,
+        tgt_mask: Optional[Tensor] = None,
+        tgt_padding_mask: Optional[Tensor] = None,
+        tgt_query: Optional[Tensor] = None,
+        tgt_query_mask: Optional[Tensor] = None,
+    ):
         N, L = tgt.shape
         # <bos> stands for the null context. We only supply position information for characters after <bos>.
         null_ctx = self.embed_tgt(tgt[:, :1])
-        tgt_emb = self.pos_queries[:, :L - 1] + self.embed_tgt(tgt[:, 1:])
+        tgt_emb = self.pos_queries[:, : L - 1] + self.embed_tgt(tgt[:, 1:])
         tgt_emb = self.dropout(torch.cat([null_ctx, tgt_emb], dim=1))
         if tgt_query is None:
             tgt_query = self.pos_queries[:, :L].expand(N, -1, -1)
         tgt_query = self.dropout(tgt_query)
         return self.decoder(tgt_query, tgt_emb, memory, tgt_query_mask, tgt_mask, tgt_padding_mask)
-        
+
+
 class PARSeqPostProcessor(_PARSeqPostProcessor):
     """Post processor for PARSeq architecture
 
@@ -248,10 +259,7 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(
-        self,
-        logits: torch.Tensor,
-    ) -> List[Tuple[str, float]]:
+    def __call__(self, logits: torch.Tensor,) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
@@ -290,7 +298,6 @@ def _parseq(
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
         backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
-
         {layer: "features"},
     )
 
@@ -324,11 +331,5 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
     """
 
     return _parseq(
-        "parseq",
-        pretrained,
-        vit_s,
-        "1",
-        embedding_units=384,
-        ignore_keys=["head.weight", "head.bias"],
-        **kwargs,
+        "parseq", pretrained, vit_s, "1", embedding_units=384, ignore_keys=["head.weight", "head.bias"], **kwargs,
     )

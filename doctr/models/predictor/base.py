@@ -50,10 +50,7 @@ class _OCRPredictor:
 
     @staticmethod
     def _generate_crops(
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
-        channels_last: bool,
-        assume_straight_pages: bool = False,
+        pages: List[np.ndarray], loc_preds: List[np.ndarray], channels_last: bool, assume_straight_pages: bool = False,
     ) -> List[List[np.ndarray]]:
         extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
 
@@ -65,10 +62,7 @@ class _OCRPredictor:
 
     @staticmethod
     def _prepare_crops(
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
-        channels_last: bool,
-        assume_straight_pages: bool = False,
+        pages: List[np.ndarray], loc_preds: List[np.ndarray], channels_last: bool, assume_straight_pages: bool = False,
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
         crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages)
 
@@ -83,9 +77,7 @@ class _OCRPredictor:
         return crops, loc_preds
 
     def _rectify_crops(
-        self,
-        crops: List[List[np.ndarray]],
-        loc_preds: List[np.ndarray],
+        self, crops: List[List[np.ndarray]], loc_preds: List[np.ndarray],
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
         # Work at a page level
         orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]  # type: ignore[misc]
@@ -96,11 +88,7 @@ class _OCRPredictor:
         ]
         return rect_crops, rect_loc_preds  # type: ignore[return-value]
 
-    def _remove_padding(
-        self,
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
-    ) -> List[np.ndarray]:
+    def _remove_padding(self, pages: List[np.ndarray], loc_preds: List[np.ndarray],) -> List[np.ndarray]:
         if self.preserve_aspect_ratio:
             # Rectify loc_preds to remove padding
             rectified_preds = []
@@ -136,8 +124,7 @@ class _OCRPredictor:
 
     @staticmethod
     def _process_predictions(
-        loc_preds: List[np.ndarray],
-        word_preds: List[Tuple[str, float]],
+        loc_preds: List[np.ndarray], word_preds: List[Tuple[str, float]],
     ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
         text_preds = []
         if len(loc_preds) > 0:

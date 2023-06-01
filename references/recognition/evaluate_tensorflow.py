@@ -93,13 +93,7 @@ def main(args):
     )
     ds.data.extend([(np_img, target) for np_img, target in _ds.data])
 
-    test_loader = DataLoader(
-        ds,
-        batch_size=args.batch_size,
-        drop_last=False,
-        num_workers=args.workers,
-        shuffle=False,
-    )
+    test_loader = DataLoader(ds, batch_size=args.batch_size, drop_last=False, num_workers=args.workers, shuffle=False,)
     print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
 
     mean, std = model.cfg["mean"], model.cfg["std"]

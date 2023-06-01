@@ -84,10 +84,5 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> tv_vgg.VGG:
     """
 
     return _vgg(
-        "vgg16_bn_r",
-        pretrained,
-        "vgg16_bn",
-        3,
-        ignore_keys=["classifier.weight", "classifier.bias"],
-        **kwargs,
+        "vgg16_bn_r", pretrained, "vgg16_bn", 3, ignore_keys=["classifier.weight", "classifier.bias"], **kwargs,
     )

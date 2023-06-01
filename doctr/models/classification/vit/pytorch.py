@@ -34,6 +34,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
 }
 
+
 class ClassifierHead(nn.Module):
     """Classifier head for Vision Transformer
 
@@ -42,11 +43,7 @@ class ClassifierHead(nn.Module):
         num_classes: number of output classes
     """
 
-    def __init__(
-        self,
-        in_channels: int,
-        num_classes: int,
-    ) -> None:
+    def __init__(self, in_channels: int, num_classes: int,) -> None:
         super().__init__()
 
         self.head = nn.Linear(in_channels, num_classes)
@@ -94,12 +91,8 @@ class VisionTransformer(nn.Sequential):
         super().__init__(*_layers)
         self.cfg = cfg
 
-def _vit(
-    arch: str,
-    pretrained: bool,
-    ignore_keys: Optional[List[str]] = None,
-    **kwargs: Any,
-) -> VisionTransformer:
+
+def _vit(arch: str, pretrained: bool, ignore_keys: Optional[List[str]] = None, **kwargs: Any,) -> VisionTransformer:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
@@ -120,6 +113,7 @@ def _vit(
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
+
 
 def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-S architecture
@@ -151,6 +145,7 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
         ignore_keys=["2.head.weight", "2.head.bias"],
         **kwargs,
     )
+
 
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     """VisionTransformer-B architecture as described in

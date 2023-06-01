@@ -74,11 +74,7 @@ def decoder_block(in_chan: int, out_chan: int, stride: int, **kwargs: Any) -> Se
 class LinkNetFPN(Model, NestedObject):
     """LinkNet Decoder module"""
 
-    def __init__(
-        self,
-        out_chans: int,
-        in_shapes: List[Tuple[int, ...]],
-    ) -> None:
+    def __init__(self, out_chans: int, in_shapes: List[Tuple[int, ...]],) -> None:
         super().__init__()
         self.out_chans = out_chans
         strides = [2] * (len(in_shapes) - 1) + [1]
@@ -265,12 +261,7 @@ def _linknet(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(
-            pretrained=pretrained_backbone,
-            include_top=False,
-            input_shape=_cfg["input_shape"],
-        ),
-        fpn_layers,
+        backbone_fn(pretrained=pretrained_backbone, include_top=False, input_shape=_cfg["input_shape"],), fpn_layers,
     )
 
     # Build the model

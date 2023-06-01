@@ -55,7 +55,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
 
-    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
     loss_recorder = []
 
     if amp:
@@ -178,7 +178,7 @@ def main(args):
         args.workers = min(16, mp.cpu_count())
 
     torch.backends.cudnn.benchmark = True
-    system_available_memory = int(psutil.virtual_memory().available / 1024**3)
+    system_available_memory = int(psutil.virtual_memory().available / 1024 ** 3)
 
     st = time.time()
     val_set = DetectionDataset(
@@ -219,9 +219,7 @@ def main(args):
 
     # Load doctr model
     model = detection.__dict__[args.arch](
-        pretrained=args.pretrained,
-        assume_straight_pages=not args.rotation,
-        class_names=val_set.class_names,
+        pretrained=args.pretrained, assume_straight_pages=not args.rotation, class_names=val_set.class_names,
     )
 
     # Resume weights
@@ -383,12 +381,7 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "recall": recall,
-                    "precision": precision,
-                    "mean_iou": mean_iou,
-                }
+                {"val_loss": val_loss, "recall": recall, "precision": precision, "mean_iou": mean_iou,}
             )
 
     if args.wb:

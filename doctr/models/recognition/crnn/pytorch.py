@@ -53,11 +53,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
     """
 
     @staticmethod
-    def ctc_best_path(
-        logits: torch.Tensor,
-        vocab: str = VOCABS["french"],
-        blank: int = 0,
-    ) -> List[Tuple[str, float]]:
+    def ctc_best_path(logits: torch.Tensor, vocab: str = VOCABS["french"], blank: int = 0,) -> List[Tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
 
@@ -136,11 +132,7 @@ class CRNN(RecognitionModel, nn.Module):
         self.feat_extractor.train()
 
         self.decoder = nn.LSTM(
-            input_size=lstm_in,
-            hidden_size=rnn_units,
-            batch_first=True,
-            num_layers=2,
-            bidirectional=True,
+            input_size=lstm_in, hidden_size=rnn_units, batch_first=True, num_layers=2, bidirectional=True,
         )
 
         # features units = 2 * rnn_units because bidirectional layers
@@ -160,11 +152,7 @@ class CRNN(RecognitionModel, nn.Module):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
 
-    def compute_loss(
-        self,
-        model_output: torch.Tensor,
-        target: List[str],
-    ) -> torch.Tensor:
+    def compute_loss(self, model_output: torch.Tensor, target: List[str],) -> torch.Tensor:
         """Compute CTC loss for the model.
 
         Args:

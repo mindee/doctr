@@ -54,7 +54,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     optimizer.learning_rate = start_lr
 
-    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
     loss_recorder = []
 
     for batch_idx, (images, targets) in enumerate(train_loader):
@@ -137,7 +137,7 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    system_available_memory = int(psutil.virtual_memory().available / 1024**3)
+    system_available_memory = int(psutil.virtual_memory().available / 1024 ** 3)
 
     # AMP
     if args.amp:
@@ -166,11 +166,7 @@ def main(args):
         use_polygons=args.rotation and not args.eval_straight,
     )
     val_loader = DataLoader(
-        val_set,
-        batch_size=args.batch_size,
-        shuffle=False,
-        drop_last=False,
-        num_workers=args.workers,
+        val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, num_workers=args.workers,
     )
     print(
         f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -179,11 +175,7 @@ def main(args):
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
         val_hash = hashlib.sha256(f.read()).hexdigest()
 
-    batch_transforms = T.Compose(
-        [
-            T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),
-        ]
-    )
+    batch_transforms = T.Compose([T.Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287)),])
 
     # Load doctr model
     model = detection.__dict__[args.arch](
@@ -251,11 +243,7 @@ def main(args):
         use_polygons=args.rotation,
     )
     train_loader = DataLoader(
-        train_set,
-        batch_size=args.batch_size,
-        shuffle=True,
-        drop_last=True,
-        num_workers=args.workers,
+        train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=args.workers,
     )
     print(
         f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -336,12 +324,7 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "recall": recall,
-                    "precision": precision,
-                    "mean_iou": mean_iou,
-                }
+                {"val_loss": val_loss, "recall": recall, "precision": precision, "mean_iou": mean_iou,}
             )
 
     if args.wb:

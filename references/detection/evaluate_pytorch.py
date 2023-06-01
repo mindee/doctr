@@ -66,7 +66,7 @@ def main(args):
         args.workers = min(16, mp.cpu_count())
 
     torch.backends.cudnn.benchmark = True
-    system_available_memory = int(psutil.virtual_memory().available / 1024**3)
+    system_available_memory = int(psutil.virtual_memory().available / 1024 ** 3)
 
     # Load docTR model
     model = detection.__dict__[args.arch](
@@ -81,20 +81,14 @@ def main(args):
 
     st = time.time()
     ds = datasets.__dict__[args.dataset](
-        train=True,
-        download=True,
-        use_polygons=args.rotation,
-        sample_transforms=T.Resize(input_shape),
+        train=True, download=True, use_polygons=args.rotation, sample_transforms=T.Resize(input_shape),
     )
     # Monkeypatch
     subfolder = ds.root.split("/")[-2:]
     ds.root = str(Path(ds.root).parent.parent)
     ds.data = [(os.path.join(*subfolder, name), target) for name, target in ds.data]
     _ds = datasets.__dict__[args.dataset](
-        train=False,
-        download=True,
-        use_polygons=args.rotation,
-        sample_transforms=T.Resize(input_shape),
+        train=False, download=True, use_polygons=args.rotation, sample_transforms=T.Resize(input_shape),
     )
     subfolder = _ds.root.split("/")[-2:]
     ds.data.extend([(os.path.join(*subfolder, name), target) for name, target in _ds.data])

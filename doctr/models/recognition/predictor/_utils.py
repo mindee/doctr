@@ -13,11 +13,7 @@ __all__ = ["split_crops", "remap_preds"]
 
 
 def split_crops(
-    crops: List[np.ndarray],
-    max_ratio: float,
-    target_ratio: int,
-    dilation: float,
-    channels_last: bool = True,
+    crops: List[np.ndarray], max_ratio: float, target_ratio: int, dilation: float, channels_last: bool = True,
 ) -> Tuple[List[np.ndarray], List[Union[int, Tuple[int, int]]], bool]:
     """Chunk crops horizontally to match a given aspect ratio
 

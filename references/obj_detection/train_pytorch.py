@@ -53,7 +53,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
 
-    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
     loss_recorder = []
 
     if amp:
@@ -182,11 +182,7 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     st = time.time()
-    val_set = DocArtefacts(
-        train=False,
-        download=True,
-        img_transforms=T.Resize((args.input_size, args.input_size)),
-    )
+    val_set = DocArtefacts(train=False, download=True, img_transforms=T.Resize((args.input_size, args.input_size)),)
     val_loader = DataLoader(
         val_set,
         batch_size=args.batch_size,
@@ -326,11 +322,7 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {
-                    "recall": recall,
-                    "precision": precision,
-                    "mean_iou": mean_iou,
-                }
+                {"recall": recall, "precision": precision, "mean_iou": mean_iou,}
             )
 
     if args.wb:

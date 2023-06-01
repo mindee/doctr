@@ -48,21 +48,15 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
         channels: number of channel to output
     """
 
-    def __init__(
-        self,
-        channels: int,
-    ) -> None:
+    def __init__(self, channels: int,) -> None:
         super().__init__()
         self.channels = channels
         self.upsample = layers.UpSampling2D(size=(2, 2), interpolation="nearest")
         self.inner_blocks = [layers.Conv2D(channels, 1, strides=1, kernel_initializer="he_normal") for _ in range(4)]
-        self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2**idx) for idx in range(4)]
+        self.layer_blocks = [self.build_upsampling(channels, dilation_factor=2 ** idx) for idx in range(4)]
 
     @staticmethod
-    def build_upsampling(
-        channels: int,
-        dilation_factor: int = 1,
-    ) -> layers.Layer:
+    def build_upsampling(channels: int, dilation_factor: int = 1,) -> layers.Layer:
         """Module which performs a 3x3 convolution followed by up-sampling
 
         Args:
@@ -86,11 +80,7 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
     def extra_repr(self) -> str:
         return f"channels={self.channels}"
 
-    def call(
-        self,
-        x: List[tf.Tensor],
-        **kwargs: Any,
-    ) -> tf.Tensor:
+    def call(self, x: List[tf.Tensor], **kwargs: Any,) -> tf.Tensor:
         # Channel mapping
         results = [block(fmap, **kwargs) for block, fmap in zip(self.inner_blocks, x)]
         # Upsample & sum
@@ -163,10 +153,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
     def compute_loss(
-        self,
-        out_map: tf.Tensor,
-        thresh_map: tf.Tensor,
-        target: List[Dict[str, np.ndarray]],
+        self, out_map: tf.Tensor, thresh_map: tf.Tensor, target: List[Dict[str, np.ndarray]],
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -191,11 +178,9 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         # Compute balanced BCE loss for proba_map
         bce_scale = 5.0
-        bce_loss = tf.keras.losses.binary_crossentropy(
-            seg_target[..., None],
-            out_map[..., None],
-            from_logits=True,
-        )[seg_mask]
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True,)[
+            seg_mask
+        ]
 
         neg_target = 1 - seg_target[seg_mask]
         positive_count = tf.math.reduce_sum(seg_target[seg_mask])
@@ -314,12 +299,7 @@ def _db_mobilenet(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(
-            input_shape=_cfg["input_shape"],
-            include_top=False,
-            pretrained=pretrained_backbone,
-        ),
-        fpn_layers,
+        backbone_fn(input_shape=_cfg["input_shape"], include_top=False, pretrained=pretrained_backbone,), fpn_layers,
     )
 
     # Build the model

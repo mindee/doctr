@@ -11,6 +11,7 @@ from torch import nn
 
 __all__ = ["PatchEmbedding"]
 
+
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 

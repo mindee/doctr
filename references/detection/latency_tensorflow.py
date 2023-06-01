@@ -32,9 +32,7 @@ def main(args):
 
     # Pretrained imagenet model
     model = detection.__dict__[args.arch](
-        pretrained=args.pretrained,
-        pretrained_backbone=False,
-        input_shape=(args.size, args.size, 3),
+        pretrained=args.pretrained, pretrained_backbone=False, input_shape=(args.size, args.size, 3),
     )
 
     # Input

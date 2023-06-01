@@ -59,10 +59,7 @@ def _process_file(model, file_path: Path, out_format: str) -> None:
 
 
 def main(args):
-    detection_model = detection.__dict__[args.detection](
-        pretrained=True,
-        bin_thresh=args.bin_thresh,
-    )
+    detection_model = detection.__dict__[args.detection](pretrained=True, bin_thresh=args.bin_thresh,)
     model = ocr_predictor(detection_model, args.recognition, pretrained=True)
     path = Path(args.path)
 
@@ -80,8 +77,7 @@ def main(args):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="DocTR text detection",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        description="DocTR text detection", formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("path", type=str, help="Path to process: PDF, image, directory")
     parser.add_argument("--detection", type=str, default="db_resnet50", help="Text detection model to use for analysis")

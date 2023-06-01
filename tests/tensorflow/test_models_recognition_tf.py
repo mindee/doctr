@@ -124,12 +124,7 @@ def test_recognition_zoo(arch_name):
 
 
 @pytest.mark.parametrize(
-    "arch_name",
-    [
-        "crnn_vgg16_bn",
-        "crnn_mobilenet_v3_small",
-        "crnn_mobilenet_v3_large",
-    ],
+    "arch_name", ["crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large",],
 )
 def test_crnn_beam_search(arch_name):
     batch_size = 2

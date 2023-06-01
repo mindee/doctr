@@ -48,11 +48,7 @@ class CORD(VisionDataset):
     )
 
     def __init__(
-        self,
-        train: bool = True,
-        use_polygons: bool = False,
-        recognition_task: bool = False,
-        **kwargs: Any,
+        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
     ) -> None:
         url, sha256, name = self.TRAIN if train else self.TEST
         super().__init__(
@@ -87,13 +83,7 @@ class CORD(VisionDataset):
                             if use_polygons:
                                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                                 box = np.array(
-                                    [
-                                        [x[0], y[0]],
-                                        [x[1], y[1]],
-                                        [x[2], y[2]],
-                                        [x[3], y[3]],
-                                    ],
-                                    dtype=np_dtype,
+                                    [[x[0], y[0]], [x[1], y[1]], [x[2], y[2]], [x[3], y[3]],], dtype=np_dtype,
                                 )
                             else:
                                 # Reduce 8 coords to 4 -> xmin, ymin, xmax, ymax

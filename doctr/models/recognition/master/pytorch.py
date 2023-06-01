@@ -119,11 +119,7 @@ class MASTER(_MASTER, nn.Module):
         return source_mask, target_mask.int()
 
     @staticmethod
-    def compute_loss(
-        model_output: torch.Tensor,
-        gt: torch.Tensor,
-        seq_len: torch.Tensor,
-    ) -> torch.Tensor:
+    def compute_loss(model_output: torch.Tensor, gt: torch.Tensor, seq_len: torch.Tensor,) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -242,10 +238,7 @@ class MASTER(_MASTER, nn.Module):
 class MASTERPostProcessor(_MASTERPostProcessor):
     """Post processor for MASTER architectures"""
 
-    def __call__(
-        self,
-        logits: torch.Tensor,
-    ) -> List[Tuple[str, float]]:
+    def __call__(self, logits: torch.Tensor,) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
@@ -282,10 +275,7 @@ def _master(
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Build the model
-    feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone),
-        {layer: "features"},
-    )
+    feat_extractor = IntermediateLayerGetter(backbone_fn(pretrained_backbone), {layer: "features"},)
     model = MASTER(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
@@ -318,10 +308,6 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
         pretrained,
         magc_resnet31,
         "10",
-        ignore_keys=[
-            "decoder.embed.weight",
-            "linear.weight",
-            "linear.bias",
-        ],
+        ignore_keys=["decoder.embed.weight", "linear.weight", "linear.bias",],
         **kwargs,
     )

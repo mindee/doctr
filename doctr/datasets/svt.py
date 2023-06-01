@@ -38,11 +38,7 @@ class SVT(VisionDataset):
     SHA256 = "63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf"
 
     def __init__(
-        self,
-        train: bool = True,
-        use_polygons: bool = False,
-        recognition_task: bool = False,
-        **kwargs: Any,
+        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
     ) -> None:
         super().__init__(
             self.URL,

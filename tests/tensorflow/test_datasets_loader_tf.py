@@ -30,12 +30,7 @@ class MockDatasetBis(MockDataset):
 
 
 def test_dataloader():
-    loader = DataLoader(
-        MockDataset((32, 32)),
-        shuffle=True,
-        batch_size=2,
-        drop_last=True,
-    )
+    loader = DataLoader(MockDataset((32, 32)), shuffle=True, batch_size=2, drop_last=True,)
 
     ds_iter = iter(loader)
     num_batches = 0
@@ -48,12 +43,7 @@ def test_dataloader():
     assert y.shape == (2,)
 
     # Drop last
-    loader = DataLoader(
-        MockDataset((32, 32)),
-        shuffle=True,
-        batch_size=2,
-        drop_last=False,
-    )
+    loader = DataLoader(MockDataset((32, 32)), shuffle=True, batch_size=2, drop_last=False,)
     ds_iter = iter(loader)
     num_batches = 0
     for x, y in ds_iter:
@@ -62,12 +52,7 @@ def test_dataloader():
     assert num_batches == 2
 
     # Custom collate
-    loader = DataLoader(
-        MockDatasetBis((32, 32)),
-        shuffle=True,
-        batch_size=2,
-        drop_last=False,
-    )
+    loader = DataLoader(MockDatasetBis((32, 32)), shuffle=True, batch_size=2, drop_last=False,)
 
     ds_iter = iter(loader)
     x, y = next(ds_iter)

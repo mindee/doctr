@@ -47,11 +47,7 @@ class SROIE(VisionDataset):
     )
 
     def __init__(
-        self,
-        train: bool = True,
-        use_polygons: bool = False,
-        recognition_task: bool = False,
-        **kwargs: Any,
+        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
     ) -> None:
         url, sha256, name = self.TRAIN if train else self.TEST
         super().__init__(

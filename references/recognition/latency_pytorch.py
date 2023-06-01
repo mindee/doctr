@@ -25,12 +25,7 @@ def main(args):
 
     # Pretrained imagenet model
     model = (
-        recognition.__dict__[args.arch](
-            pretrained=args.pretrained,
-            pretrained_backbone=False,
-        )
-        .eval()
-        .to(device=device)
+        recognition.__dict__[args.arch](pretrained=args.pretrained, pretrained_backbone=False,).eval().to(device=device)
     )
 
     # Input

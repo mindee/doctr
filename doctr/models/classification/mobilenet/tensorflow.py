@@ -129,11 +129,7 @@ class InvertedResidual(layers.Layer):
         conf: configuration object for inverted residual
     """
 
-    def __init__(
-        self,
-        conf: InvertedResidualConfig,
-        **kwargs: Any,
-    ) -> None:
+    def __init__(self, conf: InvertedResidualConfig, **kwargs: Any,) -> None:
         _kwargs = {"input_shape": kwargs.pop("input_shape")} if isinstance(kwargs.get("input_shape"), tuple) else {}
         super().__init__(**kwargs)
 
@@ -163,22 +159,11 @@ class InvertedResidual(layers.Layer):
             _layers.append(SqueezeExcitation(conf.expanded_channels))
 
         # project
-        _layers.extend(
-            conv_sequence(
-                conf.out_channels,
-                None,
-                kernel_size=1,
-                bn=True,
-            )
-        )
+        _layers.extend(conv_sequence(conf.out_channels, None, kernel_size=1, bn=True,))
 
         self.block = Sequential(_layers)
 
-    def call(
-        self,
-        inputs: tf.Tensor,
-        **kwargs: Any,
-    ) -> tf.Tensor:
+    def call(self, inputs: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
         out = self.block(inputs, **kwargs)
         if self.use_res_connect:
             out = tf.add(out, inputs)
@@ -211,9 +196,7 @@ class MobileNetV3(Sequential):
         ]
 
         for idx, conf in enumerate(layout):
-            _layers.append(
-                InvertedResidual(conf, name=f"inverted_{idx}"),
-            )
+            _layers.append(InvertedResidual(conf, name=f"inverted_{idx}"),)
 
         _layers.append(
             Sequential(conv_sequence(6 * layout[-1].out_channels, hard_swish, True, kernel_size=1), name="final_block")
@@ -284,12 +267,7 @@ def _mobilenet_v3(arch: str, pretrained: bool, rect_strides: bool = False, **kwa
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Build the model
-    model = MobileNetV3(
-        inverted_residual_setting,
-        head_chans=head_chans,
-        cfg=_cfg,
-        **kwargs,
-    )
+    model = MobileNetV3(inverted_residual_setting, head_chans=head_chans, cfg=_cfg, **kwargs,)
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, default_cfgs[arch]["url"])

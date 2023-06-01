@@ -54,10 +54,7 @@ class DocumentBuilder(NestedObject):
         """
         if boxes.ndim == 3:
             boxes = rotate_boxes(
-                loc_preds=boxes,
-                angle=-estimate_page_angle(boxes),
-                orig_shape=(1024, 1024),
-                min_angle=5.0,
+                loc_preds=boxes, angle=-estimate_page_angle(boxes), orig_shape=(1024, 1024), min_angle=5.0,
             )
             boxes = np.concatenate((boxes.min(1), boxes.max(1)), -1)
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
@@ -315,16 +312,7 @@ class DocumentBuilder(NestedObject):
                 boxes = straight_boxes
 
         _pages = [
-            Page(
-                self._build_blocks(
-                    page_boxes,
-                    word_preds,
-                ),
-                _idx,
-                shape,
-                orientation,
-                language,
-            )
+            Page(self._build_blocks(page_boxes, word_preds,), _idx, shape, orientation, language,)
             for _idx, shape, page_boxes, word_preds, orientation, language in zip(
                 range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
             )
@@ -384,13 +372,7 @@ class KIEDocumentBuilder(DocumentBuilder):
 
         _pages = [
             KIEPage(
-                {
-                    k: self._build_blocks(
-                        page_boxes[k],
-                        word_preds[k],
-                    )
-                    for k in page_boxes.keys()
-                },
+                {k: self._build_blocks(page_boxes[k], word_preds[k],) for k in page_boxes.keys()},
                 _idx,
                 shape,
                 orientation,
@@ -404,9 +386,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         return KIEDocument(_pages)
 
     def _build_blocks(  # type: ignore[override]
-        self,
-        boxes: np.ndarray,
-        word_preds: List[Tuple[str, float]],
+        self, boxes: np.ndarray, word_preds: List[Tuple[str, float]],
     ) -> List[Prediction]:
         """Gather independent words in structured blocks
 

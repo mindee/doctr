@@ -60,11 +60,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.detect_language = detect_language
 
     @torch.no_grad()
-    def forward(
-        self,
-        pages: List[Union[np.ndarray, torch.Tensor]],
-        **kwargs: Any,
-    ) -> Document:
+    def forward(self, pages: List[Union[np.ndarray, torch.Tensor]], **kwargs: Any,) -> Document:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")

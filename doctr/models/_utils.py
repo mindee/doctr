@@ -107,10 +107,7 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.0) -
     return angle
 
 
-def rectify_crops(
-    crops: List[np.ndarray],
-    orientations: List[int],
-) -> List[np.ndarray]:
+def rectify_crops(crops: List[np.ndarray], orientations: List[int],) -> List[np.ndarray]:
     """Rotate each crop of the list according to the predicted orientation:
     0: already straight, no rotation
     1: 90 ccw, rotate 3 times ccw
@@ -126,10 +123,7 @@ def rectify_crops(
     )
 
 
-def rectify_loc_preds(
-    page_loc_preds: np.ndarray,
-    orientations: List[int],
-) -> Optional[np.ndarray]:
+def rectify_loc_preds(page_loc_preds: np.ndarray, orientations: List[int],) -> Optional[np.ndarray]:
     """Orient the quadrangle (Polygon4P) according to the predicted orientation,
     so that the points are in this order: top L, top R, bot R, bot L if the crop is readable
     """

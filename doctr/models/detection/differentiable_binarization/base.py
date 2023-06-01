@@ -30,19 +30,11 @@ class DBPostProcessor(DetectionPostProcessor):
 
     """
 
-    def __init__(
-        self,
-        box_thresh: float = 0.1,
-        bin_thresh: float = 0.3,
-        assume_straight_pages: bool = True,
-    ) -> None:
+    def __init__(self, box_thresh: float = 0.1, bin_thresh: float = 0.3, assume_straight_pages: bool = True,) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
         self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
 
-    def polygon_to_box(
-        self,
-        points: np.ndarray,
-    ) -> np.ndarray:
+    def polygon_to_box(self, points: np.ndarray,) -> np.ndarray:
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
@@ -85,11 +77,7 @@ class DBPostProcessor(DetectionPostProcessor):
             else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
         )
 
-    def bitmap_to_boxes(
-        self,
-        pred: np.ndarray,
-        bitmap: np.ndarray,
-    ) -> np.ndarray:
+    def bitmap_to_boxes(self, pred: np.ndarray, bitmap: np.ndarray,) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map
 
         Args:
@@ -169,13 +157,7 @@ class _DBNet:
     assume_straight_pages: bool = True
 
     @staticmethod
-    def compute_distance(
-        xs: np.ndarray,
-        ys: np.ndarray,
-        a: np.ndarray,
-        b: np.ndarray,
-        eps: float = 1e-7,
-    ) -> float:
+    def compute_distance(xs: np.ndarray, ys: np.ndarray, a: np.ndarray, b: np.ndarray, eps: float = 1e-7,) -> float:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
 
         Args:
@@ -199,10 +181,7 @@ class _DBNet:
         return result
 
     def draw_thresh_map(
-        self,
-        polygon: np.ndarray,
-        canvas: np.ndarray,
-        mask: np.ndarray,
+        self, polygon: np.ndarray, canvas: np.ndarray, mask: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Draw a polygon treshold map on a canvas, as described in the DB paper
 
@@ -262,10 +241,7 @@ class _DBNet:
         return polygon, canvas, mask
 
     def build_target(
-        self,
-        target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int, int],
-        channels_last: bool = True,
+        self, target: List[Dict[str, np.ndarray]], output_shape: Tuple[int, int, int, int], channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -306,12 +282,7 @@ class _DBNet:
                     abs_boxes[:, [1, 3]] *= h
                     abs_boxes = abs_boxes.round().astype(np.int32)
                     polys = np.stack(
-                        [
-                            abs_boxes[:, [0, 1]],
-                            abs_boxes[:, [0, 3]],
-                            abs_boxes[:, [2, 3]],
-                            abs_boxes[:, [2, 1]],
-                        ],
+                        [abs_boxes[:, [0, 1]], abs_boxes[:, [0, 3]], abs_boxes[:, [2, 3]], abs_boxes[:, [2, 1]],],
                         axis=1,
                     )
                     boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])

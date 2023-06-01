@@ -27,10 +27,7 @@ class BarCodeDetector:
         self.canny_minval = canny_minval
         self.canny_maxval = canny_maxval
 
-    def __call__(
-        self,
-        img: np.ndarray,
-    ) -> List[Tuple[float, float, float, float]]:
+    def __call__(self, img: np.ndarray,) -> List[Tuple[float, float, float, float]]:
         """Detect Barcodes on the image
         Args:
             img: np image

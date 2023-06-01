@@ -40,11 +40,7 @@ class FUNSD(VisionDataset):
     FILE_NAME = "funsd.zip"
 
     def __init__(
-        self,
-        train: bool = True,
-        use_polygons: bool = False,
-        recognition_task: bool = False,
-        **kwargs: Any,
+        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
     ) -> None:
         super().__init__(
             self.URL,
@@ -82,13 +78,7 @@ class FUNSD(VisionDataset):
             if use_polygons:
                 # xmin, ymin, xmax, ymax -> (x, y) coordinates of top left, top right, bottom right, bottom left corners
                 box_targets = [
-                    [
-                        [box[0], box[1]],
-                        [box[2], box[1]],
-                        [box[2], box[3]],
-                        [box[0], box[3]],
-                    ]
-                    for box in box_targets
+                    [[box[0], box[1]], [box[2], box[1]], [box[2], box[3]], [box[0], box[3]],] for box in box_targets
                 ]
 
             if recognition_task:
@@ -101,10 +91,7 @@ class FUNSD(VisionDataset):
                         self.data.append((crop, label))
             else:
                 self.data.append(
-                    (
-                        img_path,
-                        dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
-                    )
+                    (img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),)
                 )
 
         self.root = tmp_root

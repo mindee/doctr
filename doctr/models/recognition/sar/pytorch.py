@@ -51,11 +51,7 @@ class AttentionModule(nn.Module):
         self.state_conv = nn.Conv2d(state_chans, attention_units, kernel_size=1, bias=False)
         self.attention_projector = nn.Conv2d(attention_units, 1, kernel_size=1, bias=False)
 
-    def forward(
-        self,
-        features: torch.Tensor,  # (N, C, H, W)
-        hidden_state: torch.Tensor,  # (N, C)
-    ) -> torch.Tensor:
+    def forward(self, features: torch.Tensor, hidden_state: torch.Tensor,) -> torch.Tensor:  # (N, C, H, W)  # (N, C)
         H_f, W_f = features.shape[2:]
 
         # (N, feat_chans, H, W) --> (N, attention_units, H, W)
@@ -206,12 +202,7 @@ class SAR(nn.Module, RecognitionModel):
 
         self.encoder = SAREncoder(out_shape[1], rnn_units, dropout_prob)
         self.decoder = SARDecoder(
-            rnn_units,
-            self.max_length,
-            len(self.vocab),
-            embedding_units,
-            attention_units,
-            dropout_prob=dropout_prob,
+            rnn_units, self.max_length, len(self.vocab), embedding_units, attention_units, dropout_prob=dropout_prob,
         )
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
@@ -259,11 +250,7 @@ class SAR(nn.Module, RecognitionModel):
         return out
 
     @staticmethod
-    def compute_loss(
-        model_output: torch.Tensor,
-        gt: torch.Tensor,
-        seq_len: torch.Tensor,
-    ) -> torch.Tensor:
+    def compute_loss(model_output: torch.Tensor, gt: torch.Tensor, seq_len: torch.Tensor,) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -296,10 +283,7 @@ class SARPostProcessor(RecognitionPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(
-        self,
-        logits: torch.Tensor,
-    ) -> List[Tuple[str, float]]:
+    def __call__(self, logits: torch.Tensor,) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
@@ -333,10 +317,7 @@ def _sar(
     _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
 
     # Feature extractor
-    feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone),
-        {layer: "features"},
-    )
+    feat_extractor = IntermediateLayerGetter(backbone_fn(pretrained_backbone), {layer: "features"},)
     kwargs["vocab"] = _cfg["vocab"]
     kwargs["input_shape"] = _cfg["input_shape"]
 
