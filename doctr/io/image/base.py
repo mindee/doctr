@@ -15,7 +15,9 @@ __all__ = ["read_img_as_numpy"]
 
 
 def read_img_as_numpy(
-    file: AbstractFile, output_size: Optional[Tuple[int, int]] = None, rgb_output: bool = True,
+    file: AbstractFile,
+    output_size: Optional[Tuple[int, int]] = None,
+    rgb_output: bool = True,
 ) -> np.ndarray:
     """Read an image file into numpy format
 

@@ -76,7 +76,11 @@ class ViTSTR(_ViTSTR, Model):
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
     @staticmethod
-    def compute_loss(model_output: tf.Tensor, gt: tf.Tensor, seq_len: List[int],) -> tf.Tensor:
+    def compute_loss(
+        model_output: tf.Tensor,
+        gt: tf.Tensor,
+        seq_len: List[int],
+    ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -154,7 +158,10 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(self, logits: tf.Tensor,) -> List[Tuple[str, float]]:
+    def __call__(
+        self,
+        logits: tf.Tensor,
+    ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         # N x L
@@ -191,7 +198,11 @@ def _vitstr(
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
-    feat_extractor = backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg["input_shape"], include_top=False,)
+    feat_extractor = backbone_fn(
+        pretrained=pretrained_backbone,
+        input_shape=_cfg["input_shape"],
+        include_top=False,
+    )
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
@@ -219,7 +230,13 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         text recognition architecture
     """
 
-    return _vitstr("vitstr_small", pretrained, vit_s, embedding_units=384, **kwargs,)
+    return _vitstr(
+        "vitstr_small",
+        pretrained,
+        vit_s,
+        embedding_units=384,
+        **kwargs,
+    )
 
 
 def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
@@ -239,4 +256,10 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         text recognition architecture
     """
 
-    return _vitstr("vitstr_base", pretrained, vit_b, embedding_units=768, **kwargs,)
+    return _vitstr(
+        "vitstr_base",
+        pretrained,
+        vit_b,
+        embedding_units=768,
+        **kwargs,
+    )

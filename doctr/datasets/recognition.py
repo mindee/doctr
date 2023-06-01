@@ -27,7 +27,12 @@ class RecognitionDataset(AbstractDataset):
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
-    def __init__(self, img_folder: str, labels_path: str, **kwargs: Any,) -> None:
+    def __init__(
+        self,
+        img_folder: str,
+        labels_path: str,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(img_folder, **kwargs)
 
         self.data: List[Tuple[str, str]] = []

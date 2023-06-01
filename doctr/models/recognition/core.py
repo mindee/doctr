@@ -19,7 +19,10 @@ class RecognitionModel(NestedObject):
     vocab: str
     max_length: int
 
-    def build_target(self, gts: List[str],) -> Tuple[np.ndarray, List[int]]:
+    def build_target(
+        self,
+        gts: List[str],
+    ) -> Tuple[np.ndarray, List[int]]:
         """Encode a list of gts sequences into a np array and gives the corresponding*
         sequence lengths.
 
@@ -41,7 +44,10 @@ class RecognitionPostProcessor(NestedObject):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __init__(self, vocab: str,) -> None:
+    def __init__(
+        self,
+        vocab: str,
+    ) -> None:
         self.vocab = vocab
         self._embedding = list(self.vocab) + ["<eos>"]
 

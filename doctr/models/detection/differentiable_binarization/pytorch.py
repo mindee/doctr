@@ -29,7 +29,12 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.264, 0.2749, 0.287),
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/db_resnet50-ac60cadc.pt&src=0",
     },
-    "db_resnet34": {"input_shape": (3, 1024, 1024), "mean": (0.5, 0.5, 0.5), "std": (1.0, 1.0, 1.0), "url": None,},
+    "db_resnet34": {
+        "input_shape": (3, 1024, 1024),
+        "mean": (0.5, 0.5, 0.5),
+        "std": (1.0, 1.0, 1.0),
+        "url": None,
+    },
     "db_mobilenet_v3_large": {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
@@ -46,7 +51,12 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class FeaturePyramidNetwork(nn.Module):
-    def __init__(self, in_channels: List[int], out_channels: int, deform_conv: bool = False,) -> None:
+    def __init__(
+        self,
+        in_channels: List[int],
+        out_channels: int,
+        deform_conv: bool = False,
+    ) -> None:
         super().__init__()
 
         out_chans = out_channels // len(in_channels)
@@ -56,7 +66,9 @@ class FeaturePyramidNetwork(nn.Module):
         self.in_branches = nn.ModuleList(
             [
                 nn.Sequential(
-                    conv_layer(chans, out_channels, 1, bias=False), nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True),
+                    conv_layer(chans, out_channels, 1, bias=False),
+                    nn.BatchNorm2d(out_channels),
+                    nn.ReLU(inplace=True),
                 )
                 for idx, chans in enumerate(in_channels)
             ]
@@ -68,7 +80,7 @@ class FeaturePyramidNetwork(nn.Module):
                     conv_layer(out_channels, out_chans, 3, padding=1, bias=False),
                     nn.BatchNorm2d(out_chans),
                     nn.ReLU(inplace=True),
-                    nn.Upsample(scale_factor=2 ** idx, mode="bilinear", align_corners=True),
+                    nn.Upsample(scale_factor=2**idx, mode="bilinear", align_corners=True),
                 )
                 for idx, chans in enumerate(in_channels)
             ]
@@ -239,7 +251,11 @@ class DBNet(_DBNet, nn.Module):
         dice_loss = torch.zeros(1, device=out_map.device)
         l1_loss = torch.zeros(1, device=out_map.device)
         if torch.any(seg_mask):
-            bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none",)[seg_mask]
+            bce_loss = F.binary_cross_entropy_with_logits(
+                out_map,
+                seg_target,
+                reduction="none",
+            )[seg_mask]
 
             neg_target = 1 - seg_target[seg_mask]
             positive_count = seg_target[seg_mask].sum()
@@ -284,7 +300,8 @@ def _dbnet(
     if isinstance(backbone_submodule, str):
         backbone = getattr(backbone, backbone_submodule)
     feat_extractor = IntermediateLayerGetter(
-        backbone, {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
+        backbone,
+        {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
 
     if not kwargs.get("class_names", None):
@@ -317,7 +334,14 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet("db_resnet34", pretrained, resnet34, ["layer1", "layer2", "layer3", "layer4"], None, **kwargs,)
+    return _dbnet(
+        "db_resnet34",
+        pretrained,
+        resnet34,
+        ["layer1", "layer2", "layer3", "layer4"],
+        None,
+        **kwargs,
+    )
 
 
 def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
@@ -337,7 +361,14 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         text detection architecture
     """
 
-    return _dbnet("db_resnet50", pretrained, resnet50, ["layer1", "layer2", "layer3", "layer4"], None, **kwargs,)
+    return _dbnet(
+        "db_resnet50",
+        pretrained,
+        resnet50,
+        ["layer1", "layer2", "layer3", "layer4"],
+        None,
+        **kwargs,
+    )
 
 
 def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
@@ -358,7 +389,12 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _dbnet(
-        "db_mobilenet_v3_large", pretrained, mobilenet_v3_large, ["3", "6", "12", "16"], "features", **kwargs,
+        "db_mobilenet_v3_large",
+        pretrained,
+        mobilenet_v3_large,
+        ["3", "6", "12", "16"],
+        "features",
+        **kwargs,
     )
 
 
@@ -381,5 +417,10 @@ def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
     """
 
     return _dbnet(
-        "db_resnet50_rotation", pretrained, resnet50, ["layer1", "layer2", "layer3", "layer4"], None, **kwargs,
+        "db_resnet50_rotation",
+        pretrained,
+        resnet50,
+        ["layer1", "layer2", "layer3", "layer4"],
+        None,
+        **kwargs,
     )

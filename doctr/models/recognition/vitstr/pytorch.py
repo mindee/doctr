@@ -117,7 +117,11 @@ class ViTSTR(_ViTSTR, nn.Module):
         return out
 
     @staticmethod
-    def compute_loss(model_output: torch.Tensor, gt: torch.Tensor, seq_len: torch.Tensor,) -> torch.Tensor:
+    def compute_loss(
+        model_output: torch.Tensor,
+        gt: torch.Tensor,
+        seq_len: torch.Tensor,
+    ) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -151,7 +155,10 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(self, logits: torch.Tensor,) -> List[Tuple[str, float]]:
+    def __call__(
+        self,
+        logits: torch.Tensor,
+    ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
@@ -223,7 +230,13 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     """
 
     return _vitstr(
-        "vitstr_small", pretrained, vit_s, "1", embedding_units=384, ignore_keys=["head.weight", "head.bias"], **kwargs,
+        "vitstr_small",
+        pretrained,
+        vit_s,
+        "1",
+        embedding_units=384,
+        ignore_keys=["head.weight", "head.bias"],
+        **kwargs,
     )
 
 
@@ -245,5 +258,11 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     """
 
     return _vitstr(
-        "vitstr_base", pretrained, vit_b, "1", embedding_units=768, ignore_keys=["head.weight", "head.bias"], **kwargs,
+        "vitstr_base",
+        pretrained,
+        vit_b,
+        "1",
+        embedding_units=768,
+        ignore_keys=["head.weight", "head.bias"],
+        **kwargs,
     )

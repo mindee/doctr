@@ -121,7 +121,12 @@ def test_rotated_detectionpredictor(mock_pdf):  # noqa: F811
 
 
 @pytest.mark.parametrize(
-    "arch_name", ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18",],
+    "arch_name",
+    [
+        "db_resnet50",
+        "db_mobilenet_v3_large",
+        "linknet_resnet18",
+    ],
 )
 def test_detection_zoo(arch_name):
     # Model

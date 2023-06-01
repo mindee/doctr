@@ -56,7 +56,11 @@ def load_pretrained_params(
 
 
 def conv_sequence_pt(
-    in_channels: int, out_channels: int, relu: bool = False, bn: bool = False, **kwargs: Any,
+    in_channels: int,
+    out_channels: int,
+    relu: bool = False,
+    bn: bool = False,
+    **kwargs: Any,
 ) -> List[nn.Module]:
     """Builds a convolutional-based layer sequence
 

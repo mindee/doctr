@@ -37,7 +37,11 @@ class PositionalEncoding(layers.Layer, NestedObject):
         pe[:, 1::2] = tf.math.cos(position * div_term)
         self.pe = tf.expand_dims(tf.convert_to_tensor(pe), axis=0)
 
-    def call(self, x: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
+    ) -> tf.Tensor:
         """
         Args:
             x: embeddings (batch, max_len, d_model)
@@ -103,7 +107,12 @@ class MultiHeadAttention(layers.Layer, NestedObject):
         self.output_linear = layers.Dense(d_model, kernel_initializer=tf.initializers.he_uniform())
 
     def call(
-        self, query: tf.Tensor, key: tf.Tensor, value: tf.Tensor, mask: tf.Tensor = None, **kwargs: Any,
+        self,
+        query: tf.Tensor,
+        key: tf.Tensor,
+        value: tf.Tensor,
+        mask: tf.Tensor = None,
+        **kwargs: Any,
     ) -> tf.Tensor:
         batch_size = query.shape[0]
 
@@ -157,7 +166,8 @@ class EncoderBlock(layers.Layer, NestedObject):
         for i in range(self.num_layers):
             normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
-                self.attention[i](normed_output, normed_output, normed_output, mask, **kwargs), **kwargs,
+                self.attention[i](normed_output, normed_output, normed_output, mask, **kwargs),
+                **kwargs,
             )
             normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)
@@ -211,11 +221,13 @@ class Decoder(layers.Layer, NestedObject):
         for i in range(self.num_layers):
             normed_output = self.layer_norm_input(output, **kwargs)
             output = output + self.dropout(
-                self.attention[i](normed_output, normed_output, normed_output, target_mask, **kwargs), **kwargs,
+                self.attention[i](normed_output, normed_output, normed_output, target_mask, **kwargs),
+                **kwargs,
             )
             normed_output = self.layer_norm_masked_attention(output, **kwargs)
             output = output + self.dropout(
-                self.source_attention[i](normed_output, memory, memory, source_mask, **kwargs), **kwargs,
+                self.source_attention[i](normed_output, memory, memory, source_mask, **kwargs),
+                **kwargs,
             )
             normed_output = self.layer_norm_attention(output, **kwargs)
             output = output + self.dropout(self.position_feed_forward[i](normed_output, **kwargs), **kwargs)

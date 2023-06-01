@@ -62,7 +62,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
 
-    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
     loss_recorder = []
 
     if amp:
@@ -341,7 +341,10 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {"val_loss": val_loss, "acc": acc,}
+                {
+                    "val_loss": val_loss,
+                    "acc": acc,
+                }
             )
 
     if args.wb:

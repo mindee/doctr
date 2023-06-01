@@ -33,7 +33,9 @@ def main(args):
     spatial_shape = (args.size, 4 * args.size)
     # Pretrained imagenet model
     model = recognition.__dict__[args.arch](
-        pretrained=args.pretrained, pretrained_backbone=False, input_shape=(*spatial_shape, 3),
+        pretrained=args.pretrained,
+        pretrained_backbone=False,
+        input_shape=(*spatial_shape, 3),
     )
 
     # Input

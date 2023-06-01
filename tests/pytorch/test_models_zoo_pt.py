@@ -14,14 +14,21 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 @pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages", [[True, False], [False, False], [True, True],],
+    "assume_straight_pages, straighten_pages",
+    [
+        [True, False],
+        [False, False],
+        [True, True],
+    ],
 )
 def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
     det_bsize = 4
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
         detection.db_mobilenet_v3_large(
-            pretrained=False, pretrained_backbone=False, assume_straight_pages=assume_straight_pages,
+            pretrained=False,
+            pretrained_backbone=False,
+            assume_straight_pages=assume_straight_pages,
         ),
     )
 
@@ -64,14 +71,21 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
 
 
 @pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages", [[True, False], [False, False], [True, True],],
+    "assume_straight_pages, straighten_pages",
+    [
+        [True, False],
+        [False, False],
+        [True, True],
+    ],
 )
 def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
     det_bsize = 4
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
         detection.db_mobilenet_v3_large(
-            pretrained=False, pretrained_backbone=False, assume_straight_pages=assume_straight_pages,
+            pretrained=False,
+            pretrained_backbone=False,
+            assume_straight_pages=assume_straight_pages,
         ),
     )
 
@@ -148,7 +162,10 @@ def _test_kiepredictor(predictor):
 
 
 @pytest.mark.parametrize(
-    "det_arch, reco_arch", [["db_mobilenet_v3_large", "crnn_mobilenet_v3_large"],],
+    "det_arch, reco_arch",
+    [
+        ["db_mobilenet_v3_large", "crnn_mobilenet_v3_large"],
+    ],
 )
 def test_zoo_models(det_arch, reco_arch):
     # Model

@@ -169,7 +169,10 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
         a torch.nn.Module
     """
     return _mobilenet_v3(
-        "mobilenet_v3_large", pretrained, ignore_keys=["classifier.3.weight", "classifier.3.bias"], **kwargs,
+        "mobilenet_v3_large",
+        pretrained,
+        ignore_keys=["classifier.3.weight", "classifier.3.bias"],
+        **kwargs,
     )
 
 

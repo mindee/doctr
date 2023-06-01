@@ -41,7 +41,11 @@ class SynthText(VisionDataset):
     SHA256 = "28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1"
 
     def __init__(
-        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
+        self,
+        train: bool = True,
+        use_polygons: bool = False,
+        recognition_task: bool = False,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             self.URL,

@@ -72,7 +72,13 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
 
 
 @pytest.mark.parametrize(
-    "arch_name", ["db_resnet34", "db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18",],
+    "arch_name",
+    [
+        "db_resnet34",
+        "db_resnet50",
+        "db_mobilenet_v3_large",
+        "linknet_resnet18",
+    ],
 )
 def test_detection_zoo(arch_name):
     # Model

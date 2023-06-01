@@ -31,7 +31,10 @@ def main(args):
         os.environ["CUDA_VISIBLE_DEVICES"] = ""
 
     # Pretrained imagenet model
-    model = classification.__dict__[args.arch](pretrained=args.pretrained, input_shape=(args.size, args.size, 3),)
+    model = classification.__dict__[args.arch](
+        pretrained=args.pretrained,
+        input_shape=(args.size, args.size, 3),
+    )
 
     # Input
     img_tensor = tf.random.uniform(shape=[args.batch_size, args.size, args.size, 3], maxval=1, dtype=tf.float32)

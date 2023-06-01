@@ -3,27 +3,27 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
 
 import math
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
-from torch import nn
-from torch import Tensor
+from torch import Tensor, nn
 from torch.nn import functional as F
 from torch.nn.modules import transformer
 from torchvision.models._utils import IntermediateLayerGetter
 
+torch.autograd.set_detect_anomaly(True)
 from doctr.datasets import VOCABS
-from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 from ...classification import vit_s
 from ...utils.pytorch import load_pretrained_params
-from .base import _PARSeq, _PARSeqPostProcessor, DecoderLayer
-
-import copy
-
+from .base import DecoderLayer, _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
 
@@ -141,7 +141,6 @@ class PARSeq(_PARSeq, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -162,6 +161,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         logits = []
         for i in range(num_steps):
+            print(i)
             j = i + 1  # next token index
             tgt_out = self.decode(
                 tgt_in[:, :j],
@@ -181,12 +181,12 @@ class PARSeq(_PARSeq, nn.Module):
                     break
 
         logits = torch.cat(logits, dim=1)
-
+        print(logits)
         if target is not None:
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(memory.device), seq_len.to(memory.device)
-
+            print(gt, seq_len)
         out: Dict[str, Any] = {}
         if self.exportable:
             out["logits"] = logits
@@ -205,7 +205,11 @@ class PARSeq(_PARSeq, nn.Module):
         return out
 
     @staticmethod
-    def compute_loss(model_output: torch.Tensor, gt: torch.Tensor, seq_len: torch.Tensor,) -> torch.Tensor:
+    def compute_loss(
+        model_output: torch.Tensor,
+        gt: torch.Tensor,
+        seq_len: torch.Tensor,
+    ) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -259,7 +263,10 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(self, logits: torch.Tensor,) -> List[Tuple[str, float]]:
+    def __call__(
+        self,
+        logits: torch.Tensor,
+    ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
@@ -331,5 +338,11 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
     """
 
     return _parseq(
-        "parseq", pretrained, vit_s, "1", embedding_units=384, ignore_keys=["head.weight", "head.bias"], **kwargs,
+        "parseq",
+        pretrained,
+        vit_s,
+        "1",
+        embedding_units=384,
+        ignore_keys=["head.weight", "head.bias"],
+        **kwargs,
     )

@@ -22,7 +22,10 @@ class FaceDetector(NestedObject):
         n_faces: maximal number of faces to detect on a single image, default = 1
     """
 
-    def __init__(self, n_faces: int = 1,) -> None:
+    def __init__(
+        self,
+        n_faces: int = 1,
+    ) -> None:
         self.n_faces = n_faces
         # Instantiate classifier
         self.detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
@@ -30,7 +33,10 @@ class FaceDetector(NestedObject):
     def extra_repr(self) -> str:
         return f"n_faces={self.n_faces}"
 
-    def __call__(self, img: np.ndarray,) -> List[Tuple[float, float, float, float]]:
+    def __call__(
+        self,
+        img: np.ndarray,
+    ) -> List[Tuple[float, float, float, float]]:
         """Detect n_faces on the img
 
         Args:

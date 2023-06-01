@@ -94,7 +94,11 @@ class VisionTransformer(Sequential):
         self.cfg = cfg
 
 
-def _vit(arch: str, pretrained: bool, **kwargs: Any,) -> VisionTransformer:
+def _vit(
+    arch: str,
+    pretrained: bool,
+    **kwargs: Any,
+) -> VisionTransformer:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
@@ -134,7 +138,15 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
         A feature extractor model
     """
 
-    return _vit("vit_s", pretrained, d_model=384, num_layers=12, num_heads=6, ffd_ratio=4, **kwargs,)
+    return _vit(
+        "vit_s",
+        pretrained,
+        d_model=384,
+        num_layers=12,
+        num_heads=6,
+        ffd_ratio=4,
+        **kwargs,
+    )
 
 
 def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
@@ -155,4 +167,12 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
         A feature extractor model
     """
 
-    return _vit("vit_b", pretrained, d_model=768, num_layers=12, num_heads=12, ffd_ratio=4, **kwargs,)
+    return _vit(
+        "vit_b",
+        pretrained,
+        d_model=768,
+        num_layers=12,
+        num_heads=12,
+        ffd_ratio=4,
+        **kwargs,
+    )

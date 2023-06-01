@@ -21,9 +21,24 @@ __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "linknet_resnet18": {"input_shape": (3, 1024, 1024), "mean": (0.5, 0.5, 0.5), "std": (1.0, 1.0, 1.0), "url": None,},
-    "linknet_resnet34": {"input_shape": (3, 1024, 1024), "mean": (0.5, 0.5, 0.5), "std": (1.0, 1.0, 1.0), "url": None,},
-    "linknet_resnet50": {"input_shape": (3, 1024, 1024), "mean": (0.5, 0.5, 0.5), "std": (1.0, 1.0, 1.0), "url": None,},
+    "linknet_resnet18": {
+        "input_shape": (3, 1024, 1024),
+        "mean": (0.5, 0.5, 0.5),
+        "std": (1.0, 1.0, 1.0),
+        "url": None,
+    },
+    "linknet_resnet34": {
+        "input_shape": (3, 1024, 1024),
+        "mean": (0.5, 0.5, 0.5),
+        "std": (1.0, 1.0, 1.0),
+        "url": None,
+    },
+    "linknet_resnet50": {
+        "input_shape": (3, 1024, 1024),
+        "mean": (0.5, 0.5, 0.5),
+        "std": (1.0, 1.0, 1.0),
+        "url": None,
+    },
 }
 
 
@@ -239,7 +254,8 @@ def _linknet(
     # Build the feature extractor
     backbone = backbone_fn(pretrained_backbone)
     feat_extractor = IntermediateLayerGetter(
-        backbone, {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
+        backbone,
+        {layer_name: str(idx) for idx, layer_name in enumerate(fpn_layers)},
     )
     if not kwargs.get("class_names", None):
         kwargs["class_names"] = default_cfgs[arch].get("class_names", [CLASS_NAME])

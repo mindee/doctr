@@ -54,7 +54,10 @@ class CTCPostProcessor(RecognitionPostProcessor):
     """
 
     def __call__(
-        self, logits: tf.Tensor, beam_width: int = 1, top_paths: int = 1,
+        self,
+        logits: tf.Tensor,
+        beam_width: int = 1,
+        top_paths: int = 1,
     ) -> Union[List[Tuple[str, float]], List[Tuple[List[str], List[float]]]]:
         """
         Performs decoding of raw output with CTC and decoding of CTC predictions
@@ -79,13 +82,16 @@ class CTCPostProcessor(RecognitionPostProcessor):
         )
 
         _decoded = tf.sparse.concat(
-            1, [tf.sparse.expand_dims(dec, axis=1) for dec in _decoded], expand_nonconcat_dims=True,
+            1,
+            [tf.sparse.expand_dims(dec, axis=1) for dec in _decoded],
+            expand_nonconcat_dims=True,
         )  # dim : batchsize x beamwidth x actual_max_len_predictions
         out_idxs = tf.sparse.to_dense(_decoded, default_value=len(self.vocab))
 
         # Map it to characters
         _decoded_strings_pred = tf.strings.reduce_join(
-            inputs=tf.nn.embedding_lookup(tf.constant(self._embedding, dtype=tf.string), out_idxs), axis=-1,
+            inputs=tf.nn.embedding_lookup(tf.constant(self._embedding, dtype=tf.string), out_idxs),
+            axis=-1,
         )
         _decoded_strings_pred = tf.strings.split(_decoded_strings_pred, "<eos>")
         decoded_strings_pred = tf.sparse.to_dense(_decoded_strings_pred.to_sparse(), default_value="not valid")[
@@ -152,7 +158,11 @@ class CRNN(RecognitionModel, Model):
         self.beam_width = beam_width
         self.top_paths = top_paths
 
-    def compute_loss(self, model_output: tf.Tensor, target: List[str],) -> tf.Tensor:
+    def compute_loss(
+        self,
+        model_output: tf.Tensor,
+        target: List[str],
+    ) -> tf.Tensor:
         """Compute CTC loss for the model.
 
         Args:
@@ -225,7 +235,11 @@ def _crnn(
     _cfg["vocab"] = kwargs["vocab"]
     _cfg["input_shape"] = input_shape or default_cfgs[arch]["input_shape"]
 
-    feat_extractor = backbone_fn(input_shape=_cfg["input_shape"], include_top=False, pretrained=pretrained_backbone,)
+    feat_extractor = backbone_fn(
+        input_shape=_cfg["input_shape"],
+        include_top=False,
+        pretrained=pretrained_backbone,
+    )
 
     # Build the model
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)

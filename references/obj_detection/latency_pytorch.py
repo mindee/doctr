@@ -25,7 +25,11 @@ def main(args):
 
     # Pretrained imagenet model
     model = (
-        obj_detection.__dict__[args.arch](pretrained=args.pretrained, min_size=args.size, max_size=args.size,)
+        obj_detection.__dict__[args.arch](
+            pretrained=args.pretrained,
+            min_size=args.size,
+            max_size=args.size,
+        )
         .eval()
         .to(device=device)
     )

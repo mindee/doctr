@@ -56,10 +56,17 @@ class DetectionPostProcessor(NestedObject):
             product = pred * mask
             return np.sum(product) / np.count_nonzero(product)
 
-    def bitmap_to_boxes(self, pred: np.ndarray, bitmap: np.ndarray,) -> np.ndarray:
+    def bitmap_to_boxes(
+        self,
+        pred: np.ndarray,
+        bitmap: np.ndarray,
+    ) -> np.ndarray:
         raise NotImplementedError
 
-    def __call__(self, proba_map,) -> List[List[np.ndarray]]:
+    def __call__(
+        self,
+        proba_map,
+    ) -> List[List[np.ndarray]]:
         """Performs postprocessing for a list of model outputs
 
         Args:

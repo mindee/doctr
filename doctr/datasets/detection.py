@@ -32,9 +32,17 @@ class DetectionDataset(AbstractDataset):
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
-    def __init__(self, img_folder: str, label_path: str, use_polygons: bool = False, **kwargs: Any,) -> None:
+    def __init__(
+        self,
+        img_folder: str,
+        label_path: str,
+        use_polygons: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(
-            img_folder, pre_transforms=pre_transform_multiclass, **kwargs,
+            img_folder,
+            pre_transforms=pre_transform_multiclass,
+            **kwargs,
         )
 
         # File existence check

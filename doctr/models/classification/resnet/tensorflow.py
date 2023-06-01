@@ -90,7 +90,11 @@ class ResnetBlock(layers.Layer):
         self.act = layers.Activation("relu")
 
     @staticmethod
-    def conv_resnetblock(output_channels: int, kernel_size: int, strides: int = 1,) -> List[layers.Layer]:
+    def conv_resnetblock(
+        output_channels: int,
+        kernel_size: int,
+        strides: int = 1,
+    ) -> List[layers.Layer]:
         return [
             *conv_sequence(output_channels, "relu", bn=True, strides=strides, kernel_size=kernel_size),
             *conv_sequence(output_channels, None, bn=True, kernel_size=kernel_size),
@@ -174,7 +178,10 @@ class ResNet(Sequential):
 
         if include_top:
             _layers.extend(
-                [layers.GlobalAveragePooling2D(), layers.Dense(num_classes),]
+                [
+                    layers.GlobalAveragePooling2D(),
+                    layers.Dense(num_classes),
+                ]
             )
 
         super().__init__(_layers)
