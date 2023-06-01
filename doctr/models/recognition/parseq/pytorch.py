@@ -13,7 +13,7 @@ from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
+from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward, Decoder, PositionalEncoding
 
 from ...classification import vit_s
 from ...utils.pytorch import load_pretrained_params
@@ -90,9 +90,9 @@ class PARSeqDecoder(nn.Module):
         memory: torch.Tensor,
         tgt_mask: Optional[torch.Tensor],
     ):
-        target += self.attention_dropout(self.attention(normalized_target, kv_target, kv_target, mask=tgt_mask))
-        target += self.cross_attention_dropout(self.cross_attention(self.attention_norm(target), memory, memory))
-        target += self.feed_forward_dropout(self.position_feed_forward(self.cross_attention_norm(target)))
+        target = target.clone() + self.attention_dropout(self.attention(normalized_target, kv_target, kv_target, mask=tgt_mask))
+        target = target.clone() + self.cross_attention_dropout(self.cross_attention(self.attention_norm(target), memory, memory))
+        target = target.clone() + self.feed_forward_dropout(self.position_feed_forward(self.cross_attention_norm(target)))
         return target
 
     def forward(self, query, content, memory, query_mask: Optional[torch.Tensor] = None):
@@ -145,6 +145,25 @@ class PARSeq(_PARSeq, nn.Module):
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
+    def make_source_and_target_mask(
+        self, source: torch.Tensor, target: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        # borrowed and slightly modified from  https://github.com/wenwenyu/MASTER-pytorch
+        # NOTE: nn.TransformerDecoder takes the inverse from this implementation
+        # [True, True, True, ..., False, False, False] -> False is masked
+        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+        target_length = target.size(1)
+        # sub mask filled diagonal with True = see and False = masked (max_length, max_length)
+        # NOTE: onnxruntime tril/triu works only with float currently (onnxruntime 1.11.1 - opset 14)
+        target_sub_mask = torch.tril(torch.ones((target_length, target_length), device=source.device), diagonal=0).to(
+            dtype=torch.bool
+        )
+        # source mask filled with ones (max_length, positional_encoded_seq_len)
+        source_mask = torch.ones((target_length, source.size(1)), dtype=torch.uint8, device=source.device)
+        # combine the two masks into one (N, 1, max_length, max_length)
+        target_mask = target_pad_mask & target_sub_mask
+        return source_mask, target_mask.int()
+
     def forward(
         self,
         x: torch.Tensor,
@@ -152,15 +171,27 @@ class PARSeq(_PARSeq, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, Any]:
-        self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
+        features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
+        # add positional encoding to features
+        features = self.positional_encoding(features)
+        self.positions = self.pos_queries[:, :self.max_length].expand(features.size(0), -1, -1)
+
+        if self.training and target is None:
+            raise ValueError("Need to provide labels during training")
 
         if target is not None:
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long), torch.tensor(_seq_len)
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
+            # Compute source mask and target mask
+            source_mask, target_mask = self.make_source_and_target_mask(features, gt)
+            # TODO train stuff
+            output = self.decoder(gt, features, source_mask, target_mask)
+            # Compute logits
+            logits = self.head(output)
+        else:
+            logits = self.decode(features)
 
-        if self.training and target is None:
-            raise ValueError("Need to provide labels during training")
 
         # TODO: decoding -> decode_ar looks like the MASTER model positionwise decoding
 
@@ -180,6 +211,35 @@ class PARSeq(_PARSeq, nn.Module):
             out["loss"] = self.compute_loss(logits, gt, seq_len)
 
         return out
+
+    def decode(self, encoded: torch.Tensor) -> torch.Tensor:
+        """Decode function for prediction
+
+        Args:
+            encoded: input tensor
+
+        Return:
+            A Tuple of torch.Tensor: predictions, logits
+        """
+        b = encoded.size(0)
+
+
+        # Padding symbol + SOS at the beginning
+        ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)  # pad
+        ys[:, 0] = self.vocab_size + 1  # sos
+
+        # Final dimension include EOS/SOS/PAD
+        for i in range(self.max_length - 1):
+            source_mask, target_mask = self.make_source_and_target_mask(encoded, ys)
+            output = self.decoder(ys, encoded, source_mask, target_mask)
+            logits = self.head(output)
+            prob = torch.softmax(logits, dim=-1)
+            next_token = torch.max(prob, dim=-1).indices
+            # update ys with the next token and ignore the first token (SOS)
+            ys[:, i + 1] = next_token[:, i]
+
+        # Shape (N, max_length, vocab_size + 1)
+        return logits
 
     @staticmethod
     def compute_loss(
