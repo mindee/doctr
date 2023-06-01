@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import math
 from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
@@ -13,7 +12,7 @@ from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
-from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward, Decoder, PositionalEncoding
+from doctr.models.modules.transformer import Decoder
 
 from ...classification import vit_s
 from ...utils.pytorch import load_pretrained_params
@@ -30,76 +29,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": None,
     },
 }
-
-
-class CharEmbedding(nn.Module):
-    """Implements the character embedding module
-
-    Args:
-        vocab_size: size of the vocabulary
-        d_model: dimension of the model
-    """
-
-    def __init__(self, vocab_size: int, d_model: int):
-        super().__init__()
-        self.embedding = nn.Embedding(vocab_size, d_model)
-        self.d_model = d_model
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return math.sqrt(self.d_model) * self.embedding(x)
-
-
-class PARSeqDecoder(nn.Module):
-    """Implements decoder module of the PARSeq model
-
-    Args:
-        d_model: dimension of the model
-        num_heads: number of attention heads
-        ffd: dimension of the feed forward layer
-        ffd_ratio: depth multiplier for the feed forward layer
-        dropout: dropout rate
-    """
-
-    def __init__(
-        self,
-        d_model: int,
-        num_heads: int = 12,
-        ffd: int = 2048,
-        ffd_ratio: int = 4,
-        dropout: float = 0.1,
-    ):
-        super().__init__()
-        self.attention = MultiHeadAttention(num_heads, d_model, dropout=dropout)
-        self.cross_attention = MultiHeadAttention(num_heads, d_model, dropout=dropout)
-        self.position_feed_forward = PositionwiseFeedForward(d_model, ffd * ffd_ratio, dropout, nn.GELU())
-
-        self.attention_norm = nn.LayerNorm(d_model, eps=1e-5)
-        self.cross_attention_norm = nn.LayerNorm(d_model, eps=1e-5)
-        self.query_norm = nn.LayerNorm(d_model, eps=1e-5)
-        self.content_norm = nn.LayerNorm(d_model, eps=1e-5)
-        self.output_norm = nn.LayerNorm(d_model, eps=1e-5)
-        self.attention_dropout = nn.Dropout(dropout)
-        self.cross_attention_dropout = nn.Dropout(dropout)
-        self.feed_forward_dropout = nn.Dropout(dropout)
-
-    def forward_stream(
-        self,
-        target: torch.Tensor,
-        normalized_target: torch.Tensor,
-        kv_target: torch.Tensor,
-        memory: torch.Tensor,
-        tgt_mask: Optional[torch.Tensor],
-    ):
-        target = target.clone() + self.attention_dropout(self.attention(normalized_target, kv_target, kv_target, mask=tgt_mask))
-        target = target.clone() + self.cross_attention_dropout(self.cross_attention(self.attention_norm(target), memory, memory))
-        target = target.clone() + self.feed_forward_dropout(self.position_feed_forward(self.cross_attention_norm(target)))
-        return target
-
-    def forward(self, query, content, memory, query_mask: Optional[torch.Tensor] = None):
-        query_norm = self.query_norm(query)
-        content_norm = self.content_norm(content)
-        query = self.forward_stream(query, query_norm, content_norm, memory, query_mask)
-        return self.output_norm(query)
 
 
 class PARSeq(_PARSeq, nn.Module):
@@ -135,12 +64,9 @@ class PARSeq(_PARSeq, nn.Module):
         self.vocab_size = len(vocab)
 
         self.feat_extractor = feature_extractor
-        self.embed_tgt = CharEmbedding(self.vocab_size, embedding_units)
-        self.decoder = PARSeqDecoder(embedding_units)
-
-        self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
-        self.dropout = nn.Dropout(0.1)
-
+        self.decoder = Decoder(
+            1, 12, embedding_units, vocab_size=self.vocab_size + 3, dropout=0.1, dff=2048 * 4, activation_fct=nn.GELU()
+        )
         self.head = nn.Linear(embedding_units, self.vocab_size + 3)
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
@@ -172,9 +98,6 @@ class PARSeq(_PARSeq, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
-        # add positional encoding to features
-        features = self.positional_encoding(features)
-        self.positions = self.pos_queries[:, :self.max_length].expand(features.size(0), -1, -1)
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
@@ -185,13 +108,13 @@ class PARSeq(_PARSeq, nn.Module):
             gt, seq_len = gt.to(x.device), seq_len.to(x.device)
             # Compute source mask and target mask
             source_mask, target_mask = self.make_source_and_target_mask(features, gt)
-            # TODO train stuff
+            # TODO train  with permutations
             output = self.decoder(gt, features, source_mask, target_mask)
             # Compute logits
             logits = self.head(output)
         else:
             logits = self.decode(features)
-
+            # TODO: refine iter stuff and that the mask is only visible for the current position
 
         # TODO: decoding -> decode_ar looks like the MASTER model positionwise decoding
 
@@ -223,7 +146,6 @@ class PARSeq(_PARSeq, nn.Module):
         """
         b = encoded.size(0)
 
-
         # Padding symbol + SOS at the beginning
         ys = torch.full((b, self.max_length), self.vocab_size + 2, dtype=torch.long, device=encoded.device)  # pad
         ys[:, 0] = self.vocab_size + 1  # sos
@@ -231,6 +153,11 @@ class PARSeq(_PARSeq, nn.Module):
         # Final dimension include EOS/SOS/PAD
         for i in range(self.max_length - 1):
             source_mask, target_mask = self.make_source_and_target_mask(encoded, ys)
+
+            # TODO: test -> make only actual position in the mask "visible"
+            # create a eye tensor with shape (batch_size, 1, max_length, max_length) and fill the diagonal with True
+            target_mask = torch.eye(self.max_length, device=encoded.device).unsqueeze(0).expand(b, -1, -1).unsqueeze(1)
+
             output = self.decoder(ys, encoded, source_mask, target_mask)
             logits = self.head(output)
             prob = torch.softmax(logits, dim=-1)

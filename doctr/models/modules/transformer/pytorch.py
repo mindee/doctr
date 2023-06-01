@@ -153,6 +153,7 @@ class Decoder(nn.Module):
         dropout: float = 0.2,
         dff: int = 2048,  # hidden dimension of the feedforward network
         maximum_position_encoding: int = 50,
+        activation_fct: Callable[[Any], Any] = nn.ReLU(),
     ) -> None:
         super(Decoder, self).__init__()
         self.num_layers = num_layers
@@ -174,7 +175,7 @@ class Decoder(nn.Module):
             [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
         )
         self.position_feed_forward = nn.ModuleList(
-            [PositionwiseFeedForward(d_model, dff, dropout) for _ in range(self.num_layers)]
+            [PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)]
         )
 
     def forward(
