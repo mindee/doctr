@@ -69,6 +69,7 @@ testing = [
     "hdf5storage>=0.1.18",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
+    "psutil>=5.9.5"
 ]
 quality = [
     "ruff>=0.0.260",
@@ -103,6 +104,7 @@ dev = [
     "hdf5storage>=0.1.18",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
+    "psutil>=5.9.5",
     # Quality
     "ruff>=0.0.260",
     "isort>=5.7.0",
