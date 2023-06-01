@@ -47,7 +47,11 @@ class SVHN(VisionDataset):
     )
 
     def __init__(
-        self, train: bool = True, use_polygons: bool = False, recognition_task: bool = False, **kwargs: Any,
+        self,
+        train: bool = True,
+        use_polygons: bool = False,
+        recognition_task: bool = False,
+        **kwargs: Any,
     ) -> None:
         url, sha256, name = self.TRAIN if train else self.TEST
         super().__init__(
@@ -103,7 +107,12 @@ class SVHN(VisionDataset):
                 else:
                     # x, y, width, height -> xmin, ymin, xmax, ymax
                     box_targets = np.stack(
-                        [coords[:, 0], coords[:, 1], coords[:, 0] + coords[:, 2], coords[:, 1] + coords[:, 3],],
+                        [
+                            coords[:, 0],
+                            coords[:, 1],
+                            coords[:, 0] + coords[:, 2],
+                            coords[:, 1] + coords[:, 3],
+                        ],
                         axis=-1,
                     )
 

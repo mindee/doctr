@@ -76,7 +76,11 @@ class TextMatch:
     def __init__(self) -> None:
         self.reset()
 
-    def update(self, gt: List[str], pred: List[str],) -> None:
+    def update(
+        self,
+        gt: List[str],
+        pred: List[str],
+    ) -> None:
         """Update the state of the metric with new predictions
 
         Args:
@@ -493,7 +497,11 @@ class OCRMetric:
         self.reset()
 
     def update(
-        self, gt_boxes: np.ndarray, pred_boxes: np.ndarray, gt_labels: List[str], pred_labels: List[str],
+        self,
+        gt_boxes: np.ndarray,
+        pred_boxes: np.ndarray,
+        gt_labels: List[str],
+        pred_labels: List[str],
     ) -> None:
         """Updates the metric
 
@@ -627,7 +635,11 @@ class DetectionMetric:
         self.reset()
 
     def update(
-        self, gt_boxes: np.ndarray, pred_boxes: np.ndarray, gt_labels: np.ndarray, pred_labels: np.ndarray,
+        self,
+        gt_boxes: np.ndarray,
+        pred_boxes: np.ndarray,
+        gt_labels: np.ndarray,
+        pred_labels: np.ndarray,
     ) -> None:
         """Updates the metric
 

@@ -99,7 +99,9 @@ class Resize(NestedObject):
         return _repr
 
     def __call__(
-        self, img: tf.Tensor, target: Optional[np.ndarray] = None,
+        self,
+        img: tf.Tensor,
+        target: Optional[np.ndarray] = None,
     ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
         input_dtype = img.dtype
 
@@ -316,7 +318,11 @@ class RandomGamma(NestedObject):
     """
 
     def __init__(
-        self, min_gamma: float = 0.5, max_gamma: float = 1.5, min_gain: float = 0.8, max_gain: float = 1.2,
+        self,
+        min_gamma: float = 0.5,
+        max_gamma: float = 1.5,
+        min_gain: float = 0.8,
+        max_gain: float = 1.2,
     ) -> None:
         self.min_gamma = min_gamma
         self.max_gamma = max_gamma
@@ -380,7 +386,11 @@ class GaussianBlur(NestedObject):
     @tf.function
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         sigma = random.uniform(self.std[0], self.std[1])
-        return tfa.image.gaussian_filter2d(img, filter_shape=self.kernel_shape, sigma=sigma,)
+        return tfa.image.gaussian_filter2d(
+            img,
+            filter_shape=self.kernel_shape,
+            sigma=sigma,
+        )
 
 
 class ChannelShuffle(NestedObject):
@@ -484,7 +494,9 @@ class RandomShadow(NestedObject):
         if x.dtype == tf.uint8:
             return tf.cast(
                 tf.clip_by_value(
-                    tf.math.round(255 * random_shadow(tf.cast(x, dtype=tf.float32) / 255, self.opacity_range)), 0, 255,
+                    tf.math.round(255 * random_shadow(tf.cast(x, dtype=tf.float32) / 255, self.opacity_range)),
+                    0,
+                    255,
                 ),
                 dtype=tf.uint8,
             )

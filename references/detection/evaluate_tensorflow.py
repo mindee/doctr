@@ -60,7 +60,7 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    system_available_memory = int(psutil.virtual_memory().available / 1024 ** 3)
+    system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
     # AMP
     if args.amp:
@@ -70,7 +70,9 @@ def main(args):
 
     # Load docTR model
     model = detection.__dict__[args.arch](
-        pretrained=isinstance(args.resume, str), assume_straight_pages=not args.rotation, input_shape=input_shape,
+        pretrained=isinstance(args.resume, str),
+        assume_straight_pages=not args.rotation,
+        input_shape=input_shape,
     )
 
     # Resume weights
@@ -83,19 +85,31 @@ def main(args):
 
     st = time.time()
     ds = datasets.__dict__[args.dataset](
-        train=True, download=True, use_polygons=args.rotation, sample_transforms=T.Resize(input_shape[:2]),
+        train=True,
+        download=True,
+        use_polygons=args.rotation,
+        sample_transforms=T.Resize(input_shape[:2]),
     )
     # Monkeypatch
     subfolder = ds.root.split("/")[-2:]
     ds.root = str(Path(ds.root).parent.parent)
     ds.data = [(os.path.join(*subfolder, name), target) for name, target in ds.data]
     _ds = datasets.__dict__[args.dataset](
-        train=False, download=True, use_polygons=args.rotation, sample_transforms=T.Resize(input_shape[:2]),
+        train=False,
+        download=True,
+        use_polygons=args.rotation,
+        sample_transforms=T.Resize(input_shape[:2]),
     )
     subfolder = _ds.root.split("/")[-2:]
     ds.data.extend([(os.path.join(*subfolder, name), target) for name, target in _ds.data])
 
-    test_loader = DataLoader(ds, batch_size=args.batch_size, drop_last=False, num_workers=args.workers, shuffle=False,)
+    test_loader = DataLoader(
+        ds,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        shuffle=False,
+    )
     print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
 
     batch_transforms = T.Normalize(mean=mean, std=std)

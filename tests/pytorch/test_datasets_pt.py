@@ -84,7 +84,9 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     input_size = (1024, 1024)
 
     ds = datasets.DetectionDataset(
-        img_folder=mock_image_folder, label_path=mock_detection_label, img_transforms=Resize(input_size),
+        img_folder=mock_image_folder,
+        label_path=mock_detection_label,
+        img_transforms=Resize(input_size),
     )
 
     assert len(ds) == 5
@@ -151,12 +153,17 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
 
 
 @pytest.mark.parametrize(
-    "use_polygons", [False, True],
+    "use_polygons",
+    [False, True],
 )
 def test_ocrdataset(mock_ocrdataset, use_polygons):
     input_size = (512, 512)
 
-    ds = datasets.OCRDataset(*mock_ocrdataset, img_transforms=Resize(input_size), use_polygons=use_polygons,)
+    ds = datasets.OCRDataset(
+        *mock_ocrdataset,
+        img_transforms=Resize(input_size),
+        use_polygons=use_polygons,
+    )
 
     assert len(ds) == 3
     _validate_dataset(ds, input_size, is_polygons=use_polygons)
@@ -174,7 +181,10 @@ def test_charactergenerator():
     vocab = "abcdef"
 
     ds = datasets.CharacterGenerator(
-        vocab=vocab, num_samples=10, cache_samples=True, img_transforms=Resize(input_size),
+        vocab=vocab,
+        num_samples=10,
+        cache_samples=True,
+        img_transforms=Resize(input_size),
     )
 
     assert len(ds) == 10
@@ -221,7 +231,10 @@ def test_wordgenerator():
 
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate",
-    [[[512, 512], 3, True], [[512, 512], 3, False],],  # Actual set has 2700 training samples and 300 test samples
+    [
+        [[512, 512], 3, True],
+        [[512, 512], 3, False],
+    ],  # Actual set has 2700 training samples and 300 test samples
 )
 def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts):
     # monkeypatch the path to temporary dataset
@@ -287,7 +300,10 @@ def test_sroie(input_size, num_samples, rotate, recognition, mock_sroie_dataset)
 )
 def test_ic13_dataset(input_size, num_samples, rotate, recognition, mock_ic13):
     ds = datasets.IC13(
-        *mock_ic13, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
+        *mock_ic13,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
     )
 
     assert len(ds) == num_samples
@@ -308,7 +324,11 @@ def test_ic13_dataset(input_size, num_samples, rotate, recognition, mock_ic13):
 )
 def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, mock_imgur5k):
     ds = datasets.IMGUR5K(
-        *mock_imgur5k, train=True, img_transforms=Resize(input_size), use_polygons=rotate, recognition_task=recognition,
+        *mock_imgur5k,
+        train=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
     )
 
     assert len(ds) == num_samples - 1  # -1 because of the test set 90 / 10 split
@@ -546,7 +566,10 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
 
 def test_mjsynth_dataset(mock_mjsynth_dataset):
     input_size = (32, 128)
-    ds = datasets.MJSynth(*mock_mjsynth_dataset, img_transforms=Resize(input_size, preserve_aspect_ratio=True),)
+    ds = datasets.MJSynth(
+        *mock_mjsynth_dataset,
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True),
+    )
 
     assert len(ds) == 4  # Actual set has 7581382 train and 1337891 test samples
     assert repr(ds) == f"MJSynth(train={True})"
@@ -555,7 +578,10 @@ def test_mjsynth_dataset(mock_mjsynth_dataset):
 
 def test_iiithws_dataset(mock_iiithws_dataset):
     input_size = (32, 128)
-    ds = datasets.IIITHWS(*mock_iiithws_dataset, img_transforms=Resize(input_size, preserve_aspect_ratio=True),)
+    ds = datasets.IIITHWS(
+        *mock_iiithws_dataset,
+        img_transforms=Resize(input_size, preserve_aspect_ratio=True),
+    )
 
     assert len(ds) == 4  # Actual set has 7141797 train and 793533 test samples
     assert repr(ds) == f"IIITHWS(train={True})"

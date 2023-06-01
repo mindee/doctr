@@ -60,7 +60,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
 
-    def __call__(self, pages: List[Union[np.ndarray, tf.Tensor]], **kwargs: Any,) -> Document:
+    def __call__(
+        self,
+        pages: List[Union[np.ndarray, tf.Tensor]],
+        **kwargs: Any,
+    ) -> Document:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")

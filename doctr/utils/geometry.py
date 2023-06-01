@@ -87,7 +87,10 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     """
 
     points: np.ndarray = np.array(
-        [[img_shape[1] / 2, img_shape[0] / 2], [-img_shape[1] / 2, img_shape[0] / 2],]
+        [
+            [img_shape[1] / 2, img_shape[0] / 2],
+            [-img_shape[1] / 2, img_shape[0] / 2],
+        ]
     )
 
     rotated_points = rotate_abs_points(points, angle)
@@ -96,7 +99,12 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     return wh_shape[1], wh_shape[0]
 
 
-def rotate_abs_geoms(geoms: np.ndarray, angle: float, img_shape: Tuple[int, int], expand: bool = True,) -> np.ndarray:
+def rotate_abs_geoms(
+    geoms: np.ndarray,
+    angle: float,
+    img_shape: Tuple[int, int],
+    expand: bool = True,
+) -> np.ndarray:
     """Rotate a batch of bounding boxes or polygons by an angle around the
     image center.
 
@@ -185,7 +193,15 @@ def rotate_boxes(
     # Change format of the boxes to rotated boxes
     _boxes = loc_preds.copy()
     if _boxes.ndim == 2:
-        _boxes = np.stack([_boxes[:, [0, 1]], _boxes[:, [2, 1]], _boxes[:, [2, 3]], _boxes[:, [0, 3]],], axis=1,)
+        _boxes = np.stack(
+            [
+                _boxes[:, [0, 1]],
+                _boxes[:, [2, 1]],
+                _boxes[:, [2, 3]],
+                _boxes[:, [0, 3]],
+            ],
+            axis=1,
+        )
     # If small angle, return boxes (no rotation)
     if abs(angle) < min_angle or abs(angle) > 90 - min_angle:
         return _boxes
@@ -210,7 +226,10 @@ def rotate_boxes(
 
 
 def rotate_image(
-    image: np.ndarray, angle: float, expand: bool = False, preserve_origin_shape: bool = False,
+    image: np.ndarray,
+    angle: float,
+    expand: bool = False,
+    preserve_origin_shape: bool = False,
 ) -> np.ndarray:
     """Rotate an image counterclockwise by an given angle.
 

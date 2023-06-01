@@ -46,7 +46,11 @@ class SAREncoder(layers.Layer, NestedObject):
             ]
         )
 
-    def call(self, x: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
+    ) -> tf.Tensor:
         # (N, C)
         return self.rnn(x, **kwargs)
 
@@ -62,17 +66,37 @@ class AttentionModule(layers.Layer, NestedObject):
     def __init__(self, attention_units: int) -> None:
         super().__init__()
         self.hidden_state_projector = layers.Conv2D(
-            attention_units, 1, strides=1, use_bias=False, padding="same", kernel_initializer="he_normal",
+            attention_units,
+            1,
+            strides=1,
+            use_bias=False,
+            padding="same",
+            kernel_initializer="he_normal",
         )
         self.features_projector = layers.Conv2D(
-            attention_units, 3, strides=1, use_bias=True, padding="same", kernel_initializer="he_normal",
+            attention_units,
+            3,
+            strides=1,
+            use_bias=True,
+            padding="same",
+            kernel_initializer="he_normal",
         )
         self.attention_projector = layers.Conv2D(
-            1, 1, strides=1, use_bias=False, padding="same", kernel_initializer="he_normal",
+            1,
+            1,
+            strides=1,
+            use_bias=False,
+            padding="same",
+            kernel_initializer="he_normal",
         )
         self.flatten = layers.Flatten()
 
-    def call(self, features: tf.Tensor, hidden_state: tf.Tensor, **kwargs: Any,) -> tf.Tensor:
+    def call(
+        self,
+        features: tf.Tensor,
+        hidden_state: tf.Tensor,
+        **kwargs: Any,
+    ) -> tf.Tensor:
         [H, W] = features.get_shape().as_list()[1:3]
         # shape (N, H, W, vgg_units) -> (N, H, W, attention_units)
         features_projection = self.features_projector(features, **kwargs)
@@ -131,7 +155,11 @@ class SARDecoder(layers.Layer, NestedObject):
         self.dropout = layers.Dropout(dropout_prob)
 
     def call(
-        self, features: tf.Tensor, holistic: tf.Tensor, gt: Optional[tf.Tensor] = None, **kwargs: Any,
+        self,
+        features: tf.Tensor,
+        holistic: tf.Tensor,
+        gt: Optional[tf.Tensor] = None,
+        **kwargs: Any,
     ) -> tf.Tensor:
         if gt is not None:
             gt_embedding = self.embed_tgt(gt, **kwargs)
@@ -224,13 +252,23 @@ class SAR(Model, RecognitionModel):
 
         self.encoder = SAREncoder(rnn_units, dropout_prob)
         self.decoder = SARDecoder(
-            rnn_units, self.max_length, len(vocab), embedding_units, attention_units, num_decoder_cells, dropout_prob,
+            rnn_units,
+            self.max_length,
+            len(vocab),
+            embedding_units,
+            attention_units,
+            num_decoder_cells,
+            dropout_prob,
         )
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
 
     @staticmethod
-    def compute_loss(model_output: tf.Tensor, gt: tf.Tensor, seq_len: tf.Tensor,) -> tf.Tensor:
+    def compute_loss(
+        model_output: tf.Tensor,
+        gt: tf.Tensor,
+        seq_len: tf.Tensor,
+    ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -305,7 +343,10 @@ class SARPostProcessor(RecognitionPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(self, logits: tf.Tensor,) -> List[Tuple[str, float]]:
+    def __call__(
+        self,
+        logits: tf.Tensor,
+    ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         # N x L
@@ -340,7 +381,11 @@ def _sar(
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
 
     # Feature extractor
-    feat_extractor = backbone_fn(pretrained=pretrained_backbone, input_shape=_cfg["input_shape"], include_top=False,)
+    feat_extractor = backbone_fn(
+        pretrained=pretrained_backbone,
+        input_shape=_cfg["input_shape"],
+        include_top=False,
+    )
 
     kwargs["vocab"] = _cfg["vocab"]
 

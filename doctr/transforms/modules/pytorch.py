@@ -34,7 +34,9 @@ class Resize(T.Resize):
             raise AssertionError("size should be either a tuple, a list or an int")
 
     def forward(
-        self, img: torch.Tensor, target: Optional[np.ndarray] = None,
+        self,
+        img: torch.Tensor,
+        target: Optional[np.ndarray] = None,
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, np.ndarray]]:
         if isinstance(self.size, int):
             target_ratio = img.shape[-2] / img.shape[-1]
@@ -192,7 +194,13 @@ class RandomShadow(torch.nn.Module):
         try:
             if x.dtype == torch.uint8:
                 return (
-                    (255 * random_shadow(x.to(dtype=torch.float32) / 255, self.opacity_range,))
+                    (
+                        255
+                        * random_shadow(
+                            x.to(dtype=torch.float32) / 255,
+                            self.opacity_range,
+                        )
+                    )
                     .round()
                     .clip(0, 255)
                     .to(dtype=torch.uint8)

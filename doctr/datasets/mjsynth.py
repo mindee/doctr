@@ -72,7 +72,13 @@ class MJSynth(AbstractDataset):
         "./1817/2/363_actuating_904.jpg\n",
     ]
 
-    def __init__(self, img_folder: str, label_path: str, train: bool = True, **kwargs: Any,) -> None:
+    def __init__(
+        self,
+        img_folder: str,
+        label_path: str,
+        train: bool = True,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(img_folder, **kwargs)
 
         # File existence check

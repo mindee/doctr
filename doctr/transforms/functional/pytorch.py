@@ -33,7 +33,10 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
 
 
 def rotate_sample(
-    img: torch.Tensor, geoms: np.ndarray, angle: float, expand: bool = False,
+    img: torch.Tensor,
+    geoms: np.ndarray,
+    angle: float,
+    expand: bool = False,
 ) -> Tuple[torch.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 

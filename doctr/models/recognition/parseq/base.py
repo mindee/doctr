@@ -3,31 +3,21 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
+import torch.nn.functional as F
+from torch import Tensor
+from torch import nn as nn
+from torch.nn.modules import transformer
 
 from ....datasets import encode_sequences
 from ..core import RecognitionPostProcessor
-import math
-from abc import ABC, abstractmethod
-
-from typing import Optional, Tuple, List
-
-import torch
-from torch import nn
-import torch.nn.functional as F
-from torch import nn as nn, Tensor
-from torch.nn.modules import transformer
-
-from torch import Tensor
-from torch.optim import Optimizer
-from torch.optim.lr_scheduler import OneCycleLR
 
 
 class DecoderLayer(nn.Module):
     """A Transformer decoder layer supporting two-stream attention (XLNet)
-       This implements a pre-LN decoder, as opposed to the post-LN default in PyTorch."""
+    This implements a pre-LN decoder, as opposed to the post-LN default in PyTorch."""
 
     def __init__(self, d_model, nhead=12, dim_feedforward=2048, dropout=0.1, activation="gelu", layer_norm_eps=1e-5):
         super().__init__()
@@ -103,7 +93,10 @@ class _PARSeq:
     vocab: str
     max_length: int
 
-    def build_target(self, gts: List[str],) -> Tuple[np.ndarray, List[int]]:
+    def build_target(
+        self,
+        gts: List[str],
+    ) -> Tuple[np.ndarray, List[int]]:
         """Encode a list of gts sequences into a np array and gives the corresponding*
         sequence lengths.
 
@@ -132,6 +125,9 @@ class _PARSeqPostProcessor(RecognitionPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __init__(self, vocab: str,) -> None:
+    def __init__(
+        self,
+        vocab: str,
+    ) -> None:
         super().__init__(vocab)
         self._embedding = list(vocab) + ["<eos>", "<sos>", "<pad>"]

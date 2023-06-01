@@ -35,7 +35,12 @@ class DocArtefacts(VisionDataset):
     SHA256 = "13fab8ced7f84583d9dccd0c634f046c3417e62a11fe1dea6efbbaba5052471b"
     CLASSES = ["background", "qr_code", "bar_code", "logo", "photo"]
 
-    def __init__(self, train: bool = True, use_polygons: bool = False, **kwargs: Any,) -> None:
+    def __init__(
+        self,
+        train: bool = True,
+        use_polygons: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(self.URL, None, self.SHA256, True, **kwargs)
         self.train = train
 

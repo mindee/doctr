@@ -14,7 +14,8 @@ __all__ = ["crop_boxes", "create_shadow_mask"]
 
 
 def crop_boxes(
-    boxes: np.ndarray, crop_box: Union[Tuple[int, int, int, int], Tuple[float, float, float, float]],
+    boxes: np.ndarray,
+    crop_box: Union[Tuple[int, int, int, int], Tuple[float, float, float, float]],
 ) -> np.ndarray:
     """Crop localization boxes
 
@@ -107,7 +108,10 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float,
 
 
 def create_shadow_mask(
-    target_shape: Tuple[int, int], min_base_width=0.3, max_tip_width=0.5, max_tip_height=0.3,
+    target_shape: Tuple[int, int],
+    min_base_width=0.3,
+    max_tip_width=0.5,
+    max_tip_height=0.3,
 ) -> np.ndarray:
     """Creates a random shadow mask
 
@@ -143,13 +147,23 @@ def create_shadow_mask(
 
     # Convert to absolute coords
     abs_contour: np.ndarray = (
-        np.stack((contour[:, 0] * target_shape[1], contour[:, 1] * target_shape[0]), axis=-1,).round().astype(np.int32)
+        np.stack(
+            (contour[:, 0] * target_shape[1], contour[:, 1] * target_shape[0]),
+            axis=-1,
+        )
+        .round()
+        .astype(np.int32)
     )
 
     # Direction
     _params = np.random.rand(1)
     rotated_contour = (
-        rotate_abs_geoms(abs_contour[None, ...], 360 * _params[0], target_shape, expand=False,)[0]
+        rotate_abs_geoms(
+            abs_contour[None, ...],
+            360 * _params[0],
+            target_shape,
+            expand=False,
+        )[0]
         .round()
         .astype(np.int32)
     )

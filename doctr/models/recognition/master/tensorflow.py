@@ -106,7 +106,11 @@ class MASTER(_MASTER, Model):
         return source_mask, target_mask
 
     @staticmethod
-    def compute_loss(model_output: tf.Tensor, gt: tf.Tensor, seq_len: List[int],) -> tf.Tensor:
+    def compute_loss(
+        model_output: tf.Tensor,
+        gt: tf.Tensor,
+        seq_len: List[int],
+    ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
 
@@ -237,7 +241,10 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         vocab: string containing the ordered sequence of supported characters
     """
 
-    def __call__(self, logits: tf.Tensor,) -> List[Tuple[str, float]]:
+    def __call__(
+        self,
+        logits: tf.Tensor,
+    ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         # N x L

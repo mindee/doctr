@@ -25,7 +25,11 @@ __all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences", 
 ImageTensor = TypeVar("ImageTensor")
 
 
-def translate(input_string: str, vocab_name: str, unknown_char: str = "■",) -> str:
+def translate(
+    input_string: str,
+    vocab_name: str,
+    unknown_char: str = "■",
+) -> str:
     """Translate a string input in a given vocabulary
 
     Args:
@@ -55,7 +59,10 @@ def translate(input_string: str, vocab_name: str, unknown_char: str = "■",) ->
     return translated
 
 
-def encode_string(input_string: str, vocab: str,) -> List[int]:
+def encode_string(
+    input_string: str,
+    vocab: str,
+) -> List[int]:
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
@@ -71,7 +78,10 @@ def encode_string(input_string: str, vocab: str,) -> List[int]:
         raise ValueError("some characters cannot be found in 'vocab'")
 
 
-def decode_sequence(input_seq: Union[np.ndarray, SequenceType[int]], mapping: str,) -> str:
+def decode_sequence(
+    input_seq: Union[np.ndarray, SequenceType[int]],
+    mapping: str,
+) -> str:
     """Given a predefined mapping, decode the sequence of numbers to a string
 
     Args:

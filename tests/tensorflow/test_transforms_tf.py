@@ -60,7 +60,12 @@ def test_compose():
 
 
 @pytest.mark.parametrize(
-    "input_shape", [[8, 32, 32, 3], [32, 32, 3], [32, 3],],
+    "input_shape",
+    [
+        [8, 32, 32, 3],
+        [32, 32, 3],
+        [32, 3],
+    ],
 )
 def test_normalize(input_shape):
     mean, std = [0.5, 0.5, 0.5], [0.5, 0.5, 0.5]
@@ -104,7 +109,12 @@ def test_togray():
 
 
 @pytest.mark.parametrize(
-    "rgb_min", [0.2, 0.4, 0.6,],
+    "rgb_min",
+    [
+        0.2,
+        0.4,
+        0.6,
+    ],
 )
 def test_invert_colorize(rgb_min):
     transfo = T.ColorInversion(min_val=rgb_min)
@@ -281,14 +291,24 @@ def test_random_rotate():
 
 def test_crop_detection():
     img = tf.ones((50, 50, 3), dtype=tf.float32)
-    abs_boxes = np.array([[15, 20, 35, 30], [5, 10, 10, 20],])
+    abs_boxes = np.array(
+        [
+            [15, 20, 35, 30],
+            [5, 10, 10, 20],
+        ]
+    )
     crop_box = (12 / 50, 23 / 50, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
     assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
     assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
 
-    rel_boxes = np.array([[0.3, 0.4, 0.7, 0.6], [0.1, 0.2, 0.2, 0.4],])
+    rel_boxes = np.array(
+        [
+            [0.3, 0.4, 0.7, 0.6],
+            [0.1, 0.2, 0.2, 0.4],
+        ]
+    )
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (26, 37, 3)
     assert c_boxes.shape == (1, 4)
@@ -327,7 +347,11 @@ def test_gaussian_blur():
 
 
 @pytest.mark.parametrize(
-    "input_dtype, input_size", [[tf.float32, (32, 32, 3)], [tf.uint8, (32, 32, 3)],],
+    "input_dtype, input_size",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ],
 )
 def test_channel_shuffle(input_dtype, input_size):
     transfo = T.ChannelShuffle()
@@ -344,7 +368,11 @@ def test_channel_shuffle(input_dtype, input_size):
 
 
 @pytest.mark.parametrize(
-    "input_dtype,input_shape", [[tf.float32, (32, 32, 3)], [tf.uint8, (32, 32, 3)],],
+    "input_dtype,input_shape",
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+    ],
 )
 def test_gaussian_noise(input_dtype, input_shape):
     transform = T.GaussianNoise(0.0, 1.0)
@@ -396,7 +424,12 @@ def test_randomhorizontalflip(p):
 
 @pytest.mark.parametrize(
     "input_dtype,input_shape",
-    [[tf.float32, (32, 32, 3)], [tf.uint8, (32, 32, 3)], [tf.float32, (64, 32, 3)], [tf.uint8, (64, 32, 3)],],
+    [
+        [tf.float32, (32, 32, 3)],
+        [tf.uint8, (32, 32, 3)],
+        [tf.float32, (64, 32, 3)],
+        [tf.uint8, (64, 32, 3)],
+    ],
 )
 def test_random_shadow(input_dtype, input_shape):
     transform = T.RandomShadow((0.2, 0.8))

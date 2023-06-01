@@ -44,7 +44,10 @@ def main(args):
     )
 
     if args.img_folder and args.label_file:
-        testset = datasets.OCRDataset(img_folder=args.img_folder, label_file=args.label_file,)
+        testset = datasets.OCRDataset(
+            img_folder=args.img_folder,
+            label_file=args.label_file,
+        )
         sets = [testset]
     else:
         train_set = datasets.__dict__[args.dataset](train=True, download=True, use_polygons=not args.eval_straight)
@@ -106,7 +109,12 @@ def main(args):
                             if not args.rotation:
                                 (a, b), (c, d) = word.geometry
                             else:
-                                ([x1, y1], [x2, y2], [x3, y3], [x4, y4],) = word.geometry
+                                (
+                                    [x1, y1],
+                                    [x2, y2],
+                                    [x3, y3],
+                                    [x4, y4],
+                                ) = word.geometry
                             if gt_boxes.dtype == int:
                                 if not args.rotation:
                                     pred_boxes.append(

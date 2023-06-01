@@ -24,7 +24,13 @@ def main(args):
     device = torch.device("cuda:0" if args.gpu else "cpu")
 
     # Pretrained imagenet model
-    model = classification.__dict__[args.arch](pretrained=args.pretrained,).eval().to(device=device)
+    model = (
+        classification.__dict__[args.arch](
+            pretrained=args.pretrained,
+        )
+        .eval()
+        .to(device=device)
+    )
 
     # Input
     img_tensor = torch.rand((args.batch_size, 3, args.size, args.size)).to(device=device)

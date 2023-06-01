@@ -66,7 +66,10 @@ def rotated_img_tensor(img: tf.Tensor, angle: float, expand: bool = False) -> tf
 
 
 def rotate_sample(
-    img: tf.Tensor, geoms: np.ndarray, angle: float, expand: bool = False,
+    img: tf.Tensor,
+    geoms: np.ndarray,
+    angle: float,
+    expand: bool = False,
 ) -> Tuple[tf.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
@@ -148,6 +151,10 @@ def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) 
 
     # Add some blur to make it believable
     k = 7 + int(2 * 4 * np.random.rand(1))
-    shadow_tensor = tfa.image.gaussian_filter2d(shadow_tensor, filter_shape=k, sigma=np.random.uniform(0.5, 5.0),)
+    shadow_tensor = tfa.image.gaussian_filter2d(
+        shadow_tensor,
+        filter_shape=k,
+        sigma=np.random.uniform(0.5, 5.0),
+    )
 
     return opacity * shadow_tensor * img + (1 - opacity) * img

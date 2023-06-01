@@ -28,11 +28,19 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         assume_straight_pages: whether the inputs were expected to have horizontal text elements
     """
 
-    def __init__(self, bin_thresh: float = 0.1, box_thresh: float = 0.1, assume_straight_pages: bool = True,) -> None:
+    def __init__(
+        self,
+        bin_thresh: float = 0.1,
+        box_thresh: float = 0.1,
+        assume_straight_pages: bool = True,
+    ) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
         self.unclip_ratio = 1.2
 
-    def polygon_to_box(self, points: np.ndarray,) -> np.ndarray:
+    def polygon_to_box(
+        self,
+        points: np.ndarray,
+    ) -> np.ndarray:
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
@@ -75,7 +83,11 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
         )
 
-    def bitmap_to_boxes(self, pred: np.ndarray, bitmap: np.ndarray,) -> np.ndarray:
+    def bitmap_to_boxes(
+        self,
+        pred: np.ndarray,
+        bitmap: np.ndarray,
+    ) -> np.ndarray:
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
@@ -142,7 +154,10 @@ class _LinkNet(BaseModel):
     shrink_ratio = 0.5
 
     def build_target(
-        self, target: List[Dict[str, np.ndarray]], output_shape: Tuple[int, int, int], channels_last: bool = True,
+        self,
+        target: List[Dict[str, np.ndarray]],
+        output_shape: Tuple[int, int, int],
+        channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
 
@@ -192,7 +207,12 @@ class _LinkNet(BaseModel):
                     abs_boxes[:, [1, 3]] *= h
                     abs_boxes = abs_boxes.round().astype(np.int32)
                     polys = np.stack(
-                        [abs_boxes[:, [0, 1]], abs_boxes[:, [0, 3]], abs_boxes[:, [2, 3]], abs_boxes[:, [2, 1]],],
+                        [
+                            abs_boxes[:, [0, 1]],
+                            abs_boxes[:, [0, 3]],
+                            abs_boxes[:, [2, 3]],
+                            abs_boxes[:, [2, 1]],
+                        ],
                         axis=1,
                     )
                     boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])

@@ -54,7 +54,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     optimizer.learning_rate = start_lr
 
-    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
     loss_recorder = []
 
     for batch_idx, (images, targets) in enumerate(train_loader):
@@ -173,7 +173,11 @@ def main(args):
         )
 
     val_loader = DataLoader(
-        val_set, batch_size=args.batch_size, shuffle=False, drop_last=False, num_workers=args.workers,
+        val_set,
+        batch_size=args.batch_size,
+        shuffle=False,
+        drop_last=False,
+        num_workers=args.workers,
     )
     print(
         f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
@@ -182,7 +186,9 @@ def main(args):
 
     # Load doctr model
     model = recognition.__dict__[args.arch](
-        pretrained=args.pretrained, input_shape=(args.input_size, 4 * args.input_size, 3), vocab=vocab,
+        pretrained=args.pretrained,
+        input_shape=(args.input_size, 4 * args.input_size, 3),
+        vocab=vocab,
     )
     # Resume weights
     if isinstance(args.resume, str):
@@ -191,7 +197,11 @@ def main(args):
     # Metrics
     val_metric = TextMatch()
 
-    batch_transforms = T.Compose([T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),])
+    batch_transforms = T.Compose(
+        [
+            T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
+        ]
+    )
 
     if args.test_only:
         print("Running evaluation")
@@ -255,7 +265,11 @@ def main(args):
         )
 
     train_loader = DataLoader(
-        train_set, batch_size=args.batch_size, shuffle=True, drop_last=True, num_workers=args.workers,
+        train_set,
+        batch_size=args.batch_size,
+        shuffle=True,
+        drop_last=True,
+        num_workers=args.workers,
     )
     print(
         f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
@@ -329,7 +343,11 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {"val_loss": val_loss, "exact_match": exact_match, "partial_match": partial_match,}
+                {
+                    "val_loss": val_loss,
+                    "exact_match": exact_match,
+                    "partial_match": partial_match,
+                }
             )
 
     if args.wb:

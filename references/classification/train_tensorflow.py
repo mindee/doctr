@@ -52,7 +52,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     optimizer.learning_rate = start_lr
 
-    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
     loss_recorder = []
 
     for batch_idx, (images, targets) in enumerate(train_loader):
@@ -186,7 +186,11 @@ def main(args):
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
 
-    batch_transforms = T.Compose([T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),])
+    batch_transforms = T.Compose(
+        [
+            T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
+        ]
+    )
 
     if args.test_only:
         print("Running evaluation")
@@ -242,7 +246,12 @@ def main(args):
         decay_rate=1 / (1e3),  # final lr as a fraction of initial lr
         staircase=False,
     )
-    optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6,)
+    optimizer = tf.keras.optimizers.Adam(
+        learning_rate=scheduler,
+        beta_1=0.95,
+        beta_2=0.99,
+        epsilon=1e-6,
+    )
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
 
@@ -294,7 +303,10 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {"val_loss": val_loss, "acc": acc,}
+                {
+                    "val_loss": val_loss,
+                    "acc": acc,
+                }
             )
 
     if args.wb:

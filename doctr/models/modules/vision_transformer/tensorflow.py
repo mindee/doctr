@@ -29,7 +29,10 @@ class PatchEmbedding(layers.Layer, NestedObject):
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
         self.positions = self.add_weight(
-            shape=(1, self.num_patches + 1, embed_dim), initializer="zeros", trainable=True, name="positions",
+            shape=(1, self.num_patches + 1, embed_dim),
+            initializer="zeros",
+            trainable=True,
+            name="positions",
         )
         self.proj = layers.Dense(embed_dim, kernel_initializer="he_normal", name="projection")
 

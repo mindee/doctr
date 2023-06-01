@@ -22,7 +22,13 @@ def test_translate(input_str, vocab, output_str):
 
 
 @pytest.mark.parametrize(
-    "input_str", ["frtvorêt", "for98€t", "uéîUY", "ÛAZ$£ë",],
+    "input_str",
+    [
+        "frtvorêt",
+        "for98€t",
+        "uéîUY",
+        "ÛAZ$£ë",
+    ],
 )
 def test_encode_decode(input_str):
     mapping = """3K}7eé;5àÎYho]QwV6qU~W"XnbBvcADfËmy.9ÔpÛ*{CôïE%M4#ÈR:g@T$x?0î£|

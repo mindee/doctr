@@ -27,6 +27,7 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCyc
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
 
+torch.autograd.set_detect_anomaly(True)
 import sys
 
 sys.path.insert(0, "../")
@@ -64,7 +65,7 @@ def record_lr(
     gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
     scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
 
-    lr_recorder = [start_lr * gamma ** idx for idx in range(num_it)]
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
     loss_recorder = []
 
     if amp:
@@ -136,6 +137,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             scaler.update()
         else:
             train_loss = model(images, targets)["loss"]
+            print(train_loss)
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -396,7 +398,11 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log(
-                {"val_loss": val_loss, "exact_match": exact_match, "partial_match": partial_match,}
+                {
+                    "val_loss": val_loss,
+                    "exact_match": exact_match,
+                    "partial_match": partial_match,
+                }
             )
 
     if args.wb:

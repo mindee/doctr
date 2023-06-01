@@ -25,7 +25,12 @@ class RecognitionPredictor(nn.Module):
         split_wide_crops: wether to use crop splitting for high aspect ratio crops
     """
 
-    def __init__(self, pre_processor: PreProcessor, model: nn.Module, split_wide_crops: bool = True,) -> None:
+    def __init__(
+        self,
+        pre_processor: PreProcessor,
+        model: nn.Module,
+        split_wide_crops: bool = True,
+    ) -> None:
         super().__init__()
         self.pre_processor = pre_processor
         self.model = model.eval()
@@ -35,7 +40,11 @@ class RecognitionPredictor(nn.Module):
         self.target_ar = 6  # Target aspect ratio
 
     @torch.no_grad()
-    def forward(self, crops: Sequence[Union[np.ndarray, torch.Tensor]], **kwargs: Any,) -> List[Tuple[str, float]]:
+    def forward(
+        self,
+        crops: Sequence[Union[np.ndarray, torch.Tensor]],
+        **kwargs: Any,
+    ) -> List[Tuple[str, float]]:
         if len(crops) == 0:
             return []
         # Dimension check
