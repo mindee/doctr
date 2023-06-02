@@ -33,11 +33,11 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
 }
 
-class DecoderLayer(nn.Module):
+class Decoder(nn.Module):
     """A Transformer decoder layer supporting two-stream attention (XLNet)
        This implements a pre-LN decoder, as opposed to the post-LN default in PyTorch."""
 
-    def __init__(self, d_model, nhead, dim_feedforward=2048, dropout=0.1,
+    def __init__(self, d_model, nhead=12, dim_feedforward=2048, dropout=0.1,
                  layer_norm_eps=1e-5):
         super().__init__()
         self.attention = MultiHeadAttention(nhead, d_model, dropout=dropout)
@@ -48,50 +48,23 @@ class DecoderLayer(nn.Module):
         self.cross_attention_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.query_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.content_norm = nn.LayerNorm(d_model, eps=1e-5)
+        self.feed_forward_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.output_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.attention_dropout = nn.Dropout(dropout)
         self.cross_attention_dropout = nn.Dropout(dropout)
         self.feed_forward_dropout = nn.Dropout(dropout)
 
 
-    def forward_stream(self, x: torch.Tensor, tgt_norm: torch.Tensor, tgt_kv: torch.Tensor, memory: torch.Tensor, tgt_mask: Optional[torch.Tensor],
-                       tgt_key_padding_mask: Optional[torch.Tensor]):
-        """Forward pass for a single stream (i.e. content or query)
-        tgt_norm is just a LayerNorm'd tgt. Added as a separate parameter for efficiency.
-        Both tgt_kv and memory are expected to be LayerNorm'd too.
-        memory is LayerNorm'd by ViT.
-        """
-
-        x = x.clone() + self.attention_dropout(self.attention(tgt_norm, tgt_kv, tgt_kv, mask=tgt_mask))
-        x = x.clone() + self.cross_attention_dropout(self.cross_attention(self.query_norm(x), memory, memory))
-        x = x.clone() + self.feed_forward_dropout(self.position_feed_forward(self.output_norm(x)))
-        return x
 
     def forward(self, query, content, memory, query_mask: Optional[torch.Tensor] = None, content_mask: Optional[torch.Tensor] = None,
                 content_key_padding_mask: Optional[torch.Tensor] = None, update_content: bool = True):
         query_norm = self.query_norm(query)
         content_norm = self.content_norm(content)
-        query = self.forward_stream(query, query_norm, content_norm, memory, query_mask, content_key_padding_mask)
-        return query
+        x = query.clone() + self.attention_dropout(self.attention(query_norm, content_norm, content_norm, mask=query_mask))
+        x = x.clone() + self.cross_attention_dropout(self.cross_attention(self.query_norm(x), memory, memory))
+        x = x.clone() + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(x)))
+        return self.output_norm(x)
 
-
-class Decoder(nn.Module):
-    __constants__ = ['norm']
-
-    def __init__(self, decoder_layer, num_layers, norm):
-        super().__init__()
-        self.layers = transformer._get_clones(decoder_layer, num_layers)
-        self.num_layers = num_layers
-        self.norm = norm
-
-    def forward(self, query, content, memory, query_mask: Optional[torch.Tensor] = None, content_mask: Optional[torch.Tensor] = None,
-                content_key_padding_mask: Optional[torch.Tensor] = None):
-        for i, mod in enumerate(self.layers):
-            last = i == len(self.layers) - 1
-            query = mod(query, content, memory, query_mask, content_mask, content_key_padding_mask,
-                                 update_content=not last)
-        query = self.norm(query)
-        return query
 
 
 class TokenEmbedding(nn.Module):
@@ -138,8 +111,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.vocab_size = len(vocab) + 3  # Add 1 for EOS, 1 for SOS, 1 for PAD
 
         self.feat_extractor = feature_extractor
-        decoder_layer = DecoderLayer(embedding_units, 12, 2048 * 4, 0.1)
-        self.decoder = Decoder(decoder_layer, num_layers=1, norm=nn.LayerNorm(embedding_units))
+        self.decoder = Decoder(embedding_units)
         self.head = nn.Linear(embedding_units, self.vocab_size - 2)
         self.text_embed = TokenEmbedding(self.vocab_size, embedding_units)
 
