@@ -7,6 +7,11 @@ import os
 
 os.environ["USE_TORCH"] = "1"
 
+import warnings
+
+warnings.filterwarnings("ignore")
+
+
 import datetime
 import hashlib
 import logging
@@ -21,6 +26,11 @@ from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, Normalize
+
+torch.autograd.set_detect_anomaly(True)
+import sys
+
+sys.path.insert(0, "../")
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -127,6 +137,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             scaler.update()
         else:
             train_loss = model(images, targets)["loss"]
+            print(train_loss)
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -431,7 +442,7 @@ def parse_args():
     parser.add_argument("--max-chars", type=int, default=12, help="Maximum number of characters per synthetic sample")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
-    parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
+    parser.add_argument("-b", "--batch_size", type=int, default=1, help="batch size for training")
     parser.add_argument("--device", default=None, type=int, help="device")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
