@@ -192,15 +192,15 @@ class PARSeq(_PARSeq, nn.Module):
         :return: lookahead attention masks
         """
         sz = perm.shape[0]
-        mask = torch.zeros((sz, sz), device=perm.device)
+        mask = torch.ones((sz, sz), device=perm.device)
         for i in range(sz):
             query_idx = perm[i]
             masked_keys = perm[i + 1:]
-            mask[query_idx, masked_keys] = float('-inf')
+            mask[query_idx, masked_keys] = 0.0
         content_mask = mask[:-1, :-1].clone()
-        mask[torch.eye(sz, dtype=torch.bool, device=perm.device)] = float('-inf')  # mask "self"
+        mask[torch.eye(sz, dtype=torch.bool, device=perm.device)] = 0.0  # mask "self"
         query_mask = mask[1:, :-1]
-        return content_mask, query_mask
+        return content_mask.int(), query_mask.int()
 
     def decode(self, tgt: torch.Tensor, memory: torch.Tensor, tgt_mask: Optional[torch.Tensor] = None,
                tgt_padding_mask: Optional[torch.Tensor] = None, tgt_query: Optional[torch.Tensor] = None,
