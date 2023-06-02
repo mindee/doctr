@@ -226,7 +226,9 @@ class PARSeq(_PARSeq, nn.Module):
         pos_queries = self.pos_queries[:, :self.max_length].expand(features.size(0), -1, -1)
 
         # Special case for the forward permutation. Faster than using `generate_attn_masks()`
-        tgt_mask = query_mask = torch.triu(torch.full((self.max_length, self.max_length), float('-inf'), device=features.device), 1)
+        tgt_mask = query_mask = torch.tril(torch.ones((self.max_length, self.max_length), device=features.device), diagonal=0).to(
+            dtype=torch.bool
+        ).int()
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
