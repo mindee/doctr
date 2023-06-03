@@ -175,8 +175,8 @@ class PARSeq(_PARSeq, nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def generate_permutations(self, target: torch.Tensor) -> torch.Tensor:
-        """Generates permutations of the target sequence.
-        Modified from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py"""
+        # Generates permutations of the target sequence.
+        # Modified from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py"""
 
         max_num_chars = target.shape[1] - 2
         perms = [torch.arange(max_num_chars, device=target.device)]
@@ -193,17 +193,8 @@ class PARSeq(_PARSeq, nn.Module):
         eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
         return torch.cat([bos_idx, perms + 1, eos_idx], dim=1).int()  # (num_perms, max_length + 1)
 
-    def generate_permutation_attention_masks(self, permutation: torch.Tensor):
-        """Generate content and query masks for the decoder attention.
-
-        Args:
-            permutation: The permutation of the target sequence.
-
-        Returns:
-            content_mask: The content mask for the decoder attention.
-            query_mask: The query mask for the decoder attention.
-        """
-
+    def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> torch.Tensor:
+        # Generate query mask for the decoder attention.
         sz = permutation.shape[0]
         mask = torch.ones((sz, sz), device=permutation.device)
 
@@ -211,32 +202,82 @@ class PARSeq(_PARSeq, nn.Module):
             query_idx = permutation[i]
             masked_keys = permutation[i + 1 :]
             mask[query_idx, masked_keys] = 0.0
-
-        content_mask = mask[:-1, :-1].clone()
         mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0.0
         query_mask = mask[1:, :-1]
 
-        return content_mask.int(), query_mask.int()
+        return query_mask.int()
 
     def decode(
         self,
-        tgt: torch.Tensor,
+        target: torch.Tensor,
         memory: torch.Tensor,
         tgt_mask: Optional[torch.Tensor] = None,
-        tgt_padding_mask: Optional[torch.Tensor] = None,
-        target: Optional[torch.Tensor] = None,
-        tgt_query_mask: Optional[torch.Tensor] = None,
-    ):
-        # TODO
-        N, L = tgt.shape
+        tgt_query: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+
+        batch_size, sequence_length = target.shape
         # apply positional information to the target sequence excluding the SOS token
-        null_ctx = self.text_embed(tgt[:, :1])
-        tgt_emb = self.pos_queries[:, : L - 1] + self.text_embed(tgt[:, 1:])
-        tgt_emb = self.dropout(torch.cat([null_ctx, tgt_emb], dim=1))
-        if target is None:
-            target = self.pos_queries[:, :L].expand(N, -1, -1)
-        target = self.dropout(target)
-        return self.decoder(target, tgt_emb, memory, tgt_query_mask)
+        null_ctx = self.text_embed(target[:, :1])
+        content = self.pos_queries[:, : sequence_length - 1] + self.text_embed(target[:, 1:])
+        content = self.dropout(torch.cat([null_ctx, content], dim=1))
+        if tgt_query is None:
+            tgt_query = self.pos_queries[:, :sequence_length].expand(batch_size, -1, -1)
+        tgt_query = self.dropout(tgt_query)
+        return self.decoder(tgt_query, content, memory, tgt_mask)
+
+    def decode_predictions(self, features: torch.Tensor) -> torch.Tensor:
+        pos_queries = self.pos_queries[:, : self.max_length].expand(features.size(0), -1, -1)
+        # Create query mask for the decoder attention
+        query_mask = (
+            torch.tril(torch.ones((self.max_length, self.max_length), device=features.device), diagonal=0).to(
+                dtype=torch.bool
+            )
+        ).int()
+        # Initialize target input tensor with SOS token
+        ys = torch.full((features.size(0), self.max_length), self.vocab_size, dtype=torch.long, device=features.device)
+        ys[:, 0] = self.vocab_size - 1  # <sos>
+
+        logits = []
+        for i in range(self.max_length):
+            j = i + 1  # next token index
+
+            # Efficient decoding: Input the context up to the ith token using one query at a time
+            tgt_out = self.decode(
+                ys[:, :j],
+                features,
+                query_mask[i:j, :j],
+                tgt_query=pos_queries[:, i:j],
+            )
+
+            # Obtain the next token probability in the output's ith token position
+            p_i = self.head(tgt_out)
+            logits.append(p_i)
+
+            if j < self.max_length:
+                # Greedy decode: Add the next token index to the target input
+                ys[:, j] = p_i.squeeze().argmax(-1)
+
+                # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
+                if (ys == self.vocab_size - 2).any(dim=-1).all():
+                    break
+
+        logits = torch.cat(logits, dim=1)
+
+        # Update query mask
+        # query_mask[
+        #    torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
+        # ] = 0
+
+        # Prepare target input for 1 refine iteration
+        # bos = torch.full((features.size(0), 1), self.vocab_size - 1, dtype=torch.long, device=features.device)
+        # ys = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
+
+        # Create padding mask for refined target input
+        # target_pad_mask = (ys != self.vocab_size -2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+        # mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
+        # logits = self.head(self.decode(ys, features, mask, tgt_query=pos_queries))
+
+        return logits
 
     def forward(
         self,
@@ -246,7 +287,6 @@ class PARSeq(_PARSeq, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
-        pos_queries = self.pos_queries[:, : self.max_length].expand(features.size(0), -1, -1)
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
@@ -258,82 +298,22 @@ class PARSeq(_PARSeq, nn.Module):
 
             # Generate permutations of the target sequences
             tgt_perms = self.generate_permutations(gt)
-            # TODO
-            tgt_in = gt[:, :-1]
-            tgt_out = gt[:, 1:]
+            target = gt[:, :-1]
 
             # Create padding mask for target input
-            tgt_padding_mask = (tgt_in == self.vocab_size) | (tgt_in == self.vocab_size - 2)
+            # [True, True, True, ..., False, False, False] -> False is masked
+            target_pad_mask = (target != self.vocab_size).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+            # TODO: train on more data this part is tricky check the combined mask again
+            # TODO: without the padding mask it works (because to less dummy data)
 
             for i, perm in enumerate(tgt_perms):
                 # Generate attention masks for the permutations
-                tgt_mask, query_mask = self.generate_permutation_attention_masks(perm)
-                logits = self.head(self.decode(tgt_in, features, tgt_mask, tgt_padding_mask, tgt_query_mask=query_mask))
-                if i == 1:
-                    # Replace [EOS] token with the vocab size in target output
-                    tgt_out = torch.where(tgt_out == self.vocab_size - 2, self.vocab_size, tgt_out)
+                query_mask = self.generate_permutation_attention_masks(perm)
+                # combine target padding mask and query mask
+                mask = (query_mask & target_pad_mask).int()  # TODO
+                logits = self.head(self.decode(target, features, mask))
         else:
-            # TODO
-            tgt_mask = query_mask = (
-                torch.tril(torch.ones((self.max_length, self.max_length), device=features.device), diagonal=0)
-                .to(dtype=torch.bool)
-                .int()
-            )
-            # Initialize target input tensor with SOS token
-            tgt_in = torch.full(
-                (features.size(0), self.max_length), self.vocab_size, dtype=torch.long, device=features.device
-            )
-            tgt_in[:, 0] = self.vocab_size - 1  # <sos>
-
-            logits = []
-            for i in range(self.max_length):
-                j = i + 1  # next token index
-
-                # Efficient decoding: Input the context up to the ith token using one query at a time
-                tgt_out = self.decode(
-                    tgt_in[:, :j],
-                    features,
-                    tgt_mask[:j, :j],
-                    target=pos_queries[:, i:j],
-                    tgt_query_mask=query_mask[i:j, :j],
-                )
-
-                # Obtain the next token probability in the output's ith token position
-                p_i = self.head(tgt_out)
-                logits.append(p_i)
-
-                if j < self.max_length:
-                    # Greedy decode: Add the next token index to the target input
-                    tgt_in[:, j] = p_i.squeeze().argmax(-1)
-
-                    # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
-                    if (tgt_in == self.vocab_size - 2).any(dim=-1).all():
-                        break
-
-            logits = torch.cat(logits, dim=1)
-
-            # Update query mask
-            query_mask[
-                torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
-            ] = 0
-
-            # Prepare target input for 1 refine iteration
-            bos = torch.full((features.size(0), 1), self.vocab_size - 1, dtype=torch.long, device=features.device)
-            tgt_in = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
-
-            # Create padding mask for refined target input
-            tgt_padding_mask = (tgt_in == self.vocab_size - 2).int().cumsum(-1) > 0
-
-            # Decode refined target input and obtain logits
-            tgt_out = self.decode(
-                tgt_in,
-                features,
-                tgt_mask,
-                tgt_padding_mask,
-                target=pos_queries,
-                tgt_query_mask=query_mask[:, : tgt_in.shape[1]],
-            )
-            logits = self.head(tgt_out)
+            logits = self.decode_predictions(features)
 
         out: Dict[str, Any] = {}
         if self.exportable:
