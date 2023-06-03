@@ -5,7 +5,6 @@
 
 import math
 from copy import deepcopy
-from itertools import permutations
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -94,8 +93,12 @@ class PARSeqDecoder(nn.Module):
     ):
         query_norm = self.query_norm(target)
         content_norm = self.content_norm(content)
-        target = target.clone() + self.attention_dropout(self.attention(query_norm, content_norm, content_norm, mask=target_mask))
-        target = target.clone() + self.cross_attention_dropout(self.cross_attention(self.query_norm(target), memory, memory))
+        target = target.clone() + self.attention_dropout(
+            self.attention(query_norm, content_norm, content_norm, mask=target_mask)
+        )
+        target = target.clone() + self.cross_attention_dropout(
+            self.cross_attention(self.query_norm(target), memory, memory)
+        )
         target = target.clone() + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(target)))
         return self.output_norm(target)
 
@@ -171,47 +174,26 @@ class PARSeq(_PARSeq, nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-        # TODO: clean up + merge padding masks into masks  and refactor some parts !!
-
-    def gen_tgt_perms(self, target: torch.Tensor) -> torch.Tensor:
+    def generate_permutations(self, target: torch.Tensor) -> torch.Tensor:
         """Generates permutations of the target sequence.
-        Slightly modified from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py"""
+        Modified from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py"""
+
         max_num_chars = target.shape[1] - 2
-
-        if max_num_chars == 1:
-            return torch.arange(3, device=target.device).unsqueeze(0)
-
         perms = [torch.arange(max_num_chars, device=target.device)]
 
         max_perms = math.factorial(max_num_chars) // 2
         num_gen_perms = min(3, max_perms)
-
-        if max_num_chars < 5:
-            selector = [0, 3, 4, 6, 9, 10, 12, 16, 17, 18, 19, 21] if max_num_chars == 4 else list(range(max_perms))
-            perm_pool = torch.as_tensor(list(permutations(range(max_num_chars), max_num_chars)), device=target.device)[
-                selector
-            ][1:]
-
-            perms = torch.stack(perms)
-            if len(perm_pool):
-                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(perms), replace=False)
-                perms = torch.cat([perms, perm_pool[i]])
-        else:
-            perms.extend([torch.randperm(max_num_chars, device=target.device) for _ in range(num_gen_perms - len(perms))])
-            perms = torch.stack(perms)
+        perms.extend([torch.randperm(max_num_chars, device=target.device) for _ in range(num_gen_perms - len(perms))])
+        perms = torch.stack(perms)
 
         comp = perms.flip(-1)
         perms = torch.stack([perms, comp]).transpose(0, 1).reshape(-1, max_num_chars)
 
         bos_idx = torch.zeros(len(perms), 1, device=perms.device)
         eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
-        perms = torch.cat([bos_idx, perms + 1, eos_idx], dim=1)
+        return torch.cat([bos_idx, perms + 1, eos_idx], dim=1).int()  # (num_perms, max_length + 1)
 
-        if len(perms) > 1:
-            perms[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=target.device)
-        return perms.int()  # (num_perms, max_length + 1)
-
-    def generate_attention_masks(self, permutation: torch.Tensor):
+    def generate_permutation_attention_masks(self, permutation: torch.Tensor):
         """Generate content and query masks for the decoder attention.
 
         Args:
@@ -228,10 +210,10 @@ class PARSeq(_PARSeq, nn.Module):
         for i in range(sz):
             query_idx = permutation[i]
             masked_keys = permutation[i + 1 :]
-            mask[query_idx, masked_keys] = 1.0
+            mask[query_idx, masked_keys] = 0.0
 
         content_mask = mask[:-1, :-1].clone()
-        mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 1.0
+        mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0.0
         query_mask = mask[1:, :-1]
 
         return content_mask.int(), query_mask.int()
@@ -245,10 +227,7 @@ class PARSeq(_PARSeq, nn.Module):
         target: Optional[torch.Tensor] = None,
         tgt_query_mask: Optional[torch.Tensor] = None,
     ):
-
-        if tgt_padding_mask is not None:
-            tgt_mask = tgt_padding_mask.unsqueeze(1).unsqueeze(1) & tgt_mask
-            tgt_mask = tgt_mask.int()
+        # TODO
         N, L = tgt.shape
         # apply positional information to the target sequence excluding the SOS token
         null_ctx = self.text_embed(tgt[:, :1])
@@ -269,13 +248,6 @@ class PARSeq(_PARSeq, nn.Module):
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
         pos_queries = self.pos_queries[:, : self.max_length].expand(features.size(0), -1, -1)
 
-        # Special case for the forward permutation. Faster than using `generate_attn_masks()`
-        tgt_mask = query_mask = (
-            torch.tril(torch.ones((self.max_length, self.max_length), device=features.device), diagonal=0)
-            .to(dtype=torch.bool)
-            .int()
-        )
-
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -284,8 +256,9 @@ class PARSeq(_PARSeq, nn.Module):
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long).to(x.device), torch.tensor(_seq_len).to(x.device)
 
-            # Generate target permutations
-            tgt_perms = self.gen_tgt_perms(gt)
+            # Generate permutations of the target sequences
+            tgt_perms = self.generate_permutations(gt)
+            # TODO
             tgt_in = gt[:, :-1]
             tgt_out = gt[:, 1:]
 
@@ -293,19 +266,19 @@ class PARSeq(_PARSeq, nn.Module):
             tgt_padding_mask = (tgt_in == self.vocab_size) | (tgt_in == self.vocab_size - 2)
 
             for i, perm in enumerate(tgt_perms):
-                # Generate attention masks for the permutation
-                tgt_mask, query_mask = self.generate_attention_masks(perm)
-                #print(query_mask)
-                #print(query_mask.shape)
-
-                # Decode target input and obtain logits
-                out = self.decode(tgt_in, features, tgt_mask, tgt_padding_mask, tgt_query_mask=query_mask)
-                logits = self.head(out)
-
+                # Generate attention masks for the permutations
+                tgt_mask, query_mask = self.generate_permutation_attention_masks(perm)
+                logits = self.head(self.decode(tgt_in, features, tgt_mask, tgt_padding_mask, tgt_query_mask=query_mask))
                 if i == 1:
                     # Replace [EOS] token with the vocab size in target output
                     tgt_out = torch.where(tgt_out == self.vocab_size - 2, self.vocab_size, tgt_out)
         else:
+            # TODO
+            tgt_mask = query_mask = (
+                torch.tril(torch.ones((self.max_length, self.max_length), device=features.device), diagonal=0)
+                .to(dtype=torch.bool)
+                .int()
+            )
             # Initialize target input tensor with SOS token
             tgt_in = torch.full(
                 (features.size(0), self.max_length), self.vocab_size, dtype=torch.long, device=features.device
@@ -340,7 +313,9 @@ class PARSeq(_PARSeq, nn.Module):
             logits = torch.cat(logits, dim=1)
 
             # Update query mask
-            query_mask[torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)] = 0
+            query_mask[
+                torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
+            ] = 0
 
             # Prepare target input for 1 refine iteration
             bos = torch.full((features.size(0), 1), self.vocab_size - 1, dtype=torch.long, device=features.device)
@@ -359,8 +334,6 @@ class PARSeq(_PARSeq, nn.Module):
                 tgt_query_mask=query_mask[:, : tgt_in.shape[1]],
             )
             logits = self.head(tgt_out)
-
-        # TODO: decoding -> decode_ar looks like the MASTER model positionwise decoding
 
         out: Dict[str, Any] = {}
         if self.exportable:
