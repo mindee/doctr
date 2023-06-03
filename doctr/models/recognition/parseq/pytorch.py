@@ -106,6 +106,7 @@ class PARSeqDecoder(nn.Module):
 class PARSeq(_PARSeq, nn.Module):
     """Implements a PARSeq architecture as described in `"Scene Text Recognition
     with Permuted Autoregressive Sequence Models" <https://arxiv.org/pdf/2207.06966>`_.
+    Modified implementation based on the official Pytorch implementation: <https://github.com/baudm/parseq/tree/main`_.
 
     Args:
         feature_extractor: the backbone serving as feature extractor
@@ -139,7 +140,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        self.max_length = max_length + 3  # +3 for SOS, EOS and PAD
+        self.max_length = max_length + 1  # +1 for EOS
         self.vocab_size = len(vocab)
         self.rng = np.random.default_rng()
 
@@ -194,7 +195,7 @@ class PARSeq(_PARSeq, nn.Module):
         return torch.cat([bos_idx, perms + 1, eos_idx], dim=1).int()  # (num_perms, max_length + 1)
 
     def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> torch.Tensor:
-        # Generate query mask for the decoder attention.
+        # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
         mask = torch.ones((sz, sz), device=permutation.device)
 
@@ -202,10 +203,11 @@ class PARSeq(_PARSeq, nn.Module):
             query_idx = permutation[i]
             masked_keys = permutation[i + 1 :]
             mask[query_idx, masked_keys] = 0.0
+        source_mask = mask[:-1, :-1].clone()
         mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0.0
-        query_mask = mask[1:, :-1]
+        target_mask = mask[1:, :-1]
 
-        return query_mask.int()
+        return source_mask.int(), target_mask.int()
 
     def decode(
         self,
@@ -234,7 +236,9 @@ class PARSeq(_PARSeq, nn.Module):
             )
         ).int()
         # Initialize target input tensor with SOS token
-        ys = torch.full((features.size(0), self.max_length), self.vocab_size + 1, dtype=torch.long, device=features.device)
+        ys = torch.full(
+            (features.size(0), self.max_length), self.vocab_size + 1, dtype=torch.long, device=features.device
+        )
         ys[:, 0] = self.vocab_size + 1  # SOS token
 
         logits = []
@@ -263,6 +267,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         logits = torch.cat(logits, dim=1)
 
+        # TODO: Refine iter
         # Update query mask
         # query_mask[
         #    torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
@@ -302,17 +307,13 @@ class PARSeq(_PARSeq, nn.Module):
 
             # Create padding mask for target input
             # [True, True, True, ..., False, False, False] -> False is masked
-            target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
-            # TODO: train on more data this part is tricky check the combined mask again
-            # TODO: without the padding mask it works (because to less dummy data)
-            # TODO: https://github.com/pytorch/pytorch/blob/eb0971cfe9b05940978bed73d6e2b43aea49fc84/torch/nn/modules/activation.py#LL1247C5-L1286C38
+            padding_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
 
             for perm in tgt_perms:
                 # Generate attention masks for the permutations
-                query_mask = self.generate_permutation_attention_masks(perm)
-                print(query_mask)
+                source_mask, _ = self.generate_permutation_attention_masks(perm)
                 # combine target padding mask and query mask
-                mask = (query_mask & target_pad_mask).int()  # TODO
+                mask = (source_mask & padding_mask).int()
                 logits = self.head(self.decode(target, features, mask))
         else:
             logits = self.decode_predictions(features)
@@ -453,6 +454,6 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         vit_s,
         "1",
         embedding_units=384,
-        ignore_keys=["head.weight", "head.bias"], # TODO: add embedding weights
+        ignore_keys=["head.weight", "head.bias"],  # TODO: add embedding weights
         **kwargs,
     )
