@@ -139,14 +139,14 @@ class PARSeq(_PARSeq, nn.Module):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        self.max_length = max_length + 1  # Add 1 step for EOS
-        self.vocab_size = len(vocab) + 3  # Add 1 for EOS, 1 for SOS, 1 for PAD
+        self.max_length = max_length + 3  # +3 for SOS, EOS and PAD
+        self.vocab_size = len(vocab)
         self.rng = np.random.default_rng()
 
         self.feat_extractor = feature_extractor
         self.decoder = PARSeqDecoder(embedding_units, dec_num_heads, dec_ff_dim, dec_ffd_ratio, dropout_prob)
-        self.head = nn.Linear(embedding_units, self.vocab_size - 2)  # we ignore SOS and PAD
-        self.text_embed = CharEmbedding(self.vocab_size, embedding_units)
+        self.head = nn.Linear(embedding_units, self.vocab_size + 1)  # +1 for EOS
+        self.text_embed = CharEmbedding(self.vocab_size + 3, embedding_units)
 
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
         self.dropout = nn.Dropout(p=dropout_prob)
@@ -234,8 +234,8 @@ class PARSeq(_PARSeq, nn.Module):
             )
         ).int()
         # Initialize target input tensor with SOS token
-        ys = torch.full((features.size(0), self.max_length), self.vocab_size, dtype=torch.long, device=features.device)
-        ys[:, 0] = self.vocab_size - 1  # <sos>
+        ys = torch.full((features.size(0), self.max_length), self.vocab_size + 1, dtype=torch.long, device=features.device)
+        ys[:, 0] = self.vocab_size + 1  # SOS token
 
         logits = []
         for i in range(self.max_length):
@@ -258,7 +258,7 @@ class PARSeq(_PARSeq, nn.Module):
                 ys[:, j] = p_i.squeeze().argmax(-1)
 
                 # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
-                if (ys == self.vocab_size - 2).any(dim=-1).all():
+                if (ys == self.vocab_size + 2).any(dim=-1).all():
                     break
 
         logits = torch.cat(logits, dim=1)
@@ -302,13 +302,15 @@ class PARSeq(_PARSeq, nn.Module):
 
             # Create padding mask for target input
             # [True, True, True, ..., False, False, False] -> False is masked
-            target_pad_mask = (target != self.vocab_size).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+            target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
             # TODO: train on more data this part is tricky check the combined mask again
             # TODO: without the padding mask it works (because to less dummy data)
+            # TODO: https://github.com/pytorch/pytorch/blob/eb0971cfe9b05940978bed73d6e2b43aea49fc84/torch/nn/modules/activation.py#LL1247C5-L1286C38
 
-            for i, perm in enumerate(tgt_perms):
+            for perm in tgt_perms:
                 # Generate attention masks for the permutations
                 query_mask = self.generate_permutation_attention_masks(perm)
+                print(query_mask)
                 # combine target padding mask and query mask
                 mask = (query_mask & target_pad_mask).int()  # TODO
                 logits = self.head(self.decode(target, features, mask))
@@ -451,6 +453,6 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         vit_s,
         "1",
         embedding_units=384,
-        ignore_keys=["head.weight", "head.bias"],
+        ignore_keys=["head.weight", "head.bias"], # TODO: add embedding weights
         **kwargs,
     )
