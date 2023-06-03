@@ -190,11 +190,11 @@ class PARSeq(_PARSeq, nn.Module):
         comp = perms.flip(-1)
         perms = torch.stack([perms, comp]).transpose(0, 1).reshape(-1, max_num_chars)
 
-        bos_idx = torch.zeros(len(perms), 1, device=perms.device)
+        sos_idx = torch.zeros(len(perms), 1, device=perms.device)
         eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
-        return torch.cat([bos_idx, perms + 1, eos_idx], dim=1).int()  # (num_perms, max_length + 1)
+        return torch.cat([sos_idx, perms + 1, eos_idx], dim=1).int()  # (num_perms, max_length + 1)
 
-    def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> torch.Tensor:
+    def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
         mask = torch.ones((sz, sz), device=permutation.device)
@@ -237,7 +237,7 @@ class PARSeq(_PARSeq, nn.Module):
         ).int()
         # Initialize target input tensor with SOS token
         ys = torch.full(
-            (features.size(0), self.max_length), self.vocab_size + 1, dtype=torch.long, device=features.device
+            (features.size(0), self.max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
         )
         ys[:, 0] = self.vocab_size + 1  # SOS token
 
@@ -269,18 +269,19 @@ class PARSeq(_PARSeq, nn.Module):
 
         # TODO: Refine iter
         # Update query mask
-        # query_mask[
-        #    torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
-        # ] = 0
+        query_mask[
+            torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
+        ] = 0
 
         # Prepare target input for 1 refine iteration
-        # bos = torch.full((features.size(0), 1), self.vocab_size - 1, dtype=torch.long, device=features.device)
-        # ys = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
+        sos = torch.full((features.size(0), 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
+        ys = torch.cat([sos, logits[:, :-1].argmax(-1)], dim=1)
 
         # Create padding mask for refined target input
-        # target_pad_mask = (ys != self.vocab_size -2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
-        # mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
-        # logits = self.head(self.decode(ys, features, mask, tgt_query=pos_queries))
+        # create padding mask which maskes all beyond the eos token
+        target_pad_mask = (ys != self.vocab_size).int().unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+        mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
+        logits = self.head(self.decode(ys, features, mask, tgt_query=pos_queries))
 
         return logits
 
