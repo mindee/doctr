@@ -175,16 +175,16 @@ class PARSeq(_PARSeq, nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def generate_permutations(self, target: torch.Tensor) -> torch.Tensor:
+    def generate_permutations(self, seqlen: torch.Tensor) -> torch.Tensor:
         # Generates permutations of the target sequence.
         # Modified from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py"""
 
-        max_num_chars = target.shape[1] - 2
-        perms = [torch.arange(max_num_chars, device=target.device)]
+        max_num_chars = seqlen.max().item()  # get longest sequence length in batch
+        perms = [torch.arange(max_num_chars, device=seqlen.device)]
 
         max_perms = math.factorial(max_num_chars) // 2
         num_gen_perms = min(3, max_perms)
-        perms.extend([torch.randperm(max_num_chars, device=target.device) for _ in range(num_gen_perms - len(perms))])
+        perms.extend([torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))])
         perms = torch.stack(perms)
 
         comp = perms.flip(-1)
@@ -192,7 +192,11 @@ class PARSeq(_PARSeq, nn.Module):
 
         sos_idx = torch.zeros(len(perms), 1, device=perms.device)
         eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
-        return torch.cat([sos_idx, perms + 1, eos_idx], dim=1).int()  # (num_perms, max_length + 1)
+        combined = torch.cat([sos_idx, perms + 1, eos_idx], dim=1).int()
+        # we pad to max length to fit the mask generation
+        return F.pad(
+            combined, (0, self.max_length - combined.shape[-1]), value=max_num_chars + 1
+        )  # (num_perms, self.max_length)
 
     def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Generate source and target mask for the decoder attention.
@@ -243,23 +247,19 @@ class PARSeq(_PARSeq, nn.Module):
 
         logits = []
         for i in range(self.max_length):
-            j = i + 1  # next token index
-
             # Efficient decoding: Input the context up to the ith token using one query at a time
             tgt_out = self.decode(
-                ys[:, :j],
+                ys[:, : i + 1],
                 features,
-                query_mask[i:j, :j],
-                tgt_query=pos_queries[:, i:j],
+                query_mask[i : i + 1, : i + 1],
+                tgt_query=pos_queries[:, i : i + 1],
             )
+            pos_prob = self.head(tgt_out)
+            logits.append(pos_prob)
 
-            # Obtain the next token probability in the output's ith token position
-            p_i = self.head(tgt_out)
-            logits.append(p_i)
-
-            if j < self.max_length:
+            if i + 1 < self.max_length:
                 # Greedy decode: Add the next token index to the target input
-                ys[:, j] = p_i.squeeze().argmax(-1)
+                ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
 
                 # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
                 if (ys == self.vocab_size + 2).any(dim=-1).all():
@@ -303,7 +303,7 @@ class PARSeq(_PARSeq, nn.Module):
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long).to(x.device), torch.tensor(_seq_len).to(x.device)
 
             # Generate permutations of the target sequences
-            tgt_perms = self.generate_permutations(gt)
+            tgt_perms = self.generate_permutations(seq_len)
             target = gt[:, :-1]
 
             # Create padding mask for target input

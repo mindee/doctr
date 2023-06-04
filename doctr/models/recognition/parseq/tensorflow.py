@@ -152,8 +152,8 @@ class PARSeq(_PARSeq, Model):
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
-    def generate_permutations(self, target: tf.Tensor) -> tf.Tensor:
-        max_num_chars = target.shape[1] - 2
+    def generate_permutations(self, seqlen: tf.Tensor) -> tf.Tensor:
+        max_num_chars = seqlen.numpy().max()
         perms = [tf.range(max_num_chars, dtype=tf.int32)]
 
         max_perms = np.math.factorial(max_num_chars) // 2
@@ -168,9 +168,11 @@ class PARSeq(_PARSeq, Model):
         perms = tf.transpose(perms, [1, 2, 0])
         perms = tf.reshape(perms, [-1, max_num_chars])
 
-        bos_idx = tf.zeros([perms.shape[0], 1], dtype=tf.int32)
+        sos_idx = tf.zeros([perms.shape[0], 1], dtype=tf.int32)
         eos_idx = tf.fill([perms.shape[0], 1], max_num_chars + 1)
-        result = tf.concat([bos_idx, perms + 1, eos_idx], axis=1)
+        result = tf.concat([sos_idx, perms + 1, eos_idx], axis=1)
+        # pad to max length with max_num_chars + 1
+        result = tf.pad(result, [[0, 0], [0, self.max_length - result.shape[1]]])
         return tf.cast(result, dtype=tf.int32)
 
     def generate_permutation_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:

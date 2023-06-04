@@ -13,6 +13,7 @@ from doctr.models import recognition
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.crnn.tensorflow import CTCPostProcessor
 from doctr.models.recognition.master.tensorflow import MASTERPostProcessor
+from doctr.models.recognition.parseq.tensorflow import PARSeqPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.tensorflow import SARPostProcessor
 from doctr.models.recognition.vitstr.tensorflow import ViTSTRPostProcessor
@@ -32,6 +33,7 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["master", (32, 128, 3)],
         ["vitstr_small", (32, 128, 3)],
         ["vitstr_base", (32, 128, 3)],
+        ["parseq", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape):
@@ -62,6 +64,7 @@ def test_recognition_models(arch_name, input_shape):
         [CTCPostProcessor, [2, 30, 119]],
         [MASTERPostProcessor, [2, 30, 119]],
         [ViTSTRPostProcessor, [2, 30, 119]],
+        [PARSeqPostProcessor, [2, 30, 119]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -112,6 +115,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
         "master",
         "vitstr_small",
         "vitstr_base",
+        "parseq",
     ],
 )
 def test_recognition_zoo(arch_name):
@@ -172,6 +176,7 @@ def test_recognition_zoo_error():
             "master", (32, 128, 3), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
         ),
         ["vitstr_small", (32, 128, 3)],  # testing one vitstr version is enough
+        ["parseq", (32, 128, 3)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
