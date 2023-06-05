@@ -130,7 +130,9 @@ class ViTSTR(_ViTSTR, Model):
         # (batch_size, max_length + 1, d_model)
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch_size, max_length + 1, vocab + 3)
+        logits = tf.reshape(
+            self.head(features, **kwargs), (B, N, len(self.vocab) + 3)
+        )  # (batch_size, max_length + 1, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}

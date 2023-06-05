@@ -216,6 +216,16 @@ class SAR(nn.Module, RecognitionModel):
 
         self.postprocessor = SARPostProcessor(vocab=vocab)
 
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith("feat_extractor."):
+                continue
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+
     def forward(
         self,
         x: torch.Tensor,
