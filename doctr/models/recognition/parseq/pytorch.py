@@ -5,6 +5,7 @@
 
 import math
 from copy import deepcopy
+from itertools import permutations
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -106,7 +107,7 @@ class PARSeqDecoder(nn.Module):
 class PARSeq(_PARSeq, nn.Module):
     """Implements a PARSeq architecture as described in `"Scene Text Recognition
     with Permuted Autoregressive Sequence Models" <https://arxiv.org/pdf/2207.06966>`_.
-    Modified implementation based on the official Pytorch implementation: <https://github.com/baudm/parseq/tree/main`_.
+    Slightly modified implementation based on the official Pytorch implementation: <https://github.com/baudm/parseq/tree/main`_.
 
     Args:
         feature_extractor: the backbone serving as feature extractor
@@ -147,7 +148,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.feat_extractor = feature_extractor
         self.decoder = PARSeqDecoder(embedding_units, dec_num_heads, dec_ff_dim, dec_ffd_ratio, dropout_prob)
         self.head = nn.Linear(embedding_units, self.vocab_size + 1)  # +1 for EOS
-        self.text_embed = CharEmbedding(self.vocab_size + 3, embedding_units)
+        self.embed_tgt = CharEmbedding(self.vocab_size + 3, embedding_units)
 
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length, embedding_units))
         self.dropout = nn.Dropout(p=dropout_prob)
@@ -177,15 +178,35 @@ class PARSeq(_PARSeq, nn.Module):
 
     def generate_permutations(self, seqlen: torch.Tensor) -> torch.Tensor:
         # Generates permutations of the target sequence.
-        # Modified from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py"""
+        # Borrowed from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py
+        # with small modifications
 
         max_num_chars = seqlen.max().item()  # get longest sequence length in batch
         perms = [torch.arange(max_num_chars, device=seqlen.device)]
 
         max_perms = math.factorial(max_num_chars) // 2
         num_gen_perms = min(3, max_perms)
-        perms.extend([torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))])
-        perms = torch.stack(perms)
+        if max_num_chars < 5:
+            # Pool of permutations to sample from. We only need the first half (if complementary option is selected)
+            # Special handling for max_num_chars == 4 which correctly divides the pool into the flipped halves
+            if max_num_chars == 4:
+                selector = [0, 3, 4, 6, 9, 10, 12, 16, 17, 18, 19, 21]
+            else:
+                selector = list(range(max_perms))
+            perm_pool = torch.as_tensor(list(permutations(range(max_num_chars), max_num_chars)), device=seqlen.device)[
+                selector
+            ]
+            # If the forward permutation is always selected, no need to add it to the pool for sampling
+            perm_pool = perm_pool[1:]
+            perms = torch.stack(perms)
+            if len(perm_pool):
+                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(perms), replace=False)
+                perms = torch.cat([perms, perm_pool[i]])
+        else:
+            perms.extend(
+                [torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))]
+            )
+            perms = torch.stack(perms)
 
         comp = perms.flip(-1)
         perms = torch.stack([perms, comp]).transpose(0, 1).reshape(-1, max_num_chars)
@@ -193,7 +214,7 @@ class PARSeq(_PARSeq, nn.Module):
         sos_idx = torch.zeros(len(perms), 1, device=perms.device)
         eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
         combined = torch.cat([sos_idx, perms + 1, eos_idx], dim=1).int()
-        # we pad to max length to fit the mask generation
+        # we pad to max length with eos idx to fit the mask generation
         return F.pad(
             combined, (0, self.max_length - combined.shape[-1]), value=max_num_chars + 1
         )  # (num_perms, self.max_length)
@@ -217,21 +238,28 @@ class PARSeq(_PARSeq, nn.Module):
         self,
         target: torch.Tensor,
         memory: torch.Tensor,
-        tgt_mask: Optional[torch.Tensor] = None,
-        tgt_query: Optional[torch.Tensor] = None,
+        target_mask: Optional[torch.Tensor] = None,
+        target_query: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
+        """Add positional information to the target sequence and pass it through the decoder."""
 
         batch_size, sequence_length = target.shape
         # apply positional information to the target sequence excluding the SOS token
-        null_ctx = self.text_embed(target[:, :1])
-        content = self.pos_queries[:, : sequence_length - 1] + self.text_embed(target[:, 1:])
+        null_ctx = self.embed_tgt(target[:, :1])
+        content = self.pos_queries[:, : sequence_length - 1] + self.embed_tgt(target[:, 1:])
         content = self.dropout(torch.cat([null_ctx, content], dim=1))
-        if tgt_query is None:
-            tgt_query = self.pos_queries[:, :sequence_length].expand(batch_size, -1, -1)
-        tgt_query = self.dropout(tgt_query)
-        return self.decoder(tgt_query, content, memory, tgt_mask)
+        if target_query is None:
+            target_query = self.pos_queries[:, :sequence_length].expand(batch_size, -1, -1)
+        target_query = self.dropout(target_query)
+        return self.decoder(target_query, content, memory, target_mask)
 
     def decode_predictions(self, features: torch.Tensor) -> torch.Tensor:
+        """Generate predictions for the given features."""
+        # Padding symbol + SOS at the beginning
+        ys = torch.full(
+            (features.size(0), self.max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
+        )  # pad
+        ys[:, 0] = self.vocab_size + 1  # SOS token
         pos_queries = self.pos_queries[:, : self.max_length].expand(features.size(0), -1, -1)
         # Create query mask for the decoder attention
         query_mask = (
@@ -239,35 +267,30 @@ class PARSeq(_PARSeq, nn.Module):
                 dtype=torch.bool
             )
         ).int()
-        # Initialize target input tensor with SOS token
-        ys = torch.full(
-            (features.size(0), self.max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
-        )
-        ys[:, 0] = self.vocab_size + 1  # SOS token
 
         logits = []
         for i in range(self.max_length):
-            # Efficient decoding: Input the context up to the ith token using one query at a time
+            # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
                 ys[:, : i + 1],
                 features,
                 query_mask[i : i + 1, : i + 1],
-                tgt_query=pos_queries[:, i : i + 1],
+                target_query=pos_queries[:, i : i + 1],
             )
             pos_prob = self.head(tgt_out)
             logits.append(pos_prob)
 
             if i + 1 < self.max_length:
-                # Greedy decode: Add the next token index to the target input
+                # Update with the next token
                 ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
 
-                # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
+                # Stop decoding if all sequences have reached the EOS token
                 if (ys == self.vocab_size + 2).any(dim=-1).all():
                     break
 
-        logits = torch.cat(logits, dim=1)
+        logits = torch.cat(logits, dim=1)  # (N, max_length, vocab_size + 1)
 
-        # TODO: Refine iter
+        # One refine iteration
         # Update query mask
         query_mask[
             torch.triu(torch.ones(self.max_length, self.max_length, dtype=torch.bool, device=features.device), 2)
@@ -279,9 +302,11 @@ class PARSeq(_PARSeq, nn.Module):
 
         # Create padding mask for refined target input
         # create padding mask which maskes all beyond the eos token
-        target_pad_mask = (ys != self.vocab_size).int().unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+        target_pad_mask = (
+            ((ys != self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+        )  # (N, 1, 1, max_length)
         mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
-        logits = self.head(self.decode(ys, features, mask, tgt_query=pos_queries))
+        logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits
 
@@ -304,18 +329,20 @@ class PARSeq(_PARSeq, nn.Module):
 
             # Generate permutations of the target sequences
             tgt_perms = self.generate_permutations(seq_len)
-            target = gt[:, :-1]
+            target_gt = gt[:, :-1]
 
             # Create padding mask for target input
             # [True, True, True, ..., False, False, False] -> False is masked
-            padding_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+            padding_mask = (
+                ((target_gt != self.vocab_size + 2) | (target_gt != self.vocab_size)).unsqueeze(1).unsqueeze(1)
+            )  # (N, 1, 1, max_length)
 
             for perm in tgt_perms:
                 # Generate attention masks for the permutations
-                source_mask, _ = self.generate_permutation_attention_masks(perm)
+                source_mask, target_mask = self.generate_permutation_attention_masks(perm)
                 # combine target padding mask and query mask
-                mask = (source_mask & padding_mask).int()
-                logits = self.head(self.decode(target, features, mask))
+                mask = (target_mask & padding_mask).int()
+                logits = self.head(self.decode(target_gt, features, mask))
         else:
             logits = self.decode_predictions(features)
 
@@ -455,6 +482,6 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         vit_s,
         "1",
         embedding_units=384,
-        ignore_keys=["head.weight", "head.bias"],  # TODO: add embedding weights
+        ignore_keys=["embed_tgt.embedding.weight", "head.weight", "head.bias"],
         **kwargs,
     )
