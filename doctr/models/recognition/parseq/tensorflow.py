@@ -133,7 +133,7 @@ class PARSeq(_PARSeq, Model):
         feature_extractor,
         vocab: str,
         embedding_units: int,
-        max_length: int = 25,
+        max_length: int = 50,  # different from paper
         dropout_prob: int = 0.1,
         dec_num_heads: int = 12,
         dec_ff_dim: int = 2048,
@@ -146,16 +146,16 @@ class PARSeq(_PARSeq, Model):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        self.max_length = max_length + 1  # +1 for EOS
+        self.max_length = max_length
         self.vocab_size = len(vocab)
         self.rng = np.random.default_rng()
 
         self.feat_extractor = feature_extractor
         self.decoder = PARSeqDecoder(embedding_units, dec_num_heads, dec_ff_dim, dec_ffd_ratio, dropout_prob)
         self.embed_tgt = CharEmbedding(self.vocab_size + 3, embedding_units)
-        self.head = layers.Dense(len(self.vocab) + 1, name="head")  # +1 for EOS
-        self.pos_queries = tf.Variable(tf.random.normal((1, self.max_length, embedding_units)))
-        self.dropout = tf.keras.layers.Dropout(dropout_prob)
+        self.head = layers.Dense(self.vocab_size + 1, name="head")  # +1 for EOS
+        self.pos_queries = tf.Variable(tf.random.normal((1, self.max_length + 1, embedding_units)))
+        self.dropout = layers.Dropout(dropout_prob)
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
@@ -201,11 +201,12 @@ class PARSeq(_PARSeq, Model):
         combined = tf.concat([sos_idx, perms + 1, eos_idx], axis=1)
         # we pad to max length with eos idx to fit the mask generation
         return tf.pad(
-            combined, [[0, 0], [0, self.max_length - tf.shape(combined)[-1]]], constant_values=max_num_chars + 1
+            combined, [[0, 0], [0, self.max_length + 1 - tf.shape(combined)[-1]]], constant_values=max_num_chars + 1
         )  # (num_perms, self.max_length)
 
     def generate_permutation_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
+        # TODO: Do it with tf instead of the numpy move
         permutation = permutation.numpy()  # Convert to NumPy array
         sz = permutation.shape[0]
         mask = np.ones((sz, sz), dtype=np.float32)
@@ -249,10 +250,10 @@ class PARSeq(_PARSeq, Model):
         ys = tf.fill(dims=(b, self.max_length), value=padding_symbol)
         start_vector = tf.fill(dims=(b, 1), value=start_symbol)
         ys = tf.concat([start_vector, ys], axis=-1)
-        pos_queries = self.pos_queries[:, : self.max_length]
+        pos_queries = self.pos_queries[:, : self.max_length + 1]
         query_mask = tf.cast(tf.linalg.band_part(tf.ones((self.max_length, self.max_length)), -1, 0), dtype=tf.bool)
 
-        # TODO: fix me
+        # TODO: Eyerything below needs to be fixed
         logits = []
         for i in range(self.max_length):
             # Decode one token at a time without providing information about the future tokens
@@ -317,7 +318,7 @@ class PARSeq(_PARSeq, Model):
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:-1, :], model_output[:, :-1, :])
+        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:, :], model_output[:, :-1, :])
         # Compute mask
         mask_values = tf.zeros_like(cce)
         mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
@@ -349,18 +350,17 @@ class PARSeq(_PARSeq, Model):
 
             # Generate permutations of the target sequences
             tgt_perms = self.generate_permutations(seq_len)
-            target = gt[:, :-1]
 
             # Create padding mask for target input
             # [True, True, True, ..., False, False, False] -> False is masked
-            padding_mask = ((target != self.vocab_size + 2) | (target != self.vocab_size))[:, tf.newaxis, tf.newaxis, :]
+            padding_mask = ((gt != self.vocab_size + 2) | (gt != self.vocab_size))[:, tf.newaxis, tf.newaxis, :]
 
             for perm in tgt_perms:
                 # Generate attention masks for the permutations
-                source_mask, target_mask = self.generate_permutation_attention_masks(perm)
+                _, target_mask = self.generate_permutation_attention_masks(perm)
                 # combine target padding mask and query mask
                 mask = tf.cast(target_mask & padding_mask, dtype=tf.int32)
-                logits = self.head(self.decode(target, features, mask))
+                logits = self.head(self.decode(gt, features, mask))
         else:
             logits = self.decode_predictions(features)
 
