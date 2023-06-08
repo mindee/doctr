@@ -317,8 +317,6 @@ class PARSeq(_PARSeq, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
-        # remove cls token
-        features = features[:, 1:, :]
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
@@ -485,3 +483,4 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         ignore_keys=["embed_tgt.embedding.weight", "head.weight", "head.bias"],
         **kwargs,
     )
+    
