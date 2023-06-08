@@ -234,7 +234,7 @@ def test_wordgenerator():
     [
         [[512, 512], 3, True],  # Actual set has 2700 training samples and 300 test samples
         [[512, 512], 3, False],
-   ],
+    ],
 )
 def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts):
     # monkeypatch the path to temporary dataset

@@ -40,6 +40,7 @@ class PositionalEncoding(nn.Module):
         x = x + self.pe[:, : x.size(1)]  # type: ignore
         return self.dropout(x)
 
+
 def scaled_dot_product_attention(
     query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: Optional[torch.Tensor] = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
