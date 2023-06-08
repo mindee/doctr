@@ -317,6 +317,8 @@ class PARSeq(_PARSeq, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
+        # remove cls token
+        features = features[:, 1:, :]
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
