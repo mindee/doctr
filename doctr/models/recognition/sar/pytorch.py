@@ -53,9 +53,9 @@ class AttentionModule(nn.Module):
 
     def forward(
         self,
-        features: torch.Tensor,  # (N, C, H, W)
-        hidden_state: torch.Tensor,  # (N, C)
-    ) -> torch.Tensor:
+        features: torch.Tensor,
+        hidden_state: torch.Tensor,
+    ) -> torch.Tensor:  # (N, C, H, W)  # (N, C)
         H_f, W_f = features.shape[2:]
 
         # (N, feat_chans, H, W) --> (N, attention_units, H, W)
