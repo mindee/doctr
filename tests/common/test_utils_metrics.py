@@ -270,7 +270,7 @@ def test_ocr_metric(gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, reca
 @pytest.mark.parametrize(
     "gt_boxes, gt_classes, pred_boxes, pred_classes, iou_thresh, recall, precision, mean_iou",
     [
-        [
+        [  # Perfect match
             [[[0, 0, 0.5, 0.5]]],
             [[0]],
             [[[0, 0, 0.5, 0.5]]],
@@ -279,8 +279,8 @@ def test_ocr_metric(gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, reca
             1,
             1,
             1,
-        ],  # Perfect match
-        [
+        ],
+        [  # Bad match
             [[[0, 0, 0.5, 0.5]]],
             [[0]],
             [[[0, 0, 0.5, 0.5]]],
@@ -289,7 +289,7 @@ def test_ocr_metric(gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, reca
             0,
             0,
             1,
-        ],  # Bad match
+        ],
         [  # No preds on 2nd sample
             [[[0, 0, 0.5, 0.5]], [[0, 0, 0.5, 0.5]]],
             [[0], [1]],

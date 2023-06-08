@@ -11,7 +11,6 @@ from typing import Any, Callable, Optional, Tuple
 import torch
 from torch import nn
 
-
 __all__ = ["Decoder", "PositionalEncoding", "EncoderBlock", "MultiHeadAttention", "PositionwiseFeedForward"]
 
 

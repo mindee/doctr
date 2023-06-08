@@ -17,6 +17,7 @@ from ...utils.pytorch import load_pretrained_params
 
 __all__ = ["vit_s", "vit_b"]
 
+
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
