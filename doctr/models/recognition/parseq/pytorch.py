@@ -128,7 +128,7 @@ class PARSeq(_PARSeq, nn.Module):
         feature_extractor,
         vocab: str,
         embedding_units: int,
-        max_length: int = 50,  # different from the paper
+        max_length: int = 32,  # different from the paper
         dropout_prob: int = 0.1,
         dec_num_heads: int = 12,
         dec_ff_dim: int = 2048,
@@ -210,9 +210,11 @@ class PARSeq(_PARSeq, nn.Module):
         sos_idx = torch.zeros(len(perms), 1, device=perms.device)
         eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
         combined = torch.cat([sos_idx, perms + 1, eos_idx], dim=1).int()
+        if len(combined) > 1:
+            combined[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=seqlen.device)
         # we pad to max length with eos idx to fit the mask generation
         return F.pad(
-            combined, (0, self.max_length + 1 - combined.shape[-1]), value=max_num_chars + 1
+            combined, (0, self.max_length + 1 - combined.shape[-1]), value=max_num_chars + 2
         )  # (num_perms, self.max_length + 1)
 
     def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -286,27 +288,24 @@ class PARSeq(_PARSeq, nn.Module):
 
         logits = torch.cat(logits, dim=1)  # (N, max_length, vocab_size + 1)
 
-        # TODO: fix refine iteration
-        """
         # One refine iteration
         # Update query mask
         query_mask[
             torch.triu(
                 torch.ones(self.max_length + 1, self.max_length + 1, dtype=torch.bool, device=features.device), 2
             )
-        ] = 0
+        ] = 1
 
         # Prepare target input for 1 refine iteration
         sos = torch.full((features.size(0), 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
-        ys = torch.cat([sos, logits[:, :-1].argmax(-1)], dim=1)
+        ys = torch.cat([sos, logits.argmax(-1)], dim=1)
 
-        # Create padding mask for refined target input maskes all beyond EOS token
-        target_pad_mask = (
-            ((ys != self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
-        )  # (N, 1, 1, max_length)
+        # Create padding mask for refined target input maskes all behind EOS token as False
+        # (N, 1, 1, max_length)
+        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
         mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
-        """
+
         return logits
 
     def forward(
@@ -317,6 +316,8 @@ class PARSeq(_PARSeq, nn.Module):
         return_preds: bool = False,
     ) -> Dict[str, Any]:
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
+        # remove cls token
+        features = features[:, 1:, :]
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
@@ -340,7 +341,7 @@ class PARSeq(_PARSeq, nn.Module):
                 _, target_mask = self.generate_permutation_attention_masks(perm)
                 # combine target padding mask and query mask
                 mask = (target_mask & padding_mask).int()
-                logits = self.head(self.decode(gt, features, mask))
+                logits = self.head(self.decode(gt, features, mask))  # (N, max_length, vocab_size + 1)
         else:
             logits = self.decode_predictions(features)
 
