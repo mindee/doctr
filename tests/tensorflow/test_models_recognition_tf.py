@@ -185,7 +185,7 @@ def test_models_onnx_export(arch_name, input_shape):
     tf.keras.backend.clear_session()
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
     # SAR, MASTER, ViTSTR export currently only available with constant batch size
-    if arch_name in ["sar_resnet31", "master", "vitstr_small"]:
+    if arch_name in ["sar_resnet31", "master", "vitstr_small", "parseq"]:
         dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
     else:
         # batch_size = None for dynamic batch size
