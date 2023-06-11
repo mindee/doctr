@@ -164,6 +164,7 @@ class PARSeq(_PARSeq, Model):
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
+    @tf.function
     def generate_permutations(self, seqlen: tf.Tensor) -> tf.Tensor:
         # Generates permutations of the target sequence.
         # Translated from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py
@@ -213,7 +214,8 @@ class PARSeq(_PARSeq, Model):
             combined, [[0, 0], [0, self.max_length + 1 - tf.shape(combined)[1]]], constant_values=max_num_chars + 2
         )  # (num_perms, self.max_length + 1)
 
-    def generate_permutation_attention_masks_x(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    @tf.function
+    def generate_permutation_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
         mask = tf.ones((sz, sz), dtype=tf.float32)
@@ -233,6 +235,7 @@ class PARSeq(_PARSeq, Model):
 
         return tf.cast(source_mask, dtype=tf.bool), tf.cast(target_mask, dtype=tf.bool)
 
+    @tf.function
     def decode(
         self,
         target: tf.Tensor,
@@ -251,6 +254,7 @@ class PARSeq(_PARSeq, Model):
         target_query = self.dropout(target_query, **kwargs)
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
+    @tf.function
     def decode_predictions(self, features):
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
