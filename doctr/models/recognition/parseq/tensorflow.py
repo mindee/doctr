@@ -213,21 +213,25 @@ class PARSeq(_PARSeq, Model):
             combined, [[0, 0], [0, self.max_length + 1 - tf.shape(combined)[1]]], constant_values=max_num_chars + 2
         )  # (num_perms, self.max_length + 1)
 
-    def generate_permutation_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def generate_permutation_attention_masks_x(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
-        permutation = permutation.numpy()  # Convert to NumPy array
         sz = permutation.shape[0]
-        mask = np.ones((sz, sz), dtype=np.float32)
+        mask = tf.ones((sz, sz), dtype=tf.float32)
 
-        for i in range(sz):
-            query_idx = permutation[i]
-            masked_keys = permutation[i + 1 :]
-            mask[query_idx, masked_keys] = 0.0
-        source_mask = mask[:-1, :-1].copy()
-        mask[np.eye(sz, dtype=np.bool)] = 0.0
+        for i in range(sz - 1):
+            query_idx = int(permutation[i])
+            masked_keys = permutation[i + 1 :].numpy().tolist()
+            indices = tf.constant([[query_idx, j] for j in masked_keys], dtype=tf.int32)
+            mask = tf.tensor_scatter_nd_update(mask, indices, tf.zeros(len(masked_keys), dtype=tf.float32))
+
+        source_mask = tf.identity(mask[:-1, :-1])
+        eye_indices = tf.eye(sz, dtype=tf.bool)
+        mask = tf.tensor_scatter_nd_update(
+            mask, tf.where(eye_indices), tf.zeros_like(tf.boolean_mask(mask, eye_indices))
+        )
         target_mask = mask[1:, :-1]
 
-        return tf.convert_to_tensor(source_mask, dtype=tf.bool), tf.convert_to_tensor(target_mask, dtype=tf.bool)
+        return tf.cast(source_mask, dtype=tf.bool), tf.cast(target_mask, dtype=tf.bool)
 
     def decode(
         self,
@@ -272,10 +276,12 @@ class PARSeq(_PARSeq, Model):
             logits.append(pos_prob)
 
             if i + 1 < self.max_length:
-                # Update with the next token
-                ys = ys.numpy()
-                ys[:, i + 1] = tf.argmax(pos_prob[:, -1, :], axis=-1)
-                ys = tf.convert_to_tensor(ys, dtype=tf.int64)
+                # update ys with the next token
+                i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing="ij")
+                indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
+                ys = tf.tensor_scatter_nd_update(
+                    ys, indices, tf.cast(tf.argmax(pos_prob[:, -1, :], axis=-1), dtype=tf.int32)
+                )
 
                 # Stop decoding if all sequences have reached the EOS token
                 if tf.reduce_any(tf.reduce_all(ys == self.vocab_size, axis=-1)):
@@ -283,25 +289,23 @@ class PARSeq(_PARSeq, Model):
 
         logits = tf.concat(logits, axis=1)  # (N, max_length, vocab_size + 1)
 
-        # TODO: Fix me :)
         # One refine iteration
         # Update query mask
-        """
-        query_mask = tf.linalg.set_diag(query_mask, tf.ones(self.max_length + 1, dtype=tf.bool))
+        # TODO: Fix my masks :)
 
-        # Prepare target input for 1 refine iteration
+        query_mask = tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1), dtype=tf.bool), -1, 2)
+        # query_mask = tf.tensor_scatter_nd_update(query_mask, tf.where(query_mask == 1), tf.ones_like(query_mask))
+
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
-        sos = tf.cast(sos, dtype=tf.int64)
-        ys = tf.concat([sos, tf.argmax(logits, axis=-1)], axis=1)
+        ys = tf.concat([sos, tf.cast(tf.argmax(logits, axis=-1), dtype=tf.int32)], axis=1)
 
-        # Create padding mask for refined target input masks all behind EOS token as False
-        print(tf.cast(ys == self.vocab_size, dtype=tf.int64))
-        target_pad_mask = ~tf.cumsum(tf.cast(ys == self.vocab_size, dtype=tf.int64), axis=-1) > 0
+        target_pad_mask = tf.cumsum(tf.cast(ys == self.vocab_size, dtype=tf.int32), axis=-1, reverse=True) > 0
+        target_pad_mask = tf.expand_dims(tf.expand_dims(target_pad_mask, axis=1), axis=1)
         print(target_pad_mask)
-        target_pad_mask = tf.cast(tf.expand_dims(tf.expand_dims(target_pad_mask, axis=1), axis=1), dtype=tf.bool)
-        mask = tf.cast(target_pad_mask & query_mask[:, : ys.shape[1]], dtype=tf.bool)
+
+        mask = tf.cast(tf.math.logical_and(target_pad_mask, query_mask[:, : tf.shape(ys)[1]]), dtype=tf.bool)
+        print(mask)
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
-        """
 
         return logits
 
