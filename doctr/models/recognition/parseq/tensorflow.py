@@ -32,7 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class CharEmbedding(tf.keras.layers.Layer):
+class CharEmbedding(layers.Layer):
     """Implements the character embedding module
 
     Args:
@@ -49,7 +49,7 @@ class CharEmbedding(tf.keras.layers.Layer):
         return math.sqrt(self.d_model) * self.embedding(x)
 
 
-class PARSeqDecoder(tf.keras.layers.Layer):
+class PARSeqDecoder(layers.Layer):
     """Implements decoder module of the PARSeq model
 
     Args:
@@ -152,7 +152,7 @@ class PARSeq(_PARSeq, Model):
 
         self.feat_extractor = feature_extractor
         self.decoder = PARSeqDecoder(embedding_units, dec_num_heads, dec_ff_dim, dec_ffd_ratio, dropout_prob)
-        self.embed_tgt = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
+        self.embed = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
         self.head = layers.Dense(self.vocab_size + 1, name="head")  # +1 for EOS
         self.pos_queries = self.add_weight(
             shape=(1, self.max_length + 1, embedding_units),
@@ -215,7 +215,7 @@ class PARSeq(_PARSeq, Model):
         )  # (num_perms, self.max_length + 1)
 
     @tf.function
-    def generate_permutation_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def generate_permutations_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
         mask = tf.ones((sz, sz), dtype=tf.float32)
@@ -246,8 +246,8 @@ class PARSeq(_PARSeq, Model):
     ) -> tf.Tensor:
         batch_size, sequence_length = target.shape
         # apply positional information to the target sequence excluding the SOS token
-        null_ctx = self.embed_tgt(target[:, :1])
-        content = self.pos_queries[:, : sequence_length - 1] + self.embed_tgt(target[:, 1:])
+        null_ctx = self.embed(target[:, :1])
+        content = self.pos_queries[:, : sequence_length - 1] + self.embed(target[:, 1:])
         content = self.dropout(tf.concat([null_ctx, content], axis=1), **kwargs)
         if target_query is None:
             target_query = tf.tile(self.pos_queries[:, :sequence_length], [batch_size, 1, 1])
@@ -255,13 +255,12 @@ class PARSeq(_PARSeq, Model):
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
     @tf.function
-    def decode_predictions(self, features):
+    def decode_autoregressive(self, features):
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
         b = tf.shape(features)[0]
         ys = tf.fill(dims=(b, self.max_length), value=self.vocab_size + 2)
         start_vector = tf.fill(dims=(b, 1), value=self.vocab_size + 1)
-        eos_idx = tf.constant(self.vocab_size, dtype=tf.int32)
         ys = tf.concat([start_vector, ys], axis=-1)
         pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [b, 1, 1])
         query_mask = tf.cast(
@@ -289,8 +288,8 @@ class PARSeq(_PARSeq, Model):
                 )
 
                 # Stop decoding if all sequences have reached the EOS token
-                # TODO: fix me for onnx :)
-                if tf.reduce_any(tf.reduce_all(tf.equal(ys, eos_idx), axis=-1)):
+                # We need to check it on True to be compatible with ONNX
+                if tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True:
                     break
 
         logits = tf.concat(logits, axis=1)  # (N, max_length, vocab_size + 1)
@@ -301,13 +300,14 @@ class PARSeq(_PARSeq, Model):
 
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
         ys = tf.concat([sos, tf.cast(tf.argmax(logits, axis=-1), dtype=tf.int32)], axis=1)
-
+        # Create padding mask for refined target input maskes all behind EOS token as False
+        # (N, 1, 1, max_length)
         target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=1, reverse=False)
         target_pad_mask = tf.logical_not(tf.cast(target_pad_mask[:, tf.newaxis, tf.newaxis, :], dtype=tf.bool))
         mask = tf.math.logical_and(target_pad_mask, query_mask[:, : ys.shape[1]])
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
-        return logits
+        return logits  # (N, max_length, vocab_size + 1)
 
     @staticmethod
     def compute_loss(
@@ -375,12 +375,12 @@ class PARSeq(_PARSeq, Model):
 
             for perm in tgt_perms:
                 # Generate attention masks for the permutations
-                _, target_mask = self.generate_permutation_attention_masks(perm)
+                _, target_mask = self.generate_permutations_attention_masks(perm)
                 # combine target padding mask and query mask
                 mask = tf.math.logical_and(target_mask, padding_mask)
                 logits = self.head(self.decode(gt, features, mask))
         else:
-            logits = self.decode_predictions(features)
+            logits = self.decode_autoregressive(features)
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
