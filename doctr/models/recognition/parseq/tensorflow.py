@@ -261,6 +261,7 @@ class PARSeq(_PARSeq, Model):
         b = tf.shape(features)[0]
         ys = tf.fill(dims=(b, self.max_length), value=self.vocab_size + 2)
         start_vector = tf.fill(dims=(b, 1), value=self.vocab_size + 1)
+        eos_idx = tf.constant(self.vocab_size, dtype=tf.int32)
         ys = tf.concat([start_vector, ys], axis=-1)
         pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [b, 1, 1])
         query_mask = tf.cast(
@@ -288,27 +289,22 @@ class PARSeq(_PARSeq, Model):
                 )
 
                 # Stop decoding if all sequences have reached the EOS token
-                if tf.reduce_any(tf.reduce_all(ys == self.vocab_size, axis=-1)):
+                # TODO: fix me for onnx :)
+                if tf.reduce_any(tf.reduce_all(tf.equal(ys, eos_idx), axis=-1)):
                     break
 
         logits = tf.concat(logits, axis=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
-        # TODO: Fix my masks :)
-
-        query_mask = tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1), dtype=tf.bool), -1, 2)
-        # query_mask = tf.tensor_scatter_nd_update(query_mask, tf.where(query_mask == 1), tf.ones_like(query_mask))
+        query_mask = tf.cast(1 - tf.linalg.diag(tf.ones(self.max_length, dtype=tf.int32), k=-1), dtype=tf.bool)
 
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
         ys = tf.concat([sos, tf.cast(tf.argmax(logits, axis=-1), dtype=tf.int32)], axis=1)
 
-        target_pad_mask = tf.cumsum(tf.cast(ys == self.vocab_size, dtype=tf.int32), axis=-1, reverse=True) > 0
-        target_pad_mask = tf.expand_dims(tf.expand_dims(target_pad_mask, axis=1), axis=1)
-        print(target_pad_mask)
-
-        mask = tf.cast(tf.math.logical_and(target_pad_mask, query_mask[:, : tf.shape(ys)[1]]), dtype=tf.bool)
-        print(mask)
+        target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=1, reverse=False)
+        target_pad_mask = tf.logical_not(tf.cast(target_pad_mask[:, tf.newaxis, tf.newaxis, :], dtype=tf.bool))
+        mask = tf.math.logical_and(target_pad_mask, query_mask[:, : ys.shape[1]])
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits
