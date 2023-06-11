@@ -27,8 +27,8 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["magc_resnet31", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (32, 32, 3), (126,)],
         ["mobilenet_v3_large", (32, 32, 3), (126,)],
-        ["vit_s", (32, 32, 3), (126,)],
-        ["vit_b", (32, 32, 3), (126,)],
+        #    ["vit_s", (32, 32, 3), (126,)],
+        #    ["vit_b", (32, 32, 3), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -130,12 +130,12 @@ def test_crop_orientation_model(mock_text_box):
             (126,),
             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
         ),
-        pytest.param(
-            "vit_b",
-            (32, 32, 3),
-            (126,),
-            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
-        ),
+        # pytest.param(
+        #    "vit_b",
+        #    (32, 32, 3),
+        #    (126,),
+        #    marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        # ),
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Tuple
+from typing import Optional, Tuple
 
 import torch
 from torch import nn
@@ -15,19 +15,32 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int) -> None:
+    def __init__(
+        self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Optional[Tuple[int, int]] = None
+    ) -> None:
         super().__init__()
         channels, height, width = input_shape
         # calculate patch size
         # NOTE: this is different from the original implementation
-        self.patch_size = (height // (height // 8), width // (width // 8))
+        self.patch_size = patch_size if patch_size is not None else self._set_patch_size(input_shape)
 
-        self.grid_size = (self.patch_size[0], self.patch_size[1])
-        self.num_patches = self.patch_size[0] * self.patch_size[1]
+        self.grid_size = tuple([s // p for s, p in zip((height, width), self.patch_size)])
+        self.num_patches = self.grid_size[0] * self.grid_size[1]
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
         self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))
         self.proj = nn.Linear((channels * self.patch_size[0] * self.patch_size[1]), embed_dim)
+        self.projection = nn.Conv2d(channels, embed_dim, kernel_size=self.patch_size, stride=self.patch_size)
+
+    def _set_patch_size(self, input_shape: Tuple[int, int, int]) -> Tuple[int, int]:
+        """Set the patch size according to the input shape"""
+        _, height, width = input_shape
+        if height == 32 and width == 128:
+            return (4, 8)
+        elif height == width:
+            return int((height * 12.5) // 100), int((width * 12.5) // 100)
+        else:
+            raise ValueError(f"Invalid input shape {input_shape}. Please specify the patch size manually")
 
     def interpolate_pos_encoding(self, embeddings: torch.Tensor, height: int, width: int) -> torch.Tensor:
         """
@@ -73,17 +86,8 @@ class PatchEmbedding(nn.Module):
         assert H % self.patch_size[0] == 0, "Image height must be divisible by patch height"
         assert W % self.patch_size[1] == 0, "Image width must be divisible by patch width"
 
-        # patchify image without convolution
-        # adapted from:
-        # https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial15/Vision_Transformer.html
-        # NOTE: patchify with Conv2d works only with padding="valid" correctly on smaller images
-        # and has currently no ONNX support so we use this workaround
-        x = x.reshape(
-            B, C, (H // self.patch_size[0]), self.patch_size[0], (W // self.patch_size[1]), self.patch_size[1]
-        )
-        # (B, H', W', C, ph, pw) -> (B, H'*W', C*ph*pw)
-        patches = x.permute(0, 2, 4, 1, 3, 5).flatten(1, 2).flatten(2, 4)
-        patches = self.proj(patches)  # (batch_size, num_patches, d_model)
+        # patchify image
+        patches = self.projection(x).flatten(2).transpose(1, 2)
 
         cls_tokens = self.cls_token.expand(B, -1, -1)  # (batch_size, 1, d_model)
         # concate cls_tokens to patches
