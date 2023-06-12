@@ -33,7 +33,7 @@ def test_push_to_hf_hub():
         ["resnet50", "classification", "Felix92/doctr-dummy-tf-resnet50"],
         ["magc_resnet31", "classification", "Felix92/doctr-dummy-tf-magc-resnet31"],
         ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-tf-mobilenet-v3-large"],
-        #    ["vit_b", "classification", "Felix92/doctr-dummy-tf-vit-b"],
+        ["vit_b", "classification", "Felix92/doctr-dummy-tf-vit-b"],
         ["db_resnet50", "detection", "Felix92/doctr-dummy-tf-db-resnet50"],
         ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-tf-db-mobilenet-v3-large"],
         ["linknet_resnet18", "detection", "Felix92/doctr-dummy-tf-linknet-resnet18"],
@@ -44,7 +44,7 @@ def test_push_to_hf_hub():
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-tf-crnn-mobilenet-v3-large"],
         ["sar_resnet31", "recognition", "Felix92/doctr-dummy-tf-sar-resnet31"],
         ["master", "recognition", "Felix92/doctr-dummy-tf-master"],
-        #    ["vitstr_small", "recognition", "Felix92/doctr-dummy-tf-vitstr-small"],
+        ["vitstr_small", "recognition", "Felix92/doctr-dummy-tf-vitstr-small"],
     ],
 )
 def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
