@@ -303,7 +303,7 @@ class PARSeq(_PARSeq, nn.Module):
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
         target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
-        mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
+        mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits  # (N, max_length, vocab_size + 1)
@@ -426,25 +426,27 @@ def _parseq(
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
-    pretrained_backbone: bool = True,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> PARSeq:
-    pretrained_backbone = pretrained_backbone and not pretrained
-
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
     _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
+    patch_size = kwargs.get("patch_size", (4, 8))
 
     kwargs["vocab"] = _cfg["vocab"]
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
+        # NOTE: we don't use a pretrained backbone for non-rectangular patches to avoid the pos embed mismatch
+        backbone_fn(False, input_shape=_cfg["input_shape"], patch_size=patch_size),  # type: ignore[call-arg]
         {layer: "features"},
     )
+
+    kwargs.pop("patch_size", None)
+    kwargs.pop("pretrained_backbone", None)
 
     # Build the model
     model = PARSeq(feat_extractor, cfg=_cfg, **kwargs)
@@ -481,6 +483,7 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         vit_s,
         "1",
         embedding_units=384,
-        ignore_keys=["embed_tgt.embedding.weight", "head.weight", "head.bias"],
+        patch_size=(4, 8),
+        ignore_keys=["embed.embedding.weight", "head.weight", "head.bias"],
         **kwargs,
     )
