@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 import torch
 from torch import nn
@@ -15,32 +15,17 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(
-        self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Optional[Tuple[int, int]] = None
-    ) -> None:
+    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Tuple[int, int]) -> None:
         super().__init__()
         channels, height, width = input_shape
-        # calculate patch size
-        # NOTE: this is different from the original implementation
-        self.patch_size = patch_size if patch_size is not None else self._set_patch_size(input_shape)
-
+        self.patch_size = patch_size
+        self.interpolate = True if patch_size[0] == patch_size[1] else False
         self.grid_size = tuple([s // p for s, p in zip((height, width), self.patch_size)])
         self.num_patches = self.grid_size[0] * self.grid_size[1]
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))
         self.positions = nn.Parameter(torch.randn(1, self.num_patches + 1, embed_dim))
-        self.proj = nn.Linear((channels * self.patch_size[0] * self.patch_size[1]), embed_dim)
         self.projection = nn.Conv2d(channels, embed_dim, kernel_size=self.patch_size, stride=self.patch_size)
-
-    def _set_patch_size(self, input_shape: Tuple[int, int, int]) -> Tuple[int, int]:
-        """Set the patch size according to the input shape"""
-        _, height, width = input_shape
-        if height == 32 and width == 128:
-            return (4, 8)
-        elif height == width:
-            return int((height * 12.5) // 100), int((width * 12.5) // 100)
-        else:
-            raise ValueError(f"Invalid input shape {input_shape}. Please specify the patch size manually")
 
     def interpolate_pos_encoding(self, embeddings: torch.Tensor, height: int, width: int) -> torch.Tensor:
         """
@@ -93,6 +78,9 @@ class PatchEmbedding(nn.Module):
         # concate cls_tokens to patches
         embeddings = torch.cat([cls_tokens, patches], dim=1)  # (batch_size, num_patches + 1, d_model)
         # add positions to embeddings
-        embeddings += self.interpolate_pos_encoding(embeddings, H, W)  # (batch_size, num_patches + 1, d_model)
+        if self.interpolate:
+            embeddings += self.interpolate_pos_encoding(embeddings, H, W)
+        else:
+            embeddings += self.positions
 
-        return embeddings
+        return embeddings  # (batch_size, num_patches + 1, d_model)

@@ -180,25 +180,28 @@ def _vitstr(
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
-    pretrained_backbone: bool = False,  # NOTE: training from scratch without a pretrained backbone works better
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
-    pretrained_backbone = pretrained_backbone and not pretrained
 
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
     _cfg["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
+    patch_size = kwargs.get("patch_size", (4, 8))
 
     kwargs["vocab"] = _cfg["vocab"]
     kwargs["input_shape"] = _cfg["input_shape"]
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
+        # NOTE: we don't use a pretrained backbone for non-rectangular patches to avoid the pos embed mismatch
+        backbone_fn(False, input_shape=_cfg["input_shape"], patch_size=patch_size),  # type: ignore[call-arg]
         {layer: "features"},
     )
+
+    kwargs.pop("patch_size", None)
+    kwargs.pop("pretrained_backbone", None)
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
@@ -235,6 +238,7 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         vit_s,
         "1",
         embedding_units=384,
+        patch_size=(4, 8),
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )
@@ -263,6 +267,7 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         vit_b,
         "1",
         embedding_units=768,
+        patch_size=(4, 8),
         ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )

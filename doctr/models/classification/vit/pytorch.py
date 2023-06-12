@@ -68,6 +68,7 @@ class VisionTransformer(nn.Sequential):
         num_layers: number of transformer layers
         num_heads: number of attention heads
         ffd_ratio: multiplier for the hidden dimension of the feedforward layer
+        patch_size: size of the patches
         input_shape: size of the input image
         dropout: dropout rate
         num_classes: number of output classes
@@ -80,6 +81,7 @@ class VisionTransformer(nn.Sequential):
         num_layers: int,
         num_heads: int,
         ffd_ratio: int,
+        patch_size: Tuple[int, int] = (4, 4),
         input_shape: Tuple[int, int, int] = (3, 32, 32),
         dropout: float = 0.0,
         num_classes: int = 1000,
@@ -87,7 +89,7 @@ class VisionTransformer(nn.Sequential):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         _layers: List[nn.Module] = [
-            PatchEmbedding(input_shape, d_model),
+            PatchEmbedding(input_shape, d_model, patch_size),
             EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, nn.GELU()),
         ]
         if include_top:
