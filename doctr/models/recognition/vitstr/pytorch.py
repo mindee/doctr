@@ -183,7 +183,6 @@ def _vitstr(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
-
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])

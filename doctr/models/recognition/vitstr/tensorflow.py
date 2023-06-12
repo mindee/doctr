@@ -189,7 +189,6 @@ def _vitstr(
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
-
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
