@@ -148,7 +148,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.feat_extractor = feature_extractor
         self.decoder = PARSeqDecoder(embedding_units, dec_num_heads, dec_ff_dim, dec_ffd_ratio, dropout_prob)
         self.head = nn.Linear(embedding_units, self.vocab_size + 1)  # +1 for EOS
-        self.embed_tgt = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
+        self.embed = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
 
         self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length + 1, embedding_units))  # +1 for SOS
         self.dropout = nn.Dropout(p=dropout_prob)
@@ -217,7 +217,7 @@ class PARSeq(_PARSeq, nn.Module):
             combined, (0, self.max_length + 1 - combined.shape[-1]), value=max_num_chars + 2
         )  # (num_perms, self.max_length + 1)
 
-    def generate_permutation_attention_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def generate_permutations_attention_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
         mask = torch.ones((sz, sz), device=permutation.device)
@@ -243,15 +243,15 @@ class PARSeq(_PARSeq, nn.Module):
 
         batch_size, sequence_length = target.shape
         # apply positional information to the target sequence excluding the SOS token
-        null_ctx = self.embed_tgt(target[:, :1])
-        content = self.pos_queries[:, : sequence_length - 1] + self.embed_tgt(target[:, 1:])
+        null_ctx = self.embed(target[:, :1])
+        content = self.pos_queries[:, : sequence_length - 1] + self.embed(target[:, 1:])
         content = self.dropout(torch.cat([null_ctx, content], dim=1))
         if target_query is None:
             target_query = self.pos_queries[:, :sequence_length].expand(batch_size, -1, -1)
         target_query = self.dropout(target_query)
         return self.decoder(target_query, content, memory, target_mask)
 
-    def decode_predictions(self, features: torch.Tensor) -> torch.Tensor:
+    def decode_autoregressive(self, features: torch.Tensor) -> torch.Tensor:
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
         ys = torch.full(
@@ -306,7 +306,7 @@ class PARSeq(_PARSeq, nn.Module):
         mask = (target_pad_mask & query_mask[:, : ys.shape[1]]).int()
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
-        return logits
+        return logits  # (N, max_length, vocab_size + 1)
 
     def forward(
         self,
@@ -338,12 +338,12 @@ class PARSeq(_PARSeq, nn.Module):
 
             for perm in tgt_perms:
                 # Generate attention masks for the permutations
-                _, target_mask = self.generate_permutation_attention_masks(perm)
+                _, target_mask = self.generate_permutations_attention_masks(perm)
                 # combine target padding mask and query mask
                 mask = (target_mask & padding_mask).int()
                 logits = self.head(self.decode(gt, features, mask))  # (N, max_length, vocab_size + 1)
         else:
-            logits = self.decode_predictions(features)
+            logits = self.decode_autoregressive(features)
 
         out: Dict[str, Any] = {}
         if self.exportable:

@@ -32,7 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class CharEmbedding(tf.keras.layers.Layer):
+class CharEmbedding(layers.Layer):
     """Implements the character embedding module
 
     Args:
@@ -49,7 +49,7 @@ class CharEmbedding(tf.keras.layers.Layer):
         return math.sqrt(self.d_model) * self.embedding(x)
 
 
-class PARSeqDecoder(tf.keras.layers.Layer):
+class PARSeqDecoder(layers.Layer):
     """Implements decoder module of the PARSeq model
 
     Args:
@@ -152,7 +152,7 @@ class PARSeq(_PARSeq, Model):
 
         self.feat_extractor = feature_extractor
         self.decoder = PARSeqDecoder(embedding_units, dec_num_heads, dec_ff_dim, dec_ffd_ratio, dropout_prob)
-        self.embed_tgt = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
+        self.embed = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
         self.head = layers.Dense(self.vocab_size + 1, name="head")  # +1 for EOS
         self.pos_queries = self.add_weight(
             shape=(1, self.max_length + 1, embedding_units),
@@ -164,13 +164,13 @@ class PARSeq(_PARSeq, Model):
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
+    @tf.function
     def generate_permutations(self, seqlen: tf.Tensor) -> tf.Tensor:
         # Generates permutations of the target sequence.
         # Translated from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py
         # with small modifications
 
         max_num_chars = int(tf.reduce_max(seqlen))  # get longest sequence length in batch
-        print(max_num_chars)
         perms = [tf.range(max_num_chars, dtype=tf.int32)]
 
         max_perms = math.factorial(max_num_chars) // 2
@@ -182,14 +182,14 @@ class PARSeq(_PARSeq, Model):
                 selector = [0, 3, 4, 6, 9, 10, 12, 16, 17, 18, 19, 21]
             else:
                 selector = list(range(max_perms))
-            # TODO: Fix me if max_num_chars == 4
-            perm_pool = tf.convert_to_tensor(list(permutations(range(max_num_chars), max_num_chars)))[selector]
+            perm_pool_candidates = list(permutations(range(max_num_chars), max_num_chars))
+            perm_pool = tf.convert_to_tensor([perm_pool_candidates[i] for i in selector])
             # If the forward permutation is always selected, no need to add it to the pool for sampling
             perm_pool = perm_pool[1:]
             perms = tf.stack(perms)
             if len(perm_pool):
-                i = i = self.rng.choice(len(perm_pool), size=(num_gen_perms - len(perms),), replace=False)
-                perms = tf.concat([perms, perm_pool[i]], axis=0)
+                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(perms), replace=False)
+                perms = tf.concat([perms, perm_pool[i[0] : i[1]]], axis=0)
         else:
             perms.extend(
                 [tf.random.shuffle(tf.range(max_num_chars, dtype=tf.int32)) for _ in range(num_gen_perms - len(perms))]
@@ -214,24 +214,28 @@ class PARSeq(_PARSeq, Model):
             combined, [[0, 0], [0, self.max_length + 1 - tf.shape(combined)[1]]], constant_values=max_num_chars + 2
         )  # (num_perms, self.max_length + 1)
 
-    def generate_permutation_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    @tf.function
+    def generate_permutations_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
-        # TODO: Do it with tf instead of the numpy move
-        permutation = permutation.numpy()  # Convert to NumPy array
         sz = permutation.shape[0]
-        mask = np.ones((sz, sz), dtype=np.float32)
+        mask = tf.ones((sz, sz), dtype=tf.float32)
 
-        for i in range(sz):
-            query_idx = permutation[i]
-            masked_keys = permutation[i + 1 :]
-            mask[query_idx, masked_keys] = 0.0
-        source_mask = mask[:-1, :-1].copy()
-        mask[np.eye(sz, dtype=np.bool)] = 0.0
+        for i in range(sz - 1):
+            query_idx = int(permutation[i])
+            masked_keys = permutation[i + 1 :].numpy().tolist()
+            indices = tf.constant([[query_idx, j] for j in masked_keys], dtype=tf.int32)
+            mask = tf.tensor_scatter_nd_update(mask, indices, tf.zeros(len(masked_keys), dtype=tf.float32))
+
+        source_mask = tf.identity(mask[:-1, :-1])
+        eye_indices = tf.eye(sz, dtype=tf.bool)
+        mask = tf.tensor_scatter_nd_update(
+            mask, tf.where(eye_indices), tf.zeros_like(tf.boolean_mask(mask, eye_indices))
+        )
         target_mask = mask[1:, :-1]
-        print(target_mask)
 
-        return tf.convert_to_tensor(source_mask, dtype=tf.bool), tf.convert_to_tensor(target_mask, dtype=tf.bool)
+        return tf.cast(source_mask, dtype=tf.bool), tf.cast(target_mask, dtype=tf.bool)
 
+    @tf.function
     def decode(
         self,
         target: tf.Tensor,
@@ -242,24 +246,26 @@ class PARSeq(_PARSeq, Model):
     ) -> tf.Tensor:
         batch_size, sequence_length = target.shape
         # apply positional information to the target sequence excluding the SOS token
-        null_ctx = self.embed_tgt(target[:, :1])
-        content = self.pos_queries[:, : sequence_length - 1] + self.embed_tgt(target[:, 1:])
-        content = self.dropout(tf.concat([null_ctx, content], axis=1))
+        null_ctx = self.embed(target[:, :1])
+        content = self.pos_queries[:, : sequence_length - 1] + self.embed(target[:, 1:])
+        content = self.dropout(tf.concat([null_ctx, content], axis=1), **kwargs)
         if target_query is None:
             target_query = tf.tile(self.pos_queries[:, :sequence_length], [batch_size, 1, 1])
         target_query = self.dropout(target_query, **kwargs)
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
-    def decode_predictions(self, features):
+    @tf.function
+    def decode_autoregressive(self, features):
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
-        ys = tf.fill((tf.shape(features)[0], self.max_length), self.vocab_size + 2)  # pad
-        ys = tf.cast(ys, dtype=tf.int64)
-        ys[:, 0] = self.vocab_size + 1  # SOS token
-        pos_queries = tf.expand_dims(self.pos_queries[:, : self.max_length + 1], axis=0)
-        pos_queries = tf.tile(pos_queries, [tf.shape(features)[0], 1, 1])
-        # Create query mask for the decoder attention
-        query_mask = tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1), dtype=tf.bool), -1, 0)
+        b = tf.shape(features)[0]
+        ys = tf.fill(dims=(b, self.max_length), value=self.vocab_size + 2)
+        start_vector = tf.fill(dims=(b, 1), value=self.vocab_size + 1)
+        ys = tf.concat([start_vector, ys], axis=-1)
+        pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [b, 1, 1])
+        query_mask = tf.cast(
+            tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1)), -1, 0), dtype=tf.bool
+        )
 
         logits = []
         for i in range(self.max_length):
@@ -274,31 +280,34 @@ class PARSeq(_PARSeq, Model):
             logits.append(pos_prob)
 
             if i + 1 < self.max_length:
-                # Update with the next token
-                ys = tf.tensor_scatter_nd_update(ys, [[i + 1, 0]], tf.argmax(pos_prob, axis=-1))
+                # update ys with the next token
+                i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing="ij")
+                indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
+                ys = tf.tensor_scatter_nd_update(
+                    ys, indices, tf.cast(tf.argmax(pos_prob[:, -1, :], axis=-1), dtype=tf.int32)
+                )
 
                 # Stop decoding if all sequences have reached the EOS token
-                if tf.reduce_any(tf.reduce_all(ys == self.vocab_size, axis=-1)):
+                # We need to check it on True to be compatible with ONNX
+                if tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True:
                     break
 
         logits = tf.concat(logits, axis=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
-        query_mask = tf.linalg.set_diag(query_mask, tf.ones(self.max_length + 1, dtype=tf.bool))
+        query_mask = tf.cast(1 - tf.linalg.diag(tf.ones(self.max_length, dtype=tf.int32), k=-1), dtype=tf.bool)
 
-        # Prepare target input for 1 refine iteration
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
-        sos = tf.cast(sos, dtype=tf.int64)
-        ys = tf.concat([sos, tf.argmax(logits, axis=-1)], axis=1)
-
-        # Create padding mask for refined target input masks all behind EOS token as False
-        target_pad_mask = ~tf.cumsum(tf.cast(ys == self.vocab_size, dtype=tf.int64), axis=-1) > 0
-        target_pad_mask = tf.expand_dims(tf.expand_dims(target_pad_mask, axis=1), axis=1)
-        mask = tf.cast(target_pad_mask & query_mask[:, : ys.shape[1]], dtype=tf.float32)
+        ys = tf.concat([sos, tf.cast(tf.argmax(logits, axis=-1), dtype=tf.int32)], axis=1)
+        # Create padding mask for refined target input maskes all behind EOS token as False
+        # (N, 1, 1, max_length)
+        target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=1, reverse=False)
+        target_pad_mask = tf.logical_not(tf.cast(target_pad_mask[:, tf.newaxis, tf.newaxis, :], dtype=tf.bool))
+        mask = tf.math.logical_and(target_pad_mask, query_mask[:, : ys.shape[1]])
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
-        return logits
+        return logits  # (N, max_length, vocab_size + 1)
 
     @staticmethod
     def compute_loss(
@@ -366,12 +375,12 @@ class PARSeq(_PARSeq, Model):
 
             for perm in tgt_perms:
                 # Generate attention masks for the permutations
-                _, target_mask = self.generate_permutation_attention_masks(perm)
+                _, target_mask = self.generate_permutations_attention_masks(perm)
                 # combine target padding mask and query mask
-                mask = tf.cast(target_mask & padding_mask, dtype=tf.int32)
+                mask = tf.math.logical_and(target_mask, padding_mask)
                 logits = self.head(self.decode(gt, features, mask))
         else:
-            logits = self.decode_predictions(features)
+            logits = self.decode_autoregressive(features)
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
