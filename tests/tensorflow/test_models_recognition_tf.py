@@ -167,6 +167,7 @@ def test_recognition_zoo_error():
         ["crnn_vgg16_bn", (32, 128, 3)],
         ["crnn_mobilenet_v3_small", (32, 128, 3)],
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
+        ["vitstr_small", (32, 128, 3)],  # testing one vitstr version is enough
         pytest.param(
             "sar_resnet31",
             (32, 128, 3),
@@ -175,8 +176,11 @@ def test_recognition_zoo_error():
         pytest.param(
             "master", (32, 128, 3), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
         ),
-        ["vitstr_small", (32, 128, 3)],  # testing one vitstr version is enough
-        ["parseq", (32, 128, 3)],
+        pytest.param(
+            "parseq",
+            (32, 128, 3),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):

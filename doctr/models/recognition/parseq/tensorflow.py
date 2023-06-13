@@ -134,7 +134,7 @@ class PARSeq(_PARSeq, Model):
         vocab: str,
         embedding_units: int,
         max_length: int = 32,  # different from paper
-        dropout_prob: int = 0.1,
+        dropout_prob: float = 0.1,
         dec_num_heads: int = 12,
         dec_ff_dim: int = 2048,
         dec_ffd_ratio: int = 4,
@@ -186,24 +186,24 @@ class PARSeq(_PARSeq, Model):
             perm_pool = tf.convert_to_tensor([perm_pool_candidates[i] for i in selector])
             # If the forward permutation is always selected, no need to add it to the pool for sampling
             perm_pool = perm_pool[1:]
-            perms = tf.stack(perms)
+            final_perms = tf.stack(perms)
             if len(perm_pool):
-                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(perms), replace=False)
-                perms = tf.concat([perms, perm_pool[i[0] : i[1]]], axis=0)
+                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(final_perms), replace=False)
+                final_perms = tf.concat([final_perms, perm_pool[i[0] : i[1]]], axis=0)
         else:
             perms.extend(
                 [tf.random.shuffle(tf.range(max_num_chars, dtype=tf.int32)) for _ in range(num_gen_perms - len(perms))]
             )
-            perms = tf.stack(perms)
+            final_perms = tf.stack(perms)
 
-        comp = tf.reverse(perms, axis=[-1])
-        perms = tf.stack([perms, comp])
-        perms = tf.transpose(perms, perm=[1, 0, 2])
-        perms = tf.reshape(perms, shape=(-1, max_num_chars))
+        comp = tf.reverse(final_perms, axis=[-1])
+        final_perms = tf.stack([final_perms, comp])
+        final_perms = tf.transpose(final_perms, perm=[1, 0, 2])
+        final_perms = tf.reshape(final_perms, shape=(-1, max_num_chars))
 
-        sos_idx = tf.zeros([tf.shape(perms)[0], 1], dtype=tf.int32)
-        eos_idx = tf.fill([tf.shape(perms)[0], 1], max_num_chars + 1)
-        combined = tf.concat([sos_idx, perms + 1, eos_idx], axis=1)
+        sos_idx = tf.zeros([tf.shape(final_perms)[0], 1], dtype=tf.int32)
+        eos_idx = tf.fill([tf.shape(final_perms)[0], 1], max_num_chars + 1)
+        combined = tf.concat([sos_idx, final_perms + 1, eos_idx], axis=1)
         combined = tf.cast(combined, dtype=tf.int32)
         if tf.shape(combined)[0] > 1:
             combined = tf.tensor_scatter_nd_update(
@@ -255,7 +255,7 @@ class PARSeq(_PARSeq, Model):
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
     @tf.function
-    def decode_autoregressive(self, features):
+    def decode_autoregressive(self, features: tf.Tensor) -> tf.Tensor:
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
         b = tf.shape(features)[0]
@@ -267,7 +267,7 @@ class PARSeq(_PARSeq, Model):
             tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1)), -1, 0), dtype=tf.bool
         )
 
-        logits = []
+        pos_logits = []
         for i in range(self.max_length):
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
@@ -277,7 +277,7 @@ class PARSeq(_PARSeq, Model):
                 target_query=pos_queries[:, i : i + 1],
             )
             pos_prob = self.head(tgt_out)
-            logits.append(pos_prob)
+            pos_logits.append(pos_prob)
 
             if i + 1 < self.max_length:
                 # update ys with the next token
@@ -292,7 +292,7 @@ class PARSeq(_PARSeq, Model):
                 if tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True:
                     break
 
-        logits = tf.concat(logits, axis=1)  # (N, max_length, vocab_size + 1)
+        logits = tf.concat(pos_logits, axis=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
