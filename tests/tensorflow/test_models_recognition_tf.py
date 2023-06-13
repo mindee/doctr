@@ -4,6 +4,7 @@ import tempfile
 
 import numpy as np
 import onnxruntime
+import psutil
 import pytest
 import tensorflow as tf
 
@@ -18,6 +19,8 @@ from doctr.models.recognition.sar.tensorflow import SARPostProcessor
 from doctr.models.recognition.vitstr.tensorflow import ViTSTRPostProcessor
 from doctr.models.utils import export_model_to_onnx
 from doctr.utils.geometry import extract_crops
+
+system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
@@ -158,15 +161,20 @@ def test_recognition_zoo_error():
         _ = recognition.zoo.recognition_predictor("my_fancy_model", pretrained=False)
 
 
-@pytest.mark.skipif(os.getenv("SLOW", "0") == "0", reason="slow test")
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
         ["crnn_vgg16_bn", (32, 128, 3)],
         ["crnn_mobilenet_v3_small", (32, 128, 3)],
         ["crnn_mobilenet_v3_large", (32, 128, 3)],
-        ["sar_resnet31", (32, 128, 3)],
-        ["master", (32, 128, 3)],
+        pytest.param(
+            "sar_resnet31",
+            (32, 128, 3),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "master", (32, 128, 3), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
+        ),
         ["vitstr_small", (32, 128, 3)],  # testing one vitstr version is enough
         ["parseq", (32, 128, 3)],
     ],

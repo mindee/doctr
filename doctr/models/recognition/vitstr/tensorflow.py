@@ -130,7 +130,9 @@ class ViTSTR(_ViTSTR, Model):
         # (batch_size, max_length + 1, d_model)
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
-        logits = tf.reshape(self.head(features), (B, N, len(self.vocab) + 3))  # (batch_size, max_length + 1, vocab + 3)
+        logits = tf.reshape(
+            self.head(features, **kwargs), (B, N, len(self.vocab) + 3)
+        )  # (batch_size, max_length + 1, vocab + 3)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
@@ -184,25 +186,28 @@ def _vitstr(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    pretrained_backbone: bool = False,  # NOTE: training from scratch without a pretrained backbone works better
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> ViTSTR:
-    pretrained_backbone = pretrained_backbone and not pretrained
-
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
+    patch_size = kwargs.get("patch_size", (4, 8))
 
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
     feat_extractor = backbone_fn(
-        pretrained=pretrained_backbone,
+        # NOTE: we don't use a pretrained backbone for non-rectangular patches to avoid the pos embed mismatch
+        pretrained=False,
         input_shape=_cfg["input_shape"],
+        patch_size=patch_size,
         include_top=False,
     )
+
+    kwargs.pop("patch_size", None)
+    kwargs.pop("pretrained_backbone", None)
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
@@ -235,6 +240,7 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         pretrained,
         vit_s,
         embedding_units=384,
+        patch_size=(4, 8),
         **kwargs,
     )
 
@@ -261,5 +267,6 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
         pretrained,
         vit_b,
         embedding_units=768,
+        patch_size=(4, 8),
         **kwargs,
     )

@@ -116,7 +116,6 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
         output_names=["logits"],
         dynamic_axes={"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
         export_params=True,
-        opset_version=14,  # minimum opset which support all operators we use (v0.5.2)
         verbose=False,
         **kwargs,
     )

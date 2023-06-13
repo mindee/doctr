@@ -31,8 +31,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
     "db_resnet34": {
         "input_shape": (3, 1024, 1024),
-        "mean": (0.5, 0.5, 0.5),
-        "std": (1.0, 1.0, 1.0),
+        "mean": (0.798, 0.785, 0.772),
+        "std": (0.264, 0.2749, 0.287),
         "url": None,
     },
     "db_mobilenet_v3_large": {

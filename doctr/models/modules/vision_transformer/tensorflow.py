@@ -17,15 +17,13 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(layers.Layer, NestedObject):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int) -> None:
+    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Tuple[int, int]) -> None:
         super().__init__()
         height, width, _ = input_shape
-        # calculate patch size
-        # NOTE: this is different from the original implementation
-        self.patch_size = (height // (height // 8), width // (width // 8))
-
-        self.grid_size = (self.patch_size[0], self.patch_size[1])
-        self.num_patches = self.patch_size[0] * self.patch_size[1]
+        self.patch_size = patch_size
+        self.interpolate = True if patch_size[0] == patch_size[1] else False
+        self.grid_size = tuple([s // p for s, p in zip((height, width), self.patch_size)])
+        self.num_patches = self.grid_size[0] * self.grid_size[1]
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")
         self.positions = self.add_weight(
@@ -34,7 +32,17 @@ class PatchEmbedding(layers.Layer, NestedObject):
             trainable=True,
             name="positions",
         )
-        self.proj = layers.Dense(embed_dim, kernel_initializer="he_normal", name="projection")
+        self.projection = layers.Conv2D(
+            filters=embed_dim,
+            kernel_size=self.patch_size,
+            strides=self.patch_size,
+            padding="valid",
+            data_format="channels_last",
+            use_bias=True,
+            kernel_initializer="glorot_uniform",
+            bias_initializer="zeros",
+            name="projection",
+        )
 
     def interpolate_pos_encoding(self, embeddings: tf.Tensor, height: int, width: int) -> tf.Tensor:
         """
@@ -78,22 +86,17 @@ class PatchEmbedding(layers.Layer, NestedObject):
         B, H, W, C = x.shape
         assert H % self.patch_size[0] == 0, "Image height must be divisible by patch height"
         assert W % self.patch_size[1] == 0, "Image width must be divisible by patch width"
-        # patchify image without convolution
-        # adapted from:
-        # https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial15/Vision_Transformer.html
-        # NOTE: tf.image.extract_patches has no ONNX support and Conv2D with padding=valid consumes to much memory
-        patches = tf.reshape(
-            x, (B, H // self.patch_size[0], self.patch_size[0], W // self.patch_size[1], self.patch_size[1], C)
-        )
-        patches = tf.transpose(a=patches, perm=(0, 1, 3, 2, 4, 5))
-        # (B, H', W', C, ph, pw) -> (B, H'*W', C*ph*pw)
-        patches = tf.reshape(tensor=patches, shape=(B, -1, self.patch_size[0] * self.patch_size[1] * C))
-        patches = self.proj(patches, **kwargs)  # (batch_size, num_patches, d_model)
+        # patchify image
+        patches = self.projection(x, **kwargs)  # (batch_size, num_patches, d_model)
+        patches = tf.reshape(patches, (B, self.num_patches, -1))  # (batch_size, num_patches, d_model)
 
         cls_tokens = tf.repeat(self.cls_token, B, axis=0)  # (batch_size, 1, d_model)
         # concate cls_tokens to patches
         embeddings = tf.concat([cls_tokens, patches], axis=1)  # (batch_size, num_patches + 1, d_model)
         # add positions to embeddings
-        embeddings += self.interpolate_pos_encoding(embeddings, H, W)  # (batch_size, num_patches + 1, d_model)
+        if self.interpolate:
+            embeddings += self.interpolate_pos_encoding(embeddings, H, W)
+        else:
+            embeddings += self.positions
 
-        return embeddings
+        return embeddings  # (batch_size, num_patches + 1, d_model)

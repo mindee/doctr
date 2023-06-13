@@ -3,6 +3,7 @@ import tempfile
 
 import numpy as np
 import onnxruntime
+import psutil
 import pytest
 import tensorflow as tf
 
@@ -13,6 +14,8 @@ from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import export_model_to_onnx
+
+system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
@@ -166,11 +169,26 @@ def test_dilate():
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
-        ["db_resnet50", (512, 512, 3), (512, 512, 1)],
         ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1)],
         ["linknet_resnet18", (1024, 1024, 3), (1024, 1024, 1)],
-        ["linknet_resnet34", (1024, 1024, 3), (1024, 1024, 1)],
-        ["linknet_resnet50", (512, 512, 3), (512, 512, 1)],
+        pytest.param(
+            "db_resnet50",
+            (512, 512, 3),
+            (512, 512, 1),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "linknet_resnet34",
+            (1024, 1024, 3),
+            (1024, 1024, 1),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "linknet_resnet50",
+            (512, 512, 3),
+            (512, 512, 1),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

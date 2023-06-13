@@ -26,14 +26,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_s-7a23bea4.zip&src=0",
+        "url": None,
     },
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.5.1/vit_b-983c86b5.zip&src=0",
+        "url": None,
     },
 }
 
@@ -65,6 +65,7 @@ class VisionTransformer(Sequential):
         num_layers: number of transformer layers
         num_heads: number of attention heads
         ffd_ratio: multiplier for the hidden dimension of the feedforward layer
+        patch_size: size of the patches
         input_shape: size of the input image
         dropout: dropout rate
         num_classes: number of output classes
@@ -77,6 +78,7 @@ class VisionTransformer(Sequential):
         num_layers: int,
         num_heads: int,
         ffd_ratio: int,
+        patch_size: Tuple[int, int] = (4, 4),
         input_shape: Tuple[int, int, int] = (32, 32, 3),
         dropout: float = 0.0,
         num_classes: int = 1000,
@@ -84,7 +86,7 @@ class VisionTransformer(Sequential):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         _layers = [
-            PatchEmbedding(input_shape, d_model),
+            PatchEmbedding(input_shape, d_model, patch_size),
             EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, activation_fct=GELU()),
         ]
         if include_top:

@@ -433,25 +433,28 @@ def _parseq(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    pretrained_backbone: bool = True,
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> PARSeq:
-    pretrained_backbone = pretrained_backbone and not pretrained
-
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
     _cfg["vocab"] = kwargs.get("vocab", _cfg["vocab"])
+    patch_size = kwargs.get("patch_size", (4, 8))
 
     kwargs["vocab"] = _cfg["vocab"]
 
     # Feature extractor
     feat_extractor = backbone_fn(
-        pretrained=pretrained_backbone,
+        # NOTE: we don't use a pretrained backbone for non-rectangular patches to avoid the pos embed mismatch
+        pretrained=False,
         input_shape=_cfg["input_shape"],
+        patch_size=patch_size,
         include_top=False,
     )
+
+    kwargs.pop("patch_size", None)
+    kwargs.pop("pretrained_backbone", None)
 
     # Build the model
     model = PARSeq(feat_extractor, cfg=_cfg, **kwargs)
@@ -484,5 +487,6 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         pretrained,
         vit_s,
         embedding_units=384,
+        patch_size=(4, 8),
         **kwargs,
     )
