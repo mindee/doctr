@@ -19,19 +19,19 @@ __all__ = ["vit_s", "vit_b"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "vit_b": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (3, 32, 32),
-        "classes": list(VOCABS["french"]),
-        "url": None,
-    },
     "vit_s": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.6.0/vit_s-5d05442d.pt",
+    },
+    "vit_b": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 32),
+        "classes": list(VOCABS["french"]),
+        "url": "https://github.com/mindee/doctr/releases/download/v0.6.0/vit_b-0fbef167.pt",
     },
 }
 
