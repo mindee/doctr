@@ -129,7 +129,7 @@ class PARSeq(_PARSeq, nn.Module):
         vocab: str,
         embedding_units: int,
         max_length: int = 32,  # different from the paper
-        dropout_prob: int = 0.1,
+        dropout_prob: float = 0.1,
         dec_num_heads: int = 12,
         dec_ff_dim: int = 2048,
         dec_ffd_ratio: int = 4,
@@ -177,7 +177,7 @@ class PARSeq(_PARSeq, nn.Module):
         # Borrowed from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py
         # with small modifications
 
-        max_num_chars = seqlen.max().item()  # get longest sequence length in batch
+        max_num_chars = int(seqlen.max().item())  # get longest sequence length in batch
         perms = [torch.arange(max_num_chars, device=seqlen.device)]
 
         max_perms = math.factorial(max_num_chars) // 2
@@ -194,22 +194,22 @@ class PARSeq(_PARSeq, nn.Module):
             ]
             # If the forward permutation is always selected, no need to add it to the pool for sampling
             perm_pool = perm_pool[1:]
-            perms = torch.stack(perms)
+            final_perms = torch.stack(perms)
             if len(perm_pool):
-                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(perms), replace=False)
-                perms = torch.cat([perms, perm_pool[i]])
+                i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(final_perms), replace=False)
+                final_perms = torch.cat([final_perms, perm_pool[i]])
         else:
             perms.extend(
                 [torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))]
             )
-            perms = torch.stack(perms)
+            final_perms = torch.stack(perms)
 
-        comp = perms.flip(-1)
-        perms = torch.stack([perms, comp]).transpose(0, 1).reshape(-1, max_num_chars)
+        comp = final_perms.flip(-1)
+        final_perms = torch.stack([final_perms, comp]).transpose(0, 1).reshape(-1, max_num_chars)
 
-        sos_idx = torch.zeros(len(perms), 1, device=perms.device)
-        eos_idx = torch.full((len(perms), 1), max_num_chars + 1, device=perms.device)
-        combined = torch.cat([sos_idx, perms + 1, eos_idx], dim=1).int()
+        sos_idx = torch.zeros(len(final_perms), 1, device=seqlen.device)
+        eos_idx = torch.full((len(final_perms), 1), max_num_chars + 1, device=seqlen.device)
+        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()
         if len(combined) > 1:
             combined[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=seqlen.device)
         # we pad to max length with eos idx to fit the mask generation
@@ -266,7 +266,7 @@ class PARSeq(_PARSeq, nn.Module):
             )
         ).int()
 
-        logits = []
+        pos_logits = []
         for i in range(self.max_length):
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
@@ -276,7 +276,7 @@ class PARSeq(_PARSeq, nn.Module):
                 target_query=pos_queries[:, i : i + 1],
             )
             pos_prob = self.head(tgt_out)
-            logits.append(pos_prob)
+            pos_logits.append(pos_prob)
 
             if i + 1 < self.max_length:
                 # Update with the next token
@@ -286,7 +286,7 @@ class PARSeq(_PARSeq, nn.Module):
                 if (ys == self.vocab_size).any(dim=-1).all():
                     break
 
-        logits = torch.cat(logits, dim=1)  # (N, max_length, vocab_size + 1)
+        logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
