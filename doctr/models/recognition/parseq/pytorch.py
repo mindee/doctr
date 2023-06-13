@@ -197,7 +197,7 @@ class PARSeq(_PARSeq, nn.Module):
             final_perms = torch.stack(perms)
             if len(perm_pool):
                 i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(final_perms), replace=False)
-                final_perms = torch.cat([final_perms, perm_pool[i]])
+                final_perms = torch.cat([final_perms, perm_pool[i]])  # type: ignore[index]
         else:
             perms.extend(
                 [torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))]
