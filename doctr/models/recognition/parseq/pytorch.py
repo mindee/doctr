@@ -358,7 +358,7 @@ class PARSeq(_PARSeq, nn.Module):
             out["preds"] = self.postprocessor(logits)
 
         if target is not None:
-            out["loss"] = self.compute_loss(logits, gt, seq_len)
+            out["loss"] = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
 
         return out
 
@@ -367,6 +367,7 @@ class PARSeq(_PARSeq, nn.Module):
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,
+        ignore_index: int = -100,
     ) -> torch.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -375,6 +376,7 @@ class PARSeq(_PARSeq, nn.Module):
             model_output: predicted logits of the model
             gt: the encoded tensor with gt labels
             seq_len: lengths of each gt word inside the batch
+            ignore_index: index to ignore in the loss
 
         Returns:
             The loss of the model on the batch
@@ -385,7 +387,9 @@ class PARSeq(_PARSeq, nn.Module):
         seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
+        cce = F.cross_entropy(
+            model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none", ignore_index=ignore_index
+        )
         # Compute mask, remove 1 timestep here as well
         mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
