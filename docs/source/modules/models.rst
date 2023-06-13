@@ -77,7 +77,6 @@ doctr.models.recognition
 
 .. autofunction:: doctr.models.recognition.recognition_predictor
 
-.. autofunction:: doctr.models.recogntion.parseq
 
 doctr.models.zoo
 ----------------
