@@ -491,4 +491,3 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
         ignore_keys=["embed.embedding.weight", "head.weight", "head.bias"],
         **kwargs,
     )
-
