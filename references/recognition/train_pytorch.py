@@ -127,7 +127,6 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
             scaler.update()
         else:
             train_loss = model(images, targets)["loss"]
-
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
