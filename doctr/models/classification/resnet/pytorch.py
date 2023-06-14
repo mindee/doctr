@@ -55,7 +55,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/resnet34_wide-b4b3e39e.pt&src=0",
     },
 }
 
