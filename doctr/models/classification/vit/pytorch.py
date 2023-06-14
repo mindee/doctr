@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.6.0/vit_s-5d05442d.pt",
+        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/vit_s-5d05442d.pt&src=0",
     },
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
