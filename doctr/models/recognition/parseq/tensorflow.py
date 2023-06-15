@@ -299,7 +299,7 @@ class PARSeq(_PARSeq, Model):
         query_mask = tf.cast(1 - tf.linalg.diag(tf.ones(self.max_length, dtype=tf.int32), k=-1), dtype=tf.bool)
 
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
-        ys = tf.concat([sos, tf.cast(tf.argmax(logits, axis=-1), dtype=tf.int32)], axis=1)
+        ys = tf.concat([sos, tf.cast(tf.argmax(logits[:, :-1], axis=-1), dtype=tf.int32)], axis=1)
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
         target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=1, reverse=False)
@@ -308,6 +308,13 @@ class PARSeq(_PARSeq, Model):
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits  # (N, max_length, vocab_size + 1)
+
+    @tf.function
+    def decode_non_autoregressive(self, features: tf.Tensor) -> tf.Tensor:
+        """Decode the given features at once"""
+        pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [tf.shape(features)[0], 1, 1])
+        ys = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
+        return self.head(self.decode(ys, features, target_query=pos_queries))[:, : self.max_length]
 
     @staticmethod
     def compute_loss(
@@ -366,19 +373,23 @@ class PARSeq(_PARSeq, Model):
             gt, seq_len = self.build_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
 
-            # Generate permutations of the target sequences
-            tgt_perms = self.generate_permutations(seq_len)
+            if kwargs.get("training", False):
+                # Generate permutations of the target sequences
+                tgt_perms = self.generate_permutations(seq_len)
 
-            # Create padding mask for target input
-            # [True, True, True, ..., False, False, False] -> False is masked
-            padding_mask = ((gt != self.vocab_size + 2) | (gt != self.vocab_size))[:, tf.newaxis, tf.newaxis, :]
+                # Create padding mask for target input
+                # [True, True, True, ..., False, False, False] -> False is masked
+                padding_mask = ((gt != self.vocab_size + 2) | (gt != self.vocab_size))[:, tf.newaxis, tf.newaxis, :]
 
-            for perm in tgt_perms:
-                # Generate attention masks for the permutations
-                _, target_mask = self.generate_permutations_attention_masks(perm)
-                # combine target padding mask and query mask
-                mask = tf.math.logical_and(target_mask, padding_mask)
-                logits = self.head(self.decode(gt, features, mask))
+                for perm in tgt_perms:
+                    # Generate attention masks for the permutations
+                    _, target_mask = self.generate_permutations_attention_masks(perm)
+                    # combine target padding mask and query mask
+                    mask = tf.math.logical_and(target_mask, padding_mask)
+                    logits = self.head(self.decode(gt, features, mask))
+            else:
+                # eval step - use non-autoregressive decoding while training evaluation
+                logits = self.decode_non_autoregressive(features)
         else:
             logits = self.decode_autoregressive(features)
 

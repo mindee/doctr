@@ -34,7 +34,6 @@ class _ViTSTR:
             target_size=self.max_length,
             eos=len(self.vocab),
             sos=len(self.vocab) + 1,
-            pad=len(self.vocab) + 2,
         )
         seq_len = [len(word) for word in gts]
         return encoded, seq_len
@@ -52,4 +51,4 @@ class _ViTSTRPostProcessor(RecognitionPostProcessor):
         vocab: str,
     ) -> None:
         super().__init__(vocab)
-        self._embedding = list(vocab) + ["<eos>", "<sos>", "<pad>"]
+        self._embedding = list(vocab) + ["<eos>", "<sos>"]
