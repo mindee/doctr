@@ -150,7 +150,7 @@ class PARSeq(_PARSeq, nn.Module):
         self.head = nn.Linear(embedding_units, self.vocab_size + 1)  # +1 for EOS
         self.embed = CharEmbedding(self.vocab_size + 3, embedding_units)  # +3 for SOS, EOS, PAD
 
-        self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length + 1, embedding_units))  # +1 for SOS
+        self.pos_queries = nn.Parameter(torch.Tensor(1, self.max_length + 1, embedding_units))  # +1 for EOS
         self.dropout = nn.Dropout(p=dropout_prob)
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
@@ -214,7 +214,7 @@ class PARSeq(_PARSeq, nn.Module):
             combined[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=seqlen.device)
         # we pad to max length with eos idx to fit the mask generation
         return F.pad(
-            combined, (0, self.max_length + 1 - combined.shape[-1]), value=max_num_chars + 2
+            combined, (0, self.max_length + 1 - combined.shape[-1]), value=max_num_chars + 1
         )  # (num_perms, self.max_length + 1)
 
     def generate_permutations_attention_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -298,7 +298,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         # Prepare target input for 1 refine iteration
         sos = torch.full((features.size(0), 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
-        ys = torch.cat([sos, logits.argmax(-1)], dim=1)
+        ys = torch.cat([sos, logits[:, :-1].argmax(-1)], dim=1)
 
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
@@ -307,6 +307,12 @@ class PARSeq(_PARSeq, nn.Module):
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits  # (N, max_length, vocab_size + 1)
+
+    def decode_non_autoregressive(self, features: torch.Tensor) -> torch.Tensor:
+        """Decode the given features at once"""
+        pos_queries = self.pos_queries[:, : self.max_length + 1].expand(features.size(0), -1, -1)
+        ys = torch.full((features.shape[0], 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
+        return self.head(self.decode(ys, features, target_query=pos_queries))[:, : self.max_length]
 
     def forward(
         self,
@@ -327,21 +333,25 @@ class PARSeq(_PARSeq, nn.Module):
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long).to(x.device), torch.tensor(_seq_len).to(x.device)
 
-            # Generate permutations for the target sequences
-            tgt_perms = self.generate_permutations(seq_len)
+            if self.training:
+                # Generate permutations for the target sequences
+                tgt_perms = self.generate_permutations(seq_len)
 
-            # Create padding mask for target input
-            # [True, True, True, ..., False, False, False] -> False is masked
-            padding_mask = (
-                ((gt != self.vocab_size + 2) | (gt != self.vocab_size)).unsqueeze(1).unsqueeze(1)
-            )  # (N, 1, 1, max_length)
+                # Create padding mask for target input
+                # [True, True, True, ..., False, False, False] -> False is masked
+                padding_mask = (
+                    ((gt != self.vocab_size + 2) | (gt != self.vocab_size)).unsqueeze(1).unsqueeze(1)
+                )  # (N, 1, 1, max_length)
 
-            for perm in tgt_perms:
-                # Generate attention masks for the permutations
-                _, target_mask = self.generate_permutations_attention_masks(perm)
-                # combine target padding mask and query mask
-                mask = (target_mask & padding_mask).int()
-                logits = self.head(self.decode(gt, features, mask))  # (N, max_length, vocab_size + 1)
+                for perm in tgt_perms:
+                    # Generate attention masks for the permutations
+                    _, target_mask = self.generate_permutations_attention_masks(perm)
+                    # combine target padding mask and query mask
+                    mask = (target_mask & padding_mask).int()
+                    logits = self.head(self.decode(gt, features, mask))  # (N, max_length, vocab_size + 1)
+            else:
+                # eval step - use non-autoregressive decoding while training evaluation
+                logits = self.decode_non_autoregressive(features)
         else:
             logits = self.decode_autoregressive(features)
 

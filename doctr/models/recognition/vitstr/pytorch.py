@@ -57,7 +57,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         feature_extractor,
         vocab: str,
         embedding_units: int,
-        max_length: int = 25,
+        max_length: int = 32,  # different from paper
         input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from paper
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -66,11 +66,10 @@ class ViTSTR(_ViTSTR, nn.Module):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        # NOTE: different from paper, who uses eos also as pad token
-        self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
+        self.max_length = max_length + 2  # +2 for SOS and EOS
 
         self.feat_extractor = feature_extractor
-        self.head = nn.Linear(embedding_units, len(self.vocab) + 3)
+        self.head = nn.Linear(embedding_units, len(self.vocab) + 1)  # +1 for EOS
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
@@ -92,11 +91,10 @@ class ViTSTR(_ViTSTR, nn.Module):
             raise ValueError("Need to provide labels during training")
 
         # borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py
-        features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # (batch_size, max_length + 1, d_model)
+        features = features[:, : self.max_length]  # (batch_size, max_length, d_model)
         B, N, E = features.size()
         features = features.reshape(B * N, E)
-        logits = self.head(features).view(B, N, len(self.vocab) + 3)  # (batch_size, max_length + 1, vocab + 3)
+        logits = self.head(features).view(B, N, len(self.vocab) + 1)  # (batch_size, max_length, vocab + 1)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, Any] = {}
@@ -138,10 +136,10 @@ class ViTSTR(_ViTSTR, nn.Module):
         # Add one for additional <eos> token (sos disappear in shift!)
         seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
-        # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
+        # The "masked" first gt char is <sos>.
+        cce = F.cross_entropy(model_output.permute(0, 2, 1), gt[:, 1:], reduction="none")
         # Compute mask, remove 1 timestep here as well
-        mask_2d = torch.arange(input_len - 1, device=model_output.device)[None, :] >= seq_len[:, None]
+        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
 
         ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
