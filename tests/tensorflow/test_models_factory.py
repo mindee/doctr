@@ -45,6 +45,7 @@ def test_push_to_hf_hub():
         ["sar_resnet31", "recognition", "Felix92/doctr-dummy-tf-sar-resnet31"],
         ["master", "recognition", "Felix92/doctr-dummy-tf-master"],
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-tf-vitstr-small"],
+        ["parseq", "recognition", "Felix92/doctr-dummy-tf-parseq"],
     ],
 )
 def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):

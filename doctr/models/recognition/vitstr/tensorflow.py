@@ -57,7 +57,7 @@ class ViTSTR(_ViTSTR, Model):
         feature_extractor,
         vocab: str,
         embedding_units: int,
-        max_length: int = 25,
+        max_length: int = 32,
         dropout_prob: float = 0.0,
         input_shape: Tuple[int, int, int] = (32, 128, 3),  # different from paper
         exportable: bool = False,
@@ -67,11 +67,10 @@ class ViTSTR(_ViTSTR, Model):
         self.vocab = vocab
         self.exportable = exportable
         self.cfg = cfg
-        # NOTE: different from paper, who uses eos also as pad token
-        self.max_length = max_length + 3  # Add 1 step for EOS, 1 for SOS, 1 for PAD
+        self.max_length = max_length + 2  # +2 for SOS and EOS
 
         self.feat_extractor = feature_extractor
-        self.head = layers.Dense(len(self.vocab) + 3, name="head")
+        self.head = layers.Dense(len(self.vocab) + 1, name="head")  # +1 for EOS
 
         self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
 
@@ -99,11 +98,11 @@ class ViTSTR(_ViTSTR, Model):
         # One-hot gt labels
         oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
-        # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:, :], model_output[:, :-1, :])
+        # The "masked" first gt char is <sos>.
+        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:, :], model_output)
         # Compute mask
         mask_values = tf.zeros_like(cce)
-        mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
+        mask_2d = tf.sequence_mask(seq_len, input_len)
         masked_loss = tf.where(mask_2d, cce, mask_values)
         ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
 
@@ -126,13 +125,12 @@ class ViTSTR(_ViTSTR, Model):
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training")
 
-        features = features[:, : self.max_length + 1]  # add 1 for unused cls token (ViT)
-        # (batch_size, max_length + 1, d_model)
+        features = features[:, : self.max_length]  # (batch_size, max_length, d_model)
         B, N, E = features.shape
         features = tf.reshape(features, (B * N, E))
         logits = tf.reshape(
-            self.head(features, **kwargs), (B, N, len(self.vocab) + 3)
-        )  # (batch_size, max_length + 1, vocab + 3)
+            self.head(features, **kwargs), (B, N, len(self.vocab) + 1)
+        )  # (batch_size, max_length, vocab + 1)
         decoded_features = logits[:, 1:]  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
