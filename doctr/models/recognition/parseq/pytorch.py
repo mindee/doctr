@@ -332,8 +332,8 @@ class PARSeq(_PARSeq, nn.Module):
                 padding_mask = (
                     ((gt != self.vocab_size + 2) | (gt != self.vocab_size)).unsqueeze(1).unsqueeze(1)
                 )  # (N, 1, 1, max_length)
-
-                for perm in tgt_perms:
+                
+                for i,perm in enumerate(tgt_perms):
                     # Generate attention masks for the permutations
                     _, target_mask = self.generate_permutations_attention_masks(perm)
                     # combine target padding mask and query mask
@@ -343,11 +343,15 @@ class PARSeq(_PARSeq, nn.Module):
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
                         loss += self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                    if i == 1:
+                        gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
+
                 loss = loss / len(tgt_perms)
             else:
                 logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
-                loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                 gt = gt[:, : logits.shape[1]]
+                loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                
         else:
             logits = self.decode_autoregressive(features)
 
