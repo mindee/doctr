@@ -251,23 +251,23 @@ class PARSeq(_PARSeq, nn.Module):
         target_query = self.dropout(target_query)
         return self.decoder(target_query, content, memory, target_mask)
 
-    def decode_autoregressive(self, features: torch.Tensor) -> torch.Tensor:
+    def decode_autoregressive(self, features: torch.Tensor, max_len: Optional[int] = None) -> torch.Tensor:
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
+        max_length = max_len if max_len is not None else self.max_length
+        max_length = min(max_length, self.max_length) + 1
         ys = torch.full(
-            (features.size(0), self.max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
+            (features.size(0), max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
         )  # pad
         ys[:, 0] = self.vocab_size + 1  # SOS token
-        pos_queries = self.pos_queries[:, : self.max_length + 1].expand(features.size(0), -1, -1)
+        pos_queries = self.pos_queries[:, :max_length].expand(features.size(0), -1, -1)
         # Create query mask for the decoder attention
         query_mask = (
-            torch.tril(torch.ones((self.max_length + 1, self.max_length + 1), device=features.device), diagonal=0).to(
-                dtype=torch.bool
-            )
+            torch.tril(torch.ones((max_length, max_length), device=features.device), diagonal=0).to(dtype=torch.bool)
         ).int()
 
         pos_logits = []
-        for i in range(self.max_length):
+        for i in range(max_length):
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
                 ys[:, : i + 1],
@@ -278,23 +278,19 @@ class PARSeq(_PARSeq, nn.Module):
             pos_prob = self.head(tgt_out)
             pos_logits.append(pos_prob)
 
-            if i + 1 < self.max_length:
+            if i + 1 < max_length:
                 # Update with the next token
                 ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
 
                 # Stop decoding if all sequences have reached the EOS token
-                if (ys == self.vocab_size).any(dim=-1).all():
+                if max_len is not None and (ys == self.vocab_size).any(dim=-1).all():
                     break
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
-        query_mask[
-            torch.triu(
-                torch.ones(self.max_length + 1, self.max_length + 1, dtype=torch.bool, device=features.device), 2
-            )
-        ] = 1
+        query_mask[torch.triu(torch.ones(max_length, max_length, dtype=torch.bool, device=features.device), 2)] = 1
 
         # Prepare target input for 1 refine iteration
         sos = torch.full((features.size(0), 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
@@ -307,12 +303,6 @@ class PARSeq(_PARSeq, nn.Module):
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits  # (N, max_length, vocab_size + 1)
-
-    def decode_non_autoregressive(self, features: torch.Tensor) -> torch.Tensor:
-        """Decode the given features at once"""
-        pos_queries = self.pos_queries[:, : self.max_length + 1].expand(features.size(0), -1, -1)
-        ys = torch.full((features.shape[0], 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
-        return self.head(self.decode(ys, features, target_query=pos_queries))[:, : self.max_length]
 
     def forward(
         self,
@@ -350,8 +340,8 @@ class PARSeq(_PARSeq, nn.Module):
                     mask = (target_mask & padding_mask).int()
                     logits = self.head(self.decode(gt, features, mask))  # (N, max_length, vocab_size + 1)
             else:
-                # eval step - use non-autoregressive decoding while training evaluation
-                logits = self.decode_non_autoregressive(features)
+                logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
+                gt = gt[:, : logits.shape[1]]
         else:
             logits = self.decode_autoregressive(features)
 
