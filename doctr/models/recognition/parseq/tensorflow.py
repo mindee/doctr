@@ -255,20 +255,21 @@ class PARSeq(_PARSeq, Model):
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
     @tf.function
-    def decode_autoregressive(self, features: tf.Tensor) -> tf.Tensor:
+
+    def decode_autoregressive(self, features: tf.Tensor, max_len: Optional[int] = None) -> tf.Tensor:
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
+        max_length = max_len if max_len is not None else self.max_length
+        max_length = min(max_length, self.max_length) + 1
         b = tf.shape(features)[0]
-        ys = tf.fill(dims=(b, self.max_length), value=self.vocab_size + 2)
+        ys = tf.fill(dims=(b, max_length), value=self.vocab_size + 2)
         start_vector = tf.fill(dims=(b, 1), value=self.vocab_size + 1)
         ys = tf.concat([start_vector, ys], axis=-1)
-        pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [b, 1, 1])
-        query_mask = tf.cast(
-            tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1)), -1, 0), dtype=tf.bool
-        )
+        pos_queries = tf.tile(self.pos_queries[:, :max_length], [b, 1, 1])
+        query_mask = tf.cast(tf.linalg.band_part(tf.ones((max_length, max_length)), -1, 0), dtype=tf.bool)
 
         pos_logits = []
-        for i in range(self.max_length):
+        for i in range(max_length):
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
                 ys[:, : i + 1],
@@ -279,9 +280,9 @@ class PARSeq(_PARSeq, Model):
             pos_prob = self.head(tgt_out)
             pos_logits.append(pos_prob)
 
-            if i + 1 < self.max_length:
+            if i + 1 < max_length:
                 # update ys with the next token
-                i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing="ij")
+                i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(max_length), indexing="ij")
                 indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
                 ys = tf.tensor_scatter_nd_update(
                     ys, indices, tf.cast(tf.argmax(pos_prob[:, -1, :], axis=-1), dtype=tf.int32)
@@ -289,32 +290,29 @@ class PARSeq(_PARSeq, Model):
 
                 # Stop decoding if all sequences have reached the EOS token
                 # We need to check it on True to be compatible with ONNX
-                if tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True:
+                if (
+                    max_len is not None
+                    and tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True
+                ):
                     break
 
         logits = tf.concat(pos_logits, axis=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
-        query_mask = tf.cast(1 - tf.linalg.diag(tf.ones(self.max_length, dtype=tf.int32), k=-1), dtype=tf.bool)
+        triangular_matrix = tf.linalg.band_part(tf.ones((max_length, max_length)), -1, 0)
+        query_mask = tf.cast(tf.where(triangular_matrix - 1 > 0, 0, triangular_matrix), dtype=tf.bool)
 
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
         ys = tf.concat([sos, tf.cast(tf.argmax(logits[:, :-1], axis=-1), dtype=tf.int32)], axis=1)
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
-        target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=1, reverse=False)
-        target_pad_mask = tf.logical_not(tf.cast(target_pad_mask[:, tf.newaxis, tf.newaxis, :], dtype=tf.bool))
+        target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=-1, reverse=True) > 0
+        target_pad_mask = target_pad_mask[:, tf.newaxis, tf.newaxis, :]
         mask = tf.math.logical_and(target_pad_mask, query_mask[:, : ys.shape[1]])
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits  # (N, max_length, vocab_size + 1)
-
-    @tf.function
-    def decode_non_autoregressive(self, features: tf.Tensor) -> tf.Tensor:
-        """Decode the given features at once"""
-        pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [tf.shape(features)[0], 1, 1])
-        ys = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
-        return self.head(self.decode(ys, features, target_query=pos_queries))[:, : self.max_length]
 
     @staticmethod
     def compute_loss(
@@ -388,8 +386,8 @@ class PARSeq(_PARSeq, Model):
                     mask = tf.math.logical_and(target_mask, padding_mask)
                     logits = self.head(self.decode(gt, features, mask))
             else:
-                # eval step - use non-autoregressive decoding while training evaluation
-                logits = self.decode_non_autoregressive(features)
+                logits = self.decode_autoregressive(features, max_len=int(tf.reduce_max(seq_len)))
+                gt = gt[:, : logits.shape[1]]
         else:
             logits = self.decode_autoregressive(features)
 
