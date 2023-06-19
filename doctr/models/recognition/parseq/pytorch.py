@@ -92,15 +92,16 @@ class PARSeqDecoder(nn.Module):
         memory,
         target_mask: Optional[torch.Tensor] = None,
     ):
+                    
         query_norm = self.query_norm(target)
         content_norm = self.content_norm(content)
-        target = target.clone() + self.attention_dropout(
+        target = target + self.attention_dropout(
             self.attention(query_norm, content_norm, content_norm, mask=target_mask)
         )
-        target = target.clone() + self.cross_attention_dropout(
+        target = target + self.cross_attention_dropout(
             self.cross_attention(self.query_norm(target), memory, memory)
         )
-        target = target.clone() + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(target)))
+        target = target + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(target)))
         return self.output_norm(target)
 
 
@@ -230,7 +231,7 @@ class PARSeq(_PARSeq, nn.Module):
         mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0.0
         target_mask = mask[1:, :-1]
 
-        return target_mask.int(), source_mask.int()
+        return source_mask.int(),target_mask.int()
 
     def decode(
         self,
@@ -241,8 +242,9 @@ class PARSeq(_PARSeq, nn.Module):
     ) -> torch.Tensor:
         """Add positional information to the target sequence and pass it through the decoder."""
 
-        batch_size, sequence_length = target.shape
+        batch_size, sequence_length = target.shape[:2]
         # apply positional information to the target sequence excluding the SOS token
+
         null_ctx = self.embed(target[:, :1])
         content = self.pos_queries[:, : sequence_length - 1] + self.embed(target[:, 1:])
         content = self.dropout(torch.cat([null_ctx, content], dim=1))
@@ -326,17 +328,19 @@ class PARSeq(_PARSeq, nn.Module):
             if self.training:
                 # Generate permutations for the target sequences
                 tgt_perms = self.generate_permutations(seq_len)
-
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                padding_mask = (
-                    ((gt != self.vocab_size + 2) | (gt != self.vocab_size)).unsqueeze(1).unsqueeze(1)
-                )  # (N, 1, 1, max_length)
-                for perm in tgt_perms:
+                tgt_padding_mask = (
+                    ((gt != self.vocab_size + 2) | (gt != self.vocab_size))#.unsqueeze(1).unsqueeze(1)
+                    )
+
+                for i,perm in enumerate(tgt_perms):
                     # Generate attention masks for the permutations
                     target_mask, query_mask  = self.generate_permutations_attention_masks(perm)
                     # combine target padding mask and query mask
-                    logits = self.head(self.decode(gt, features, target_mask=target_mask,target_query=query_mask ))  # (N, max_length, vocab_size + 1)
+                    mask = (target_mask[i,:] & tgt_padding_mask).int()
+                    
+                    logits = self.head(self.decode(gt, features, target_mask=target_mask))  # (N, max_length, vocab_size + 1)
                     if loss is None:
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
