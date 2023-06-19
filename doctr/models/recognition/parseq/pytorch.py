@@ -230,7 +230,7 @@ class PARSeq(_PARSeq, nn.Module):
         mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0.0
         target_mask = mask[1:, :-1]
 
-        return source_mask.int(), target_mask.int()
+        return target_mask.int(), source_mask.int()
 
     def decode(
         self,
@@ -314,7 +314,7 @@ class PARSeq(_PARSeq, nn.Module):
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
         # remove cls token
         features = features[:, 1:, :]
-
+        loss = None
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -332,16 +332,23 @@ class PARSeq(_PARSeq, nn.Module):
                 padding_mask = (
                     ((gt != self.vocab_size + 2) | (gt != self.vocab_size)).unsqueeze(1).unsqueeze(1)
                 )  # (N, 1, 1, max_length)
-
                 for perm in tgt_perms:
                     # Generate attention masks for the permutations
-                    _, target_mask = self.generate_permutations_attention_masks(perm)
+                    target_mask, query_mask  = self.generate_permutations_attention_masks(perm)
                     # combine target padding mask and query mask
-                    mask = (target_mask & padding_mask).int()
-                    logits = self.head(self.decode(gt, features, mask))  # (N, max_length, vocab_size + 1)
+                    logits = self.head(self.decode(gt, features, target_mask=target_mask,target_query=query_mask ))  # (N, max_length, vocab_size + 1)
+                    if loss is None:
+                        loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                    else:
+                        loss += self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                    if i == 1:
+                        gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
+                loss = loss / len(tgt_perms)
             else:
                 logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
                 gt = gt[:, : logits.shape[1]]
+                loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                
         else:
             logits = self.decode_autoregressive(features)
 
@@ -358,7 +365,7 @@ class PARSeq(_PARSeq, nn.Module):
             out["preds"] = self.postprocessor(logits)
 
         if target is not None:
-            out["loss"] = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+            out["loss"] = loss 
 
         return out
 
