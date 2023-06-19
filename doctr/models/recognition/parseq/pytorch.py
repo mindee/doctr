@@ -340,8 +340,8 @@ class PARSeq(_PARSeq, nn.Module):
                     source_mask, target_mask  = self.generate_permutations_attention_masks(perm)
                     
                     mask = (~target_mask[i,:] & tgt_padding_mask).int()
-                    print('source_mask',source_mask)
-                    logits = self.head(self.decode(gt, features, target_mask=target_mask,target_query=source_mask))  # (N, max_length, vocab_size + 1)
+
+                    logits = self.head(self.decode(gt, features, target_mask=mask))  # (N, max_length, vocab_size + 1)
                     if loss is None:
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
