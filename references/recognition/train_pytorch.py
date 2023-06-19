@@ -105,16 +105,20 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
-    model.train()
+    model.eval()
+    loss = 0
+    i = 0
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_loader, parent=mb):
+        i+=1
+        
         if torch.cuda.is_available():
             images = images.cuda()
 
         images = batch_transforms(images)
 
         train_loss = model(images, targets)["loss"]
-
+        loss += torch.mean(train_loss).item()
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
@@ -134,13 +138,13 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         scheduler.step()
 
-        mb.child.comment = f"Training loss: {train_loss.item():.6}"
+        mb.child.comment = f"Training loss: {train_loss.item():.6} mean loss {loss/i:.6}"
 
 
 @torch.no_grad()
 def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
-    model.eval()
+    model.train()
     # Reset val metric
     val_metric.reset()
     # Validation loop
@@ -227,7 +231,6 @@ def main(args):
 
     # Load doctr model
     model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
-
     # Resume weights
     if isinstance(args.resume, str):
         print(f"Resuming {args.resume}")

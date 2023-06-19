@@ -328,20 +328,24 @@ class PARSeq(_PARSeq, nn.Module):
                 # Generate permutations for the target sequences
                 tgt_perms = self.generate_permutations(seq_len)
                 # Create padding mask for target input
-                # [True, True, True, ..., False, False, False] -> False is masked                
-                tgt_padding_mask = ~(((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+                # [True, True, True, ..., False, False, False] -> False is masked          
+                
+                #tgt_padding_mask = ~(((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+                padded_sequences = torch.nn.utils.rnn.pad_sequence(gt, batch_first=True)
+                tgt_padding_mask = ~padded_sequences.eq(self.vocab_size+2).unsqueeze(1).unsqueeze(1)
                 
                 for i,perm in enumerate(tgt_perms):
                     # Generate attention masks for the permutations
                     source_mask, target_mask  = self.generate_permutations_attention_masks(perm)
+                                        
                     mask = (target_mask & tgt_padding_mask).int()
                     logits = self.head(self.decode(gt, features, target_mask=mask))  # (N, max_length, vocab_size + 1)
                     if loss is None:
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
                         loss += self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
-                    if i == 1:
-                        gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
+                    #if i == 1:
+                        #gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
                 loss = loss / len(tgt_perms)
             else:
                 logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
