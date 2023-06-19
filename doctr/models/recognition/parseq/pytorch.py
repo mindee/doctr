@@ -330,17 +330,14 @@ class PARSeq(_PARSeq, nn.Module):
                 tgt_perms = self.generate_permutations(seq_len)
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                tgt_padding_mask = (
-                    ((gt != self.vocab_size + 2) | (gt != self.vocab_size))#.unsqueeze(1).unsqueeze(1)
-                    )
-
+                tgt_padding_mask = ~(((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
                 for i,perm in enumerate(tgt_perms):
                     # Generate attention masks for the permutations
-                    target_mask, query_mask  = self.generate_permutations_attention_masks(perm)
+                    _, target_mask  = self.generate_permutations_attention_masks(perm)
                     # combine target padding mask and query mask
                     mask = (target_mask[i,:] & tgt_padding_mask).int()
                     
-                    logits = self.head(self.decode(gt, features, target_mask=target_mask))  # (N, max_length, vocab_size + 1)
+                    logits = self.head(self.decode(gt, features, target_mask=mask))  # (N, max_length, vocab_size + 1)
                     if loss is None:
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
