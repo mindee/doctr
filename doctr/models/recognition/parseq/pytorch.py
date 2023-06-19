@@ -344,8 +344,8 @@ class PARSeq(_PARSeq, nn.Module):
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
                         loss += self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
-                    #if i == 1:
-                        #gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
+                    if i == 1:
+                        gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
                 loss = loss / len(tgt_perms)
             else:
                 logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
