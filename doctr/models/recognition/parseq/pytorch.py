@@ -230,7 +230,6 @@ class PARSeq(_PARSeq, nn.Module):
         source_mask = mask[:-1, :-1].clone()
         mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0.0
         target_mask = mask[1:, :-1]
-
         return source_mask.int(),target_mask.int()
 
     def decode(
@@ -330,14 +329,19 @@ class PARSeq(_PARSeq, nn.Module):
                 tgt_perms = self.generate_permutations(seq_len)
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                tgt_padding_mask = ~(((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+
+                padding_mask = ~torch.triu(torch.ones((gt.shape[-1],gt.shape[-1]) , dtype=torch.bool), 1).to(x.device)
+                
+                #padding_mask = padding_mask.repeat(gt.shape[0], 1, 1, 1)
+                
+                tgt_padding_mask = (((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
                 for i,perm in enumerate(tgt_perms):
                     # Generate attention masks for the permutations
-                    _, target_mask  = self.generate_permutations_attention_masks(perm)
-                    # combine target padding mask and query mask
-                    mask = (target_mask[i,:] & tgt_padding_mask).int()
+                    source_mask, target_mask  = self.generate_permutations_attention_masks(perm)
                     
-                    logits = self.head(self.decode(gt, features, target_mask=mask))  # (N, max_length, vocab_size + 1)
+                    mask = (~target_mask[i,:] & tgt_padding_mask).int()
+                    print('source_mask',source_mask)
+                    logits = self.head(self.decode(gt, features, target_mask=target_mask,target_query=source_mask))  # (N, max_length, vocab_size + 1)
                     if loss is None:
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
