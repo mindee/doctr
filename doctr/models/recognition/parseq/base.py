@@ -31,7 +31,7 @@ class _PARSeq:
         encoded = encode_sequences(
             sequences=gts,
             vocab=self.vocab,
-            target_size=self.max_length,
+            target_size=max(len(gt) for gt in gts)+2,
             eos=len(self.vocab),
             sos=len(self.vocab) + 1,
             pad=len(self.vocab) + 2,

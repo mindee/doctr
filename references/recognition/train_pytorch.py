@@ -105,7 +105,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
-    model.eval()
+    model.train()
     loss = 0
     i = 0
     # Iterate over the batches of the dataset
@@ -117,7 +117,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         images = batch_transforms(images)
 
-        train_loss = model(images, targets)["loss"]
+        train_loss = model(images, targets,return_preds=True)["loss"]
         loss += torch.mean(train_loss).item()
         optimizer.zero_grad()
         if amp:
