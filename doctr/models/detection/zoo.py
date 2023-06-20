@@ -11,9 +11,6 @@ from .. import detection
 from ..preprocessor import PreProcessor
 from .predictor import DetectionPredictor
 
-if is_torch_available():
-    pass
-
 __all__ = ["detection_predictor"]
 
 ARCHS: List[str]
