@@ -144,7 +144,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 @torch.no_grad()
 def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
-    model.train()
+    model.eval()
     # Reset val metric
     val_metric.reset()
     # Validation loop
