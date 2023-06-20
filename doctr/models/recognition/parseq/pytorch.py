@@ -346,13 +346,14 @@ class PARSeq(_PARSeq, nn.Module):
 
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long).to(x.device), torch.tensor(_seq_len).to(x.device)
+            gt_in = gt[:,:-1]
+            gt_out = gt[:,1:]
+
             if self.training:
 
                 tgt_perms = self.gen_tgt_perms(gt)
 
-                gt_in = gt[:,:-1]
-                gt_out = gt[:,1:]
-
+                
                 tgt_padding_mask = (gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)
                 loss = None
                 loss_numel = 0
