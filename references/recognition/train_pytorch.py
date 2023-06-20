@@ -231,7 +231,6 @@ def main(args):
 
     # Load doctr model
     model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
-    model.load_state_dict(torch.load('parseq_20230620-000758.pt'))
     # Resume weights
     if isinstance(args.resume, str):
         print(f"Resuming {args.resume}")
@@ -377,7 +376,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        #fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)

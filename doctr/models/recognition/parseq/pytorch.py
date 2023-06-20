@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 import torch
-from torch import nn
+from torch import nn as nn, Tensor
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
@@ -51,6 +51,7 @@ class CharEmbedding(nn.Module):
         return math.sqrt(self.d_model) * self.embedding(x)
 
 
+
 class PARSeqDecoder(nn.Module):
     """Implements decoder module of the PARSeq model
 
@@ -71,38 +72,48 @@ class PARSeqDecoder(nn.Module):
         dropout: float = 0.1,
     ):
         super().__init__()
-        self.attention = MultiHeadAttention(num_heads, d_model, dropout=dropout)
-        self.cross_attention = MultiHeadAttention(num_heads, d_model, dropout=dropout)
-        self.position_feed_forward = PositionwiseFeedForward(d_model, ffd * ffd_ratio, dropout, nn.GELU())
-
+        self.attention = nn.MultiheadAttention(d_model, num_heads, dropout=dropout, batch_first=True)
+        self.cross_attention = nn.MultiheadAttention(d_model, num_heads, dropout=dropout, batch_first=True)
+        
+        #self.position_feed_forward = PositionwiseFeedForward(d_model, ffd * ffd_ratio, dropout, nn.GELU())
+        self.position_feed_forward = nn.Linear(d_model, ffd )
+        self.linear2 = nn.Linear(ffd, d_model)
+        
         self.attention_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.cross_attention_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.query_norm = nn.LayerNorm(d_model, eps=1e-5)
+        self.norm1 = nn.LayerNorm(d_model, eps=1e-5)
         self.content_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.feed_forward_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.output_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.attention_dropout = nn.Dropout(dropout)
         self.cross_attention_dropout = nn.Dropout(dropout)
         self.feed_forward_dropout = nn.Dropout(dropout)
+        self.activation = F.gelu
+        self.dropout3 = nn.Dropout(dropout)
+        
+        
+    def forward(self, query, content, memory, 
+    query_mask: Optional[Tensor] = None, 
+    content_mask: Optional[Tensor] = None,
+    content_key_padding_mask: Optional[Tensor] = None):
 
-    def forward(
-        self,
-        target,
-        content,
-        memory,
-        target_mask: Optional[torch.Tensor] = None,
-    ):
-                    
-        query_norm = self.query_norm(target)
+
+        query_norm = self.query_norm(query)
         content_norm = self.content_norm(content)
-        target = target + self.attention_dropout(
-            self.attention(query_norm, content_norm, content_norm, mask=target_mask)
+        if query_mask is not None:
+            query_mask = query_mask.bool()
+
+        query = query.clone() + self.attention_dropout(
+        
+            self.attention(query=query_norm, key=content_norm, value=content_norm, attn_mask=query_mask,key_padding_mask=content_key_padding_mask)[0]
         )
-        target = target + self.cross_attention_dropout(
-            self.cross_attention(self.query_norm(target), memory, memory)
+        query = query.clone() + self.cross_attention_dropout(
+        
+            self.cross_attention(self.norm1(query), memory, memory)[0]
         )
-        target = target + self.feed_forward_dropout(self.position_feed_forward(self.feed_forward_norm(target)))
-        return self.output_norm(target)
+        query = query.clone() +self.dropout3(self.linear2(self.feed_forward_dropout(self.activation(self.position_feed_forward(self.feed_forward_norm(query))))))
+        return self.output_norm(query)
 
 
 class PARSeq(_PARSeq, nn.Module):
@@ -232,25 +243,19 @@ class PARSeq(_PARSeq, nn.Module):
         target_mask = mask[1:, :-1]
         return source_mask.int(),target_mask.int()
 
-    def decode(
-        self,
-        target: torch.Tensor,
-        memory: torch.Tensor,
-        target_mask: Optional[torch.Tensor] = None,
-        target_query: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
-        """Add positional information to the target sequence and pass it through the decoder."""
+    def decode(self, tgt: torch.Tensor, memory: torch.Tensor, tgt_mask: Optional[Tensor] = None,
+               tgt_padding_mask: Optional[Tensor] = None, tgt_query: Optional[Tensor] = None,
+               tgt_query_mask: Optional[Tensor] = None):
+        N, L = tgt.shape
+        # <bos> stands for the null context. We only supply position information for characters after <bos>.
+        null_ctx = self.embed(tgt[:, :1])
+        tgt_emb = self.pos_queries[:, :L - 1] + self.embed(tgt[:, 1:])
+        tgt_emb = self.dropout(torch.cat([null_ctx, tgt_emb], dim=1))
+        if tgt_query is None:
+            tgt_query = self.pos_queries[:, :L].expand(N, -1, -1)
+        tgt_query = self.dropout(tgt_query)
+        return self.decoder(tgt_query, tgt_emb, memory, tgt_query_mask, tgt_mask, tgt_padding_mask)
 
-        batch_size, sequence_length = target.shape[:2]
-        # apply positional information to the target sequence excluding the SOS token
-
-        null_ctx = self.embed(target[:, :1])
-        content = self.pos_queries[:, : sequence_length - 1] + self.embed(target[:, 1:])
-        content = self.dropout(torch.cat([null_ctx, content], dim=1))
-        if target_query is None:
-            target_query = self.pos_queries[:, :sequence_length].expand(batch_size, -1, -1)
-        target_query = self.dropout(target_query)
-        return self.decoder(target_query, content, memory, target_mask)
 
     def decode_autoregressive(self, features: torch.Tensor, max_len: Optional[int] = None) -> torch.Tensor:
         """Generate predictions for the given features."""
@@ -263,7 +268,7 @@ class PARSeq(_PARSeq, nn.Module):
         ys[:, 0] = self.vocab_size + 1  # SOS token
         pos_queries = self.pos_queries[:, :max_length].expand(features.size(0), -1, -1)
         # Create query mask for the decoder attention
-        query_mask = (
+        tgt_mask = query_mask = (
             torch.tril(torch.ones((max_length, max_length), device=features.device), diagonal=0).to(dtype=torch.bool)
         ).int()
 
@@ -273,8 +278,9 @@ class PARSeq(_PARSeq, nn.Module):
             tgt_out = self.decode(
                 ys[:, : i + 1],
                 features,
-                query_mask[i : i + 1, : i + 1],
-                target_query=pos_queries[:, i : i + 1],
+                tgt_mask[:i+1, :i+1],
+                tgt_query_mask=query_mask[i : i + 1, : i + 1],
+                tgt_query=pos_queries[:, i : i + 1],
             )
             pos_prob = self.head(tgt_out)
             pos_logits.append(pos_prob)
@@ -301,8 +307,7 @@ class PARSeq(_PARSeq, nn.Module):
         # (N, 1, 1, max_length)
         target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
         mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
-        logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
-
+        logits = self.head(self.decode(ys, features, mask, tgt_query=pos_queries))
         return logits  # (N, max_length, vocab_size + 1)
 
     def forward(
@@ -330,24 +335,31 @@ class PARSeq(_PARSeq, nn.Module):
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked          
                 
-                #tgt_padding_mask = ~(((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
-                padded_sequences = torch.nn.utils.rnn.pad_sequence(gt, batch_first=True)
-                tgt_padding_mask = ~padded_sequences.eq(self.vocab_size+2).unsqueeze(1).unsqueeze(1)
-                
+                ###tgt_padding_mask = ~(((gt == self.vocab_size + 2) | (gt == self.vocab_size)).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+                #padded_sequences = torch.nn.utils.rnn.pad_sequence(gt, batch_first=True)
+                #tgt_padding_mask = ~padded_sequences.eq(self.vocab_size+2).unsqueeze(1).unsqueeze(1)
+                tgt_padding_mask = (tgt_in == self.vocab_size + 2) | (tgt_in == self.vocab_size)
+                loss_numel = 0
+                n = (gt != self.pad_id).sum().item()
                 for i,perm in enumerate(tgt_perms):
                     # Generate attention masks for the permutations
                     source_mask, target_mask  = self.generate_permutations_attention_masks(perm)
-                                        
-                    mask = (target_mask & tgt_padding_mask).int()
-                    logits = self.head(self.decode(gt, features, target_mask=mask))  # (N, max_length, vocab_size + 1)
+
+                    #mask = (target_mask & tgt_padding_mask).int()                 
+                    logits = self.head(self.decode(gt, features, target_mask,tgt_padding_mask,source_mask))  # (N, max_length, vocab_size + 1)
+                    
                     if loss is None:
                         loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
                     else:
-                        loss += self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                        loss += n * self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                    loss_numel += n
+                    
                     if i == 1:
                         gt = torch.where(gt == self.vocab_size, self.vocab_size+2, gt)
-                loss = loss / len(tgt_perms)
+                        n = (gt != self.pad_id).sum().item()
+                loss = loss / loss_numel
             else:
+            
                 logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
                 gt = gt[:, : logits.shape[1]]
                 loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
