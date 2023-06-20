@@ -4,14 +4,14 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import logging
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Tuple, Union
 
 import torch
 from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ["load_pretrained_params", "conv_sequence_pt", "export_model_to_onnx"]
+__all__ = ["load_pretrained_params", "conv_sequence_pt", "set_device_and_dtype", "export_model_to_onnx"]
 
 
 def load_pretrained_params(
@@ -88,6 +88,27 @@ def conv_sequence_pt(
         conv_seq.append(nn.ReLU(inplace=True))
 
     return conv_seq
+
+
+def set_device_and_dtype(
+    model: Any, batches: List[torch.Tensor], device: Union[str, torch.device], dtype: Union[str, torch.dtype]
+) -> Tuple[Any, List[torch.Tensor]]:
+    """Set the device and dtype of a model and its batches
+
+    >>> from doctr.models.utils import set_device_and_dtype
+    >>> model, batches = set_device_and_dtype(model, batches, device="cuda", dtype=torch.float16)
+
+    Args:
+        model: the model to be set
+        batches: the batches to be set
+        device: the device to be used
+        dtype: the dtype to be used
+
+    Returns:
+        the model and batches set
+    """
+
+    return model.to(device=device, dtype=dtype), [batch.to(device=device, dtype=dtype) for batch in batches]
 
 
 def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.Tensor, **kwargs: Any) -> str:

@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
+from doctr.models.utils import set_device_and_dtype
 
 __all__ = ["CropOrientationPredictor"]
 
@@ -43,12 +44,10 @@ class CropOrientationPredictor(nn.Module):
 
         processed_batches = self.pre_processor(crops)
         _params = next(self.model.parameters())
-        predicted_batches = [
-            self.model(batch.to(device=_params.device, dtype=_params.dtype)).to(
-                device=_params.device, dtype=_params.dtype
-            )
-            for batch in processed_batches
-        ]
+        self.model, processed_batches = set_device_and_dtype(
+            self.model, processed_batches, _params.device, _params.dtype
+        )
+        predicted_batches = [self.model(batch) for batch in processed_batches]
 
         # Postprocess predictions
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]

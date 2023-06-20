@@ -5,14 +5,11 @@
 
 from typing import Any, List
 
-from doctr.file_utils import is_tf_available, is_torch_available
+from doctr.file_utils import is_tf_available
 from doctr.models.preprocessor import PreProcessor
 
 from .. import recognition
 from .predictor import RecognitionPredictor
-
-if is_torch_available():
-    import torch
 
 __all__ = ["recognition_predictor"]
 
@@ -29,7 +26,7 @@ ARCHS: List[str] = [
 ]
 
 
-def _predictor(arch: Any, pretrained: bool, precision: str = "float32", **kwargs: Any) -> RecognitionPredictor:
+def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
     if isinstance(arch, str):
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
@@ -44,9 +41,6 @@ def _predictor(arch: Any, pretrained: bool, precision: str = "float32", **kwargs
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 
-    if is_torch_available() and precision in ("float16", "bfloat16"):
-        _model = _model.to(dtype=getattr(torch, precision))
-
     kwargs.pop("pretrained_backbone", None)
 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
@@ -58,9 +52,7 @@ def _predictor(arch: Any, pretrained: bool, precision: str = "float32", **kwargs
     return predictor
 
 
-def recognition_predictor(
-    arch: Any = "crnn_vgg16_bn", pretrained: bool = False, precision: str = "float32", **kwargs: Any
-) -> RecognitionPredictor:
+def recognition_predictor(arch: Any = "crnn_vgg16_bn", pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
     """Text recognition architecture.
 
     Example::
@@ -73,10 +65,9 @@ def recognition_predictor(
     Args:
         arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')
         pretrained: If True, returns a model pre-trained on our text recognition dataset
-        precision: precision of the model (e.g. 'float32', 'float16', 'bfloat16') (effects PyTorch only)
 
     Returns:
         Recognition predictor
     """
 
-    return _predictor(arch, pretrained, precision, **kwargs)
+    return _predictor(arch, pretrained, **kwargs)

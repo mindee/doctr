@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
+from doctr.models.utils import set_device_and_dtype
 
 __all__ = ["DetectionPredictor"]
 
@@ -43,8 +44,8 @@ class DetectionPredictor(nn.Module):
 
         processed_batches = self.pre_processor(pages)
         _params = next(self.model.parameters())
-        predicted_batches = [
-            self.model(batch.to(device=_params.device, dtype=_params.dtype), return_preds=True, **kwargs)["preds"]
-            for batch in processed_batches
-        ]
+        self.model, processed_batches = set_device_and_dtype(
+            self.model, processed_batches, _params.device, _params.dtype
+        )
+        predicted_batches = [self.model(batch, return_preds=True, **kwargs)["preds"] for batch in processed_batches]
         return [pred for batch in predicted_batches for pred in batch]

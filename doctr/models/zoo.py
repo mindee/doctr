@@ -25,7 +25,6 @@ def _predictor(
     reco_bs: int = 128,
     detect_orientation: bool = False,
     detect_language: bool = False,
-    precision: str = "float32",
     **kwargs,
 ) -> OCRPredictor:
     # Detection
@@ -37,7 +36,6 @@ def _predictor(
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
-        precision=precision,
     )
 
     # Recognition
@@ -46,7 +44,6 @@ def _predictor(
         pretrained=pretrained,
         pretrained_backbone=pretrained_backbone,
         batch_size=reco_bs,
-        precision=precision,
     )
 
     return OCRPredictor(
@@ -72,7 +69,6 @@ def ocr_predictor(
     export_as_straight_boxes: bool = False,
     detect_orientation: bool = False,
     detect_language: bool = False,
-    precision: str = "float32",
     **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -101,7 +97,6 @@ def ocr_predictor(
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        precision: precision of the model (e.g. 'float32', 'float16', 'bfloat16') (effects PyTorch only)
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -119,7 +114,6 @@ def ocr_predictor(
         export_as_straight_boxes=export_as_straight_boxes,
         detect_orientation=detect_orientation,
         detect_language=detect_language,
-        precision=precision,
         **kwargs,
     )
 
@@ -136,7 +130,6 @@ def _kie_predictor(
     reco_bs: int = 128,
     detect_orientation: bool = False,
     detect_language: bool = False,
-    precision: str = "float32",
     **kwargs,
 ) -> KIEPredictor:
     # Detection
@@ -148,7 +141,6 @@ def _kie_predictor(
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
-        precision=precision,
     )
 
     # Recognition
@@ -157,7 +149,6 @@ def _kie_predictor(
         pretrained=pretrained,
         pretrained_backbone=pretrained_backbone,
         batch_size=reco_bs,
-        precision=precision,
     )
 
     return KIEPredictor(
@@ -183,7 +174,6 @@ def kie_predictor(
     export_as_straight_boxes: bool = False,
     detect_orientation: bool = False,
     detect_language: bool = False,
-    precision: str = "float32",
     **kwargs: Any,
 ) -> KIEPredictor:
     """End-to-end KIE architecture using one model for localization, and another for text recognition.
@@ -212,7 +202,6 @@ def kie_predictor(
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        precision: precision of the model (e.g. 'float32', 'float16', 'bfloat16') (effects PyTorch only)
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -230,6 +219,5 @@ def kie_predictor(
         export_as_straight_boxes=export_as_straight_boxes,
         detect_orientation=detect_orientation,
         detect_language=detect_language,
-        precision=precision,
         **kwargs,
     )

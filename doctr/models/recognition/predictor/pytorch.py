@@ -10,6 +10,7 @@ import torch
 from torch import nn
 
 from doctr.models.preprocessor import PreProcessor
+from doctr.models.utils import set_device_and_dtype
 
 from ._utils import remap_preds, split_crops
 
@@ -69,10 +70,10 @@ class RecognitionPredictor(nn.Module):
 
         # Forward it
         _params = next(self.model.parameters())
-        raw = [
-            self.model(batch.to(device=_params.device, dtype=_params.dtype), return_preds=True, **kwargs)["preds"]
-            for batch in processed_batches
-        ]
+        self.model, processed_batches = set_device_and_dtype(
+            self.model, processed_batches, _params.device, _params.dtype
+        )
+        raw = [self.model(batch, return_preds=True, **kwargs)["preds"] for batch in processed_batches]
 
         # Process outputs
         out = [charseq for batch in raw for charseq in batch]
