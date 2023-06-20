@@ -95,7 +95,11 @@ def set_device_and_dtype(
 ) -> Tuple[Any, List[torch.Tensor]]:
     """Set the device and dtype of a model and its batches
 
+    >>> import torch
+    >>> from torch import nn
     >>> from doctr.models.utils import set_device_and_dtype
+    >>> model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))
+    >>> batches = [torch.rand(8) for _ in range(2)]
     >>> model, batches = set_device_and_dtype(model, batches, device="cuda", dtype=torch.float16)
 
     Args:
