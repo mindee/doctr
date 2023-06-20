@@ -40,7 +40,10 @@ def _predictor(
 
     # Recognition
     reco_predictor = recognition_predictor(
-        reco_arch, pretrained=pretrained, pretrained_backbone=pretrained_backbone, batch_size=reco_bs
+        reco_arch,
+        pretrained=pretrained,
+        pretrained_backbone=pretrained_backbone,
+        batch_size=reco_bs,
     )
 
     return OCRPredictor(
@@ -142,7 +145,10 @@ def _kie_predictor(
 
     # Recognition
     reco_predictor = recognition_predictor(
-        reco_arch, pretrained=pretrained, pretrained_backbone=pretrained_backbone, batch_size=reco_bs
+        reco_arch,
+        pretrained=pretrained,
+        pretrained_backbone=pretrained_backbone,
+        batch_size=reco_bs,
     )
 
     return KIEPredictor(
