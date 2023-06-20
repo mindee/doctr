@@ -47,6 +47,7 @@ def record_lr(
         raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
 
     model = model.train()
+    model.load_state_dict(torch.load('parseq_20230620-221832.pt'))
     # Update param groups & LR
     optimizer.defaults["lr"] = start_lr
     for pgroup in optimizer.param_groups:
@@ -376,7 +377,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+        #fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)

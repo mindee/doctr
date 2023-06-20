@@ -277,54 +277,57 @@ class PARSeq(_PARSeq, nn.Module):
     def decode_autoregressive(self, features: torch.Tensor, max_len: Optional[int] = None) -> torch.Tensor:
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
-        max_length = max_len if max_len is not None else self.max_length
-        max_length = min(max_length, self.max_length) + 1
-        ys = torch.full(
-            (features.size(0), max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
-        )  # pad
-        ys[:, 0] = self.vocab_size + 1  # SOS token
-        pos_queries = self.pos_queries[:, :max_length].expand(features.size(0), -1, -1)
-        # Create query mask for the decoder attention
-        tgt_mask = query_mask = (
-            torch.tril(torch.ones((max_length, max_length), device=features.device), diagonal=0).to(dtype=torch.bool)
-        ).int()
 
-        pos_logits = []
-        for i in range(max_length):
-            # Decode one token at a time without providing information about the future tokens
-            tgt_out = self.decode(
-                ys[:, : i + 1],
-                features,
-                tgt_mask[:i+1, :i+1],
-                tgt_query_mask=query_mask[i : i + 1, : i + 1],
-                tgt_query=pos_queries[:, i : i + 1],
-            )
-            pos_prob = self.head(tgt_out)
-            pos_logits.append(pos_prob)
+        max_length = self.max_label_length if max_length is None else min(max_length, self.max_label_length)
+        bs = features.shape[0]
+        # +1 for <eos> at end of sequence.
+        num_steps = max_length + 1
+        memory = features
 
-            if i + 1 < max_length:
-                # Update with the next token
-                ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
+        # Query positions up to `num_steps`
+        pos_queries = self.pos_queries[:, :num_steps].expand(bs, -1, -1)
 
-                # Stop decoding if all sequences have reached the EOS token
-                if max_len is None and (ys == self.vocab_size).any(dim=-1).all():
-                    break
+        # Special case for the forward permutation. Faster than using `generate_attn_masks()`
+        tgt_mask = query_mask = torch.triu(torch.full((num_steps, num_steps), 0, device=features.device), 1)
 
-        logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
+        tgt_in = torch.full((bs, num_steps), self.vocab_size+2, dtype=torch.long, device=features.device)
+        tgt_in[:, 0] = self.vocab_size+1
+
+        logits = []
+        for i in range(num_steps):
+                j = i + 1  # next token index
+                # Efficient decoding:
+                # Input the context up to the ith token. We use only one query (at position = i) at a time.
+                # This works because of the lookahead masking effect of the canonical (forward) AR context.
+                # Past tokens have no access to future tokens, hence are fixed once computed.
+                tgt_out = self.decode(tgt_in[:, :j], memory, tgt_mask[:j, :j], tgt_query=pos_queries[:, i:j],
+                                      tgt_query_mask=query_mask[i:j, :j])
+                # the next token probability is in the output's ith token position
+                p_i = self.head(tgt_out)
+                logits.append(p_i)
+                if j < num_steps:
+                    # greedy decode. add the next token index to the target input
+                    tgt_in[:, j] = p_i.squeeze().argmax(-1)
+                    # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
+                    if testing and (tgt_in == self.eos_id).any(dim=-1).all():
+                        break
+
+            logits = torch.cat(logits, dim=1)
+        
 
         # One refine iteration
         # Update query mask
-        query_mask[torch.triu(torch.ones(max_length, max_length, dtype=torch.bool, device=features.device), 2)] = 1
-
-        # Prepare target input for 1 refine iteration
-        sos = torch.full((features.size(0), 1), self.vocab_size + 1, dtype=torch.long, device=features.device)
-        ys = torch.cat([sos, logits[:, :-1].argmax(-1)], dim=1)
-
-        # Create padding mask for refined target input maskes all behind EOS token as False
-        # (N, 1, 1, max_length)
-        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
-        mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
-        logits = self.head(self.decode(ys, features, mask, tgt_query=pos_queries))
+        # For iterative refinement, we always use a 'cloze' mask.
+        # We can derive it from the AR forward mask by unmasking the token context to the right.
+        query_mask[torch.triu(torch.ones(num_steps, num_steps, dtype=torch.bool, device=features.device), 2)] = 0
+        bos = torch.full((bs, 1), self.bos_id, dtype=torch.long, device=features.device)
+        for i in range(self.refine_iters):
+            # Prior context is the previous output.
+            tgt_in = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
+            tgt_padding_mask = ((tgt_in == self.eos_id).int().cumsum(-1) > 0)  # mask tokens beyond the first EOS token.
+            tgt_out = self.decode(tgt_in, memory, tgt_mask, tgt_padding_mask,
+                                  tgt_query=pos_queries, tgt_query_mask=query_mask[:, :tgt_in.shape[1]])
+            logits = self.head(tgt_out)
         return logits
 
     def forward(
