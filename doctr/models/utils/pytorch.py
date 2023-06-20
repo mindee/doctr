@@ -91,7 +91,7 @@ def conv_sequence_pt(
 
 
 def set_device_and_dtype(
-    model: Any, batches: List[torch.Tensor], device: Union[str, torch.device], dtype: Union[str, torch.dtype]
+    model: Any, batches: List[torch.Tensor], device: Union[str, torch.device], dtype: torch.dtype
 ) -> Tuple[Any, List[torch.Tensor]]:
     """Set the device and dtype of a model and its batches
 
