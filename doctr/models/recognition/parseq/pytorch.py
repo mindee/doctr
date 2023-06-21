@@ -329,27 +329,22 @@ class PARSeq(_PARSeq, nn.Module):
                 gt_out = gt[:, 1:]  # remove SOS token
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                padding_mask = ~(
-                    ((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0
-                )  # (N, seq_len)
-                key_padding_mask_expanded = padding_mask.view(features.shape[0], 1, 1, gt_in.shape[-1]).expand(
-                    -1, 1, -1, -1
+                padding_mask = (
+                    ~(((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0)
+                    .unsqueeze(1)
+                    .unsqueeze(1)
                 )  # (N, 1, 1, seq_len)
 
-                loss = 0
+                loss = 0.0
                 loss_numel = 0
                 n = (gt_out != self.vocab_size + 2).sum().item()
                 for i, perm in enumerate(tgt_perms):
-                    _, target_mask = self.generate_permutations_attention_masks(perm)
-                    # repeat the mask to (batch_size, 1, seq_len, seq_len)
-                    attn_mask_expanded = target_mask.view(1, 1, gt_in.shape[-1], gt_in.shape[-1]).expand(
-                        features.shape[0], 1, -1, -1
-                    )  # (N, 1, seq_len, seq_len)
+                    _, target_mask = self.generate_permutations_attention_masks(perm)  # (seq_len, seq_len)
                     # combine both masks
-                    mask = (attn_mask_expanded.bool() & key_padding_mask_expanded.bool()).int()
+                    mask = (target_mask.bool() & padding_mask.bool()).int()  # (N, 1, seq_len, seq_len)
 
                     logits = self.head(self.decode(gt_in, features, mask)).flatten(end_dim=1)
-                    loss += n * F.cross_entropy(logits, gt_out.flatten(), ignore_index=self.vocab_size + 2)
+                    loss += n * F.cross_entropy(logits, gt_out.flatten(), ignore_index=self.vocab_size + 2).item()
                     loss_numel += n
                     # After the second iteration (i.e. done with canonical and reverse orderings),
                     # remove the [EOS] tokens for the succeeding perms
@@ -357,14 +352,13 @@ class PARSeq(_PARSeq, nn.Module):
                         gt_out = torch.where(gt_out == self.vocab_size, self.vocab_size + 2, gt_out)
                         n = (gt_out != self.vocab_size + 2).sum().item()
 
-                # loss /= len(tgt_perms)
                 loss /= loss_numel
 
             else:
                 gt = gt[:, 1:]  # remove SOS token
                 max_len = gt.shape[1] - 1  # exclude EOS token
                 logits = self.decode_autoregressive(features, max_len)
-                loss = F.cross_entropy(logits.flatten(end_dim=1), gt.flatten(), ignore_index=self.vocab_size + 2)
+                loss = F.cross_entropy(logits.flatten(end_dim=1), gt.flatten(), ignore_index=self.vocab_size + 2).item()
         else:
             logits = self.decode_autoregressive(features)
 
@@ -384,37 +378,6 @@ class PARSeq(_PARSeq, nn.Module):
             out["loss"] = loss
 
         return out
-
-    @staticmethod
-    def compute_loss(
-        model_output: torch.Tensor,
-        gt: torch.Tensor,
-        seq_len: torch.Tensor,
-        ignore_index: int = -100,
-    ) -> torch.Tensor:
-        """Compute categorical cross-entropy loss for the model.
-        Sequences are masked after the EOS character.
-
-        Args:
-            model_output: predicted logits of the model
-            gt: the encoded tensor with gt labels
-            seq_len: lengths of each gt word inside the batch
-            ignore_index: index to ignore in the loss
-
-        Returns:
-            The loss of the model on the batch
-        """
-        # Input length : number of steps
-        input_len = model_output.shape[1]
-        # Add one for additional <eos> token (sos disappear in shift!)
-        seq_len = seq_len + 1
-        cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction="none", ignore_index=ignore_index)
-        # Compute mask, remove 1 timestep here as well
-        mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
-        cce[mask_2d] = 0
-
-        ce_loss = cce.sum(1) / seq_len.to(dtype=model_output.dtype)
-        return ce_loss.mean()
 
 
 class PARSeqPostProcessor(_PARSeqPostProcessor):
