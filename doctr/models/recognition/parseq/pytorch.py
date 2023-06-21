@@ -335,7 +335,7 @@ class PARSeq(_PARSeq, nn.Module):
                     .unsqueeze(1)
                 )  # (N, 1, 1, seq_len)
 
-                loss = 0.0
+                loss = torch.tensor(0.0, device=features.device)
                 loss_numel: Union[int, float] = 0
                 n = (gt_out != self.vocab_size + 2).sum().item()
                 for i, perm in enumerate(tgt_perms):
@@ -344,7 +344,7 @@ class PARSeq(_PARSeq, nn.Module):
                     mask = (target_mask.bool() & padding_mask.bool()).int()  # (N, 1, seq_len, seq_len)
 
                     logits = self.head(self.decode(gt_in, features, mask)).flatten(end_dim=1)
-                    loss += n * F.cross_entropy(logits, gt_out.flatten(), ignore_index=self.vocab_size + 2).item()
+                    loss += n * F.cross_entropy(logits, gt_out.flatten(), ignore_index=self.vocab_size + 2)
                     loss_numel += n
                     # After the second iteration (i.e. done with canonical and reverse orderings),
                     # remove the [EOS] tokens for the succeeding perms
@@ -358,7 +358,7 @@ class PARSeq(_PARSeq, nn.Module):
                 gt = gt[:, 1:]  # remove SOS token
                 max_len = gt.shape[1] - 1  # exclude EOS token
                 logits = self.decode_autoregressive(features, max_len)
-                loss = F.cross_entropy(logits.flatten(end_dim=1), gt.flatten(), ignore_index=self.vocab_size + 2).item()
+                loss = F.cross_entropy(logits.flatten(end_dim=1), gt.flatten(), ignore_index=self.vocab_size + 2)
         else:
             logits = self.decode_autoregressive(features)
 
