@@ -6,11 +6,11 @@
 import math
 from copy import deepcopy
 from itertools import permutations
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from tensorflow.keras import Model, layers, losses
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
@@ -136,7 +136,7 @@ class PARSeq(_PARSeq, Model):
         max_length: int = 32,  # different from paper
         dropout_prob: float = 0.1,
         dec_num_heads: int = 12,
-        dec_ff_dim: int = 2048,
+        dec_ff_dim: int = 384,  # we use it from the original implementation instead of 2048
         dec_ffd_ratio: int = 4,
         input_shape: Tuple[int, int, int] = (32, 128, 3),
         exportable: bool = False,
@@ -209,10 +209,7 @@ class PARSeq(_PARSeq, Model):
             combined = tf.tensor_scatter_nd_update(
                 combined, [[1, i] for i in range(1, max_num_chars + 2)], max_num_chars + 1 - tf.range(max_num_chars + 1)
             )
-        # we pad to max length with eos idx to fit the mask generation
-        return tf.pad(
-            combined, [[0, 0], [0, self.max_length + 1 - tf.shape(combined)[1]]], constant_values=max_num_chars + 2
-        )  # (num_perms, self.max_length + 1)
+        return combined
 
     @tf.function
     def generate_permutations_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
@@ -220,7 +217,7 @@ class PARSeq(_PARSeq, Model):
         sz = permutation.shape[0]
         mask = tf.ones((sz, sz), dtype=tf.float32)
 
-        for i in range(sz - 1):
+        for i in range(sz):
             query_idx = int(permutation[i])
             masked_keys = permutation[i + 1 :].numpy().tolist()
             indices = tf.constant([[query_idx, j] for j in masked_keys], dtype=tf.int32)
@@ -232,7 +229,6 @@ class PARSeq(_PARSeq, Model):
             mask, tf.where(eye_indices), tf.zeros_like(tf.boolean_mask(mask, eye_indices))
         )
         target_mask = mask[1:, :-1]
-
         return tf.cast(source_mask, dtype=tf.bool), tf.cast(target_mask, dtype=tf.bool)
 
     @tf.function
@@ -255,20 +251,20 @@ class PARSeq(_PARSeq, Model):
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
     @tf.function
-    def decode_autoregressive(self, features: tf.Tensor) -> tf.Tensor:
+    def decode_autoregressive(self, features: tf.Tensor, max_len: Optional[int] = None) -> tf.Tensor:
         """Generate predictions for the given features."""
-        # Padding symbol + SOS at the beginning
+        max_length = max_len if max_len is not None else self.max_length
+        max_length = min(max_length, self.max_length) + 1
         b = tf.shape(features)[0]
-        ys = tf.fill(dims=(b, self.max_length), value=self.vocab_size + 2)
+        # Padding symbol + SOS at the beginning
+        ys = tf.fill(dims=(b, max_length), value=self.vocab_size + 2)
         start_vector = tf.fill(dims=(b, 1), value=self.vocab_size + 1)
         ys = tf.concat([start_vector, ys], axis=-1)
-        pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [b, 1, 1])
-        query_mask = tf.cast(
-            tf.linalg.band_part(tf.ones((self.max_length + 1, self.max_length + 1)), -1, 0), dtype=tf.bool
-        )
+        pos_queries = tf.tile(self.pos_queries[:, :max_length], [b, 1, 1])
+        query_mask = tf.cast(tf.linalg.band_part(tf.ones((max_length, max_length)), -1, 0), dtype=tf.bool)
 
         pos_logits = []
-        for i in range(self.max_length):
+        for i in range(max_length):
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
                 ys[:, : i + 1],
@@ -279,9 +275,9 @@ class PARSeq(_PARSeq, Model):
             pos_prob = self.head(tgt_out)
             pos_logits.append(pos_prob)
 
-            if i + 1 < self.max_length:
+            if i + 1 < max_length:
                 # update ys with the next token
-                i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(self.max_length), indexing="ij")
+                i_mesh, j_mesh = tf.meshgrid(tf.range(b), tf.range(max_length), indexing="ij")
                 indices = tf.stack([i_mesh[:, i + 1], j_mesh[:, i + 1]], axis=1)
                 ys = tf.tensor_scatter_nd_update(
                     ys, indices, tf.cast(tf.argmax(pos_prob[:, -1, :], axis=-1), dtype=tf.int32)
@@ -289,66 +285,29 @@ class PARSeq(_PARSeq, Model):
 
                 # Stop decoding if all sequences have reached the EOS token
                 # We need to check it on True to be compatible with ONNX
-                if tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True:
+                if (
+                    max_len is not None
+                    and tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True
+                ):
                     break
 
         logits = tf.concat(pos_logits, axis=1)  # (N, max_length, vocab_size + 1)
 
         # One refine iteration
         # Update query mask
-        query_mask = tf.cast(1 - tf.linalg.diag(tf.ones(self.max_length, dtype=tf.int32), k=-1), dtype=tf.bool)
+        triangular_matrix = tf.linalg.band_part(tf.ones((max_length, max_length)), -1, 0)
+        query_mask = tf.cast(tf.where(triangular_matrix - 1 > 0, 0, triangular_matrix), dtype=tf.bool)
 
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
         ys = tf.concat([sos, tf.cast(tf.argmax(logits[:, :-1], axis=-1), dtype=tf.int32)], axis=1)
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
-        target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=1, reverse=False)
-        target_pad_mask = tf.logical_not(tf.cast(target_pad_mask[:, tf.newaxis, tf.newaxis, :], dtype=tf.bool))
+        target_pad_mask = tf.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=-1, reverse=True) > 0
+        target_pad_mask = target_pad_mask[:, tf.newaxis, tf.newaxis, :]
         mask = tf.math.logical_and(target_pad_mask, query_mask[:, : ys.shape[1]])
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
         return logits  # (N, max_length, vocab_size + 1)
-
-    @tf.function
-    def decode_non_autoregressive(self, features: tf.Tensor) -> tf.Tensor:
-        """Decode the given features at once"""
-        pos_queries = tf.tile(self.pos_queries[:, : self.max_length + 1], [tf.shape(features)[0], 1, 1])
-        ys = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
-        return self.head(self.decode(ys, features, target_query=pos_queries))[:, : self.max_length]
-
-    @staticmethod
-    def compute_loss(
-        model_output: tf.Tensor,
-        gt: tf.Tensor,
-        seq_len: List[int],
-    ) -> tf.Tensor:
-        """Compute categorical cross-entropy loss for the model.
-        Sequences are masked after the EOS character.
-
-        Args:
-            model_output: predicted logits of the model
-            gt: the encoded tensor with gt labels
-            seq_len: lengths of each gt word inside the batch
-
-        Returns:
-            The loss of the model on the batch
-        """
-        # Input length : number of steps
-        input_len = tf.shape(model_output)[1]
-        # Add one for additional <eos> token (sos disappear in shift!)
-        seq_len = tf.cast(seq_len, tf.int32) + 1
-        # One-hot gt labels
-        oh_gt = tf.one_hot(gt, depth=model_output.shape[2])
-        # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
-        # The "masked" first gt char is <sos>. Delete last logit of the model output.
-        cce = tf.nn.softmax_cross_entropy_with_logits(oh_gt[:, 1:, :], model_output[:, :-1, :])
-        # Compute mask
-        mask_values = tf.zeros_like(cce)
-        mask_2d = tf.sequence_mask(seq_len, input_len - 1)  # delete the last mask timestep as well
-        masked_loss = tf.where(mask_2d, cce, mask_values)
-        ce_loss = tf.math.divide(tf.reduce_sum(masked_loss, axis=1), tf.cast(seq_len, model_output.dtype))
-
-        return tf.expand_dims(ce_loss, axis=1)
 
     def call(
         self,
@@ -362,34 +321,62 @@ class PARSeq(_PARSeq, Model):
         # remove cls token
         features = features[:, 1:, :]
 
-        if target is not None:
-            gt, seq_len = self.build_target(target)
-            seq_len = tf.cast(seq_len, tf.int32)
-
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training")
 
         if target is not None:
             gt, seq_len = self.build_target(target)
             seq_len = tf.cast(seq_len, tf.int32)
+            gt = gt[:, : int(tf.reduce_max(seq_len)) + 2]  # slice up to the max length of the batch + 2 (SOS + EOS)
 
             if kwargs.get("training", False):
                 # Generate permutations of the target sequences
+                # TODO: check me
                 tgt_perms = self.generate_permutations(seq_len)
+
+                gt_in = gt[:, :-1]  # remove EOS token from longest target sequence
+                gt_out = gt[:, 1:]  # remove SOS token
 
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                padding_mask = ((gt != self.vocab_size + 2) | (gt != self.vocab_size))[:, tf.newaxis, tf.newaxis, :]
+                padding_mask = tf.math.logical_and(
+                    tf.math.not_equal(gt, self.vocab_size + 2), tf.math.not_equal(gt, self.vocab_size)
+                )
+                padding_mask = padding_mask[:, tf.newaxis, tf.newaxis, :]   # (N, 1, 1, seq_len)
 
-                for perm in tgt_perms:
-                    # Generate attention masks for the permutations
-                    _, target_mask = self.generate_permutations_attention_masks(perm)
-                    # combine target padding mask and query mask
-                    mask = tf.math.logical_and(target_mask, padding_mask)
-                    logits = self.head(self.decode(gt, features, mask))
+                loss = tf.constant(0.0, dtype=tf.float32)
+                loss_numel = tf.constant(0.0, dtype=tf.float32)
+                n = tf.reduce_sum(tf.cast(tf.math.not_equal(gt_out, self.vocab_size + 2), dtype=tf.int32))
+
+                for i, perm in enumerate(tgt_perms):
+                    # TODO: check me
+                    _, target_mask = self.generate_permutations_attention_masks(perm)  # (seq_len, seq_len)
+                    # combine both masks to (N, 1, seq_len, seq_len)
+                    mask = tf.logical_and(padding_mask, tf.expand_dims(tf.expand_dims(target_mask, axis=0), axis=0))
+                    print(mask)
+
+
+                    logits = self.head(self.decode(gt_in, features, mask))
+                    loss += n * losses.sparse_categorical_crossentropy(
+                        gt_out.flatten(), logits, from_logits=True, ignore_index=self.vocab_size + 2
+                    )
+                    loss_numel += n
+
+                    # After the second iteration (i.e. done with canonical and reverse orderings),
+                    # remove the [EOS] tokens for the succeeding perms
+                    if i == 1:
+                        gt_out = tf.where(tf.equal(gt_out, self.vocab_size), self.vocab_size + 2, gt_out)
+                        n = tf.reduce_sum(tf.cast(tf.math.not_equal(gt_out, self.vocab_size + 2), dtype=tf.int32))
+
+                loss /= loss_numel
+
             else:
-                # eval step - use non-autoregressive decoding while training evaluation
-                logits = self.decode_non_autoregressive(features)
+                gt = gt[:, 1:]  # remove SOS token
+                max_len = gt.shape[1] - 1  # exclude EOS token
+                logits = self.decode_autoregressive(features, max_len)
+                loss = losses.sparse_categorical_crossentropy(
+                    gt.flatten(), logits, from_logits=True, ignore_index=self.vocab_size + 2
+                )
         else:
             logits = self.decode_autoregressive(features)
 
