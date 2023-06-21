@@ -6,7 +6,7 @@
 import math
 from copy import deepcopy
 from itertools import permutations
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -250,9 +250,9 @@ class PARSeq(_PARSeq, nn.Module):
 
     def decode_autoregressive(self, features: torch.Tensor, max_len: Optional[int] = None) -> torch.Tensor:
         """Generate predictions for the given features."""
-        # Padding symbol + SOS at the beginning
         max_length = max_len if max_len is not None else self.max_length
         max_length = min(max_length, self.max_length) + 1
+        # Padding symbol + SOS at the beginning
         ys = torch.full(
             (features.size(0), max_length), self.vocab_size + 2, dtype=torch.long, device=features.device
         )  # pad
@@ -319,7 +319,7 @@ class PARSeq(_PARSeq, nn.Module):
             # Build target tensor
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long).to(x.device), torch.tensor(_seq_len).to(x.device)
-            gt = gt[:, : seq_len.max().item() + 2]  # slice up to the max length of the batch + 2 (SOS + EOS)
+            gt = gt[:, : int(seq_len.max().item()) + 2]  # slice up to the max length of the batch + 2 (SOS + EOS)
 
             if self.training:
                 # Generate permutations for the target sequences
@@ -336,7 +336,7 @@ class PARSeq(_PARSeq, nn.Module):
                 )  # (N, 1, 1, seq_len)
 
                 loss = 0.0
-                loss_numel = 0
+                loss_numel: Union[int, float] = 0
                 n = (gt_out != self.vocab_size + 2).sum().item()
                 for i, perm in enumerate(tgt_perms):
                     _, target_mask = self.generate_permutations_attention_masks(perm)  # (seq_len, seq_len)

@@ -138,7 +138,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>.
         cce = F.cross_entropy(model_output.permute(0, 2, 1), gt[:, 1:], reduction="none")
-        # Compute mask, remove 1 timestep here as well
+        # Compute mask
         mask_2d = torch.arange(input_len, device=model_output.device)[None, :] >= seq_len[:, None]
         cce[mask_2d] = 0
 
