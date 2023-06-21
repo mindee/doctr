@@ -329,35 +329,50 @@ class PARSeq(_PARSeq, nn.Module):
                 gt_out = gt[:, 1:]  # remove SOS token
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                padding_mask = (
-                    ~(((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0)
-                    .unsqueeze(1)
-                    .unsqueeze(1)
+                padding_mask = ~(
+                    ((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0
+                )  # (N, seq_len)
+
+                key_padding_mask_expanded = padding_mask.view(features.shape[0], 1, 1, gt_in.shape[-1]).expand(
+                    -1, 1, -1, -1
                 )
 
                 loss = 0
+                loss_numel = 0
+                n = (gt_out != self.vocab_size + 2).sum().item()
                 for i, perm in enumerate(tgt_perms):
                     _, target_mask = self.generate_permutations_attention_masks(perm)
-                    # repeat the mask to (batch_size, num_heads, seq_len, seq_len)
-                    target_mask = target_mask.unsqueeze(0).unsqueeze(1).repeat(features.shape[0], 12, 1, 1)
+                    # repeat the mask to (batch_size, 1, seq_len, seq_len)
+                    # target_mask = target_mask.unsqueeze(0).repeat(features.shape[0], 1, 1)
+                    target_mask = target_mask.bool()
+                    attn_mask_expanded = target_mask.view(1, 1, gt_in.shape[-1], gt_in.shape[-1]).expand(
+                        features.shape[0], 1, -1, -1
+                    )
                     # combine both masks
-                    mask = (padding_mask.bool() & target_mask.bool()).int()
+                    # mask = (padding_mask.bool() & target_mask.bool()).int()
+                    # tile to (N, 12, seq_len, seq_len)
+                    # mask = mask.unsqueeze(1).repeat(1, 12, 1, 1)
+                    mask = attn_mask_expanded & key_padding_mask_expanded
+                    mask = mask.int()
 
-                    logits = self.head(self.decode(gt_out, features, mask))
-                    loss += self.compute_loss(logits, gt_out, seq_len, ignore_index=self.vocab_size + 2)
+                    logits = self.head(self.decode(gt_out, features, mask)).flatten(end_dim=1)
+                    loss += n * F.cross_entropy(logits, gt_out.flatten(), ignore_index=self.vocab_size + 2)
+                    loss_numel += n
+                    # loss += self.compute_loss(logits, gt_out, seq_len, ignore_index=self.vocab_size + 2)
                     # After the second iteration (i.e. done with canonical and reverse orderings),
                     # remove the [EOS] tokens for the succeeding perms
                     if i == 1:
                         gt_out = torch.where(gt_out == self.vocab_size, self.vocab_size + 2, gt_out)
-                        print(gt_out)
+                        n = (gt_out != self.vocab_size + 2).sum().item()
 
-                loss /= len(tgt_perms)
+                # loss /= len(tgt_perms)
+                loss /= loss_numel
 
             else:
                 gt = gt[:, 1:]  # remove SOS token
-                max_len = gt.shape[1] - 1  # exclude <eos> from count
+                max_len = gt.shape[1] - 1  # exclude EOS token
                 logits = self.decode_autoregressive(features, max_len)
-                loss = self.compute_loss(logits, gt, seq_len, ignore_index=self.vocab_size + 2)
+                loss = F.cross_entropy(logits.flatten(end_dim=1), gt.flatten(), ignore_index=self.vocab_size + 2)
         else:
             logits = self.decode_autoregressive(features)
 
