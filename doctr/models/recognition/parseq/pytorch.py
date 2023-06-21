@@ -183,6 +183,12 @@ class PARSeq(_PARSeq, nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+            elif isinstance(m, (nn.MultiheadAttention)):
+                nn.init.xavier_uniform_(m.in_proj_weight)
+                nn.init.constant_(m.in_proj_bias, 0)
+                nn.init.xavier_uniform_(m.out_proj.weight)
+                nn.init.constant_(m.out_proj.bias, 0)
+
     def gen_tgt_perms(self, tgt):
         """Generate shared permutations for the whole batch.
            This works because the same attention mask can be used for the shorter sequences
@@ -190,6 +196,7 @@ class PARSeq(_PARSeq, nn.Module):
         """
         # We don't permute the position of BOS, we permute EOS separately
         max_num_chars = tgt.shape[1] - 2
+
         # Special handling for 1-character sequences
         if max_num_chars == 1:
             return torch.arange(3, device=tgt.device).unsqueeze(0)
@@ -237,27 +244,24 @@ class PARSeq(_PARSeq, nn.Module):
         # 2. Null context for [EOS] (required for learning to predict [EOS] in NAR mode)
         if len(perms) > 1:
             perms[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=tgt.device)
-        return perms
-        #return F.pad(
-        #    perms, (0, self.max_length + 1 - perms.shape[-1]), value=max_num_chars + 1
-        #)  # (num_perms, self.max_length + 1)
-        
 
-    def generate_attn_masks(self, perm):
-        """Generate attention masks given a sequence permutation (includes pos. for bos and eos tokens)
-        :param perm: the permutation sequence. i = 0 is always the BOS
-        :return: lookahead attention masks
-        """
-        sz = perm.shape[0]
-        mask = torch.zeros((sz, sz), device=perm.device)
+        return perms
+        
+    def generate_attn_masks(self, permutation: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        # Generate source and target mask for the decoder attention.
+        sz = permutation.shape[0]
+        mask = torch.ones((sz, sz), device=permutation.device)
+
         for i in range(sz):
-            query_idx = perm[i]
-            masked_keys = perm[i + 1:]
-            mask[query_idx, masked_keys] =0.0
-        content_mask = mask[:-1, :-1].clone()
-        mask[torch.eye(sz, dtype=torch.bool, device=perm.device)] = 0.0 
-        query_mask = mask[1:, :-1]
-        return content_mask, query_mask
+            query_idx = permutation[i]
+            masked_keys = permutation[i + 1 :]
+            mask[query_idx, masked_keys] = 0
+        source_mask = mask[:-1, :-1].clone()
+        mask[torch.eye(sz, dtype=torch.bool, device=permutation.device)] = 0
+        target_mask = mask[1:, :-1]
+
+
+        return source_mask.int(), target_mask.int()
 
 
     def decode(self, tgt: torch.Tensor, memory: torch.Tensor, tgt_mask: Optional[Tensor] = None,
@@ -278,7 +282,7 @@ class PARSeq(_PARSeq, nn.Module):
         """Generate predictions for the given features."""
         # Padding symbol + SOS at the beginning
 
-        max_length = self.max_label_length if max_length is None else min(max_length, self.max_label_length)
+        max_length = max_len if max_len is not None else self.max_length
         bs = features.shape[0]
         # +1 for <eos> at end of sequence.
         num_steps = max_length + 1
@@ -309,10 +313,10 @@ class PARSeq(_PARSeq, nn.Module):
                     # greedy decode. add the next token index to the target input
                     tgt_in[:, j] = p_i.squeeze().argmax(-1)
                     # Efficient batch decoding: If all output words have at least one EOS token, end decoding.
-                    if testing and (tgt_in == self.eos_id).any(dim=-1).all():
+                    if (tgt_in == self.vocab_size).any(dim=-1).all():
                         break
 
-            logits = torch.cat(logits, dim=1)
+        logits = torch.cat(logits, dim=1)
         
 
         # One refine iteration
@@ -320,14 +324,13 @@ class PARSeq(_PARSeq, nn.Module):
         # For iterative refinement, we always use a 'cloze' mask.
         # We can derive it from the AR forward mask by unmasking the token context to the right.
         query_mask[torch.triu(torch.ones(num_steps, num_steps, dtype=torch.bool, device=features.device), 2)] = 0
-        bos = torch.full((bs, 1), self.bos_id, dtype=torch.long, device=features.device)
-        for i in range(self.refine_iters):
-            # Prior context is the previous output.
-            tgt_in = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
-            tgt_padding_mask = ((tgt_in == self.eos_id).int().cumsum(-1) > 0)  # mask tokens beyond the first EOS token.
-            tgt_out = self.decode(tgt_in, memory, tgt_mask, tgt_padding_mask,
+        bos = torch.full((bs, 1), self.vocab_size+1, dtype=torch.long, device=features.device)
+        # Prior context is the previous output.
+        tgt_in = torch.cat([bos, logits[:, :-1].argmax(-1)], dim=1)
+        tgt_padding_mask = ((tgt_in == self.vocab_size).int().cumsum(-1) > 0)  # mask tokens beyond the first EOS token.
+        tgt_out = self.decode(tgt_in, memory, tgt_mask, tgt_padding_mask,
                                   tgt_query=pos_queries, tgt_query_mask=query_mask[:, :tgt_in.shape[1]])
-            logits = self.head(tgt_out)
+        logits = self.head(tgt_out)
         return logits
 
     def forward(
@@ -356,27 +359,27 @@ class PARSeq(_PARSeq, nn.Module):
 
                 tgt_perms = self.gen_tgt_perms(gt)
 
-                
                 tgt_padding_mask = (gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)
                 loss = None
                 loss_numel = 0
                 n = (gt_out != self.vocab_size+2).sum().item()
+                
                 for i,perm in enumerate(tgt_perms):
 
-                    target_mask, source_mask = self.generate_attn_masks(perm) 
+                    target_mask, source_mask = self.generate_attn_masks(perm)   
+                      
                     logits = self.head(self.decode(gt_in, features, target_mask, tgt_padding_mask, tgt_query_mask=source_mask))
-
+                    values_loss = self.compute_loss(logits, gt_out, seq_len, ignore_index=self.vocab_size + 2)
                     if loss is None:
-                    
-                        loss = self.compute_loss(logits, gt_out, seq_len, ignore_index=self.vocab_size + 2)
+                        loss = n*values_loss                            
                     else:
-                        loss += n * self.compute_loss(logits, gt_out, seq_len, ignore_index=self.vocab_size + 2)
+                            loss += n*values_loss
                     loss_numel += n
-                    
                     if i == 1:
                         gt_out = torch.where(gt_out == self.vocab_size, self.vocab_size+2, gt_out)
                         n = (gt_out != self.vocab_size+2).sum().item()
-                loss = loss / loss_numel
+                        
+                loss = loss /loss_numel if loss is not None else torch.Tensor([0,0])
             else:
                 logits = self.decode_autoregressive(features, max_len=int(seq_len.max().item()))
                 gt_out = gt_out[:, : logits.shape[1]]
@@ -393,7 +396,7 @@ class PARSeq(_PARSeq, nn.Module):
         if return_model_output:
             out["out_map"] = logits
 
-        if target is None or return_preds:
+        if return_preds:
             # Post-process boxes
             out["preds"] = self.postprocessor(logits)
 
@@ -408,15 +411,17 @@ class PARSeq(_PARSeq, nn.Module):
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,
-        ignore_index: int = -100,
+        ignore_index=  -100,
     ) -> torch.Tensor:
         
         input_len = model_output.shape[1]
+        model_output = model_output.permute(0, 2, 1)
+        
         cce = F.cross_entropy(
-            model_output.permute(0, 2, 1), gt, ignore_index=ignore_index
-        )
+                model_output, gt, ignore_index=ignore_index
+            )
         return cce.mean()
-
+       
     """
     def compute_loss(
         model_output: torch.Tensor,

@@ -112,7 +112,6 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
     # Iterate over the batches of the dataset
     for images, targets in progress_bar(train_loader, parent=mb):
         i+=1
-        
         if torch.cuda.is_available():
             images = images.cuda()
 
@@ -377,7 +376,7 @@ def main(args):
     # Training loop
     mb = master_bar(range(args.epochs))
     for epoch in mb:
-        #fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
