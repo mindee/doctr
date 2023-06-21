@@ -332,10 +332,9 @@ class PARSeq(_PARSeq, nn.Module):
                 padding_mask = ~(
                     ((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0
                 )  # (N, seq_len)
-
                 key_padding_mask_expanded = padding_mask.view(features.shape[0], 1, 1, gt_in.shape[-1]).expand(
                     -1, 1, -1, -1
-                )
+                )  # (N, 1, 1, seq_len)
 
                 loss = 0
                 loss_numel = 0
@@ -343,22 +342,15 @@ class PARSeq(_PARSeq, nn.Module):
                 for i, perm in enumerate(tgt_perms):
                     _, target_mask = self.generate_permutations_attention_masks(perm)
                     # repeat the mask to (batch_size, 1, seq_len, seq_len)
-                    # target_mask = target_mask.unsqueeze(0).repeat(features.shape[0], 1, 1)
-                    target_mask = target_mask.bool()
                     attn_mask_expanded = target_mask.view(1, 1, gt_in.shape[-1], gt_in.shape[-1]).expand(
                         features.shape[0], 1, -1, -1
-                    )
+                    )  # (N, 1, seq_len, seq_len)
                     # combine both masks
-                    # mask = (padding_mask.bool() & target_mask.bool()).int()
-                    # tile to (N, 12, seq_len, seq_len)
-                    # mask = mask.unsqueeze(1).repeat(1, 12, 1, 1)
-                    mask = attn_mask_expanded & key_padding_mask_expanded
-                    mask = mask.int()
+                    mask = (attn_mask_expanded.bool() & key_padding_mask_expanded.bool()).int()
 
-                    logits = self.head(self.decode(gt_out, features, mask)).flatten(end_dim=1)
+                    logits = self.head(self.decode(gt_in, features, mask)).flatten(end_dim=1)
                     loss += n * F.cross_entropy(logits, gt_out.flatten(), ignore_index=self.vocab_size + 2)
                     loss_numel += n
-                    # loss += self.compute_loss(logits, gt_out, seq_len, ignore_index=self.vocab_size + 2)
                     # After the second iteration (i.e. done with canonical and reverse orderings),
                     # remove the [EOS] tokens for the succeeding perms
                     if i == 1:
