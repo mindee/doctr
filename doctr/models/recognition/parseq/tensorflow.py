@@ -217,7 +217,7 @@ class PARSeq(_PARSeq, Model):
         sz = permutation.shape[0]
         mask = tf.ones((sz, sz), dtype=tf.float32)
 
-        for i in range(sz):
+        for i in range(sz -1):
             query_idx = int(permutation[i])
             masked_keys = permutation[i + 1 :].numpy().tolist()
             indices = tf.constant([[query_idx, j] for j in masked_keys], dtype=tf.int32)
@@ -331,7 +331,6 @@ class PARSeq(_PARSeq, Model):
 
             if kwargs.get("training", False):
                 # Generate permutations of the target sequences
-                # TODO: check me
                 tgt_perms = self.generate_permutations(seq_len)
 
                 gt_in = gt[:, :-1]  # remove EOS token from longest target sequence
@@ -340,27 +339,29 @@ class PARSeq(_PARSeq, Model):
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
                 padding_mask = tf.math.logical_and(
-                    tf.math.not_equal(gt, self.vocab_size + 2), tf.math.not_equal(gt, self.vocab_size)
+                    tf.math.not_equal(gt_in, self.vocab_size + 2), tf.math.not_equal(gt_in, self.vocab_size)
                 )
                 padding_mask = padding_mask[:, tf.newaxis, tf.newaxis, :]   # (N, 1, 1, seq_len)
 
                 loss = tf.constant(0.0, dtype=tf.float32)
-                loss_numel = tf.constant(0.0, dtype=tf.float32)
-                n = tf.reduce_sum(tf.cast(tf.math.not_equal(gt_out, self.vocab_size + 2), dtype=tf.int32))
-
+                loss_numel = tf.constant(0, dtype=tf.float32)
+                n = tf.reduce_sum(tf.cast(tf.math.not_equal(gt_out, self.vocab_size + 2), dtype=tf.float32))
                 for i, perm in enumerate(tgt_perms):
-                    # TODO: check me
                     _, target_mask = self.generate_permutations_attention_masks(perm)  # (seq_len, seq_len)
                     # combine both masks to (N, 1, seq_len, seq_len)
                     mask = tf.logical_and(padding_mask, tf.expand_dims(tf.expand_dims(target_mask, axis=0), axis=0))
-                    print(mask)
-
 
                     logits = self.head(self.decode(gt_in, features, mask))
-                    loss += n * losses.sparse_categorical_crossentropy(
-                        gt_out.flatten(), logits, from_logits=True, ignore_index=self.vocab_size + 2
+                    # TODO: Fix me
+                    cce_loss = losses.sparse_categorical_crossentropy(
+                       flattened_gt_out, flattened_logits, from_logits=False, ignore_class=self.vocab_size + 2
                     )
-                    loss_numel += n
+                    print(cce_loss)
+                    # Convert cce_loss to float tensor
+                    cce_loss = tf.cast(cce_loss, dtype=tf.float32)
+                    # Convert n to float tensor
+                    n = tf.cast(n, dtype=tf.float32)
+                    loss += cce_loss * n
 
                     # After the second iteration (i.e. done with canonical and reverse orderings),
                     # remove the [EOS] tokens for the succeeding perms
@@ -375,7 +376,7 @@ class PARSeq(_PARSeq, Model):
                 max_len = gt.shape[1] - 1  # exclude EOS token
                 logits = self.decode_autoregressive(features, max_len)
                 loss = losses.sparse_categorical_crossentropy(
-                    gt.flatten(), logits, from_logits=True, ignore_index=self.vocab_size + 2
+                    tf.nest.flatten(gt_out), logits, from_logits=True, ignore_class=self.vocab_size + 2
                 )
         else:
             logits = self.decode_autoregressive(features)
@@ -393,7 +394,7 @@ class PARSeq(_PARSeq, Model):
             out["preds"] = self.postprocessor(logits)
 
         if target is not None:
-            out["loss"] = self.compute_loss(logits, gt, seq_len)
+            out["loss"] = loss
 
         return out
 
