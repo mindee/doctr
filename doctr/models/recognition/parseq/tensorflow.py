@@ -304,11 +304,10 @@ class PARSeq(_PARSeq, Model):
         ys = tf.concat([sos, tf.cast(tf.argmax(logits[:, :-1], axis=-1), dtype=tf.int32)], axis=1)
         # Create padding mask for refined target input sequence
         # (N, 1, 1, max_length)
-        target_pad_mask = tf.cast(
-            tf.math.cumsum(tf.cast(tf.equal(ys, self.vocab_size), dtype=tf.int32), axis=-1, reverse=True) > 0,
-            dtype=tf.bool,
-        )
-        target_pad_mask = target_pad_mask[:, tf.newaxis, tf.newaxis, :]
+        mask = tf.cast(tf.equal(ys, self.vocab_size), tf.float32)
+        first_eos_indices = tf.argmax(mask, axis=1, output_type=tf.int32)
+        mask = tf.sequence_mask(first_eos_indices + 1, maxlen=ys.shape[-1], dtype=tf.float32)
+        target_pad_mask = tf.cast(mask[:, tf.newaxis, tf.newaxis, :], dtype=tf.bool)
 
         mask = tf.math.logical_and(target_pad_mask, query_mask[:, : ys.shape[1]])
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries, **kwargs), **kwargs)
