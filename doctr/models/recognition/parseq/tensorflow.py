@@ -302,7 +302,7 @@ class PARSeq(_PARSeq, Model):
 
         sos = tf.fill((tf.shape(features)[0], 1), self.vocab_size + 1)
         ys = tf.concat([sos, tf.cast(tf.argmax(logits[:, :-1], axis=-1), dtype=tf.int32)], axis=1)
-        # Create padding mask for refined target input sequence
+        # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
         mask = tf.cast(tf.equal(ys, self.vocab_size), tf.float32)
         first_eos_indices = tf.argmax(mask, axis=1, output_type=tf.int32)
