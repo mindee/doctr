@@ -11,6 +11,8 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
         ["abcde", "def", "abcdef"],
         ["abcdef", "def", "abcdef"],
         ["abcccc", "cccccc", "abcccccccc"],
+        ["abc", "", "abc"],
+        ["", "abc", "abc"],
     ],
 )
 def test_merge_strings(a, b, merged):
