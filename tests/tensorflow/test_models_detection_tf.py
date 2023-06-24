@@ -19,16 +19,21 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_shape, output_size, out_prob",
+    "arch_name, input_shape, output_size, out_prob, train_mode",
     [
-        ["db_resnet50", (512, 512, 3), (512, 512, 1), True],
-        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True],
-        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), False],
-        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), False],
-        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), False],
+        ["db_resnet50", (512, 512, 3), (512, 512, 1), True, True],
+        ["db_resnet50", (512, 512, 3), (512, 512, 1), True, False],
+        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True, True],
+        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True, False],
+        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True, True],
+        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True, False],
+        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True, True],
+        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True, False],
+        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True, True],
+        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True, False],
     ],
 )
-def test_detection_models(arch_name, input_shape, output_size, out_prob):
+def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
     tf.keras.backend.clear_session()
     model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
@@ -39,9 +44,15 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
         {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.9]], dtype=np.float32)},
     ]
     # test training model
-    out = model(input_tensor, target, return_model_output=True, return_preds=True, training=True)
+    out = model(
+        input_tensor,
+        target,
+        return_model_output=True,
+        return_preds=True if not train_mode else False,
+        training=True if train_mode else False,
+    )
     assert isinstance(out, dict)
-    assert len(out) == 3
+    assert len(out) == 3 if not train_mode else len(out) == 2
     # Check proba map
     assert isinstance(out["out_map"], tf.Tensor)
     assert out["out_map"].dtype == tf.float32
@@ -50,11 +61,12 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if out_prob:
         assert np.all(np.logical_and(seg_map >= 0, seg_map <= 1))
     # Check boxes
-    for boxes_dict in out["preds"]:
-        for boxes in boxes_dict.values():
-            assert boxes.shape[1] == 5
-            assert np.all(boxes[:, :2] < boxes[:, 2:4])
-            assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
+    if not train_mode:
+        for boxes_dict in out["preds"]:
+            for boxes in boxes_dict.values():
+                assert boxes.shape[1] == 5
+                assert np.all(boxes[:, :2] < boxes[:, 2:4])
+                assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out["loss"], tf.Tensor)
     # Target checks

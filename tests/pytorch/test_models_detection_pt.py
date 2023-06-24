@@ -14,19 +14,26 @@ from doctr.models.utils import export_model_to_onnx
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_shape, output_size, out_prob",
+    "arch_name, input_shape, output_size, out_prob, train_mode",
     [
-        ["db_resnet34", (3, 512, 512), (1, 512, 512), True],
-        ["db_resnet50", (3, 512, 512), (1, 512, 512), True],
-        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True],
-        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), False],
-        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), False],
-        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), False],
+        ["db_resnet34", (3, 512, 512), (1, 512, 512), True, True],
+        ["db_resnet34", (3, 512, 512), (1, 512, 512), True, False],
+        ["db_resnet50", (3, 512, 512), (1, 512, 512), True, True],
+        ["db_resnet50", (3, 512, 512), (1, 512, 512), True, False],
+        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True, True],
+        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True, False],
+        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), True, True],
+        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), True, False],
+        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True, True],
+        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True, False],
+        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True, True],
+        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True, False],
     ],
 )
-def test_detection_models(arch_name, input_shape, output_size, out_prob):
+def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
-    model = detection.__dict__[arch_name](pretrained=False).eval()
+    model = detection.__dict__[arch_name](pretrained=True)
+    model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [
@@ -36,20 +43,21 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob):
     if torch.cuda.is_available():
         model.cuda()
         input_tensor = input_tensor.cuda()
-    out = model(input_tensor, target, return_model_output=True, return_preds=True)
+    out = model(input_tensor, target, return_model_output=True, return_preds=True if not train_mode else False)
     assert isinstance(out, dict)
-    assert len(out) == 3
+    assert len(out) == 3 if not train_mode else len(out) == 2
     # Check proba map
     assert out["out_map"].shape == (batch_size, *output_size)
     assert out["out_map"].dtype == torch.float32
     if out_prob:
         assert torch.all((out["out_map"] >= 0) & (out["out_map"] <= 1))
     # Check boxes
-    for boxes_dict in out["preds"]:
-        for boxes in boxes_dict.values():
-            assert boxes.shape[1] == 5
-            assert np.all(boxes[:, :2] < boxes[:, 2:4])
-            assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
+    if not train_mode:
+        for boxes_dict in out["preds"]:
+            for boxes in boxes_dict.values():
+                assert boxes.shape[1] == 5
+                assert np.all(boxes[:, :2] < boxes[:, 2:4])
+                assert np.all(boxes[:, :4] >= 0) and np.all(boxes[:, :4] <= 1)
     # Check loss
     assert isinstance(out["loss"], torch.Tensor)
     # Check the rotated case (same targets)

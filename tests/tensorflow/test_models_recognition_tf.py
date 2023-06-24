@@ -24,34 +24,49 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_shape",
+    "arch_name, input_shape, train_mode",
     [
-        ["crnn_vgg16_bn", (32, 128, 3)],
-        ["crnn_mobilenet_v3_small", (32, 128, 3)],
-        ["crnn_mobilenet_v3_large", (32, 128, 3)],
-        ["sar_resnet31", (32, 128, 3)],
-        ["master", (32, 128, 3)],
-        ["vitstr_small", (32, 128, 3)],
-        ["vitstr_base", (32, 128, 3)],
-        ["parseq", (32, 128, 3)],
+        ["crnn_vgg16_bn", (32, 128, 3), True],
+        ["crnn_vgg16_bn", (32, 128, 3), False],
+        ["crnn_mobilenet_v3_small", (32, 128, 3), True],
+        ["crnn_mobilenet_v3_small", (32, 128, 3), False],
+        ["crnn_mobilenet_v3_large", (32, 128, 3), True],
+        ["crnn_mobilenet_v3_large", (32, 128, 3), False],
+        ["sar_resnet31", (32, 128, 3), True],
+        ["sar_resnet31", (32, 128, 3), False],
+        ["master", (32, 128, 3), True],
+        ["master", (32, 128, 3), False],
+        ["vitstr_small", (32, 128, 3), True],
+        ["vitstr_small", (32, 128, 3), False],
+        ["vitstr_base", (32, 128, 3), True],
+        ["vitstr_base", (32, 128, 3), False],
+        ["parseq", (32, 128, 3), True],
+        ["parseq", (32, 128, 3), False],
     ],
 )
-def test_recognition_models(arch_name, input_shape):
+def test_recognition_models(arch_name, input_shape, train_mode):
     batch_size = 4
     reco_model = recognition.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     assert isinstance(reco_model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = ["i", "am", "a", "jedi"]
 
-    out = reco_model(input_tensor, target, return_model_output=True, return_preds=True)
+    out = reco_model(
+        input_tensor,
+        target,
+        return_model_output=True,
+        return_preds=True if not train_mode else False,
+        training=True if train_mode else False,
+    )
     assert isinstance(out, dict)
-    assert len(out) == 3
+    assert len(out) == 3 if not train_mode else len(out) == 2
     assert isinstance(out["out_map"], tf.Tensor)
     assert out["out_map"].dtype == tf.float32
-    assert isinstance(out["preds"], list)
-    assert len(out["preds"]) == batch_size
-    assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out["preds"])
-    assert isinstance(out["loss"], tf.Tensor)
+    if not train_mode:
+        assert isinstance(out["preds"], list)
+        assert len(out["preds"]) == batch_size
+        assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out["preds"])
+        assert isinstance(out["loss"], tf.Tensor)
     # test model in train mode needs targets
     with pytest.raises(ValueError):
         reco_model(input_tensor, None, training=True)
