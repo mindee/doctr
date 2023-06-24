@@ -119,4 +119,3 @@ jobs:
         with:
           flags: unittests
           fail_ci_if_error: true
-          files: ./coverage-common.xml,./coverage-tf.xml,./coverage-pt.xml
