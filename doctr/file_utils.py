@@ -13,7 +13,7 @@ import sys
 CLASS_NAME: str = "words"
 
 
-if sys.version_info < (3, 8):
+if sys.version_info < (3, 8):  # pragma: no cover
     import importlib_metadata
 else:
     import importlib.metadata as importlib_metadata
@@ -36,7 +36,7 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
             logging.info(f"PyTorch version {_torch_version} available.")
         except importlib_metadata.PackageNotFoundError:
             _torch_available = False
-else:
+else:  # pragma: no cover
     logging.info("Disabling PyTorch because USE_TF is set")
     _torch_available = False
 
@@ -70,12 +70,12 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             _tf_available = False
         else:
             logging.info(f"TensorFlow version {_tf_version} available.")
-else:
+else:  # pragma: no cover
     logging.info("Disabling Tensorflow because USE_TORCH is set")
     _tf_available = False
 
 
-if not _torch_available and not _tf_available:
+if not _torch_available and not _tf_available:  # pragma: no cover
     raise ModuleNotFoundError(
         "DocTR requires either TensorFlow or PyTorch to be installed. Please ensure one of them"
         " is installed and that either USE_TF or USE_TORCH is enabled."
