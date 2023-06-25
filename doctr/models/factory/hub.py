@@ -32,7 +32,7 @@ AVAILABLE_ARCHS = {
 }
 
 
-def login_to_hub() -> None:
+def login_to_hub() -> None:  # pragma: no cover
     """Login to huggingface hub"""
     access_token = HfFolder.get_token()
     if access_token is not None and HfApi()._is_valid_token(access_token):
@@ -81,7 +81,7 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, arch: str, task
         json.dump(model_config, f, indent=2, ensure_ascii=False)
 
 
-def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:
+def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  # pragma: no cover
     """Save model and its configuration on HF hub
 
     >>> from doctr.models import login_to_hub, push_to_hf_hub
