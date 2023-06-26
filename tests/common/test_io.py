@@ -1,4 +1,5 @@
 from io import BytesIO
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -16,6 +17,10 @@ def _check_doc_content(doc_tensors, num_pages):
 
 def test_read_pdf(mock_pdf):
     doc = io.read_pdf(mock_pdf)
+    _check_doc_content(doc, 2)
+
+    # Test with Path
+    doc = io.read_pdf(Path(mock_pdf))
     _check_doc_content(doc, 2)
 
     with open(mock_pdf, "rb") as f:

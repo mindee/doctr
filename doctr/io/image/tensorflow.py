@@ -8,11 +8,7 @@ from typing import Tuple
 import numpy as np
 import tensorflow as tf
 from PIL import Image
-
-if tf.__version__ >= "2.6.0":
-    from tensorflow.keras.utils import img_to_array
-else:
-    from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.utils import img_to_array
 
 from doctr.utils.common_types import AbstractPath
 
