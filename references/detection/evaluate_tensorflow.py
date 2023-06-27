@@ -70,7 +70,7 @@ def main(args):
 
     # Load docTR model
     model = detection.__dict__[args.arch](
-        pretrained=isinstance(args.resume, str),
+        pretrained=not isinstance(args.resume, str),
         assume_straight_pages=not args.rotation,
         input_shape=input_shape,
     )
