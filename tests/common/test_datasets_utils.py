@@ -21,6 +21,11 @@ def test_translate(input_str, vocab, output_str):
     assert out == output_str
 
 
+def test_translate_unknown_vocab():
+    with pytest.raises(KeyError):
+        utils.translate("test", "unknown_vocab")
+
+
 @pytest.mark.parametrize(
     "input_str",
     [
@@ -36,6 +41,11 @@ def test_encode_decode(input_str):
     encoded = utils.encode_string(input_str, mapping)
     decoded = utils.decode_sequence(encoded, mapping)
     assert decoded == input_str
+
+
+def test_encode_string_unknown_char():
+    with pytest.raises(ValueError):
+        utils.encode_string("abc", "xyz")
 
 
 def test_decode_sequence():
@@ -54,6 +64,8 @@ def test_decode_sequence():
     "sequences, vocab, target_size, sos, eos, pad, dynamic_len, error, out_shape, gts",
     [
         [["cba"], "abcdef", None, None, 1, None, False, True, (1, 3), [[2, 1, 0]]],  # eos in vocab
+        [["cba"], "abcdef", None, 1, -1, None, False, True, (1, 3), [[2, 1, 0]]],  # sos in vocab
+        [["cba"], "abcdef", None, None, -1, 1, False, True, (1, 3), [[2, 1, 0]]],  # pad in vocab
         [["cba", "a"], "abcdef", None, None, -1, None, False, False, (2, 4), [[2, 1, 0, -1], [0, -1, -1, -1]]],
         [["cba", "a"], "abcdef", None, None, 6, None, False, False, (2, 4), [[2, 1, 0, 6], [0, 6, 6, 6]]],
         [["cba", "a"], "abcdef", 2, None, -1, None, False, False, (2, 2), [[2, 1], [0, -1]]],

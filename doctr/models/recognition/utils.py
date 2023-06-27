@@ -31,7 +31,7 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
     """
     seq_len = min(len(a), len(b))
     if seq_len == 0:  # One sequence is empty, return the other
-        return b if len(a) == 0 else b
+        return b if len(a) == 0 else a
 
     # Initialize merging index and corresponding score (mean Levenstein)
     min_score, index = 1.0, 0  # No overlap, just concatenate

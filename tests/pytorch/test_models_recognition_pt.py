@@ -19,21 +19,30 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
 @pytest.mark.parametrize(
-    "arch_name, input_shape, pretrained",
+    "arch_name, input_shape, train_mode",
     [
         ["crnn_vgg16_bn", (3, 32, 128), True],
+        ["crnn_vgg16_bn", (3, 32, 128), False],
         ["crnn_mobilenet_v3_small", (3, 32, 128), True],
+        ["crnn_mobilenet_v3_small", (3, 32, 128), False],
         ["crnn_mobilenet_v3_large", (3, 32, 128), True],
+        ["crnn_mobilenet_v3_large", (3, 32, 128), False],
+        ["sar_resnet31", (3, 32, 128), True],
         ["sar_resnet31", (3, 32, 128), False],
+        ["master", (3, 32, 128), True],
         ["master", (3, 32, 128), False],
+        ["vitstr_small", (3, 32, 128), True],
         ["vitstr_small", (3, 32, 128), False],
+        ["vitstr_base", (3, 32, 128), True],
         ["vitstr_base", (3, 32, 128), False],
+        ["parseq", (3, 32, 128), True],
         ["parseq", (3, 32, 128), False],
     ],
 )
-def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
+def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
     batch_size = 4
-    model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=pretrained, input_shape=input_shape).eval()
+    model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=True, input_shape=input_shape)
+    model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = ["i", "am", "a", "jedi"]
@@ -41,12 +50,13 @@ def test_recognition_models(arch_name, input_shape, pretrained, mock_vocab):
     if torch.cuda.is_available():
         model.cuda()
         input_tensor = input_tensor.cuda()
-    out = model(input_tensor, target, return_model_output=True, return_preds=True)
+    out = model(input_tensor, target, return_model_output=True, return_preds=not train_mode)
     assert isinstance(out, dict)
-    assert len(out) == 3
-    assert isinstance(out["preds"], list)
-    assert len(out["preds"]) == batch_size
-    assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out["preds"])
+    assert len(out) == 3 if not train_mode else len(out) == 2
+    if not train_mode:
+        assert isinstance(out["preds"], list)
+        assert len(out["preds"]) == batch_size
+        assert all(isinstance(word, str) and isinstance(conf, float) and 0 <= conf <= 1 for word, conf in out["preds"])
     assert isinstance(out["out_map"], torch.Tensor)
     assert out["out_map"].dtype == torch.float32
     assert isinstance(out["loss"], torch.Tensor)

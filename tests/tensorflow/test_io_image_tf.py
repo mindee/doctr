@@ -17,6 +17,9 @@ def test_read_img_as_tensor(mock_image_path):
     img = read_img_as_tensor(mock_image_path, dtype=tf.uint8)
     assert img.dtype == tf.uint8
 
+    with pytest.raises(ValueError):
+        read_img_as_tensor(mock_image_path, dtype=tf.float64)
+
 
 def test_decode_img_as_tensor(mock_image_stream):
     img = decode_img_as_tensor(mock_image_stream)
@@ -29,6 +32,9 @@ def test_decode_img_as_tensor(mock_image_stream):
     assert img.dtype == tf.float16
     img = decode_img_as_tensor(mock_image_stream, dtype=tf.uint8)
     assert img.dtype == tf.uint8
+
+    with pytest.raises(ValueError):
+        decode_img_as_tensor(mock_image_stream, dtype=tf.float64)
 
 
 def test_tensor_from_numpy(mock_image_stream):

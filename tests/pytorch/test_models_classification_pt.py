@@ -42,6 +42,8 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
         ["vit_s", (3, 32, 32), (126,)],
         ["vit_b", (3, 32, 32), (126,)],
+        # Check that the interpolation of positional embeddings for vit models works correctly
+        ["vit_s", (3, 64, 64), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
