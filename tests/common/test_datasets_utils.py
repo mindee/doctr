@@ -23,7 +23,7 @@ def test_translate(input_str, vocab, output_str):
 
 def test_translate_unknown_vocab():
     with pytest.raises(KeyError):
-        _ = utils.translate("test", "unknown_vocab")
+        utils.translate("test", "unknown_vocab")
 
 
 @pytest.mark.parametrize(
@@ -45,7 +45,7 @@ def test_encode_decode(input_str):
 
 def test_encode_string_unknown_char():
     with pytest.raises(ValueError):
-        _ = utils.encode_string("abc", "xyz")
+        utils.encode_string("abc", "xyz")
 
 
 def test_decode_sequence():

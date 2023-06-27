@@ -50,7 +50,7 @@ def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
     if torch.cuda.is_available():
         model.cuda()
         input_tensor = input_tensor.cuda()
-    out = model(input_tensor, target, return_model_output=True, return_preds=True if not train_mode else False)
+    out = model(input_tensor, target, return_model_output=True, return_preds=not train_mode)
     assert isinstance(out, dict)
     assert len(out) == 3 if not train_mode else len(out) == 2
     if not train_mode:

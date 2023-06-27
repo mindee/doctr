@@ -48,8 +48,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob, train_m
         input_tensor,
         target,
         return_model_output=True,
-        return_preds=True if not train_mode else False,
-        training=True if train_mode else False,
+        return_preds=not train_mode,
+        training=train_mode,
     )
     assert isinstance(out, dict)
     assert len(out) == 3 if not train_mode else len(out) == 2
