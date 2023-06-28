@@ -71,7 +71,7 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
 
 
 def test_visiondataset():
-    url = "https://data.deepai.org/mnist.zip"
+    url = "https://github.com/mindee/doctr/releases/download/v0.6.0/mnist.zip"
     with pytest.raises(ValueError):
         datasets.datasets.VisionDataset(url, download=False)
 

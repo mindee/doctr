@@ -54,6 +54,16 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     assert isinstance(labels, list) and all(isinstance(elt, str) for elt in labels)
 
 
+def test_visiondataset():
+    url = "https://github.com/mindee/doctr/releases/download/v0.6.0/mnist.zip"
+    with pytest.raises(ValueError):
+        datasets.datasets.VisionDataset(url, download=False)
+
+    dataset = datasets.datasets.VisionDataset(url, download=True, extract_archive=True)
+    assert len(dataset) == 0
+    assert repr(dataset) == "VisionDataset()"
+
+
 def test_detection_dataset(mock_image_folder, mock_detection_label):
     input_size = (1024, 1024)
 
