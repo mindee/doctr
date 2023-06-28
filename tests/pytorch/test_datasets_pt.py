@@ -232,11 +232,11 @@ def test_wordgenerator():
     assert isinstance(targets, list) and len(targets) == 2 and all(isinstance(t, str) for t in targets)
 
 
+@pytest.mark.parametrize("rotate", [True, False])
 @pytest.mark.parametrize(
-    "input_size, num_samples, rotate",
+    "input_size, num_samples",
     [
-        [[512, 512], 3, True],  # Actual set has 2700 training samples and 300 test samples
-        [[512, 512], 3, False],
+        [[512, 512], 3],  # Actual set has 2700 training samples and 300 test samples
     ],
 )
 def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts):
@@ -263,7 +263,7 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
 
 @pytest.mark.parametrize("rotate", [True, False])
 @pytest.mark.parametrize(
-    "input_size, num_samples, rotate, recognition",
+    "input_size, num_samples, recognition",
     [
         [[512, 512], 3, False],  # Actual set has 626 training samples and 360 test samples
         [[32, 128], 15, True],  # recognition
