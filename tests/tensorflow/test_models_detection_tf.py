@@ -18,14 +18,15 @@ from doctr.models.utils import export_model_to_onnx
 system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
+@pytest.mark.parametrize("train_mode", [True, False])
 @pytest.mark.parametrize(
-    "arch_name, input_shape, output_size, out_prob, train_mode",
+    "arch_name, input_shape, output_size, out_prob",
     [
-        ["db_resnet50", (512, 512, 3), (512, 512, 1), True, [True, False]],
-        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True, [True, False]],
-        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True, [True, False]],
-        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True, [True, False]],
-        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True, [True, False]],
+        ["db_resnet50", (512, 512, 3), (512, 512, 1), True],
+        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True],
+        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True],
+        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True],
+        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
