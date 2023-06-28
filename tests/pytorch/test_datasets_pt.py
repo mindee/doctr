@@ -154,7 +154,7 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
 
 @pytest.mark.parametrize(
     "use_polygons",
-    [True, False],
+    [False, True],
 )
 def test_ocrdataset(mock_ocrdataset, use_polygons):
     input_size = (512, 512)
