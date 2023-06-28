@@ -21,16 +21,11 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob, train_mode",
     [
-        ["db_resnet50", (512, 512, 3), (512, 512, 1), True, True],
-        ["db_resnet50", (512, 512, 3), (512, 512, 1), True, False],
-        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True, True],
-        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True, False],
-        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True, True],
-        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True, False],
-        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True, True],
-        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True, False],
-        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True, True],
-        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True, False],
+        ["db_resnet50", (512, 512, 3), (512, 512, 1), True, [True, False]],
+        ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1), True, [True, False]],
+        ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True, [True, False]],
+        ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True, [True, False]],
+        ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True, [True, False]],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):

@@ -206,8 +206,7 @@ def test_wordgenerator():
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate",
     [
-        [[512, 512], 3, True],  # Actual set has 2700 training samples and 300 test samples
-        [[512, 512], 3, False],
+        [[512, 512], 3, [True, False]],  # Actual set has 2700 training samples and 300 test samples
     ],
 )
 def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts):
@@ -235,10 +234,8 @@ def test_artefact_detection(input_size, num_samples, rotate, mock_doc_artefacts)
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True, False],  # Actual set has 626 training samples and 360 test samples
-        [[512, 512], 3, False, False],
-        [[32, 128], 15, True, True],  # recognition
-        [[32, 128], 15, False, True],
+        [[512, 512], 3, [True, False], False],  # Actual set has 626 training samples and 360 test samples
+        [[32, 128], 15, [True, False], True],  # recognition
     ],
 )
 def test_sroie(input_size, num_samples, rotate, recognition, mock_sroie_dataset):
@@ -266,10 +263,8 @@ def test_sroie(input_size, num_samples, rotate, recognition, mock_sroie_dataset)
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 5, True, False],  # Actual set has 229 train and 233 test samples
-        [[512, 512], 5, False, False],
-        [[32, 128], 25, True, True],  # recognition
-        [[32, 128], 25, False, True],
+        [[512, 512], 5, [True, False], False],  # Actual set has 229 train and 233 test samples
+        [[32, 128], 25, [True, False], True],  # recognition
     ],
 )
 def test_ic13_dataset(input_size, num_samples, rotate, recognition, mock_ic13):
@@ -290,10 +285,8 @@ def test_ic13_dataset(input_size, num_samples, rotate, recognition, mock_ic13):
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True, False],  # Actual set has 7149 train and 796 test samples
-        [[512, 512], 3, False, False],
-        [[32, 128], 5, True, True],  # recognition
-        [[32, 128], 5, False, True],
+        [[512, 512], 3, [True, False], False],  # Actual set has 7149 train and 796 test samples
+        [[32, 128], 5, [True, False], True],  # recognition
     ],
 )
 def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, mock_imgur5k):
@@ -316,10 +309,8 @@ def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, mock_imgu
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[32, 128], 3, True, False],  # Actual set has 33402 training samples and 13068 test samples
-        [[32, 128], 3, False, False],
-        [[32, 128], 12, True, True],  # recognition
-        [[32, 128], 12, False, True],
+        [[32, 128], 3, [True, False], False],  # Actual set has 33402 training samples and 13068 test samples
+        [[32, 128], 12, [True, False], True],  # recognition
     ],
 )
 def test_svhn(input_size, num_samples, rotate, recognition, mock_svhn_dataset):
@@ -347,10 +338,8 @@ def test_svhn(input_size, num_samples, rotate, recognition, mock_svhn_dataset):
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True, False],  # Actual set has 149 training samples and 50 test samples
-        [[512, 512], 3, False, False],
-        [[32, 128], 9, True, True],  # recognition
-        [[32, 128], 9, False, True],
+        [[512, 512], 3, [True, False], False],  # Actual set has 149 training samples and 50 test samples
+        [[32, 128], 9, [True, False], True],  # recognition
     ],
 )
 def test_funsd(input_size, num_samples, rotate, recognition, mock_funsd_dataset):
@@ -380,10 +369,8 @@ def test_funsd(input_size, num_samples, rotate, recognition, mock_funsd_dataset)
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True, False],  # Actual set has 800 training samples and 100 test samples
-        [[512, 512], 3, False, False],
-        [[32, 128], 9, True, True],  # recognition
-        [[32, 128], 9, False, True],
+        [[512, 512], 3, [True, False], False],  # Actual set has 800 training samples and 100 test samples
+        [[32, 128], 9, [True, False], True],  # recognition
     ],
 )
 def test_cord(input_size, num_samples, rotate, recognition, mock_cord_dataset):
@@ -411,10 +398,8 @@ def test_cord(input_size, num_samples, rotate, recognition, mock_cord_dataset):
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 2, True, False],  # Actual set has 772875 training samples and 85875 test samples
-        [[512, 512], 2, False, False],
-        [[32, 128], 10, True, True],  # recognition
-        [[32, 128], 10, False, True],
+        [[512, 512], 2, [True, False], False],  # Actual set has 772875 training samples and 85875 test samples
+        [[32, 128], 10, [True, False], True],  # recognition
     ],
 )
 def test_synthtext(input_size, num_samples, rotate, recognition, mock_synthtext_dataset):
@@ -443,10 +428,8 @@ def test_synthtext(input_size, num_samples, rotate, recognition, mock_synthtext_
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[32, 128], 1, True, False],  # Actual set has 2000 training samples and 3000 test samples
-        [[32, 128], 1, False, False],
-        [[32, 128], 1, True, True],  # recognition
-        [[32, 128], 1, False, True],
+        [[32, 128], 1, [True, False], False],  # Actual set has 2000 training samples and 3000 test samples
+        [[32, 128], 1, [True, False], True],  # recognition
     ],
 )
 def test_iiit5k(input_size, num_samples, rotate, recognition, mock_iiit5k_dataset):
@@ -475,10 +458,8 @@ def test_iiit5k(input_size, num_samples, rotate, recognition, mock_iiit5k_datase
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True, False],  # Actual set has 100 training samples and 249 test samples
-        [[512, 512], 3, False, False],
-        [[32, 128], 3, True, True],  # recognition
-        [[32, 128], 3, False, True],
+        [[512, 512], 3, [True, False], False],  # Actual set has 100 training samples and 249 test samples
+        [[32, 128], 3, [True, False], True],  # recognition
     ],
 )
 def test_svt(input_size, num_samples, rotate, recognition, mock_svt_dataset):
@@ -507,10 +488,8 @@ def test_svt(input_size, num_samples, rotate, recognition, mock_svt_dataset):
 @pytest.mark.parametrize(
     "input_size, num_samples, rotate, recognition",
     [
-        [[512, 512], 3, True, False],  # Actual set has 246 training samples and 249 test samples
-        [[512, 512], 3, False, False],
-        [[32, 128], 3, True, True],  # recognition
-        [[32, 128], 3, False, True],
+        [[512, 512], 3, [True, False], False],  # Actual set has 246 training samples and 249 test samples
+        [[32, 128], 3, [True, False], True],  # recognition
     ],
 )
 def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):

@@ -16,18 +16,12 @@ from doctr.models.utils import export_model_to_onnx
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size, out_prob, train_mode",
     [
-        ["db_resnet34", (3, 512, 512), (1, 512, 512), True, True],
-        ["db_resnet34", (3, 512, 512), (1, 512, 512), True, False],
-        ["db_resnet50", (3, 512, 512), (1, 512, 512), True, True],
-        ["db_resnet50", (3, 512, 512), (1, 512, 512), True, False],
-        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True, True],
-        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True, False],
-        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), True, True],
-        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), True, False],
-        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True, True],
-        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True, False],
-        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True, True],
-        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True, False],
+        ["db_resnet34", (3, 512, 512), (1, 512, 512), True, [True, False]],
+        ["db_resnet50", (3, 512, 512), (1, 512, 512), True, [True, False]],
+        ["db_mobilenet_v3_large", (3, 512, 512), (1, 512, 512), True, [True, False]],
+        ["linknet_resnet18", (3, 512, 512), (1, 512, 512), True, [True, False]],
+        ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True, [True, False]],
+        ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True, [True, False]],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
