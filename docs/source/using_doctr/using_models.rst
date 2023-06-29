@@ -23,6 +23,8 @@ Available architectures
 The following architectures are currently supported:
 
 * :py:meth:`linknet_resnet18 <doctr.models.detection.linknet_resnet18>`
+* :py:meth:`linknet_resnet18 <doctr.models.detection.linknet_resnet34>`
+* :py:meth:`linknet_resnet18 <doctr.models.detection.linknet_resnet50>`
 * :py:meth:`db_resnet50 <doctr.models.detection.db_resnet50>`
 * :py:meth:`db_mobilenet_v3_large <doctr.models.detection.db_mobilenet_v3_large>`
 
@@ -34,15 +36,31 @@ We also provide 2 models working with any kind of rotated documents:
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
 
-+------------------------------------------------------------------+----------------------------+----------------------------+---------+
-|                                                                  |        FUNSD               |        CORD                |         |
-+=================================+=================+==============+============+===============+============+===============+=========+
-| **Architecture**                | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
-+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_resnet50                     | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
-+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
-| db_mobilenet_v3_large           | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
-+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
++-----------------------------------------------------------------------------------+----------------------------+----------------------------+---------+
+|                                                                                   |        FUNSD               |        CORD                |         |
++================+=================================+=================+==============+============+===============+============+===============+=========+
+| **Backend**    | **Architecture**                | **Input shape** | **# params** | **Recall** | **Precision** | **Recall** | **Precision** | **FPS** |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | db_resnet50                     | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| Tensorflow     | db_mobilenet_v3_large           | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | linknet_resnet18                | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| Tensorflow     | linknet_resnet18_rotation       | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | linknet_resnet34                | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| Tensorflow     | linknet_resnet50                | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | db_resnet34                     | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | db_resnet50                     | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | db_resnet50_rotation            | (1024, 1024, 3) | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | db_mobilenet_v3_large           | (1024, 1024, 3) |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
 
 All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
@@ -50,7 +68,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Detection predictors
@@ -58,11 +76,13 @@ Detection predictors
 
 :py:meth:`detection_predictor <doctr.models.detection.detection_predictor>` wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.
 
-    >>> import numpy as np
-    >>> from doctr.models import detection_predictor
-    >>> predictor = detection_predictor('db_resnet50')
-    >>> dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
-    >>> out = model([dummy_img])
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import detection_predictor
+    predictor = detection_predictor('db_resnet50')
+    dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
+    out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
 
@@ -72,8 +92,10 @@ You can pass specific boolean arguments to the predictor:
 
 For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
 
-    >>> from doctr.models import detection_predictor
-    >>> predictor = detection_predictor('db_resnet50_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+.. code:: python3
+
+    from doctr.models import detection_predictor
+    predictor = detection_predictor('db_resnet50_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 NB: for the moment, `db_resnet50_rotation` is pretrained in Pytorch only and `linknet_resnet18_rotation` in Tensorflow only.
 
@@ -94,75 +116,82 @@ The following architectures are currently supported:
 * :py:meth:`crnn_mobilenet_v3_large <doctr.models.recognition.crnn_mobilenet_v3_large>`
 * :py:meth:`sar_resnet31 <doctr.models.recognition.sar_resnet31>`
 * :py:meth:`master <doctr.models.recognition.master>`
+* :py:meth:`vitstr_small <doctr.models.recognition.vitstr_small>`
+* :py:meth:`vitstr_base <doctr.models.recognition.vitstr_base>`
+* :py:meth:`parseq <doctr.models.recognition.parseq>`
 
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
 
-.. list-table:: Text recognition model zoo
-   :header-rows: 1
++-----------------------------------------------------------------------------------+----------------------------+----------------------------+---------+
+|                                                                                   |        FUNSD               |        CORD                |         |
++================+=================================+=================+==============+============+===============+============+===============+=========+
+| **Backend**    | **Architecture**                | **Input shape** | **# params** | **Exact**  | **Partial**   | **Exact**  | **Partial**   | **FPS** |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | crnn_vgg16_bn                   | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| Tensorflow     | crnn_mobilenet_v3_small         | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | crnn_mobilenet_v3_large         | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| Tensorflow     | master                          | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | sar_resnet31                    | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| Tensorflow     | vitstr_small                    | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | vitstr_base                     | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| TensorFlow     | parseq                          | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | crnn_vgg16_bn                   | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | crnn_mobilenet_v3_small         | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | crnn_mobilenet_v3_large         | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | master                          | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | sar_resnet31                    | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | vitstr_small                    | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | vitstr_base                     | (32, 128, 3)    | 25.2 M       | 82.14      | 87.64         | 92.49      | 89.66         | 2.1     |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
+| PyTorch        | parseq                          | (32, 128, 3)    |  4.2 M       | 79.35      | 84.03         | 81.14      | 66.85         |         |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+---------+
 
-   * - Architecture
-     - Input shape
-     - # params
-     - FUNSD
-     - CORD
-     - FPS
-   * - crnn_vgg16_bn
-     - (32, 128, 3)
-     - 15.8M
-     - 87.18
-     - 92.93
-     - 12.8
-   * - crnn_mobilenet_v3_small
-     - (32, 128, 3)
-     - 2.1M
-     - 86.21
-     - 90.56
-     -
-   * - crnn_mobilenet_v3_large
-     - (32, 128, 3)
-     - 4.5M
-     - 86.95
-     - 92.03
-     -
-   * - sar_resnet31
-     - (32, 128, 3)
-     - 56.2M
-     - **87.70**
-     - **93.41**
-     - 2.7
-   * - master
-     - (32, 128, 3)
-     - 67.7M
-     - 87.62
-     - 93.27
-     -
+
 
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metric being used (exact match) are available in :ref:`metrics`.
 
 While most of our recognition models were trained on our french vocab (cf. :ref:`vocabs`), you can easily access the vocab of any model as follows:
 
-    >>> from doctr.models import recognition_predictor
-    >>> predictor = recognition_predictor('crnn_vgg16_bn')
-    >>> print(predictor.model.cfg['vocab'])
+.. code:: python3
+
+    from doctr.models import recognition_predictor
+    predictor = recognition_predictor('crnn_vgg16_bn')
+    print(predictor.model.cfg['vocab'])
 
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
 :py:meth:`recognition_predictor <doctr.models.recognition.recognition_predictor>` wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
 
-    >>> import numpy as np
-    >>> from doctr.models import recognition_predictor
-    >>> predictor = recognition_predictor('crnn_vgg16_bn')
-    >>> dummy_img = (255 * np.random.rand(50, 150, 3)).astype(np.uint8)
-    >>> out = model([dummy_img])
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import recognition_predictor
+    predictor = recognition_predictor('crnn_vgg16_bn')
+    dummy_img = (255 * np.random.rand(50, 150, 3)).astype(np.uint8)
+    out = model([dummy_img])
 
 
 End-to-End OCR
@@ -206,43 +235,20 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
-
-Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.
-
-
-+----------------------------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+----------------------------+
-|                                              |          Receipts          |            Invoices        |            IDs             |        US Tax Forms        |         Resumes            |         Road Fines         |
-+==============================================+============+===============+============+===============+============+===============+============+===============+============+===============+============+===============+
-| **Architecture**                             | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** | **Recall** | **Precision** |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + crnn_vgg16_bn (ours)           |   78.70    |   81.12       | 65.80      |   70.70       |   50.25    |   51.78       |   79.08    |   92.83       |            |               |            |               |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + master (ours)                  | **79.00**  | **81.42**     | 65.57      |   69.86       |   51.34    |   52.90       |   78.86    |   92.57       |            |               |            |               |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + sar_resnet31 (ours)            |   78.94    |   81.37       | 65.89      | **70.79**     | **51.78**  | **53.35**     |   79.04    |   92.78       |            |               |            |               |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + crnn_mobilenet_v3_small (ours) |   76.81    |     79.15     |    64.89   |    69.61      |  45.03     | 46.38         |  78.96     |   92.11       |    85.91   |     87.20     |   84.85    |     85.86     |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| db_resnet50 + crnn_mobilenet_v3_large (ours) |   78.01    |     80.39     |    65.36   |    70.11      |  48.00     | 49.43         |  79.39     |   92.62       |    87.68   |     89.00     |   85.65    |     86.67     |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| db_mobilenet_v3_large + crnn_vgg16_bn (ours) |   78.36    |   74.93       | 63.04      | 68.41         | 39.36      | 41.75         |   72.14    |   89.97       |            |               |            |               |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| Gvision doc. text detection                  | 68.91      | 59.89         | 63.20      | 52.85         | 43.70      | 29.21         |   69.79    |   65.68       |            |               |            |               |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
-| AWS textract                                 | 75.77      | 77.70         | **70.47**  | 69.13         | 46.39      | 43.32         | **84.31**  | **98.11**     |            |               |            |               |
-+----------------------------------------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+------------+---------------+
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Two-stage approaches
 ^^^^^^^^^^^^^^^^^^^^
 Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with :py:meth:`ocr_predictor <doctr.models.ocr_predictor>`.
 
-    >>> import numpy as np
-    >>> from doctr.models import ocr_predictor
-    >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
-    >>> input_page = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
-    >>> out = model([input_page])
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import ocr_predictor
+    model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+    input_page = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
+    out = model([input_page])
 
 
 You can pass specific boolean arguments to the predictor:
@@ -257,8 +263,10 @@ Those 3 are going straight to the detection predictor, as mentioned above (in th
 
 For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
 
-    >>> from doctr.model import ocr_predictor
-    >>> model = ocr_predictor('linknet_resnet18_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+.. code:: python3
+
+    from doctr.model import ocr_predictor
+    model = ocr_predictor('linknet_resnet18_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 
 What should I do with the output?
