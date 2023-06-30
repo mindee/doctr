@@ -74,7 +74,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
-Seconds per iteration is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
+Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Detection predictors
@@ -133,11 +133,11 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 +-----------------------------------------------------------------------------------+----------------------------+----------------------------+--------------------+
 |                                                                                   |        FUNSD               |        CORD                |                    |
 +================+=================================+=================+==============+============+===============+============+===============+====================+
-| **Backend**    | **Architecture**                | **Input shape** | **# params** | **Exact**  | **Partial**   | **Exact**  | **Partial**   | **sec/it (B: 64)** |
+| **Backend**    | **Architecture**                | **Input shape** | **# params** | **Exact**  | **Partial**   | **Exact**  | **Partial**   | **sec/it (B: 1)**  |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | crnn_vgg16_bn                   | (32, 128, 3)    | 15.8 M       |            |               |            |               | 0.9                |
+| TensorFlow     | crnn_vgg16_bn                   | (32, 128, 3)    | 15.8 M       | 88.12      | 88.85         | 94.68      | 95.10         | 0.9                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| Tensorflow     | crnn_mobilenet_v3_small         | (32, 128, 3)    | 2.1 M        |            |               |            |               | 0.25               |
+| Tensorflow     | crnn_mobilenet_v3_small         | (32, 128, 3)    | 2.1 M        | 86.88      | 87.61         | 92.28      | 92.73         | 0.25               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | TensorFlow     | crnn_mobilenet_v3_large         | (32, 128, 3)    | 4.5 M        |            |               |            |               | 0.34               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
@@ -151,11 +151,11 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | TensorFlow     | parseq                          | (32, 128, 3)    | 23.8 M       |            |               |            |               | 3.6                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | crnn_vgg16_bn                   | (32, 128, 3)    | 15.8 M       |            |               |            |               | 0.6                |
+| PyTorch        | crnn_vgg16_bn                   | (32, 128, 3)    | 15.8 M       | 86.54      | 87.41         | 94.29      | 94.69         | 0.6                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | crnn_mobilenet_v3_small         | (32, 128, 3)    | 4.5 M        |            |               |            |               | 0.05               |
+| PyTorch        | crnn_mobilenet_v3_small         | (32, 128, 3)    | 4.5 M        | 87.25      | 87.99         | 93.91      | 94.34         | 0.05               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | crnn_mobilenet_v3_large         | (32, 128, 3)    | 2.1 M        |            |               |            |               | 0.08               |
+| PyTorch        | crnn_mobilenet_v3_large         | (32, 128, 3)    | 2.1 M        | 87.38      | 88.09         | 94.46      | 94.92         | 0.08               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | PyTorch        | master                          | (32, 128, 3)    | 58.7 M       |            |               |            |               | 17.6               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
@@ -183,7 +183,7 @@ While most of our recognition models were trained on our french vocab (cf. :ref:
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-Seconds per iteration (with a batch size of 64) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
+Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Recognition predictors
@@ -211,19 +211,21 @@ You can use any combination of detection and recognition models supported by doc
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
-+--------------------------------------------------+----------------------------+----------------------------+
-|                                                  |        FUNSD               |        CORD                |
-+================+=================================+============================+============+===============+
-| **Backend**    | **Architecture**                | **Recall** | **Precision** | **Recall** | **Precision** |
-+----------------+---------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50                     | 81.22      | 86.66         | 92.46      | 89.62         |
-+----------------+---------------------------------+------------+---------------+------------+---------------+
-| None           | Gvision text detection          | 59.50      | 62.50         | 75.30      | 59.03         |
-+----------------+---------------------------------+------------+---------------+------------+---------------+
-| None           | Gvision doc. text detection     | 64.00      | 53.30         | 68.90      | 61.10         |
-+----------------+---------------------------------+------------+---------------+------------+---------------+
-| None           | AWS textract                    | 78.10      | 83.00         | 87.50      | 66.00         |
-+----------------+---------------------------------+------------+---------------+------------+---------------+
++---------------------------------------------------------------------------+----------------------------+----------------------------+
+|                                                                           |        FUNSD               |        CORD                |
++================+==========================================================+============================+============+===============+
+| **Backend**    | **Architecture**                                         | **Recall** | **Precision** | **Recall** | **Precision** |
++----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
+| TensorFlow     | db_resnet50 + crnn_vgg16_bn                              | 70.82      | 75.56         | 83.97      | 81.40         |
++----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
+| PyTorch        | db_resnet50 + crnn_vgg16_bn                              | 67.82      | 73.35         | 84.84      | 83.27         |
++----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
+| None           | Gvision text detection                                   | 59.50      | 62.50         | 75.30      | 59.03         |
++----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
+| None           | Gvision doc. text detection                              | 64.00      | 53.30         | 68.90      | 61.10         |
++----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
+| None           | AWS textract                                             | 78.10      | 83.00         | 87.50      | 66.00         |
++----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
 
 
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
