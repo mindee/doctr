@@ -38,7 +38,8 @@ def synthesize_text_img(
     text_color = (255, 255, 255) if text_color is None else text_color
 
     font = get_font(font_family, font_size)
-    text_w, text_h = font.getsize(text)
+    left, top, right, bottom = font.getbbox(text)
+    text_w, text_h = right - left, bottom - top
     h, w = int(round(1.3 * text_h)), int(round(1.1 * text_w))
     # If single letter, make the image square, otherwise expand to meet the text size
     img_size = (h, w) if len(text) > 1 else (max(h, w), max(h, w))
