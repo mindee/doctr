@@ -23,25 +23,18 @@ from doctr.utils.geometry import extract_crops
 system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
+@pytest.mark.parametrize("train_mode", [True, False])
 @pytest.mark.parametrize(
-    "arch_name, input_shape, train_mode",
+    "arch_name, input_shape",
     [
-        ["crnn_vgg16_bn", (32, 128, 3), True],
-        ["crnn_vgg16_bn", (32, 128, 3), False],
-        ["crnn_mobilenet_v3_small", (32, 128, 3), True],
-        ["crnn_mobilenet_v3_small", (32, 128, 3), False],
-        ["crnn_mobilenet_v3_large", (32, 128, 3), True],
-        ["crnn_mobilenet_v3_large", (32, 128, 3), False],
-        ["sar_resnet31", (32, 128, 3), True],
-        ["sar_resnet31", (32, 128, 3), False],
-        ["master", (32, 128, 3), True],
-        ["master", (32, 128, 3), False],
-        ["vitstr_small", (32, 128, 3), True],
-        ["vitstr_small", (32, 128, 3), False],
-        ["vitstr_base", (32, 128, 3), True],
-        ["vitstr_base", (32, 128, 3), False],
-        ["parseq", (32, 128, 3), True],
-        ["parseq", (32, 128, 3), False],
+        ["crnn_vgg16_bn", (32, 128, 3)],
+        ["crnn_mobilenet_v3_small", (32, 128, 3)],
+        ["crnn_mobilenet_v3_large", (32, 128, 3)],
+        ["sar_resnet31", (32, 128, 3)],
+        ["master", (32, 128, 3)],
+        ["vitstr_small", (32, 128, 3)],
+        ["vitstr_base", (32, 128, 3)],
+        ["parseq", (32, 128, 3)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, train_mode):

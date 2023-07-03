@@ -18,25 +18,18 @@ from doctr.models.utils import export_model_to_onnx
 system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
 
+@pytest.mark.parametrize("train_mode", [True, False])
 @pytest.mark.parametrize(
-    "arch_name, input_shape, train_mode",
+    "arch_name, input_shape",
     [
-        ["crnn_vgg16_bn", (3, 32, 128), True],
-        ["crnn_vgg16_bn", (3, 32, 128), False],
-        ["crnn_mobilenet_v3_small", (3, 32, 128), True],
-        ["crnn_mobilenet_v3_small", (3, 32, 128), False],
-        ["crnn_mobilenet_v3_large", (3, 32, 128), True],
-        ["crnn_mobilenet_v3_large", (3, 32, 128), False],
-        ["sar_resnet31", (3, 32, 128), True],
-        ["sar_resnet31", (3, 32, 128), False],
-        ["master", (3, 32, 128), True],
-        ["master", (3, 32, 128), False],
-        ["vitstr_small", (3, 32, 128), True],
-        ["vitstr_small", (3, 32, 128), False],
-        ["vitstr_base", (3, 32, 128), True],
-        ["vitstr_base", (3, 32, 128), False],
-        ["parseq", (3, 32, 128), True],
-        ["parseq", (3, 32, 128), False],
+        ["crnn_vgg16_bn", (3, 32, 128)],
+        ["crnn_mobilenet_v3_small", (3, 32, 128)],
+        ["crnn_mobilenet_v3_large", (3, 32, 128)],
+        ["sar_resnet31", (3, 32, 128)],
+        ["master", (3, 32, 128)],
+        ["vitstr_small", (3, 32, 128)],
+        ["vitstr_base", (3, 32, 128)],
+        ["parseq", (3, 32, 128)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
