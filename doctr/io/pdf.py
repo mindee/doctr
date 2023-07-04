@@ -30,7 +30,7 @@ def read_pdf(
         scale: rendering scale (1 corresponds to 72dpi)
         rgb_mode: if True, the output will be RGB, otherwise BGR
         password: a password to unlock the document, if encrypted
-        kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render`
+        kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`
 
     Returns:
         the list of pages decoded as numpy ndarray of shape H x W x C
