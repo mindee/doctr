@@ -250,7 +250,6 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -278,19 +277,15 @@
 <span class="sd">        scale: rendering scale (1 corresponds to 72dpi)</span>
 <span class="sd">        rgb_mode: if True, the output will be RGB, otherwise BGR</span>
 <span class="sd">        password: a password to unlock the document, if encrypted</span>
-<span class="sd">        kwargs: additional parameters to :meth:`pypdfium2.PdfDocument.render_to`</span>
+<span class="sd">        kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x C</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">Path</span><span class="p">):</span>
-        <span class="n">file</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
-
     <span class="c1"># Rasterise pages to numpy ndarrays with pypdfium2</span>
-    <span class="n">pdf</span> <span class="o">=</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">PdfDocument</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
-    <span class="n">renderer</span> <span class="o">=</span> <span class="n">pdf</span><span class="o">.</span><span class="n">render_to</span><span class="p">(</span><span class="n">pdfium</span><span class="o">.</span><span class="n">BitmapConv</span><span class="o">.</span><span class="n">numpy_ndarray</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">rev_byteorder</span><span class="o">=</span><span class="n">rgb_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">img</span> <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">renderer</span><span class="p">]</span></div>
+    <span class="n">pdf</span> <span class="o">=</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">PdfDocument</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">autoclose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">rev_byteorder</span><span class="o">=</span><span class="n">rgb_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pdf</span><span class="p">]</span></div>
 </pre></div>
         </article>
       </div>
