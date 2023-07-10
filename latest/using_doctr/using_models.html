@@ -317,7 +317,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 <p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>c5.x12large &lt;https://aws.amazon.com/ec2/instance-types/c5/&gt;</cite> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
 </section>
 <section id="detection-predictors">
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this heading">#</a></h3>
@@ -357,9 +357,9 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.master" title="doctr.models.recognition.master"><code class="xref py py-meth docutils literal notranslate"><span class="pre">master</span></code></a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
-<div class="table-wrapper docutils container" id="id3">
-<table class="docutils align-default" id="id3">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id3" title="Permalink to this table">#</a></caption>
+<div class="table-wrapper docutils container" id="id5">
+<table class="docutils align-default" id="id5">
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Architecture</p></th>
 <th class="head"><p>Input shape</p></th>
@@ -417,7 +417,7 @@ Explanations about the metric being used (exact match) are available in <a class
 </pre></div>
 </div>
 <p><em>Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>c5.x12large &lt;https://aws.amazon.com/ec2/instance-types/c5/&gt;</cite> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
 </section>
 <section id="recognition-predictors">
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this heading">#</a></h3>
@@ -434,8 +434,8 @@ Explanations about the metric being used (exact match) are available in <a class
 <section id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this heading">#</a></h2>
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
-<section id="id2">
-<h3>Available architectures<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<section id="id3">
+<h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
 <p>You can use any combination of detection and recognition models supporte by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -533,7 +533,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <cite>c5.x12large &lt;https://aws.amazon.com/ec2/instance-types/c5/&gt;</cite> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
 <p>Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -772,34 +772,34 @@ To get a better understanding of our document model, check our <a class="referen
 </pre></div>
 </div>
 <p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
     <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">xml_element</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>For reference, here is a sample XML byte string output:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xml:lang=&quot;en&quot;&gt;
-  &lt;head&gt;
-    &lt;title&gt;docTR - hOCR&lt;/title&gt;
-    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
-    &lt;meta name=&quot;ocr-system&quot; content=&quot;doctr 0.5.0&quot; /&gt;
-    &lt;meta name=&quot;ocr-capabilities&quot; content=&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot; /&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;div class=&quot;ocr_page&quot; id=&quot;page_1&quot; title=&quot;image; bbox 0 0 3456 3456; ppageno 0&quot; /&gt;
-    &lt;div class=&quot;ocr_carea&quot; id=&quot;block_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
-      &lt;p class=&quot;ocr_par&quot; id=&quot;par_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
-        &lt;span class=&quot;ocr_line&quot; id=&quot;line_1_1&quot; title=&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_1&quot; title=&quot;bbox 1552 540 1778 580; x_wconf 99&quot;&gt;Hello&lt;/span&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_2&quot; title=&quot;bbox 1782 529 1900 583; x_wconf 99&quot;&gt;XML&lt;/span&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_3&quot; title=&quot;bbox 1420 597 1684 641; x_wconf 81&quot;&gt;World&lt;/span&gt;
-        &lt;/span&gt;
-      &lt;/p&gt;
-    &lt;/div&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="nt">&lt;html</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/1999/xhtml&quot;</span><span class="w"> </span><span class="na">xml:lang=</span><span class="s">&quot;en&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;head&gt;</span>
+<span class="w">    </span><span class="nt">&lt;title&gt;</span>docTR<span class="w"> </span>-<span class="w"> </span>hOCR<span class="nt">&lt;/title&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">http-equiv=</span><span class="s">&quot;Content-Type&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;text/html; charset=utf-8&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-system&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;doctr 0.5.0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-capabilities&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/head&gt;</span>
+<span class="w">  </span><span class="nt">&lt;body&gt;</span>
+<span class="w">    </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_page&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;page_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;image; bbox 0 0 3456 3456; ppageno 0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_carea&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;block_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;p</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_par&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;par_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_line&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;line_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1552 540 1778 580; x_wconf 99&quot;</span><span class="nt">&gt;</span>Hello<span class="nt">&lt;/span&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_2&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1782 529 1900 583; x_wconf 99&quot;</span><span class="nt">&gt;</span>XML<span class="nt">&lt;/span&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_3&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1420 597 1684 641; x_wconf 81&quot;</span><span class="nt">&gt;</span>World<span class="nt">&lt;/span&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/span&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/p&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/div&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -873,7 +873,7 @@ To get a better understanding of our document model, check our <a class="referen
 </ul>
 </li>
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
-<li><a class="reference internal" href="#id2">Available architectures</a></li>
+<li><a class="reference internal" href="#id3">Available architectures</a></li>
 <li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
 <li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
 </ul>

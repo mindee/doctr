@@ -287,7 +287,8 @@
 <section id="developer-mode-installation">
 <h3>Developer mode installation<a class="headerlink" href="#developer-mode-installation" title="Permalink to this heading">#</a></h3>
 <p>Install all additional dependencies with the following command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
 pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
@@ -322,10 +323,12 @@ pre-commit<span class="w"> </span>install
 </section>
 <section id="modifying-the-documentation">
 <h3>Modifying the documentation<a class="headerlink" href="#modifying-the-documentation" title="Permalink to this heading">#</a></h3>
-<p>In order to check locally your modifications to the documentation:</p>
+<p>The current documentation is built using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> thanks to our CI.
+You can build the documentation locally:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>docs-single-version
 </pre></div>
 </div>
+<p>Please note that files that have not been modified will not be rebuilt. If you want to force a complete rebuild, you can delete the <code class="docutils literal notranslate"><span class="pre">_build</span></code> directory. Additionally, you may need to clear your web browser’s cache to see the modifications.</p>
 <p>You can now open your local version of the documentation located at <code class="docutils literal notranslate"><span class="pre">docs/_build/index.html</span></code> in your browser</p>
 </section>
 </section>

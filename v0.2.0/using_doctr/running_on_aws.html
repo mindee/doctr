@@ -248,10 +248,12 @@
         <article role="main">
           <section id="aws-lambda">
 <h1>AWS Lambda<a class="headerlink" href="#aws-lambda" title="Permalink to this heading">#</a></h1>
-<p>AWS Lambda’s (read more about Lambda <a class="reference external" href="https://aws.amazon.com/lambda/">https://aws.amazon.com/lambda/</a>) security policy does not allow you to write anywhere outside <cite>/tmp</cite> directory.
-There are two things you need to do to make <cite>doctr</cite> work on lambda:
-1. Disable usage of <cite>multiprocessing</cite> package by setting <cite>DOCTR_MULTIPROCESSING_DISABLE</cite> enivronment variable to <cite>TRUE</cite>. You need to do this, because this package uses <cite>/dev/shm</cite> directory for shared memory.
-2. Change directory <cite>doctr</cite> uses for caching models. By default it’s <cite>~/.cache/doctr</cite> which is outside of <cite>/tmp</cite> on AWS Lambda’. You can do this by setting <cite>DOCTR_CACHE_DIR</cite> enivronment variable.</p>
+<p>The security policy of <a class="reference external" href="https://aws.amazon.com/lambda/">AWS Lambda</a> restricts writing outside the <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> directory.</p>
+<p>To make docTR work on Lambda, you need to perform the following two steps:</p>
+<ol class="arabic simple">
+<li><p>Disable the usage of the <code class="docutils literal notranslate"><span class="pre">multiprocessing</span></code> package by setting the <code class="docutils literal notranslate"><span class="pre">DOCTR_MULTIPROCESSING_DISABLE</span></code> environment variable to <code class="docutils literal notranslate"><span class="pre">TRUE</span></code>. This step is necessary because the package uses the <code class="docutils literal notranslate"><span class="pre">/dev/shm</span></code> directory for shared memory.</p></li>
+<li><p>Change the caching directory used by docTR for models. By default, it is set to <code class="docutils literal notranslate"><span class="pre">~/.cache/doctr</span></code>, which is outside the <code class="docutils literal notranslate"><span class="pre">/tmp</span></code> directory on AWS Lambda. You can modify this by setting the <code class="docutils literal notranslate"><span class="pre">DOCTR_CACHE_DIR</span></code> environment variable.</p></li>
+</ol>
 </section>
 
         </article>

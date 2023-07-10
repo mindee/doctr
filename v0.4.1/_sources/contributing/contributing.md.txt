@@ -40,6 +40,7 @@ If you are wondering how to do something with docTR, or a more general question,
 Install all additional dependencies with the following command:
 
 ```shell
+python -m pip install --upgrade pip
 pip install -e .[dev]
 pre-commit install
 ```
@@ -75,11 +76,14 @@ make style
 
 ### Modifying the documentation
 
-In order to check locally your modifications to the documentation:
+The current documentation is built using `sphinx` thanks to our CI.
+You can build the documentation locally:
 
 ```shell
 make docs-single-version
 ```
+
+Please note that files that have not been modified will not be rebuilt. If you want to force a complete rebuild, you can delete the `_build` directory. Additionally, you may need to clear your web browser's cache to see the modifications.
 
 You can now open your local version of the documentation located at `docs/_build/index.html` in your browser
 

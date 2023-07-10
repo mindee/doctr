@@ -867,6 +867,28 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.recognition.parseq">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">parseq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PARSeq</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/parseq/tensorflow.html#parseq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.parseq" title="Permalink to this definition">#</a></dt>
+<dd><p>PARSeq architecture from
+<a class="reference external" href="https://arxiv.org/pdf/2207.06966">“Scene Text Recognition with Permuted Autoregressive Sequence Models”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">parseq</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">parseq</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>text recognition architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.recognition.recognition_predictor">
 <span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">recognition_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.11)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RecognitionPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/zoo.html#recognition_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.recognition_predictor" title="Permalink to this definition">#</a></dt>
 <dd><p>Text recognition architecture.</p>
@@ -1123,6 +1145,7 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><a class="reference internal" href="#doctr.models.recognition.master"><code class="docutils literal notranslate"><span class="pre">master()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.vitstr_small"><code class="docutils literal notranslate"><span class="pre">vitstr_small()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.vitstr_base"><code class="docutils literal notranslate"><span class="pre">vitstr_base()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.recognition.parseq"><code class="docutils literal notranslate"><span class="pre">parseq()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.recognition_predictor"><code class="docutils literal notranslate"><span class="pre">recognition_predictor()</span></code></a></li>
 </ul>
 </li>
