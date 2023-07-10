@@ -50,7 +50,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>` AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
 
 
 Detection predictors
@@ -151,7 +151,7 @@ While most of our recognition models were trained on our french vocab (cf. :ref:
 
 *Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>` AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
 
 
 Recognition predictors
@@ -206,7 +206,7 @@ Explanations about the metrics being used are available in :ref:`metrics`.
 
 *Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
 
-FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>` AWS instance (CPU Xeon Platinum 8275L).
+FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a `c5.x12large <https://aws.amazon.com/ec2/instance-types/c5/>`_ AWS instance (CPU Xeon Platinum 8275L).
 
 Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.
 
@@ -330,14 +330,18 @@ For reference, here is the JSON export for the same `Document` as above::
     ]
   }
 
-To export the outpout as XML (hocr-format) you can use the `export_as_xml` method::
+To export the outpout as XML (hocr-format) you can use the `export_as_xml` method:
+
+.. code-block:: python
 
   xml_output = result.export_as_xml()
   for output in xml_output:
       xml_bytes_string = output[0]
       xml_element = output[1]
 
-For reference, here is a sample XML byte string output::
+For reference, here is a sample XML byte string output:
+
+.. code-block:: xml
 
   <?xml version="1.0" encoding="UTF-8"?>
   <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
@@ -360,3 +364,4 @@ For reference, here is a sample XML byte string output::
       </div>
     </body>
   </html>
+
