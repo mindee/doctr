@@ -35,7 +35,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": None,
+        "url": "https://doctr-static.mindee.com/models?id=v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip&src=0",
     },
 }
 

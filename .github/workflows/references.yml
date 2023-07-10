@@ -54,7 +54,7 @@ jobs:
           sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/classification/train_tensorflow.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
+        run: python references/classification/train_tensorflow.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
         run: python references/classification/train_pytorch.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
