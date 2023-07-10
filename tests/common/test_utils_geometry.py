@@ -231,7 +231,7 @@ def test_extract_rcrops(mock_pdf):  # noqa: F811
     abs_boxes = deepcopy(rel_boxes)
     abs_boxes[:, :, 0] *= doc_img.shape[1]
     abs_boxes[:, :, 1] *= doc_img.shape[0]
-    abs_boxes = abs_boxes.astype(np.int)
+    abs_boxes = abs_boxes.astype(np.int64)
 
     with pytest.raises(AssertionError):
         geometry.extract_rcrops(doc_img, np.zeros((1, 8)))
