@@ -10,6 +10,7 @@ function deploy_doc(){
         then
             pip install -U ..
             pip install rapidfuzz==2.15.1
+            pip install tensorflow-addons>=0.17.1
         else
             pip install -U ..
         fi
