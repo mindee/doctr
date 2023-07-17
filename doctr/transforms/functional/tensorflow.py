@@ -67,8 +67,8 @@ def rotated_img_tensor(img: tf.Tensor, angle: float, expand: bool = False) -> tf
     # Rotate the image
     rotated_img = tf.squeeze(
         tf.raw_ops.ImageProjectiveTransformV3(
-            images=exp_img[None],  # Add a batch dimension for compatibility with the function
-            transforms=rotation_matrix[None],  # Add a batch dimension for compatibility with the function
+            images=exp_img[None],  # Add a batch dimension for compatibility with ImageProjectiveTransformV3
+            transforms=rotation_matrix[None],  # Add a batch dimension for compatibility with ImageProjectiveTransformV3
             output_shape=tf.shape(exp_img)[:2],
             interpolation="NEAREST",
             fill_mode="CONSTANT",
