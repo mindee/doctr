@@ -20,7 +20,14 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import ColorJitter, Compose, Normalize
+from torchvision.transforms.v2 import (
+    Compose,
+    GaussianBlur,
+    Normalize,
+    RandomGrayscale,
+    RandomPerspective,
+    RandomPhotometricDistort,
+)
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -278,7 +285,12 @@ def main(args):
                     T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                     # Augmentations
                     T.RandomApply(T.ColorInversion(), 0.1),
-                    ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                    RandomGrayscale(p=0.1),
+                    RandomPhotometricDistort(p=0.1),
+                    T.RandomApply(T.RandomShadow(), p=0.4),
+                    T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                    T.RandomApply(GaussianBlur(3), 0.3),
+                    RandomPerspective(distortion_scale=0.2, p=0.3),
                 ]
             ),
         )
@@ -301,7 +313,12 @@ def main(args):
                     T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                     # Ensure we have a 90% split of white-background images
                     T.RandomApply(T.ColorInversion(), 0.9),
-                    ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                    RandomGrayscale(p=0.1),
+                    RandomPhotometricDistort(p=0.1),
+                    T.RandomApply(T.RandomShadow(), p=0.4),
+                    T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                    T.RandomApply(GaussianBlur(3), 0.3),
+                    RandomPerspective(distortion_scale=0.2, p=0.3),
                 ]
             ),
         )
