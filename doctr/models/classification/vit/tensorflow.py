@@ -8,7 +8,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
-from tensorflow_addons.layers import GELU
+from tensorflow.keras.activations import gelu
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
@@ -36,6 +36,17 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": "https://doctr-static.mindee.com/models?id=v0.6.0/vit_b-57158446.zip&src=0",
     },
 }
+
+
+class GELU(layers.Layer):
+    """Gaussian Error Linear Unit activation function"""
+
+    def __init__(self, approximate: bool = False, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.approximate = approximate
+
+    def call(self, x: tf.Tensor) -> tf.Tensor:
+        return gelu(x, approximate=self.approximate)
 
 
 class ClassifierHead(layers.Layer, NestedObject):
