@@ -20,7 +20,7 @@ import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import ColorJitter, Compose, Normalize
+from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
 
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
@@ -270,7 +270,11 @@ def main(args):
             [
                 # Augmentations
                 T.RandomApply(T.ColorInversion(), 0.1),
-                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+                T.RandomApply(T.RandomShadow(), 0.4),
+                T.RandomApply(GaussianBlur(kernel_size=3), 0.3),
+                RandomPhotometricDistort(p=0.1),
+                RandomGrayscale(p=0.1),
             ]
         ),
         sample_transforms=T.SampleCompose(

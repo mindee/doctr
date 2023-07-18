@@ -19,13 +19,14 @@ from fastprogress.fastprogress import master_bar, progress_bar
 from torch.nn.functional import cross_entropy
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms import (
-    ColorJitter,
+from torchvision.transforms.v2 import (
     Compose,
     GaussianBlur,
-    Grayscale,
     InterpolationMode,
     Normalize,
+    RandomGrayscale,
+    RandomPerspective,
+    RandomPhotometricDistort,
     RandomRotation,
 )
 
@@ -255,10 +256,12 @@ def main(args):
                 T.Resize((args.input_size, args.input_size)),
                 # Augmentations
                 T.RandomApply(T.ColorInversion(), 0.9),
-                # GaussianNoise
-                T.RandomApply(Grayscale(3), 0.1),
-                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-                T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), 0.3),
+                RandomGrayscale(p=0.1),
+                RandomPhotometricDistort(p=0.1),
+                T.RandomApply(T.RandomShadow(), p=0.4),
+                T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                T.RandomApply(GaussianBlur(3), 0.3),
+                RandomPerspective(distortion_scale=0.2, p=0.3),
                 RandomRotation(15, interpolation=InterpolationMode.BILINEAR),
             ]
         ),
