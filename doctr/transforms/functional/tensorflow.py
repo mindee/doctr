@@ -234,7 +234,7 @@ def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) 
     shadow_tensor = 1 - tf.convert_to_tensor(shadow_mask[..., None], dtype=tf.float32)
 
     # Add some blur to make it believable
-    k = 7 + int(2 * 4 * np.random.rand(1))
+    k = 7 + int(2 * 4 * random.random())
     sigma = random.uniform(0.5, 5.0)
     shadow_tensor = _gaussian_filter(
         shadow_tensor[tf.newaxis, ...],
