@@ -55,7 +55,11 @@ class _AbstractDataset:
             img = self.img_transforms(img)
 
         if self.sample_transforms is not None:
-            if isinstance(target, dict) and all([isinstance(item, np.ndarray) for item in target.values()]):
+            if (
+                isinstance(target, dict)
+                and all([isinstance(item, np.ndarray) for item in target.values()])
+                and set(target.keys()) != {"boxes", "labels"}
+            ):
                 img_transformed = copy_tensor(img)
                 for class_name, bboxes in target.items():
                     img_transformed, target[class_name] = self.sample_transforms(img, bboxes)
