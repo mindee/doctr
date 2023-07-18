@@ -388,7 +388,7 @@ class GaussianBlur(NestedObject):
             _gaussian_filter(
                 img[tf.newaxis, ...],
                 kernel_size=self.kernel_shape,
-                sigma=np.random.uniform(self.std[0], self.std[1]),
+                sigma=random.uniform(self.std[0], self.std[1]),
                 mode="REFLECT",
             ),
             axis=0,

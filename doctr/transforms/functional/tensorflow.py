@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
+import random
 from copy import deepcopy
 from typing import Iterable, Optional, Tuple, Union
 
@@ -234,7 +235,7 @@ def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) 
 
     # Add some blur to make it believable
     k = 7 + int(2 * 4 * np.random.rand(1))
-    sigma = np.random.uniform(0.5, 5.0)
+    sigma = random.uniform(0.5, 5.0)
     shadow_tensor = _gaussian_filter(
         shadow_tensor[tf.newaxis, ...],
         kernel_size=k,
