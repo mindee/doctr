@@ -252,7 +252,7 @@ jobs:
           unzip toy_detection_set-bbbb4243.zip -d det_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/detection/train_tensorflow.py ./det_set ./det_set db_resnet50 -b 2 --epochs 1
+        run: python references/detection/train_tensorflow.py --train_path ./det_set --val_path ./det_set db_resnet50 -b 2 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
         run: python references/detection/train_pytorch.py ./det_set ./det_set db_mobilenet_v3_large -b 2 --epochs 1
