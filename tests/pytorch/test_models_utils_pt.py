@@ -4,7 +4,13 @@ import pytest
 import torch
 from torch import nn
 
-from doctr.models.utils import conv_sequence_pt, load_pretrained_params, set_device_and_dtype
+from doctr.models.utils import _copy_tensor, conv_sequence_pt, load_pretrained_params, set_device_and_dtype
+
+
+def test_copy_tensor():
+    x = torch.rand(8)
+    m = _copy_tensor(x)
+    assert m.device == x.device and m.dtype == x.dtype and m.shape == x.shape and torch.allclose(m, x)
 
 
 def test_load_pretrained_params(tmpdir_factory):

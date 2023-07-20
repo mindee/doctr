@@ -19,7 +19,7 @@ else:
     import importlib.metadata as importlib_metadata
 
 
-__all__ = ["is_tf_available", "is_torch_available", "CLASS_NAME", "copy_tensor"]
+__all__ = ["is_tf_available", "is_torch_available", "CLASS_NAME"]
 
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
@@ -88,12 +88,3 @@ def is_torch_available():
 
 def is_tf_available():
     return _tf_available
-
-
-def copy_tensor(x):
-    if is_tf_available():
-        import tensorflow as tf
-
-        return tf.identity(x)
-    elif is_torch_available():
-        return x.detach().clone()

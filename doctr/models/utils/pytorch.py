@@ -11,7 +11,11 @@ from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ["load_pretrained_params", "conv_sequence_pt", "set_device_and_dtype", "export_model_to_onnx"]
+__all__ = ["load_pretrained_params", "conv_sequence_pt", "set_device_and_dtype", "export_model_to_onnx", "_copy_tensor"]
+
+
+def _copy_tensor(x: torch.Tensor) -> torch.Tensor:
+    return x.clone().detach()
 
 
 def load_pretrained_params(

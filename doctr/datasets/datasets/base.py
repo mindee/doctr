@@ -10,9 +10,10 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from doctr.file_utils import copy_tensor
 from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
+
+from ...models.utils import _copy_tensor
 
 __all__ = ["_AbstractDataset", "_VisionDataset"]
 
@@ -61,7 +62,7 @@ class _AbstractDataset:
                 and all([isinstance(item, np.ndarray) for item in target.values()])
                 and set(target.keys()) != {"boxes", "labels"}  # avoid confusion with obj detection target
             ):
-                img_transformed = copy_tensor(img)
+                img_transformed = _copy_tensor(img)
                 for class_name, bboxes in target.items():
                     img_transformed, target[class_name] = self.sample_transforms(img, bboxes)
                 img = img_transformed
