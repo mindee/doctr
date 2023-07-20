@@ -55,10 +55,11 @@ class _AbstractDataset:
             img = self.img_transforms(img)
 
         if self.sample_transforms is not None:
+            # Conditions to assess it is detection model with multiple classes and avoid confusion with other tasks.
             if (
                 isinstance(target, dict)
                 and all([isinstance(item, np.ndarray) for item in target.values()])
-                and set(target.keys()) != {"boxes", "labels"}
+                and set(target.keys()) != {"boxes", "labels"}  # avoid confusion with obj detection target
             ):
                 img_transformed = copy_tensor(img)
                 for class_name, bboxes in target.items():
