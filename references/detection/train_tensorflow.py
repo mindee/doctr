@@ -289,27 +289,32 @@ def main(args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
+    config = {
+        "learning_rate": args.lr,
+        "epochs": args.epochs,
+        "weight_decay": 0.0,
+        "batch_size": args.batch_size,
+        "architecture": args.arch,
+        "input_size": args.input_size,
+        "optimizer": "adam",
+        "framework": "tensorflow",
+        "scheduler": "exp_decay",
+        "train_hash": train_hash,
+        "val_hash": val_hash,
+        "pretrained": args.pretrained,
+        "rotation": args.rotation,
+    }
+
     # W&B
     if args.wb:
-        run = wandb.init(
-            name=exp_name,
-            project="text-detection",
-            config={
-                "learning_rate": args.lr,
-                "epochs": args.epochs,
-                "weight_decay": 0.0,
-                "batch_size": args.batch_size,
-                "architecture": args.arch,
-                "input_size": args.input_size,
-                "optimizer": "adam",
-                "framework": "tensorflow",
-                "scheduler": "exp_decay",
-                "train_hash": train_hash,
-                "val_hash": val_hash,
-                "pretrained": args.pretrained,
-                "rotation": args.rotation,
-            },
-        )
+        run = wandb.init(name=exp_name, project="text-detection", config=config)
+
+    # ClearML
+    if args.clearml:
+        from clearml import Task
+
+        task = Task.init(project_name="docTR/text-detection", task_name=exp_name)
+        task.upload_artifact("config", config)
 
     if args.freeze_backbone:
         for layer in model.feat_extractor.layers:
@@ -344,6 +349,16 @@ def main(args):
                 }
             )
 
+        # ClearML
+        if args.clearml:
+            from clearml import Logger
+
+            logger = Logger.current_logger()
+            logger.report_single_value(name="val_loss", value=val_loss)
+            logger.report_single_value(name="recall", value=recall)
+            logger.report_single_value(name="precision", value=precision)
+            logger.report_single_value(name="mean_iou", value=mean_iou)
+
     if args.wb:
         run.finish()
 
@@ -359,9 +374,9 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("train_path", type=str, help="path to training data folder")
-    parser.add_argument("val_path", type=str, help="path to validation data folder")
     parser.add_argument("arch", type=str, help="text-detection model to train")
+    parser.add_argument("--train_path", type=str, help="path to training data folder")
+    parser.add_argument("--val_path", type=str, help="path to validation data folder")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
@@ -378,6 +393,7 @@ def parse_args():
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
     parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--clearml", dest="clearml", action="store_true", help="Log to ClearML")
     parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
     parser.add_argument(
         "--pretrained",

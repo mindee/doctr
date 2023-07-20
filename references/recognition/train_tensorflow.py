@@ -301,27 +301,36 @@ def main(args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
+    config = {
+        "learning_rate": args.lr,
+        "epochs": args.epochs,
+        "weight_decay": 0.0,
+        "batch_size": args.batch_size,
+        "architecture": args.arch,
+        "input_size": args.input_size,
+        "optimizer": "adam",
+        "framework": "tensorflow",
+        "scheduler": "exp_decay",
+        "vocab": args.vocab,
+        "train_hash": train_hash,
+        "val_hash": val_hash,
+        "pretrained": args.pretrained,
+    }
+
     # W&B
     if args.wb:
         run = wandb.init(
             name=exp_name,
             project="text-recognition",
-            config={
-                "learning_rate": args.lr,
-                "epochs": args.epochs,
-                "weight_decay": 0.0,
-                "batch_size": args.batch_size,
-                "architecture": args.arch,
-                "input_size": args.input_size,
-                "optimizer": "adam",
-                "framework": "tensorflow",
-                "scheduler": "exp_decay",
-                "vocab": args.vocab,
-                "train_hash": train_hash,
-                "val_hash": val_hash,
-                "pretrained": args.pretrained,
-            },
+            config=config,
         )
+
+    # ClearML
+    if args.clearml:
+        from clearml import Task
+
+        task = Task.init(project_name="docTR/text-recognition", task_name=exp_name)
+        task.upload_artifact("config", config)
 
     min_loss = np.inf
 
@@ -349,6 +358,15 @@ def main(args):
                     "partial_match": partial_match,
                 }
             )
+
+        # ClearML
+        if args.clearml:
+            from clearml import Logger
+
+            logger = Logger.current_logger()
+            logger.report_single_value(name="val_loss", value=val_loss)
+            logger.report_single_value(name="exact_match", value=exact_match)
+            logger.report_single_value(name="partial_match", value=partial_match)
 
     if args.wb:
         run.finish()
@@ -398,6 +416,7 @@ def parse_args():
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
     parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--clearml", dest="clearml", action="store_true", help="Log to ClearML")
     parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
     parser.add_argument(
         "--pretrained",
