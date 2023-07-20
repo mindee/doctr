@@ -364,9 +364,9 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
-            logger.report_single_value(name="val_loss", value=val_loss)
-            logger.report_single_value(name="exact_match", value=exact_match)
-            logger.report_single_value(name="partial_match", value=partial_match)
+            logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
+            logger.report_scalar(title="Partial Match", series="partial_match", value=partial_match, iteration=epoch)
 
     if args.wb:
         run.finish()

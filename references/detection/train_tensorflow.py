@@ -354,10 +354,10 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
-            logger.report_single_value(name="val_loss", value=val_loss)
-            logger.report_single_value(name="recall", value=recall)
-            logger.report_single_value(name="precision", value=precision)
-            logger.report_single_value(name="mean_iou", value=mean_iou)
+            logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Precision Recall", series="recall", value=recall, iteration=epoch)
+            logger.report_scalar(title="Precision Recall", series="precision", value=precision, iteration=epoch)
+            logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
     if args.wb:
         run.finish()

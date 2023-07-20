@@ -318,8 +318,8 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
-            logger.report_single_value(name="val_loss", value=val_loss)
-            logger.report_single_value(name="acc", value=acc)
+            logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
 
     if args.wb:
         run.finish()
