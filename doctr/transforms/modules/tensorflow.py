@@ -8,11 +8,10 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 from doctr.utils.repr import NestedObject
 
-from ..functional.tensorflow import random_shadow
+from ..functional.tensorflow import _gaussian_filter, random_shadow
 
 __all__ = [
     "Compose",
@@ -385,11 +384,14 @@ class GaussianBlur(NestedObject):
 
     @tf.function
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
-        sigma = random.uniform(self.std[0], self.std[1])
-        return tfa.image.gaussian_filter2d(
-            img,
-            filter_shape=self.kernel_shape,
-            sigma=sigma,
+        return tf.squeeze(
+            _gaussian_filter(
+                img[tf.newaxis, ...],
+                kernel_size=self.kernel_shape,
+                sigma=random.uniform(self.std[0], self.std[1]),
+                mode="REFLECT",
+            ),
+            axis=0,
         )
 
 

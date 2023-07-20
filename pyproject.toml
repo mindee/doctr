@@ -55,7 +55,6 @@ dependencies = [
 [project.optional-dependencies]
 tf = [
     "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
-    "tensorflow-addons>=0.17.1",
     "tf2onnx>=1.14.0,<2.0.0",
 ]
 torch = [
@@ -92,7 +91,6 @@ docs = [
 dev = [
     # Tensorflow
     "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
-    "tensorflow-addons>=0.17.1",
     "tf2onnx>=1.14.0,<2.0.0",
     # PyTorch
     "torch>=1.12.0,<3.0.0",
@@ -155,7 +153,6 @@ module = [
 	"cv2.*",
 	"h5py.*",
 	"matplotlib.*",
-	"tensorflow_addons.*",
 	"pyclipper.*",
 	"shapely.*",
 	"tf2onnx.*",

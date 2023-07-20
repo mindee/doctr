@@ -8,7 +8,6 @@ from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
-from tensorflow_addons.layers import GELU
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
@@ -87,7 +86,14 @@ class VisionTransformer(Sequential):
     ) -> None:
         _layers = [
             PatchEmbedding(input_shape, d_model, patch_size),
-            EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, activation_fct=GELU()),
+            EncoderBlock(
+                num_layers,
+                num_heads,
+                d_model,
+                d_model * ffd_ratio,
+                dropout,
+                activation_fct=layers.Activation("gelu"),
+            ),
         ]
         if include_top:
             _layers.append(ClassifierHead(num_classes))
