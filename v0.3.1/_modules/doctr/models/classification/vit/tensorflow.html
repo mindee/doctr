@@ -255,7 +255,6 @@
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span>
-<span class="kn">from</span> <span class="nn">tensorflow_addons.layers</span> <span class="kn">import</span> <span class="n">GELU</span>
 
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 <span class="kn">from</span> <span class="nn">doctr.models.modules.transformer</span> <span class="kn">import</span> <span class="n">EncoderBlock</span>
@@ -334,7 +333,14 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">_layers</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">PatchEmbedding</span><span class="p">(</span><span class="n">input_shape</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">patch_size</span><span class="p">),</span>
-            <span class="n">EncoderBlock</span><span class="p">(</span><span class="n">num_layers</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">d_model</span> <span class="o">*</span> <span class="n">ffd_ratio</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">activation_fct</span><span class="o">=</span><span class="n">GELU</span><span class="p">()),</span>
+            <span class="n">EncoderBlock</span><span class="p">(</span>
+                <span class="n">num_layers</span><span class="p">,</span>
+                <span class="n">num_heads</span><span class="p">,</span>
+                <span class="n">d_model</span><span class="p">,</span>
+                <span class="n">d_model</span> <span class="o">*</span> <span class="n">ffd_ratio</span><span class="p">,</span>
+                <span class="n">dropout</span><span class="p">,</span>
+                <span class="n">activation_fct</span><span class="o">=</span><span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;gelu&quot;</span><span class="p">),</span>
+            <span class="p">),</span>
         <span class="p">]</span>
         <span class="k">if</span> <span class="n">include_top</span><span class="p">:</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ClassifierHead</span><span class="p">(</span><span class="n">num_classes</span><span class="p">))</span>
