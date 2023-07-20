@@ -5,7 +5,13 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from tensorflow.keras.applications import ResNet50
 
-from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
+from doctr.models.utils import IntermediateLayerGetter, _copy_tensor, conv_sequence, load_pretrained_params
+
+
+def test_copy_tensor():
+    x = tf.random.uniform(shape=[8], minval=0, maxval=1)
+    m = _copy_tensor(x)
+    assert m.device == x.device and m.dtype == x.dtype and m.shape == x.shape and tf.reduce_all(tf.equal(m, x))
 
 
 def test_load_pretrained_params(tmpdir_factory):

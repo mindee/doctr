@@ -17,7 +17,11 @@ from doctr.utils.data import download_from_url
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
-__all__ = ["load_pretrained_params", "conv_sequence", "IntermediateLayerGetter", "export_model_to_onnx"]
+__all__ = ["load_pretrained_params", "conv_sequence", "IntermediateLayerGetter", "export_model_to_onnx", "_copy_tensor"]
+
+
+def _copy_tensor(x: tf.Tensor) -> tf.Tensor:
+    return tf.identity(x)
 
 
 def load_pretrained_params(
