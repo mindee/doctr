@@ -286,7 +286,7 @@ def main(args):
     if args.clearml:
         from clearml import Task
 
-        task = Task.init(project_name="docTR/character-classification", task_name=exp_name)
+        task = Task.init(project_name="docTR/character-classification", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
 
     # Create loss queue

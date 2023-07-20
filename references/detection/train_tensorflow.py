@@ -313,7 +313,7 @@ def main(args):
     if args.clearml:
         from clearml import Task
 
-        task = Task.init(project_name="docTR/text-detection", task_name=exp_name)
+        task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
 
     if args.freeze_backbone:
