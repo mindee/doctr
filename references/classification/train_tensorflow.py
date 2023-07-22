@@ -14,7 +14,6 @@ import time
 
 import numpy as np
 import tensorflow as tf
-import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
 
@@ -245,6 +244,7 @@ def main(args):
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (1e3),  # final lr as a fraction of initial lr
         staircase=False,
+        name="ExponentialDecay",
     )
     optimizer = tf.keras.optimizers.Adam(
         learning_rate=scheduler,
@@ -268,19 +268,20 @@ def main(args):
     config = {
         "learning_rate": args.lr,
         "epochs": args.epochs,
-        "weight_decay": 0.0,
         "batch_size": args.batch_size,
         "architecture": args.arch,
         "input_size": args.input_size,
-        "optimizer": "adam",
+        "optimizer": optimizer.name,
         "framework": "tensorflow",
         "vocab": args.vocab,
-        "scheduler": "exp_decay",
+        "scheduler": scheduler.name,
         "pretrained": args.pretrained,
     }
 
     # W&B
     if args.wb:
+        import wandb
+
         run = wandb.init(name=exp_name, project="character-classification", config=config)
     # ClearML
     if args.clearml:

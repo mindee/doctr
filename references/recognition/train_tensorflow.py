@@ -16,7 +16,6 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
 
@@ -287,6 +286,7 @@ def main(args):
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
         staircase=False,
+        name="ExponentialDecay",
     )
     optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
@@ -304,13 +304,12 @@ def main(args):
     config = {
         "learning_rate": args.lr,
         "epochs": args.epochs,
-        "weight_decay": 0.0,
         "batch_size": args.batch_size,
         "architecture": args.arch,
         "input_size": args.input_size,
-        "optimizer": "adam",
+        "optimizer": optimizer.name,
         "framework": "tensorflow",
-        "scheduler": "exp_decay",
+        "scheduler": scheduler.name,
         "vocab": args.vocab,
         "train_hash": train_hash,
         "val_hash": val_hash,
@@ -319,6 +318,8 @@ def main(args):
 
     # W&B
     if args.wb:
+        import wandb
+
         run = wandb.init(
             name=exp_name,
             project="text-recognition",

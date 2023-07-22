@@ -16,7 +16,6 @@ import time
 import numpy as np
 import psutil
 import tensorflow as tf
-import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
 
@@ -275,6 +274,7 @@ def main(args):
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
         staircase=False,
+        name="ExponentialDecay",
     )
     optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
@@ -292,13 +292,12 @@ def main(args):
     config = {
         "learning_rate": args.lr,
         "epochs": args.epochs,
-        "weight_decay": 0.0,
         "batch_size": args.batch_size,
         "architecture": args.arch,
         "input_size": args.input_size,
-        "optimizer": "adam",
+        "optimizer": optimizer.name,
         "framework": "tensorflow",
-        "scheduler": "exp_decay",
+        "scheduler": scheduler.name,
         "train_hash": train_hash,
         "val_hash": val_hash,
         "pretrained": args.pretrained,
@@ -307,6 +306,8 @@ def main(args):
 
     # W&B
     if args.wb:
+        import wandb
+
         run = wandb.init(name=exp_name, project="text-detection", config=config)
 
     # ClearML
@@ -375,7 +376,7 @@ def parse_args():
     )
 
     parser.add_argument("arch", type=str, help="text-detection model to train")
-    parser.add_argument("--train_path", type=str, help="path to training data folder")
+    parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
     parser.add_argument("--val_path", type=str, help="path to validation data folder")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
