@@ -16,7 +16,6 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-import wandb
 from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
 
@@ -287,6 +286,7 @@ def main(args):
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
         staircase=False,
+        name="ExponentialDecay",
     )
     optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
@@ -301,27 +301,37 @@ def main(args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
+    config = {
+        "learning_rate": args.lr,
+        "epochs": args.epochs,
+        "batch_size": args.batch_size,
+        "architecture": args.arch,
+        "input_size": args.input_size,
+        "optimizer": optimizer.name,
+        "framework": "tensorflow",
+        "scheduler": scheduler.name,
+        "vocab": args.vocab,
+        "train_hash": train_hash,
+        "val_hash": val_hash,
+        "pretrained": args.pretrained,
+    }
+
     # W&B
     if args.wb:
+        import wandb
+
         run = wandb.init(
             name=exp_name,
             project="text-recognition",
-            config={
-                "learning_rate": args.lr,
-                "epochs": args.epochs,
-                "weight_decay": 0.0,
-                "batch_size": args.batch_size,
-                "architecture": args.arch,
-                "input_size": args.input_size,
-                "optimizer": "adam",
-                "framework": "tensorflow",
-                "scheduler": "exp_decay",
-                "vocab": args.vocab,
-                "train_hash": train_hash,
-                "val_hash": val_hash,
-                "pretrained": args.pretrained,
-            },
+            config=config,
         )
+
+    # ClearML
+    if args.clearml:
+        from clearml import Task
+
+        task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
+        task.upload_artifact("config", config)
 
     min_loss = np.inf
 
@@ -349,6 +359,15 @@ def main(args):
                     "partial_match": partial_match,
                 }
             )
+
+        # ClearML
+        if args.clearml:
+            from clearml import Logger
+
+            logger = Logger.current_logger()
+            logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
+            logger.report_scalar(title="Partial Match", series="partial_match", value=partial_match, iteration=epoch)
 
     if args.wb:
         run.finish()
@@ -398,6 +417,7 @@ def parse_args():
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
     parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--clearml", dest="clearml", action="store_true", help="Log to ClearML")
     parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
     parser.add_argument(
         "--pretrained",
