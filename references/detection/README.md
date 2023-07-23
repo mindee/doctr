@@ -18,6 +18,7 @@ You can start your training in TensorFlow:
 ```shell
 python references/detection/train_tensorflow.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
 ```
+
 or PyTorch:
 
 ```shell
@@ -26,14 +27,14 @@ python references/detection/train_pytorch.py path/to/your/train_set path/to/your
 
 ## Data format
 
-You need to provide both `train_path` and `val_path` arguments to start training. 
+You need to provide both `train_path` and `val_path` arguments to start training.
 Each path must lead to folder with 1 subfolder and 1 file:
 
 ```shell
 ├── images
 │   ├── sample_img_01.png
 │   ├── sample_img_02.png
-│   ├── sample_img_03.png   
+│   ├── sample_img_03.png
 │   └── ...
 └── labels.json
 ```
@@ -42,6 +43,7 @@ Each JSON file must be a dictionary, where the keys are the image file names and
 The order of the points does not matter inside a polygon. Points are (x, y) absolutes coordinates.
 
 labels.json
+
 ```shell
 {
     "sample_img_01.png" = {
@@ -57,9 +59,11 @@ labels.json
      ...
 }
 ```
+
 If you want to train a model with multiple classes, you can use the following format where polygons is a dictionnary where each key represents one class and has all the polygons representing that class.
 
 labels.json
+
 ```shell
 {
     "sample_img_01.png": {
@@ -81,6 +85,7 @@ labels.json
     ...
 }
 ```
+
 ## Advanced options
 
 Feel free to inspect the multiple script option to customize your training to your own needs!
