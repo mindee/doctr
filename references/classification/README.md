@@ -18,12 +18,12 @@ You can start your training in TensorFlow:
 ```shell
 python references/classification/train_tensorflow.py mobilenet_v3_large --epochs 5
 ```
+
 or PyTorch:
 
 ```shell
 python references/classification/train_pytorch.py mobilenet_v3_large --epochs 5 --device 0
 ```
-
 
 ## Advanced options
 

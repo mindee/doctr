@@ -4,11 +4,10 @@
 
 [![Slack Icon](https://img.shields.io/badge/Slack-Community-4A154B?style=flat-square&logo=slack&logoColor=white)](https://slack.mindee.com) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.6.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb)
 
-
 **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
 
-
 What you can expect from this repository:
+
 - efficient ways to parse textual information (localize and identify each word) from your documents
 - guidance on how to integrate this in your current architecture
 
@@ -44,7 +43,9 @@ multi_img_doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jp
 ```
 
 ### Putting it together
+
 Let's use the default pretrained model for an example:
+
 ```python
 from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
@@ -57,6 +58,7 @@ result = model(doc)
 ```
 
 ### Dealing with rotated documents
+
 Should you use docTR on documents that include rotated pages, or pages with multiple box orientations,
 you have multiple options to handle it:
 
@@ -68,7 +70,6 @@ on your page and return straight boxes, which makes it the fastest option.
 will be converted to straight boxes), you need to pass `export_as_straight_boxes=True` in the predictor. Otherwise, if `assume_straight_pages=False`, it will return rotated bounding boxes (potentially with an angle of 0°).
 
 If both options are set to False, the predictor will always fit and return rotated boxes.
-
 
 To interpret your model's predictions, you can visualize them interactively as follows:
 
@@ -89,7 +90,6 @@ plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 
 ![Synthesis sample](https://github.com/mindee/doctr/releases/download/v0.3.1/synthesized_sample.png)
 
-
 The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
 To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/modules/io.html#document-structure):
 
@@ -100,6 +100,7 @@ json_output = result.export()
 ```
 
 ### Use the KIE predictor
+
 The KIE predictor is a more flexible predictor compared to OCR as your detection model can detect multiple classes in a document. For example, you can have a detection model to detect just dates and adresses in a document.
 
 The KIE predictor makes it possible to use detector with multiple classes with a recognition model and to have the whole pipeline already setup for you.
@@ -121,10 +122,11 @@ for class_name in predictions.keys():
     for prediction in list_predictions:
         print(f"Prediction for {class_name}: {prediction}")
 ```
+
 The KIE predictor results per page are in a dictionary format with each key representing a class name and it's value are the predictions for that class.
 
-
 ### If you are looking for support from the Mindee team
+
 [![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/releases/download/v0.5.1/doctr-need-help.png)](https://mindee.com/product/doctr)
 
 ## Installation
@@ -136,6 +138,7 @@ Python 3.8 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to
 Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
 
 For MacOS users, you can install them as follows:
+
 ```shell
 brew install cairo pango gdk-pixbuf libffi
 ```
@@ -149,6 +152,7 @@ You can then install the latest release of the package using [pypi](https://pypi
 ```shell
 pip install python-doctr
 ```
+
 > :warning: Please note that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
 
 We try to keep framework-specific dependencies to a minimum. You can install framework-specific builds as follows:
@@ -166,6 +170,7 @@ For MacBooks with M1 chip, you will need some additional packages or specific ve
 - PyTorch: [version >= 1.12.0](https://pytorch.org/get-started/locally/#start-locally)
 
 ### Developer mode
+
 Alternatively, you can install it from source, which will require you to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 First clone the project repository:
 
@@ -175,6 +180,7 @@ pip install -e doctr/.
 ```
 
 Again, if you prefer to avoid the risk of missing dependencies, you can install the TensorFlow or the PyTorch build:
+
 ```shell
 # for TensorFlow
 pip install -e doctr/.[tf]
@@ -182,15 +188,17 @@ pip install -e doctr/.[tf]
 pip install -e doctr/.[torch]
 ```
 
-
 ## Models architectures
+
 Credits where it's due: this repository is implementing, among others, architectures from published research papers.
 
 ### Text Detection
+
 - DBNet: [Real-time Scene Text Detection with Differentiable Binarization](https://arxiv.org/pdf/1911.08947.pdf).
 - LinkNet: [LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation](https://arxiv.org/pdf/1707.03718.pdf)
 
 ### Text Recognition
+
 - CRNN: [An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition](https://arxiv.org/pdf/1507.05717.pdf).
 - SAR: [Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition](https://arxiv.org/pdf/1811.00751.pdf).
 - MASTER: [MASTER: Multi-Aspect Non-local Network for Scene Text Recognition](https://arxiv.org/pdf/1910.02562.pdf).
@@ -202,7 +210,6 @@ Credits where it's due: this repository is implementing, among others, architect
 ### Documentation
 
 The full package documentation is available [here](https://mindee.github.io/doctr/) for detailed specifications.
-
 
 ### Demo app
 
@@ -220,9 +227,11 @@ Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%2
 If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required.
 
 ##### Tensorflow version
+
 ```shell
 pip install -r demo/tf-requirements.txt
 ```
+
 Then run your app in your default browser with:
 
 ```shell
@@ -230,9 +239,11 @@ USE_TF=1 streamlit run demo/app.py
 ```
 
 ##### PyTorch version
+
 ```shell
 pip install -r demo/pt-requirements.txt
 ```
+
 Then run your app in your default browser with:
 
 ```shell
@@ -245,7 +256,6 @@ Instead of having your demo actually running Python, you would prefer to run eve
 Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to get started!
 
 ![TFJS demo](https://github.com/mindee/doctr-tfjs-demo/releases/download/v0.1-models/demo_illustration_mini.png)
-
 
 ### Docker container
 
@@ -262,21 +272,24 @@ An example script is provided for a simple documentation analysis of a PDF or im
 ```shell
 python scripts/analyze.py path/to/your/doc.pdf
 ```
-All script arguments can be checked using `python scripts/analyze.py --help`
 
+All script arguments can be checked using `python scripts/analyze.py --help`
 
 ### Minimal API integration
 
 Looking to integrate docTR into your API? Here is a template to get you started with a fully working API using the wonderful [FastAPI](https://github.com/tiangolo/fastapi) framework.
 
 #### Deploy your API locally
+
 Specific dependencies are required to run the API template, which you can install as follows:
+
 ```shell
 cd api/
 pip install poetry
 make lock
 pip install -r requirements.txt
 ```
+
 You can now run your API locally:
 
 ```shell
@@ -284,6 +297,7 @@ uvicorn --reload --workers 1 --host 0.0.0.0 --port=8002 --app-dir api/ app.main:
 ```
 
 Alternatively, you can run the same server on a docker container if you prefer using:
+
 ```shell
 PORT=8002 docker-compose up -d --build
 ```
@@ -300,8 +314,8 @@ response = requests.post("http://localhost:8002/ocr", files={'file': data}).json
 ```
 
 ### Example notebooks
-Looking for more illustrations of docTR features? You might want to check the [Jupyter notebooks](https://github.com/mindee/doctr/tree/main/notebooks) designed to give you a broader overview.
 
+Looking for more illustrations of docTR features? You might want to check the [Jupyter notebooks](https://github.com/mindee/doctr/tree/main/notebooks) designed to give you a broader overview.
 
 ## Citation
 
@@ -317,13 +331,11 @@ If you wish to cite this project, feel free to use this [BibTeX](http://www.bibt
 }
 ```
 
-
 ## Contributing
 
 If you scrolled down to this section, you most likely appreciate open source. Do you feel like extending the range of our supported characters? Or perhaps submitting a paper implementation? Or contributing in any other way?
 
 You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](CONTRIBUTING.md)) for you to easily do so!
-
 
 ## License
 

@@ -9,17 +9,18 @@ You will only need to install [Git](https://git-scm.com/book/en/v2/Getting-Start
 ### Starting your web server
 
 You will need to clone the repository first, go into `api` folder and start the api:
+
 ```shell
 git clone https://github.com/mindee/doctr.git
 cd doctr/api
 make run
 ```
+
 Once completed, your [FastAPI](https://fastapi.tiangolo.com/) server should be running on port 8080.
 
 ### Documentation and swagger
 
-FastAPI comes with many advantages including speed and OpenAPI features. For instance, once your server is running, you can access the automatically built documentation and swagger in your browser at: http://localhost:8080/docs
-
+FastAPI comes with many advantages including speed and OpenAPI features. For instance, once your server is running, you can access the automatically built documentation and swagger in your browser at: [http://localhost:8080/docs](http://localhost:8080/docs)
 
 ### Using the routes
 
@@ -40,11 +41,11 @@ print(requests.post("http://localhost:8080/detection", files={'file': data}).jso
 ```
 
 should yield
-```
+
+```json
 [{'box': [0.826171875, 0.185546875, 0.90234375, 0.201171875]},
  {'box': [0.75390625, 0.185546875, 0.8173828125, 0.201171875]}]
 ```
-
 
 #### Text recognition
 
@@ -61,10 +62,10 @@ print(requests.post("http://localhost:8080/recognition", files={'file': data}).j
 ```
 
 should yield
-```
+
+```json
 {'value': 'invite'}
 ```
-
 
 #### End-to-end OCR
 
@@ -81,7 +82,8 @@ print(requests.post("http://localhost:8080/ocr", files={'file': data}).json())
 ```
 
 should yield
-```
+
+```json
 [{'box': [0.75390625, 0.185546875, 0.8173828125, 0.201171875],
   'value': 'Hello'},
  {'box': [0.826171875, 0.185546875, 0.90234375, 0.201171875],
