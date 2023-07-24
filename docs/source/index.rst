@@ -77,6 +77,7 @@ Supported datasets
    using_doctr/using_datasets
    using_doctr/sharing_models
    using_doctr/using_model_export
+   using_doctr/custom_models_training
    using_doctr/running_on_aws
 
 
