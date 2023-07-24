@@ -5,7 +5,7 @@
 
 from typing import Any, Dict
 
-from torchvision.models.detection import FasterRCNN, faster_rcnn
+from torchvision.models.detection import FasterRCNN, FasterRCNN_MobileNet_V3_Large_FPN_Weights, faster_rcnn
 
 from ...utils import load_pretrained_params
 
@@ -37,7 +37,7 @@ def _fasterrcnn(arch: str, pretrained: bool, **kwargs: Any) -> FasterRCNN:
 
     # Build the model
     _kwargs.update(kwargs)
-    model = faster_rcnn.__dict__[arch](pretrained=False, pretrained_backbone=False, **_kwargs)
+    model = faster_rcnn.__dict__[arch](weights=None, weights_backbone=None, **_kwargs)
     model.cfg = default_cfgs[arch]
 
     if pretrained:
@@ -47,7 +47,9 @@ def _fasterrcnn(arch: str, pretrained: bool, **kwargs: Any) -> FasterRCNN:
         # Filter keys
         state_dict = {
             k: v
-            for k, v in faster_rcnn.__dict__[arch](pretrained=True).state_dict().items()
+            for k, v in faster_rcnn.__dict__[arch](weights=FasterRCNN_MobileNet_V3_Large_FPN_Weights.DEFAULT)
+            .state_dict()
+            .items()
             if not k.startswith("roi_heads.")
         }
 
