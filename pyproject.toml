@@ -9,6 +9,8 @@ authors = [{name = "Mindee", email = "contact@mindee.com"}]
 maintainers = [
     {name = "François-Guillaume Fernandez"},
     {name = "Charles Gaillard"},
+    {name = "Olivier Dulcy"},
+    {name = "Felix Dittrich"},
 ]
 readme = "README.md"
 requires-python = ">=3.8.0,<4"
