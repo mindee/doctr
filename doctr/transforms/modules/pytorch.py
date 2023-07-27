@@ -26,7 +26,7 @@ class Resize(T.Resize):
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
     ) -> None:
-        super().__init__(size, interpolation)
+        super().__init__(size, interpolation, antialias=True)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
 
@@ -64,7 +64,7 @@ class Resize(T.Resize):
                     tmp_size = (self.size, max(int(self.size / actual_ratio), 1))
 
             # Scale image
-            img = F.resize(img, tmp_size, self.interpolation)
+            img = F.resize(img, tmp_size, self.interpolation, antialias=True)
             raw_shape = img.shape[-2:]
             if isinstance(self.size, (tuple, list)):
                 # Pad (inverted in pytorch)
