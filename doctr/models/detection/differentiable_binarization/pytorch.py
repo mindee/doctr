@@ -289,6 +289,7 @@ def _dbnet(
     fpn_layers: List[str],
     backbone_submodule: Optional[str] = None,
     pretrained_backbone: bool = True,
+    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> DBNet:
     # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
@@ -312,7 +313,12 @@ def _dbnet(
     model = DBNet(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The number of class_names is not the same as the number of classes in the pretrained model =>
+        # remove the layer weights
+        _ignore_keys = (
+            ignore_keys if kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]) else None
+        )
+        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -340,6 +346,12 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
         resnet34,
         ["layer1", "layer2", "layer3", "layer4"],
         None,
+        ignore_keys=[
+            "prob_head.6.weight",
+            "prob_head.6.bias",
+            "thresh_head.6.weight",
+            "thresh_head.6.bias",
+        ],
         **kwargs,
     )
 
@@ -367,6 +379,12 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
         resnet50,
         ["layer1", "layer2", "layer3", "layer4"],
         None,
+        ignore_keys=[
+            "prob_head.6.weight",
+            "prob_head.6.bias",
+            "thresh_head.6.weight",
+            "thresh_head.6.bias",
+        ],
         **kwargs,
     )
 
@@ -394,6 +412,12 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
         mobilenet_v3_large,
         ["3", "6", "12", "16"],
         "features",
+        ignore_keys=[
+            "prob_head.6.weight",
+            "prob_head.6.bias",
+            "thresh_head.6.weight",
+            "thresh_head.6.bias",
+        ],
         **kwargs,
     )
 
@@ -422,5 +446,11 @@ def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
         resnet50,
         ["layer1", "layer2", "layer3", "layer4"],
         None,
+        ignore_keys=[
+            "prob_head.6.weight",
+            "prob_head.6.bias",
+            "thresh_head.6.weight",
+            "thresh_head.6.bias",
+        ],
         **kwargs,
     )
