@@ -46,7 +46,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
         straighten_pages: bool = False,
-        preserve_aspect_ratio: bool = False,
+        preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,

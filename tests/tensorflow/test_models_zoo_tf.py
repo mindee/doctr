@@ -83,6 +83,7 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
         reco_predictor,
         assume_straight_pages=True,
         straighten_pages=True,
+        preserve_aspect_ratio=False,
     )
 
     out = predictor(doc)
@@ -189,6 +190,7 @@ def test_trained_kie_predictor(mock_tilted_payslip):
         reco_predictor,
         assume_straight_pages=True,
         straighten_pages=True,
+        preserve_aspect_ratio=False,
     )
 
     out = predictor(doc)
