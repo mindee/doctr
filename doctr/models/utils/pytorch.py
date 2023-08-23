@@ -56,7 +56,7 @@ def load_pretrained_params(
                 raise ValueError("unable to load state_dict, due to non-matching keys.")
         else:
             # Load weights
-            model.load_state_dict(state_dict)
+            model.load_state_dict(state_dict,strict=False)
 
 
 def conv_sequence_pt(

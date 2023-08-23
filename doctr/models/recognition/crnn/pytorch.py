@@ -17,7 +17,7 @@ from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_
 from ...utils.pytorch import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
+__all__ = ["CRNN", "crnn_vgg16_bn","crnn_vgg16_bn_iast", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "crnn_vgg16_bn": {
@@ -26,6 +26,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (3, 32, 128),
         "vocab": VOCABS["legacy_french"],
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_vgg16_bn-9762b0b0.pt&src=0",
+    },
+     "crnn_vgg16_bn_iast": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 128),
+        "vocab": VOCABS["sanskrit_diacritics_training"],
+        "url": "https://github.com/navaneeth031/navindicDocTRforSansDiacritics/releases/download/Model-IASTENGv3/sanskritiast.pt",
     },
     "crnn_mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
@@ -279,6 +286,24 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
 
     return _crnn("crnn_vgg16_bn", pretrained, vgg16_bn_r, ignore_keys=["linear.weight", "linear.bias"], **kwargs)
 
+def crnn_vgg16_bn_iast(pretrained: bool = False, **kwargs: Any) -> CRNN:
+    """CRNN with a VGG-16 backbone as described in `"An End-to-End Trainable Neural Network for Image-based
+    Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
+
+    >>> import torch
+    >>> from doctr.models import crnn_vgg16_bn
+    >>> model = crnn_vgg16_bn(pretrained=True)
+    >>> input_tensor = torch.rand(1, 3, 32, 128)
+    >>> out = model(input_tensor)
+
+    Args:
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+
+    Returns:
+        text recognition architecture
+    """
+
+    return _crnn("crnn_vgg16_bn_iast", pretrained, vgg16_bn_r, ignore_keys=["linear.weight", "linear.bias"], **kwargs)
 
 def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     """CRNN with a MobileNet V3 Small backbone as described in `"An End-to-End Trainable Neural Network for Image-based

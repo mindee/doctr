@@ -221,7 +221,7 @@ def main(args):
     val_loader = DataLoader(
         val_set,
         batch_size=args.batch_size,
-        drop_last=False,
+        drop_last=True,
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
         pin_memory=torch.cuda.is_available(),
@@ -472,7 +472,9 @@ def parse_args():
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     args = parser.parse_args()
-
+    args.pretrained=True
+    args.min_chars=2
+    
     return args
 
 

@@ -1,3 +1,4 @@
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -138,3 +139,5 @@ wandb/
 *.pt
 *.pb
 *.index
+output/1_45_a.txt
+.vscode/launch.json
