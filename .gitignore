@@ -138,3 +138,5 @@ wandb/
 *.pt
 *.pb
 *.index
+.vscode/launch.json
+output/1_45_a.txt
