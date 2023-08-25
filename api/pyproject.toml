@@ -17,10 +17,6 @@ python-doctr = {git = "https://github.com/mindee/doctr.git", extras = ['tf'], br
 # cf. https://github.com/tiangolo/fastapi/issues/4168
 fastapi = ">=0.73.0"
 uvicorn = ">=0.11.1"
-#python-multipart = "==0.0.5"
-# Protobuf: pin version otherwise errors
-# See https://developers.google.com/protocol-buffers/docs/news/2022-05-06#python-updates
-#protobuf= "<=3.20.2"
 
 [tool.poetry.dev-dependencies]
 pytest = ">=5.3.2"
