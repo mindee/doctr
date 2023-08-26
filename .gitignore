@@ -1,123 +1,140 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+#   According to pypa/pipenv#598, it is recommended to include Pipfile.lock in version control.
+#   However, in case of collaboration, if having platform-specific dependencies or dependencies
+#   having no cross-platform support, pipenv may install dependencies that don't work, or not
+#   install all needed dependencies.
+#Pipfile.lock
+
+# PEP 582; used by e.g. github.com/David-OConnor/pyflow
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Temp files
 doctr/version.py
-doctr/__pycache__/__init__.cpython-38.pyc
-doctr/__pycache__/file_utils.cpython-38.pyc
-doctr/__pycache__/version.cpython-38.pyc
-doctr/datasets/__pycache__/__init__.cpython-38.pyc
-doctr/datasets/__pycache__/cord.cpython-38.pyc
-doctr/datasets/__pycache__/detection.cpython-38.pyc
-doctr/datasets/__pycache__/doc_artefacts.cpython-38.pyc
-doctr/datasets/__pycache__/funsd.cpython-38.pyc
-doctr/datasets/__pycache__/ic03.cpython-38.pyc
-doctr/datasets/__pycache__/ic13.cpython-38.pyc
-doctr/datasets/__pycache__/iiit5k.cpython-38.pyc
-doctr/datasets/__pycache__/iiithws.cpython-38.pyc
-doctr/datasets/__pycache__/imgur5k.cpython-38.pyc
-doctr/datasets/__pycache__/mjsynth.cpython-38.pyc
-doctr/datasets/__pycache__/ocr.cpython-38.pyc
-doctr/datasets/__pycache__/recognition.cpython-38.pyc
-doctr/datasets/__pycache__/sroie.cpython-38.pyc
-doctr/datasets/__pycache__/svhn.cpython-38.pyc
-doctr/datasets/__pycache__/svt.cpython-38.pyc
-doctr/datasets/__pycache__/synthtext.cpython-38.pyc
-doctr/datasets/__pycache__/utils.cpython-38.pyc
-doctr/datasets/__pycache__/vocabs.cpython-38.pyc
-doctr/datasets/datasets/__pycache__/__init__.cpython-38.pyc
-doctr/datasets/datasets/__pycache__/base.cpython-38.pyc
-doctr/datasets/datasets/__pycache__/pytorch.cpython-38.pyc
-doctr/datasets/generator/__pycache__/__init__.cpython-38.pyc
-doctr/datasets/generator/__pycache__/base.cpython-38.pyc
-doctr/datasets/generator/__pycache__/pytorch.cpython-38.pyc
-doctr/io/__pycache__/__init__.cpython-38.pyc
-doctr/io/__pycache__/elements.cpython-38.pyc
-doctr/io/__pycache__/html.cpython-38.pyc
-doctr/io/__pycache__/pdf.cpython-38.pyc
-doctr/io/__pycache__/reader.cpython-38.pyc
-doctr/io/image/__pycache__/__init__.cpython-38.pyc
-doctr/io/image/__pycache__/base.cpython-38.pyc
-doctr/io/image/__pycache__/pytorch.cpython-38.pyc
-doctr/models/__pycache__/__init__.cpython-38.pyc
-doctr/models/__pycache__/_utils.cpython-38.pyc
-doctr/models/__pycache__/builder.cpython-38.pyc
-doctr/models/__pycache__/core.cpython-38.pyc
-doctr/models/__pycache__/zoo.cpython-38.pyc
-doctr/models/artefacts/__pycache__/__init__.cpython-38.pyc
-doctr/models/artefacts/__pycache__/barcode.cpython-38.pyc
-doctr/models/artefacts/__pycache__/face.cpython-38.pyc
-doctr/models/classification/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/__pycache__/zoo.cpython-38.pyc
-doctr/models/classification/magc_resnet/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/magc_resnet/__pycache__/pytorch.cpython-38.pyc
-doctr/models/classification/mobilenet/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/mobilenet/__pycache__/pytorch.cpython-38.pyc
-doctr/models/classification/predictor/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/predictor/__pycache__/pytorch.cpython-38.pyc
-doctr/models/classification/resnet/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/resnet/__pycache__/pytorch.cpython-38.pyc
-doctr/models/classification/vgg/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/vgg/__pycache__/pytorch.cpython-38.pyc
-doctr/models/classification/vit/__pycache__/__init__.cpython-38.pyc
-doctr/models/classification/vit/__pycache__/pytorch.cpython-38.pyc
-doctr/models/detection/__pycache__/__init__.cpython-38.pyc
-doctr/models/detection/__pycache__/core.cpython-38.pyc
-doctr/models/detection/__pycache__/zoo.cpython-38.pyc
-doctr/models/detection/differentiable_binarization/__pycache__/__init__.cpython-38.pyc
-doctr/models/detection/differentiable_binarization/__pycache__/base.cpython-38.pyc
-doctr/models/detection/differentiable_binarization/__pycache__/pytorch.cpython-38.pyc
-doctr/models/detection/linknet/__pycache__/__init__.cpython-38.pyc
-doctr/models/detection/linknet/__pycache__/base.cpython-38.pyc
-doctr/models/detection/linknet/__pycache__/pytorch.cpython-38.pyc
-doctr/models/detection/predictor/__pycache__/__init__.cpython-38.pyc
-doctr/models/detection/predictor/__pycache__/pytorch.cpython-38.pyc
-doctr/models/factory/__pycache__/__init__.cpython-38.pyc
-doctr/models/factory/__pycache__/hub.cpython-38.pyc
-doctr/models/kie_predictor/__pycache__/__init__.cpython-38.pyc
-doctr/models/kie_predictor/__pycache__/base.cpython-38.pyc
-doctr/models/kie_predictor/__pycache__/pytorch.cpython-38.pyc
-doctr/models/modules/__pycache__/__init__.cpython-38.pyc
-doctr/models/modules/transformer/__pycache__/__init__.cpython-38.pyc
-doctr/models/modules/transformer/__pycache__/pytorch.cpython-38.pyc
-doctr/models/modules/vision_transformer/__pycache__/__init__.cpython-38.pyc
-doctr/models/modules/vision_transformer/__pycache__/pytorch.cpython-38.pyc
-doctr/models/predictor/__pycache__/__init__.cpython-38.pyc
-doctr/models/predictor/__pycache__/base.cpython-38.pyc
-doctr/models/predictor/__pycache__/pytorch.cpython-38.pyc
-doctr/models/preprocessor/__pycache__/__init__.cpython-38.pyc
-doctr/models/preprocessor/__pycache__/pytorch.cpython-38.pyc
-doctr/models/recognition/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/__pycache__/core.cpython-38.pyc
-doctr/models/recognition/__pycache__/utils.cpython-38.pyc
-doctr/models/recognition/__pycache__/zoo.cpython-38.pyc
-doctr/models/recognition/crnn/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/crnn/__pycache__/pytorch.cpython-38.pyc
-doctr/models/recognition/master/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/master/__pycache__/base.cpython-38.pyc
-doctr/models/recognition/master/__pycache__/pytorch.cpython-38.pyc
-doctr/models/recognition/parseq/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/parseq/__pycache__/base.cpython-38.pyc
-doctr/models/recognition/parseq/__pycache__/pytorch.cpython-38.pyc
-doctr/models/recognition/predictor/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/predictor/__pycache__/_utils.cpython-38.pyc
-doctr/models/recognition/predictor/__pycache__/pytorch.cpython-38.pyc
-doctr/models/recognition/sar/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/sar/__pycache__/pytorch.cpython-38.pyc
-doctr/models/recognition/vitstr/__pycache__/__init__.cpython-38.pyc
-doctr/models/recognition/vitstr/__pycache__/base.cpython-38.pyc
-doctr/models/recognition/vitstr/__pycache__/pytorch.cpython-38.pyc
-doctr/models/utils/__pycache__/__init__.cpython-38.pyc
-doctr/models/utils/__pycache__/pytorch.cpython-38.pyc
-doctr/transforms/__pycache__/__init__.cpython-38.pyc
-doctr/transforms/functional/__pycache__/__init__.cpython-38.pyc
-doctr/transforms/functional/__pycache__/base.cpython-38.pyc
-doctr/transforms/functional/__pycache__/pytorch.cpython-38.pyc
-doctr/transforms/modules/__pycache__/__init__.cpython-38.pyc
-doctr/transforms/modules/__pycache__/base.cpython-38.pyc
-doctr/transforms/modules/__pycache__/pytorch.cpython-38.pyc
-doctr/utils/__pycache__/__init__.cpython-38.pyc
-doctr/utils/__pycache__/common_types.cpython-38.pyc
-doctr/utils/__pycache__/data.cpython-38.pyc
-doctr/utils/__pycache__/fonts.cpython-38.pyc
-doctr/utils/__pycache__/geometry.cpython-38.pyc
-doctr/utils/__pycache__/metrics.cpython-38.pyc
-doctr/utils/__pycache__/multithreading.cpython-38.pyc
-doctr/utils/__pycache__/repr.cpython-38.pyc
-doctr/utils/__pycache__/visualization.cpython-38.pyc
+logs/
+wandb/
+.idea/
+
+# Checkpoints
+*.pt
+*.pb
+*.index
