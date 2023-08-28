@@ -200,7 +200,7 @@ def _tv_resnet(
     kwargs.pop("classes")
 
     # Build the model
-    model = arch_fn(**kwargs)
+    model = arch_fn(**kwargs, weights=None)
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
