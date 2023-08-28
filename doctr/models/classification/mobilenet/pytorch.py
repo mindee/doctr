@@ -77,9 +77,9 @@ def _mobilenet_v3(
     kwargs.pop("classes")
 
     if arch.startswith("mobilenet_v3_small"):
-        model = mobilenetv3.mobilenet_v3_small(**kwargs)
+        model = mobilenetv3.mobilenet_v3_small(**kwargs, weights=None)
     else:
-        model = mobilenetv3.mobilenet_v3_large(**kwargs)
+        model = mobilenetv3.mobilenet_v3_large(**kwargs, weights=None)
 
     # Rectangular strides
     if isinstance(rect_strides, list):

@@ -44,7 +44,7 @@ def _vgg(
     kwargs.pop("classes")
 
     # Build the model
-    model = tv_vgg.__dict__[tv_arch](**kwargs)
+    model = tv_vgg.__dict__[tv_arch](**kwargs, weights=None)
     # List the MaxPool2d
     pool_idcs = [idx for idx, m in enumerate(model.features) if isinstance(m, nn.MaxPool2d)]
     # Replace their kernel with rectangular ones

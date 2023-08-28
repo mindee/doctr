@@ -292,12 +292,15 @@ def _dbnet(
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> DBNet:
-    # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
-    pretrained_backbone = pretrained_backbone and not arch.split("_")[1].startswith("resnet")
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Feature extractor
-    backbone = backbone_fn(pretrained_backbone)
+    backbone = (
+        backbone_fn(pretrained_backbone)
+        if not arch.split("_")[1].startswith("resnet")
+        # Starting with Imagenet pretrained params introduces some NaNs in layer3 & layer4 of resnet50
+        else backbone_fn(weights=None)  # type: ignore[call-arg]
+    )
     if isinstance(backbone_submodule, str):
         backbone = getattr(backbone, backbone_submodule)
     feat_extractor = IntermediateLayerGetter(
