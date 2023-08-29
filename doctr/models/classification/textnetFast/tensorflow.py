@@ -14,7 +14,7 @@ from tensorflow.keras.models import Sequential
 from doctr.datasets import VOCABS
 
 from ...utils import conv_sequence, load_pretrained_params
-
+from doctr.models.utils.tensorflow import conv_sequence
 from doctr.models.modules.layers.tensorflow import RepConvLayer
 
 __all__ = ["textnetfast_tiny", "textnetfast_small", "textnetfast_base"]
@@ -64,18 +64,19 @@ class TextNetFast(Sequential):
         stage1: Dict,
         stage2: Dict,
         stage3: Dict,
-        stage4: Dict,
-        #input_shape: Tuple[int, int, int] = (32, 32, 3),        
+        stage4: Dict,     
         include_top: bool = True,
         num_classes: int = 1000,
+        input_shape: Tuple[int, int, int] = (32, 32, 3),
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
     
         
-        _layers = [*conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)]
+        _layers = [*conv_sequence(input_shape=input_shape, out_channels=64, activation='relu', bn=True, kernel_size=3, strides=2)]
         
         for stage in [stage1, stage2, stage3, stage4]:
-	        _layers.append(RepConvLayer(**params) for params in stage])
+	        stage_ = Sequential([RepConvLayer(**params) for params in stage])
+	        _layers.extend([stage_])
         
         if include_top:
             _layers.extend([
@@ -83,7 +84,7 @@ class TextNetFast(Sequential):
                 layers.Flatten(),
                 layers.Dense(num_classes, activation=None)
             ])
-        
+            
         super().__init__(_layers)
         self.cfg = cfg
 

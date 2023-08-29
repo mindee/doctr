@@ -29,6 +29,9 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["mobilenet_v3_large", (32, 32, 3), (126,)],
         ["vit_s", (32, 32, 3), (126,)],
         ["vit_b", (32, 32, 3), (126,)],
+        ["textnetfast_tiny", (32, 32, 3), (126,)],
+        ["textnetfast_small", (32, 32, 3), (126,)],
+        ["textnetfast_base", (32, 32, 3), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -135,6 +138,24 @@ def test_crop_orientation_model(mock_text_box):
             (32, 32, 3),
             (126,),
             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+             "textnetfast_tiny", 
+             (32, 32, 3), 
+             (126,),
+             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+             "textnetfast_small", 
+             (32, 32, 3), 
+             (126,),
+             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+             "textnetfast_base", 
+             (32, 32, 3), 
+             (126,),
+             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
         ),
     ],
 )

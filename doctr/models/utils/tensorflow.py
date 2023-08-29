@@ -66,7 +66,7 @@ def conv_sequence(
     bn: bool = False,
     padding: str = "same",
     kernel_initializer: str = "he_normal",
-    **kwargs: Any,
+    **kwargs: Any,    
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
