@@ -13,9 +13,9 @@ from doctr.datasets import VOCABS
 from ...utils import 	load_pretrained_params
 
 from doctr.models.utils.pytorch import conv_sequence_pt
+from doctr.models.modules.TextNet.pytorch import RepConvLayer
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
-
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "textnet_tiny": {
@@ -76,7 +76,7 @@ class TextNet(nn.Module):
 
         _layers.extend([self.first_conv ])
         for stage in [stage1, stage2, stage3, stage4]:
-	        stage_ = nn.ModuleList([RepConvLayer(in_channels, out_channels, kernel_size, stride) for in_channels,out_channels,kernel_size,stride in stage])
+	        stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
 	        _layers.extend([stage_])
         
         if include_top:
@@ -93,10 +93,10 @@ class TextNet(nn.Module):
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight)
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
             elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
 
 
 
@@ -151,13 +151,13 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         pretrained,
         TextNet,
         stage1 = [ {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
-                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2,
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2},
                    {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1}],
                    
         stage2 = [ {"in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2},
                    {"in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1},
                    {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
-                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1}],
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1},],
                    
         stage3 = [ {"in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2},
                    {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
@@ -280,7 +280,7 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TVResNet:
                    {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
                    {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
                    {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
-                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},]
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1}],
         ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
     )
