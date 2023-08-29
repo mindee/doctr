@@ -15,24 +15,24 @@ from ...utils import 	load_pretrained_params
 from doctr.models.utils.pytorch import conv_sequence_pt
 from doctr.models.modules.layers.pytorch import RepConvLayer
 
-__all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
+__all__ = ["textnetfast_tiny", "textnetfast_small", "textnetfast_base"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
-    "textnet_tiny": {
+    "textnetfast_tiny": {
         #"mean": (0.694, 0.695, 0.693),
         #"std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
         "url": None,
     },
-    "textnet_small": {
+    "textnetfast_small": {
         #"mean": (0.694, 0.695, 0.693),
         #"std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
         "url": None,
     },
-    "textnet_base": {
+    "textnetfast_base": {
         #"mean": (0.694, 0.695, 0.693),
         #"std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
@@ -42,7 +42,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class TextNet(nn.Module):
+class TextNetFast(nn.Module):
     """Implements a TextNet architecture from `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"
      <https://arxiv.org/abs/2111.02394>>`_.
 
@@ -69,7 +69,7 @@ class TextNet(nn.Module):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
     
-        super(TextNet, self).__init__()
+        super(TextNetFast, self).__init__()
         
         _layers: List[nn.Module]        
         self.first_conv = nn.ModuleList[conv_sequence(in_channels, out_channels, True, True, kernel_size=kernel_size, stride=stride)]
@@ -100,13 +100,13 @@ class TextNet(nn.Module):
 
 
 
-def _textnet(
+def _textnetfast(
     arch: str,
     pretrained: bool,
     arch_fn,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
-) -> TextNet:
+) -> TextNetFast:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
 
@@ -129,13 +129,13 @@ def _textnet(
     return model
 
 
-def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
+def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     """TextNet architecture as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation",
     <https://arxiv.org/abs/2111.02394>`_.
 
     >>> import torch
-    >>> from doctr.models import textnet_tiny
-    >>> model = textnet_tiny(pretrained=False)
+    >>> from doctr.models import textnetfast_tiny
+    >>> model = textnetfast_tiny(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
     >>> out = model(input_tensor)
 
@@ -146,10 +146,10 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         A TextNet model
     """
 
-    return _textnet(
-        "textnet_tiny",
+    return _textnetfast(
+        "textnetfast_tiny",
         pretrained,
-        TextNet,
+        TextNetFast,
         stage1 = [ {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
                    {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2},
                    {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1}],
@@ -173,13 +173,13 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         **kwargs,
     )
     
-def textnet_small(pretrained: bool = False, **kwargs: Any) -> TVResNet:
-    """TextNet architecture as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation",
+def textnetfast_small(pretrained: bool = False, **kwargs: Any) -> TVResNet:
+    """TextNetFast architecture as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation",
     <https://arxiv.org/abs/2111.02394>`_.
 
     >>> import torch
-    >>> from doctr.models import textnet_small
-    >>> model = textnet_small(pretrained=False)
+    >>> from doctr.models import textnetfast_small
+    >>> model = textnetfast_small(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
     >>> out = model(input_tensor)
 
@@ -187,13 +187,13 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         pretrained: boolean, True if model is pretrained
 
     Returns:
-        A TextNet model
+        A TextNetFast model
     """
 
-    return _textnet(
-        "textnet_small",
+    return _textnetfast(
+        "textnetfast_small",
         pretrained,
-        TextNet,
+        TextNetFast,
         stage1 = [ {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
                    {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2}],
                    
@@ -224,13 +224,13 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         **kwargs,
     )
     
-def textnet_base(pretrained: bool = False, **kwargs: Any) -> TVResNet:
+def textnetfast_base(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
     """TextNet architecture as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation",
     <https://arxiv.org/abs/2111.02394>`_.
 
     >>> import torch
-    >>> from doctr.models import textnet_base
-    >>> model = textnet_base(pretrained=False)
+    >>> from doctr.models import textnetfast_base
+    >>> model = textnetfast_base(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
     >>> out = model(input_tensor)
 
@@ -238,13 +238,13 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         pretrained: boolean, True if model is pretrained
 
     Returns:
-        A TextNet model
+        A TextNetFast model
     """
 
-    return _textnet(
-        "textnet_base",
+    return _textnetfast(
+        "textnetfast_base",
         pretrained,
-        TextNet,
+        TextNetFast,
         stage1 = [ {"kernel_size": [3, 3], "stride": 1},
                    {"kernel_size": [3, 3], "stride": 2},
                    {"kernel_size": [3, 1], "stride": 1},
