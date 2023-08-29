@@ -1,45 +1,60 @@
 import torch.nn as nn
 
 class RepConvLayer(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride):
+    def __init__(self, in_channels, out_channels, kernel_size, stride,  dilation=1, groups=1):
         super(RepConvLayer, self).__init__()
-        self.ver_conv, self.ver_bn = None, None
-        self.hor_conv, self.hor_bn = None, None
-
+        
+        padding = (int(((kernel_size[0] - 1) * dilation) / 2),
+                   int(((kernel_size[1] - 1) * dilation) / 2))
+        
         self.activation = nn.ReLU(inplace=True)
         self.main_conv = nn.Conv2d(
             in_channels,
             out_channels,
             kernel_size=kernel_size,
             stride=stride,
-            padding=kernel_size[0] // 2,
+            padding=padding,
+            dilation=dilation, 
+            groups=groups,
             bias=False,
         )
         self.main_bn = nn.BatchNorm2d(out_channels)
 
+        ver_pad = (int(((kernel_size[0] - 1) * dilation) / 2), 0)
+        hor_pad = (0, int(((kernel_size[1] - 1) * dilation) / 2))
+        
+        
         if kernel_size[1] != 1:
             self.ver_conv = nn.Conv2d(
                 in_channels,
                 out_channels,
                 kernel_size=(kernel_size[0], 1),
                 stride=stride,
-                padding=(kernel_size[0] // 2, 0),
+                padding=ver_pad,
+                dilation=dilation, 
+                groups=groups,
                 bias=False
             )
             self.ver_bn = nn.BatchNorm2d(out_channels)
-
+        else:
+             self.ver_conv, self.ver_bn = None, None
+             
         if kernel_size[0] != 1:
             self.hor_conv = nn.Conv2d(
                 in_channels,
                 out_channels,
                 kernel_size=(1, kernel_size[1]),
                 stride=stride,
-                padding=(0, kernel_size[1] // 2),
+                padding=hor_pad,
+                dilation=dilation, 
+                groups=groups,
                 bias=False
             )
             self.hor_bn = nn.BatchNorm2d(out_channels)
-        self.rbr_identity = nn.BatchNorm2d(in_channels) if out_channels == in_channels else None
-
+        else:
+            self.hor_conv, self.hor_bn = None, None
+        
+        self.rbr_identity = nn.BatchNorm2d(in_channels) if out_channels == in_channels and stride == 1 else None
 
     def forward(self, input):
     

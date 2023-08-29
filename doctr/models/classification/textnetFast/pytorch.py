@@ -57,24 +57,23 @@ class TextNetFast(nn.Sequential):
         include_top: whether the classifier head should be instantiated
         num_classes: number of output classes
     """
-
     def __init__(
         self,
         stage1: Dict,
         stage2: Dict,
         stage3: Dict,
         stage4: Dict,
+        #input_shape: Tuple[int, int, int] = (32, 32, 3),        
         include_top: bool = True,
         num_classes: int = 1000,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
     
-        super(TextNetFast, self).__init__()
         
         _layers: List[nn.Module]    
         self.first_conv = conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)
         
-        _layers = [nn.ModuleList([*self.first_conv])]
+        _layers = [*self.first_conv]
         
         for stage in [stage1, stage2, stage3, stage4]:
 	        stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
@@ -85,12 +84,13 @@ class TextNetFast(nn.Sequential):
                 [
                     nn.AdaptiveAvgPool2d(1),
                     nn.Flatten(1),
-                    nn.Linear(64, num_classes, bias=True),
+                    nn.Linear(512, num_classes, bias=True),
                 ]
             )
         
         super().__init__(*_layers)
         self.cfg = cfg
+
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -98,8 +98,6 @@ class TextNetFast(nn.Sequential):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-        print(self) 
-       
 
 def _textnetfast(
     arch: str,
@@ -246,16 +244,16 @@ def textnetfast_base(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
         "textnetfast_base",
         pretrained,
         TextNetFast,
-        stage1 = [ {"kernel_size": [3, 3], "stride": 1},
-                   {"kernel_size": [3, 3], "stride": 2},
-                   {"kernel_size": [3, 1], "stride": 1},
-                   {"kernel_size": [3, 3], "stride": 1},
-                   {"kernel_size": [3, 1], "stride": 1},
-                   {"kernel_size": [3, 3], "stride": 1},
-                   {"kernel_size": [3, 3], "stride": 1},
-                   {"kernel_size": [1, 3], "stride": 1},
-                   {"kernel_size": [3, 3], "stride": 1},
-                   {"kernel_size": [3, 3], "stride": 1}],
+        stage1 = [ {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1}],
 
         stage2 = [ {"in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2},
                    {"in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1},
