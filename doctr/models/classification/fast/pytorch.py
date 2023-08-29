@@ -13,7 +13,7 @@ from doctr.datasets import VOCABS
 from ...utils import 	load_pretrained_params
 
 from doctr.models.utils.pytorch import conv_sequence_pt
-from doctr.models.modules.TextNet.pytorch import RepConvLayer
+from doctr.models.modules.layers.pytorch import RepConvLayer
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
