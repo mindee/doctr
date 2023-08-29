@@ -10,7 +10,9 @@ import torch.nn as nn
 
 from doctr.datasets import VOCABS
 
-from ...utils import conv_sequence_pt, load_pretrained_params
+from ...utils import 	load_pretrained_params
+
+from doctr.models.utils.pytorch import conv_sequence_pt
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
@@ -40,9 +42,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-
-
-
 class TextNet(nn.Module):
     """Implements a TextNet architecture from `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"
      <https://arxiv.org/abs/2111.02394>>`_.
@@ -61,7 +60,6 @@ class TextNet(nn.Module):
 
     def __init__(
         self,
-        first_conv: Dict,
         stage1: Dict[Any],
         stage2: Dict[Any],
         stage3: Dict[Any],
@@ -73,15 +71,13 @@ class TextNet(nn.Module):
     
         super(TextNet, self).__init__()
         
-        self.first_conv = first_conv
-        self.stage1 = nn.ModuleList(stage1)
-        self.stage2 = nn.ModuleList(stage2)
-        self.stage3 = nn.ModuleList(stage3)
-        self.stage4 = nn.ModuleList(stage4)
-        
-        _layers: List[nn.Module]
-        
-        _layers = [self.first_conv, self.stage1, self.stage2, self.stage3, self.stage4]
+        _layers: List[nn.Module]        
+        self.first_conv = nn.ModuleList[conv_sequence(in_channels, out_channels, True, True, kernel_size=kernel_size, stride=stride)]
+
+        _layers.extend([self.first_conv ])
+        for stage in [stage1, stage2, stage3, stage4]:
+	        stage_ = nn.ModuleList([RepConvLayer(in_channels, out_channels, kernel_size, stride) for in_channels,out_channels,kernel_size,stride in stage])
+	        _layers.extend([stage_])
         
         if include_top:
             _layers.extend(
@@ -154,26 +150,24 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         "textnet_tiny",
         pretrained,
         TextNet,
-        first_conv = {"name": "ConvLayer", "kernel_size": 3, "stride": 2, "dilation": 1, "groups": 1, "bias": False, "has_shuffle": false, "in_channels": 3,
-                      "out_channels": 64, "use_bn": True, "act_func": "relu", "dropout_rate": 0, "ops_order": "weight_bn_act"},
-        stage1 = [ {"name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},],
+        stage1 = [ {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2,
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1}],
                    
-        stage2 = [ {"name": "RepConvLayer", "in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},],
+        stage2 = [ {"in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1}],
                    
-        stage3 = [ {"name": "RepConvLayer", "in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},],
+        stage3 = [ {"in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1},],
                    
-        stage4 = [ {"name": "RepConvLayer", "in_channels": 256, "out_channels": 512, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   {"name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1}],
+        stage4 = [ {"in_channels": 256, "out_channels": 512, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 3], "stride": 1}],
                    
         ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
@@ -200,34 +194,32 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         "textnet_small",
         pretrained,
         TextNet,
-        first_conv = { "name": "ConvLayer", "kernel_size": 3, "stride": 2, "dilation": 1, "groups": 1, "bias": False, "has_shuffle": False, "in_channels": 3,
-                       "out_channels": 64, "use_bn": True, "act_func": "relu", "dropout_rate": 0, "ops_order": "weight_bn_act"},
-        stage1 = [ { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1}],
+        stage1 = [ {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2}],
                    
-        stage2 = [ { "name": "RepConvLayer", "in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},],
+        stage2 = [ {"in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},],
                    
-        stage3 = [ { "name": "RepConvLayer", "in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},],
+        stage3 = [ {"in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},],
                    
-        stage4 = [ { "name": "RepConvLayer", "in_channels": 256, "out_channels": 512, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},],
+        stage4 = [ {"in_channels": 256, "out_channels": 512, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},],
         ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
     )
@@ -253,44 +245,42 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         "textnet_base",
         pretrained,
         TextNet,
-        first_conv = { "name": "ConvLayer", "kernel_size": 3, "stride": 2, "dilation": 1, "groups": 1, "bias": False, "has_shuffle": False, "in_channels": 3,
-                       "out_channels": 64, "use_bn": True, "act_func": "relu", "dropout_rate": 0, "ops_order": "weight_bn_act"},
-        stage1 = [ { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 64, "out_channels": 64, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},],
+        stage1 = [ {"kernel_size": [3, 3], "stride": 1},
+                   {"kernel_size": [3, 3], "stride": 2},
+                   {"kernel_size": [3, 1], "stride": 1},
+                   {"kernel_size": [3, 3], "stride": 1},
+                   {"kernel_size": [3, 1], "stride": 1},
+                   {"kernel_size": [3, 3], "stride": 1},
+                   {"kernel_size": [3, 3], "stride": 1},
+                   {"kernel_size": [1, 3], "stride": 1},
+                   {"kernel_size": [3, 3], "stride": 1},
+                   {"kernel_size": [3, 3], "stride": 1}],
 
-        stage2 = [ { "name": "RepConvLayer", "in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},],
+        stage2 = [ {"in_channels": 64, "out_channels": 128, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 128, "out_channels": 128, "kernel_size": [3, 3], "stride": 1},],
 
-        stage3 = [ { "name": "RepConvLayer", "in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},],
+        stage3 = [ {"in_channels": 128, "out_channels": 256, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 3], "stride": 1},
+                   {"in_channels": 256, "out_channels": 256, "kernel_size": [3, 1], "stride": 1},],
                    
-        stage4 = [ { "name": "RepConvLayer", "in_channels": 256, "out_channels": 512, "kernel_size": [3, 3], "stride": 2, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1, "dilation": 1, "groups": 1},
-                   { "name": "RepConvLayer", "in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1, "dilation": 1, "groups": 1},]
+        stage4 = [ {"in_channels": 256, "out_channels": 512, "kernel_size": [3, 3], "stride": 2},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
+                   {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},]
         ignore_keys=["fc.weight", "fc.bias"],
         **kwargs,
     )
