@@ -44,6 +44,9 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["vit_b", (3, 32, 32), (126,)],
         # Check that the interpolation of positional embeddings for vit models works correctly
         ["vit_s", (3, 64, 64), (126,)],
+        ["textnetfast_tiny",(3 ,32, 32), (126,)],
+        ["textnetfast_small",(3 ,32, 32), (126,)],
+        ["textnetfast_base",(3 ,32, 32), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -125,6 +128,9 @@ def test_crop_orientation_model(mock_text_box):
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
         ["mobilenet_v3_small_orientation", (3, 128, 128), (4,)],
         ["vit_b", (3, 32, 32), (126,)],
+        ["textnetfast_tiny",(3 ,32, 32), (126,)],
+        ["textnetfast_small",(3 ,32, 32), (126,)],
+        ["textnetfast_base",(3 ,32, 32), (126,)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):
