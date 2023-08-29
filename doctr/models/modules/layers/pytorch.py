@@ -42,6 +42,7 @@ class RepConvLayer(nn.Module):
 
 
     def forward(self, input):
+    
         main_outputs = self.main_bn(self.main_conv(input))
         vertical_outputs = self.ver_bn(self.ver_conv(input)) if self.ver_conv is not None else 0
         horizontal_outputs = self.hor_bn(self.hor_conv(input)) if self.hor_conv is not None else 0

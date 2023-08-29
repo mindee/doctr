@@ -12,7 +12,7 @@ from doctr.datasets import VOCABS
 
 from ...utils import 	load_pretrained_params
 
-from doctr.models.utils.pytorch import conv_sequence_pt
+from doctr.models.utils.pytorch import conv_sequence_pt as conv_sequence
 from doctr.models.modules.layers.pytorch import RepConvLayer
 
 __all__ = ["textnetfast_tiny", "textnetfast_small", "textnetfast_base"]
@@ -42,7 +42,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class TextNetFast(nn.Module):
+class TextNetFast(nn.Sequential):
     """Implements a TextNet architecture from `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"
      <https://arxiv.org/abs/2111.02394>>`_.
 
@@ -60,10 +60,10 @@ class TextNetFast(nn.Module):
 
     def __init__(
         self,
-        stage1: Dict[Any],
-        stage2: Dict[Any],
-        stage3: Dict[Any],
-        stage4: Dict[Any],
+        stage1: Dict,
+        stage2: Dict,
+        stage3: Dict,
+        stage4: Dict,
         include_top: bool = True,
         num_classes: int = 1000,
         cfg: Optional[Dict[str, Any]] = None,
@@ -71,23 +71,24 @@ class TextNetFast(nn.Module):
     
         super(TextNetFast, self).__init__()
         
-        _layers: List[nn.Module]        
-        self.first_conv = nn.ModuleList[conv_sequence(in_channels, out_channels, True, True, kernel_size=kernel_size, stride=stride)]
-
-        _layers.extend([self.first_conv ])
+        _layers: List[nn.Module]    
+        self.first_conv = conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)
+        
+        _layers = [nn.ModuleList([*self.first_conv])]
+        
         for stage in [stage1, stage2, stage3, stage4]:
 	        stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
-	        _layers.extend([stage_])
+	        _layers.extend([*stage_])
         
         if include_top:
             _layers.extend(
                 [
                     nn.AdaptiveAvgPool2d(1),
                     nn.Flatten(1),
-                    nn.Linear(output_channels[-1], num_classes, bias=True),
+                    nn.Linear(64, num_classes, bias=True),
                 ]
             )
-
+        
         super().__init__(*_layers)
         self.cfg = cfg
 
@@ -97,8 +98,8 @@ class TextNetFast(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-
-
+        print(self) 
+       
 
 def _textnetfast(
     arch: str,
@@ -129,7 +130,7 @@ def _textnetfast(
     return model
 
 
-def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
+def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
     """TextNet architecture as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation",
     <https://arxiv.org/abs/2111.02394>`_.
 
@@ -173,7 +174,7 @@ def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TVResNet:
         **kwargs,
     )
     
-def textnetfast_small(pretrained: bool = False, **kwargs: Any) -> TVResNet:
+def textnetfast_small(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
     """TextNetFast architecture as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation",
     <https://arxiv.org/abs/2111.02394>`_.
 
