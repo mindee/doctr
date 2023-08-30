@@ -139,24 +139,21 @@ def test_crop_orientation_model(mock_text_box):
             (126,),
             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
         ),
-        pytest.param(
-             "textnetfast_tiny", 
-             (32, 32, 3), 
-             (126,),
-             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
-        ),
-        pytest.param(
-             "textnetfast_small", 
-             (32, 32, 3), 
-             (126,),
-             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
-        ),
-        pytest.param(
-             "textnetfast_base", 
-             (32, 32, 3), 
-             (126,),
-             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
-        ),
+        [
+            "textnetfast_tiny",
+            (32, 32, 3),
+            (126,),
+        ],
+        [
+            "textnetfast_small",
+            (32, 32, 3),
+            (126,),
+        ],
+        [
+            "textnetfast_base",
+            (32, 32, 3),
+            (126,),
+        ],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):
