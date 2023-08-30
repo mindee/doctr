@@ -42,15 +42,13 @@ class TextNetFast(nn.Sequential):
     Implementation based on the official Pytorch implementation: <https://github.com/czczup/FAST>`_.
 
     Args:
-        num_blocks: number of resnet block in each stage
-        output_channels: number of channels in each stage
-        stage_conv: whether to add a conv_sequence after each stage
-        stage_pooling: pooling to add after each stage (if None, no pooling)
-        origin_stem: whether to use the orginal ResNet stem or ResNet-31's
-        stem_channels: number of output channels of the stem convolutions
-        attn_module: attention module to use in each stage
-        include_top: whether the classifier head should be instantiated
-        num_classes: number of output classes
+        stage1 (Dict[str, Union[int, List[int]]]): Configuration for stage 1
+        stage2 (Dict[str, Union[int, List[int]]]): Configuration for stage 2
+        stage3 (Dict[str, Union[int, List[int]]]): Configuration for stage 3
+        stage4 (Dict[str, Union[int, List[int]]]): Configuration for stage 4
+        include_top (bool, optional): Whether to include the classifier head. Defaults to True.
+        num_classes (int, optional): Number of output classes. Defaults to 1000.
+        cfg (Optional[Dict[str, Any]], optional): Additional configuration. Defaults to None.
     """
 
     def __init__(
