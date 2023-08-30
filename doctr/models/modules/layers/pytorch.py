@@ -31,11 +31,11 @@ class RepConvLayer(nn.Module):
             in_channels,
             out_channels,
             kernel_size=kernel_size,
-            stride=stride,
             padding=padding,
             bias=False,
             **kwargs,
         )
+
         self.main_bn = nn.BatchNorm2d(out_channels)
 
         if kernel_size[1] != 1:
@@ -43,7 +43,6 @@ class RepConvLayer(nn.Module):
                 in_channels,
                 out_channels,
                 kernel_size=(kernel_size[0], 1),
-                stride=stride,
                 padding=(int(((kernel_size[0] - 1) * dilation) / 2), 0),
                 bias=False,
                 **kwargs,
@@ -55,7 +54,6 @@ class RepConvLayer(nn.Module):
                 in_channels,
                 out_channels,
                 kernel_size=(1, kernel_size[1]),
-                stride=stride,
                 padding=(0, int(((kernel_size[1] - 1) * dilation) / 2)),
                 bias=False,
                 **kwargs,

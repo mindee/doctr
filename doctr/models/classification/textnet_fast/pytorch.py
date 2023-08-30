@@ -5,7 +5,7 @@
 
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 import torch.nn as nn
 
