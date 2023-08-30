@@ -56,10 +56,14 @@ class RepConvLayer(layers.Layer):
 
         self.rbr_identity = layers.BatchNormalization() if out_channels == in_channels and stride == 1 else None
 
-    def forward(self, input):
-        main_outputs = self.main_bn(self.main_conv(input))
-        vertical_outputs = self.ver_bn(self.ver_conv(input)) if self.ver_conv is not None else 0
-        horizontal_outputs = self.hor_bn(self.hor_conv(input)) if self.hor_conv is not None else 0
-        id_out = self.rbr_identity(input) if self.rbr_identity is not None else 0
+    def call(
+        self,
+        x: tf.Tensor,
+        **kwargs: Any,
+    ) -> tf.Tensor:
+        main_outputs = self.main_bn(self.main_conv(x, **kwargs), **kwargs)
+        vertical_outputs = self.ver_bn(self.ver_conv(x, **kwargs), **kwargs) if self.ver_conv is not None else 0
+        horizontal_outputs = self.hor_bn(self.hor_conv(x, **kwargs), **kwargs) if self.hor_conv is not None else 0
+        id_out = self.rbr_identity(x, **kwargs) if self.rbr_identity is not None else 0
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
