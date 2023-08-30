@@ -63,6 +63,7 @@ class TextNetFast(Sequential):
         num_classes: int = 1000,
         input_shape: Tuple[int, int, int] = (32, 32, 3),
         cfg: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
     ) -> None:
         _layers = [
             *conv_sequence(
