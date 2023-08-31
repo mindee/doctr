@@ -86,7 +86,6 @@ def _textnetfast(
     arch: str,
     pretrained: bool,
     arch_fn,
-    ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> TextNetFast:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -103,7 +102,6 @@ def _textnetfast(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg

@@ -1,7 +1,8 @@
-from tensorflow.keras import layers
-import tensorflow as tf
+from typing import Any
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+import tensorflow as tf
+from tensorflow.keras import layers
+
 
 class RepConvLayer(layers.Layer):
     def __init__(self, in_channels, out_channels, kernel_size, stride, dilation=1, groups=1):
@@ -12,47 +13,58 @@ class RepConvLayer(layers.Layer):
         padding = (int(((kernel_size[0] - 1) * dilation) / 2), int(((kernel_size[1] - 1) * dilation) / 2))
 
         self.activation = layers.ReLU()
-        self.main_conv = tf.keras.Sequential([
-            layers.ZeroPadding2D(padding=padding),
-            layers.Conv2D(
-                filters=out_channels,
-                kernel_size=kernel_size,
-                strides=stride,
-                dilation_rate=dilation,
-                groups=groups,
-                use_bias=False,
-                input_shape=(None, None, in_channels),
-        )])
+        self.main_conv = tf.keras.Sequential(
+            [
+                layers.ZeroPadding2D(padding=padding),
+                layers.Conv2D(
+                    filters=out_channels,
+                    kernel_size=kernel_size,
+                    strides=stride,
+                    dilation_rate=dilation,
+                    groups=groups,
+                    use_bias=False,
+                    input_shape=(None, None, in_channels),
+                ),
+            ]
+        )
 
         self.main_bn = layers.BatchNormalization()
 
         if kernel_size[1] != 1:
-            self.ver_conv = tf.keras.Sequential([
-                layers.ZeroPadding2D(padding=padding),
-                layers.Conv2D(
-                    filters=out_channels,
-                    kernel_size=(kernel_size[0], 1),
-                    strides=(stride, 1),
-                    dilation_rate=(dilation, 1),
-                    groups=groups,
-                    use_bias=False,
-                    input_shape=(None, None, in_channels))])
+            self.ver_conv = tf.keras.Sequential(
+                [
+                    layers.ZeroPadding2D(padding=padding),
+                    layers.Conv2D(
+                        filters=out_channels,
+                        kernel_size=(kernel_size[0], 1),
+                        strides=(stride, 1),
+                        dilation_rate=(dilation, 1),
+                        groups=groups,
+                        use_bias=False,
+                        input_shape=(None, None, in_channels),
+                    ),
+                ]
+            )
 
             self.ver_bn = layers.BatchNormalization()
         else:
             self.ver_conv, self.ver_bn = None, None
 
         if kernel_size[0] != 1:
-            self.hor_conv = tf.keras.Sequential([
-                layers.ZeroPadding2D(padding=padding),
-                layers.Conv2D(
-                    filters=out_channels,
-                    kernel_size=(1, kernel_size[1]),
-                    strides=stride,
-                    dilation_rate=dilation,
-                    groups=groups,
-                    use_bias=False,
-                    input_shape=(None, None, in_channels))])
+            self.hor_conv = tf.keras.Sequential(
+                [
+                    layers.ZeroPadding2D(padding=padding),
+                    layers.Conv2D(
+                        filters=out_channels,
+                        kernel_size=(1, kernel_size[1]),
+                        strides=stride,
+                        dilation_rate=dilation,
+                        groups=groups,
+                        use_bias=False,
+                        input_shape=(None, None, in_channels),
+                    ),
+                ]
+            )
 
             self.hor_bn = layers.BatchNormalization()
         else:
