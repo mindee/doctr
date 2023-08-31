@@ -68,16 +68,17 @@ class TextNetFast(nn.Sequential):
         _layers = [self.first_conv]
         for stage in [stage1, stage2, stage3, stage4]:
             stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
-            _layers.extend([*stage_])
+            stage_ = nn.Sequential(*stage_)
+            _layers.extend([stage_])
 
         if include_top:
-            _layers.extend(
-                [
+            classif_block = [
                     nn.AdaptiveAvgPool2d(1),
                     nn.Flatten(1),
                     nn.Linear(512, num_classes, bias=True),
                 ]
-            )
+            classif_block = nn.Sequential(*nn.ModuleList(classif_block))
+            _layers.extend([classif_block])
 
         super().__init__(*_layers)
         self.cfg = cfg
