@@ -62,10 +62,10 @@ class TextNetFast(nn.Sequential):
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
         _layers: List[nn.Module]
+        super().__init__()
         self.first_conv = conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)
-
-        _layers = [*self.first_conv]
-
+        self.first_conv = nn.Sequential(*self.first_conv)
+        _layers = [self.first_conv]
         for stage in [stage1, stage2, stage3, stage4]:
             stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
             _layers.extend([*stage_])
@@ -88,7 +88,7 @@ class TextNetFast(nn.Sequential):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-
+        print(self)
 
 def _textnetfast(
     arch: str,
@@ -164,7 +164,7 @@ def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 3], "stride": 1},
         ],
-        ignore_keys=["10.weight", "10.bias"],
+        ignore_keys=["18.weight", "18.bias"],
         **kwargs,
     )
 
@@ -222,7 +222,7 @@ def textnetfast_small(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
         ],
-        ignore_keys=["10.weight", "10.bias"],
+        ignore_keys=["26.weight", "26.bias"],
         **kwargs,
     )
 
@@ -290,6 +290,6 @@ def textnetfast_base(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
         ],
-        ignore_keys=["10.weight", "10.bias"],
+        ignore_keys=["36.weight", "36.bias"],
         **kwargs,
     )

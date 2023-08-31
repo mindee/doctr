@@ -99,6 +99,7 @@ def _textnetfast(
     # Build the model
     model = arch_fn(**kwargs)
     # Load pretrained parameters 
+    if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
