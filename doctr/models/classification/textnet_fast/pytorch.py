@@ -66,6 +66,7 @@ class TextNetFast(nn.Sequential):
         self.first_conv = conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)
         self.first_conv = nn.Sequential(*self.first_conv)
         _layers = [self.first_conv]
+
         for stage in [stage1, stage2, stage3, stage4]:
             stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
             stage_ = nn.Sequential(*stage_)
@@ -73,10 +74,10 @@ class TextNetFast(nn.Sequential):
 
         if include_top:
             classif_block = [
-                    nn.AdaptiveAvgPool2d(1),
-                    nn.Flatten(1),
-                    nn.Linear(512, num_classes, bias=True),
-                ]
+                nn.AdaptiveAvgPool2d(1),
+                nn.Flatten(1),
+                nn.Linear(512, num_classes, bias=True),
+            ]
             classif_block = nn.Sequential(*nn.ModuleList(classif_block))
             _layers.extend([classif_block])
 
@@ -89,7 +90,7 @@ class TextNetFast(nn.Sequential):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-        print(self)
+
 
 def _textnetfast(
     arch: str,
@@ -165,7 +166,7 @@ def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 3], "stride": 1},
         ],
-        ignore_keys=["18.weight", "18.bias"],
+        ignore_keys=["4.3.weight", "4.3.bias"],
         **kwargs,
     )
 
@@ -223,7 +224,7 @@ def textnetfast_small(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
         ],
-        ignore_keys=["26.weight", "26.bias"],
+        ignore_keys=["4.3.weight", "4.3.bias"],
         **kwargs,
     )
 
@@ -291,6 +292,6 @@ def textnetfast_base(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
         ],
-        ignore_keys=["36.weight", "36.bias"],
+        ignore_keys=["4.3.weight", "4.3.bias"],
         **kwargs,
     )

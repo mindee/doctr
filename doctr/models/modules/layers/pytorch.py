@@ -1,4 +1,4 @@
-from typing import Any, List, Tuple, Union
+from typing import Any, Union
 
 import torch
 import torch.nn as nn
@@ -9,9 +9,7 @@ __all__ = ["RepConvLayer"]
 class RepConvLayer(nn.Module):
     """Reparameterized Convolutional Layer"""
 
-    def __init__(
-        self, in_channels: int, out_channels: int, kernel_size: Union[List[int], Tuple[int, int], int], **kwargs: Any
-    ) -> None:
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: Union[Any], **kwargs: Any) -> None:
         super().__init__()
 
         kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
@@ -64,8 +62,20 @@ class RepConvLayer(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         main_outputs = self.main_bn(self.main_conv(x))
-        vertical_outputs = self.ver_bn(self.ver_conv(x)) if self.ver_conv is not None else 0
-        horizontal_outputs = self.hor_bn(self.hor_conv(x)) if self.hor_conv is not None else 0
-        id_out = self.rbr_identity(x) if self.rbr_identity is not None else 0
+
+        if self.ver_conv is not None and self.ver_bn is not None:
+            vertical_outputs = self.ver_bn(self.ver_conv(x))
+        else:
+            vertical_outputs = 0
+
+        if self.hor_bn is not None and self.hor_conv is not None:
+            horizontal_outputs = self.hor_bn(self.hor_conv(x))
+        else:
+            horizontal_outputs = 0
+
+        if self.rbr_identity is not None and self.ver_bn is not None:
+            id_out = self.rbr_identity(x)
+        else:
+            id_out = 0
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
