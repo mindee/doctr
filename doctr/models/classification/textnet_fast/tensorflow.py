@@ -98,8 +98,7 @@ def _textnetfast(
 
     # Build the model
     model = arch_fn(**kwargs)
-    # Load pretrained parameters
-    if pretrained:
+    # Load pretrained parameters 
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
@@ -154,7 +153,6 @@ def textnetfast_tiny(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 3], "stride": 1},
         ],
-        ignore_keys=["10.weight", "10.bias"],
         **kwargs,
     )
 
@@ -212,7 +210,6 @@ def textnetfast_small(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
         ],
-        ignore_keys=["10.weight", "10.bias"],
         **kwargs,
     )
 
@@ -280,6 +277,5 @@ def textnetfast_base(pretrained: bool = False, **kwargs: Any) -> TextNetFast:
             {"in_channels": 512, "out_channels": 512, "kernel_size": [3, 1], "stride": 1},
             {"in_channels": 512, "out_channels": 512, "kernel_size": [1, 3], "stride": 1},
         ],
-        ignore_keys=["10.weight", "10.bias"],
         **kwargs,
     )
