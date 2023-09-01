@@ -2,7 +2,6 @@ name: pull_requests
 
 on:
   pull_request:
-    branches: main
 
 jobs:
   docs-build:
