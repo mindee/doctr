@@ -53,10 +53,10 @@ class TextNetFast(Sequential):
 
     def __init__(
         self,
-        stage1: Dict[str, Union[int, List[int]]],
-        stage2: Dict[str, Union[int, List[int]]],
-        stage3: Dict[str, Union[int, List[int]]],
-        stage4: Dict[str, Union[int, List[int]]],
+        stage1: List[Dict[str, Union[int, List[int]]]],
+        stage2: List[Dict[str, Union[int, List[int]]]],
+        stage3: List[Dict[str, Union[int, List[int]]]],
+        stage4: List[Dict[str, Union[int, List[int]]]],
         include_top: bool = True,
         num_classes: int = 1000,
         input_shape: Tuple[int, int, int] = (32, 32, 3),

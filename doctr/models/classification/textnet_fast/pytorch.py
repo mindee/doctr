@@ -12,7 +12,7 @@ import torch.nn as nn
 from doctr.datasets import VOCABS
 from doctr.models.modules.layers.pytorch import RepConvLayer
 from doctr.models.utils.pytorch import conv_sequence_pt as conv_sequence
-
+from doctr.models.utils.pytorch import fuse_conv_bn, fuse_module, rep_model_convert
 from ...utils import load_pretrained_params
 
 __all__ = ["textnetfast_tiny", "textnetfast_small", "textnetfast_base"]
@@ -53,24 +53,23 @@ class TextNetFast(nn.Sequential):
 
     def __init__(
         self,
-        stage1: Dict[str, Union[int, List[int]]],
-        stage2: Dict[str, Union[int, List[int]]],
-        stage3: Dict[str, Union[int, List[int]]],
-        stage4: Dict[str, Union[int, List[int]]],
+        stage1: List[Dict[str, Union[int, List[int]]]],
+        stage2: List[Dict[str, Union[int, List[int]]]],
+        stage3: List[Dict[str, Union[int, List[int]]]],
+        stage4: List[Dict[str, Union[int, List[int]]]],
         include_top: bool = True,
         num_classes: int = 1000,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        _layers: List[nn.Module]
+        _layers: List[Any]
         super().__init__()
-        self.first_conv = conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)
-        self.first_conv = nn.Sequential(*self.first_conv)
+        first_conv = conv_sequence(in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2)
+        self.first_conv = nn.Sequential(*first_conv)
         _layers = [self.first_conv]
 
         for stage in [stage1, stage2, stage3, stage4]:
-            stage_ = nn.ModuleList([RepConvLayer(**params) for params in stage])
-            stage_ = nn.Sequential(*stage_)
-            _layers.extend([stage_])
+            self.stage_ = nn.Sequential(*[RepConvLayer(**params) for params in stage])  # type: ignore[arg-type]
+            _layers.extend([self.stage_])
 
         if include_top:
             classif_block = [
@@ -78,8 +77,8 @@ class TextNetFast(nn.Sequential):
                 nn.Flatten(1),
                 nn.Linear(512, num_classes, bias=True),
             ]
-            classif_block = nn.Sequential(*nn.ModuleList(classif_block))
-            _layers.extend([classif_block])
+            classif_block_ = nn.Sequential(*nn.ModuleList(classif_block))
+            _layers.extend([classif_block_])
 
         super().__init__(*_layers)
         self.cfg = cfg
@@ -105,8 +104,10 @@ def _textnetfast(
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["num_classes"] = kwargs["num_classes"]
     _cfg["classes"] = kwargs["classes"]
+    training = kwargs["training"]
     kwargs.pop("classes")
-
+    kwargs.pop("training")
+    
     # Build the model
     model = arch_fn(**kwargs)
     # Load pretrained parameters
@@ -118,6 +119,10 @@ def _textnetfast(
 
     model.cfg = _cfg
 
+    if training is False:
+        model = rep_model_convert(model)
+        model = fuse_module(model)
+    
     return model
 
 
