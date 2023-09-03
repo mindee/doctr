@@ -12,7 +12,8 @@ import torch.nn as nn
 from doctr.datasets import VOCABS
 from doctr.models.modules.layers.pytorch import RepConvLayer
 from doctr.models.utils.pytorch import conv_sequence_pt as conv_sequence
-from doctr.models.utils.pytorch import fuse_conv_bn, fuse_module, rep_model_convert
+from doctr.models.utils.pytorch import fuse_module, rep_model_convert
+
 from ...utils import load_pretrained_params
 
 __all__ = ["textnetfast_tiny", "textnetfast_small", "textnetfast_base"]
@@ -104,10 +105,8 @@ def _textnetfast(
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["num_classes"] = kwargs["num_classes"]
     _cfg["classes"] = kwargs["classes"]
-    training = kwargs["training"]
     kwargs.pop("classes")
-    kwargs.pop("training")
-    
+
     # Build the model
     model = arch_fn(**kwargs)
     # Load pretrained parameters
@@ -119,10 +118,10 @@ def _textnetfast(
 
     model.cfg = _cfg
 
-    if training is False:
+    if model.training is False:
         model = rep_model_convert(model)
         model = fuse_module(model)
-    
+
     return model
 
 

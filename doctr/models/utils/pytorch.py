@@ -152,14 +152,13 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
     return f"{model_name}.onnx"
 
 
-def rep_model_convert(model:torch.nn.Module):
+def rep_model_convert(model: torch.nn.Module):
     for module in model.modules():
-        if hasattr(module, 'switch_to_deploy'):
+        if hasattr(module, "switch_to_deploy"):
             module.switch_to_deploy()
-            # print("switch_to_deploy")
     return model
-    
- 
+
+
 def fuse_conv_bn(conv, bn):
     """During inference, the functionary of batch norm layers is turned off but
     only the mean and var alone channels are used, which exposes the chance to
