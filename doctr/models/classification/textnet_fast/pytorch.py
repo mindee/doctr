@@ -90,7 +90,15 @@ class TextNetFast(nn.Sequential):
             elif isinstance(m, nn.BatchNorm2d):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
-
+    def eval(self):
+        model = rep_model_convert(model)
+        model = fuse_module(model)
+        model.eval()
+        
+    def train():
+        model = rep_model_unconvert(model)
+        model = unfuse_module(model)
+        model.train()
 
 def _textnetfast(
     arch: str,
@@ -117,10 +125,6 @@ def _textnetfast(
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
-
-    if model.training is False:
-        model = rep_model_convert(model)
-        model = fuse_module(model)
 
     return model
 
