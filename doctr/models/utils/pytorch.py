@@ -168,8 +168,11 @@ def fuse_conv_bn(conv, bn):
     conv_b = conv.bias if conv.bias is not None else torch.zeros_like(bn.running_mean)
 
     factor = bn.weight / torch.sqrt(bn.running_var + bn.eps)
+    conv.old_weight = conv.weight
+    conv.old_biais = conv.bias
     conv.weight = nn.Parameter(conv_w * factor.reshape([conv.out_channels, 1, 1, 1]))
     conv.bias = nn.Parameter((conv_b - bn.running_mean) * factor + bn.bias)
+    
     return conv
 
 
@@ -193,22 +196,39 @@ def fuse_module(m):
             fuse_module(child)
     return m
 
-def fuse_module(m):
+
+def unfuse_conv_bn(conv, bn):
+    """During inference, the functionary of batch norm layers is turned off but
+    only the mean and var alone channels are used, which exposes the chance to
+    fuse it with the preceding conv layers to save computations and simplify
+    network structures."""
+    conv.weight = conv.old_weight
+    conv.bias = conv.old_biais
+    
+    return conv
+
+def unfuse_module(m):
     last_conv = None
     last_conv_name = None
 
     for name, child in m.named_children():
-        if isinstance(child, (nn.BatchNorm2d, nn.SyncBatchNorm)):
+        if isinstance(child, (nn.Identity, nn.Identity)):
             if last_conv is None:  # only fuse BN that is after Conv
                 continue
-            fused_conv = fuse_conv_bn(last_conv, child)
-            m._modules[last_conv_name] = fused_conv
+            unfused_conv = unfuse_conv_bn(last_conv, child)
+            m._modules[last_conv_name] = unfused_conv
             # To reduce changes, set BN as Identity instead of deleting it.
-            m._modules[name] = nn.Identity()
+            m._modules[name] = nn.BatchNorm2d(unfused_conv.out_channels)
             last_conv = None
         elif isinstance(child, nn.Conv2d):
             last_conv = child
             last_conv_name = name
         else:
-            fuse_module(child)
+            unfuse_module(child)
     return m
+    
+def rep_model_convert(model: torch.nn.Module):
+    for module in model.modules():
+        if hasattr(module, "switch_to_deploy"):
+            module.switch_to_deploy()
+    return model
