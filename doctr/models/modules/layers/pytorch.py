@@ -1,8 +1,8 @@
 from typing import Any, Union
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
 __all__ = ["RepConvLayer"]
 
@@ -10,12 +10,19 @@ __all__ = ["RepConvLayer"]
 class RepConvLayer(nn.Module):
     """Reparameterized Convolutional Layer"""
 
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: Union[Any],groups: int =1, deploy: bool = False,  **kwargs: Any) -> None:
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: Union[Any],
+        groups: int = 1,
+        deploy: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__()
 
         kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
-        
-        
+
         dilation = kwargs.get("dilation", 1)
         stride = kwargs.get("stride", 1)
         kwargs.pop("padding", None)
@@ -69,7 +76,7 @@ class RepConvLayer(nn.Module):
         self.dilation = dilation
         self.groups = groups
         self.deploy = deploy
-        
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         main_outputs = self.main_bn(self.main_conv(x))
 
@@ -94,7 +101,7 @@ class RepConvLayer(nn.Module):
         if identity is None:
             return 0, 0
         assert isinstance(identity, nn.BatchNorm2d)
-        if not hasattr(self, 'id_tensor'):
+        if not hasattr(self, "id_tensor"):
             input_dim = self.in_channels // self.groups
             kernel_value = np.zeros((self.in_channels, input_dim, 1, 1), dtype=np.float32)
             for i in range(self.in_channels):
@@ -107,7 +114,7 @@ class RepConvLayer(nn.Module):
         gamma = identity.weight
         beta = identity.bias
         eps = identity.eps
-        std = (running_var + eps).sqrt()
+        std = (running_var + eps).sqrt()  # type: ignore
         t = (gamma / std).reshape(-1, 1, 1, 1)
         return kernel * t, beta - running_mean * gamma / std
 
@@ -143,46 +150,55 @@ class RepConvLayer(nn.Module):
         height, width = kernel.shape[2:]
         pad_left_right = (kernel_width - width) // 2
         pad_top_down = (kernel_height - height) // 2
-        return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right,
-                                                pad_top_down, pad_top_down])
+        return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right, pad_top_down, pad_top_down])
 
     def switch_to_deploy(self):
-        if hasattr(self, 'fused_conv'):
+        if hasattr(self, "fused_conv"):
             return
         kernel, bias = self.get_equivalent_kernel_bias()
-        self.fused_conv = nn.Conv2d(in_channels=self.main_conv.in_channels,
-                                    out_channels=self.main_conv.out_channels,
-                                    kernel_size=self.main_conv.kernel_size, stride=self.main_conv.stride,
-                                    padding=self.main_conv.padding, dilation=self.main_conv.dilation,
-                                    groups=self.main_conv.groups, bias=True)
+        self.fused_conv = nn.Conv2d(
+            in_channels=self.main_conv.in_channels,
+            out_channels=self.main_conv.out_channels,
+            kernel_size=self.main_conv.kernel_size,  # type: ignore
+            stride=self.main_conv.stride,  # type: ignore
+            padding=self.main_conv.padding,  # type: ignore
+            dilation=self.main_conv.dilation,  # type: ignore
+            groups=self.main_conv.groups,
+            bias=True,
+        )
         self.fused_conv.weight.data = kernel
-        self.fused_conv.bias.data = bias
+        self.fused_conv.bias.data = bias  # type: ignore
         self.deploy = True
         for para in self.parameters():
             para.detach_()
-        for attr in ['main_conv', 'main_bn', 'ver_conv', 'ver_bn', 'hor_conv', 'hor_bn']:
+        for attr in ["main_conv", "main_bn", "ver_conv", "ver_bn", "hor_conv", "hor_bn"]:
             if hasattr(self, attr):
                 self.__delattr__(attr)
 
-        if hasattr(self, 'rbr_identity'):
-            self.__delattr__('rbr_identity')
+        if hasattr(self, "rbr_identity"):
+            self.__delattr__("rbr_identity")
 
     def switch_to_test(self):
         kernel, bias = self.get_equivalent_kernel_bias()
-        self.fused_conv = nn.Conv2d(in_channels=self.main_conv.in_channels,
-                                    out_channels=self.main_conv.out_channels,
-                                    kernel_size=self.main_conv.kernel_size, stride=self.main_conv.stride,
-                                    padding=self.main_conv.padding, dilation=self.main_conv.dilation,
-                                    groups=self.main_conv.groups, bias=True)
-        self.fused_conv.weight.data = kernel
-        self.fused_conv.bias.data = bias
+        self.fused_conv = nn.Conv2d(
+            in_channels=self.main_conv.in_channels,
+            out_channels=self.main_conv.out_channels,
+            kernel_size=self.main_conv.kernel_size,  # type: ignore
+            stride=self.main_conv.stride,  # type: ignore
+            padding=self.main_conv.padding,  # type: ignore
+            dilation=self.main_conv.dilation,  # type: ignore
+            groups=self.main_conv.groups,
+            bias=True,
+        )
+        self.fused_conv.weight.data = kernel  # type ignore[operator]
+        self.fused_conv.bias.data = bias  # type: ignore
         for para in self.fused_conv.parameters():
             para.detach_()
         self.deploy = True
 
     def switch_to_train(self):
-        if hasattr(self, 'fused_conv'):
-            self.__delattr__('fused_conv')
+        if hasattr(self, "fused_conv"):
+            self.__delattr__("fused_conv")
         self.deploy = False
 
     @staticmethod
@@ -191,17 +207,19 @@ class RepConvLayer(nn.Module):
 
     @property
     def module_str(self):
-        return 'Rep_%dx%d' % (self.kernel_size[0], self.kernel_size[1])
+        return "Rep_%dx%d" % (self.kernel_size[0], self.kernel_size[1])
 
     @property
     def config(self):
-        return {'name': RepConvLayer.__name__,
-                'in_channels': self.in_channels,
-                'out_channels': self.out_channels,
-                'kernel_size': self.kernel_size,
-                'stride': self.stride,
-                'dilation': self.dilation,
-                'groups': self.groups}
+        return {
+            "name": RepConvLayer.__name__,
+            "in_channels": self.in_channels,
+            "out_channels": self.out_channels,
+            "kernel_size": self.kernel_size,
+            "stride": self.stride,
+            "dilation": self.dilation,
+            "groups": self.groups,
+        }
 
     @staticmethod
     def build_from_config(config):

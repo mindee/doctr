@@ -155,13 +155,21 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
 def rep_model_convert(model: torch.nn.Module):
     for module in model.modules():
         if hasattr(module, "switch_to_test"):
-            module.switch_to_test()  # type ignore[operator]
+            module.switch_to_test()  # type: ignore
     return model
+
 
 def rep_model_unconvert(model: torch.nn.Module):
     for module in model.modules():
         if hasattr(module, "switch_to_train"):
-            module.switch_to_train()  # type ignore[operator]
+            module.switch_to_train()  # type: ignore
+    return model
+
+
+def rep_model_convert_deploy(model: torch.nn.Module):
+    for module in model.modules():
+        if hasattr(module, "switch_to_deploy"):
+            module.switch_to_deploy()  # type: ignore
     return model
 
 

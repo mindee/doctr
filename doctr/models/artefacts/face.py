@@ -28,9 +28,7 @@ class FaceDetector(NestedObject):
     ) -> None:
         self.n_faces = n_faces
         # Instantiate classifier
-        self.detector = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml"  # type: ignore[attr-defined]
-        )
+        self.detector = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
 
     def extra_repr(self) -> str:
         return f"n_faces={self.n_faces}"
