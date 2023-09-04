@@ -172,7 +172,7 @@ def fuse_conv_bn(conv, bn):
     conv.old_biais = conv.bias
     conv.weight = nn.Parameter(conv_w * factor.reshape([conv.out_channels, 1, 1, 1]))
     conv.bias = nn.Parameter((conv_b - bn.running_mean) * factor + bn.bias)
-    
+
     return conv
 
 
@@ -204,8 +204,9 @@ def unfuse_conv_bn(conv, bn):
     network structures."""
     conv.weight = conv.old_weight
     conv.bias = conv.old_biais
-    
+
     return conv
+
 
 def unfuse_module(m):
     last_conv = None
@@ -226,9 +227,3 @@ def unfuse_module(m):
         else:
             unfuse_module(child)
     return m
-    
-def rep_model_convert(model: torch.nn.Module):
-    for module in model.modules():
-        if hasattr(module, "switch_to_deploy"):
-            module.switch_to_deploy()
-    return model
