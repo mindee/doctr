@@ -12,7 +12,7 @@ import torch.nn as nn
 from doctr.datasets import VOCABS
 from doctr.models.modules.layers.pytorch import RepConvLayer
 from doctr.models.utils.pytorch import conv_sequence_pt as conv_sequence
-from doctr.models.utils.pytorch import fuse_module, rep_model_convert, unfuse_module
+from doctr.models.utils.pytorch import fuse_module, rep_model_convert, unfuse_module, rep_model_unconvert
 
 from ...utils import load_pretrained_params
 
@@ -92,14 +92,16 @@ class TextNetFast(nn.Sequential):
                 nn.init.constant_(m.bias, 0)
 
     def eval(self):
-        rep_model_convert(self)
-        fuse_module(self)
+        self = rep_model_convert(self)
+        self = fuse_module(self)
         for param in self.parameters():
             param.requires_grad = False
         self.training = False
 
     def train(self):
-        unfuse_module(self)
+
+        self = unfuse_module(self)
+        self = rep_model_unconvert(self)
         for param in self.parameters():
             param.requires_grad = True
         self.training = True
