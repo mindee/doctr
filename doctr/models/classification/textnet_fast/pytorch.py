@@ -97,26 +97,29 @@ class TextNetFast(nn.Sequential):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def eval(self):
+    def eval(self, mode=False):
         self = rep_model_convert(self)
         self = fuse_module(self)
         for param in self.parameters():
-            param.requires_grad = False
-        self.training = False
+            param.requires_grad = mode
+        self.training = mode
+        return self
 
-    def train(self):
+    def train(self, mode=True):
         self = unfuse_module(self)
         self = rep_model_unconvert(self)
         for param in self.parameters():
-            param.requires_grad = True
-        self.training = True
+            param.requires_grad = mode
+        self.training = mode
+        return self
 
-    def test(self):
+    def test(self, mode=False):
         self = rep_model_convert_deploy(self)
         self = fuse_module(self)
         for param in self.parameters():
-            param.requires_grad = False
-        self.training = False
+            param.requires_grad = mode
+        self.training = mode
+        return self
 
 
 def _textnetfast(
