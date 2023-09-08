@@ -8,6 +8,7 @@ import os
 from typing import Any, Callable, List, Optional, Tuple, Union
 from zipfile import ZipFile
 
+import numpy as np
 import tensorflow as tf
 import tf2onnx
 from tensorflow.keras import Model, layers
@@ -70,8 +71,7 @@ def conv_sequence(
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
-    >>> from tensorflow.keras import Sequential
-    >>> from doctr.models import conv_sequence
+    >>> from doctr.models.utils import conv_sequence
     >>> module = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=[224, 224, 3]))
 
     Args:
@@ -160,3 +160,110 @@ def export_model_to_onnx(
 
     logging.info(f"Model exported to {model_name}.zip")
     return f"{model_name}.onnx", output
+
+
+def rep_model_convert(model):
+    for layer in model.layers:
+        if hasattr(layer, "switch_to_test"):
+            layer.switch_to_test()
+    return model
+
+
+def rep_model_unconvert(model):
+    for layer in model.layers:
+        if hasattr(layer, "switch_to_train"):
+            layer.switch_to_train()
+    return model
+
+
+def rep_model_convert_deploy(model):
+    for layer in model.layers:
+        if hasattr(layer, "switch_to_deploy"):
+            layer.switch_to_deploy()
+    return model
+
+
+def fuse_conv_bn(conv, bn):
+    """During inference, the functionality of batch norm layers is turned off but
+    only the mean and variance along channels are used, which exposes the opportunity
+    to fuse it with the preceding conv layers to save computations and simplify
+    network structures."""
+    print(dir(conv))
+    conv_weights, conv_biases = conv.get_weights()
+    bn_weights, bn_biases, bn_running_mean, bn_running_var = bn.get_weights()
+
+    if conv_biases is None:
+        conv_biases = np.zeros_like(bn_running_mean)
+
+    epsilon = bn.epsilon
+    scale_factor = bn_weights / np.sqrt(bn_running_var + epsilon)
+
+    # Reshape the scale factor to match the convolutional weights shape
+    scale_factor = scale_factor.reshape((1, 1, 1, -1))
+
+    # Update convolutional weights and biases
+    fused_conv_weights = conv_weights * scale_factor
+    fused_conv_biases = (conv_biases - bn_running_mean) * scale_factor.flatten() + bn_biases
+
+    # Setting the updated weights and biases in conv layer
+    conv.set_weights([fused_conv_weights, fused_conv_biases])
+    conv.old_weight, conv.old_biais = conv.get_weights()
+    return conv
+
+
+def fuse_module(model):
+    last_conv = None
+
+    for layer in model.layers:
+        if isinstance(layer, (tf.keras.layers.BatchNormalization, tf.keras.layers.experimental.SyncBatchNormalization)):
+            if last_conv is None:  # only fuse BN that is after Conv
+                continue
+            # Fused Conv and BN (You would need to define fuse_conv_bn_tf)
+            fuse_conv_bn(last_conv, layer)
+            # Here you'd need to replace the last_conv layer with fused_conv
+            # in the model, and replace the current layer with an identity layer.
+            # This is non-trivial in TensorFlow as Keras models are not as
+            # dynamically modifiable as PyTorch models.
+
+        elif isinstance(layer, tf.keras.layers.Conv2D):
+            last_conv = layer
+        else:
+            # Recursively apply to nested models
+            fuse_module(layer)
+    return model
+
+
+def unfuse_conv_bn(conv, bn):
+    """During inference, the functionary of batch norm layers is turned off but
+    only the mean and var alone channels are used, which exposes the chance to
+    fuse it with the preceding conv layers to save computations and simplify
+    network structures."""
+    conv.set_weights([conv.old_weight, conv.old_biais])
+    return conv
+
+
+def unfuse_module(model):
+    last_conv = None
+
+    for i, layer in enumerate(model.layers):
+        if isinstance(layer, tf.keras.layers.Layer):
+            pass
+        else:
+            continue
+
+        if isinstance(layer, tf.keras.layers.Lambda):
+            if last_conv is None:
+                continue
+            unfused_conv, unfused_bn = unfuse_conv_bn(last_conv, layer)
+
+            # In TensorFlow, we can't modify the model in-place like in PyTorch,
+            # so you would need to create a new model with the modified layers.
+            # Here, you'd replace the last_conv layer with unfused_conv and
+            # the current layer with unfused_bn.
+
+        elif isinstance(layer, tf.keras.layers.Conv2D):
+            last_conv = layer
+        else:
+            # Recursive call for potentially nested layers (e.g., in case of a nested model)
+            unfuse_module(layer)
+    return layer
