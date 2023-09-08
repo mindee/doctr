@@ -30,8 +30,8 @@ The following architectures are currently supported:
 
 We also provide 2 models working with any kind of rotated documents:
 
-* :py:meth:`linknet_resnet18_rotation <doctr.models.detection.linknet_resnet18_rotation>`
-* :py:meth:`db_resnet50_rotation <doctr.models.detection.differentiable_binarization.pytorch.db_resnet50_rotation>`
+* :py:meth:`linknet_resnet18_rotation <doctr.models.detection.linknet_resnet18_rotation>` (TensorFlow)
+* :py:meth:`db_resnet50_rotation <doctr.models.detection.differentiable_binarization.pytorch.db_resnet50_rotation>` (PyTorch)
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
@@ -222,7 +222,7 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 +----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
 | TensorFlow     | db_resnet50 + crnn_mobilenet_v3_large                    | 70.01      | 74.70         | 83.28      | 80.73         |
 +----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + sar_resnet31                               | 69.42      | 74.04         | 80.67      | 78.21         |
+| TensorFlow     | db_resnet50 + sar_resnet31                               | 68.75      | 73.76         | 78.56      | 76.24         |
 +----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
 | TensorFlow     | db_resnet50 + master                                     | 68.75      | 73.76         | 78.56      | 76.24         |
 +----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
