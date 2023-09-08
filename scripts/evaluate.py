@@ -40,6 +40,7 @@ def main(args):
         args.recognition,
         pretrained=True,
         reco_bs=args.batch_size,
+        preserve_aspect_ratio=False,
         assume_straight_pages=not args.rotation,
     )
 
