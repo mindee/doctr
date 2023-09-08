@@ -266,50 +266,165 @@ Our latest detection models works with rotated and skewed documents!</p>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18" title="doctr.models.detection.linknet_resnet18"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet34" title="doctr.models.detection.linknet_resnet34"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet34</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet50" title="doctr.models.detection.linknet_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet50</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_resnet50" title="doctr.models.detection.db_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_mobilenet_v3_large" title="doctr.models.detection.db_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_mobilenet_v3_large</span></code></a></p></li>
 </ul>
 <p>We also provide 2 models working with any kind of rotated documents:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18_rotation" title="doctr.models.detection.linknet_resnet18_rotation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18_rotation</span></code></a></p></li>
-<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50_rotation</span></code></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18_rotation" title="doctr.models.detection.linknet_resnet18_rotation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18_rotation</span></code></a> (TensorFlow)</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50_rotation</span></code> (PyTorch)</p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head" colspan="3"></th>
+<tr class="row-odd"><th class="head" colspan="4"></th>
 <th class="head" colspan="2"><p>FUNSD</p></th>
 <th class="head" colspan="2"><p>CORD</p></th>
 <th class="head"></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Architecture</strong></p></td>
+<tr class="row-even"><td><p><strong>Backend</strong></p></td>
+<td><p><strong>Architecture</strong></p></td>
 <td><p><strong>Input shape</strong></p></td>
 <td><p><strong># params</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
-<td><p><strong>FPS</strong></p></td>
+<td><p><strong>sec/it (B: 1)</strong></p></td>
 </tr>
-<tr class="row-odd"><td><p>db_resnet50</p></td>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>25.2 M</p></td>
-<td><p>82.14</p></td>
-<td><p>87.64</p></td>
-<td><p>92.49</p></td>
-<td><p>89.66</p></td>
-<td><p>2.1</p></td>
+<td><p>81.22</p></td>
+<td><p>86.66</p></td>
+<td><p>92.46</p></td>
+<td><p>89.62</p></td>
+<td><p>1.2</p></td>
 </tr>
-<tr class="row-even"><td><p>db_mobilenet_v3_large</p></td>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>db_mobilenet_v3_large</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>4.2 M</p></td>
-<td><p>79.35</p></td>
-<td><p>84.03</p></td>
-<td><p>81.14</p></td>
-<td><p>66.85</p></td>
+<td><p>78.27</p></td>
+<td><p>82.77</p></td>
+<td><p>80.99</p></td>
+<td><p>66.57</p></td>
+<td><p>0.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>linknet_resnet18</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>11.5 M</p></td>
+<td><p>78.23</p></td>
+<td><p>83.77</p></td>
+<td><p>82.88</p></td>
+<td><p>82.42</p></td>
+<td><p>0.7</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>linknet_resnet18_rotation</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>11.5 M</p></td>
+<td><p>81.12</p></td>
+<td><p>82.13</p></td>
+<td><p>83.55</p></td>
+<td><p>80.14</p></td>
+<td><p>0.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>linknet_resnet34</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>21.6 M</p></td>
+<td><p>82.14</p></td>
+<td><p>87.64</p></td>
+<td><p>85.55</p></td>
+<td><p>86.02</p></td>
+<td><p>0.8</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>linknet_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>28.8 M</p></td>
+<td><p>79.00</p></td>
+<td><p>84.79</p></td>
+<td><p>85.89</p></td>
+<td><p>65.75</p></td>
+<td><p>1.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet34</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>22.4 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>25.4 M</p></td>
+<td><p>79.17</p></td>
+<td><p>86.31</p></td>
+<td><p>92.96</p></td>
+<td><p>91.23</p></td>
+<td><p>1.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50_rotation</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>25.4 M</p></td>
+<td><p>83.30</p></td>
+<td><p>91.07</p></td>
+<td><p>91.63</p></td>
+<td><p>90.53</p></td>
+<td><p>1.6</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_mobilenet_v3_large</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>4.2 M</p></td>
+<td><p>80.06</p></td>
+<td><p>84.12</p></td>
+<td><p>80.51</p></td>
+<td><p>66.51</p></td>
+<td><p>0.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>linknet_resnet18</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>11.5 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>linknet_resnet34</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>21.6 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>linknet_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>28.8 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 </tbody>
@@ -318,16 +433,16 @@ Our latest detection models works with rotated and skewed documents!</p>
 <p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>11th Gen Intel(R) Core(TM) i7-11800H &#64; 2.30GHz</cite>.</p>
 </section>
 <section id="detection-predictors">
 <h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this heading">#</a></h3>
 <p><a class="reference internal" href="../modules/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detection_predictor</span></code></a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
+<span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>You can pass specific boolean arguments to the predictor:</p>
@@ -337,8 +452,8 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
 </ul>
 <p>For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>NB: for the moment, <cite>db_resnet50_rotation</cite> is pretrained in Pytorch only and <cite>linknet_resnet18_rotation</cite> in Tensorflow only.</p>
@@ -356,55 +471,190 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_large" title="doctr.models.recognition.crnn_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_large</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.sar_resnet31" title="doctr.models.recognition.sar_resnet31"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sar_resnet31</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.master" title="doctr.models.recognition.master"><code class="xref py py-meth docutils literal notranslate"><span class="pre">master</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.vitstr_small" title="doctr.models.recognition.vitstr_small"><code class="xref py py-meth docutils literal notranslate"><span class="pre">vitstr_small</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.vitstr_base" title="doctr.models.recognition.vitstr_base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">vitstr_base</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.parseq" title="doctr.models.recognition.parseq"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parseq</span></code></a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
-<div class="table-wrapper docutils container" id="id5">
-<table class="docutils align-default" id="id5">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"><p>Architecture</p></th>
-<th class="head"><p>Input shape</p></th>
-<th class="head"><p># params</p></th>
-<th class="head"><p>FUNSD</p></th>
-<th class="head"><p>CORD</p></th>
-<th class="head"><p>FPS</p></th>
+<tr class="row-odd"><th class="head" colspan="4"></th>
+<th class="head" colspan="2"><p>FUNSD</p></th>
+<th class="head" colspan="2"><p>CORD</p></th>
+<th class="head"></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
-<td><p>(32, 128, 3)</p></td>
-<td><p>15.8M</p></td>
-<td><p>87.18</p></td>
-<td><p>92.93</p></td>
-<td><p>12.8</p></td>
+<tr class="row-even"><td><p><strong>Backend</strong></p></td>
+<td><p><strong>Architecture</strong></p></td>
+<td><p><strong>Input shape</strong></p></td>
+<td><p><strong># params</strong></p></td>
+<td><p><strong>Exact</strong></p></td>
+<td><p><strong>Partial</strong></p></td>
+<td><p><strong>Exact</strong></p></td>
+<td><p><strong>Partial</strong></p></td>
+<td><p><strong>sec/it (B: 64)</strong></p></td>
 </tr>
-<tr class="row-odd"><td><p>crnn_mobilenet_v3_small</p></td>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>crnn_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
-<td><p>2.1M</p></td>
-<td><p>86.21</p></td>
-<td><p>90.56</p></td>
+<td><p>15.8 M</p></td>
+<td><p>88.12</p></td>
+<td><p>88.85</p></td>
+<td><p>94.68</p></td>
+<td><p>95.10</p></td>
+<td><p>0.9</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>crnn_mobilenet_v3_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>2.1 M</p></td>
+<td><p>86.88</p></td>
+<td><p>87.61</p></td>
+<td><p>92.28</p></td>
+<td><p>92.73</p></td>
+<td><p>0.25</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>crnn_mobilenet_v3_large</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>4.5 M</p></td>
+<td><p>87.44</p></td>
+<td><p>88.12</p></td>
+<td><p>94.14</p></td>
+<td><p>94.55</p></td>
+<td><p>0.34</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>master</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>58.8 M</p></td>
+<td><p>87.44</p></td>
+<td><p>88.21</p></td>
+<td><p>93.83</p></td>
+<td><p>94.25</p></td>
+<td><p>22.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>sar_resnet31</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>57.2 M</p></td>
+<td><p>87.67</p></td>
+<td><p>88.48</p></td>
+<td><p>94.21</p></td>
+<td><p>94.66</p></td>
+<td><p>7.1</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>vitstr_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>21.4 M</p></td>
+<td><p>83.01</p></td>
+<td><p>83.84</p></td>
+<td><p>86.57</p></td>
+<td><p>87.00</p></td>
+<td><p>2.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>vitstr_base</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>85.2 M</p></td>
+<td><p>85.98</p></td>
+<td><p>86.70</p></td>
+<td><p>90.47</p></td>
+<td><p>90.95</p></td>
+<td><p>5.8</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>parseq</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>23.8 M</p></td>
+<td><p>81.62</p></td>
+<td><p>82.29</p></td>
+<td><p>79.13</p></td>
+<td><p>79.52</p></td>
+<td><p>3.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>crnn_vgg16_bn</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>15.8 M</p></td>
+<td><p>86.54</p></td>
+<td><p>87.41</p></td>
+<td><p>94.29</p></td>
+<td><p>94.69</p></td>
+<td><p>0.6</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>crnn_mobilenet_v3_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>2.1 M</p></td>
+<td><p>87.25</p></td>
+<td><p>87.99</p></td>
+<td><p>93.91</p></td>
+<td><p>94.34</p></td>
+<td><p>0.05</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>crnn_mobilenet_v3_large</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>4.5 M</p></td>
+<td><p>87.38</p></td>
+<td><p>88.09</p></td>
+<td><p>94.46</p></td>
+<td><p>94.92</p></td>
+<td><p>0.08</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>master</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>58.7 M</p></td>
 <td></td>
-</tr>
-<tr class="row-even"><td><p>crnn_mobilenet_v3_large</p></td>
-<td><p>(32, 128, 3)</p></td>
-<td><p>4.5M</p></td>
-<td><p>86.95</p></td>
-<td><p>92.03</p></td>
 <td></td>
-</tr>
-<tr class="row-odd"><td><p>sar_resnet31</p></td>
-<td><p>(32, 128, 3)</p></td>
-<td><p>56.2M</p></td>
-<td><p><strong>87.70</strong></p></td>
-<td><p><strong>93.41</strong></p></td>
-<td><p>2.7</p></td>
-</tr>
-<tr class="row-even"><td><p>master</p></td>
-<td><p>(32, 128, 3)</p></td>
-<td><p>67.7M</p></td>
-<td><p>87.62</p></td>
-<td><p>93.27</p></td>
 <td></td>
+<td></td>
+<td><p>17.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>sar_resnet31</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>55.4 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>4.9</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>vitstr_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>21.4 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>1.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>vitstr_base</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>85.2 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>4.1</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>parseq</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>23.8 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>2.2</p></td>
 </tr>
 </tbody>
 </table>
@@ -412,22 +662,22 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metric being used (exact match) are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p>While most of our recognition models were trained on our french vocab (cf. <a class="reference internal" href="../modules/datasets.html#vocabs"><span class="std std-ref">Supported Vocabs</span></a>), you can easily access the vocab of any model as follows:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 <p><em>Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
+<p>Seconds per iteration (with a batch size of 64) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>11th Gen Intel(R) Core(TM) i7-11800H &#64; 2.30GHz</cite>.</p>
 </section>
 <section id="recognition-predictors">
 <h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this heading">#</a></h3>
 <p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">recognition_predictor</span></code></a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>
@@ -435,98 +685,164 @@ Explanations about the metric being used (exact match) are available in <a class
 <section id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this heading">#</a></h2>
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
-<section id="id3">
-<h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
-<p>You can use any combination of detection and recognition models supporte by docTR.</p>
+<section id="id2">
+<h3>Available architectures<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<p>You can use any combination of detection and recognition models supported by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
-<tr class="row-odd"><th class="head"></th>
-<th class="head" colspan="3"><p>FUNSD</p></th>
-<th class="head" colspan="3"><p>CORD</p></th>
+<tr class="row-odd"><th class="head" colspan="2"></th>
+<th class="head" colspan="2"><p>FUNSD</p></th>
+<th class="head" colspan="2"><p>CORD</p></th>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><strong>Architecture</strong></p></td>
+<tr class="row-even"><td><p><strong>Backend</strong></p></td>
+<td><p><strong>Architecture</strong></p></td>
+<td colspan="2"><p><strong>Recall</strong> | <strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
-<td><p><strong>FPS</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>FPS</strong></p></td>
 </tr>
-<tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn</p></td>
-<td><p>71.25</p></td>
-<td><p>76.02</p></td>
-<td><p>0.85</p></td>
-<td><p>84.00</p></td>
-<td><p>81.42</p></td>
-<td><p>1.6</p></td>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + crnn_vgg16_bn</p></td>
+<td><p>70.82</p></td>
+<td><p>75.56</p></td>
+<td><p>83.97</p></td>
+<td><p>81.40</p></td>
 </tr>
-<tr class="row-even"><td><p>db_resnet50 + master</p></td>
-<td><p>71.03</p></td>
-<td><p>76.06</p></td>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
+<td><p>69.63</p></td>
+<td><p>74.29</p></td>
+<td><p>81.08</p></td>
+<td><p>78.59</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
+<td><p>70.01</p></td>
+<td><p>74.70</p></td>
+<td><p>83.28</p></td>
+<td><p>80.73</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>68.75</p></td>
+<td><p>73.76</p></td>
+<td><p>78.56</p></td>
+<td><p>76.24</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + master</p></td>
+<td><p>68.75</p></td>
+<td><p>73.76</p></td>
+<td><p>78.56</p></td>
+<td><p>76.24</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + vitstr_small</p></td>
+<td><p>64.58</p></td>
+<td><p>68.91</p></td>
+<td><p>74.66</p></td>
+<td><p>72.37</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + vitstr_base</p></td>
+<td><p>66.89</p></td>
+<td><p>71.37</p></td>
+<td><p>79.11</p></td>
+<td><p>76.68</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + parseq</p></td>
+<td><p>65.77</p></td>
+<td><p>70.18</p></td>
+<td><p>71.57</p></td>
+<td><p>69.37</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + crnn_vgg16_bn</p></td>
+<td><p>67.82</p></td>
+<td><p>73.35</p></td>
+<td><p>84.84</p></td>
+<td><p>83.27</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
+<td><p>67.89</p></td>
+<td><p>74.01</p></td>
+<td><p>84.43</p></td>
+<td><p>82.85</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
+<td><p>68.45</p></td>
+<td><p>74.63</p></td>
+<td><p>84.86</p></td>
+<td><p>83.27</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
 <td></td>
-<td><p>84.49</p></td>
-<td><p>81.94</p></td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
-<td><p>71.25</p></td>
-<td><p>76.29</p></td>
-<td><p>0.27</p></td>
-<td><p>84.50</p></td>
-<td><p><strong>81.96</strong></p></td>
-<td><p>0.83</p></td>
-</tr>
-<tr class="row-even"><td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
-<td><p>69.85</p></td>
-<td><p>74.80</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + master</p></td>
 <td></td>
-<td><p>80.85</p></td>
-<td><p>78.42</p></td>
-<td><p>0.83</p></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
-<td><p>70.57</p></td>
-<td><p>75.57</p></td>
 <td></td>
-<td><p>82.57</p></td>
-<td><p>80.08</p></td>
-<td><p>0.83</p></td>
-</tr>
-<tr class="row-even"><td><p>db_mobilenet_v3_large + crnn_vgg16_bn</p></td>
-<td><p>67.73</p></td>
-<td><p>71.73</p></td>
 <td></td>
-<td><p>71.65</p></td>
-<td><p>59.03</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>Gvision text detection</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + vitstr_small</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + vitstr_base</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + parseq</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>None</p></td>
+<td><p>Gvision text detection</p></td>
 <td><p>59.50</p></td>
 <td><p>62.50</p></td>
-<td></td>
 <td><p>75.30</p></td>
-<td><p>70.00</p></td>
-<td></td>
+<td><p>59.03</p></td>
 </tr>
-<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-even"><td><p>None</p></td>
+<td><p>Gvision doc. text detection</p></td>
 <td><p>64.00</p></td>
 <td><p>53.30</p></td>
-<td></td>
 <td><p>68.90</p></td>
 <td><p>61.10</p></td>
-<td></td>
 </tr>
-<tr class="row-odd"><td><p>AWS textract</p></td>
-<td><p><strong>78.10</strong></p></td>
-<td><p><strong>83.00</strong></p></td>
-<td></td>
-<td><p><strong>87.50</strong></p></td>
+<tr class="row-odd"><td><p>None</p></td>
+<td><p>AWS textract</p></td>
+<td><p>78.10</p></td>
+<td><p>83.00</p></td>
+<td><p>87.50</p></td>
 <td><p>66.00</p></td>
-<td></td>
+</tr>
+<tr class="row-even"><td><p>None</p></td>
+<td><p>Azure Form Recognizer (v3.2)</p></td>
+<td><p>79.42</p></td>
+<td><p>85.89</p></td>
+<td><p>89.62</p></td>
+<td><p>88.93</p></td>
 </tr>
 </tbody>
 </table>
@@ -534,159 +850,15 @@ Explanations about the metric being used (exact match) are available in <a class
 <p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
 Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
-<p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed frames per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
-<p>Since you may be looking for specific use cases, we also performed this benchmark on private datasets with various document types below. Unfortunately, we are not able to share those at the moment since they contain sensitive information.</p>
-<div class="table-wrapper docutils container">
-<table class="docutils align-default">
-<thead>
-<tr class="row-odd"><th class="head"></th>
-<th class="head" colspan="2"><p>Receipts</p></th>
-<th class="head" colspan="2"><p>Invoices</p></th>
-<th class="head" colspan="2"><p>IDs</p></th>
-<th class="head" colspan="2"><p>US Tax Forms</p></th>
-<th class="head" colspan="2"><p>Resumes</p></th>
-<th class="head" colspan="2"><p>Road Fines</p></th>
-</tr>
-</thead>
-<tbody>
-<tr class="row-even"><td><p><strong>Architecture</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn (ours)</p></td>
-<td><p>78.70</p></td>
-<td><p>81.12</p></td>
-<td><p>65.80</p></td>
-<td><p>70.70</p></td>
-<td><p>50.25</p></td>
-<td><p>51.78</p></td>
-<td><p>79.08</p></td>
-<td><p>92.83</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>db_resnet50 + master (ours)</p></td>
-<td><p><strong>79.00</strong></p></td>
-<td><p><strong>81.42</strong></p></td>
-<td><p>65.57</p></td>
-<td><p>69.86</p></td>
-<td><p>51.34</p></td>
-<td><p>52.90</p></td>
-<td><p>78.86</p></td>
-<td><p>92.57</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31 (ours)</p></td>
-<td><p>78.94</p></td>
-<td><p>81.37</p></td>
-<td><p>65.89</p></td>
-<td><p><strong>70.79</strong></p></td>
-<td><p><strong>51.78</strong></p></td>
-<td><p><strong>53.35</strong></p></td>
-<td><p>79.04</p></td>
-<td><p>92.78</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>db_resnet50 + crnn_mobilenet_v3_small (ours)</p></td>
-<td><p>76.81</p></td>
-<td><p>79.15</p></td>
-<td><p>64.89</p></td>
-<td><p>69.61</p></td>
-<td><p>45.03</p></td>
-<td><p>46.38</p></td>
-<td><p>78.96</p></td>
-<td><p>92.11</p></td>
-<td><p>85.91</p></td>
-<td><p>87.20</p></td>
-<td><p>84.85</p></td>
-<td><p>85.86</p></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + crnn_mobilenet_v3_large (ours)</p></td>
-<td><p>78.01</p></td>
-<td><p>80.39</p></td>
-<td><p>65.36</p></td>
-<td><p>70.11</p></td>
-<td><p>48.00</p></td>
-<td><p>49.43</p></td>
-<td><p>79.39</p></td>
-<td><p>92.62</p></td>
-<td><p>87.68</p></td>
-<td><p>89.00</p></td>
-<td><p>85.65</p></td>
-<td><p>86.67</p></td>
-</tr>
-<tr class="row-even"><td><p>db_mobilenet_v3_large + crnn_vgg16_bn (ours)</p></td>
-<td><p>78.36</p></td>
-<td><p>74.93</p></td>
-<td><p>63.04</p></td>
-<td><p>68.41</p></td>
-<td><p>39.36</p></td>
-<td><p>41.75</p></td>
-<td><p>72.14</p></td>
-<td><p>89.97</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
-<td><p>68.91</p></td>
-<td><p>59.89</p></td>
-<td><p>63.20</p></td>
-<td><p>52.85</p></td>
-<td><p>43.70</p></td>
-<td><p>29.21</p></td>
-<td><p>69.79</p></td>
-<td><p>65.68</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>AWS textract</p></td>
-<td><p>75.77</p></td>
-<td><p>77.70</p></td>
-<td><p><strong>70.47</strong></p></td>
-<td><p>69.13</p></td>
-<td><p>46.39</p></td>
-<td><p>43.32</p></td>
-<td><p><strong>84.31</strong></p></td>
-<td><p><strong>98.11</strong></p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</div>
 </section>
 <section id="two-stage-approaches">
 <h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this heading">#</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference internal" href="../modules/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ocr_predictor</span></code></a>.</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>You can pass specific boolean arguments to the predictor:</p>
@@ -700,8 +872,8 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><cite>export_as_straight_boxes</cite>: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.</p></li>
 </ul>
 <p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -874,7 +1046,7 @@ To get a better understanding of our document model, check our <a class="referen
 </ul>
 </li>
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
-<li><a class="reference internal" href="#id3">Available architectures</a></li>
+<li><a class="reference internal" href="#id2">Available architectures</a></li>
 <li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
 <li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
 </ul>
