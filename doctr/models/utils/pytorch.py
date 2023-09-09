@@ -200,7 +200,6 @@ def fuse_module(m):
                 continue
             fused_conv = fuse_conv_bn(last_conv, child)
             m._modules[last_conv_name] = fused_conv
-            # To reduce changes, set BN as Identity instead of deleting it.
             m._modules[name] = nn.Identity()
             last_conv = None
         elif isinstance(child, nn.Conv2d):

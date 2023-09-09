@@ -71,7 +71,9 @@ class TextNetFast(tf.keras.Sequential):
     ) -> None:
         _layers = [
             tf.keras.Sequential(
-                conv_sequence(out_channels=64, activation="relu", bn=True, kernel_size=3, strides=2, input_shape=input_shape),
+                conv_sequence(
+                    out_channels=64, activation="relu", bn=True, kernel_size=3, strides=2, input_shape=input_shape
+                ),
             )
         ]
 

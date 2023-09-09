@@ -190,7 +190,6 @@ def fuse_conv_bn(conv, bn):
     to fuse it with the preceding conv layers to save computations and simplify
     network structures."""
 
-    
     bn_weights, bn_biases, bn_running_mean, bn_running_var = bn.get_weights()
     weights = conv.get_weights()
     if len(weights) == 1:
@@ -212,18 +211,27 @@ def fuse_conv_bn(conv, bn):
     conv.build(input_shape=conv.input_shape)
     conv.set_weights([fused_conv_weights, fused_conv_biases])
     conv.old_weight, conv.old_biais = conv_weights, conv_biases
+    return conv
 
 
 def fuse_module(model):
     last_conv = None
-
-    for layer in model.layers:
-        print(layer)
+    for i, layer in enumerate(model.layers):
         if isinstance(layer, (tf.keras.layers.BatchNormalization, tf.keras.layers.experimental.SyncBatchNormalization)):
             if last_conv is None:  # only fuse BN that is after Conv
                 continue
-            print('ok')
-            fuse_conv_bn(last_conv, layer)
+            fuse_conv = fuse_conv_bn(last_conv, layer)
+            new_layer = tf.keras.layers.Lambda(lambda x: x)
+            model.layers[i] = new_layer
+
+            setattr(layer, layer.name, new_layer)
+            print(last_conv.name)
+            print(fuse_conv.name)
+            print(layer.name)
+            print(new_layer.name)
+            print(model.layers[i].name)
+            print(model.layers[i])
+            print()
         elif isinstance(layer, tf.keras.layers.Conv2D):
             last_conv = layer
         elif isinstance(layer, (tf.keras.Sequential, RepConvLayer)):
