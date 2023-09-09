@@ -27,10 +27,9 @@ class RepConvLayer(layers.Layer):
                     use_bias=False,
                     input_shape=(None, None, in_channels),
                 ),
+                layers.BatchNormalization()
             ]
         )
-
-        self.main_bn = layers.BatchNormalization()
 
         if kernel_size[1] != 1:
             self.ver_conv = tf.keras.Sequential(
@@ -45,12 +44,12 @@ class RepConvLayer(layers.Layer):
                         use_bias=False,
                         input_shape=(None, None, in_channels),
                     ),
+                    layers.BatchNormalization()
                 ]
             )
 
-            self.ver_bn = layers.BatchNormalization()
         else:
-            self.ver_conv, self.ver_bn = None, None
+            self.ver_conv = None
 
         if kernel_size[0] != 1:
             self.hor_conv = tf.keras.Sequential(
@@ -65,23 +64,24 @@ class RepConvLayer(layers.Layer):
                         use_bias=False,
                         input_shape=(None, None, in_channels),
                     ),
+                    layers.BatchNormalization()
                 ]
             )
-
-            self.hor_bn = layers.BatchNormalization()
         else:
-            self.hor_conv, self.hor_bn = None, None
+            self.hor_conv = None
 
         self.rbr_identity = layers.BatchNormalization() if out_channels == in_channels and stride == 1 else None
+        
+        self.layers = [self.main_conv, self.ver_conv, self.hor_conv, self.rbr_identity, self.activation]
 
     def call(
         self,
         x: tf.Tensor,
         **kwargs: Any,
     ) -> tf.Tensor:
-        main_outputs = self.main_bn(self.main_conv(x, **kwargs), **kwargs)
-        vertical_outputs = self.ver_bn(self.ver_conv(x, **kwargs), **kwargs) if self.ver_conv is not None else 0
-        horizontal_outputs = self.hor_bn(self.hor_conv(x, **kwargs), **kwargs) if self.hor_conv is not None else 0
+        main_outputs = self.main_conv(x, **kwargs)
+        vertical_outputs = self.ver_conv(x, **kwargs) if self.ver_conv is not None else 0
+        horizontal_outputs = self.hor_conv(x, **kwargs) if self.hor_conv is not None else 0
         id_out = self.rbr_identity(x, **kwargs) if self.rbr_identity is not None else 0
 
         p = main_outputs + vertical_outputs

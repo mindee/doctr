@@ -13,6 +13,7 @@ import tensorflow as tf
 import tf2onnx
 from tensorflow.keras import Model, layers
 
+from doctr.models.modules.layers.tensorflow import RepConvLayer
 from doctr.utils.data import download_from_url
 
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
@@ -188,13 +189,15 @@ def fuse_conv_bn(conv, bn):
     only the mean and variance along channels are used, which exposes the opportunity
     to fuse it with the preceding conv layers to save computations and simplify
     network structures."""
-    print(dir(conv))
-    conv_weights, conv_biases = conv.get_weights()
+
+    
     bn_weights, bn_biases, bn_running_mean, bn_running_var = bn.get_weights()
-
-    if conv_biases is None:
+    weights = conv.get_weights()
+    if len(weights) == 1:
+        conv_weights = weights[0]
         conv_biases = np.zeros_like(bn_running_mean)
-
+    else:
+        conv_weights, conv_biases = conv.get_weights()
     epsilon = bn.epsilon
     scale_factor = bn_weights / np.sqrt(bn_running_var + epsilon)
 
@@ -205,30 +208,25 @@ def fuse_conv_bn(conv, bn):
     fused_conv_weights = conv_weights * scale_factor
     fused_conv_biases = (conv_biases - bn_running_mean) * scale_factor.flatten() + bn_biases
 
-    # Setting the updated weights and biases in conv layer
+    conv.use_bias = True
+    conv.build(input_shape=conv.input_shape)
     conv.set_weights([fused_conv_weights, fused_conv_biases])
-    conv.old_weight, conv.old_biais = conv.get_weights()
-    return conv
+    conv.old_weight, conv.old_biais = conv_weights, conv_biases
 
 
 def fuse_module(model):
     last_conv = None
 
     for layer in model.layers:
+        print(layer)
         if isinstance(layer, (tf.keras.layers.BatchNormalization, tf.keras.layers.experimental.SyncBatchNormalization)):
             if last_conv is None:  # only fuse BN that is after Conv
                 continue
-            # Fused Conv and BN (You would need to define fuse_conv_bn_tf)
+            print('ok')
             fuse_conv_bn(last_conv, layer)
-            # Here you'd need to replace the last_conv layer with fused_conv
-            # in the model, and replace the current layer with an identity layer.
-            # This is non-trivial in TensorFlow as Keras models are not as
-            # dynamically modifiable as PyTorch models.
-
         elif isinstance(layer, tf.keras.layers.Conv2D):
             last_conv = layer
-        else:
-            # Recursively apply to nested models
+        elif isinstance(layer, (tf.keras.Sequential, RepConvLayer)):
             fuse_module(layer)
     return model
 

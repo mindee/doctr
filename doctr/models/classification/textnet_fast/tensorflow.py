@@ -66,13 +66,14 @@ class TextNetFast(tf.keras.Sequential):
         stage4: List[Dict[str, Union[int, List[int]]]],
         include_top: bool = True,
         num_classes: int = 1000,
-        input_shape: Optional[Tuple[int, int, int]] = None,
         cfg: Optional[Dict[str, Any]] = None,
+        input_shape: Optional[Tuple[int, int, int]] = None,
     ) -> None:
-        first_conv = tf.keras.Sequential(
-            conv_sequence(out_channels=64, activation="relu", bn=True, kernel_size=3, strides=2)
-        )
-        _layers = [first_conv]
+        _layers = [
+            tf.keras.Sequential(
+                conv_sequence(out_channels=64, activation="relu", bn=True, kernel_size=3, strides=2, input_shape=input_shape),
+            )
+        ]
 
         for stage in [stage1, stage2, stage3, stage4]:
             stage_ = tf.keras.Sequential([RepConvLayer(**params) for params in stage])
@@ -94,19 +95,16 @@ class TextNetFast(tf.keras.Sequential):
         self = rep_model_convert(self)
         self = fuse_module(self)
         self.trainable = mode
-        return self
 
     def train(self, mode=True):
         self = unfuse_module(self)
         self = rep_model_unconvert(self)
         self.trainable = mode
-        return self
 
     def test(self, mode=False):
         self = rep_model_convert_deploy(self)
         self = fuse_module(self)
         self.trainable = mode
-        return self
 
 
 def _textnetfast(
