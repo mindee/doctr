@@ -13,9 +13,9 @@ import torch.nn as nn
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification.textnet_fast.pytorch import textnetfast_tiny, textnetfast_small, textnetfast_base
+
 from ...utils import load_pretrained_params
-from .base import LinkNetPostProcessor, _LinkNet
-from models.loss import build_loss
+from .base import FastPostProcessor
 
 __all__ = ["fast_tiny", "fast_small", "fast_base"]
 
@@ -34,8 +34,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": None,
     },
 }
-# reimplement FAST and DETECTION_HEAD
-# NECK AND TEXTNET READY
+# reimplement FAST Class
+# NECK AND TEXTNET AND HEAD READY
 
 class FAST(nn.Module):
     def __init__(self, backbone, neck, detection_head):
@@ -98,23 +98,14 @@ class FAST(nn.Module):
 
 
 class FASTHead(nn.Module):
-    def __init__(self, conv, blocks, final, pooling_size,
-                 loss_text, loss_kernel, loss_emb, dropout_ratio=0):
+    def __init__(self, conv, final, pooling_size):
         super(FASTHead, self).__init__()
         self.conv = RepConvLayer(in_channels=512, out_channels=128, kernel_size=[3, 3], stride=1, dilation=1, groups=1)
-        if blocks is not None:
-            self.blocks = nn.ModuleList(blocks)
-        else:
-            self.blocks = None
+
         self.final = ConvLayer(kernel_size=1, stride=1, dilation=1, groups=1, bias=False, has_shuffle=False, in_channels=128, out_channels=5, use_bn=False, act_func=None,
                                dropout_rate=0, ops_order="weight")
 
         self.pooling_size = pooling_size
-
-        if dropout_ratio > 0:
-            self.dropout = nn.Dropout2d(dropout_ratio)
-        else:
-            self.dropout = None
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -125,11 +116,6 @@ class FASTHead(nn.Module):
 
     def forward(self, x):
         x = self.conv(x)
-        if self.blocks is not None:
-            for block in self.blocks:
-                x = block(x)
-        if self.dropout is not None:
-            x = self.dropout(x)
         x = self.final(x)
         return x
 
@@ -168,7 +154,6 @@ class FASTNeck(nn.Module):
         f4 = self._upsample(f4, f1)
         f = torch.cat((f1, f2, f3, f4), 1)
         return f
-
 
 
 def _fast(
