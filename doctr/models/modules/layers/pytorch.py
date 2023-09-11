@@ -19,6 +19,21 @@ def get_same_padding(kernel_size):
     return kernel_size // 2
 
 
+def build_activation(act_func, inplace=True):
+    if act_func == "relu":
+        return nn.ReLU(inplace=inplace)
+    elif act_func == "relu6":
+        return nn.ReLU6(inplace=inplace)
+    elif act_func == "tanh":
+        return nn.Tanh()
+    elif act_func == "sigmoid":
+        return nn.Sigmoid()
+    elif act_func is None:
+        return None
+    else:
+        raise ValueError("do not support: %s" % act_func)
+
+
 class RepConvLayer(nn.Module):
     """Reparameterized Convolutional Layer"""
 
@@ -171,15 +186,15 @@ class RepConvLayer(nn.Module):
         self.fused_conv = nn.Conv2d(
             in_channels=self.main_conv.in_channels,
             out_channels=self.main_conv.out_channels,
-            kernel_size=self.main_conv.kernel_size,  # type: ignore
-            stride=self.main_conv.stride,  # type: ignore
-            padding=self.main_conv.padding,  # type: ignore
-            dilation=self.main_conv.dilation,  # type: ignore
+            kernel_size=self.main_conv.kernel_size,
+            stride=self.main_conv.stride,
+            padding=self.main_conv.padding,
+            dilation=self.main_conv.dilation,
             groups=self.main_conv.groups,
             bias=True,
         )
         self.fused_conv.weight.data = kernel
-        self.fused_conv.bias.data = bias  # type: ignore
+        self.fused_conv.bias.data = bias
         self.deploy = True
         for para in self.parameters():
             para.detach_()
@@ -193,17 +208,16 @@ class RepConvLayer(nn.Module):
     def switch_to_test(self):
         kernel, bias = self.get_equivalent_kernel_bias()
         self.fused_conv = nn.Conv2d(
-            in_channels=self.main_conv.in_channels,
             out_channels=self.main_conv.out_channels,
-            kernel_size=self.main_conv.kernel_size,  # type: ignore
-            stride=self.main_conv.stride,  # type: ignore
-            padding=self.main_conv.padding,  # type: ignore
-            dilation=self.main_conv.dilation,  # type: ignore
+            kernel_size=self.main_conv.kernel_size,
+            stride=self.main_conv.stride,
+            padding=self.main_conv.padding,
+            dilation=self.main_conv.dilation,
             groups=self.main_conv.groups,
             bias=True,
         )
         self.fused_conv.weight.data = kernel  # type ignore[operator]
-        self.fused_conv.bias.data = bias  # type: ignore
+        self.fused_conv.bias.data = bias
         for para in self.fused_conv.parameters():
             para.detach_()
         self.deploy = True
@@ -212,10 +226,6 @@ class RepConvLayer(nn.Module):
         if hasattr(self, "fused_conv"):
             self.__delattr__("fused_conv")
         self.deploy = False
-
-    @staticmethod
-    def is_zero_layer():
-        return False
 
     @property
     def module_str(self):
@@ -260,14 +270,16 @@ class My2DLayer(nn.Module):
             else:
                 modules["bn"] = nn.BatchNorm2d(out_channels)
         else:
-            modules["bn"] = None  # type: ignore[assignment]
-
+            modules["bn"] = None
+        # activation
+        modules["act"] = build_activation(self.act_func, self.ops_list[0] != "act")
+        # dropout
         if self.dropout_rate > 0:
-            modules["dropout"] = nn.Dropout2d(self.dropout_rate, inplace=True)  # type: ignore[assignment]
+            modules["dropout"] = nn.Dropout2d(self.dropout_rate, inplace=True)
         else:
-            modules["dropout"] = None  # type: ignore[assignment]
+            modules["dropout"] = None
         # weight
-        modules["weight"] = self.weight_op()  # type: ignore[operator]
+        modules["weight"] = self.weight_op()
 
         # add modules
         for op in self.ops_list:
@@ -276,7 +288,7 @@ class My2DLayer(nn.Module):
             elif op == "weight":
                 if modules["dropout"] is not None:
                     self.add_module("dropout", modules["dropout"])
-                for key in modules["weight"]:  # type ignore[attr-defined]
+                for key in modules["weight"]:
                     self.add_module(key, modules["weight"][key])
             else:
                 self.add_module(op, modules[op])
@@ -294,34 +306,10 @@ class My2DLayer(nn.Module):
                 return False
         raise ValueError("Invalid ops_order: %s" % self.ops_order)
 
-    """ Methods defined in MyModule """
-
     def forward(self, x):
         for module in self._modules.values():
             x = module(x)
         return x
-
-    @property
-    def module_str(self):
-        raise NotImplementedError
-
-    @property
-    def config(self):
-        return {
-            "in_channels": self.in_channels,
-            "out_channels": self.out_channels,
-            "use_bn": self.use_bn,
-            "act_func": self.act_func,
-            "dropout_rate": self.dropout_rate,
-            "ops_order": self.ops_order,
-        }
-
-    @staticmethod
-    def build_from_config(config):
-        raise NotImplementedError
-
-    def get_flops(self, x):
-        raise NotImplementedError
 
     @staticmethod
     def is_zero_layer():
