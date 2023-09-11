@@ -49,6 +49,7 @@ Text recognition models
 * CRNN from `"An End-to-End Trainable Neural Network for Image-based Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_
 * MASTER from `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition" <https://arxiv.org/pdf/1910.02562.pdf>`_
 * ViTSTR from `"Vision Transformer for Fast and Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_
+* PARSeq from `"Scene Text Recognition with Permuted Autoregressive Sequence Models" <https://arxiv.org/pdf/2207.06966>`_
 
 
 Supported datasets
@@ -64,6 +65,7 @@ Supported datasets
 * IC13 from `ICDAR 2013 <http://dagdata.cvc.uab.es/icdar2013competition/>`_.
 * IMGUR5K from `"TextStyleBrush: Transfer of Text Aesthetics from a Single Example" <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
 * MJSynth from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition" <https://www.robots.ox.ac.uk/~vgg/data/text/>`_.
+* IIITHWS from `"Generating Synthetic Data for Text Recognition" <https://github.com/kris314/hwnet>`_.
 
 
 .. toctree::
@@ -75,6 +77,7 @@ Supported datasets
    using_doctr/using_datasets
    using_doctr/sharing_models
    using_doctr/using_model_export
+   using_doctr/custom_models_training
    using_doctr/running_on_aws
 
 

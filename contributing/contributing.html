@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Changelog" href="../changelog.html" /><link rel="prev" title="Contributor Covenant Code of Conduct" href="code_of_conduct.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2023.08.19 -->
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2023.09.10 -->
         <title>Contributing to docTR - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -194,6 +194,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
@@ -287,7 +288,9 @@
 <section id="developer-mode-installation">
 <h3>Developer mode installation<a class="headerlink" href="#developer-mode-installation" title="Permalink to this heading">#</a></h3>
 <p>Install all additional dependencies with the following command:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
+pre-commit<span class="w"> </span>install
 </pre></div>
 </div>
 </section>
@@ -311,45 +314,22 @@
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>quality
 </pre></div>
 </div>
-<section id="lint-verification">
-<h4>Lint verification<a class="headerlink" href="#lint-verification" title="Permalink to this heading">#</a></h4>
-<p>To ensure that your incoming PR complies with the lint settings, you need to install <a class="reference external" href="https://flake8.pycqa.org/en/latest/">flake8</a> and run the following command from the repository’s root folder:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>flake8<span class="w"> </span>./
+<section id="code-style-verification">
+<h4>Code style verification<a class="headerlink" href="#code-style-verification" title="Permalink to this heading">#</a></h4>
+<p>To run all style checks together</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>style
 </pre></div>
 </div>
-<p>This will read the <code class="docutils literal notranslate"><span class="pre">.flake8</span></code> setting file and let you know whether your commits need some adjustments.</p>
-</section>
-<section id="import-order">
-<h4>Import order<a class="headerlink" href="#import-order" title="Permalink to this heading">#</a></h4>
-<p>In order to ensure there is a common import order convention, run <a class="reference external" href="https://github.com/PyCQA/isort">isort</a> as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>isort<span class="w"> </span>**/*.py
-</pre></div>
-</div>
-<p>This will reorder the imports of your local files.</p>
-</section>
-<section id="annotation-typing">
-<h4>Annotation typing<a class="headerlink" href="#annotation-typing" title="Permalink to this heading">#</a></h4>
-<p>Additionally, to catch type-related issues and have a cleaner codebase, annotation typing are expected. After installing <a class="reference external" href="https://github.com/python/mypy">mypy</a>, you can run the verifications as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>mypy<span class="w"> </span>--config-file<span class="w"> </span>mypy.ini<span class="w"> </span>doctr/
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">mypy.ini</span></code> file will be read to check your typing.</p>
-</section>
-<section id="docstring-format">
-<h4>Docstring format<a class="headerlink" href="#docstring-format" title="Permalink to this heading">#</a></h4>
-<p>To keep a sane docstring structure, if you install <a class="reference external" href="https://github.com/PyCQA/pydocstyle">pydocstyle</a>, you can verify your docstrings as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pydocstyle<span class="w"> </span>doctr/
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">.pydocstyle</span></code> file will be read to configure this operation.</p>
 </section>
 </section>
 <section id="modifying-the-documentation">
 <h3>Modifying the documentation<a class="headerlink" href="#modifying-the-documentation" title="Permalink to this heading">#</a></h3>
-<p>In order to check locally your modifications to the documentation:</p>
+<p>The current documentation is built using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> thanks to our CI.
+You can build the documentation locally:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>docs-single-version
 </pre></div>
 </div>
+<p>Please note that files that have not been modified will not be rebuilt. If you want to force a complete rebuild, you can delete the <code class="docutils literal notranslate"><span class="pre">_build</span></code> directory. Additionally, you may need to clear your web browser’s cache to see the modifications.</p>
 <p>You can now open your local version of the documentation located at <code class="docutils literal notranslate"><span class="pre">docs/_build/index.html</span></code> in your browser</p>
 </section>
 </section>
@@ -427,10 +407,7 @@
 <li><a class="reference internal" href="#commits">Commits</a></li>
 <li><a class="reference internal" href="#unit-tests">Unit tests</a></li>
 <li><a class="reference internal" href="#code-quality">Code quality</a><ul>
-<li><a class="reference internal" href="#lint-verification">Lint verification</a></li>
-<li><a class="reference internal" href="#import-order">Import order</a></li>
-<li><a class="reference internal" href="#annotation-typing">Annotation typing</a></li>
-<li><a class="reference internal" href="#docstring-format">Docstring format</a></li>
+<li><a class="reference internal" href="#code-style-verification">Code style verification</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#modifying-the-documentation">Modifying the documentation</a></li>
@@ -448,12 +425,12 @@
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=58961bc3"></script>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=245ab14c"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
     <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=cd58450c"></script>
+    <script src="../_static/js/custom.js?v=6fc3bf22"></script>
     </body>
 </html>

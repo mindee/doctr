@@ -3,7 +3,7 @@
 Installation
 ************
 
-This library requires `Python <https://www.python.org/downloads/>`_ 3.6 or higher.
+This library requires `Python <https://www.python.org/downloads/>`_ 3.8 or higher.
 
 
 Prerequisites
@@ -60,7 +60,7 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
 Via Git
 =======
 
-Install the library in developper mode:
+Install the library in developer mode:
 
 .. tabs::
 

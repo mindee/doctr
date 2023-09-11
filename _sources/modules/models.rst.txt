@@ -73,6 +73,8 @@ doctr.models.recognition
 
 .. autofunction:: doctr.models.recognition.vitstr_base
 
+.. autofunction:: doctr.models.recognition.parseq
+
 .. autofunction:: doctr.models.recognition.recognition_predictor
 
 
@@ -80,6 +82,8 @@ doctr.models.zoo
 ----------------
 
 .. autofunction:: doctr.models.ocr_predictor
+
+.. autofunction:: doctr.models.kie_predictor
 
 
 doctr.models.factory
