@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Any, Union
 
 import numpy as np
@@ -5,6 +6,17 @@ import torch
 import torch.nn as nn
 
 __all__ = ["RepConvLayer"]
+
+
+def get_same_padding(kernel_size):
+    if isinstance(kernel_size, tuple):
+        assert len(kernel_size) == 2, "invalid kernel size: %s" % kernel_size
+        p1 = get_same_padding(kernel_size[0])
+        p2 = get_same_padding(kernel_size[1])
+        return p1, p2
+    assert isinstance(kernel_size, int), "kernel size should be either `int` or `tuple`"
+    assert kernel_size % 2 > 0, "kernel size should be odd number"
+    return kernel_size // 2
 
 
 class RepConvLayer(nn.Module):
@@ -224,3 +236,141 @@ class RepConvLayer(nn.Module):
     @staticmethod
     def build_from_config(config):
         return RepConvLayer(**config)
+
+
+class My2DLayer(nn.Module):
+    def __init__(
+        self, in_channels, out_channels, use_bn=True, act_func="relu", dropout_rate=0, ops_order="weight_bn_act"
+    ):
+        super(My2DLayer, self).__init__()
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+
+        self.use_bn = use_bn
+        self.act_func = act_func
+        self.dropout_rate = dropout_rate
+        self.ops_order = ops_order
+
+        """ modules """
+        modules = {}
+        # batch norm
+        if self.use_bn:
+            if self.bn_before_weight:
+                modules["bn"] = nn.BatchNorm2d(in_channels)
+            else:
+                modules["bn"] = nn.BatchNorm2d(out_channels)
+        else:
+            modules["bn"] = None  # type: ignore[assignment]
+
+        if self.dropout_rate > 0:
+            modules["dropout"] = nn.Dropout2d(self.dropout_rate, inplace=True)  # type: ignore[assignment]
+        else:
+            modules["dropout"] = None  # type: ignore[assignment]
+        # weight
+        modules["weight"] = self.weight_op()  # type: ignore[operator]
+
+        # add modules
+        for op in self.ops_list:
+            if modules[op] is None:
+                continue
+            elif op == "weight":
+                if modules["dropout"] is not None:
+                    self.add_module("dropout", modules["dropout"])
+                for key in modules["weight"]:  # type ignore[attr-defined]
+                    self.add_module(key, modules["weight"][key])
+            else:
+                self.add_module(op, modules[op])
+
+    @property
+    def ops_list(self):
+        return self.ops_order.split("_")
+
+    @property
+    def bn_before_weight(self):
+        for op in self.ops_list:
+            if op == "bn":
+                return True
+            elif op == "weight":
+                return False
+        raise ValueError("Invalid ops_order: %s" % self.ops_order)
+
+    """ Methods defined in MyModule """
+
+    def forward(self, x):
+        for module in self._modules.values():
+            x = module(x)
+        return x
+
+    @property
+    def module_str(self):
+        raise NotImplementedError
+
+    @property
+    def config(self):
+        return {
+            "in_channels": self.in_channels,
+            "out_channels": self.out_channels,
+            "use_bn": self.use_bn,
+            "act_func": self.act_func,
+            "dropout_rate": self.dropout_rate,
+            "ops_order": self.ops_order,
+        }
+
+    @staticmethod
+    def build_from_config(config):
+        raise NotImplementedError
+
+    def get_flops(self, x):
+        raise NotImplementedError
+
+    @staticmethod
+    def is_zero_layer():
+        return False
+
+
+class ConvLayer(My2DLayer):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=3,
+        stride=1,
+        dilation=1,
+        groups=1,
+        bias=False,
+        has_shuffle=False,
+        use_bn=True,
+        act_func="relu",
+        dropout_rate=0,
+        ops_order="weight_bn_act",
+    ):
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.dilation = dilation
+        self.groups = groups
+        self.bias = bias
+        self.has_shuffle = has_shuffle
+
+        super(ConvLayer, self).__init__(in_channels, out_channels, use_bn, act_func, dropout_rate, ops_order)
+
+    def weight_op(self):
+        padding = get_same_padding(self.kernel_size)
+        if isinstance(padding, int):
+            padding *= self.dilation
+        else:
+            padding[0] *= self.dilation
+            padding[1] *= self.dilation
+
+        weight_dict = OrderedDict()
+        weight_dict["conv"] = nn.Conv2d(
+            self.in_channels,
+            self.out_channels,
+            kernel_size=self.kernel_size,
+            stride=self.stride,
+            padding=padding,
+            dilation=self.dilation,
+            groups=self.groups,
+            bias=self.bias,
+        )
+
+        return weight_dict
