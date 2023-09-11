@@ -8,6 +8,7 @@ repos:
       - id: check-toml
       - id: check-json
       - id: check-added-large-files
+        exclude: docs/images/
       - id: end-of-file-fixer
       - id: trailing-whitespace
       - id: debug-statements
