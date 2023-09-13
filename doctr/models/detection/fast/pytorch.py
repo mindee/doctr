@@ -10,6 +10,8 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 
+from PIL import Image
+
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification.textnet_fast.pytorch import textnetfast_tiny
 from doctr.models.modules.layers.pytorch import ConvLayer, RepConvLayer
@@ -36,7 +38,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
 }
 
-# implement FastPostProcessing class
+# implement FastPostProcessing class with get_results head class
 
 
 class FAST(nn.Module):
@@ -81,27 +83,22 @@ class FAST(nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, torch.Tensor]:
-        # MODIFIER LES PARAMETRES CI-DESSOUS POUR LES PARAMETRES
-        # gt_kernels=None, training_masks=None, gt_instances=None, img_metas=None,
 
-        out: Dict[str, Any] = {}
-        if not self.training:
-            torch.cuda.synchronize()
-        feats = self.feat_extractor(x)
-        if not self.training:
-            torch.cuda.synchronize()
+        x, gt_texts, gt_kernels, training_masks, gt_instances, img_metas = self.prepare_data(x, target)
+
+        feats = self.backbone(x)  
         logits = self.fpn(feats)
-        if not self.training:
-            torch.cuda.synchronize()
         logits = self.classifier(logits)
         logits = self._upsample(logits, x.size(), scale=1)
+
+        out: Dict[str, Any] = {}
         if self.exportable:
             out["logits"] = logits
             return out
 
         if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
-
+            
         if return_model_output:
             out["out_map"] = prob_map
 
@@ -109,11 +106,13 @@ class FAST(nn.Module):
             # Post-process boxes
             out["preds"] = [
                 dict(zip(self.class_names, preds))
-                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy(), img_metas, cfg, scale=2)
             ]
+
         if target is not None:
-            loss = self.compute_loss(logits, target)
+            loss = self.compute_loss(logits, gt_texts, gt_kernels, training_masks, gt_instances)
             out["loss"] = loss
+
         return out
 
     def compute_loss(self, out_map: torch.Tensor, target: List[np.ndarray]) -> torch.Tensor:
@@ -152,7 +151,85 @@ class FAST(nn.Module):
         _, _, H, W = size
         return F.interpolate(x, size=(H // scale, W // scale), mode="bilinear")
 
+    def prepare_data(self,
+        x: torch.Tensor,
+        target: Optional[List[np.ndarray]] = None):
 
+        target = target[:self.num_classes]
+        gt_instance = np.zeros(x.shape[0:2], dtype='uint8')
+        training_mask = np.ones(x.shape[0:2], dtype='uint8')
+
+        if target.shape[0] > 0:
+            target = np.reshape(target * ([x.shape[1], x.shape[0]] * 4),
+                                (target.shape[0], -1, 2)).astype('int32')
+            for i in range(target.shape[0]):
+                cv2.drawContours(gt_instance, [target[i]], -1, i + 1, -1)
+
+        gt_kernels = np.array([np.zeros(x.shape[0:2], dtype='uint8')] * len(target)) # [instance_num, h, w]
+        gt_kernel = self.min_pooling(gt_kernels)
+
+        shrink_kernel_scale = 0.1
+        gt_kernel_shrinked = np.zeros(x.shape[0:2], dtype='uint8')
+        kernel_target = shrink(target, shrink_kernel_scale)
+        
+        for i in range(target.shape[0]):
+            cv2.drawContours(gt_kernel_shrinked, [kernel_target[i]], -1, 1, -1)
+        gt_kernel = np.maximum(gt_kernel, gt_kernel_shrinked)
+
+        gt_text = gt_instance.copy()
+        gt_text[gt_text > 0] = 1
+
+        x = Image.fromarray(x)
+        
+        img_meta = dict(
+            org_img_size=np.array(img.shape[:2])
+            img_size=np.array(img.shape[:2]),
+            filename=filename))
+
+        img = scale_aligned_short(img, self.short_size)
+        x = x.convert('RGB')
+
+        x = transforms.ToTensor()(x)
+        x = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(x)
+
+        return x, \ 
+               torch.from_numpy(gt_text).long(), \
+               torch.from_numpy(gt_kernel).long(), \
+               torch.from_numpy(training_mask).long(), \
+               torch.from_numpy(gt_instance).long()\
+               img_meta
+        
+    # simplify this method
+    def min_pooling(self, input):
+        input = torch.tensor(input, dtype=torch.float)
+        temp = input.sum(dim=0).to(torch.uint8)
+        overlap = (temp > 1).to(torch.float32).unsqueeze(0).unsqueeze(0)
+        overlap = self.overlap_pool(overlap).squeeze(0).squeeze(0)
+
+        B = input.size(0)
+        h_sum = input.sum(dim=2) > 0
+        
+        h_sum_ = h_sum.long() * torch.arange(h_sum.shape[1], 0, -1)
+        h_min = torch.argmax(h_sum_, 1, keepdim=True)
+        h_sum_ = h_sum.long() * torch.arange(1, h_sum.shape[1] + 1)
+        h_max = torch.argmax(h_sum_, 1, keepdim=True)
+
+        w_sum = input.sum(dim=1) > 0
+        w_sum_ = w_sum.long() * torch.arange(w_sum.shape[1], 0, -1)
+        w_min = torch.argmax(w_sum_, 1, keepdim=True)
+        w_sum_ = w_sum.long() * torch.arange(1, w_sum.shape[1] + 1)
+        w_max = torch.argmax(w_sum_, 1, keepdim=True)
+
+        for i in range(B):
+            region = input[i:i + 1, h_min[i]:h_max[i] + 1, w_min[i]:w_max[i] + 1]
+            region = self.pad(region)
+            region = -self.pooling(-region)
+            input[i:i + 1, h_min[i]:h_max[i] + 1, w_min[i]:w_max[i] + 1] = region
+
+        x = input.sum(dim=0).to(torch.uint8)
+        x[overlap > 0] = 0  # overlapping regions
+        return x.numpy()
+       
 class FASTHead(nn.Module):
     def __init__(self):
         super(FASTHead, self).__init__()
@@ -239,7 +316,8 @@ def _fast(
     **kwargs: Any,
 ) -> FAST:
     pretrained_backbone = pretrained_backbone and not pretrained
-
+ 
+    # corriger l'encapsulation du backbon neck et head
     backbone = backbone_fn(pretrained_backbone)
     FASTNeck()
     FASTHead()
