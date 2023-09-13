@@ -6,7 +6,6 @@
 from typing import Any, Callable, Dict, List, Optional
 
 import numpy as np
-
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -14,10 +13,10 @@ from torch.nn import functional as F
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification.textnet_fast.pytorch import textnetfast_tiny
 from doctr.models.modules.layers.pytorch import ConvLayer, RepConvLayer
-
-from .base import FastPostProcessor
+from doctr.utils.metrics import box_iou
 
 from ...utils import load_pretrained_params
+from .base import FastPostProcessor
 
 __all__ = ["fast_tiny", "fast_small", "fast_base"]
 
@@ -39,20 +38,21 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 # implement FastPostProcessing class
 
-class FAST(nn.Module):
 
-    def __init__(self,
-                 feat_extractor,
-                 bin_thresh: float = 0.1,
-                 head_chans: int = 32,
-                 assume_straight_pages: bool = True,
-                 exportable: bool = False,
-                 cfg: Optional[Dict[str, Any]] = None,
-                 class_names: List[str] = [CLASS_NAME],
-                 ) -> None:
+class FAST(nn.Module):
+    def __init__(
+        self,
+        feat_extractor,
+        bin_thresh: float = 0.1,
+        head_chans: int = 32,
+        assume_straight_pages: bool = True,
+        exportable: bool = False,
+        cfg: Optional[Dict[str, Any]] = None,
+        class_names: List[str] = [CLASS_NAME],
+    ) -> None:
         super().__init__()
         self.class_names = class_names
-        num_classes: int = len(self.class_names)
+        self.num_classes = len(self.class_names)
         self.cfg = cfg
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -61,7 +61,7 @@ class FAST(nn.Module):
         self.fpn = FASTNeck()
         self.classifier = FASTHead()
         self.postprocessor = FastPostProcessor(assume_straight_pages=self.assume_straight_pages, bin_thresh=bin_thresh)
-        
+
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
@@ -80,12 +80,14 @@ class FAST(nn.Module):
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, torch.Tensor]:  
-                      
+    ) -> Dict[str, torch.Tensor]:
+        # MODIFIER LES PARAMETRES CI-DESSOUS POUR LES PARAMETRES
+        # gt_kernels=None, training_masks=None, gt_instances=None, img_metas=None,
+
         out: Dict[str, Any] = {}
         if not self.training:
             torch.cuda.synchronize()
-        feats = self.feat_extractor(x)       
+        feats = self.feat_extractor(x)
         if not self.training:
             torch.cuda.synchronize()
         logits = self.fpn(feats)
@@ -97,12 +99,12 @@ class FAST(nn.Module):
             out["logits"] = logits
             return out
 
-        # A T ON REELEMENT BESOIN DE LA SIGMOID ICI ?
         if return_model_output or target is None or return_preds:
             prob_map = torch.sigmoid(logits)
 
         if return_model_output:
             out["out_map"] = prob_map
+
         if target is None or return_preds:
             # Post-process boxes
             out["preds"] = [
@@ -114,39 +116,29 @@ class FAST(nn.Module):
             out["loss"] = loss
         return out
 
-    def compute_loss(self, out_map: torch.Tensor, thresh_map: torch.Tensor, target: List[np.ndarray]) -> torch.Tensor:
-        # self.compute_loss(det_out, gt_texts, gt_kernels, training_masks, gt_instances)
+    def compute_loss(self, out_map: torch.Tensor, target: List[np.ndarray]) -> torch.Tensor:
+        # IL MANQUE CES PARAMATRES (gt_kernels, training_masks, gt_instances)
 
         # output
-        kernels = out[:, 0, :, :]  # 4*640*640
+        kernels = out_map[:, 0, :, :]  # 4*640*640
         texts = self._max_pooling(kernels, scale=1)  # 4*640*640
-        embs = out[:, 1:, :, :]  # 4*4*640*640
+        embs = out_map[:, 1:, :, :]  # 4*4*640*640
 
         # text loss
-        selected_masks = ohem_batch(texts, gt_texts, training_masks)
-        loss_text = self.text_loss(texts, gt_texts, selected_masks, reduce=False)
-        iou_text = iou((texts > 0).long(), gt_texts, training_masks, reduce=False)
-        losses = dict(
-            loss_text=loss_text,
-            iou_text=iou_text
-        )
-    
+        loss_text = multiclass_dice_loss(texts, target, self.num_classes, loss_weight=0.25)
+        iou_text = box_iou((texts > 0).long(), target)
+        losses = dict(loss_text=loss_text, iou_text=iou_text)
+
         # kernel loss
-        selected_masks = gt_texts * training_masks
-        loss_kernel = self.kernel_loss(kernels, gt_kernels, selected_masks, reduce=False)
+        loss_kernel = multiclass_dice_loss(kernels, None, self.num_classes, loss_weight=1.0)
         loss_kernel = torch.mean(loss_kernel, dim=0)
-        iou_kernel = iou((kernels > 0).long(), gt_kernels, selected_masks, reduce=False)
-        losses.update(dict(
-            loss_kernels=loss_kernel,
-            iou_kernel=iou_kernel
-        ))
-    
+        iou_kernel = box_iou((kernels > 0).long(), None)
+        losses.update(dict(loss_kernels=loss_kernel, iou_kernel=iou_kernel))
+
         # auxiliary loss
-        loss_emb = self.emb_loss(embs, gt_instances, gt_kernels, training_masks, reduce=False)
-        losses.update(dict(
-            loss_emb=loss_emb
-        ))
-    
+        loss_emb = emb_loss_v2(embs, None, None, None)
+        losses.update(dict(loss_emb=loss_emb))
+
         return losses
 
     def _max_pooling(self, x, scale=1):
@@ -249,9 +241,9 @@ def _fast(
     pretrained_backbone = pretrained_backbone and not pretrained
 
     backbone = backbone_fn(pretrained_backbone)
-    neck = FASTNeck()
-    head = FASTHead()
-    
+    FASTNeck()
+    FASTHead()
+
     feat_extractor = backbone
 
     if not kwargs.get("class_names", None):
@@ -271,9 +263,6 @@ def _fast(
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
-
-
-# modify the ignore_keys in fast_tiny, fast_small, fast_base
 
 
 def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
@@ -299,8 +288,8 @@ def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
         textnetfast_tiny,
         # change ignore keys
         ignore_keys=[
-            "classifier.6.weight",
-            "classifier.6.bias",
+            "classifier.final.conv.weight",
+            "classifier.final.conv.bias",
         ],
         **kwargs,
     )
@@ -329,8 +318,8 @@ def fast_small(pretrained: bool = False, **kwargs: Any) -> FAST:
         textnetfast_tiny,
         # change ignore keys
         ignore_keys=[
-            "classifier.6.weight",
-            "classifier.6.bias",
+            "classifier.final.conv.weight",
+            "classifier.final.conv.bias",
         ],
         **kwargs,
     )
@@ -359,8 +348,107 @@ def fast_base(pretrained: bool = False, **kwargs: Any) -> FAST:
         textnetfast_tiny,
         # change ignore keys
         ignore_keys=[
-            "classifier.6.weight",
-            "classifier.6.bias",
+            "classifier.final.conv.weight",
+            "classifier.final.conv.bias",
         ],
         **kwargs,
     )
+
+
+# verifier que le code fonction; cest le code de https://github.com/czczup/FAST/blob/main/models/loss/dice_loss.py
+# faire en sorte d'inserer dans le code le selected_masks
+def multiclass_dice_loss(inputs, targets, num_classes, loss_weight=1.0):
+    # Convert targets to one-hot encoding
+    targets = F.one_hot(targets, num_classes=num_classes).permute(0, 3, 1, 2).float()
+
+    # Calculate intersection and union
+    intersection = torch.sum(inputs * targets, dim=(2, 3))
+    union = torch.sum(inputs, dim=(2, 3)) + torch.sum(targets, dim=(2, 3))
+
+    # Calculate Dice coefficients for each class
+    dice_coeffs = (2.0 * intersection + 1e-5) / (union + 1e-5)
+
+    # Calculate the average Dice loss across all classes
+    dice_loss = 1.0 - torch.mean(dice_coeffs)
+
+    return loss_weight * dice_loss
+
+
+# simplify emb_loss_v2
+def emb_loss_v2(emb, instance, kernel, training_mask):
+    training_mask = (training_mask > 0.5).long()
+    kernel = (kernel > 0.5).long()
+    instance = instance * training_mask
+    instance_kernel = (instance * kernel).view(-1)
+    instance = instance.view(-1)
+    emb = emb.view(4, -1)
+
+    unique_labels, unique_ids = torch.unique(instance_kernel, sorted=True, return_inverse=True)
+    num_instance = unique_labels.size(0)
+    if num_instance <= 1:
+        return 0
+
+    emb_mean = emb.new_zeros((4, num_instance), dtype=torch.float32)
+    for i, lb in enumerate(unique_labels):
+        if lb == 0:
+            continue
+        ind_k = instance_kernel == lb
+        emb_mean[:, i] = torch.mean(emb[:, ind_k], dim=1)
+
+    l_agg = emb.new_zeros(num_instance, dtype=torch.float32)  # bug
+    for i, lb in enumerate(unique_labels):
+        if lb == 0:
+            continue
+        ind = instance == lb
+        emb_ = emb[:, ind]
+        dist = (emb_ - emb_mean[:, i : i + 1]).norm(p=2, dim=0)
+        dist = F.relu(dist - 0.5) ** 2
+        l_agg[i] = torch.mean(torch.log(dist + 1.0))
+    l_agg = torch.mean(l_agg[1:])
+
+    if num_instance > 2:
+        emb_interleave = emb_mean.permute(1, 0).repeat(num_instance, 1)
+        emb_band = emb_mean.permute(1, 0).repeat(1, num_instance).view(-1, 4)
+
+        mask = (1 - torch.eye(num_instance, dtype=torch.int8)).view(-1, 1).repeat(1, 4)
+        mask = mask.view(num_instance, num_instance, -1)
+        mask[0, :, :] = 0
+        mask[:, 0, :] = 0
+        mask = mask.view(num_instance * num_instance, -1)
+
+        dist = emb_interleave - emb_band
+        dist = dist[mask > 0].view(-1, 4).norm(p=2, dim=1)
+        dist = F.relu(2 * 1.5 - dist) ** 2
+
+        l_dis = [torch.log(dist + 1.0)]
+        emb_bg = emb[:, instance == 0].view(4, -1)
+        if emb_bg.size(1) > 100:
+            rand_ind = np.random.permutation(emb_bg.size(1))[:100]
+            emb_bg = emb_bg[:, rand_ind]
+        if emb_bg.size(1) > 0:
+            for i, lb in enumerate(unique_labels):
+                if lb == 0:
+                    continue
+                dist = (emb_bg - emb_mean[:, i : i + 1]).norm(p=2, dim=0)
+                dist = F.relu(2 * 1.5 - dist) ** 2
+                l_dis_bg = torch.mean(torch.log(dist + 1.0), 0, keepdim=True)
+                l_dis.append(l_dis_bg)
+        l_dis = torch.mean(torch.cat(l_dis))
+    else:
+        l_dis = 0
+    l_reg = torch.mean(torch.log(torch.norm(emb_mean, 2, 0) + 1.0)) * 0.001
+    loss = l_agg + l_dis + l_reg
+    return loss
+
+    def forward(self, emb, instance, kernel, training_mask, reduce=True):
+        loss_batch = emb.new_zeros((emb.size(0)), dtype=torch.float32)
+
+        for i in range(loss_batch.size(0)):
+            loss_batch[i] = self.forward_single(emb[i], instance[i], kernel[i], training_mask[i])
+
+        loss_batch = 0.25 * loss_batch
+
+        if reduce:
+            loss_batch = torch.mean(loss_batch)
+
+        return loss_batch

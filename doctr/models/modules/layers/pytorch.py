@@ -216,7 +216,7 @@ class RepConvLayer(nn.Module):
             groups=self.main_conv.groups,
             bias=True,
         )
-        self.fused_conv.weight.data = kernel  # type ignore[operator]
+        self.fused_conv.weight.data = kernel
         self.fused_conv.bias.data = bias
         for para in self.fused_conv.parameters():
             para.detach_()

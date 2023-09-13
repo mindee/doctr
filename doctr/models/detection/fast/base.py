@@ -5,14 +5,12 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import Dict, List, Tuple, Union
+from typing import List, Union
 
 import cv2
 import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
-
-from doctr.models.core import BaseModel
 
 from ..core import DetectionPostProcessor
 
