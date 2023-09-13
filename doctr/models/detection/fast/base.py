@@ -16,10 +16,10 @@ from doctr.models.core import BaseModel
 
 from ..core import DetectionPostProcessor
 
-__all__ = ["_LinkNet", "LinkNetPostProcessor"]
+__all__ = ["FastPostProcessor"]
 
 
-class LinkNetPostProcessor(DetectionPostProcessor):
+class FastPostProcessor(DetectionPostProcessor):
     """Implements a post processor for LinkNet model.
 
     Args:
@@ -139,111 +139,3 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 4, 2), dtype=pred.dtype)
         else:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
-
-
-class _LinkNet(BaseModel):
-    """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
-    <https://arxiv.org/pdf/1707.03718.pdf>`_.
-
-    Args:
-        out_chan: number of channels for the output
-    """
-
-    min_size_box: int = 3
-    assume_straight_pages: bool = True
-    shrink_ratio = 0.5
-
-    def build_target(
-        self,
-        target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int],
-        channels_last: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        """Build the target, and it's mask to be used from loss computation.
-
-        Args:
-            target: target coming from dataset
-            output_shape: shape of the output of the model without batch_size
-            channels_last: whether channels are last or not
-
-        Returns:
-            the new formatted target and the mask
-        """
-
-        if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
-            raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
-        if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
-            raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
-
-        h: int
-        w: int
-        if channels_last:
-            h, w, num_classes = output_shape
-        else:
-            num_classes, h, w = output_shape
-        target_shape = (len(target), num_classes, h, w)
-
-        seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
-        seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
-
-        for idx, tgt in enumerate(target):
-            for class_idx, _tgt in enumerate(tgt.values()):
-                # Draw each polygon on gt
-                if _tgt.shape[0] == 0:
-                    # Empty image, full masked
-                    seg_mask[idx, class_idx] = False
-
-                # Absolute bounding boxes
-                abs_boxes = _tgt.copy()
-
-                if abs_boxes.ndim == 3:
-                    abs_boxes[:, :, 0] *= w
-                    abs_boxes[:, :, 1] *= h
-                    polys = abs_boxes
-                    boxes_size = np.linalg.norm(abs_boxes[:, 2, :] - abs_boxes[:, 0, :], axis=-1)
-                    abs_boxes = np.concatenate((abs_boxes.min(1), abs_boxes.max(1)), -1).round().astype(np.int32)
-                else:
-                    abs_boxes[:, [0, 2]] *= w
-                    abs_boxes[:, [1, 3]] *= h
-                    abs_boxes = abs_boxes.round().astype(np.int32)
-                    polys = np.stack(
-                        [
-                            abs_boxes[:, [0, 1]],
-                            abs_boxes[:, [0, 3]],
-                            abs_boxes[:, [2, 3]],
-                            abs_boxes[:, [2, 1]],
-                        ],
-                        axis=1,
-                    )
-                    boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
-
-                for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
-                    # Mask boxes that are too small
-                    if box_size < self.min_size_box:
-                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                        continue
-
-                    # Negative shrink for gt, as described in paper
-                    polygon = Polygon(poly)
-                    distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
-                    subject = [tuple(coor) for coor in poly]
-                    padding = pyclipper.PyclipperOffset()
-                    padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                    shrunken = padding.Execute(-distance)
-
-                    # Draw polygon on gt if it is valid
-                    if len(shrunken) == 0:
-                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                        continue
-                    shrunken = np.array(shrunken[0]).reshape(-1, 2)
-                    if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
-                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                        continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1)
-
-        # Don't forget to switch back to channel last if Tensorflow is used
-        if channels_last:
-            seg_target = seg_target.transpose((0, 2, 3, 1))
-            seg_mask = seg_mask.transpose((0, 2, 3, 1))
-
-        return seg_target, seg_mask

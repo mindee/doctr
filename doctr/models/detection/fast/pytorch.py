@@ -5,6 +5,8 @@
 
 from typing import Any, Callable, Dict, List, Optional
 
+import numpy as np
+
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
@@ -13,12 +15,12 @@ from doctr.file_utils import CLASS_NAME
 from doctr.models.classification.textnet_fast.pytorch import textnetfast_tiny
 from doctr.models.modules.layers.pytorch import ConvLayer, RepConvLayer
 
+from .base import FastPostProcessor
+
 from ...utils import load_pretrained_params
 
 __all__ = ["fast_tiny", "fast_small", "fast_base"]
 
-
-# modify the ignore_keys in fast_tiny, fast_small, fast_base
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "fast_tiny": {
@@ -34,11 +36,11 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "url": None,
     },
 }
-# reimplement FAST Class
-# NECK AND TEXTNET AND HEAD READY
 
+# implement FastPostProcessing class
 
 class FAST(nn.Module):
+
     def __init__(self,
                  feat_extractor,
                  bin_thresh: float = 0.1,
@@ -54,20 +56,12 @@ class FAST(nn.Module):
         self.cfg = cfg
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
-
         self.feat_extractor = feat_extractor
-
         self.feat_extractor.train()
-
         self.fpn = FASTNeck()
-        
         self.classifier = FASTHead()
-
-        self.postprocessor = FastPostProcessor(
-            assume_straight_pages=self.assume_straight_pages, bin_thresh=bin_thresh
-        )
+        self.postprocessor = FastPostProcessor(assume_straight_pages=self.assume_straight_pages, bin_thresh=bin_thresh)
         
-        # AJUSTER LES INITIALISATION POUR LE MODELE
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
@@ -81,58 +75,91 @@ class FAST(nn.Module):
                 m.bias.data.zero_()
 
     def forward(
-        self
+        self,
         x: torch.Tensor,
-        
-        # MODIFIER LES PARAMETRES CI-DESSOUS POUR LES PARAMETRES PLUS BAS
-        gt_texts=None, gt_kernels=None, training_masks=None, gt_instances=None, img_metas=None, cfg=None
-        
         target: Optional[List[np.ndarray]] = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, torch.Tensor]:
-        outputs = dict()
-
+    ) -> Dict[str, torch.Tensor]:  
+                      
+        out: Dict[str, Any] = {}
         if not self.training:
             torch.cuda.synchronize()
-
-        # backbone
-        f = self.backbone(x)
-
+        feats = self.feat_extractor(x)       
         if not self.training:
             torch.cuda.synchronize()
-
-        # reduce channel
-        f = self.neck(f)
-
+        logits = self.fpn(feats)
         if not self.training:
             torch.cuda.synchronize()
+        logits = self.classifier(logits)
+        logits = self._upsample(logits, x.size(), scale=1)
+        if self.exportable:
+            out["logits"] = logits
+            return out
 
-        # detection
-        det_out = self.classifier(f)
+        # A T ON REELEMENT BESOIN DE LA SIGMOID ICI ?
+        if return_model_output or target is None or return_preds:
+            prob_map = torch.sigmoid(logits)
 
-        if not self.training:
-            torch.cuda.synchronize()
+        if return_model_output:
+            out["out_map"] = prob_map
+        if target is None or return_preds:
+            # Post-process boxes
+            out["preds"] = [
+                dict(zip(self.class_names, preds))
+                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+            ]
+        if target is not None:
+            loss = self.compute_loss(logits, target)
+            out["loss"] = loss
+        return out
 
-        if self.training:
-            det_out = self._upsample(det_out, x.size(), scale=1)
-            
-            # MODIFEIER SELF.DET_HEAD.LOSS en SELF.LOSS
-            det_loss = self.det_head.loss(det_out, gt_texts, gt_kernels, training_masks, gt_instances)
-            outputs.update(det_loss)
-        else:
-            det_out = self._upsample(det_out, x.size(), scale=4)
-            
-            # MODIFIER SELF.DET_HEAD.GET_RESULTS en SELF.GET_RESULTS ou self.postprocessing
-            det_res = self.det_head.get_results(det_out, img_metas, cfg, scale=2)
-            outputs.update(det_res)
+    def compute_loss(self, out_map: torch.Tensor, thresh_map: torch.Tensor, target: List[np.ndarray]) -> torch.Tensor:
+        # self.compute_loss(det_out, gt_texts, gt_kernels, training_masks, gt_instances)
 
-        return outputs
+        # output
+        kernels = out[:, 0, :, :]  # 4*640*640
+        texts = self._max_pooling(kernels, scale=1)  # 4*640*640
+        embs = out[:, 1:, :, :]  # 4*4*640*640
+
+        # text loss
+        selected_masks = ohem_batch(texts, gt_texts, training_masks)
+        loss_text = self.text_loss(texts, gt_texts, selected_masks, reduce=False)
+        iou_text = iou((texts > 0).long(), gt_texts, training_masks, reduce=False)
+        losses = dict(
+            loss_text=loss_text,
+            iou_text=iou_text
+        )
+    
+        # kernel loss
+        selected_masks = gt_texts * training_masks
+        loss_kernel = self.kernel_loss(kernels, gt_kernels, selected_masks, reduce=False)
+        loss_kernel = torch.mean(loss_kernel, dim=0)
+        iou_kernel = iou((kernels > 0).long(), gt_kernels, selected_masks, reduce=False)
+        losses.update(dict(
+            loss_kernels=loss_kernel,
+            iou_kernel=iou_kernel
+        ))
+    
+        # auxiliary loss
+        loss_emb = self.emb_loss(embs, gt_instances, gt_kernels, training_masks, reduce=False)
+        losses.update(dict(
+            loss_emb=loss_emb
+        ))
+    
+        return losses
+
+    def _max_pooling(self, x, scale=1):
+        if scale == 1:
+            x = self.pooling_1s(x)
+        elif scale == 2:
+            x = self.pooling_2s(x)
+        return x
 
     def _upsample(self, x, size, scale=1):
         _, _, H, W = size
         return F.interpolate(x, size=(H // scale, W // scale), mode="bilinear")
-        
+
 
 class FASTHead(nn.Module):
     def __init__(self):
@@ -244,6 +271,9 @@ def _fast(
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
+
+
+# modify the ignore_keys in fast_tiny, fast_small, fast_base
 
 
 def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
