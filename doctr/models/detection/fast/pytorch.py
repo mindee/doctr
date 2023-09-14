@@ -9,14 +9,13 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-
 from PIL import Image
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification.textnet_fast.pytorch import textnetfast_tiny
 from doctr.models.modules.layers.pytorch import ConvLayer, RepConvLayer
 from doctr.utils.metrics import box_iou
-
+import cv2
 from ...utils import load_pretrained_params
 from .base import FastPostProcessor
 
@@ -63,7 +62,9 @@ class FAST(nn.Module):
         self.fpn = FASTNeck()
         self.classifier = FASTHead()
         self.postprocessor = FastPostProcessor(assume_straight_pages=self.assume_straight_pages, bin_thresh=bin_thresh)
-
+        self.overlap_pool = nn.MaxPool2d(kernel_size=3, stride=1, padding=1)
+        self.pooling = nn.MaxPool2d(kernel_size=9, stride=1)
+        self.pad = nn.ZeroPad2d(padding=(9 - 1) // 2)
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
@@ -83,7 +84,7 @@ class FAST(nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, torch.Tensor]:
-
+        
         x, gt_texts, gt_kernels, training_masks, gt_instances, img_metas = self.prepare_data(x, target)
 
         feats = self.backbone(x)  
@@ -154,8 +155,9 @@ class FAST(nn.Module):
     def prepare_data(self,
         x: torch.Tensor,
         target: Optional[List[np.ndarray]] = None):
-
-        target = target[:self.num_classes]
+        
+        target = np.array([dico['words'] for dico in target[:self.num_classes]]).reshape(-1,1)
+       
         gt_instance = np.zeros(x.shape[0:2], dtype='uint8')
         training_mask = np.ones(x.shape[0:2], dtype='uint8')
 
@@ -182,9 +184,8 @@ class FAST(nn.Module):
         x = Image.fromarray(x)
         
         img_meta = dict(
-            org_img_size=np.array(img.shape[:2])
-            img_size=np.array(img.shape[:2]),
-            filename=filename))
+            org_img_size=np.array(img.shape[:2]),
+            img_size=np.array(img.shape[:2]))
 
         img = scale_aligned_short(img, self.short_size)
         x = x.convert('RGB')
@@ -192,11 +193,10 @@ class FAST(nn.Module):
         x = transforms.ToTensor()(x)
         x = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])(x)
 
-        return x, \ 
-               torch.from_numpy(gt_text).long(), \
-               torch.from_numpy(gt_kernel).long(), \
+        return x, torch.from_numpy(gt_text).long(),  \
+               torch.from_numpy(gt_kernel).long(),  \
                torch.from_numpy(training_mask).long(), \
-               torch.from_numpy(gt_instance).long()\
+               torch.from_numpy(gt_instance).long(),  \
                img_meta
         
     # simplify this method
@@ -530,3 +530,4 @@ def emb_loss_v2(emb, instance, kernel, training_mask):
             loss_batch = torch.mean(loss_batch)
 
         return loss_batch
+

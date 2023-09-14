@@ -28,6 +28,9 @@ elif is_torch_available():
         "linknet_resnet18",
         "linknet_resnet34",
         "linknet_resnet50",
+        "fast_tiny",
+        "fast_small",
+        "fast_base",
     ]
     ROT_ARCHS = ["db_resnet50_rotation"]
 
