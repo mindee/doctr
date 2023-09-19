@@ -37,7 +37,7 @@ def plot_predictions(image, boxes, labels):
     plt.show()
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def main(args):
     print(args)
 

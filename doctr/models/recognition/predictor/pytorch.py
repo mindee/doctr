@@ -40,7 +40,7 @@ class RecognitionPredictor(nn.Module):
         self.dil_factor = 1.4  # Dilation factor to overlap the crops
         self.target_ar = 6  # Target aspect ratio
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def forward(
         self,
         crops: Sequence[Union[np.ndarray, torch.Tensor]],

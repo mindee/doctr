@@ -33,7 +33,7 @@ class CropOrientationPredictor(nn.Module):
         self.pre_processor = pre_processor
         self.model = model.eval()
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def forward(
         self,
         crops: List[Union[np.ndarray, torch.Tensor]],

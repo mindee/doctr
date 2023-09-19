@@ -59,7 +59,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
 
-    @torch.no_grad()
+    @torch.inference_mode()
     def forward(
         self,
         pages: List[Union[np.ndarray, torch.Tensor]],
