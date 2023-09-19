@@ -101,7 +101,9 @@ class PreProcessor(nn.Module):
                 raise TypeError("unsupported data type for torch.Tensor")
             # Resizing
             if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
-                x = F.resize(x, self.resize.size, interpolation=self.resize.interpolation)
+                x = F.resize(
+                    x, self.resize.size, interpolation=self.resize.interpolation, antialias=self.resize.antialias
+                )
             # Data type
             if x.dtype == torch.uint8:  # type: ignore[union-attr]
                 x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
