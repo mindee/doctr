@@ -421,10 +421,7 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
     ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
-        # N x L
-        probs = tf.gather(tf.nn.softmax(logits, axis=-1), out_idxs, axis=-1, batch_dims=2)
-        # Take the minimum confidence of the sequence
-        probs = tf.math.reduce_min(probs, axis=1)
+        preds_prob = tf.math.reduce_max(tf.nn.softmax(logits, axis=-1), axis=-1)
 
         # decode raw output of the model with tf_label_to_idx
         out_idxs = tf.cast(out_idxs, dtype="int32")
@@ -434,7 +431,10 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        # compute probabilties for each word up to the EOS token
+        probs = [preds_prob[i, : len(word)].numpy().mean().item() for i, word in enumerate(word_values)]
+
+        return list(zip(word_values, probs))
 
 
 def _parseq(
