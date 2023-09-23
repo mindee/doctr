@@ -339,6 +339,11 @@ def main(args):
         plot_samples(x, target)
         return
 
+    # Backbone freezing
+    if args.freeze_backbone:
+        for p in model.feat_extractor.parameters():
+            p.requires_grad = False
+
     # Optimizer
     optimizer = torch.optim.Adam(
         [p for p in model.parameters() if p.requires_grad],
@@ -457,6 +462,9 @@ def parse_args():
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for training")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
+    parser.add_argument(
+        "--freeze-backbone", dest="freeze_backbone", action="store_true", help="freeze model backbone for fine-tuning"
+    )
     parser.add_argument(
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )

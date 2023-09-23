@@ -333,6 +333,11 @@ def main(args):
         task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
 
+    # Backbone freezing
+    if args.freeze_backbone:
+        for layer in model.feat_extractor.layers:
+            layer.trainable = False
+
     min_loss = np.inf
 
     # Training loop
@@ -413,6 +418,9 @@ def parse_args():
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for training")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
+    parser.add_argument(
+        "--freeze-backbone", dest="freeze_backbone", action="store_true", help="freeze model backbone for fine-tuning"
+    )
     parser.add_argument(
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
