@@ -1,21 +1,64 @@
-# Use the TensorFlow GPU image as the base image. This image also works with CPU-only setups
-FROM tensorflow/tensorflow@sha256:b4676741c491bff3d0f29c38c369281792c7d5c5bfa2b1aa93e5231a8d236323
+FROM nvidia/cuda:11.8.0-base-ubuntu22.04 as base
 
-ENV PYTHONUNBUFFERED=1 
-ENV PYTHONDONTWRITEBYTECODE=1 
-ENV DOCTR_CACHE_DIR=/app/.cache 
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C.UTF-8
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV DOCTR_CACHE_DIR=/app/.cache
 
-WORKDIR /app
+# Enroll NVIDIA GPG public key
+RUN apt-get update && \
+    apt-get install -y gnupg ca-certificates wget && \
+    # - Install Nvidia repo keys
+    # - See: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#network-repo-installation-for-ubuntu
+    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb && \
+    dpkg -i cuda-keyring_1.1-1_all.deb
 
-COPY . .
+# Install CUDA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    cuda-command-line-tools-11-8 \
+    cuda-cudart-dev-11-8 \
+    cuda-nvcc-11-8 \
+    cuda-cupti-11-8 \
+    cuda-nvprune-11-8 \
+    cuda-libraries-11-8 \
+    cuda-nvrtc-11-8 \
+    libcufft-11-8 \
+    libcurand-11-8 \
+    libcusolver-11-8 \
+    libcusparse-11-8 \
+    libcublas-11-8 \
+    # - CuDNN: https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#ubuntu-network-installation
+    libcudnn8=8.6.0.163-1+cuda11.8 \
+    libnvinfer-plugin8=8.6.1.6-1+cuda11.8 \
+    libnvinfer8=8.6.1.6-1+cuda11.8 \
+    # - Other packages
+    build-essential \
+    pkg-config \
+    curl \
+    software-properties-common \
+    unzip \
+    # - Packages to build Python
+    tar make gcc zlib1g-dev libffi-dev libssl-dev \
+    # - Packages for docTR
+    ffmpeg libsm6 libxext6 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+################
 
-# Install necessary dependencies for video processing and GUI operations
-RUN apt-get update \
-    && apt-get install --no-install-recommends ffmpeg libsm6 libxext6 -y \
-    && apt-get autoremove -y \
-    && rm -rf /var/lib/apt/lists/* 
+# Install Python
+ARG PYTHON_VERSION=3.10.13
 
-# Install the current application with TensorFlow extras and modify permissions
-RUN pip install --upgrade pip setuptools wheel \
-    && pip install -e .[tf] \
-    && chmod -R a+w /app
+RUN wget http://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz && \
+    tar -zxf Python-$PYTHON_VERSION.tgz && \
+    cd Python-$PYTHON_VERSION && \
+    mkdir /opt/python/ && \
+    ./configure --prefix=/opt/python && \
+    make && \
+    make install
+
+ENV PATH=/opt/python/bin:$PATH
+
+# Install docTR
+RUN pip3 install -U pip setuptools wheel && \
+    pip3 install --no-cache-dir "python-doctr[tf]"
