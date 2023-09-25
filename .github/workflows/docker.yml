@@ -14,7 +14,7 @@ jobs:
       - name: Build docker image
         run: docker build . -t doctr-tf-py3.8-slim
       - name: Run docker container
-        run: docker run doctr-tf-py3.8-slim python -c 'import doctr'
+        run: docker run doctr-tf-py3.8-slim python3 -c 'import doctr'
 
   pytest-api:
     runs-on: ${{ matrix.os }}
