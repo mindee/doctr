@@ -19,7 +19,7 @@ os.environ["USE_TORCH"] = "1"
 from doctr.models import detection
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def main(args):
     device = torch.device("cuda:0" if args.gpu else "cpu")
 

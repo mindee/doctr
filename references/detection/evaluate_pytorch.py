@@ -26,7 +26,7 @@ from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode
     model.eval()
