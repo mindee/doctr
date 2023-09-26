@@ -23,7 +23,14 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
 from torch.utils.data import DataLoader, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
-from torchvision.transforms import ColorJitter, Compose, Normalize
+from torchvision.transforms.v2 import (
+    Compose,
+    GaussianBlur,
+    Normalize,
+    RandomGrayscale,
+    RandomPerspective,
+    RandomPhotometricDistort,
+)
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -170,6 +177,11 @@ def main(rank: int, world_size: int, args):
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
+    # Backbone freezing
+    if args.freeze_backbone:
+        for p in model.feat_extractor.parameters():
+            p.requires_grad = False
+
     # create default process group
     device = torch.device("cuda", args.devices[rank])
     dist.init_process_group(args.backend, rank=rank, world_size=world_size)
@@ -211,7 +223,12 @@ def main(rank: int, world_size: int, args):
                     T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                     # Augmentations
                     T.RandomApply(T.ColorInversion(), 0.1),
-                    ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                    RandomGrayscale(p=0.1),
+                    RandomPhotometricDistort(p=0.1),
+                    T.RandomApply(T.RandomShadow(), p=0.4),
+                    T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                    T.RandomApply(GaussianBlur(3), 0.3),
+                    RandomPerspective(distortion_scale=0.2, p=0.3),
                 ]
             ),
         )
@@ -234,7 +251,12 @@ def main(rank: int, world_size: int, args):
                     T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                     # Ensure we have a 90% split of white-background images
                     T.RandomApply(T.ColorInversion(), 0.9),
-                    ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+                    RandomGrayscale(p=0.1),
+                    RandomPhotometricDistort(p=0.1),
+                    T.RandomApply(T.RandomShadow(), p=0.4),
+                    T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                    T.RandomApply(GaussianBlur(3), 0.3),
+                    RandomPerspective(distortion_scale=0.2, p=0.3),
                 ]
             ),
         )
@@ -376,6 +398,9 @@ def parse_args():
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for training")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
+    parser.add_argument(
+        "--freeze-backbone", dest="freeze_backbone", action="store_true", help="freeze model backbone for fine-tuning"
+    )
     parser.add_argument(
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
