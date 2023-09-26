@@ -393,18 +393,17 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
     ) -> List[Tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
-        # N x L
-        probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
-        # Take the minimum confidence of the sequence
-        probs = probs.min(dim=1).values.detach().cpu()
+        preds_prob = torch.softmax(logits, -1).max(dim=-1)[0]
 
         # Manual decoding
         word_values = [
             "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
             for encoded_seq in out_idxs.cpu().numpy()
         ]
+        # compute probabilties for each word up to the EOS token
+        probs = [preds_prob[i, : len(word)].mean().item() for i, word in enumerate(word_values)]
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        return list(zip(word_values, probs))
 
 
 def _parseq(
