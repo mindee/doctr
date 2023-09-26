@@ -60,5 +60,6 @@ RUN wget http://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION
 ENV PATH=/opt/python/bin:$PATH
 
 # Install docTR
+ARG FRAMEWORK=tf
 RUN pip3 install -U pip setuptools wheel && \
-    pip3 install --no-cache-dir "python-doctr[tf]"
+    pip3 install --no-cache-dir "python-doctr[$FRAMEWORK]"
