@@ -44,5 +44,8 @@ jobs:
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
+          build-args: |
+            FRAMEWORK=${{ matrix.framework }}
+            PYTHON_VERSION=${{ matrix.python }}
           push: false  # TODO: CHANGE ME
           tags: ${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.doctr_version }}
