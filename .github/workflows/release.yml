@@ -1,0 +1,66 @@
+name: pypi-publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+
+  pypi-publish:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.8"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install setuptools wheel twine --upgrade
+      - name: Get release tag
+        id: release_tag
+        run: |
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Build and publish
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+          VERSION: ${{ steps.release_tag.outputs.VERSION }}
+        run: |
+          BUILD_VERSION=$VERSION python setup.py sdist bdist_wheel
+          twine check dist/*
+          twine upload dist/*
+
+  pypi-check:
+    if: "!github.event.release.prerelease"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.8"]
+    needs: pypi-publish
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-doctr
+          python -c "import doctr; print(doctr.__version__)"

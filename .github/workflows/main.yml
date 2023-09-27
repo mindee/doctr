@@ -1,0 +1,121 @@
+name: tests
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  pytest-common:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.8"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[tf] --upgrade
+          pip install -e .[testing]
+      - name: Run unittests
+        run: |
+          coverage run -m pytest tests/common/
+          coverage xml -o coverage-common.xml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-common
+          path: ./coverage-common.xml
+          if-no-files-found: error
+
+  pytest-tf:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.8"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[tf] --upgrade
+          pip install -e .[testing]
+      - name: Run unittests
+        run: |
+          coverage run -m pytest tests/tensorflow/
+          coverage xml -o coverage-tf.xml
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-tf
+          path: ./coverage-tf.xml
+          if-no-files-found: error
+
+  pytest-torch:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.8"]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[torch] --upgrade
+          pip install -e .[testing]
+
+      - name: Run unittests
+        run: |
+          coverage run -m pytest tests/pytorch/
+          coverage xml -o coverage-pt.xml
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: coverage-pytorch
+          path: ./coverage-pt.xml
+          if-no-files-found: error
+
+  codecov-upload:
+    runs-on: ubuntu-latest
+    needs: [ pytest-common, pytest-tf, pytest-torch ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v3
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          flags: unittests
+          fail_ci_if_error: true

@@ -1,0 +1,37 @@
+name: docker
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: main
+
+jobs:
+  docker-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build docker image
+        run: docker build . -t doctr-tf-py3.8-slim
+      - name: Run docker container
+        run: docker run doctr-tf-py3.8-slim python3 -c 'import doctr'
+
+  pytest-api:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.8"]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Build & run docker
+        run: cd api && docker-compose up -d --build
+      - name: Ping server
+        run: wget --spider --tries=12 http://localhost:8080/docs
+      - name: Run docker test
+        run: |
+          docker-compose -f api/docker-compose.yml exec --no-TTY web pytest tests/
