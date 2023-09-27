@@ -1,22 +1,21 @@
-ARG SYSTEM=cpu
+FROM ubuntu:22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-FROM nvidia/cuda:11.8.0-base-ubuntu22.04 as gpu
+ARG SYSTEM=gpu
 
-# Enroll NVIDIA GPG public key
-RUN apt-get update && \
+# Enroll NVIDIA GPG public key and install CUDA
+RUN if [ "$SYSTEM" = "gpu" ]; then \
+    apt-get update && \
     apt-get install -y gnupg ca-certificates wget && \
     # - Install Nvidia repo keys
     # - See: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#network-repo-installation-for-ubuntu
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb && \
-    dpkg -i cuda-keyring_1.1-1_all.deb
-
-# Install CUDA
-RUN apt-get update && apt-get install -y --no-install-recommends \
+    dpkg -i cuda-keyring_1.1-1_all.deb && \
+    apt-get update && apt-get install -y --no-install-recommends \
     cuda-command-line-tools-11-8 \
     cuda-cudart-dev-11-8 \
     cuda-nvcc-11-8 \
@@ -32,26 +31,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # - CuDNN: https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#ubuntu-network-installation
     libcudnn8=8.6.0.163-1+cuda11.8 \
     libnvinfer-plugin8=8.6.1.6-1+cuda11.8 \
-    libnvinfer8=8.6.1.6-1+cuda11.8
-
-FROM ubuntu:22.04 as cpu
-
-FROM $SYSTEM
+    libnvinfer8=8.6.1.6-1+cuda11.8; \
+fi
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    # - Other packages
     build-essential \
     pkg-config \
     curl \
+    wget \
     software-properties-common \
     unzip \
     git \
     # - Packages to build Python
     tar make gcc zlib1g-dev libffi-dev libssl-dev \
     # - Packages for docTR
-    ffmpeg libsm6 libxext6 \
+    libgl1-mesa-dev libsm6 libxext6 libxrender-dev libpangocairo-1.0-0 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-################
+    && rm -rf /var/lib/apt/lists/* \
+fi
 
 # Install Python
 ARG PYTHON_VERSION=3.10.13
@@ -70,4 +68,4 @@ ENV PATH=/opt/python/bin:$PATH
 ARG FRAMEWORK=tf
 ARG DOCTR_VERSION=main
 RUN pip3 install -U pip setuptools wheel && \
-    pip3 install --no-cache-dir "python-doctr[$FRAMEWORK]@git+https://github.com/mindee/doctr.git@$DOCTR_VERSION"
+    pip3 install "python-doctr[$FRAMEWORK]@git+https://github.com/mindee/doctr.git@$DOCTR_VERSION"
