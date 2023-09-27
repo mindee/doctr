@@ -37,6 +37,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     software-properties-common \
     unzip \
+    git \
     # - Packages to build Python
     tar make gcc zlib1g-dev libffi-dev libssl-dev \
     # - Packages for docTR
