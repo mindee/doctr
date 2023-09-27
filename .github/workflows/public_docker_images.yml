@@ -7,6 +7,10 @@ on:
     branches: main
   pull_request:
     branches: main
+  schedule:
+    - cron: '0 2 * * 1'  # At 02:00 on Monday
+  tags:
+    - 'v*'
 
 env:
   REGISTRY: ghcr.io
@@ -22,7 +26,6 @@ jobs:
         # Must match version at https://www.python.org/ftp/python/
         python: ["3.8.18", "3.9.18", "3.10.13"]
         framework: ["tf", "torch"]
-        doctr_version: ["0.7.0"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -40,12 +43,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image (latest)
+        if: matrix.framework == 'tf' || matrix.python == "3.8.18"
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
+            DOCTR_VERSION=${{ github.sha }}
           push: false  # TODO: CHANGE ME
-          tags: ${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.doctr_version }}
+          tags: |
+            # used on schedule event
+            type=schedule,pattern={{date 'YYYY-MM-DD'}}
+            # set latest tag only if `enable` is True
+            type=raw,value=latest,enable=${{ matrix.framework == 'tf' && matrix.python == '3.8.18' && github.ref == format('refs/heads/{0}', 'main') }}
+            # used on push tag event
+            type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-
+            # the rest
+            type=sha,prefix=${{ matrix.framework }}-py${{ matrix.python }}-
