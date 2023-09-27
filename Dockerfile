@@ -1,9 +1,11 @@
-FROM nvidia/cuda:11.8.0-base-ubuntu22.04 as base
+ARG SYSTEM=cpu
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
+
+FROM nvidia/cuda:11.8.0-base-ubuntu22.04 as gpu
 
 # Enroll NVIDIA GPG public key
 RUN apt-get update && \
@@ -30,8 +32,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # - CuDNN: https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#ubuntu-network-installation
     libcudnn8=8.6.0.163-1+cuda11.8 \
     libnvinfer-plugin8=8.6.1.6-1+cuda11.8 \
-    libnvinfer8=8.6.1.6-1+cuda11.8 \
-    # - Other packages
+    libnvinfer8=8.6.1.6-1+cuda11.8
+
+FROM ubuntu:22.04 as cpu
+
+FROM $SYSTEM
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     curl \

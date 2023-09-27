@@ -26,6 +26,7 @@ jobs:
         # Must match version at https://www.python.org/ftp/python/
         python: ["3.8.18", "3.9.18", "3.10.13"]
         framework: ["tf", "torch"]
+        system: ["cpu", "gpu"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -50,19 +51,36 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             # used on schedule event
-            type=schedule,pattern={{date 'YYYY-MM-DD'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-
+            type=schedule,pattern={{date 'YYYY-MM-DD'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
             # set latest tag only if `enable` is True
-            type=raw,value=latest,enable=${{ matrix.framework == 'tf' && matrix.python == '3.8.18' && github.ref == format('refs/heads/{0}', 'main') }}
+            type=raw,value=latest,enable=${{ matrix.framework == 'tf' && matrix.python == '3.8.18' && matrix.system == 'gpu' && github.ref == format('refs/heads/{0}', 'main') }}
             # used on push tag event
-            type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-
+            type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
 
-      - name: Build and push Docker image (latest)
+      - name: Build Docker image
+        id: build
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
+            SYSTEM=${{ matrix.system }}
+            DOCTR_VERSION=${{ github.sha }}
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Check if `import doctr` works
+        run: docker run ${{ steps.meta.outputs.imageid }} python3 -c 'import doctr'
+
+      - name: Push Docker image
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          build-args: |
+            FRAMEWORK=${{ matrix.framework }}
+            PYTHON_VERSION=${{ matrix.python }}
+            SYSTEM=${{ matrix.system }}
             DOCTR_VERSION=${{ github.sha }}
           push: false  # TODO: CHANGE ME
           tags: ${{ steps.meta.outputs.tags }}
