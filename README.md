@@ -260,10 +260,48 @@ Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to
 
 ### Docker container
 
-If you wish to deploy containerized environments, you can use the provided Dockerfile to build a docker image:
+[We offers Docker container support for easy testing and deployment](https://github.com/mindee/doctr/packages).
+
+#### Using GPU with docTR Docker Images
+
+The docTR Docker images are GPU-ready and based on CUDA `11.8`.
+However, to use GPU support with these Docker images, please ensure that Docker is configured to use your GPU.
+
+To verify and configure GPU support for Docker, please follow the instructions provided in the [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
+
+Once Docker is configured to use GPUs, you can run docTR Docker containers with GPU support:
 
 ```shell
-docker build . -t <YOUR_IMAGE_TAG>
+docker run --it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-v0.7.1 bash
+```
+
+#### Available Tags
+
+The Docker images for docTR follow a specific tag nomenclature: `<framework>-py<python_version>-<doctr_version>`. Here's a breakdown of the tag structure:
+
+- `<framework>`: Can be `tf` (TensorFlow) or `torch` (PyTorch).
+- `<python_version>`: Can be `3.8.18`, `3.9.18`, or `3.10.13`.
+- `<doctr_version>`: Can be a tag (e.g., `v0.7.1`)
+
+Here are examples of different image tags:
+
+| Tag                        | Description                                       |
+|----------------------------|---------------------------------------------------|
+| `tf-py3.8.18-v0.7.1`       | TensorFlow version `3.8.18` with docTR `v0.7.1`. |
+| `torch-py3.9.18-2023-10-01`| PyTorch version `3.9.18` with a weekly build from `2023-10-01`. |
+
+#### Building Docker Images Locally
+
+You can also build docTR Docker images locally on your computer.
+
+```shell
+docker build -t doctr .
+```
+
+You can specify custom Python versions and docTR versions using build arguments. For example, to build a docTR image with TensorFlow, Python version `3.9.10`, and docTR version `v0.7.0`, run the following command:
+
+```shell
+docker build -t doctr --build-arg FRAMEWORK=tf --build-arg PYTHON_VERSION=3.9.10 --build-arg DOCTR_VERSION=v0.7.0 .
 ```
 
 ### Example script
