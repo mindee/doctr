@@ -208,7 +208,7 @@ class RandomApply(NestedObject):
 
     def __call__(self, img: Any, target: Optional[np.ndarray] = None) -> Union[Any, Tuple[Any, np.ndarray]]:
         if random.random() < self.p:
-            return self.transform(img) if target is None else self.transform(img, target)
+            return self.transform(img) if target is None else self.transform(img, target)  # type: ignore[call-arg]
         return img if target is None else (img, target)
 
 
