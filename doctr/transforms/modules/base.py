@@ -5,7 +5,7 @@
 
 import math
 import random
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -206,10 +206,10 @@ class RandomApply(NestedObject):
     def extra_repr(self) -> str:
         return f"transform={self.transform}, p={self.p}"
 
-    def __call__(self, img: Any) -> Any:
+    def __call__(self, img: Any, target: Optional[np.ndarray] = None) -> Union[Any, Tuple[Any, np.ndarray]]:
         if random.random() < self.p:
-            return self.transform(img)
-        return img
+            return self.transform(img) if target is None else self.transform(img, target)  # type: ignore[call-arg]
+        return img if target is None else (img, target)
 
 
 class RandomRotate(NestedObject):

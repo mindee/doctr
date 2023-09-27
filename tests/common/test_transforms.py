@@ -27,6 +27,9 @@ def test_randomapply():
     transfo = T.RandomApply(lambda x: 1 - x)
     out = transfo(1)
     assert out == 0 or out == 1
+    transfo = T.RandomApply(lambda x, y: (1 - x, 2 * y))
+    out = transfo(1, np.array([2]))
+    assert out == (0, 4) or out == (1, 2) and isinstance(out[1], np.ndarray)
     assert repr(transfo).endswith(", p=0.5)")
 
 
