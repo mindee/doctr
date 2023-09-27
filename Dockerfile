@@ -60,5 +60,6 @@ ENV PATH=/opt/python/bin:$PATH
 
 # Install docTR
 ARG FRAMEWORK=tf
+ARG DOCTR_VERSION=main
 RUN pip3 install -U pip setuptools wheel && \
-    pip3 install --no-cache-dir "python-doctr[$FRAMEWORK]"
+    pip3 install --no-cache-dir "doctr[$FRAMEWORK]@git+https://github.com/mindee/doctr.git@main"
