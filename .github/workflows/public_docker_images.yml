@@ -5,12 +5,12 @@ name: Docker image on ghcr.io
 on:
   push:
     branches: main
+    tags:
+      - 'v*'
   pull_request:
     branches: main
   schedule:
     - cron: '0 2 * * 1'  # At 02:00 on Monday
-  tags:
-    - 'v*'
 
 env:
   REGISTRY: ghcr.io
