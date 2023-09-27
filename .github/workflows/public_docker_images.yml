@@ -10,7 +10,7 @@ on:
   pull_request:
     branches: main
   schedule:
-    - cron: '0 2 * * 1'  # At 02:00 on Monday
+    - cron: '0 2 1 * *'  # At 02:00 on day-of-month 1
 
 env:
   REGISTRY: ghcr.io
@@ -50,13 +50,11 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             # used on schedule event
-            type=schedule,pattern={{date 'YYYY-MM-DD'}}
+            type=schedule,pattern={{date 'YYYY-MM-DD'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-
             # set latest tag only if `enable` is True
             type=raw,value=latest,enable=${{ matrix.framework == 'tf' && matrix.python == '3.8.18' && github.ref == format('refs/heads/{0}', 'main') }}
             # used on push tag event
             type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-
-            # the rest
-            type=sha,prefix=${{ matrix.framework }}-py${{ matrix.python }}-
 
       - name: Build and push Docker image (latest)
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
