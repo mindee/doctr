@@ -4,13 +4,12 @@ name: Docker image on ghcr.io
 
 on:
   push:
-    branches: main
     tags:
       - 'v*'
   pull_request:
     branches: main
   schedule:
-    - cron: '0 2 1 * *'  # At 02:00 on day-of-month 1
+    - cron: '0 2 29 * *'  # At 02:00 on day-of-month 29
 
 env:
   REGISTRY: ghcr.io
@@ -86,5 +85,5 @@ jobs:
             SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
-          push: false  # TODO: CHANGE ME
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
