@@ -50,9 +50,6 @@ jobs:
           tags: |
             # used only on schedule event
             type=schedule,pattern={{date 'YYYY-MM'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
-            # set latest tag only if `enable` is True
-            # see https://github.com/docker/metadata-action#latest-tag
-            type=raw,value=latest,enable=${{ matrix.framework == 'tf' && matrix.python == '3.8.18' && matrix.system == 'gpu' && github.ref == format('refs/heads/{0}', 'main') }}
             # used only if a tag following semver is published
             type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
 
