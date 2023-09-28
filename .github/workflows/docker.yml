@@ -12,9 +12,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Build docker image
-        run: docker build . -t doctr-tf-py3.8-slim
+        run: docker build -t doctr-tf-py3.8-slim --build-arg SYSTEM=cpu .
       - name: Run docker container
-        run: docker run doctr-tf-py3.8-slim python -c 'import doctr'
+        run: docker run doctr-tf-py3.8-slim python3 -c 'import doctr'
 
   pytest-api:
     runs-on: ${{ matrix.os }}

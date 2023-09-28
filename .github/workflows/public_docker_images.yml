@@ -1,0 +1,86 @@
+# https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
+#
+name: Docker image on ghcr.io
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: main
+  schedule:
+    - cron: '0 2 29 * *'  # At 02:00 on day-of-month 29
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push-image:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Must match version at https://www.python.org/ftp/python/
+        python: ["3.8.18", "3.9.18", "3.10.13"]
+        framework: ["tf", "torch"]
+        system: ["cpu", "gpu"]
+
+    # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
+          tags: |
+            # used only on schedule event
+            type=schedule,pattern={{date 'YYYY-MM'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
+            # used only if a tag following semver is published
+            type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
+
+      - name: Build Docker image
+        id: build
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          build-args: |
+            FRAMEWORK=${{ matrix.framework }}
+            PYTHON_VERSION=${{ matrix.python }}
+            SYSTEM=${{ matrix.system }}
+            DOCTR_REPO=${{ github.repository }}
+            DOCTR_VERSION=${{ github.sha }}
+          push: false  # push only if `import doctr` works
+          tags: ${{ steps.meta.outputs.tags }}
+
+      - name: Check if `import doctr` works
+        run: docker run ${{ steps.build.outputs.imageid }} python3 -c 'import doctr'
+
+      - name: Push Docker image
+        # Push only if the CI is not triggered by "PR on main"
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          build-args: |
+            FRAMEWORK=${{ matrix.framework }}
+            PYTHON_VERSION=${{ matrix.python }}
+            SYSTEM=${{ matrix.system }}
+            DOCTR_REPO=${{ github.repository }}
+            DOCTR_VERSION=${{ github.sha }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
