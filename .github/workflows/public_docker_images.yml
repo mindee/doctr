@@ -14,7 +14,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -48,13 +47,14 @@ jobs:
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: ${{ env.REGISTRY }}/${{ github.repository }}
           tags: |
-            # used on schedule event
+            # used only on schedule event
             type=schedule,pattern={{date 'YYYY-MM-DD'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
             # set latest tag only if `enable` is True
+            # see https://github.com/docker/metadata-action#latest-tag
             type=raw,value=latest,enable=${{ matrix.framework == 'tf' && matrix.python == '3.8.18' && matrix.system == 'gpu' && github.ref == format('refs/heads/{0}', 'main') }}
-            # used on push tag event
+            # used only if a tag following semver is published
             type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
 
       - name: Build Docker image
@@ -66,14 +66,17 @@ jobs:
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
             SYSTEM=${{ matrix.system }}
+            DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
-          push: false
+          push: false  # push only if `import doctr` works
           tags: ${{ steps.meta.outputs.tags }}
 
       - name: Check if `import doctr` works
-        run: docker run ${{ steps.meta.outputs.imageid }} python3 -c 'import doctr'
+        run: docker run ${{ steps.build.outputs.imageid }} python3 -c 'import doctr'
 
       - name: Push Docker image
+        # Push only if the CI is not triggered by "PR on main"
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
@@ -81,6 +84,7 @@ jobs:
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
             SYSTEM=${{ matrix.system }}
+            DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: false  # TODO: CHANGE ME
           tags: ${{ steps.meta.outputs.tags }}

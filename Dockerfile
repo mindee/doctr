@@ -66,6 +66,7 @@ ENV PATH=/opt/python/bin:$PATH
 
 # Install docTR
 ARG FRAMEWORK=tf
+ARG DOCTR_REPO='mindee/doctr'
 ARG DOCTR_VERSION=main
 RUN pip3 install -U pip setuptools wheel && \
-    pip3 install "python-doctr[$FRAMEWORK]@git+https://github.com/mindee/doctr.git@$DOCTR_VERSION"
+    pip3 install "python-doctr[$FRAMEWORK]@git+https://github.com/$DOCTR_REPO.git@$DOCTR_VERSION"
