@@ -277,18 +277,19 @@ docker run --it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-v0.7.1 bash
 
 #### Available Tags
 
-The Docker images for docTR follow a specific tag nomenclature: `<framework>-py<python_version>-<doctr_version>`. Here's a breakdown of the tag structure:
+The Docker images for docTR follow a specific tag nomenclature: `<framework>-py<python_version>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
 
-- `<framework>`: Can be `tf` (TensorFlow) or `torch` (PyTorch).
-- `<python_version>`: Can be `3.8.18`, `3.9.18`, or `3.10.13`.
-- `<doctr_version>`: Can be a tag (e.g., `v0.7.1`)
+- `<framework>`: `tf` (TensorFlow) or `torch` (PyTorch).
+- `<python_version>`: `3.8.18`, `3.9.18`, or `3.10.13`.
+- `<doctr_version>`: a tag >= `v0.7.1`
+- `<YYYY-MM>`: e.g. `2023-10`
 
 Here are examples of different image tags:
 
 | Tag                        | Description                                       |
 |----------------------------|---------------------------------------------------|
 | `tf-py3.8.18-v0.7.1`       | TensorFlow version `3.8.18` with docTR `v0.7.1`. |
-| `torch-py3.9.18-2023-10-01`| PyTorch version `3.9.18` with a weekly build from `2023-10-01`. |
+| `torch-py3.9.18-2023-10`| PyTorch version `3.9.18` with a monthly build from `2023-10`. |
 
 #### Building Docker Images Locally
 

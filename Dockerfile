@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # - Packages to build Python
     tar make gcc zlib1g-dev libffi-dev libssl-dev \
     # - Packages for docTR
-    libgl1-mesa-dev libsm6 libxext6 libxrender-dev libpangocairo-1.0-0 \
+    libgl1-mesa-dev libsm6 libxext6 libxrender-dev libpangocairo-1.0-0 libbz2-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
 fi
