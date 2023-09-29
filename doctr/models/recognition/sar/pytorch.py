@@ -323,7 +323,7 @@ class SARPostProcessor(RecognitionPostProcessor):
             for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        return list(zip(word_values, probs.numpy().clip(0, 1).tolist()))
 
 
 def _sar(

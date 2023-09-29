@@ -432,7 +432,7 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
         # compute probabilties for each word up to the EOS token
-        probs = [preds_prob[i, : len(word)].numpy().mean().item() for i, word in enumerate(word_values)]
+        probs = [preds_prob[i, : len(word)].numpy().clip(0, 1).mean().item() for i, word in enumerate(word_values)]
 
         return list(zip(word_values, probs))
 
