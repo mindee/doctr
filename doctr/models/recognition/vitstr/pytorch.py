@@ -167,7 +167,7 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
             for encoded_seq in out_idxs.cpu().numpy()
         ]
         # compute probabilties for each word up to the EOS token
-        probs = [preds_prob[i, : len(word)].mean().item() for i, word in enumerate(word_values)]
+        probs = [preds_prob[i, : len(word)].nan_to_num().clip(0, 1).mean().item() for i, word in enumerate(word_values)]
 
         return list(zip(word_values, probs))
 

@@ -259,7 +259,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
             for encoded_seq in out_idxs.cpu().numpy()
         ]
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        return list(zip(word_values, probs.numpy().clip(0, 1).tolist()))
 
 
 def _master(

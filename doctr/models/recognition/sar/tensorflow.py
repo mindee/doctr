@@ -362,7 +362,7 @@ class SARPostProcessor(RecognitionPostProcessor):
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
-        return list(zip(word_values, probs.numpy().tolist()))
+        return list(zip(word_values, probs.numpy().clip(0, 1).tolist()))
 
 
 def _sar(
