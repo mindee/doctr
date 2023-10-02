@@ -72,22 +72,31 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
+        # Localize text elements
+        loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+
         # Detect document rotation and rotate pages
+        seq_maps = [np.where(out_map > kwargs.get("bin_thresh", 0.3), 255, 0).astype(np.uint8) for out_map in out_maps]
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seq_maps]
             orientations = [
-                {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+                {"value": orientation_page, "confidence": None} for orientation_page in origin_page_orientations
             ]
         else:
             orientations = None
         if self.straighten_pages:
             origin_page_orientations = (
-                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]
+                origin_page_orientations
+                if self.detect_orientation
+                else [estimate_orientation(seq_map) for seq_map in seq_maps]
             )
-            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
+            pages = [
+                rotate_image(page, -angle, expand=True)  # type: ignore[arg-type]
+                for page, angle in zip(pages, origin_page_orientations)
+            ]
+            # forward again to get predictions on straight pages
+            loc_preds = self.det_predictor(pages, **kwargs)
 
-        # Localize text elements
-        loc_preds = self.det_predictor(pages, **kwargs)
         assert all(
             len(loc_pred) == 1 for loc_pred in loc_preds
         ), "Detection Model in ocr_predictor should output only one class"

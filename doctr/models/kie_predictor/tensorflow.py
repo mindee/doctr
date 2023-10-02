@@ -72,24 +72,32 @@ class KIEPredictor(NestedObject, _KIEPredictor):
 
         origin_page_shapes = [page.shape[:2] for page in pages]
 
+        # Localize text elements
+        loc_preds, out_maps = self.det_predictor(pages, return_preds=True, **kwargs)
+
         # Detect document rotation and rotate pages
+        seq_maps = [
+            np.sum(np.where(out_map > kwargs.get("bin_thresh", 0.3), 255, 0), axis=-1, keepdims=True).astype(np.uint8)
+            for out_map in out_maps
+        ]
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seq_maps]
             orientations = [
-                {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+                {"value": orientation_page, "confidence": None} for orientation_page in origin_page_orientations
             ]
         else:
             orientations = None
         if self.straighten_pages:
             origin_page_orientations = (
-                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]
+                origin_page_orientations
+                if self.detect_orientation
+                else [estimate_orientation(seq_map) for seq_map in seq_maps]
             )
             pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
+            # forward again to get predictions on straight pages
+            loc_preds = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
 
-        # Localize text elements
-        loc_preds = self.det_predictor(pages, **kwargs)
-
-        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
+        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore
         # Rectify crops if aspect ratio
         dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
 

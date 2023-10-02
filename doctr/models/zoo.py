@@ -24,6 +24,7 @@ def _predictor(
     det_bs: int = 2,
     reco_bs: int = 128,
     detect_orientation: bool = False,
+    straighten_pages: bool = False,
     detect_language: bool = False,
     **kwargs,
 ) -> OCRPredictor:
@@ -53,6 +54,7 @@ def _predictor(
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
         detect_orientation=detect_orientation,
+        straighten_pages=straighten_pages,
         detect_language=detect_language,
         **kwargs,
     )
@@ -68,6 +70,7 @@ def ocr_predictor(
     symmetric_pad: bool = True,
     export_as_straight_boxes: bool = False,
     detect_orientation: bool = False,
+    straighten_pages: bool = False,
     detect_language: bool = False,
     **kwargs: Any,
 ) -> OCRPredictor:
@@ -96,6 +99,9 @@ def ocr_predictor(
             (potentially rotated) as straight bounding boxes.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
+            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
+            accordingly. Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `OCRPredictor`
@@ -114,6 +120,7 @@ def ocr_predictor(
         symmetric_pad=symmetric_pad,
         export_as_straight_boxes=export_as_straight_boxes,
         detect_orientation=detect_orientation,
+        straighten_pages=straighten_pages,
         detect_language=detect_language,
         **kwargs,
     )
@@ -130,6 +137,7 @@ def _kie_predictor(
     det_bs: int = 2,
     reco_bs: int = 128,
     detect_orientation: bool = False,
+    straighten_pages: bool = False,
     detect_language: bool = False,
     **kwargs,
 ) -> KIEPredictor:
@@ -159,6 +167,7 @@ def _kie_predictor(
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
         detect_orientation=detect_orientation,
+        straighten_pages=straighten_pages,
         detect_language=detect_language,
         **kwargs,
     )
@@ -174,6 +183,7 @@ def kie_predictor(
     symmetric_pad: bool = True,
     export_as_straight_boxes: bool = False,
     detect_orientation: bool = False,
+    straighten_pages: bool = False,
     detect_language: bool = False,
     **kwargs: Any,
 ) -> KIEPredictor:
@@ -202,6 +212,9 @@ def kie_predictor(
             (potentially rotated) as straight bounding boxes.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
+            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
+            accordingly. Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `OCRPredictor`
@@ -220,6 +233,7 @@ def kie_predictor(
         symmetric_pad=symmetric_pad,
         export_as_straight_boxes=export_as_straight_boxes,
         detect_orientation=detect_orientation,
+        straighten_pages=straighten_pages,
         detect_language=detect_language,
         **kwargs,
     )

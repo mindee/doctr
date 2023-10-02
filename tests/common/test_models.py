@@ -23,7 +23,7 @@ def mock_image(tmpdir_factory):
 
 @pytest.fixture(scope="function")
 def mock_bitmap(mock_image):
-    bitmap = np.squeeze(cv2.cvtColor(mock_image, cv2.COLOR_BGR2GRAY) / 255.0)
+    bitmap = np.squeeze(cv2.cvtColor(mock_image, cv2.COLOR_BGR2GRAY))
     return bitmap
 
 
@@ -32,20 +32,13 @@ def test_get_bitmap_angle(mock_bitmap):
     assert abs(angle - 30.0) < 1.0
 
 
-def test_estimate_orientation(mock_image, mock_tilted_payslip):
-    assert estimate_orientation(mock_image * 0) == 0
+def test_estimate_orientation(mock_bitmap):
+    assert estimate_orientation(mock_bitmap * 0) == 0
 
-    angle = estimate_orientation(mock_image)
+    angle = estimate_orientation(mock_bitmap)
     assert abs(angle - 30.0) < 1.0
 
-    rotated = geometry.rotate_image(mock_image, -angle)
-    angle_rotated = estimate_orientation(rotated)
-    assert abs(angle_rotated) < 1.0
-
-    mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
-    assert (estimate_orientation(mock_tilted_payslip) - 30.0) < 1.0
-
-    rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
+    rotated = geometry.rotate_image(mock_bitmap, -angle)
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) < 1.0
 
