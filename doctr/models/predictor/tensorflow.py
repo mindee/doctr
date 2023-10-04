@@ -12,7 +12,7 @@ from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import rotate_boxes, rotate_image
+from doctr.utils.geometry import rotate_image
 from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
@@ -90,7 +90,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 if self.detect_orientation
                 else [estimate_orientation(seq_map) for seq_map in seq_maps]
             )
-            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
+            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]
             # forward again to get predictions on straight pages
             loc_preds_dict = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
 
@@ -122,19 +122,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
         else:
             languages_dict = None
-        # Rotate back pages and boxes while keeping original image size
-        if self.straighten_pages:
-            boxes = [
-                rotate_boxes(
-                    page_boxes,
-                    angle,
-                    orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:],
-                    target_shape=mask,  # type: ignore[arg-type]
-                )
-                for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)
-            ]
 
         out = self.doc_builder(
+            pages,
             boxes,
             text_preds,
             origin_page_shapes,  # type: ignore[arg-type]
