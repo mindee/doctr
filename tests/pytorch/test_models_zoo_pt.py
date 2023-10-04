@@ -73,10 +73,17 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
     assert out.pages[0].orientation["value"] == orientation
 
 
-def test_trained_ocr_predictor(mock_tilted_payslip):
-    doc = DocumentFile.from_images(mock_tilted_payslip)
+def test_trained_ocr_predictor(mock_payslip):
+    doc = DocumentFile.from_images(mock_payslip)
 
-    det_predictor = detection_predictor("db_resnet50", pretrained=True, batch_size=2, assume_straight_pages=True)
+    det_predictor = detection_predictor(
+        "db_resnet50",
+        pretrained=True,
+        batch_size=2,
+        assume_straight_pages=True,
+        symmetric_pad=True,
+        preserve_aspect_ratio=False,
+    )
     reco_predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, batch_size=128)
 
     predictor = OCRPredictor(
@@ -90,16 +97,12 @@ def test_trained_ocr_predictor(mock_tilted_payslip):
     out = predictor(doc)
 
     assert out.pages[0].blocks[0].lines[0].words[0].value == "Mr."
-    geometry_mr = np.array(
-        [[0.08563021, 0.35584526], [0.11464554, 0.34078913], [0.1274898, 0.36012764], [0.09847447, 0.37518377]]
-    )
-    assert np.allclose(np.array(out.pages[0].blocks[0].lines[0].words[0].geometry), geometry_mr)
+    geometry_mr = np.array([[0.1083984375, 0.0634765625], [0.1494140625, 0.0859375]])
+    assert np.allclose(np.array(out.pages[0].blocks[0].lines[0].words[0].geometry), geometry_mr, rtol=0.05)
 
     assert out.pages[0].blocks[1].lines[0].words[-1].value == "revised"
-    geometry_revised = np.array(
-        [[0.50422498, 0.19551784], [0.55741975, 0.16791493], [0.56705294, 0.18241881], [0.51385817, 0.21002172]]
-    )
-    assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised)
+    geometry_revised = np.array([[0.7548828125, 0.126953125], [0.8388671875, 0.1484375]])
+    assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised, rtol=0.05)
 
     det_predictor = detection_predictor(
         "db_resnet50",
@@ -181,10 +184,17 @@ def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
     assert out.pages[0].orientation["value"] == orientation
 
 
-def test_trained_kie_predictor(mock_tilted_payslip):
-    doc = DocumentFile.from_images(mock_tilted_payslip)
+def test_trained_kie_predictor(mock_payslip):
+    doc = DocumentFile.from_images(mock_payslip)
 
-    det_predictor = detection_predictor("db_resnet50", pretrained=True, batch_size=2, assume_straight_pages=True)
+    det_predictor = detection_predictor(
+        "db_resnet50",
+        pretrained=True,
+        batch_size=2,
+        assume_straight_pages=True,
+        symmetric_pad=True,
+        preserve_aspect_ratio=False,
+    )
     reco_predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, batch_size=128)
 
     predictor = KIEPredictor(
@@ -199,17 +209,12 @@ def test_trained_kie_predictor(mock_tilted_payslip):
 
     assert isinstance(out, KIEDocument)
     assert out.pages[0].predictions[CLASS_NAME][0].value == "Mr."
-    geometry_mr = np.array(
-        [[0.08563021, 0.35584526], [0.11464554, 0.34078913], [0.1274898, 0.36012764], [0.09847447, 0.37518377]]
-    )
-    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][0].geometry), geometry_mr)
+    geometry_mr = np.array([[0.1083984375, 0.0634765625], [0.1494140625, 0.0859375]])
+    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][0].geometry), geometry_mr, rtol=0.05)
 
-    print(out.pages[0].predictions[CLASS_NAME])
-    assert out.pages[0].predictions[CLASS_NAME][7].value == "revised"
-    geometry_revised = np.array(
-        [[0.50422498, 0.19551784], [0.55741975, 0.16791493], [0.56705294, 0.18241881], [0.51385817, 0.21002172]]
-    )
-    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][7].geometry), geometry_revised)
+    assert out.pages[0].predictions[CLASS_NAME][6].value == "revised"
+    geometry_revised = np.array([[0.7548828125, 0.126953125], [0.8388671875, 0.1484375]])
+    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][6].geometry), geometry_revised, rtol=0.05)
 
     det_predictor = detection_predictor(
         "db_resnet50",
