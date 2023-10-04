@@ -60,7 +60,10 @@ RUN wget http://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION
     mkdir /opt/python/ && \
     ./configure --prefix=/opt/python && \
     make && \
-    make install
+    make install && \
+    cd .. && \
+    rm Python-$PYTHON_VERSION.tgz && \
+    rm -r Python-$PYTHON_VERSION
 
 ENV PATH=/opt/python/bin:$PATH
 
