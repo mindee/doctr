@@ -41,6 +41,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         the angle of the general document orientation
     """
 
+    assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
     if np.max(img) <= 1 and np.min(img) >= 0 or (np.max(img) <= 255 and np.min(img) >= 0 and img.shape[-1] == 1):
         thresh = img.astype(np.uint8)
     if np.max(img) <= 255 and np.min(img) >= 0 and img.shape[-1] == 3:
@@ -72,7 +73,8 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     if len(angles) == 0:
         return 0  # in case no angles is found
     else:
-        return -median_low(angles)
+        median = -median_low(angles)
+        return median if median != 0 else 0
 
 
 def rectify_crops(

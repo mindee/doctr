@@ -29,6 +29,9 @@ def test_documentbuilder():
     out = doc_builder(pages, [boxes, boxes], [[("hello", 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
     assert isinstance(out, Document)
     assert len(out.pages) == num_pages
+    assert all([isinstance(page.page, np.ndarray) for page in out.pages]) and all(
+        [page.page.shape == (100, 200, 3) for page in out.pages]
+    )
     # 1 Block & 1 line per page
     assert len(out.pages[0].blocks) == 1 and len(out.pages[0].blocks[0].lines) == 1
     assert len(out.pages[0].blocks[0].lines[0].words) == words_per_page
@@ -79,6 +82,9 @@ def test_kiedocumentbuilder():
     )
     assert isinstance(out, KIEDocument)
     assert len(out.pages) == num_pages
+    assert all([isinstance(page.page, np.ndarray) for page in out.pages]) and all(
+        [page.page.shape == (100, 200, 3) for page in out.pages]
+    )
     # 1 Block & 1 line per page
     assert len(out.pages[0].predictions) == 1
     assert len(out.pages[0].predictions[CLASS_NAME]) == words_per_page

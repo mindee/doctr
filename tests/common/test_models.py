@@ -52,6 +52,9 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
     angle_rotated = estimate_orientation(rotated)
     assert abs(angle_rotated) < 1.0
 
+    with pytest.raises(AssertionError):
+        estimate_orientation(np.ones((10, 10, 10)))
+
 
 def test_get_lang():
     sentence = "This is a test sentence."
