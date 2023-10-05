@@ -74,7 +74,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         return 0  # in case no angles is found
     else:
         median = -median_low(angles)
-        return median if median != 0 else 0
+        return median if abs(median) != 0 else 0
 
 
 def rectify_crops(
