@@ -51,7 +51,7 @@ class DetectionPredictor(NestedObject):
         ]
 
         preds = [pred for batch in predicted_batches for pred in batch["preds"]]
-        seq_maps = [pred.numpy() for batch in predicted_batches for pred in batch["out_map"]]
+        seg_maps = [pred.numpy() for batch in predicted_batches for pred in batch["out_map"]]
         if return_maps:
-            return preds, seq_maps
+            return preds, seg_maps
         return preds

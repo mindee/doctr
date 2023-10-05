@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from langdetect import LangDetectException, detect_langs
 
-__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language", "invert_data_structure"]
+__all__ = ["estimate_orientation", "get_language", "invert_data_structure"]
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -27,12 +27,12 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     return max(w / h, h / w)
 
 
-def estimate_orientation(seq_map: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
+def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
 
     Args:
-        seq_map: the binarized image of the document
+        img: the img or bitmap to analyze (H, W, C)
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
 
@@ -41,12 +41,19 @@ def estimate_orientation(seq_map: np.ndarray, n_ct: int = 50, ratio_threshold_fo
         the angle of the general document orientation
     """
 
+    if np.max(img) <= 1 and np.min(img) >= 0 or (np.max(img) <= 255 and np.min(img) >= 0 and img.shape[-1] == 1):
+        thresh = img.astype(np.uint8)
+    if np.max(img) <= 255 and np.min(img) >= 0 and img.shape[-1] == 3:
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray_img = cv2.medianBlur(gray_img, 5)
+        thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
     # try to merge words in lines
-    (h, w) = seq_map.shape[:2]
+    (h, w) = img.shape[:2]
     k_x = max(1, (floor(w / 100)))
     k_y = max(1, (floor(h / 100)))
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
-    thresh = cv2.dilate(seq_map, kernel, iterations=1)
+    thresh = cv2.dilate(thresh, kernel, iterations=1)
 
     # extract contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -66,46 +73,6 @@ def estimate_orientation(seq_map: np.ndarray, n_ct: int = 50, ratio_threshold_fo
         return 0  # in case no angles is found
     else:
         return -median_low(angles)
-
-
-def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.0) -> float:
-    """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
-
-    Args:
-    ----
-        bitmap: binarized segmentation map
-        n_ct: number of contours to use to fit page angle
-        std_max: maximum deviation of the angle distribution to consider the mean angle reliable
-
-    Returns:
-    -------
-        The angle of the page
-    """
-    # Find all contours on binarized seg map
-    contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # Sort contours
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
-
-    # Find largest contours and fit angles
-    # Track heights and widths to find aspect ratio (determine is rotation is clockwise)
-    angles, heights, widths = [], [], []
-    for ct in contours[:n_ct]:
-        _, (w, h), alpha = cv2.minAreaRect(ct)
-        widths.append(w)
-        heights.append(h)
-        angles.append(alpha)
-
-    if np.std(angles) > std_max:
-        # Edge case with angles of both 0 and 90°, or multi_oriented docs
-        angle = 0.0
-    else:
-        angle = -np.mean(angles)
-        # Determine rotation direction (clockwise/counterclockwise)
-        # Angle coverage: [-90°, +90°], half of the quadrant
-        if np.sum(widths) < np.sum(heights):  # CounterClockwise
-            angle = 90 + angle
-
-    return angle
 
 
 def rectify_crops(

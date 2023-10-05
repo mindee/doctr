@@ -76,9 +76,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         loc_preds_dict, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
 
         # Detect document rotation and rotate pages
-        seq_maps = [np.where(out_map > kwargs.get("bin_thresh", 0.3), 255, 0).astype(np.uint8) for out_map in out_maps]
+        seg_maps = [np.where(out_map > kwargs.get("bin_thresh", 0.3), 255, 0).astype(np.uint8) for out_map in out_maps]
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seq_maps]
+            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seg_maps]
             orientations = [
                 {"value": orientation_page, "confidence": None} for orientation_page in origin_page_orientations
             ]
@@ -88,7 +88,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             origin_page_orientations = (
                 origin_page_orientations
                 if self.detect_orientation
-                else [estimate_orientation(seq_map) for seq_map in seq_maps]
+                else [estimate_orientation(seq_map) for seq_map in seg_maps]
             )
             pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]
             # forward again to get predictions on straight pages

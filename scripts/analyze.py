@@ -31,8 +31,8 @@ def main(args):
 
     out = model(doc)
 
-    for page, img in zip(out.pages, doc):
-        page.show(img, block=not args.noblock, interactive=not args.static)
+    for page in out.pages:
+        page.show(block=not args.noblock, interactive=not args.static)
 
 
 def parse_args():
