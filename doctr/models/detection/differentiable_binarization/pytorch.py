@@ -208,11 +208,8 @@ class DBNet(_DBNet, nn.Module):
         if return_model_output:
             out["out_map"] = prob_map
 
-        def need_conversion_to_float(dtype):
-            # pytorch: torch/csrc/utils/tensor_numpy.cpp:aten_to_numpy_dtype
-            return dtype in [torch.bfloat16]
-
-        numpy_dtype_converter = lambda x: x.float() if need_conversion_to_float(x.dtype) else x
+        # bfloat16 is not supported in .numpy(): torch/csrc/utils/tensor_numpy.cpp:aten_to_numpy_dtype
+        numpy_dtype_converter = lambda x: x.float() if x.dtype in [torch.bfloat16] else x
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
             out["preds"] = [
