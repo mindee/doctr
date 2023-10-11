@@ -15,7 +15,12 @@ from tensorflow.keras import Model, Sequential, layers
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
-from doctr.models.utils import IntermediateLayerGetter, conv_sequence, load_pretrained_params
+from doctr.models.utils import (
+    IntermediateLayerGetter,
+    _bf16_numpy_dtype_converter,
+    conv_sequence,
+    load_pretrained_params,
+)
 from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
@@ -229,7 +234,8 @@ class LinkNet(_LinkNet, keras.Model):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = tf.math.sigmoid(logits)
+            prob_map = _bf16_numpy_dtype_converter(tf.math.sigmoid(logits))
+
         if return_model_output:
             out["out_map"] = prob_map
 

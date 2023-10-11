@@ -16,7 +16,7 @@ from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 from ...classification import vit_s
-from ...utils.tensorflow import load_pretrained_params
+from ...utils.tensorflow import _bf16_numpy_dtype_converter, load_pretrained_params
 from .base import _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
@@ -388,7 +388,7 @@ class PARSeq(_PARSeq, Model):
                     )
                 )
         else:
-            logits = self.decode_autoregressive(features, **kwargs)
+            logits = _bf16_numpy_dtype_converter(self.decode_autoregressive(features, **kwargs))
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:

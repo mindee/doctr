@@ -12,7 +12,7 @@ from tensorflow.keras import Model, layers
 from doctr.datasets import VOCABS
 
 from ...classification import vit_b, vit_s
-from ...utils.tensorflow import load_pretrained_params
+from ...utils.tensorflow import _bf16_numpy_dtype_converter, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
@@ -131,7 +131,7 @@ class ViTSTR(_ViTSTR, Model):
         logits = tf.reshape(
             self.head(features, **kwargs), (B, N, len(self.vocab) + 1)
         )  # (batch_size, max_length, vocab + 1)
-        decoded_features = logits[:, 1:]  # remove cls_token
+        decoded_features = _bf16_numpy_dtype_converter(logits[:, 1:])  # remove cls_token
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
