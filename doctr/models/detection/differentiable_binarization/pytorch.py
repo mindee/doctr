@@ -16,7 +16,7 @@ from torchvision.ops.deform_conv import DeformConv2d
 from doctr.file_utils import CLASS_NAME
 
 from ...classification import mobilenet_v3_large
-from ...utils import load_pretrained_params
+from ...utils import load_pretrained_params, numpy_dtype_converter
 from .base import DBPostProcessor, _DBNet
 
 __all__ = ["DBNet", "db_resnet50", "db_resnet34", "db_mobilenet_v3_large", "db_resnet50_rotation"]
@@ -208,13 +208,13 @@ class DBNet(_DBNet, nn.Module):
         if return_model_output:
             out["out_map"] = prob_map
 
-        # bfloat16 is not supported in .numpy(): torch/csrc/utils/tensor_numpy.cpp:aten_to_numpy_dtype
-        numpy_dtype_converter = lambda x: x.float() if x.dtype in [torch.bfloat16] else x
         if target is None or return_preds:
             # Post-process boxes (keep only text predictions)
             out["preds"] = [
                 dict(zip(self.class_names, preds))
-                for preds in self.postprocessor(numpy_dtype_converter(prob_map.detach().cpu().permute((0, 2, 3, 1))).numpy())
+                for preds in self.postprocessor(
+                    numpy_dtype_converter(prob_map.detach().cpu().permute((0, 2, 3, 1))).numpy()
+                )
             ]
 
         if target is not None:

@@ -11,7 +11,14 @@ from torch import nn
 
 from doctr.utils.data import download_from_url
 
-__all__ = ["load_pretrained_params", "conv_sequence_pt", "set_device_and_dtype", "export_model_to_onnx", "_copy_tensor"]
+__all__ = [
+    "load_pretrained_params",
+    "conv_sequence_pt",
+    "set_device_and_dtype",
+    "export_model_to_onnx",
+    "_copy_tensor",
+    "numpy_dtype_converter",
+]
 
 
 def _copy_tensor(x: torch.Tensor) -> torch.Tensor:
@@ -150,3 +157,8 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
     )
     logging.info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx"
+
+
+def numpy_dtype_converter(input):
+    # bfloat16 is not supported in .numpy(): torch/csrc/utils/tensor_numpy.cpp:aten_to_numpy_dtype
+    return input.float() if input.dtype in [torch.bfloat16] else input
