@@ -15,12 +15,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.applications import ResNet50
 
 from doctr.file_utils import CLASS_NAME
-from doctr.models.utils import (
-    IntermediateLayerGetter,
-    _bf16_numpy_dtype_converter,
-    conv_sequence,
-    load_pretrained_params,
-)
+from doctr.models.utils import IntermediateLayerGetter, _bf16_to_numpy_dtype, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from ...classification import mobilenet_v3_large
@@ -246,7 +241,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_numpy_dtype_converter(tf.math.sigmoid(logits))
+            prob_map = _bf16_to_numpy_dtype(tf.math.sigmoid(logits))
 
         if return_model_output:
             out["out_map"] = prob_map

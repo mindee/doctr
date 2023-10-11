@@ -23,7 +23,7 @@ __all__ = [
     "IntermediateLayerGetter",
     "export_model_to_onnx",
     "_copy_tensor",
-    "_bf16_numpy_dtype_converter",
+    "_bf16_to_numpy_dtype",
 ]
 
 
@@ -31,7 +31,7 @@ def _copy_tensor(x: tf.Tensor) -> tf.Tensor:
     return tf.identity(x)
 
 
-def _bf16_numpy_dtype_converter(x: tf.Tensor) -> tf.Tensor:
+def _bf16_to_numpy_dtype(x: tf.Tensor) -> tf.Tensor:
     # Convert bfloat16 to float32 for numpy compatibility
     return tf.cast(x, tf.float32) if x.dtype == tf.bfloat16 else x
 

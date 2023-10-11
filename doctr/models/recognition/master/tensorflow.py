@@ -13,7 +13,7 @@ from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
 from doctr.models.modules.transformer import Decoder, PositionalEncoding
 
-from ...utils.tensorflow import _bf16_numpy_dtype_converter, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_numpy_dtype, load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ["MASTER", "master"]
@@ -181,7 +181,7 @@ class MASTER(_MASTER, Model):
             output = self.decoder(gt, encoded, source_mask, target_mask, **kwargs)
             logits = self.linear(output, **kwargs)
         else:
-            logits = _bf16_numpy_dtype_converter(self.decode(encoded, **kwargs))
+            logits = _bf16_to_numpy_dtype(self.decode(encoded, **kwargs))
 
         if self.exportable:
             out["logits"] = logits
