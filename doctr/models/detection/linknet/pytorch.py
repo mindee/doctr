@@ -14,7 +14,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 
-from ...utils import load_pretrained_params
+from ...utils import load_pretrained_params, numpy_dtype_converter
 from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
@@ -183,7 +183,9 @@ class LinkNet(nn.Module, _LinkNet):
             # Post-process boxes
             out["preds"] = [
                 dict(zip(self.class_names, preds))
-                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+                for preds in self.postprocessor(
+                    numpy_dtype_converter(prob_map.detach().cpu().permute((0, 2, 3, 1))).numpy()
+                )
             ]
 
         if target is not None:
