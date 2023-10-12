@@ -5,13 +5,25 @@ import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 from tensorflow.keras.applications import ResNet50
 
-from doctr.models.utils import IntermediateLayerGetter, _copy_tensor, conv_sequence, load_pretrained_params
+from doctr.models.utils import (
+    IntermediateLayerGetter,
+    _bf16_to_numpy_dtype,
+    _copy_tensor,
+    conv_sequence,
+    load_pretrained_params,
+)
 
 
 def test_copy_tensor():
     x = tf.random.uniform(shape=[8], minval=0, maxval=1)
     m = _copy_tensor(x)
     assert m.device == x.device and m.dtype == x.dtype and m.shape == x.shape and tf.reduce_all(tf.equal(m, x))
+
+
+def test_bf16_to_numpy_dtype():
+    x = tf.random.uniform(shape=[8], minval=0, maxval=1, dtype=tf.bfloat16)
+    m = _bf16_to_numpy_dtype(x)
+    assert x.dtype == tf.bfloat16 and m.dtype == tf.float32 and tf.reduce_all(tf.equal(m, tf.cast(x, tf.float32)))
 
 
 def test_load_pretrained_params(tmpdir_factory):

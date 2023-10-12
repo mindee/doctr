@@ -19,6 +19,12 @@ def test_copy_tensor():
     assert m.device == x.device and m.dtype == x.dtype and m.shape == x.shape and torch.allclose(m, x)
 
 
+def test_bf16_to_numpy_dtype():
+    x = torch.randn([2, 2], dtype=torch.bfloat16)
+    converted_x = _bf16_to_numpy_dtype(x)
+    assert x.dtype == torch.bfloat16 and converted_x.dtype == torch.float32 and torch.equal(converted_x, x.float())
+
+
 def test_load_pretrained_params(tmpdir_factory):
     model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))
     # Retrieve this URL
@@ -58,9 +64,3 @@ def test_set_device_and_dtype():
     model, batches = set_device_and_dtype(model, batches, device="cpu", dtype=torch.float16)
     assert model[0].weight.dtype == torch.float16
     assert batches[0].dtype == torch.float16
-
-
-def test_bf16_to_numpy_dtype():
-    x = torch.randn([2, 2], dtype=torch.bfloat16)
-    converted_x = _bf16_to_numpy_dtype(x)
-    assert x.dtype == torch.bfloat16 and converted_x.dtype == torch.float32 and torch.equal(converted_x, x.float())

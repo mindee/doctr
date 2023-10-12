@@ -249,7 +249,7 @@ def _crnn(
     _cfg["input_shape"] = kwargs["input_shape"]
 
     # Build the model
-    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)  # type: ignore[arg-type]
+    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>

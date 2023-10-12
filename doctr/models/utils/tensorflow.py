@@ -17,11 +17,23 @@ from doctr.utils.data import download_from_url
 logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 
-__all__ = ["load_pretrained_params", "conv_sequence", "IntermediateLayerGetter", "export_model_to_onnx", "_copy_tensor"]
+__all__ = [
+    "load_pretrained_params",
+    "conv_sequence",
+    "IntermediateLayerGetter",
+    "export_model_to_onnx",
+    "_copy_tensor",
+    "_bf16_to_numpy_dtype",
+]
 
 
 def _copy_tensor(x: tf.Tensor) -> tf.Tensor:
     return tf.identity(x)
+
+
+def _bf16_to_numpy_dtype(x: tf.Tensor) -> tf.Tensor:
+    # Convert bfloat16 to float32 for numpy compatibility
+    return tf.cast(x, tf.float32) if x.dtype == tf.bfloat16 else x
 
 
 def load_pretrained_params(
