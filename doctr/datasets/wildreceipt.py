@@ -44,13 +44,13 @@ class WILDRECEIPT(AbstractDataset):
     """
 
     def __init__(
-        self,
-        img_folder: str,
-        label_path: str,
-        train: bool = True,
-        use_polygons: bool = False,
-        recognition_task: bool = False,
-        **kwargs: Any,
+            self,
+            img_folder: str,
+            label_path: str,
+            train: bool = True,
+            use_polygons: bool = False,
+            recognition_task: bool = False,
+            **kwargs: Any,
     ) -> None:
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
@@ -75,8 +75,8 @@ class WILDRECEIPT(AbstractDataset):
             json_data = json.loads(json_string)
             file_name = json_data['file_name']
             annotations = json_data['annotations']
-            _targets = [(convert_xmin_ymin(annotation['box']), annotation['text'].lower(), annotation['label'])
-                        for annotation in annotations if get_area(convert_xmin_ymin(annotation['box'])) >= 50]
+            _targets = [(_convert_xmin_ymin(annotation['box']), annotation['text'].lower(), annotation['label'])
+                        for annotation in annotations]
             if _targets:
                 box_targets, text_units, labels = zip(*_targets)
 
@@ -91,11 +91,15 @@ class WILDRECEIPT(AbstractDataset):
 def extra_repr(self) -> str:
     return f"train={self.train}"
 
+
 def _read_from_folder(self, path: str) -> None:
     for img_path in glob.glob(os.path.join(path, "*.png")):
         with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
             self.data.append((img_path, f.read()))
-def _convert_xmin_ymin(self, box) -> List:
+
+
+@classmethod
+def _convert_xmin_ymin(box: List) -> List:
     if len(box) == 4:
         return box
     x1, y1, x2, y2, x3, y3, x4, y4 = box
@@ -104,6 +108,3 @@ def _convert_xmin_ymin(self, box) -> List:
     y_min = min(y1, y2, y3, y4)
     y_max = max(y1, y2, y3, y4)
     return [x_min, y_min, x_max, y_max]
-
-
-
