@@ -403,7 +403,9 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
             for encoded_seq in out_idxs.cpu().numpy()
         ]
         # compute probabilties for each word up to the EOS token
-        probs = [preds_prob[i, : len(word)].clip(0, 1).mean().item() for i, word in enumerate(word_values)]
+        probs = [
+            preds_prob[i, : len(word)].clip(0, 1).mean().item() if word else 0.0 for i, word in enumerate(word_values)
+        ]
 
         return list(zip(word_values, probs))
 
