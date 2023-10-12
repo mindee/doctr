@@ -7,7 +7,7 @@ from tensorflow.keras.applications import ResNet50
 
 from doctr.models.utils import (
     IntermediateLayerGetter,
-    _bf16_to_numpy_dtype,
+    _bf16_to_float32,
     _copy_tensor,
     conv_sequence,
     load_pretrained_params,
@@ -20,9 +20,9 @@ def test_copy_tensor():
     assert m.device == x.device and m.dtype == x.dtype and m.shape == x.shape and tf.reduce_all(tf.equal(m, x))
 
 
-def test_bf16_to_numpy_dtype():
+def test_bf16_to_float32():
     x = tf.random.uniform(shape=[8], minval=0, maxval=1, dtype=tf.bfloat16)
-    m = _bf16_to_numpy_dtype(x)
+    m = _bf16_to_float32(x)
     assert x.dtype == tf.bfloat16 and m.dtype == tf.float32 and tf.reduce_all(tf.equal(m, tf.cast(x, tf.float32)))
 
 

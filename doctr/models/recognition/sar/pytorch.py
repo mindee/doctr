@@ -14,7 +14,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from doctr.datasets import VOCABS
 
 from ...classification import resnet31
-from ...utils.pytorch import _bf16_to_numpy_dtype, load_pretrained_params
+from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["SAR", "sar_resnet31"]
@@ -249,7 +249,7 @@ class SAR(nn.Module, RecognitionModel):
         if self.training and target is None:
             raise ValueError("Need to provide labels during training for teacher forcing")
 
-        decoded_features = _bf16_to_numpy_dtype(self.decoder(features, encoded, gt=None if target is None else gt))
+        decoded_features = _bf16_to_float32(self.decoder(features, encoded, gt=None if target is None else gt))
 
         out: Dict[str, Any] = {}
         if self.exportable:

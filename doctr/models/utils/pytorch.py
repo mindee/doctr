@@ -17,7 +17,7 @@ __all__ = [
     "set_device_and_dtype",
     "export_model_to_onnx",
     "_copy_tensor",
-    "_bf16_to_numpy_dtype",
+    "_bf16_to_float32",
 ]
 
 
@@ -25,7 +25,7 @@ def _copy_tensor(x: torch.Tensor) -> torch.Tensor:
     return x.clone().detach()
 
 
-def _bf16_to_numpy_dtype(x: torch.Tensor) -> torch.Tensor:
+def _bf16_to_float32(x: torch.Tensor) -> torch.Tensor:
     # bfloat16 is not supported in .numpy(): torch/csrc/utils/tensor_numpy.cpp:aten_to_numpy_dtype
     return x.float() if x.dtype == torch.bfloat16 else x
 
