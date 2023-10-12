@@ -14,7 +14,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 
-from ...utils import _bf16_to_numpy_dtype, load_pretrained_params
+from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
@@ -175,7 +175,7 @@ class LinkNet(nn.Module, _LinkNet):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_to_numpy_dtype(torch.sigmoid(logits))
+            prob_map = _bf16_to_float32(torch.sigmoid(logits))
         if return_model_output:
             out["out_map"] = prob_map
 

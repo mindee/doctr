@@ -16,7 +16,7 @@ from torchvision.ops.deform_conv import DeformConv2d
 from doctr.file_utils import CLASS_NAME
 
 from ...classification import mobilenet_v3_large
-from ...utils import _bf16_to_numpy_dtype, load_pretrained_params
+from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 
 __all__ = ["DBNet", "db_resnet50", "db_resnet34", "db_mobilenet_v3_large", "db_resnet50_rotation"]
@@ -203,7 +203,7 @@ class DBNet(_DBNet, nn.Module):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_to_numpy_dtype(torch.sigmoid(logits))
+            prob_map = _bf16_to_float32(torch.sigmoid(logits))
 
         if return_model_output:
             out["out_map"] = prob_map

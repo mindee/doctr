@@ -5,7 +5,7 @@ import torch
 from torch import nn
 
 from doctr.models.utils import (
-    _bf16_to_numpy_dtype,
+    _bf16_to_float32,
     _copy_tensor,
     conv_sequence_pt,
     load_pretrained_params,
@@ -19,9 +19,9 @@ def test_copy_tensor():
     assert m.device == x.device and m.dtype == x.dtype and m.shape == x.shape and torch.allclose(m, x)
 
 
-def test_bf16_to_numpy_dtype():
+def test_bf16_to_float32():
     x = torch.randn([2, 2], dtype=torch.bfloat16)
-    converted_x = _bf16_to_numpy_dtype(x)
+    converted_x = _bf16_to_float32(x)
     assert x.dtype == torch.bfloat16 and converted_x.dtype == torch.float32 and torch.equal(converted_x, x.float())
 
 

@@ -13,7 +13,7 @@ from doctr.datasets import VOCABS
 from doctr.utils.repr import NestedObject
 
 from ...classification import resnet31
-from ...utils.tensorflow import _bf16_to_numpy_dtype, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["SAR", "sar_resnet31"]
@@ -316,7 +316,7 @@ class SAR(Model, RecognitionModel):
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training for teacher forcing")
 
-        decoded_features = _bf16_to_numpy_dtype(
+        decoded_features = _bf16_to_float32(
             self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
         )
 
