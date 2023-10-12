@@ -183,7 +183,7 @@ class LinkNet(nn.Module, _LinkNet):
             # Post-process boxes
             out["preds"] = [
                 dict(zip(self.class_names, preds))
-                for preds in self.postprocessor((prob_map.detach().cpu().permute((0, 2, 3, 1))).numpy())
+                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
             ]
 
         if target is not None:
