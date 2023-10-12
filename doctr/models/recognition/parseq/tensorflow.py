@@ -388,7 +388,9 @@ class PARSeq(_PARSeq, Model):
                     )
                 )
         else:
-            logits = _bf16_to_numpy_dtype(self.decode_autoregressive(features, **kwargs))
+            logits = self.decode_autoregressive(features, **kwargs)
+
+        logits = _bf16_to_numpy_dtype(logits)
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:

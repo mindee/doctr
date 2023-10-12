@@ -181,7 +181,9 @@ class MASTER(_MASTER, Model):
             output = self.decoder(gt, encoded, source_mask, target_mask, **kwargs)
             logits = self.linear(output, **kwargs)
         else:
-            logits = _bf16_to_numpy_dtype(self.decode(encoded, **kwargs))
+            logits = self.decode(encoded, **kwargs)
+
+        logits = _bf16_to_numpy_dtype(logits)
 
         if self.exportable:
             out["logits"] = logits
