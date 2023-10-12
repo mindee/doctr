@@ -5,10 +5,10 @@ import torch
 from torch import nn
 
 from doctr.models.utils import (
+    _bf16_to_numpy_dtype,
     _copy_tensor,
     conv_sequence_pt,
     load_pretrained_params,
-    numpy_dtype_converter,
     set_device_and_dtype,
 )
 
@@ -60,7 +60,7 @@ def test_set_device_and_dtype():
     assert batches[0].dtype == torch.float16
 
 
-def test_numpy_dtype_converter():
-    input = torch.randn([2, 2], dtype=torch.bfloat16)
-    converted_input = numpy_dtype_converter(input)
-    assert converted_input.dtype == torch.float32
+def test_bf16_to_numpy_dtype():
+    x = torch.randn([2, 2], dtype=torch.bfloat16)
+    converted_x = _bf16_to_numpy_dtype(x)
+    assert x.dtype == torch.bfloat16 and converted_x.dtype == torch.float32 and torch.equal(converted_x, x.float())
