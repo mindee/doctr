@@ -18,7 +18,7 @@ from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 from ...classification import vit_s
-from ...utils.pytorch import load_pretrained_params
+from ...utils.pytorch import _bf16_to_numpy_dtype, load_pretrained_params
 from .base import _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
@@ -361,6 +361,8 @@ class PARSeq(_PARSeq, nn.Module):
                 loss = F.cross_entropy(logits.flatten(end_dim=1), gt.flatten(), ignore_index=self.vocab_size + 2)
         else:
             logits = self.decode_autoregressive(features)
+
+        logits = _bf16_to_numpy_dtype(logits)
 
         out: Dict[str, Any] = {}
         if self.exportable:

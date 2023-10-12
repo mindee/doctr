@@ -14,7 +14,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from doctr.datasets import VOCABS
 
 from ...classification import vit_b, vit_s
-from ...utils.pytorch import load_pretrained_params
+from ...utils.pytorch import _bf16_to_numpy_dtype, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
@@ -95,7 +95,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         B, N, E = features.size()
         features = features.reshape(B * N, E)
         logits = self.head(features).view(B, N, len(self.vocab) + 1)  # (batch_size, max_length, vocab + 1)
-        decoded_features = logits[:, 1:]  # remove cls_token
+        decoded_features = _bf16_to_numpy_dtype(logits[:, 1:])  # remove cls_token
 
         out: Dict[str, Any] = {}
         if self.exportable:
