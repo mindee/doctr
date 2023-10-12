@@ -4,7 +4,13 @@ import pytest
 import torch
 from torch import nn
 
-from doctr.models.utils import _copy_tensor, conv_sequence_pt, load_pretrained_params, set_device_and_dtype
+from doctr.models.utils import (
+    _bf16_to_numpy_dtype,
+    _copy_tensor,
+    conv_sequence_pt,
+    load_pretrained_params,
+    set_device_and_dtype,
+)
 
 
 def test_copy_tensor():
@@ -52,3 +58,9 @@ def test_set_device_and_dtype():
     model, batches = set_device_and_dtype(model, batches, device="cpu", dtype=torch.float16)
     assert model[0].weight.dtype == torch.float16
     assert batches[0].dtype == torch.float16
+
+
+def test_bf16_to_numpy_dtype():
+    x = torch.randn([2, 2], dtype=torch.bfloat16)
+    converted_x = _bf16_to_numpy_dtype(x)
+    assert x.dtype == torch.bfloat16 and converted_x.dtype == torch.float32 and torch.equal(converted_x, x.float())

@@ -15,7 +15,7 @@ from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
 from doctr.models.modules.transformer import Decoder, PositionalEncoding
 
-from ...utils.pytorch import load_pretrained_params
+from ...utils.pytorch import _bf16_to_numpy_dtype, load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ["MASTER", "master"]
@@ -194,6 +194,8 @@ class MASTER(_MASTER, nn.Module):
             logits = self.linear(output)
         else:
             logits = self.decode(encoded)
+
+        logits = _bf16_to_numpy_dtype(logits)
 
         if self.exportable:
             out["logits"] = logits
