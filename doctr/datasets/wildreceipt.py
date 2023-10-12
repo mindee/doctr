@@ -66,7 +66,7 @@ class WILDRECEIPT(AbstractDataset):
 
         self.filename = "train.txt" if self.train else "test.txt"
         file_path = os.path.join(tmp_root, self.filename)
-        # logger.debug(f'the file names: {tmp_root}')
+
         with open(file_path, 'r') as file:
             data = file.read()
         # Split the text file into separate JSON strings
