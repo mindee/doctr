@@ -27,7 +27,7 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     return max(w / h, h / w)
 
 
-def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
+def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> int:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
 
@@ -74,7 +74,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         return 0  # in case no angles is found
     else:
         median = -median_low(angles)
-        return median if abs(median) != 0 else 0
+        return round(median) if abs(median) != 0 else 0
 
 
 def rectify_crops(
