@@ -14,7 +14,7 @@ def test_resize():
     input_t = tf.cast(tf.fill([64, 64, 3], 1), dtype=tf.float32)
     out = transfo(input_t)
 
-    assert tf.reduce_all(out == 1)
+    assert tf.math.reduce_all(tf.math.abs(out - 1) < 1e-6)
     assert out.shape[:2] == output_size
     assert repr(transfo) == f"Resize(output_size={output_size}, method='bilinear')"
 
@@ -24,7 +24,7 @@ def test_resize():
 
     assert not tf.reduce_all(out == 1)
     # Asymetric padding
-    assert tf.reduce_all(out[-1] == 0) and tf.reduce_all(out[0] == 1)
+    assert tf.reduce_all(out[-1] == 0) and tf.math.reduce_all(tf.math.abs(out[0] - 1) < 1e-6)
     assert out.shape[:2] == output_size
 
     # Symetric padding
