@@ -23,7 +23,7 @@ __all__ = ["WILDRECEIPT"]
 class WILDRECEIPT(AbstractDataset):
     """WildReceipt is a collection of receipts. It contains, for each photo, of a list of OCRs - with bounding box, text, and class."
     <https://arxiv.org/abs/2103.14470v1>`_ |
-
+    `repository <https://download.openmmlab.com/mmocr/data/wildreceipt.tar>`_.
 
     >>> # NOTE: You need to download/generate the dataset from the repository.
     >>> from doctr.datasets import WILDRECEIPT

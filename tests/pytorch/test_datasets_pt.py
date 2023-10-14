@@ -551,6 +551,30 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
 
+@pytest.mark.parametrize("rotate", [True, False])
+@pytest.mark.parametrize(
+    "input_size, num_samples, recognition",
+    [
+        [[512, 512], 3, False],  # Actual set has 7149 train and 796 test samples
+        [[32, 128], 5, True],  # recognition
+    ],
+)
+def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt):
+    ds = datasets.WILDRECEIPT(
+        *mock_wildreceipt,
+        train=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+    )
+
+    assert len(ds) == num_samples - 1  # -1 because of the test set 90 / 10 split
+    assert repr(ds) == f"WILDRECEIPT(train={True})"
+    if recognition:
+        _validate_dataset_recognition_part(ds, input_size)
+    else:
+        _validate_dataset(ds, input_size, is_polygons=rotate)
+
 # NOTE: following datasets are only for recognition task
 
 
