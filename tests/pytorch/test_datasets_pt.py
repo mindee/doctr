@@ -555,8 +555,8 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
 @pytest.mark.parametrize(
     "input_size, num_samples, recognition",
     [
-        [[512, 512], 3, False],  # Actual set has 7149 train and 796 test samples
-        [[32, 128], 5, True],  # recognition
+        [[512, 512], 3, False],
+        [[32, 128], 5, True],
     ],
 )
 def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt):
@@ -567,7 +567,7 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_
         use_polygons=rotate,
         recognition_task=recognition,
     )
-
+    # TODO: FINISH THIS
     assert len(ds) == num_samples - 1  # -1 because of the test set 90 / 10 split
     assert repr(ds) == f"WILDRECEIPT(train={True})"
     if recognition:
