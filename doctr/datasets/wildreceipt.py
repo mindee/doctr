@@ -61,7 +61,7 @@ class WILDRECEIPT(AbstractDataset):
 
         tmp_root = os.path.join(self.root, 'wildreceipt/')
         self.train = train
-
+        np_dtype = np.float32
         self.data: List[Tuple[str, Dict[str, Any]]] = []
 
         self.filename = "train.txt" if self.train else "test.txt"
@@ -71,20 +71,37 @@ class WILDRECEIPT(AbstractDataset):
             data = file.read()
         # Split the text file into separate JSON strings
         json_strings = data.strip().split('\n')
+        box: Union[List[float], np.ndarray]
+        _targets = []
         for json_string in json_strings:
             json_data = json.loads(json_string)
             file_name = json_data['file_name']
             annotations = json_data['annotations']
-            _targets = [(_convert_xmin_ymin(annotation['box']), annotation['text'].lower(), annotation['label'])
-                        for annotation in annotations]
-            if _targets:
-                box_targets, text_units, labels = zip(*_targets)
+            for annotation in annotations:
+                coordinates = annotation['box']
+                if use_polygons:
+                    # (x, y) coordinates of top left, top right, bottom right, bottom left corners
+                    box = np.array(
+                        [
+                            [coordinates[0], coordinates[1]],
+                            [coordinates[2], coordinates[3]],
+                            [coordinates[4], coordinates[5]],
+                            [coordinates[6], coordinates[7]],
+                        ],
+                        dtype=np_dtype
+                    )
+                else:
+                    box = _convert_xmin_ymin(coordinates)
+                _targets = [(_convert_xmin_ymin(annotation['box']), annotation['text'].lower(), annotation['label'])
+                            for annotation in annotations]
+                if _targets:
+                    box_targets, text_units, labels = zip(*_targets)
 
-                self.data.append((
-                    file_name,
-                    dict(boxes=np.asarray(box_targets, dtype=int), labels=list(labels),
-                         text_units=list(text_units)),
-                ))
+                    self.data.append((
+                        file_name,
+                        dict(boxes=np.asarray(box_targets, dtype=int), labels=list(labels),
+                             text_units=list(text_units)),
+                    ))
         self.root = tmp_root
 
 
