@@ -99,9 +99,10 @@ def ocr_predictor(
             (potentially rotated) as straight bounding boxes.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
-            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
-            accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        straighten_pages: if True, estimates the page general orientation
+            based on the segmentation map median line orientation.
+            Then, rotates page before passing it again to the deep learning detection module.
+            Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `OCRPredictor`
@@ -212,9 +213,10 @@ def kie_predictor(
             (potentially rotated) as straight bounding boxes.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        straighten_pages: if True, estimates the page general orientation based on the median line orientation.
-            Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
-            accordingly. Doing so will improve performances for documents with page-uniform rotations.
+        straighten_pages: if True, estimates the page general orientation
+            based on the segmentation map median line orientation.
+            Then, rotates page before passing it again to the deep learning detection module.
+            Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `OCRPredictor`
