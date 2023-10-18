@@ -555,8 +555,8 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
 @pytest.mark.parametrize(
     "input_size, num_samples, recognition",
     [
-        [[512, 512], 3, False],
-        [[32, 128], 5, True],
+        [[512, 512], 2, False],
+        [[32, 128], 2, True],
     ],
 )
 def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt_dataset):

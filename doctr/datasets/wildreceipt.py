@@ -112,7 +112,7 @@ class WILDRECEIPT(AbstractDataset):
             with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
                 self.data.append((img_path, f.read()))
 
-    @classmethod
+    @staticmethod
     def _convert_xmin_ymin(box: List) -> List:
         if len(box) == 4:
             return box

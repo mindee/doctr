@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import tempfile
 from io import BytesIO
@@ -662,10 +663,10 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     wildreceipt_root = root.mkdir("wildreceipt")
     annotations_folder = wildreceipt_root
     image_folder = wildreceipt_root.mkdir("image_files")
-    image_folder = image_folder.mkdir("Image_58")
-    image_folder = image_folder.mkdir("20")
+    # image_folder = image_folder.mkdir("Image_58")
+    # image_folder = image_folder.mkdir("20")
     labels = {
-  "file_name": "image_files/Image_58/20/6aa1a16efcc7eb138bfee9ca90df704ef7498b54.jpeg",
+  "file_name": "receipt_1.png",
   "height": 1000,
   "width": 562,
   "annotations": [
@@ -716,8 +717,14 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     annotation_file = annotations_folder.join("train.txt")
     with open(annotation_file, "w") as f:
         json.dump(labels, f)
-    fn_i = root.join(labels["file_name"])
+    # fn_i = root.join(labels["file_name"])
+    # os.makedirs(os.path.dirname(fn_i), exist_ok=True)
     # FIXME: this one does not create the file
+    file = BytesIO(mock_image_stream)
+    fn_i = image_folder.join(f"receipt_1.png")
     with open(fn_i, "wb") as f:
-        f.write(file.read())
+        f.write(file.getbuffer())
+    fn_l = annotations_folder.join(f"receipt_1.json")
+    with open(fn_l, "w") as f:
+        json.dump(labels, f)
     return str(image_folder), str(annotation_file)
