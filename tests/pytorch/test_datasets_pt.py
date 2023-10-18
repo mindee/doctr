@@ -573,6 +573,7 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_
     if recognition:
         _validate_dataset_recognition_part(ds, input_size)
     else:
+        # FIXME: you have an error here
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
 # NOTE: following datasets are only for recognition task
