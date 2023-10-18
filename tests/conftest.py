@@ -662,6 +662,8 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     wildreceipt_root = root.mkdir("wildreceipt")
     annotations_folder = wildreceipt_root
     image_folder = wildreceipt_root.mkdir("image_files")
+    image_folder = image_folder.mkdir("Image_58")
+    image_folder = image_folder.mkdir("20")
     labels = {
   "file_name": "image_files/Image_58/20/6aa1a16efcc7eb138bfee9ca90df704ef7498b54.jpeg",
   "height": 1000,
@@ -714,7 +716,8 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     annotation_file = annotations_folder.join("train.txt")
     with open(annotation_file, "w") as f:
         json.dump(labels, f)
-    fn_i = image_folder.join(labels["file_name"])
+    fn_i = root.join(labels["file_name"])
+    # FIXME: this one does not create the file
     with open(fn_i, "wb") as f:
         f.write(file.getbuffer())
     return str(image_folder), str(annotation_file)
