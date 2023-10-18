@@ -719,5 +719,5 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     fn_i = root.join(labels["file_name"])
     # FIXME: this one does not create the file
     with open(fn_i, "wb") as f:
-        f.write(file.getbuffer())
+        f.write(file.read())
     return str(image_folder), str(annotation_file)
