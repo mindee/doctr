@@ -559,7 +559,7 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
         [[32, 128], 5, True],
     ],
 )
-def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt):
+def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt_dataset):
     ds = datasets.WILDRECEIPT(
         *mock_wildreceipt,
         train=True,

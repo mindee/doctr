@@ -654,3 +654,67 @@ def mock_iiithws_dataset(tmpdir_factory, mock_image_stream):
         with open(fn, "wb") as f:
             f.write(file.getbuffer())
     return str(root), str(label_file)
+
+@pytest.fixture(scope="session")
+def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
+    file = BytesIO(mock_image_stream)
+    root = tmpdir_factory.mktemp("datasets")
+    wildreceipt_root = root.mkdir("wildreceipt")
+    annotations_folder = wildreceipt_root
+    image_folder = wildreceipt_root.mkdir("image_files")
+    labels = {
+  "file_name": "image_files/Image_58/20/6aa1a16efcc7eb138bfee9ca90df704ef7498b54.jpeg",
+  "height": 1000,
+  "width": 562,
+  "annotations": [
+    {
+      "box": [
+        200.0,
+        16.0,
+        317.0,
+        16.0,
+        317.0,
+        0.0,
+        200.0,
+        0.0
+      ],
+      "text": "",
+      "label": 0
+    },
+    {
+      "box": [
+        90.0,
+        73.0,
+        187.0,
+        73.0,
+        187.0,
+        46.0,
+        90.0,
+        46.0
+      ],
+      "text": "Server:Alex",
+      "label": 25
+    },
+    {
+      "box": [
+        92.0,
+        95.0,
+        222.0,
+        95.0,
+        222.0,
+        67.0,
+        92.0,
+        67.0
+      ],
+      "text": "Cashier:Sabrina",
+      "label": 25
+    }]
+}
+
+    annotation_file = annotations_folder.join("train.txt")
+    with open(annotation_file, "w") as f:
+        json.dump(labels, f)
+    fn_i = image_folder.join(labels["file_name"])
+    with open(fn_i, "wb") as f:
+        f.write(file.getbuffer())
+    return str(image_folder), str(annotation_file)
