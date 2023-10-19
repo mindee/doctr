@@ -128,12 +128,9 @@ class CRNN(RecognitionModel, nn.Module):
         self.feat_extractor = feature_extractor
 
         # Resolve the input_size of the LSTM
-        self.feat_extractor.eval()
-        with torch.no_grad():
+        with torch.inference_mode():
             out_shape = self.feat_extractor(torch.zeros((1, *input_shape))).shape
         lstm_in = out_shape[1] * out_shape[2]
-        # Switch back to original mode
-        self.feat_extractor.train()
 
         self.decoder = nn.LSTM(
             input_size=lstm_in,
