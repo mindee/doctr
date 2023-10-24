@@ -666,65 +666,90 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     # image_folder = image_folder.mkdir("Image_58")
     # image_folder = image_folder.mkdir("20")
     labels = {
-  "file_name": "receipt_1.png",
-  "height": 1000,
-  "width": 562,
-  "annotations": [
-    {
-      "box": [
-        200.0,
-        16.0,
-        317.0,
-        16.0,
-        317.0,
-        0.0,
-        200.0,
-        0.0
-      ],
-      "text": "",
-      "label": 0
-    },
-    {
-      "box": [
-        90.0,
-        73.0,
-        187.0,
-        73.0,
-        187.0,
-        46.0,
-        90.0,
-        46.0
-      ],
-      "text": "Server:Alex",
-      "label": 25
-    },
-    {
-      "box": [
-        92.0,
-        95.0,
-        222.0,
-        95.0,
-        222.0,
-        67.0,
-        92.0,
-        67.0
-      ],
-      "text": "Cashier:Sabrina",
-      "label": 25
-    }]
-}
+      "file_name": "receipt_0.png",
+      "height": 348,
+      "width": 348,
+      "annotations": [
+
+        {
+          "box": [
+            263.0,
+            283.0,
+            325.0,
+            283.0,
+            325.0,
+            260.0,
+            263.0,
+            260.0
+          ],
+          "text": "$55.96",
+          "label": 17
+        },
+        {
+          "box": [
+            274.0,
+            308.0,
+            326.0,
+            308.0,
+            326.0,
+            286.0,
+            274.0,
+            286.0
+          ],
+          "text": "$4.48",
+          "label": 19
+        }
+      ]
+    }
+    labels2 = {
+      "file_name": "receipt_1.png",
+      "height": 1720,
+      "width": 856,
+      "annotations": [
+        {
+          "box": [
+            511.0,
+            738.0,
+            527.0,
+            738.0,
+            527.0,
+            713.0,
+            511.0,
+            713.0
+          ],
+          "text": "a",
+          "label": 25
+        },
+        {
+          "box": [
+            386.0,
+            409.0,
+            599.0,
+            409.0,
+            599.0,
+            373.0,
+            386.0,
+            373.0
+          ],
+          "text": "089-46169340",
+          "label": 5
+        }
+      ]
+    }
 
     annotation_file = annotations_folder.join("train.txt")
     with open(annotation_file, "w") as f:
         json.dump(labels, f)
+        json.dump(labels2, f)
     # fn_i = root.join(labels["file_name"])
     # os.makedirs(os.path.dirname(fn_i), exist_ok=True)
     # FIXME: this one does not create the file
     file = BytesIO(mock_image_stream)
-    fn_i = image_folder.join(f"receipt_1.png")
-    with open(fn_i, "wb") as f:
-        f.write(file.getbuffer())
-    fn_l = annotations_folder.join(f"receipt_1.json")
-    with open(fn_l, "w") as f:
-        json.dump(labels, f)
+    for i in range(2):
+        fn_i = image_folder.join(f"receipt_{i}.png")
+        with open(fn_i, "wb") as f:
+            f.write(file.getbuffer())
+        # fn_l = annotations_folder.join(f"receipt_{i}.json")
+        # with open(fn_l, "w") as f:
+        #     json.dump(labels, f)
     return str(image_folder), str(annotation_file)
