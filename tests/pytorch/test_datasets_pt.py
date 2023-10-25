@@ -14,9 +14,6 @@ from doctr.transforms import Resize
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
     # Fetch one sample
     img, target = ds[0]
-    # TODO: ADD More then one element
-    print(f"img, label 0 {ds[0]}")
-    print(f"img, label 1 {ds[1]}")
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -44,9 +41,6 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
         pin_memory=True,
         collate_fn=ds.collate_fn,
     )
-    print(f"loder is {loader}")
-    print(f"loder is type {type(loader)}")
-    print(f"next(iter(loader)) {next(iter(loader))}")
 
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (batch_size, 3, *input_size)
@@ -575,14 +569,11 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_
         use_polygons=rotate,
         recognition_task=recognition,
     )
-    # TODO: FINISH THIS
-    print(f"recognition {recognition}")
     assert len(ds) == num_samples
     assert repr(ds) == f"WILDRECEIPT(train={True})"
     if recognition:
         _validate_dataset_recognition_part(ds, input_size)
     else:
-        # FIXME: you have an error here
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
 # NOTE: following datasets are only for recognition task
