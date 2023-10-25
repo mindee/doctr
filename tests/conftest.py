@@ -670,7 +670,6 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
       "height": 348,
       "width": 348,
       "annotations": [
-
         {
           "box": [
             263.0,
@@ -706,16 +705,6 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
   "height": 348,
   "width": 348,
   "annotations": [
-    {
-      "box": [
-        263.0,
-        283.0,
-        325.0,
-        283.0,
-        325
-       ],
-       "label": 25
-      },
       {
         "box": [
           386.0,
@@ -736,7 +725,9 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     annotation_file = annotations_folder.join("train.txt")
     with open(annotation_file, "w") as f:
         json.dump(labels, f)
+        f.write("\n")
         json.dump(labels2, f)
+        f.write("\n")
     # fn_i = root.join(labels["file_name"])
     # os.makedirs(os.path.dirname(fn_i), exist_ok=True)
     # FIXME: this one does not create the file
