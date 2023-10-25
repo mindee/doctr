@@ -64,6 +64,19 @@ class WILDRECEIPT(AbstractDataset):
         np_dtype = np.float32
         self.data: List[Tuple[str, Dict[str, Any]]] = []
 
+
+        # define folder to write IMGUR5K recognition dataset
+        reco_folder_name = "WILDRECEIPT_recognition_train" if self.train else "WILDRECEIPT_recognition_test"
+        reco_folder_name = "Poly_" + reco_folder_name if use_polygons else reco_folder_name
+        reco_folder_path = os.path.join(os.path.dirname(self.root), reco_folder_name)
+        reco_images_counter = 0
+
+        if recognition_task and os.path.isdir(reco_folder_path):
+            self._read_from_folder(reco_folder_path)
+            return
+        elif recognition_task and not os.path.isdir(reco_folder_path):
+            os.makedirs(reco_folder_path, exist_ok=False)
+
         with open(label_path, 'r') as file:
             data = file.read()
         # Split the text file into separate JSON strings
@@ -98,11 +111,18 @@ class WILDRECEIPT(AbstractDataset):
                     img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
                 )
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, label))
+                    with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
+                        f.write(label)
+                        tmp_img = Image.fromarray(crop)
+                        tmp_img.save(os.path.join(reco_folder_path, f"{reco_images_counter}.png"))
+                        reco_images_counter += 1
+                    # self.data.append((crop, label))
             else:
                 self.data.append(
                     (img_path, dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)))
                 )
+        if recognition_task:
+            self._read_from_folder(reco_folder_path)
         self.root = tmp_root
 
     def extra_repr(self) -> str:

@@ -564,7 +564,7 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
     "input_size, num_samples, recognition",
     [
         [[512, 512], 2, False],
-        [[32, 128], 1, True],
+        [[32, 128], 5, True],
     ],
 )
 def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt_dataset):
@@ -576,6 +576,7 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_
         recognition_task=recognition,
     )
     # TODO: FINISH THIS
+    print(f"recognition {recognition}")
     assert len(ds) == num_samples
     assert repr(ds) == f"WILDRECEIPT(train={True})"
     if recognition:
