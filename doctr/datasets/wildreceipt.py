@@ -84,7 +84,6 @@ class WILDRECEIPT(AbstractDataset):
         box: Union[List[float], np.ndarray]
         _targets = []
         for json_string in json_strings:
-            # FIXME there is a bug here check it with the unit test
             json_data = json.loads(json_string)
             img_path = json_data['file_name']
             annotations = json_data['annotations']
