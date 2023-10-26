@@ -6,6 +6,7 @@
 import glob
 import json
 import os
+from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
@@ -59,8 +60,7 @@ class WILDRECEIPT(AbstractDataset):
         tmp_root = img_folder
         self.train = train
         np_dtype = np.float32
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
-
+        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
 
         # define folder to write IMGUR5K recognition dataset
         reco_folder_name = "WILDRECEIPT_recognition_train" if self.train else "WILDRECEIPT_recognition_test"
