@@ -226,13 +226,17 @@ def main(args):
             parts[0].joinpath("labels.json"),
             img_transforms=T.Compose(
                 [
-                    T.RandomApply(T.ColorInversion(), 0.1),
                     T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                     # Augmentations
+                    T.RandomApply(T.ColorInversion(), 0.1),
+                    T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
                     T.RandomJpegQuality(60),
                     T.RandomSaturation(0.3),
                     T.RandomContrast(0.3),
                     T.RandomBrightness(0.3),
+                    T.RandomApply(T.RandomShadow(), 0.4),
+                    T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+                    T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
                 ]
             ),
         )
@@ -255,10 +259,14 @@ def main(args):
                     T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                     # Ensure we have a 90% split of white-background images
                     T.RandomApply(T.ColorInversion(), 0.9),
+                    T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
                     T.RandomJpegQuality(60),
                     T.RandomSaturation(0.3),
                     T.RandomContrast(0.3),
                     T.RandomBrightness(0.3),
+                    T.RandomApply(T.RandomShadow(), 0.4),
+                    T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+                    T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
                 ]
             ),
         )
