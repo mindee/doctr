@@ -17,13 +17,15 @@ from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ["WILDRECEIPT"]
 
+from ..utils import polygon_to_bbox
+
 
 class WILDRECEIPT(AbstractDataset):
-    """WildReceipt is a collection of receipts. It contains, for each photo, of a list of OCRs - with bounding box, text, and class."
-    <https://arxiv.org/abs/2103.14470v1>`_ |
+    """WildReceipt dataset from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction"
+        <https://arxiv.org/abs/2103.14470v1>`_ |
     `repository <https://download.openmmlab.com/mmocr/data/wildreceipt.tar>`_.
 
-    >>> # NOTE: You need to download/generate the dataset from the repository.
+    >>> # NOTE: You need to download the dataset from the repository.
     >>> from doctr.datasets import WILDRECEIPT
     >>> train_set = WILDRECEIPT(train=True, img_folder="/path/to/wildreceipt/",
     >>>                     label_path="/path/to/wildreceipt/train.txt")
@@ -62,17 +64,6 @@ class WILDRECEIPT(AbstractDataset):
         np_dtype = np.float32
         self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
 
-        # define folder to write IMGUR5K recognition dataset
-        reco_folder_name = "WILDRECEIPT_recognition_train" if self.train else "WILDRECEIPT_recognition_test"
-        reco_folder_name = "Poly_" + reco_folder_name if use_polygons else reco_folder_name
-        reco_folder_path = os.path.join(os.path.dirname(self.root), reco_folder_name)
-        reco_images_counter = 0
-
-        if recognition_task and os.path.isdir(reco_folder_path):
-            self._read_from_folder(reco_folder_path)
-            return
-        elif recognition_task and not os.path.isdir(reco_folder_path):
-            os.makedirs(reco_folder_path, exist_ok=False)
 
         with open(label_path, 'r') as file:
             data = file.read()
@@ -98,7 +89,9 @@ class WILDRECEIPT(AbstractDataset):
                         dtype=np_dtype
                     )
                 else:
-                    box = self._convert_xmin_ymin(coordinates)
+                    box_targets = polygon_to_bbox(
+                        tuple((coordinates[i], coordinates[i + 1]) for i in range(0, len(coordinates), 2)))
+                    box = [coord for coords in box_targets for coord in coords]
                 _targets.append((annotation['text'], box))
             text_targets, box_targets = zip(*_targets)
 
@@ -107,35 +100,12 @@ class WILDRECEIPT(AbstractDataset):
                     img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
                 )
                 for crop, label in zip(crops, list(text_targets)):
-                    with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
-                        f.write(label)
-                        tmp_img = Image.fromarray(crop)
-                        tmp_img.save(os.path.join(reco_folder_path, f"{reco_images_counter}.png"))
-                        reco_images_counter += 1
-                    # self.data.append((crop, label))
+                    self.data.append((crop, label))
             else:
                 self.data.append(
                     (img_path, dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)))
                 )
-        if recognition_task:
-            self._read_from_folder(reco_folder_path)
         self.root = tmp_root
 
     def extra_repr(self) -> str:
         return f"train={self.train}"
-
-    def _read_from_folder(self, path: str) -> None:
-        for img_path in glob.glob(os.path.join(path, "*.png")):
-            with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
-                self.data.append((img_path, f.read()))
-
-    @staticmethod
-    def _convert_xmin_ymin(box: List) -> List:
-        if len(box) == 4:
-            return box
-        x1, y1, x2, y2, x3, y3, x4, y4 = box
-        x_min = min(x1, x2, x3, x4)
-        x_max = max(x1, x2, x3, x4)
-        y_min = min(y1, y2, y3, y4)
-        y_max = max(y1, y2, y3, y4)
-        return [x_min, y_min, x_max, y_max]
