@@ -665,7 +665,7 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     image_folder = wildreceipt_root.mkdir("image_files")
 
     labels = {
-      "file_name": "receipt_0.jpeg",
+      "file_name": "Image_58/20/receipt_0.jpeg",
       "height": 348,
       "width": 348,
       "annotations": [
@@ -700,7 +700,7 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
       ]
     }
     labels2 = {
-  "file_name": "receipt_1.jpeg",
+  "file_name": "Image_58/20/receipt_1.jpeg",
   "height": 348,
   "width": 348,
   "annotations": [
@@ -728,8 +728,10 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
         json.dump(labels2, f)
         f.write("\n")
     file = BytesIO(mock_image_stream)
+    wildreceipt_image_folder = image_folder.mkdir("Image_58")
+    wildreceipt_image_folder = wildreceipt_image_folder.mkdir("20")
     for i in range(2):
-        fn_i = image_folder.join(f"receipt_{i}.jpeg")
+        fn_i = wildreceipt_image_folder.join(f"receipt_{i}.jpeg")
         with open(fn_i, "wb") as f:
             f.write(file.getbuffer())
     return str(image_folder), str(annotation_file)
