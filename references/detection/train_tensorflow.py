@@ -232,7 +232,7 @@ def main(args):
                 T.RandomSaturation(0.3),
                 T.RandomContrast(0.3),
                 T.RandomBrightness(0.3),
-                T.RandomApply(T.ToGray(), 0.1),
+                T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
             ]
         ),
         sample_transforms=T.SampleCompose(
