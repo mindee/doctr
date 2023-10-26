@@ -6,13 +6,10 @@
 import glob
 import json
 import os
-from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
-import cv2
 import numpy as np
 from PIL import Image
-from tqdm import tqdm
 
 from .datasets import AbstractDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
