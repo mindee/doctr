@@ -89,9 +89,8 @@ class WILDRECEIPT(AbstractDataset):
                         dtype=np_dtype
                     )
                 else:
-                    box_targets = polygon_to_bbox(
-                        tuple((coordinates[i], coordinates[i + 1]) for i in range(0, len(coordinates), 2)))
-                    box = [coord for coords in box_targets for coord in coords]
+                    x, y = coordinates[::2], coordinates[1::2]
+                    box = [min(x), min(y), max(x), max(y)]
                 _targets.append((annotation['text'], box))
             text_targets, box_targets = zip(*_targets)
 
