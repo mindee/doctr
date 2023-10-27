@@ -25,7 +25,7 @@ class WILDRECEIPT(AbstractDataset):
         <https://arxiv.org/abs/2103.14470v1>`_ |
     `repository <https://download.openmmlab.com/mmocr/data/wildreceipt.tar>`_.
 
-    >>> # NOTE: You need to download the dataset from the repository.
+    >>> # NOTE: You need to download the dataset first.
     >>> from doctr.datasets import WILDRECEIPT
     >>> train_set = WILDRECEIPT(train=True, img_folder="/path/to/wildreceipt/",
     >>>                     label_path="/path/to/wildreceipt/train.txt")
@@ -99,7 +99,8 @@ class WILDRECEIPT(AbstractDataset):
                     img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
                 )
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, label))
+                    if not any(char in label for char in ["", "-", "*", "/", "=", "#", "@"]):
+                        self.data.append((crop, label))
             else:
                 self.data.append(
                     (img_path, dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)))
