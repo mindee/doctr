@@ -16,7 +16,6 @@ from .utils import convert_target_to_relative, crop_bboxes_from_image
 __all__ = ["WILDRECEIPT"]
 
 
-
 class WILDRECEIPT(AbstractDataset):
     """WildReceipt dataset from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction"
         <https://arxiv.org/abs/2103.14470v1>`_ |
