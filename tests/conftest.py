@@ -1,5 +1,4 @@
 import json
-import os
 import shutil
 import tempfile
 from io import BytesIO
@@ -656,6 +655,7 @@ def mock_iiithws_dataset(tmpdir_factory, mock_image_stream):
             f.write(file.getbuffer())
     return str(root), str(label_file)
 
+
 @pytest.fixture(scope="session")
 def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     file = BytesIO(mock_image_stream)
@@ -665,61 +665,22 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     image_folder = wildreceipt_root.mkdir("image_files")
 
     labels = {
-      "file_name": "Image_58/20/receipt_0.jpeg",
-      "height": 348,
-      "width": 348,
-      "annotations": [
-        {
-          "box": [
-            263.0,
-            283.0,
-            325.0,
-            283.0,
-            325.0,
-            260.0,
-            263.0,
-            260.0
-          ],
-          "text": "$55.96",
-          "label": 17
-        },
-        {
-          "box": [
-            274.0,
-            308.0,
-            326.0,
-            308.0,
-            326.0,
-            286.0,
-            274.0,
-            286.0
-          ],
-          "text": "$4.48",
-          "label": 19
-        }
-      ]
+        "file_name": "Image_58/20/receipt_0.jpeg",
+        "height": 348,
+        "width": 348,
+        "annotations": [
+            {"box": [263.0, 283.0, 325.0, 283.0, 325.0, 260.0, 263.0, 260.0], "text": "$55.96", "label": 17},
+            {"box": [274.0, 308.0, 326.0, 308.0, 326.0, 286.0, 274.0, 286.0], "text": "$4.48", "label": 19},
+        ],
     }
     labels2 = {
-  "file_name": "Image_58/20/receipt_1.jpeg",
-  "height": 348,
-  "width": 348,
-  "annotations": [
-      {
-        "box": [
-          386.0,
-          409.0,
-          599.0,
-          409.0,
-          599.0,
-          373.0,
-          386.0,
-          373.0
+        "file_name": "Image_58/20/receipt_1.jpeg",
+        "height": 348,
+        "width": 348,
+        "annotations": [
+            {"box": [386.0, 409.0, 599.0, 409.0, 599.0, 373.0, 386.0, 373.0], "text": "089-46169340", "label": 5}
         ],
-        "text": "089-46169340",
-        "label": 5
-      }
-    ]
-  }
+    }
 
     annotation_file = annotations_folder.join("train.txt")
     with open(annotation_file, "w") as f:

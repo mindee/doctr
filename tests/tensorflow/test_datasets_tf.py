@@ -558,6 +558,7 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_
     else:
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
+
 # NOTE: following datasets are only for recognition task
 
 

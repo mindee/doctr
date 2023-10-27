@@ -3,21 +3,18 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import glob
 import json
 import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
-from PIL import Image
 
 from .datasets import AbstractDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
 
 __all__ = ["WILDRECEIPT"]
 
-from ..utils import polygon_to_bbox
 
 
 class WILDRECEIPT(AbstractDataset):
@@ -44,13 +41,13 @@ class WILDRECEIPT(AbstractDataset):
     """
 
     def __init__(
-            self,
-            img_folder: str,
-            label_path: str,
-            train: bool = True,
-            use_polygons: bool = False,
-            recognition_task: bool = False,
-            **kwargs: Any,
+        self,
+        img_folder: str,
+        label_path: str,
+        train: bool = True,
+        use_polygons: bool = False,
+        recognition_task: bool = False,
+        **kwargs: Any,
     ) -> None:
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
@@ -64,19 +61,18 @@ class WILDRECEIPT(AbstractDataset):
         np_dtype = np.float32
         self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
 
-
-        with open(label_path, 'r') as file:
+        with open(label_path, "r") as file:
             data = file.read()
         # Split the text file into separate JSON strings
-        json_strings = data.strip().split('\n')
+        json_strings = data.strip().split("\n")
         box: Union[List[float], np.ndarray]
         _targets = []
         for json_string in json_strings:
             json_data = json.loads(json_string)
-            img_path = json_data['file_name']
-            annotations = json_data['annotations']
+            img_path = json_data["file_name"]
+            annotations = json_data["annotations"]
             for annotation in annotations:
-                coordinates = annotation['box']
+                coordinates = annotation["box"]
                 if use_polygons:
                     # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                     box = np.array(
@@ -86,12 +82,12 @@ class WILDRECEIPT(AbstractDataset):
                             [coordinates[4], coordinates[5]],
                             [coordinates[6], coordinates[7]],
                         ],
-                        dtype=np_dtype
+                        dtype=np_dtype,
                     )
                 else:
                     x, y = coordinates[::2], coordinates[1::2]
                     box = [min(x), min(y), max(x), max(y)]
-                _targets.append((annotation['text'], box))
+                _targets.append((annotation["text"], box))
             text_targets, box_targets = zip(*_targets)
 
             if recognition_task:
