@@ -99,7 +99,7 @@ class WILDRECEIPT(AbstractDataset):
                     img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
                 )
                 for crop, label in zip(crops, list(text_targets)):
-                    if not any(char in label for char in ["", " "]):
+                    if label and " " not in label:
                         self.data.append((crop, label))
             else:
                 self.data.append(
