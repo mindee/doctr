@@ -14,6 +14,7 @@ from doctr.transforms import Resize
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
     # Fetch one sample
     img, target = ds[0]
+
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
@@ -49,6 +50,7 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
 def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     # Fetch one sample
     img, label = ds[0]
+
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
     assert img.dtype == torch.float32
@@ -545,6 +547,30 @@ def test_ic03(input_size, num_samples, rotate, recognition, mock_ic03_dataset):
 
     assert len(ds) == num_samples
     assert repr(ds) == f"IC03(train={True})"
+    if recognition:
+        _validate_dataset_recognition_part(ds, input_size)
+    else:
+        _validate_dataset(ds, input_size, is_polygons=rotate)
+
+
+@pytest.mark.parametrize("rotate", [True, False])
+@pytest.mark.parametrize(
+    "input_size, num_samples, recognition",
+    [
+        [[512, 512], 2, False],
+        [[32, 128], 5, True],
+    ],
+)
+def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, mock_wildreceipt_dataset):
+    ds = datasets.WILDRECEIPT(
+        *mock_wildreceipt_dataset,
+        train=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+    )
+    assert len(ds) == num_samples
+    assert repr(ds) == f"WILDRECEIPT(train={True})"
     if recognition:
         _validate_dataset_recognition_part(ds, input_size)
     else:

@@ -654,3 +654,45 @@ def mock_iiithws_dataset(tmpdir_factory, mock_image_stream):
         with open(fn, "wb") as f:
             f.write(file.getbuffer())
     return str(root), str(label_file)
+
+
+@pytest.fixture(scope="session")
+def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
+    file = BytesIO(mock_image_stream)
+    root = tmpdir_factory.mktemp("datasets")
+    wildreceipt_root = root.mkdir("wildreceipt")
+    annotations_folder = wildreceipt_root
+    image_folder = wildreceipt_root.mkdir("image_files")
+
+    labels = {
+        "file_name": "Image_58/20/receipt_0.jpeg",
+        "height": 348,
+        "width": 348,
+        "annotations": [
+            {"box": [263.0, 283.0, 325.0, 283.0, 325.0, 260.0, 263.0, 260.0], "text": "$55.96", "label": 17},
+            {"box": [274.0, 308.0, 326.0, 308.0, 326.0, 286.0, 274.0, 286.0], "text": "$4.48", "label": 19},
+        ],
+    }
+    labels2 = {
+        "file_name": "Image_58/20/receipt_1.jpeg",
+        "height": 348,
+        "width": 348,
+        "annotations": [
+            {"box": [386.0, 409.0, 599.0, 409.0, 599.0, 373.0, 386.0, 373.0], "text": "089-46169340", "label": 5}
+        ],
+    }
+
+    annotation_file = annotations_folder.join("train.txt")
+    with open(annotation_file, "w") as f:
+        json.dump(labels, f)
+        f.write("\n")
+        json.dump(labels2, f)
+        f.write("\n")
+    file = BytesIO(mock_image_stream)
+    wildreceipt_image_folder = image_folder.mkdir("Image_58")
+    wildreceipt_image_folder = wildreceipt_image_folder.mkdir("20")
+    for i in range(2):
+        fn_i = wildreceipt_image_folder.join(f"receipt_{i}.jpeg")
+        with open(fn_i, "wb") as f:
+            f.write(file.getbuffer())
+    return str(image_folder), str(annotation_file)
