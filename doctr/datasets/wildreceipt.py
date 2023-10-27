@@ -21,6 +21,9 @@ class WILDRECEIPT(AbstractDataset):
         <https://arxiv.org/abs/2103.14470v1>`_ |
     `repository <https://download.openmmlab.com/mmocr/data/wildreceipt.tar>`_.
 
+    .. image:: https://doctr-static.mindee.com/models?id=v0.7.0/wildreceipt-dataset.jpg&src=0
+        :align: center
+
     >>> # NOTE: You need to download the dataset first.
     >>> from doctr.datasets import WILDRECEIPT
     >>> train_set = WILDRECEIPT(train=True, img_folder="/path/to/wildreceipt/",
