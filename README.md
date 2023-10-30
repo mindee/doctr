@@ -272,7 +272,7 @@ To verify and configure GPU support for Docker, please follow the instructions p
 Once Docker is configured to use GPUs, you can run docTR Docker containers with GPU support:
 
 ```shell
-docker run --it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-gpu-2023-09 bash
+docker run -it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-gpu-2023-09 bash
 ```
 
 #### Available Tags
