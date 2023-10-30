@@ -34,6 +34,8 @@ doctr.datasets
 
 .. autoclass:: DocArtefacts
 
+.. autoclass:: WILDRECEIPT
+
 Synthetic dataset generator
 ---------------------------
 
