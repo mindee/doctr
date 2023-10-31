@@ -136,7 +136,7 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 Python 3.8 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
 
-Since we use [weasyprint](https://weasyprint.readthedocs.io/), you will need extra dependencies if you are not running Linux.
+Since we use [weasyprint](https://weasyprint.org/), you will need extra dependencies if you are not running Linux.
 
 For MacOS users, you can install them as follows:
 
