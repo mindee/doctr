@@ -102,7 +102,7 @@ json_output = result.export()
 
 ### Use the KIE predictor
 
-The KIE predictor is a more flexible predictor compared to OCR as your detection model can detect multiple classes in a document. For example, you can have a detection model to detect just dates and adresses in a document.
+The KIE predictor is a more flexible predictor compared to OCR as your detection model can detect multiple classes in a document. For example, you can have a detection model to detect just dates and addresses in a document.
 
 The KIE predictor makes it possible to use detector with multiple classes with a recognition model and to have the whole pipeline already setup for you.
 
