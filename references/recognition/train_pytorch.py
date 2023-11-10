@@ -28,12 +28,12 @@ from torchvision.transforms.v2 import (
     RandomPerspective,
     RandomPhotometricDistort,
 )
-from utils import plot_recorder, plot_samples
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
+from utils import plot_recorder, plot_samples
 
 
 def record_lr(

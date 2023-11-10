@@ -29,12 +29,12 @@ from torchvision.transforms.v2 import (
     RandomPhotometricDistort,
     RandomRotation,
 )
-from utils import plot_recorder, plot_samples
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator
 from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_model_to_onnx
+from utils import plot_recorder, plot_samples
 
 
 def record_lr(

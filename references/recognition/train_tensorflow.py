@@ -25,12 +25,11 @@ gpu_devices = tf.config.experimental.list_physical_devices("GPU")
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
-from utils import plot_recorder, plot_samples
-
 from doctr import transforms as T
 from doctr.datasets import VOCABS, DataLoader, RecognitionDataset, WordGenerator
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
+from utils import plot_recorder, plot_samples
 
 
 def record_lr(

@@ -1,3 +1,4 @@
+from .artefacts import *
 from .classification import *
 from .detection import *
 from .factory import *
