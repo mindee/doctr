@@ -40,7 +40,7 @@ class PositionalEncoding(nn.Module):
         -------
             positional embeddings (batch, max_len, d_model)
         """
-        x = x + self.pe[:, : x.size(1)]  # type: ignore[index]
+        x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
 
