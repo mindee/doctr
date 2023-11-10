@@ -1,4 +1,4 @@
-from .artefacts import *
+from . import artefacts
 from .classification import *
 from .detection import *
 from .factory import *
