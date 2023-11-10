@@ -266,7 +266,7 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     """
     mask: np.ndarray = np.zeros(shape, dtype=np.uint8)
     # Get absolute coords
-    if np.issubdtype(box.dtype, np.integer):
+    if not np.issubdtype(box.dtype, np.integer):
         abs_box = box.copy()
         abs_box[:, 0] = abs_box[:, 0] * shape[1]
         abs_box[:, 1] = abs_box[:, 1] * shape[0]
@@ -295,7 +295,7 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
 
     if boxes.shape[0] > 0:
         # Get absolute coordinates
-        if np.issubdtype(boxes.dtype, np.integer):
+        if not np.issubdtype(boxes.dtype, np.integer):
             abs_boxes = boxes.copy()
             abs_boxes[:, :, 0] = abs_boxes[:, :, 0] * shape[1]
             abs_boxes[:, :, 1] = abs_boxes[:, :, 1] * shape[0]

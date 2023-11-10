@@ -419,7 +419,7 @@ def extract_rcrops(
     # Project relative coordinates
     _boxes = polys.copy()
     height, width = img.shape[:2] if channels_last else img.shape[-2:]
-    if np.issubdtype(_boxes.dtype, np.integer):
+    if not np.issubdtype(_boxes.dtype, np.integer):
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
