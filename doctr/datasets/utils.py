@@ -73,7 +73,7 @@ def encode_string(
 
     Returns:
     -------
-    A list encoding the input_string
+        A list encoding the input_string
     """
     try:
         return list(map(vocab.index, input_string))
@@ -173,11 +173,13 @@ def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tupl
 
 def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> List[np.ndarray]:
     """Crop a set of bounding boxes from an image
+
     Args:
+    ----
         img_path: path to the image
         geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
 
-    Returns
+    Returns:
     -------
         a list of cropped images
     """
@@ -197,6 +199,10 @@ def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.n
     ----
         img: Image
         target: tuple of target polygons and their classes names
+
+    Returns:
+    -------
+        Image and dictionary of boxes, with class names as keys
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]

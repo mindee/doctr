@@ -31,13 +31,15 @@ RECO_ARCHS = [
 
 
 def load_predictor(det_arch: str, reco_arch: str, device: torch.device) -> OCRPredictor:
-    """Args:
+    """Load a predictor from doctr.models
+
+    Args:
     ----
         det_arch: detection architecture
         reco_arch: recognition architecture
         device: torch.device, the device to load the predictor on
 
-    Returns
+    Returns:
     -------
         instance of OCRPredictor
     """
@@ -48,13 +50,15 @@ def load_predictor(det_arch: str, reco_arch: str, device: torch.device) -> OCRPr
 
 
 def forward_image(predictor: OCRPredictor, image: np.ndarray, device: torch.device) -> np.ndarray:
-    """Args:
+    """Forward an image through the predictor
+
+    Args:
     ----
         predictor: instance of OCRPredictor
         image: image to process
         device: torch.device, the device to process the image on
 
-    Returns
+    Returns:
     -------
         segmentation map
     """

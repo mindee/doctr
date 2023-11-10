@@ -82,7 +82,7 @@ class FUNSD(VisionDataset):
             text_targets, box_targets = zip(*_targets)
             if use_polygons:
                 # xmin, ymin, xmax, ymax -> (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                box_targets = [
+                box_targets = [  # type: ignore[assignment]
                     [
                         [box[0], box[1]],
                         [box[2], box[1]],

@@ -30,13 +30,15 @@ RECO_ARCHS = [
 
 
 def load_predictor(det_arch: str, reco_arch: str, device: tf.device) -> OCRPredictor:
-    """Args:
+    """Load a predictor from doctr.models
+
+    Args:
     ----
         det_arch: detection architecture
         reco_arch: recognition architecture
         device: tf.device, the device to load the predictor on
 
-    Returns
+    Returns:
     -------
         instance of OCRPredictor
     """
@@ -48,13 +50,15 @@ def load_predictor(det_arch: str, reco_arch: str, device: tf.device) -> OCRPredi
 
 
 def forward_image(predictor: OCRPredictor, image: np.ndarray, device: tf.device) -> np.ndarray:
-    """Args:
+    """Forward an image through the predictor
+
+    Args:
     ----
         predictor: instance of OCRPredictor
         image: image to process as numpy array
         device: tf.device, the device to process the image on
 
-    Returns
+    Returns:
     -------
         segmentation map
     """

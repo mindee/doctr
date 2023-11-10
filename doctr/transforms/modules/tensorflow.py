@@ -472,13 +472,6 @@ class RandomHorizontalFlip(NestedObject):
         self.p = p
 
     def __call__(self, img: Union[tf.Tensor, np.ndarray], target: Dict[str, Any]) -> Tuple[tf.Tensor, Dict[str, Any]]:
-        """Args:
-        ----
-            img: Image to be flipped.
-            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
-        Returns:
-            Tuple of numpy nd-array or Tensor and target
-        """
         if np.random.rand(1) <= self.p:
             _img = tf.image.flip_left_right(img)
             _target = target.copy()

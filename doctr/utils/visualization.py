@@ -136,7 +136,7 @@ def create_obj_patch(
     """
     if isinstance(geometry, tuple):
         if len(geometry) == 2:  # straight word BB (2 pts)
-            return rect_patch(geometry, page_dimensions, **kwargs)  # type: ignore[arg-type]
+            return rect_patch(geometry, page_dimensions, **kwargs)
         elif len(geometry) == 4:  # rotated word BB (4 pts)
             return polygon_patch(np.asarray(geometry), page_dimensions, **kwargs)
     elif isinstance(geometry, np.ndarray) and geometry.shape == (4, 2):  # rotated line
@@ -302,8 +302,8 @@ def synthesize_page(
         font_size: size of the font, default font = 13
         font_family: family of the font
 
-    Return:
-    ------
+    Returns:
+    -------
         the synthesized page
     """
     # Draw template
@@ -434,8 +434,8 @@ def synthesize_kie_page(
         font_size: size of the font, default font = 13
         font_family: family of the font
 
-    Return:
-    ------
+    Returns:
+    -------
         the synthesized page
     """
     # Draw template

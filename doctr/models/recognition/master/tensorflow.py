@@ -159,8 +159,8 @@ class MASTER(_MASTER, Model):
             return_preds: if True, decode logits
             **kwargs: keyword arguments passed to the decoder
 
-        Return:
-        ------
+        Returns:
+        -------
             A dictionnary containing eventually loss, logits and predictions.
         """
         # Encode
@@ -213,8 +213,8 @@ class MASTER(_MASTER, Model):
             encoded: encoded features
             **kwargs: keyword arguments passed to the decoder
 
-        Return:
-        ------
+        Returns:
+        -------
             A Tuple of tf.Tensor: predictions, logits
         """
         b = encoded.shape[0]

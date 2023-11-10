@@ -42,7 +42,9 @@ class PositionalEncoding(layers.Layer, NestedObject):
         x: tf.Tensor,
         **kwargs: Any,
     ) -> tf.Tensor:
-        """Args:
+        """Forward pass
+
+        Args:
         ----
             x: embeddings (batch, max_len, d_model)
             **kwargs: additional arguments

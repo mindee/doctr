@@ -273,7 +273,7 @@ class DBNet(_DBNet, nn.Module):
             bce_min = bce_loss.min()
             weights = (bce_loss - bce_min) / (bce_loss.max() - bce_min) + 1.0
             inter = torch.sum(bin_map * seg_target[seg_mask] * weights)
-            union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8
+            union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8  # type: ignore[call-overload]
             dice_loss = 1 - 2.0 * inter / union
 
         # Compute l1 loss for thresh_map
@@ -281,7 +281,7 @@ class DBNet(_DBNet, nn.Module):
         if torch.any(thresh_mask):
             l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
 
-        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
+        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss  # type: ignore[return-value]
 
 
 def _dbnet(

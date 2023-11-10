@@ -200,7 +200,7 @@ class PARSeq(_PARSeq, nn.Module):
             final_perms = torch.stack(perms)
             if len(perm_pool):
                 i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(final_perms), replace=False)
-                final_perms = torch.cat([final_perms, perm_pool[i]])  # type: ignore[index]
+                final_perms = torch.cat([final_perms, perm_pool[i]])
         else:
             perms.extend(
                 [torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))]
@@ -212,7 +212,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         sos_idx = torch.zeros(len(final_perms), 1, device=seqlen.device)
         eos_idx = torch.full((len(final_perms), 1), max_num_chars + 1, device=seqlen.device)
-        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()
+        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()  # type: ignore
         if len(combined) > 1:
             combined[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=seqlen.device)
         return combined
@@ -282,7 +282,7 @@ class PARSeq(_PARSeq, nn.Module):
                 ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
 
                 # Stop decoding if all sequences have reached the EOS token
-                if max_len is None and (ys == self.vocab_size).any(dim=-1).all():
+                if max_len is None and (ys == self.vocab_size).any(dim=-1).all():  # type: ignore[attr-defined]
                     break
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
@@ -297,7 +297,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
-        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)  # type: ignore[attr-defined]
         mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 

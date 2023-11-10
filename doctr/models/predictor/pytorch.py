@@ -74,7 +74,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Detect document rotation and rotate pages
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+            origin_page_orientations = [estimate_orientation(page) for page in pages]
             orientations = [
                 {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
             ]
@@ -82,12 +82,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             orientations = None
         if self.straighten_pages:
             origin_page_orientations = (
-                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]
             )
-            pages = [
-                rotate_image(page, -angle, expand=True)  # type: ignore[arg-type]
-                for page, angle in zip(pages, origin_page_orientations)
-            ]
+            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
@@ -100,11 +97,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Rectify crops if aspect ratio
-        loc_preds = self._remove_padding(pages, loc_preds)  # type: ignore[arg-type]
+        loc_preds = self._remove_padding(pages, loc_preds)
 
         # Crop images
         crops, loc_preds = self._prepare_crops(
-            pages,  # type: ignore[arg-type]
+            pages,
             loc_preds,
             channels_last=channels_last,
             assume_straight_pages=self.assume_straight_pages,
@@ -128,8 +125,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 rotate_boxes(
                     page_boxes,
                     angle,
-                    orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[1:],  # type: ignore[arg-type]
-                    target_shape=mask,  # type: ignore[arg-type]
+                    orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[1:],
+                    target_shape=mask,
                 )
                 for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)
             ]

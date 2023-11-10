@@ -371,12 +371,16 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
 
 def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
     """Created cropped images from list of bounding boxes
+
     Args:
+    ----
         img: input image
         boxes: bounding boxes of shape (N, 4) where N is the number of boxes, and the relative
             coordinates (xmin, ymin, xmax, ymax)
         channels_last: whether the channel dimensions is the last one instead of the last one
+
     Returns:
+    -------
         list of cropped images
     """
     if boxes.shape[0] == 0:
@@ -403,12 +407,16 @@ def extract_rcrops(
     img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True
 ) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
+
     Args:
+    ----
         img: input image
         polys: bounding boxes of shape (N, 4, 2)
         dtype: target data type of bounding boxes
         channels_last: whether the channel dimensions is the last one instead of the last one
+
     Returns:
+    -------
         list of cropped images
     """
     if polys.shape[0] == 0:

@@ -275,7 +275,7 @@ class Page(Element):
             page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
             preserve_aspect_ratio: pass True if you passed True to the predictor
-            kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
+            **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
         """
         visualize_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
         plt.show(**kwargs)

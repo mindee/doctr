@@ -292,7 +292,7 @@ class SAR(nn.Module, RecognitionModel):
         # Input length : number of timesteps
         input_len = model_output.shape[1]
         # Add one for additional <eos> token
-        seq_len = seq_len + 1
+        seq_len = seq_len + 1  # type: ignore[assignment]
         # Compute loss
         # (N, L, vocab_size + 1)
         cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction="none")

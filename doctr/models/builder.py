@@ -175,9 +175,7 @@ class DocumentBuilder(NestedObject):
             )
         else:
             _box_lines = [
-                resolve_enclosing_bbox(
-                    [(tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line]  # type: ignore[misc]
-                )
+                resolve_enclosing_bbox([(tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line])
                 for line in lines
             ]
             box_lines = np.asarray([(x1, y1, x2, y2) for ((x1, y1), (x2, y2)) in _box_lines])

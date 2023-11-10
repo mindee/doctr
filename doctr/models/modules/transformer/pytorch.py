@@ -30,7 +30,9 @@ class PositionalEncoding(nn.Module):
         self.register_buffer("pe", pe.unsqueeze(0))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Args:
+        """Forward pass
+
+        Args:
         ----
             x: embeddings (batch, max_len, d_model)
 
@@ -38,7 +40,7 @@ class PositionalEncoding(nn.Module):
         -------
             positional embeddings (batch, max_len, d_model)
         """
-        x = x + self.pe[:, : x.size(1)]
+        x = x + self.pe[:, : x.size(1)]  # type: ignore[index]
         return self.dropout(x)
 
 
@@ -49,8 +51,8 @@ def scaled_dot_product_attention(
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
-        scores = scores.masked_fill(mask == 0, float("-inf"))
-    p_attn = torch.softmax(scores, dim=-1)
+        scores = scores.masked_fill(mask == 0, float("-inf"))  # type: ignore[attr-defined]
+    p_attn = torch.softmax(scores, dim=-1)  # type: ignore[call-overload]
     return torch.matmul(p_attn, value), p_attn
 
 
