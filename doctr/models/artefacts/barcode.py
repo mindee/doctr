@@ -12,11 +12,11 @@ __all__ = ["BarCodeDetector"]
 
 
 class BarCodeDetector:
-
     """Implements a Bar-code detector.
     For now, only horizontal (or with a small angle) bar-codes are supported
 
     Args:
+    ----
         min_size: minimum relative size of a barcode on the page
         canny_minval: lower bound for canny hysteresis
         canny_maxval: upper-bound for canny hysteresis
@@ -35,7 +35,8 @@ class BarCodeDetector:
         Args:
             img: np image
 
-        Returns:
+        Returns
+        -------
             A list of tuples: [(xmin, ymin, xmax, ymax), ...] containing barcodes rel. coordinates
         """
         # get image size and define parameters

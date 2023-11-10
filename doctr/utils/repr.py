@@ -23,6 +23,8 @@ def _addindent(s_, num_spaces):
 
 
 class NestedObject:
+    """Base class for all nested objects in doctr"""
+
     _children_names: List[str]
 
     def extra_repr(self) -> str:

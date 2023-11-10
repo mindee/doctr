@@ -28,8 +28,7 @@ class PatchEmbedding(nn.Module):
         self.projection = nn.Conv2d(channels, embed_dim, kernel_size=self.patch_size, stride=self.patch_size)
 
     def interpolate_pos_encoding(self, embeddings: torch.Tensor, height: int, width: int) -> torch.Tensor:
-        """
-        100 % borrowed from:
+        """100 % borrowed from:
         https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/modeling_vit.py
 
         This method allows to interpolate the pre-trained position encodings, to be able to use the model on higher
@@ -38,7 +37,6 @@ class PatchEmbedding(nn.Module):
         Source:
         https://github.com/facebookresearch/dino/blob/de9ee3df6cf39fac952ab558447af1fa1365362a/vision_transformer.py
         """
-
         num_patches = embeddings.shape[1] - 1
         num_positions = self.positions.shape[1] - 1
         if num_patches == num_positions and height == width:

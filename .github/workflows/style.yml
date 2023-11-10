@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -26,51 +26,12 @@ jobs:
           ruff --version
           ruff check --diff .
 
-  black:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: ["3.8"]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Run black
-        run: |
-          pip install black
-          black --version
-          black --check --diff .
-
-  isort:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: ["3.8"]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Run isort
-        run: |
-          pip install isort
-          isort --version
-          isort .
-          if [ -n "$(git status --porcelain --untracked-files=no)" ]; then exit 1; else echo "All clear"; fi
-
   mypy:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -92,22 +53,3 @@ jobs:
         run: |
           mypy --version
           mypy
-
-  pydocstyle:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python: ["3.8"]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Run pydocstyle
-        run: |
-          pip install pydocstyle[toml]
-          pydocstyle --version
-          pydocstyle

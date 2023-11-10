@@ -20,6 +20,7 @@ class PreProcessor(NestedObject):
     """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
 
     Args:
+    ----
         output_size: expected size of each page in format (H, W)
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
@@ -46,12 +47,13 @@ class PreProcessor(NestedObject):
         """Gather samples into batches for inference purposes
 
         Args:
+        ----
             samples: list of samples (tf.Tensor)
 
         Returns:
+        -------
             list of batched samples
         """
-
         num_batches = int(math.ceil(len(samples) / self.batch_size))
         batches = [
             tf.stack(samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))], axis=0)
@@ -81,11 +83,13 @@ class PreProcessor(NestedObject):
         """Prepare document data for model forwarding
 
         Args:
+        ----
             x: list of images (np.array) or tensors (already resized and batched)
+
         Returns:
+        -------
             list of page batches
         """
-
         # Input type check
         if isinstance(x, (np.ndarray, tf.Tensor)):
             if x.ndim != 4:

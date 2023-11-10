@@ -40,6 +40,7 @@ class IMGUR5K(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
+    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations file of the dataset
         train: whether the subset should be the training one

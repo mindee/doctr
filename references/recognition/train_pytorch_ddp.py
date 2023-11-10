@@ -31,12 +31,12 @@ from torchvision.transforms.v2 import (
     RandomPerspective,
     RandomPhotometricDistort,
 )
+from utils import plot_samples
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
-from utils import plot_samples
 
 
 def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
@@ -105,9 +105,10 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False)
 
 
 def main(rank: int, world_size: int, args):
-    """
-    Args:
+    """Args:
+    ----
         rank (int): device id to put the model on
+        world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI
     """
     print(args)

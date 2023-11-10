@@ -34,6 +34,7 @@ def rect_patch(
     """Create a matplotlib rectangular patch for the element
 
     Args:
+    ----
         geometry: bounding box of the element
         page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
@@ -44,9 +45,9 @@ def rect_patch(
         preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
+    -------
         a rectangular Patch
     """
-
     if len(geometry) != 2 or any(not isinstance(elt, tuple) or len(elt) != 2 for elt in geometry):
         raise ValueError("invalid geometry format")
 
@@ -84,6 +85,7 @@ def polygon_patch(
     """Create a matplotlib polygon patch for the element
 
     Args:
+    ----
         geometry: bounding box of the element
         page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
@@ -94,9 +96,9 @@ def polygon_patch(
         preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
+    -------
         a polygon Patch
     """
-
     if not geometry.shape == (4, 2):
         raise ValueError("invalid geometry format")
 
@@ -123,10 +125,13 @@ def create_obj_patch(
     """Create a matplotlib patch for the element
 
     Args:
+    ----
         geometry: bounding box (straight or rotated) of the element
         page_dimensions: dimensions of the page in format (height, width)
+        **kwargs: keyword arguments for the patch
 
     Returns:
+    -------
         a matplotlib Patch
     """
     if isinstance(geometry, tuple):
@@ -143,9 +148,11 @@ def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
     """Generate num_colors color for matplotlib
 
     Args:
+    ----
         num_colors: number of colors to generate
 
     Returns:
+    -------
         colors: list of generated colors
     """
     colors = []
@@ -180,6 +187,7 @@ def visualize_page(
     >>> plt.show()
 
     Args:
+    ----
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
@@ -187,6 +195,11 @@ def visualize_page(
         scale: figsize of the largest windows side
         interactive: whether the plot should be interactive
         add_labels: for static plot, adds text labels on top of bounding box
+        **kwargs: keyword arguments for the polygon patch
+
+    Returns:
+    -------
+        the matplotlib figure
     """
     # Get proper scale and aspect ratio
     h, w = image.shape[:2]
@@ -283,15 +296,16 @@ def synthesize_page(
     """Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
+    ----
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
         font_size: size of the font, default font = 13
         font_family: family of the font
 
     Return:
+    ------
         the synthesized page
     """
-
     # Draw template
     h, w = page["dimensions"]
     response = 255 * np.ones((h, w, 3), dtype=np.int32)
@@ -354,6 +368,7 @@ def visualize_kie_page(
     >>> plt.show()
 
     Args:
+    ----
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
@@ -361,6 +376,11 @@ def visualize_kie_page(
         scale: figsize of the largest windows side
         interactive: whether the plot should be interactive
         add_labels: for static plot, adds text labels on top of bounding box
+        **kwargs: keyword arguments for the polygon patch
+
+    Returns:
+    -------
+        the matplotlib figure
     """
     # Get proper scale and aspect ratio
     h, w = image.shape[:2]
@@ -408,15 +428,16 @@ def synthesize_kie_page(
     """Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
+    ----
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
         font_size: size of the font, default font = 13
         font_family: family of the font
 
     Return:
+    ------
         the synthesized page
     """
-
     # Draw template
     h, w = page["dimensions"]
     response = 255 * np.ones((h, w, 3), dtype=np.int32)
@@ -459,9 +480,11 @@ def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: Optional[Tuple[int, 
     """Draw an array of relative straight boxes on an image
 
     Args:
+    ----
         boxes: array of relative boxes, of shape (*, 4)
         image: np array, float32 or uint8
         color: color to use for bounding box edges
+        **kwargs: keyword arguments from `matplotlib.pyplot.plot`
     """
     h, w = image.shape[:2]
     # Convert boxes to absolute coords

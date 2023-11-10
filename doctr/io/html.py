@@ -17,10 +17,12 @@ def read_html(url: str, **kwargs: Any) -> bytes:
     >>> doc = read_html("https://www.yoursite.com")
 
     Args:
+    ----
         url: URL of the target web page
+        **kwargs: keyword arguments from `weasyprint.HTML`
 
     Returns:
+    -------
         decoded PDF file as a bytes stream
     """
-
     return HTML(url, **kwargs).write_pdf()

@@ -27,10 +27,12 @@ def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
     """Performs string comparison with multiple levels of tolerance
 
     Args:
+    ----
         word1: a string
         word2: another string
 
     Returns:
+    -------
         a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their
             unidecode counterparts and their lower-case unidecode counterparts match
     """
@@ -84,10 +86,10 @@ class TextMatch:
         """Update the state of the metric with new predictions
 
         Args:
+        ----
             gt: list of groung-truth character sequences
             pred: list of predicted character sequences
         """
-
         if len(gt) != len(pred):
             raise AssertionError("prediction size does not match with ground-truth labels size")
 
@@ -103,7 +105,8 @@ class TextMatch:
     def summary(self) -> Dict[str, float]:
         """Computes the aggregated metrics
 
-        Returns:
+        Returns
+        -------
             a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode
             counterpart and its lower-case unidecode counterpart
         """
@@ -129,13 +132,14 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     """Computes the IoU between two sets of bounding boxes
 
     Args:
+    ----
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
         boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
 
     Returns:
+    -------
         the IoU matrix of shape (N, M)
     """
-
     iou_mat: np.ndarray = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
@@ -159,13 +163,14 @@ def box_ioa(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
     ioa(i, j) = inter(i, j) / area(i)
 
     Args:
+    ----
         boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)
         boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)
 
     Returns:
+    -------
         the IoA matrix of shape (N, M)
     """
-
     ioa_mat: np.ndarray = np.zeros((boxes_1.shape[0], boxes_2.shape[0]), dtype=np.float32)
 
     if boxes_1.shape[0] > 0 and boxes_2.shape[0] > 0:
@@ -188,13 +193,14 @@ def mask_iou(masks_1: np.ndarray, masks_2: np.ndarray) -> np.ndarray:
     """Computes the IoU between two sets of boolean masks
 
     Args:
+    ----
         masks_1: boolean masks of shape (N, H, W)
         masks_2: boolean masks of shape (M, H, W)
 
     Returns:
+    -------
         the IoU matrix of shape (N, M)
     """
-
     if masks_1.shape[1:] != masks_2.shape[1:]:
         raise AssertionError("both boolean masks should have the same spatial shape")
 
@@ -215,15 +221,16 @@ def polygon_iou(
     """Computes the IoU between two sets of rotated bounding boxes
 
     Args:
+    ----
         polys_1: rotated bounding boxes of shape (N, 4, 2)
         polys_2: rotated bounding boxes of shape (M, 4, 2)
         mask_shape: spatial shape of the intermediate masks
         use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory
 
     Returns:
+    -------
         the IoU matrix of shape (N, M)
     """
-
     if polys_1.ndim != 3 or polys_2.ndim != 3:
         raise AssertionError("expects boxes to be in format (N, 4, 2)")
 
@@ -249,13 +256,14 @@ def _rbox_to_mask(box: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     """Converts a rotated bounding box to a boolean mask
 
     Args:
+    ----
         box: rotated bounding box of shape (4, 2)
         shape: spatial shapes of the output masks
 
     Returns:
+    -------
         the boolean mask of the specified shape
     """
-
     mask: np.ndarray = np.zeros(shape, dtype=np.uint8)
     # Get absolute coords
     if box.dtype != int:
@@ -275,13 +283,14 @@ def rbox_to_mask(boxes: np.ndarray, shape: Tuple[int, int]) -> np.ndarray:
     """Converts rotated bounding boxes to boolean masks
 
     Args:
+    ----
         boxes: rotated bounding boxes of shape (N, 4, 2)
         shape: spatial shapes of the output masks
 
     Returns:
+    -------
         the boolean masks of shape (N, H, W)
     """
-
     masks: np.ndarray = np.zeros((boxes.shape[0], *shape), dtype=np.uint8)
 
     if boxes.shape[0] > 0:
@@ -305,10 +314,12 @@ def nms(boxes: np.ndarray, thresh: float = 0.5) -> List[int]:
     """Perform non-max suppression, borrowed from <https://github.com/rbgirshick/fast-rcnn>`_.
 
     Args:
+    ----
         boxes: np array of straight boxes: (*, 5), (xmin, ymin, xmax, ymax, score)
         thresh: iou threshold to perform box suppression.
 
     Returns:
+    -------
         A list of box indexes to keep
     """
     x1 = boxes[:, 0]
@@ -372,6 +383,7 @@ class LocalizationConfusion:
     >>> metric.summary()
 
     Args:
+    ----
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
         use_polygons: if set to True, predictions and targets will be expected to have rotated format
         mask_shape: if use_polygons is True, describes the spatial shape of the image used
@@ -395,10 +407,10 @@ class LocalizationConfusion:
         """Updates the metric
 
         Args:
+        ----
             gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
             preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
         """
-
         if preds.shape[0] > 0:
             # Compute IoU
             if self.use_polygons:
@@ -418,10 +430,10 @@ class LocalizationConfusion:
     def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
         """Computes the aggregated metrics
 
-        Returns:
+        Returns
+        -------
             a tuple with the recall, precision and meanIoU scores
         """
-
         # Recall
         recall = self.matches / self.num_gts if self.num_gts > 0 else None
 
@@ -477,6 +489,7 @@ class OCRMetric:
     >>> metric.summary()
 
     Args:
+    ----
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
         use_polygons: if set to True, predictions and targets will be expected to have rotated format
         mask_shape: if use_polygons is True, describes the spatial shape of the image used
@@ -506,12 +519,12 @@ class OCRMetric:
         """Updates the metric
 
         Args:
+        ----
             gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
             pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
             gt_labels: a list of N string labels
             pred_labels: a list of M string labels
         """
-
         if gt_boxes.shape[0] != len(gt_labels) or pred_boxes.shape[0] != len(pred_labels):
             raise AssertionError(
                 "there should be the same number of boxes and string both for the ground truth " "and the predictions"
@@ -543,10 +556,10 @@ class OCRMetric:
     def summary(self) -> Tuple[Dict[str, Optional[float]], Dict[str, Optional[float]], Optional[float]]:
         """Computes the aggregated metrics
 
-        Returns:
+        Returns
+        -------
             a tuple with the recall & precision for each string comparison and the mean IoU
         """
-
         # Recall
         recall = dict(
             raw=self.raw_matches / self.num_gts if self.num_gts > 0 else None,
@@ -615,6 +628,7 @@ class DetectionMetric:
     >>> metric.summary()
 
     Args:
+    ----
         iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
         use_polygons: if set to True, predictions and targets will be expected to have rotated format
         mask_shape: if use_polygons is True, describes the spatial shape of the image used
@@ -644,12 +658,12 @@ class DetectionMetric:
         """Updates the metric
 
         Args:
+        ----
             gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
             pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
             gt_labels: an array of class indices of shape (N,)
             pred_labels: an array of class indices of shape (M,)
         """
-
         if gt_boxes.shape[0] != gt_labels.shape[0] or pred_boxes.shape[0] != pred_labels.shape[0]:
             raise AssertionError(
                 "there should be the same number of boxes and string both for the ground truth " "and the predictions"
@@ -676,10 +690,10 @@ class DetectionMetric:
     def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
         """Computes the aggregated metrics
 
-        Returns:
+        Returns
+        -------
             a tuple with the recall & precision for each class prediction and the mean IoU
         """
-
         # Recall
         recall = self.num_matches / self.num_gts if self.num_gts > 0 else None
 

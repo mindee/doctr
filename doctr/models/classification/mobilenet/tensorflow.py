@@ -126,6 +126,7 @@ class InvertedResidual(layers.Layer):
     """InvertedResidual for mobilenet
 
     Args:
+    ----
         conf: configuration object for inverted residual
     """
 
@@ -309,12 +310,14 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
+    -------
         a keras.Model
     """
-
     return _mobilenet_v3("mobilenet_v3_small", pretrained, False, **kwargs)
 
 
@@ -330,12 +333,14 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
+    -------
         a keras.Model
     """
-
     return _mobilenet_v3("mobilenet_v3_small_r", pretrained, True, **kwargs)
 
 
@@ -351,9 +356,12 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
+    -------
         a keras.Model
     """
     return _mobilenet_v3("mobilenet_v3_large", pretrained, False, **kwargs)
@@ -371,9 +379,12 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> MobileNetV3
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
+    -------
         a keras.Model
     """
     return _mobilenet_v3("mobilenet_v3_large_r", pretrained, True, **kwargs)
@@ -391,10 +402,12 @@ def mobilenet_v3_small_orientation(pretrained: bool = False, **kwargs: Any) -> M
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
+    -------
         a keras.Model
     """
-
     return _mobilenet_v3("mobilenet_v3_small_orientation", pretrained, include_top=True, **kwargs)

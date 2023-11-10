@@ -3,7 +3,7 @@
 Installation
 ************
 
-This library requires `Python <https://www.python.org/downloads/>`_ 3.8 or higher.
+This library requires `Python <https://www.python.org/downloads/>`_ 3.9 or higher.
 
 
 Prerequisites

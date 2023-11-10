@@ -30,6 +30,7 @@ class MJSynth(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
+    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the file with the labels
         train: whether the subset should be the training one

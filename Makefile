@@ -1,17 +1,13 @@
 .PHONY: quality style test test-common test-tf test-torch docs-single-version docs
 # this target runs checks on all files
 quality:
-	isort . -c
 	ruff check .
-	black --check .
 	mypy doctr/
-	pydocstyle doctr/
 
 # this target runs checks on all files and potentially modifies some of them
 style:
-	isort .
-	black .
 	ruff --fix .
+	ruff format .
 
 # Run tests for the library
 test:

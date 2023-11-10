@@ -5,7 +5,7 @@ from scipy.optimize import linear_sum_assignment
 from doctr.utils.metrics import box_iou
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_text_detection(test_app_asyncio, mock_detection_image):
     response = await test_app_asyncio.post("/detection", files={"file": mock_detection_image})
     assert response.status_code == 200

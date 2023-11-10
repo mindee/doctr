@@ -56,6 +56,7 @@ def download_from_url(
     >>> download_from_url("https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
+    ----
         url: the URL of the file to download
         file_name: optional name of the file once downloaded
         hash_prefix: optional expected SHA256 hash of the file
@@ -63,12 +64,13 @@ def download_from_url(
         cache_subdir: subfolder to use in the cache
 
     Returns:
+    -------
         the location of the downloaded file
 
     Note:
+    ----
         You can change cache directory location by using `DOCTR_CACHE_DIR` environment variable.
     """
-
     if not isinstance(file_name, str):
         file_name = url.rpartition("/")[-1].split("&")[0]
 

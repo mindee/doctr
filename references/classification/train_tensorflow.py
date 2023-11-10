@@ -23,11 +23,12 @@ gpu_devices = tf.config.experimental.list_physical_devices("GPU")
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
+from utils import plot_recorder, plot_samples
+
 from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import classification
 from doctr.models.utils import export_model_to_onnx
-from utils import plot_recorder, plot_samples
 
 
 def record_lr(
@@ -43,7 +44,6 @@ def record_lr(
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
     """
-
     if num_it > len(train_loader):
         raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
 

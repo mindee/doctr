@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python: ["3.8", "3.9"]
+        python: ["3.9", "3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v3

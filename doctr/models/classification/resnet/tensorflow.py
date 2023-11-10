@@ -58,10 +58,10 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class ResnetBlock(layers.Layer):
-
     """Implements a resnet31 block with shortcut
 
     Args:
+    ----
         conv_shortcut: Use of shortcut
         output_channels: number of channels to use in Conv2D
         kernel_size: size of square kernels
@@ -123,6 +123,7 @@ class ResNet(Sequential):
     """Implements a ResNet architecture
 
     Args:
+    ----
         num_blocks: number of resnet block in each stage
         output_channels: number of channels in each stage
         stage_downsample: whether the first residual block of a stage should downsample
@@ -231,12 +232,14 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A classification model
     """
-
     return _resnet(
         "resnet18",
         pretrained,
@@ -262,12 +265,14 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A classification model
     """
-
     return _resnet(
         "resnet31",
         pretrained,
@@ -293,12 +298,14 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A classification model
     """
-
     return _resnet(
         "resnet34",
         pretrained,
@@ -323,12 +330,14 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A classification model
     """
-
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs["resnet50"]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs["resnet50"]["input_shape"])
     kwargs["classes"] = kwargs.get("classes", default_cfgs["resnet50"]["classes"])
@@ -368,12 +377,14 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A classification model
     """
-
     return _resnet(
         "resnet34_wide",
         pretrained,

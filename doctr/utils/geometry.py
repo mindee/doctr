@@ -29,10 +29,30 @@ __all__ = [
 
 
 def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
+    """Convert a bounding box to a polygon
+
+    Args:
+    ----
+        bbox: a bounding box
+
+    Returns:
+    -------
+        a polygon
+    """
     return bbox[0], (bbox[1][0], bbox[0][1]), (bbox[0][0], bbox[1][1]), bbox[1]
 
 
 def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
+    """Convert a polygon to a bounding box
+
+    Args:
+    ----
+        polygon: a polygon
+
+    Returns:
+    -------
+        a bounding box
+    """
     x, y = zip(*polygon)
     return (min(x), min(y)), (max(x), max(y))
 
@@ -40,12 +60,18 @@ def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
 def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Union[BoundingBox, np.ndarray]:
     """Compute enclosing bbox either from:
 
-    - an array of boxes: (*, 5), where boxes have this shape:
-    (xmin, ymin, xmax, ymax, score)
+    Args:
+    ----
+        bboxes: boxes in one of the following formats:
 
-    - a list of BoundingBox
+            - an array of boxes: (*, 5), where boxes have this shape:
+            (xmin, ymin, xmax, ymax, score)
 
-    Return a (1, 5) array (enclosing boxarray), or a BoundingBox
+            - a list of BoundingBox
+
+    Returns:
+    -------
+        a (1, 5) array (enclosing boxarray), or a BoundingBox
     """
     if isinstance(bboxes, np.ndarray):
         xmin, ymin, xmax, ymax, score = np.split(bboxes, 5, axis=1)
@@ -56,6 +82,22 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
 
 
 def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024) -> np.ndarray:
+    """Compute enclosing rotated bbox either from:
+
+    Args:
+    ----
+        rbboxes: boxes in one of the following formats:
+
+            - an array of boxes: (*, 5), where boxes have this shape:
+            (xmin, ymin, xmax, ymax, score)
+
+            - a list of BoundingBox
+        intermed_size: size of the intermediate image
+
+    Returns:
+    -------
+        a (1, 5) array (enclosing boxarray), or a BoundingBox
+    """
     cloud: np.ndarray = np.concatenate(rbboxes, axis=0)
     # Convert to absolute for minAreaRect
     cloud *= intermed_size
@@ -65,9 +107,16 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:
     """Rotate points counter-clockwise.
-    Points: array of size (N, 2)
-    """
 
+    Args:
+    ----
+        points: array of size (N, 2)
+        angle: angle between -90 and +90 degrees
+
+    Returns:
+    -------
+        Rotated points
+    """
     angle_rad = angle * np.pi / 180.0  # compute radian angle for np functions
     rotation_mat = np.array(
         [[np.cos(angle_rad), -np.sin(angle_rad)], [np.sin(angle_rad), np.cos(angle_rad)]], dtype=points.dtype
@@ -79,13 +128,14 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     """Compute the shape of an expanded rotated image
 
     Args:
+    ----
         img_shape: the height and width of the image
         angle: angle between -90 and +90 degrees
 
     Returns:
+    -------
         the height and width of the rotated image
     """
-
     points: np.ndarray = np.array(
         [
             [img_shape[1] / 2, img_shape[0] / 2],
@@ -109,15 +159,16 @@ def rotate_abs_geoms(
     image center.
 
     Args:
-        boxes: (N, 4) or (N, 4, 2) array of ABSOLUTE coordinate boxes
+    ----
+        geoms: (N, 4) or (N, 4, 2) array of ABSOLUTE coordinate boxes
         angle: anti-clockwise rotation angle in degrees
         img_shape: the height and width of the image
         expand: whether the image should be padded to avoid information loss
 
     Returns:
+    -------
         A batch of rotated polygons (N, 4, 2)
     """
-
     # Switch to polygons
     polys = (
         np.stack([geoms[:, [0, 1]], geoms[:, [2, 1]], geoms[:, [2, 3]], geoms[:, [0, 3]]], axis=1)
@@ -147,14 +198,15 @@ def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: 
     coordinates after a resizing of the image.
 
     Args:
+    ----
         loc_preds: (N, 4, 2) array of RELATIVE loc_preds
         orig_shape: shape of the origin image
         dest_shape: shape of the destination image
 
     Returns:
+    -------
         A batch of rotated loc_preds (N, 4, 2) expressed in the destination referencial
     """
-
     if len(dest_shape) != 2:
         raise ValueError(f"Mask length should be 2, was found at: {len(dest_shape)}")
     if len(orig_shape) != 2:
@@ -181,15 +233,17 @@ def rotate_boxes(
     is done to remove the padding that is created by rotate_page(expand=True)
 
     Args:
+    ----
         loc_preds: (N, 5) or (N, 4, 2) array of RELATIVE boxes
         angle: angle between -90 and +90 degrees
         orig_shape: shape of the origin image
         min_angle: minimum angle to rotate boxes
+        target_shape: shape of the destination image
 
     Returns:
+    -------
         A batch of rotated boxes (N, 4, 2): or a batch of straight bounding boxes
     """
-
     # Change format of the boxes to rotated boxes
     _boxes = loc_preds.copy()
     if _boxes.ndim == 2:
@@ -234,21 +288,23 @@ def rotate_image(
     """Rotate an image counterclockwise by an given angle.
 
     Args:
+    ----
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
         preserve_origin_shape: if expand is set to True, resizes the final output to the original image size
 
     Returns:
+    -------
         Rotated array, padded by 0 by default.
     """
-
     # Compute the expanded padding
     exp_img: np.ndarray
     if expand:
         exp_shape = compute_expanded_shape(image.shape[:2], angle)  # type: ignore[arg-type]
-        h_pad, w_pad = int(max(0, ceil(exp_shape[0] - image.shape[0]))), int(
-            max(0, ceil(exp_shape[1] - image.shape[1]))
+        h_pad, w_pad = (
+            int(max(0, ceil(exp_shape[0] - image.shape[0]))),
+            int(max(0, ceil(exp_shape[1] - image.shape[1]))),
         )
         exp_img = np.pad(image, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
     else:
@@ -290,13 +346,14 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
     """Convert a geometry to relative coordinates
 
     Args:
+    ----
         geoms: a set of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
         img_shape: the height and width of the image
 
     Returns:
+    -------
         the updated geometry
     """
-
     # Polygon
     if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
         polygons: np.ndarray = np.empty(geoms.shape, dtype=np.float32)

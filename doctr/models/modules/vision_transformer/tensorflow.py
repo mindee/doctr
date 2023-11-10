@@ -45,8 +45,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         )
 
     def interpolate_pos_encoding(self, embeddings: tf.Tensor, height: int, width: int) -> tf.Tensor:
-        """
-        100 % borrowed from:
+        """100 % borrowed from:
         https://github.com/huggingface/transformers/blob/main/src/transformers/models/vit/modeling_tf_vit.py
 
         This method allows to interpolate the pre-trained position encodings, to be able to use the model on higher
@@ -55,7 +54,6 @@ class PatchEmbedding(layers.Layer, NestedObject):
         Source:
         https://github.com/facebookresearch/dino/blob/de9ee3df6cf39fac952ab558447af1fa1365362a/vision_transformer.py
         """
-
         seq_len, dim = embeddings.shape[1:]
         num_patches = seq_len - 1
 

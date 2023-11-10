@@ -44,10 +44,10 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class CTCPostProcessor(RecognitionPostProcessor):
-    """
-    Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
+    """Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
 
     Args:
+    ----
         vocab: string containing the ordered sequence of supported characters
         ignore_case: if True, ignore case of letters
         ignore_accents: if True, ignore accents of letters
@@ -59,16 +59,17 @@ class CTCPostProcessor(RecognitionPostProcessor):
         beam_width: int = 1,
         top_paths: int = 1,
     ) -> Union[List[Tuple[str, float]], List[Tuple[List[str], List[float]]]]:
-        """
-        Performs decoding of raw output with CTC and decoding of CTC predictions
+        """Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
 
         Args:
+        ----
             logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1
             beam_width: An int scalar >= 0 (beam search beam width).
             top_paths: An int scalar >= 0, <= beam_width (controls output size).
 
         Returns:
+        -------
             A list of decoded words of length BATCH_SIZE
 
 
@@ -113,6 +114,7 @@ class CRNN(RecognitionModel, Model):
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
@@ -166,10 +168,12 @@ class CRNN(RecognitionModel, Model):
         """Compute CTC loss for the model.
 
         Args:
+        ----
             model_output: predicted logits of the model
             target: lengths of each gt word inside the batch
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         gt, seq_len = self.build_target(target)
@@ -261,12 +265,14 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _crnn("crnn_vgg16_bn", pretrained, vgg16_bn_r, **kwargs)
 
 
@@ -281,12 +287,14 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _crnn("crnn_mobilenet_v3_small", pretrained, mobilenet_v3_small_r, **kwargs)
 
 
@@ -301,10 +309,12 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _crnn("crnn_mobilenet_v3_large", pretrained, mobilenet_v3_large_r, **kwargs)

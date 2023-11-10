@@ -5,10 +5,10 @@
 
 from typing import List
 
-from fastapi import APIRouter, File, UploadFile, status
-
 from app.schemas import DetectionOut
 from app.vision import det_predictor
+from fastapi import APIRouter, File, UploadFile, status
+
 from doctr.file_utils import CLASS_NAME
 from doctr.io import decode_img_as_tensor
 

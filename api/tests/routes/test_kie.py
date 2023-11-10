@@ -5,7 +5,7 @@ from scipy.optimize import linear_sum_assignment
 from doctr.utils.metrics import box_iou
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_perform_kie(test_app_asyncio, mock_detection_image):
     response = await test_app_asyncio.post("/kie", files={"file": mock_detection_image})
     assert response.status_code == 200

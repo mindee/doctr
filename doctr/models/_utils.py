@@ -18,6 +18,7 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     """Get the maximum shape ratio of a contour.
 
     Args:
+    ----
         contour: the contour from cv2.findContour
 
     Returns: the maximum shape ratio
@@ -31,11 +32,13 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
      lines of the document and the assumption that they should be horizontal.
 
     Args:
+    ----
         img: the img to analyze
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
 
     Returns:
+    -------
         the angle of the general document orientation
     """
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -73,11 +76,13 @@ def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.0) -
     """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
 
     Args:
+    ----
         bitmap: binarized segmentation map
         n_ct: number of contours to use to fit page angle
         std_max: maximum deviation of the angle distribution to consider the mean angle reliable
 
     Returns:
+    -------
         The angle of the page
     """
     # Find all contours on binarized seg map
@@ -169,16 +174,15 @@ def invert_data_structure(
     """Invert a List of Dict of elements to a Dict of list of elements and the other way around
 
     Args:
+    ----
         x: a list of dictionaries with the same keys or a dictionary of lists of the same length
 
     Returns:
+    -------
         dictionary of list when x is a list of dictionaries or a list of dictionaries when x is dictionary of lists
     """
-
     if isinstance(x, dict):
-        assert (
-            len(set([len(v) for v in x.values()])) == 1
-        ), "All the lists in the dictionnary should have the same length."
+        assert len({len(v) for v in x.values()}) == 1, "All the lists in the dictionnary should have the same length."
         return [dict(zip(x, t)) for t in zip(*x.values())]
     elif isinstance(x, list):
         return {k: [dic[k] for dic in x] for k in x[0]}

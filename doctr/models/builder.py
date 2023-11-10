@@ -20,6 +20,7 @@ class DocumentBuilder(NestedObject):
     """Implements a document builder
 
     Args:
+    ----
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
@@ -44,9 +45,11 @@ class DocumentBuilder(NestedObject):
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
+        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) (in case of rotated bbox)
 
         Returns:
+        -------
             tuple: indices of ordered boxes of shape (N,), boxes
                 If straight boxes are passed tpo the function, boxes are unchanged
                 else: boxes returned are straight boxes fitted to the straightened rotated boxes
@@ -66,10 +69,12 @@ class DocumentBuilder(NestedObject):
         """Split a line in sub_lines
 
         Args:
+        ----
             boxes: bounding boxes of shape (N, 4)
             word_idcs: list of indexes for the words of the line
 
         Returns:
+        -------
             A list of (sub-)lines computed from the original line (words)
         """
         lines = []
@@ -104,12 +109,13 @@ class DocumentBuilder(NestedObject):
         """Order boxes to group them in lines
 
         Args:
+        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
 
         Returns:
+        -------
             nested list of box indices
         """
-
         # Sort boxes, and straighten the boxes if they are rotated
         idxs, boxes = self._sort_boxes(boxes)
 
@@ -151,10 +157,12 @@ class DocumentBuilder(NestedObject):
         """Order lines to group them in blocks
 
         Args:
+        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2)
             lines: list of lines, each line is a list of idx
 
         Returns:
+        -------
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
@@ -220,13 +228,14 @@ class DocumentBuilder(NestedObject):
         """Gather independent words in structured blocks
 
         Args:
+        ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
             word_preds: list of all detected words of the page, of shape N
 
         Returns:
+        -------
             list of block elements
         """
-
         if boxes.shape[0] != len(word_preds):
             raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
 
@@ -289,12 +298,18 @@ class DocumentBuilder(NestedObject):
         """Re-arrange detected words into structured blocks
 
         Args:
+        ----
             boxes: list of N elements, where each element represents the localization predictions, of shape (*, 5)
                 or (*, 6) for all words for a given page
             text_preds: list of N elements, where each element is the list of all word prediction (text + confidence)
-            page_shape: shape of each page, of size N
+            page_shapes: shape of each page, of size N
+            orientations: optional, list of N elements,
+                where each element is a dictionary containing the orientation (orientation + confidence)
+            languages: optional, list of N elements,
+                where each element is a dictionary containing the language (language + confidence)
 
         Returns:
+        -------
             document object
         """
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
@@ -337,6 +352,7 @@ class KIEDocumentBuilder(DocumentBuilder):
     """Implements a KIE document builder
 
     Args:
+    ----
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
@@ -355,12 +371,18 @@ class KIEDocumentBuilder(DocumentBuilder):
         """Re-arrange detected words into structured predictions
 
         Args:
+        ----
             boxes: list of N dictionaries, where each element represents the localization predictions for a class,
-            of shape (*, 5) or (*, 6) for all predictions
+                of shape (*, 5) or (*, 6) for all predictions
             text_preds: list of N dictionaries, where each element is the list of all word prediction
-            page_shape: shape of each page, of size N
+            page_shapes: shape of each page, of size N
+            orientations: optional, list of N elements,
+                where each element is a dictionary containing the orientation (orientation + confidence)
+            languages: optional, list of N elements,
+                where each element is a dictionary containing the language (language + confidence)
 
         Returns:
+        -------
             document object
         """
         if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
@@ -411,13 +433,14 @@ class KIEDocumentBuilder(DocumentBuilder):
         """Gather independent words in structured blocks
 
         Args:
+        ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
             word_preds: list of all detected words of the page, of shape N
 
         Returns:
+        -------
             list of block elements
         """
-
         if boxes.shape[0] != len(word_preds):
             raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
 

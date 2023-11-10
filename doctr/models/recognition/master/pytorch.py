@@ -37,6 +37,7 @@ class MASTER(_MASTER, nn.Module):
     Implementation based on the official Pytorch implementation: <https://github.com/wenwenyu/MASTER-pytorch>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary, (without EOS, SOS, PAD)
         d_model: d parameter for the transformer decoder
@@ -128,11 +129,13 @@ class MASTER(_MASTER, nn.Module):
         Sequences are masked after the EOS character.
 
         Args:
+        ----
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         # Input length : number of timesteps
@@ -159,15 +162,16 @@ class MASTER(_MASTER, nn.Module):
         """Call function for training
 
         Args:
+        ----
             x: images
             target: list of str labels
             return_model_output: if True, return logits
             return_preds: if True, decode logits
 
         Returns:
+        -------
             A dictionnary containing eventually loss, logits and predictions.
         """
-
         # Encode
         features = self.feat_extractor(x)["features"]
         b, c, h, w = features.shape
@@ -216,9 +220,11 @@ class MASTER(_MASTER, nn.Module):
         """Decode function for prediction
 
         Args:
+        ----
             encoded: input tensor
 
         Return:
+        ------
             A Tuple of torch.Tensor: predictions, logits
         """
         b = encoded.size(0)
@@ -309,12 +315,14 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keywoard arguments passed to the MASTER architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _master(
         "master",
         pretrained,

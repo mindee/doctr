@@ -158,8 +158,8 @@ def test_crnn_beam_search(arch_name):
     assert all(
         isinstance(words, list)
         and isinstance(confs, list)
-        and all([isinstance(word, str) for word in words])
-        and all([isinstance(conf, float) for conf in confs])
+        and all(isinstance(word, str) for word in words)
+        and all(isinstance(conf, float) for conf in confs)
         for words, confs in out
     )
 

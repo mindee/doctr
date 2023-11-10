@@ -59,11 +59,13 @@ def crop_orientation_predictor(
     >>> out = model([input_crop])
 
     Args:
+    ----
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small')
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
+        **kwargs: keyword arguments to be passed to the CropOrientationPredictor
 
     Returns:
+    -------
         CropOrientationPredictor
     """
-
     return _crop_orientation_predictor(arch, pretrained, **kwargs)

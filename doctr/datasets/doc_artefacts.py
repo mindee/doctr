@@ -26,6 +26,7 @@ class DocArtefacts(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
+    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         **kwargs: keyword arguments from `VisionDataset`.

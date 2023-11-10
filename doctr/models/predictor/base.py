@@ -21,6 +21,7 @@ class _OCRPredictor:
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
+    ----
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.

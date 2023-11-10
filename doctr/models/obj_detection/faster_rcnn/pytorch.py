@@ -70,10 +70,12 @@ def fasterrcnn_mobilenet_v3_large_fpn(pretrained: bool = False, **kwargs: Any) -
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our object detection dataset
+        **kwargs: keyword arguments of the FasterRCNN architecture
 
     Returns:
+    -------
         object detection architecture
     """
-
     return _fasterrcnn("fasterrcnn_mobilenet_v3_large_fpn", pretrained, **kwargs)

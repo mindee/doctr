@@ -45,6 +45,7 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
     <https://arxiv.org/pdf/1612.03144.pdf>`_.
 
     Args:
+    ----
         channels: number of channel to output
     """
 
@@ -66,14 +67,15 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
         """Module which performs a 3x3 convolution followed by up-sampling
 
         Args:
+        ----
             channels: number of output channels
             dilation_factor (int): dilation factor to scale the convolution output before concatenation
 
         Returns:
+        -------
             a keras.layers.Layer object, wrapping these operations in a sequential module
 
         """
-
         _layers = conv_sequence(channels, "relu", True, kernel_size=3)
 
         if dilation_factor > 1:
@@ -107,6 +109,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
+    ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
         assume_straight_pages: if True, fit straight bounding boxes only
@@ -172,14 +175,15 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         and a list of masks for each image. From there it computes the loss with the model output
 
         Args:
+        ----
             out_map: output feature map of the model of shape (N, H, W, C)
             thresh_map: threshold map of shape (N, H, W, C)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
 
         Returns:
+        -------
             A loss tensor
         """
-
         prob_map = tf.math.sigmoid(out_map)
         thresh_map = tf.math.sigmoid(thresh_map)
 
@@ -342,12 +346,14 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _db_resnet(
         "db_resnet50",
         pretrained,
@@ -368,12 +374,14 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _db_mobilenet(
         "db_mobilenet_v3_large",
         pretrained,

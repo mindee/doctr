@@ -84,12 +84,14 @@ def detection_predictor(
     >>> out = model([input_page])
 
     Args:
+    ----
         arch: name of the architecture or model itself to use (e.g. 'db_resnet50')
         pretrained: If True, returns a model pre-trained on our text detection dataset
         assume_straight_pages: If True, fit straight boxes to the page
+        **kwargs: optional keyword arguments passed to the architecture
 
     Returns:
+    -------
         Detection predictor
     """
-
     return _predictor(arch, pretrained, assume_straight_pages, **kwargs)

@@ -83,8 +83,10 @@ if not _torch_available and not _tf_available:  # pragma: no cover
 
 
 def is_torch_available():
+    """Whether PyTorch is installed."""
     return _torch_available
 
 
 def is_tf_available():
+    """Whether TensorFlow is installed."""
     return _tf_available

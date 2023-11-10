@@ -28,6 +28,7 @@ class SVT(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
+    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task

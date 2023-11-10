@@ -20,13 +20,14 @@ def tensor_from_pil(pil_img: Image, dtype: torch.dtype = torch.float32) -> torch
     """Convert a PIL Image to a PyTorch tensor
 
     Args:
+    ----
         pil_img: a PIL image
         dtype: the output tensor data type
 
     Returns:
+    -------
         decoded image as tensor
     """
-
     if dtype == torch.float32:
         img = to_tensor(pil_img)
     else:
@@ -39,13 +40,14 @@ def read_img_as_tensor(img_path: AbstractPath, dtype: torch.dtype = torch.float3
     """Read an image file as a PyTorch tensor
 
     Args:
+    ----
         img_path: location of the image file
         dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.
 
     Returns:
+    -------
         decoded image as a tensor
     """
-
     if dtype not in (torch.uint8, torch.float16, torch.float32):
         raise ValueError("insupported value for dtype")
 
@@ -58,13 +60,14 @@ def decode_img_as_tensor(img_content: bytes, dtype: torch.dtype = torch.float32)
     """Read a byte stream as a PyTorch tensor
 
     Args:
+    ----
         img_content: bytes of a decoded image
         dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.
 
     Returns:
+    -------
         decoded image as a tensor
     """
-
     if dtype not in (torch.uint8, torch.float16, torch.float32):
         raise ValueError("insupported value for dtype")
 
@@ -77,13 +80,14 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -
     """Read an image file as a PyTorch tensor
 
     Args:
-        img: image encoded as a numpy array of shape (H, W, C) in np.uint8
+    ----
+        npy_img: image encoded as a numpy array of shape (H, W, C) in np.uint8
         dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.
 
     Returns:
+    -------
         same image as a tensor of shape (C, H, W)
     """
-
     if dtype not in (torch.uint8, torch.float16, torch.float32):
         raise ValueError("insupported value for dtype")
 
@@ -101,4 +105,5 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -
 
 
 def get_img_shape(img: torch.Tensor) -> Tuple[int, int]:
+    """Get the shape of an image"""
     return img.shape[-2:]  # type: ignore[return-value]

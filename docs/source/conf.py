@@ -134,9 +134,7 @@ def add_ga_javascript(app, pagename, templatename, context, doctree):
   gtag('js', new Date());
   gtag('config', '{0}');
 </script>
-    """.format(
-        app.config.googleanalytics_id
-    )
+    """.format(app.config.googleanalytics_id)
     context["metatags"] = metatags
 
 

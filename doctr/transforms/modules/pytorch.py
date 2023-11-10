@@ -19,6 +19,8 @@ __all__ = ["Resize", "GaussianNoise", "ChannelShuffle", "RandomHorizontalFlip", 
 
 
 class Resize(T.Resize):
+    """Resize the input image to the given size"""
+
     def __init__(
         self,
         size: Union[int, Tuple[int, int]],
@@ -119,6 +121,7 @@ class GaussianNoise(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 224, 224)))
 
     Args:
+    ----
         mean : mean of the gaussian distribution
         std : std of the gaussian distribution
     """
@@ -153,15 +156,18 @@ class ChannelShuffle(torch.nn.Module):
 
 
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
+    """Randomly flip the input image horizontally"""
+
     def forward(
         self, img: Union[torch.Tensor, Image], target: Dict[str, Any]
     ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
-        """
-        Args:
+        """Args:
+        ----
             img: Image to be flipped.
             target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
 
-        Returns:
+        Returns
+        -------
             Tuple of PIL Image or Tensor and target
         """
         if torch.rand(1) < self.p:
@@ -182,6 +188,7 @@ class RandomShadow(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 64, 64)))
 
     Args:
+    ----
         opacity_range : minimum and maximum opacity of the shade
     """
 

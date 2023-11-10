@@ -42,6 +42,7 @@ class Compose(NestedObject):
     >>> out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         transforms: list of transformation modules
     """
 
@@ -66,6 +67,7 @@ class Resize(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         output_size: expected output size
         method: interpolation method
         preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros
@@ -156,6 +158,7 @@ class Normalize(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         mean: average value per channel
         std: standard deviation per channel
     """
@@ -182,6 +185,7 @@ class LambdaTransformation(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         fn: the function to be applied to the input tensor
     """
 
@@ -219,6 +223,7 @@ class RandomBrightness(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
         p: probability to apply transformation
     """
@@ -243,6 +248,7 @@ class RandomContrast(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor<1)
     """
 
@@ -266,6 +272,7 @@ class RandomSaturation(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor<1)
     """
 
@@ -288,6 +295,7 @@ class RandomHue(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
     """
 
@@ -310,6 +318,7 @@ class RandomGamma(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         min_gamma: non-negative real number, lower bound for gamma param
         max_gamma: non-negative real number, upper bound for gamma
         min_gain: lower bound for constant multiplier
@@ -347,6 +356,7 @@ class RandomJpegQuality(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         min_quality: int between [0, 100]
         max_quality: int between [0, 100]
     """
@@ -371,6 +381,7 @@ class GaussianBlur(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         kernel_shape: size of the blurring kernel
         std: min and max value of the standard deviation
     """
@@ -414,6 +425,7 @@ class GaussianNoise(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         mean : mean of the gaussian distribution
         std : std of the gaussian distribution
     """
@@ -451,6 +463,7 @@ class RandomHorizontalFlip(NestedObject):
     >>> out = transfo(image, target)
 
     Args:
+    ----
         p : probability of Horizontal Flip
     """
 
@@ -459,8 +472,8 @@ class RandomHorizontalFlip(NestedObject):
         self.p = p
 
     def __call__(self, img: Union[tf.Tensor, np.ndarray], target: Dict[str, Any]) -> Tuple[tf.Tensor, Dict[str, Any]]:
-        """
-        Args:
+        """Args:
+        ----
             img: Image to be flipped.
             target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
         Returns:
@@ -484,6 +497,7 @@ class RandomShadow(NestedObject):
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
+    ----
         opacity_range : minimum and maximum opacity of the shade
     """
 

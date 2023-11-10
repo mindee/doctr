@@ -23,6 +23,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """Implements a post processor for LinkNet model.
 
     Args:
+    ----
         bin_thresh: threshold used to binzarized p_map at inference time
         box_thresh: minimal objectness score to consider a box
         assume_straight_pages: whether the inputs were expected to have horizontal text elements
@@ -44,9 +45,11 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
+        ----
             points: The first parameter.
 
         Returns:
+        -------
             a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         if not self.assume_straight_pages:
@@ -91,12 +94,14 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
+        ----
             pred: Pred map from differentiable linknet output
             bitmap: Bitmap map computed from pred (binarized)
             angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
+        -------
             np tensor boxes for the bitmap, each box is a 6-element list
                 containing x, y, w, h, alpha, score for the box
         """
@@ -146,6 +151,7 @@ class _LinkNet(BaseModel):
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Args:
+    ----
         out_chan: number of channels for the output
     """
 
@@ -162,14 +168,15 @@ class _LinkNet(BaseModel):
         """Build the target, and it's mask to be used from loss computation.
 
         Args:
+        ----
             target: target coming from dataset
             output_shape: shape of the output of the model without batch_size
             channels_last: whether channels are last or not
 
         Returns:
+        -------
             the new formatted target and the mask
         """
-
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):

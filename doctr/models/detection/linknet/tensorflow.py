@@ -52,7 +52,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 def decoder_block(in_chan: int, out_chan: int, stride: int, **kwargs: Any) -> Sequential:
     """Creates a LinkNet decoder block"""
-
     return Sequential(
         [
             *conv_sequence(in_chan // 4, "relu", True, kernel_size=1, **kwargs),
@@ -104,6 +103,7 @@ class LinkNet(_LinkNet, keras.Model):
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Args:
+    ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
         assume_straight_pages: if True, fit straight bounding boxes only
@@ -176,6 +176,7 @@ class LinkNet(_LinkNet, keras.Model):
         <https://github.com/tensorflow/addons/>`_.
 
         Args:
+        ----
             out_map: output feature map of the model of shape N x H x W x 1
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
             gamma: modulating factor in the focal loss formula
@@ -183,6 +184,7 @@ class LinkNet(_LinkNet, keras.Model):
             eps: epsilon factor in dice loss
 
         Returns:
+        -------
             A loss tensor
         """
         seg_target, seg_mask = self.build_target(target, out_map.shape[1:], True)
@@ -294,12 +296,14 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _linknet(
         "linknet_resnet18",
         pretrained,
@@ -320,12 +324,14 @@ def linknet_resnet18_rotation(pretrained: bool = False, **kwargs: Any) -> LinkNe
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _linknet(
         "linknet_resnet18_rotation",
         pretrained,
@@ -346,12 +352,14 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _linknet(
         "linknet_resnet34",
         pretrained,
@@ -372,12 +380,14 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _linknet(
         "linknet_resnet50",
         pretrained,

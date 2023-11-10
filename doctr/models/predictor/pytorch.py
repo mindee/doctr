@@ -24,6 +24,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
+    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
@@ -81,9 +82,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             orientations = None
         if self.straighten_pages:
             origin_page_orientations = (
-                origin_page_orientations
-                if self.detect_orientation
-                else [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
             )
             pages = [
                 rotate_image(page, -angle, expand=True)  # type: ignore[arg-type]
@@ -129,9 +128,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 rotate_boxes(
                     page_boxes,
                     angle,
-                    orig_shape=page.shape[:2]
-                    if isinstance(page, np.ndarray)
-                    else page.shape[1:],  # type: ignore[arg-type]
+                    orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[1:],  # type: ignore[arg-type]
                     target_shape=mask,  # type: ignore[arg-type]
                 )
                 for page_boxes, page, angle, mask in zip(boxes, pages, origin_page_orientations, origin_page_shapes)

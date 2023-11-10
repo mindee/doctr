@@ -67,10 +67,10 @@ def test_get_lang():
 
 def test_convert_list_dict():
     dic = {"k1": [[0], [0], [0]], "k2": [[1], [1], [1]]}
-    L = [{"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}]
+    tar_dict = [{"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}, {"k1": [0], "k2": [1]}]
 
     converted_dic = invert_data_structure(dic)
-    converted_list = invert_data_structure(L)
+    converted_list = invert_data_structure(tar_dict)
 
-    assert converted_dic == L
+    assert converted_dic == tar_dict
     assert converted_list == dic

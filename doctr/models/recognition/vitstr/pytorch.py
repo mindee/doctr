@@ -42,6 +42,7 @@ class ViTSTR(_ViTSTR, nn.Module):
     Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         embedding_units: number of embedding units
@@ -124,11 +125,13 @@ class ViTSTR(_ViTSTR, nn.Module):
         Sequences are masked after the EOS character.
 
         Args:
+        ----
             model_output: predicted logits of the model
             gt: the encoded tensor with gt labels
             seq_len: lengths of each gt word inside the batch
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         # Input length : number of steps
@@ -150,6 +153,7 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
     """Post processor for ViTSTR architecture
 
     Args:
+    ----
         vocab: string containing the ordered sequence of supported characters
     """
 
@@ -224,12 +228,14 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        kwargs: keyword arguments of the ViTSTR architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _vitstr(
         "vitstr_small",
         pretrained,
@@ -253,12 +259,14 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        kwargs: keyword arguments of the ViTSTR architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _vitstr(
         "vitstr_base",
         pretrained,

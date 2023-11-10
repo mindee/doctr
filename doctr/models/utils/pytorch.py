@@ -34,7 +34,6 @@ def load_pretrained_params(
     model: nn.Module,
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
-    overwrite: bool = False,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> None:
@@ -44,13 +43,13 @@ def load_pretrained_params(
     >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
+    ----
         model: the PyTorch model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
-        overwrite: should the zip extraction be enforced if the archive has already been extracted
         ignore_keys: list of weights to be ignored from the state_dict
+        **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
-
     if url is None:
         logging.warning("Invalid model URL, using default initialization.")
     else:
@@ -85,11 +84,15 @@ def conv_sequence_pt(
     >>> module = Sequential(conv_sequence(3, 32, True, True, kernel_size=3))
 
     Args:
+    ----
+        in_channels: number of input channels
         out_channels: number of output channels
         relu: whether ReLU should be used
         bn: should a batch normalization layer be added
+        **kwargs: additional arguments to be passed to the convolutional layer
 
     Returns:
+    -------
         list of layers
     """
     # No bias before Batch norm
@@ -119,15 +122,16 @@ def set_device_and_dtype(
     >>> model, batches = set_device_and_dtype(model, batches, device="cuda", dtype=torch.float16)
 
     Args:
+    ----
         model: the model to be set
         batches: the batches to be set
         device: the device to be used
         dtype: the dtype to be used
 
     Returns:
+    -------
         the model and batches set
     """
-
     return model.to(device=device, dtype=dtype), [batch.to(device=device, dtype=dtype) for batch in batches]
 
 
@@ -141,12 +145,14 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
     >>> export_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
 
     Args:
+    ----
         model: the PyTorch model to be exported
         model_name: the name for the exported model
         dummy_input: the dummy input to the model
         kwargs: additional arguments to be passed to torch.onnx.export
 
     Returns:
+    -------
         the path to the exported model
     """
     torch.onnx.export(
