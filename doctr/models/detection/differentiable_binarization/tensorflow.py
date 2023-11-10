@@ -14,12 +14,12 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from tensorflow.keras.applications import ResNet50
 
+from ...classification import mobilenet_v3_large
+from .base import DBPostProcessor, _DBNet
+
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
-
-from ...classification import mobilenet_v3_large
-from .base import DBPostProcessor, _DBNet
 
 __all__ = ["DBNet", "db_resnet50", "db_mobilenet_v3_large"]
 

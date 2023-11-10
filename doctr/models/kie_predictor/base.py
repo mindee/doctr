@@ -5,10 +5,10 @@
 
 from typing import Any, Optional
 
-from doctr.models.builder import KIEDocumentBuilder
-
 from ..classification.predictor import CropOrientationPredictor
 from ..predictor.base import _OCRPredictor
+
+from doctr.models.builder import KIEDocumentBuilder
 
 __all__ = ["_KIEPredictor"]
 

@@ -11,9 +11,9 @@ from typing import Iterable, Optional, Tuple, Union
 import numpy as np
 import tensorflow as tf
 
-from doctr.utils.geometry import compute_expanded_shape, rotate_abs_geoms
-
 from .base import create_shadow_mask, crop_boxes
+
+from doctr.utils.geometry import compute_expanded_shape, rotate_abs_geoms
 
 __all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
 

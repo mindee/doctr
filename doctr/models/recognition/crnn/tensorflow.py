@@ -10,11 +10,11 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Model, Sequential
 
-from doctr.datasets import VOCABS
-
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
+
+from doctr.datasets import VOCABS
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
 

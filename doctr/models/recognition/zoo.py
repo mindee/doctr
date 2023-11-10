@@ -5,11 +5,11 @@
 
 from typing import Any, List
 
-from doctr.file_utils import is_tf_available
-from doctr.models.preprocessor import PreProcessor
-
 from .. import recognition
 from .predictor import RecognitionPredictor
+
+from doctr.file_utils import is_tf_available
+from doctr.models.preprocessor import PreProcessor
 
 __all__ = ["recognition_predictor"]
 

@@ -177,7 +177,7 @@ line-length = 120
 target-version = "py39"
 
 [tool.ruff.isort]
-section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+section-order = ["future", "standard-library", "third-party", "local-folder", "first-party"]
 known-first-party = ["doctr", "tests", "scripts", "references", "demo", "docs", "api"]
 known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress"]
 

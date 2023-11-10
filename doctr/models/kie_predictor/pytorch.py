@@ -9,13 +9,13 @@ import numpy as np
 import torch
 from torch import nn
 
+from .base import _KIEPredictor
+
 from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation, get_language, invert_data_structure
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
-
-from .base import _KIEPredictor
 
 __all__ = ["KIEPredictor"]
 

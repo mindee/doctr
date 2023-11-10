@@ -87,7 +87,7 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 
 
 @pytest.fixture(scope="session")
-def test_recognitionpredictor(mock_pdf, mock_vocab):  # noqa: F811
+def test_recognitionpredictor(mock_pdf, mock_vocab):
     batch_size = 4
     predictor = RecognitionPredictor(
         PreProcessor(output_size=(32, 128), batch_size=batch_size, preserve_aspect_ratio=True),

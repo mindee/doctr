@@ -165,7 +165,7 @@ def test_estimate_page_angle():
     assert np.isclose(angle, 20)
 
 
-def test_extract_crops(mock_pdf):  # noqa: F811
+def test_extract_crops(mock_pdf):
     doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array(
@@ -213,7 +213,7 @@ def test_extract_crops(mock_pdf):  # noqa: F811
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
 
 
-def test_extract_rcrops(mock_pdf):  # noqa: F811
+def test_extract_rcrops(mock_pdf):
     doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array(

@@ -8,11 +8,11 @@ from typing import List, Sequence, Union
 
 import numpy as np
 
-from doctr.utils.common_types import AbstractFile
-
 from .html import read_html
 from .image import read_img_as_numpy
 from .pdf import read_pdf
+
+from doctr.utils.common_types import AbstractFile
 
 __all__ = ["DocumentFile"]
 

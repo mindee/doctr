@@ -14,10 +14,10 @@ from typing import Sequence as SequenceType
 import numpy as np
 from PIL import Image
 
+from .vocabs import VOCABS
+
 from doctr.io.image import get_img_shape
 from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extract_rcrops
-
-from .vocabs import VOCABS
 
 __all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences", "pre_transform_multiclass"]
 

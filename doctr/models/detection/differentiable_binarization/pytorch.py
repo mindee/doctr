@@ -13,11 +13,11 @@ from torchvision.models import resnet34, resnet50
 from torchvision.models._utils import IntermediateLayerGetter
 from torchvision.ops.deform_conv import DeformConv2d
 
-from doctr.file_utils import CLASS_NAME
-
 from ...classification import mobilenet_v3_large
 from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import DBPostProcessor, _DBNet
+
+from doctr.file_utils import CLASS_NAME
 
 __all__ = ["DBNet", "db_resnet50", "db_resnet34", "db_mobilenet_v3_large", "db_resnet50_rotation"]
 

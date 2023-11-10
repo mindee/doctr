@@ -9,11 +9,11 @@ from typing import Any, Dict, List, Optional, Tuple
 import torch
 from torch import nn
 
+from ...utils.pytorch import load_pretrained_params
+
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
 from doctr.models.modules.vision_transformer.pytorch import PatchEmbedding
-
-from ...utils.pytorch import load_pretrained_params
 
 __all__ = ["vit_s", "vit_b"]
 

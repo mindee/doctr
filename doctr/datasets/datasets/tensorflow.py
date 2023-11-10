@@ -10,9 +10,9 @@ from typing import Any, List, Tuple
 import numpy as np
 import tensorflow as tf
 
-from doctr.io import read_img_as_tensor, tensor_from_numpy
-
 from .base import _AbstractDataset, _VisionDataset
+
+from doctr.io import read_img_as_tensor, tensor_from_numpy
 
 __all__ = ["AbstractDataset", "VisionDataset"]
 

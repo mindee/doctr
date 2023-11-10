@@ -278,7 +278,7 @@ def test_page():
     )
 
     # Repr
-    assert "\n".join(repr(page).split("\n")[:2]) == f"Page(\n  dimensions={repr(page_size)}"
+    assert "\n".join(repr(page).split("\n")[:2]) == f"Page(\n  dimensions={page_size!r}"
 
     # Show
     page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
@@ -325,7 +325,7 @@ def test_kiepage():
     )
 
     # Repr
-    assert "\n".join(repr(kie_page).split("\n")[:2]) == f"KIEPage(\n  dimensions={repr(page_size)}"
+    assert "\n".join(repr(kie_page).split("\n")[:2]) == f"KIEPage(\n  dimensions={page_size!r}"
 
     # Show
     kie_page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)

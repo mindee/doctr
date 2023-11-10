@@ -8,10 +8,10 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 from PIL import Image, ImageDraw
 
+from ..datasets import AbstractDataset
+
 from doctr.io.image import tensor_from_pil
 from doctr.utils.fonts import get_font
-
-from ..datasets import AbstractDataset
 
 
 def synthesize_text_img(

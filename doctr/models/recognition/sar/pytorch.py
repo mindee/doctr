@@ -11,11 +11,11 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
-from doctr.datasets import VOCABS
-
 from ...classification import resnet31
 from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
+
+from doctr.datasets import VOCABS
 
 __all__ = ["SAR", "sar_resnet31"]
 

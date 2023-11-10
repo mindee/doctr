@@ -14,9 +14,9 @@ from torchvision.models.resnet import resnet18 as tv_resnet18
 from torchvision.models.resnet import resnet34 as tv_resnet34
 from torchvision.models.resnet import resnet50 as tv_resnet50
 
-from doctr.datasets import VOCABS
-
 from ...utils import conv_sequence_pt, load_pretrained_params
+
+from doctr.datasets import VOCABS
 
 __all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide", "resnet_stage"]
 

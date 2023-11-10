@@ -9,10 +9,10 @@ import numpy as np
 import torch
 from torch import nn
 
+from ._utils import remap_preds, split_crops
+
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import set_device_and_dtype
-
-from ._utils import remap_preds, split_crops
 
 __all__ = ["RecognitionPredictor"]
 

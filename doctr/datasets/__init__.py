@@ -1,5 +1,3 @@
-from doctr.file_utils import is_tf_available
-
 from .cord import *
 from .detection import *
 from .doc_artefacts import *
@@ -20,6 +18,8 @@ from .synthtext import *
 from .utils import *
 from .vocabs import *
 from .wildreceipt import *
+
+from doctr.file_utils import is_tf_available
 
 if is_tf_available():
     from .loader import *
