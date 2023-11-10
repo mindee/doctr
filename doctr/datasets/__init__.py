@@ -1,10 +1,10 @@
 from doctr.file_utils import is_tf_available
 
+from .generator import *
 from .cord import *
 from .detection import *
 from .doc_artefacts import *
 from .funsd import *
-from .generator import *
 from .ic03 import *
 from .ic13 import *
 from .iiit5k import *
