@@ -67,7 +67,7 @@ class SVT(VisionDataset):
         xml_root = xml_tree.getroot()
 
         for image in tqdm(iterable=xml_root, desc="Unpacking SVT", total=len(xml_root)):
-            name, _, _, _, rectangles = image
+            name, _, _, _resolution, rectangles = image
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, name.text)):

@@ -387,7 +387,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
     # Project relative coordinates
     _boxes = boxes.copy()
     h, w = img.shape[:2] if channels_last else img.shape[-2:]
-    if not isinstance(_boxes.dtype, int):
+    if not np.issubdtype(_boxes.dtype, np.integer):
         _boxes[:, [0, 2]] *= w
         _boxes[:, [1, 3]] *= h
         _boxes = _boxes.round().astype(int)
@@ -419,7 +419,7 @@ def extract_rcrops(
     # Project relative coordinates
     _boxes = polys.copy()
     height, width = img.shape[:2] if channels_last else img.shape[-2:]
-    if not isinstance(_boxes.dtype, int):
+    if np.issubdtype(_boxes.dtype, np.integer):
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 

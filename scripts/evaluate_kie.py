@@ -118,7 +118,7 @@ def main(args):
                                 [x3, y3],
                                 [x4, y4],
                             ) = prediction.geometry
-                        if isinstance(gt_boxes.dtype, int):
+                        if np.issubdtype(gt_boxes.dtype, np.integer):
                             if not args.rotation:
                                 pred_boxes.append([int(a * width), int(b * height), int(c * width), int(d * height)])
                             else:
