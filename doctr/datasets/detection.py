@@ -9,10 +9,10 @@ from typing import Any, Dict, List, Tuple, Type, Union
 
 import numpy as np
 
+from doctr.file_utils import CLASS_NAME
+
 from .datasets import AbstractDataset
 from .utils import pre_transform_multiclass
-
-from doctr.file_utils import CLASS_NAME
 
 __all__ = ["DetectionDataset"]
 

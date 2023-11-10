@@ -9,12 +9,12 @@ from typing import Any, Dict, List, Optional, Tuple
 import tensorflow as tf
 from tensorflow.keras import Model, layers
 
-from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
-from .base import _MASTER, _MASTERPostProcessor
-
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
 from doctr.models.modules.transformer import Decoder, PositionalEncoding
+
+from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
+from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ["MASTER", "master"]
 

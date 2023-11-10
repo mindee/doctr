@@ -12,9 +12,9 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
-from ..core import DetectionPostProcessor
-
 from doctr.models.core import BaseModel
+
+from ..core import DetectionPostProcessor
 
 __all__ = ["_LinkNet", "LinkNetPostProcessor"]
 

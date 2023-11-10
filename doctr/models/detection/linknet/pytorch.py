@@ -11,11 +11,11 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
-from ...utils import _bf16_to_float32, load_pretrained_params
-from .base import LinkNetPostProcessor, _LinkNet
-
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
+
+from ...utils import _bf16_to_float32, load_pretrained_params
+from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
 

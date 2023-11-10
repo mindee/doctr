@@ -10,9 +10,9 @@ import numpy as np
 import torch
 from torchvision.transforms import functional as F
 
-from .base import create_shadow_mask, crop_boxes
-
 from doctr.utils.geometry import rotate_abs_geoms
+
+from .base import create_shadow_mask, crop_boxes
 
 __all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
 

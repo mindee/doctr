@@ -9,9 +9,9 @@ from typing import Any, Dict, List, Optional, Tuple
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
-from ...utils import conv_sequence, load_pretrained_params
-
 from doctr.datasets import VOCABS
+
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["VGG", "vgg16_bn_r"]
 

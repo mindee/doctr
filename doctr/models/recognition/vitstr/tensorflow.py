@@ -9,11 +9,11 @@ from typing import Any, Dict, List, Optional, Tuple
 import tensorflow as tf
 from tensorflow.keras import Model, layers
 
+from doctr.datasets import VOCABS
+
 from ...classification import vit_b, vit_s
 from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
-
-from doctr.datasets import VOCABS
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
 

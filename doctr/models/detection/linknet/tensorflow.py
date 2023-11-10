@@ -13,12 +13,12 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import Model, Sequential, layers
 
-from .base import LinkNetPostProcessor, _LinkNet
-
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, conv_sequence, load_pretrained_params
 from doctr.utils.repr import NestedObject
+
+from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50", "linknet_resnet18_rotation"]
 

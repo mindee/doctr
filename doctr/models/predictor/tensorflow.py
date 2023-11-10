@@ -8,14 +8,14 @@ from typing import Any, List, Union
 import numpy as np
 import tensorflow as tf
 
-from .base import _OCRPredictor
-
 from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import rotate_boxes, rotate_image
 from doctr.utils.repr import NestedObject
+
+from .base import _OCRPredictor
 
 __all__ = ["OCRPredictor"]
 

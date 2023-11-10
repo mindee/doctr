@@ -9,12 +9,12 @@ from typing import Any, Dict, List, Optional, Tuple
 import tensorflow as tf
 from tensorflow.keras import Model, Sequential, layers
 
+from doctr.datasets import VOCABS
+from doctr.utils.repr import NestedObject
+
 from ...classification import resnet31
 from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
-
-from doctr.datasets import VOCABS
-from doctr.utils.repr import NestedObject
 
 __all__ = ["SAR", "sar_resnet31"]
 

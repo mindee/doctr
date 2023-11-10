@@ -9,9 +9,9 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-from .. import functional as F
-
 from doctr.utils.repr import NestedObject
+
+from .. import functional as F
 
 __all__ = ["SampleCompose", "ImageTransform", "ColorInversion", "OneOf", "RandomApply", "RandomRotate", "RandomCrop"]
 

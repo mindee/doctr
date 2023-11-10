@@ -10,10 +10,10 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
-from ...models.utils import _copy_tensor
-
 from doctr.io.image import get_img_shape
 from doctr.utils.data import download_from_url
+
+from ...models.utils import _copy_tensor
 
 __all__ = ["_AbstractDataset", "_VisionDataset"]
 

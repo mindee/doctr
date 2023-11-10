@@ -5,11 +5,11 @@
 
 from typing import Any, List
 
+from doctr.file_utils import is_tf_available, is_torch_available
+
 from .. import detection
 from ..preprocessor import PreProcessor
 from .predictor import DetectionPredictor
-
-from doctr.file_utils import is_tf_available, is_torch_available
 
 __all__ = ["detection_predictor"]
 

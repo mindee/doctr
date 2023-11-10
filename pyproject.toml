@@ -171,18 +171,17 @@ select = [
     "E", "W", "F", "I", "N", "Q", "C4",
     "D101", "D103", "D201","D202","D207","D208","D214","D215","D300","D301","D417", "D419",  # pydocstyle
 ]
-ignore = ["E402", "F403", "E731", "N812", "N817", "C408", "PT"]
+ignore = ["E402", "F403", "E731", "N812", "N817", "C408", "PT", "RUF"]
 exclude = [".git", "venv*", "build"]
 line-length = 120
 target-version = "py39"
 
 [tool.ruff.isort]
-section-order = ["future", "standard-library", "third-party", "local-folder", "first-party"]
-known-first-party = ["doctr", "tests", "scripts", "references", "demo", "docs", "api"]
-known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress"]
+known-first-party = ["doctr", "app"]
+known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress", "fastapi"]
 
 [tool.ruff.per-file-ignores]
-"**/__init__.py" = ["F401"]
+"__init__.py" = ["F401"]
 "doctr/models/**.py" = ["N806"]
 "doctr/datasets/**.py" = ["N806"]
 "tests/**.py" = ["D"]

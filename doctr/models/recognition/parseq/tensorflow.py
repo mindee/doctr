@@ -12,12 +12,12 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model, layers
 
+from doctr.datasets import VOCABS
+from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
+
 from ...classification import vit_s
 from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from .base import _PARSeq, _PARSeqPostProcessor
-
-from doctr.datasets import VOCABS
-from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 __all__ = ["PARSeq", "parseq"]
 

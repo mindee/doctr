@@ -9,9 +9,9 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 import numpy as np
 import tensorflow as tf
 
-from ..functional.tensorflow import _gaussian_filter, random_shadow
-
 from doctr.utils.repr import NestedObject
+
+from ..functional.tensorflow import _gaussian_filter, random_shadow
 
 __all__ = [
     "Compose",

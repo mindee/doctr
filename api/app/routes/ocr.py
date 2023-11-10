@@ -5,10 +5,10 @@
 
 from typing import List
 
-from app.schemas import OCROut
-from app.vision import predictor
 from fastapi import APIRouter, File, UploadFile, status
 
+from app.schemas import OCROut
+from app.vision import predictor
 from doctr.io import decode_img_as_tensor
 
 router = APIRouter()

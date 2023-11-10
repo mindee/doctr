@@ -5,11 +5,11 @@
 
 from typing import Any, List
 
+from doctr.file_utils import is_tf_available
+
 from .. import classification
 from ..preprocessor import PreProcessor
 from .predictor import CropOrientationPredictor
-
-from doctr.file_utils import is_tf_available
 
 __all__ = ["crop_orientation_predictor"]
 

@@ -11,9 +11,9 @@ from tensorflow.keras import layers
 from tensorflow.keras.applications import ResNet50
 from tensorflow.keras.models import Sequential
 
-from ...utils import conv_sequence, load_pretrained_params
-
 from doctr.datasets import VOCABS
+
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide"]
 

@@ -9,12 +9,12 @@ from typing import Any, Dict, Optional, Tuple
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
 
-from ...utils import load_pretrained_params
-
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
 from doctr.models.modules.vision_transformer.tensorflow import PatchEmbedding
 from doctr.utils.repr import NestedObject
+
+from ...utils import load_pretrained_params
 
 __all__ = ["vit_s", "vit_b"]
 

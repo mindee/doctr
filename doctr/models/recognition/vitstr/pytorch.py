@@ -11,11 +11,11 @@ from torch import nn
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
 
+from doctr.datasets import VOCABS
+
 from ...classification import vit_b, vit_s
 from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
-
-from doctr.datasets import VOCABS
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
 

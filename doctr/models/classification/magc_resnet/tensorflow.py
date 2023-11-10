@@ -12,10 +12,10 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
+from doctr.datasets import VOCABS
+
 from ...utils import load_pretrained_params
 from ..resnet.tensorflow import ResNet
-
-from doctr.datasets import VOCABS
 
 __all__ = ["magc_resnet31"]
 

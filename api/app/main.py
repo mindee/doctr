@@ -5,10 +5,11 @@
 
 import time
 
-from app import config as cfg
-from app.routes import detection, kie, ocr, recognition
 from fastapi import FastAPI, Request
 from fastapi.openapi.utils import get_openapi
+
+from app import config as cfg
+from app.routes import detection, kie, ocr, recognition
 
 app = FastAPI(title=cfg.PROJECT_NAME, description=cfg.PROJECT_DESCRIPTION, debug=cfg.DEBUG, version=cfg.VERSION)
 
