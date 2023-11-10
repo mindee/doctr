@@ -322,12 +322,8 @@ class DocumentBuilder(NestedObject):
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
-                straight_boxes: List[np.ndarray] = []
-                # Iterate over pages
-                for p_boxes in boxes:
-                    # Iterate over boxes of the pages
-                    straight_boxes.append(np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1))
-                boxes = straight_boxes
+                # Iterate over pages and boxes
+                boxes = [np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1) for p_boxes in boxes]
 
         _pages = [
             Page(

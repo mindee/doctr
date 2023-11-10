@@ -270,7 +270,7 @@ def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     train_root = svhn_root.mkdir("train")
     hdf5storage.write(matcontent, filename=train_root.join("digitStruct.mat"))
     for i in range(3):
-        fn = train_root.join(f"{i+1}.png")
+        fn = train_root.join(f"{i + 1}.png")
         with open(fn, "wb") as f:
             f.write(file.getbuffer())
     # Packing data into an archive to simulate the real data set and bypass archive extraction

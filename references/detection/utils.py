@@ -22,7 +22,7 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
 
         target = np.zeros(img.shape[:2], np.uint8)
         tgts = targets[idx].copy()
-        for key, boxes in tgts.items():
+        for boxes in tgts.values():
             boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
             boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
             boxes[:, :4] = boxes[:, :4].round().astype(int)

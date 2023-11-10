@@ -74,7 +74,7 @@ class IC03(VisionDataset):
         xml_root = xml_tree.getroot()
 
         for image in tqdm(iterable=xml_root, desc="Unpacking IC03", total=len(xml_root)):
-            name, resolution, rectangles = image
+            name, _, rectangles = image
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, name.text)):

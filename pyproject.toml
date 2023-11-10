@@ -168,20 +168,21 @@ ignore_missing_imports = true
 [tool.ruff]
 select = [
     # https://docs.astral.sh/ruff/rules/
-    "E", "W", "F", "I", "N", "Q", "C4",
+    "E", "W", "F", "I", "N", "Q", "C4", "T10", "LOG",
     "D101", "D103", "D201","D202","D207","D208","D214","D215","D300","D301","D417", "D419",  # pydocstyle
 ]
-ignore = ["E402", "F403", "E731", "N812", "N817", "C408", "PT", "RUF"]
+ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408", "PT", "RUF"]
 exclude = [".git", "venv*", "build", "**/__init__.py"]
 line-length = 120
 target-version = "py39"
+preview=true
 
 [tool.ruff.isort]
 known-first-party = ["doctr", "app", "utils"]
 known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress", "fastapi"]
 
 [tool.ruff.per-file-ignores]
-"doctr/models/**.py" = ["N806"]
+"doctr/models/**.py" = ["N806", "F841"]
 "doctr/datasets/**.py" = ["N806"]
 "tests/**.py" = ["D"]
 "scripts/**.py" = ["D"]
