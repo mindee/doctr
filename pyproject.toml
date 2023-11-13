@@ -13,7 +13,7 @@ maintainers = [
     {name = "Felix Dittrich"},
 ]
 readme = "README.md"
-requires-python = ">=3.9.0,<4"
+requires-python = ">=3.8.0,<4"
 license = {file = "LICENSE"}
 keywords=["OCR", "deep learning", "computer vision", "tensorflow", "pytorch", "text detection", "text recognition"]
 classifiers=[
@@ -174,7 +174,7 @@ select = [
 ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408"]
 exclude = [".git", "venv*", "build", "**/__init__.py"]
 line-length = 120
-target-version = "py39"
+target-version = "py38"
 preview=true
 
 [tool.ruff.isort]
