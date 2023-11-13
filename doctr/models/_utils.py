@@ -53,7 +53,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
     # Sort contours
-    contours = sorted(contours, key=get_max_width_length_ratio, reverse=True)
+    contours = sorted([contour for contour in contours if 0 not in cv2.minAreaRect(contour)[1]], key=get_max_width_length_ratio, reverse=True)
 
     angles = []
     for contour in contours[:n_ct]:
