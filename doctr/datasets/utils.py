@@ -39,7 +39,7 @@ def translate(
 
     Returns:
     -------
-    A string translated in a given vocab
+        A string translated in a given vocab
     """
     if VOCABS.get(vocab_name) is None:
         raise KeyError("output vocabulary must be in vocabs dictionnary")
