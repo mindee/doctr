@@ -42,7 +42,6 @@ def record_lr(
     """Gridsearch the optimal learning rate for the training.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
     """
-
     if num_it > len(train_loader):
         raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
 
@@ -135,14 +134,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
+def evaluate(model, val_loader, batch_transforms, val_metric, mb, amp=False):
     # Model in eval mode
     model.eval()
     # Reset val metric
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in val_loader:
+    for images, targets in progress_bar(val_loader, parent=mb):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -249,12 +248,16 @@ def main(args):
     val_metric = LocalizationConfusion(
         use_polygons=args.rotation and not args.eval_straight,
         mask_shape=(args.input_size, args.input_size),
-        use_broadcasting=True if system_available_memory > 62 else False,
+        use_broadcasting=True if system_available_memory > 30 else False,
     )
+    # Progress bar
+    mb = master_bar(range(args.epochs))
 
     if args.test_only:
         print("Running evaluation")
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
+        val_loss, recall, precision, mean_iou = evaluate(
+            model, val_loader, batch_transforms, val_metric, mb, amp=args.amp
+        )
         print(
             f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
             f"Mean IoU: {mean_iou:.2%})"
@@ -369,11 +372,12 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
-    mb = master_bar(range(args.epochs))
     for epoch in mb:
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
         # Validation loop at the end of each epoch
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
+        val_loss, recall, precision, mean_iou = evaluate(
+            model, val_loader, batch_transforms, val_metric, mb, amp=args.amp
+        )
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
