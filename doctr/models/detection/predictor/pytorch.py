@@ -53,9 +53,9 @@ class DetectionPredictor(nn.Module):
             self.model(batch, return_preds=True, return_model_output=True, **kwargs) for batch in processed_batches
         ]
         preds = [pred for batch in predicted_batches for pred in batch["preds"]]
-        seg_maps = [
-            pred.permute(1, 2, 0).detach().cpu().numpy() for batch in predicted_batches for pred in batch["out_map"]
-        ]
         if return_maps:
+            seg_maps = [
+                pred.permute(1, 2, 0).detach().cpu().numpy() for batch in predicted_batches for pred in batch["out_map"]
+            ]
             return preds, seg_maps
         return preds

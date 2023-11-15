@@ -36,7 +36,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        kwargs: keyword args of `DocumentBuilder`
+        **kwargs: keyword args of `DocumentBuilder`
     """
 
     _children_names = ["det_predictor", "reco_predictor", "doc_builder"]

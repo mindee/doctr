@@ -36,7 +36,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        kwargs: keyword args of `DocumentBuilder`
+        **kwargs: keyword args of `DocumentBuilder`
     """
 
     def __init__(
@@ -90,10 +90,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 if self.detect_orientation
                 else [estimate_orientation(seq_map) for seq_map in seg_maps]
             )
-            pages = [
-                rotate_image(page, -angle, expand=False)  # type: ignore[arg-type]
-                for page, angle in zip(pages, origin_page_orientations)
-            ]
+            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
@@ -130,10 +127,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             languages_dict = None
 
         out = self.doc_builder(
-            pages,  # type: ignore[arg-type]
+            pages,
             boxes,
             text_preds,
-            origin_page_shapes,  # type: ignore[arg-type]
+            origin_page_shapes,
             orientations,
             languages_dict,
         )

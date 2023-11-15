@@ -36,7 +36,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        kwargs: keyword args of `DocumentBuilder`
+        **kwargs: keyword args of `DocumentBuilder`
     """
 
     _children_names = ["det_predictor", "reco_predictor", "doc_builder"]
@@ -97,9 +97,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         assert all(
             len(loc_pred) == 1 for loc_pred in loc_preds_dict
         ), "Detection Model in ocr_predictor should output only one class"
-        loc_preds: List[np.ndarray] = [
-            list(loc_pred.values())[0] for loc_pred in loc_preds_dict  # type: ignore[union-attr]
-        ]
+        loc_preds: List[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]  # type: ignore[union-attr]
 
         # Rectify crops if aspect ratio
         loc_preds = self._remove_padding(pages, loc_preds)

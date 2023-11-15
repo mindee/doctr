@@ -21,7 +21,9 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     ----
         contour: the contour from cv2.findContour
 
-    Returns: the maximum shape ratio
+    Returns:
+    -------
+        the maximum shape ratio
     """
     _, (w, h), _ = cv2.minAreaRect(contour)
     return max(w / h, h / w)
@@ -32,6 +34,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
      lines of the document and the assumption that they should be horizontal.
 
     Args:
+    ----
         img: the img or bitmap to analyze (H, W, C)
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
@@ -40,7 +43,6 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     -------
         the angle of the general document orientation
     """
-
     assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
     if np.max(img) <= 1 and np.min(img) >= 0 or (np.max(img) <= 255 and np.min(img) >= 0 and img.shape[-1] == 1):
         thresh = img.astype(np.uint8)
@@ -119,9 +121,13 @@ def rectify_loc_preds(
 def get_language(text: str) -> Tuple[str, float]:
     """Get languages of a text using langdetect model.
     Get the language with the highest probability or no language if only a few words or a low probability
+
     Args:
+    ----
         text (str): text
+
     Returns:
+    -------
         The detected language in ISO 639 code and confidence score
     """
     try:
