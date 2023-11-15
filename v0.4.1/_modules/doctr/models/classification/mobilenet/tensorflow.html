@@ -374,6 +374,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;InvertedResidual for mobilenet</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        conf: configuration object for inverted residual</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -557,12 +558,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -578,12 +581,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -599,9 +604,12 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -619,9 +627,12 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -639,12 +650,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>

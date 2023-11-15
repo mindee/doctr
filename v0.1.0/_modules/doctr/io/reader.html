@@ -272,29 +272,34 @@
     <span class="k">def</span> <span class="nf">from_pdf</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file</span><span class="p">:</span> <span class="n">AbstractFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a PDF file</span>
 
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_pdf(&quot;path/to/your/doc.pdf&quot;)</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            file: the path to the PDF file or a binary stream</span>
+<span class="sd">            **kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">return</span> <span class="n">read_pdf</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DocumentFile.from_url"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.DocumentFile.from_url">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_url</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Interpret a web page as a PDF document</span>
 
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; doc = DocumentFile.from_url(&quot;https://www.yoursite.com&quot;)</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            url: the URL of the target web page</span>
+<span class="sd">            **kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pdf_stream</span> <span class="o">=</span> <span class="n">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
@@ -304,13 +309,16 @@
     <span class="k">def</span> <span class="nf">from_images</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">files</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Sequence</span><span class="p">[</span><span class="n">AbstractFile</span><span class="p">],</span> <span class="n">AbstractFile</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read an image file (or a collection of image files) and convert it into an image in numpy format</span>
 
-<span class="sd">        &gt;&gt;&gt; from doctr.documents import DocumentFile</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.io import DocumentFile</span>
 <span class="sd">        &gt;&gt;&gt; pages = DocumentFile.from_images([&quot;path/to/your/page1.png&quot;, &quot;path/to/your/page2.png&quot;])</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            files: the path to the image file or a binary stream, or a collection of those</span>
+<span class="sd">            **kwargs: additional parameters to :meth:`doctr.io.image.read_img_as_numpy`</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">files</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">)):</span>

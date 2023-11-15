@@ -261,16 +261,18 @@
 <div class="viewcode-block" id="read_html"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.read_html">[docs]</a><span class="k">def</span> <span class="nf">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bytes</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a PDF file and convert it into an image in numpy format</span>
 
-<span class="sd">    &gt;&gt;&gt; from doctr.documents import read_html</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.io import read_html</span>
 <span class="sd">    &gt;&gt;&gt; doc = read_html(&quot;https://www.yoursite.com&quot;)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        url: URL of the target web page</span>
+<span class="sd">        **kwargs: keyword arguments from `weasyprint.HTML`</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        decoded PDF file as a bytes stream</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">HTML</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">write_pdf</span><span class="p">()</span></div>
 </pre></div>
         </article>

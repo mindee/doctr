@@ -290,6 +290,7 @@
 <span class="sd">                &gt;&gt;&gt; out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        transforms: list of transformation modules</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -329,6 +330,7 @@
 <span class="sd">                &gt;&gt;&gt; out, _ = transfo(torch.rand(8, 64, 64, 3), None)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        transform: the image transformation module to wrap</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -367,6 +369,7 @@
 <span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(8, 64, 64, 3))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        min_val: range [min_val, 1] to colorize RGB pixels</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -404,6 +407,7 @@
 <span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        transforms: list of transformations, one only will be picked</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -443,6 +447,7 @@
 <span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        transform: transformation to apply</span>
 <span class="sd">        p: probability to apply</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -467,6 +472,7 @@
 <span class="sd">        :align: center</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in</span>
 <span class="sd">            [-max_angle, max_angle]</span>
 <span class="sd">        expand: whether the image should be padded before the rotation</span>
@@ -491,6 +497,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly crop a tensor image and its boxes</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        scale: tuple of floats, relative (min_area, max_area) of the crop</span>
 <span class="sd">        ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</span>
 <span class="sd">    &quot;&quot;&quot;</span>

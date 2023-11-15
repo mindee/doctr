@@ -266,12 +266,13 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Collate multiple elements into batches</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        samples: list of N tuples containing M elements</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        Tuple of M sequences contianing N elements each</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">batch_data</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">)</span>
 
     <span class="n">tf_data</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">batch_data</span><span class="p">)</span>
@@ -289,6 +290,7 @@
 <span class="sd">    &gt;&gt;&gt; images, targets = next(train_iter)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        dataset: the dataset</span>
 <span class="sd">        shuffle: whether the samples should be shuffled before passing it to the iterator</span>
 <span class="sd">        batch_size: number of elements in each batch</span>

@@ -289,6 +289,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Classifier head for Vision Transformer</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        num_classes: number of output classes</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -308,6 +309,7 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/2010.11929.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        d_model: dimension of the transformer layers</span>
 <span class="sd">        num_layers: number of transformer layers</span>
 <span class="sd">        num_heads: number of attention heads</span>
@@ -388,12 +390,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the VisionTransformer architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        A feature extractor model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_vit</span><span class="p">(</span>
         <span class="s2">&quot;vit_s&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
@@ -417,12 +421,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the VisionTransformer architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        A feature extractor model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_vit</span><span class="p">(</span>
         <span class="s2">&quot;vit_b&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>

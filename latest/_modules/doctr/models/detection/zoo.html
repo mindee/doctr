@@ -332,14 +332,16 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        arch: name of the architecture or model itself to use (e.g. &#39;db_resnet50&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        assume_straight_pages: If True, fit straight boxes to the page</span>
+<span class="sd">        **kwargs: optional keyword arguments passed to the architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        Detection predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>

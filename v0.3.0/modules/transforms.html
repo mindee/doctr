@@ -263,16 +263,15 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>output_size</strong> – expected output size</p></li>
-<li><p><strong>method</strong> – interpolation method</p></li>
-<li><p><strong>preserve_aspect_ratio</strong> – if <cite>True</cite>, preserve aspect ratio and pad the rest with zeros</p></li>
-<li><p><strong>symmetric_pad</strong> – if <cite>True</cite> while preserving aspect ratio, the padding will be done symmetrically</p></li>
-</ul>
-</dd>
-</dl>
+<section id="args">
+<h3>Args:<a class="headerlink" href="#args" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>output_size: expected output size
+method: interpolation method
+preserve_aspect_ratio: if <cite>True</cite>, preserve aspect ratio and pad the rest with zeros
+symmetric_pad: if <cite>True</cite> while preserving aspect ratio, the padding will be done symmetrically</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -285,14 +284,13 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mean</strong> – average value per channel</p></li>
-<li><p><strong>std</strong> – standard deviation per channel</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id1">
+<h3>Args:<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>mean: average value per channel
+std: standard deviation per channel</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -305,11 +303,12 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>fn</strong> – the function to be applied to the input tensor</p>
-</dd>
-</dl>
+<section id="id2">
+<h3>Args:<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>fn: the function to be applied to the input tensor</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -343,11 +342,12 @@ convert to grayscale, colorize (shift 0-values randomly), and then invert colors
 </pre></div>
 </div>
 </div></div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>min_val</strong> – range [min_val, 1] to colorize RGB pixels</p>
-</dd>
-</dl>
+<section id="id3">
+<h3>Args:<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>min_val: range [min_val, 1] to colorize RGB pixels</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -361,14 +361,13 @@ to all pixels</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>max_delta</strong> – offset to add to each pixel is randomly picked in [-max_delta, max_delta]</p></li>
-<li><p><strong>p</strong> – probability to apply transformation</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id4">
+<h3>Args:<a class="headerlink" href="#id4" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]
+p: probability to apply transformation</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -382,11 +381,12 @@ each pixel: (img - mean) * contrast_factor + mean.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>delta</strong> – multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor&lt;1)</p>
-</dd>
-</dl>
+<section id="id5">
+<h3>Args:<a class="headerlink" href="#id5" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor&lt;1)</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -400,11 +400,12 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>delta</strong> – multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor&lt;1)</p>
-</dd>
-</dl>
+<section id="id6">
+<h3>Args:<a class="headerlink" href="#id6" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor&lt;1)</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -417,11 +418,12 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>max_delta</strong> – offset to add to each pixel is randomly picked in [-max_delta, max_delta]</p>
-</dd>
-</dl>
+<section id="id7">
+<h3>Args:<a class="headerlink" href="#id7" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -434,16 +436,15 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>min_gamma</strong> – non-negative real number, lower bound for gamma param</p></li>
-<li><p><strong>max_gamma</strong> – non-negative real number, upper bound for gamma</p></li>
-<li><p><strong>min_gain</strong> – lower bound for constant multiplier</p></li>
-<li><p><strong>max_gain</strong> – upper bound for constant multiplier</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id8">
+<h3>Args:<a class="headerlink" href="#id8" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>min_gamma: non-negative real number, lower bound for gamma param
+max_gamma: non-negative real number, upper bound for gamma
+min_gain: lower bound for constant multiplier
+max_gain: upper bound for constant multiplier</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -456,14 +457,13 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>min_quality</strong> – int between [0, 100]</p></li>
-<li><p><strong>max_quality</strong> – int between [0, 100]</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id9">
+<h3>Args:<a class="headerlink" href="#id9" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>min_quality: int between [0, 100]
+max_quality: int between [0, 100]</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -471,29 +471,29 @@ increasing saturation by a factor.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomRotate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">max_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expand</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/transforms/modules/base.html#RandomRotate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.RandomRotate" title="Permalink to this definition">#</a></dt>
 <dd><p>Randomly rotate a tensor image and its boxes</p>
 <img alt="https://doctr-static.mindee.com/models?id=v0.4.0/rotation_illustration.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.4.0/rotation_illustration.png&amp;src=0" />
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>max_angle</strong> – maximum angle for rotation, in degrees. Angles will be uniformly picked in
-[-max_angle, max_angle]</p></li>
-<li><p><strong>expand</strong> – whether the image should be padded before the rotation</p></li>
-</ul>
+<section id="id10">
+<h3>Args:<a class="headerlink" href="#id10" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in</dt><dd><p>[-max_angle, max_angle]</p>
 </dd>
 </dl>
+<p>expand: whether the image should be padded before the rotation</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.transforms.RandomCrop">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomCrop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.08,</span> <span class="pre">1.0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.75,</span> <span class="pre">1.33)</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/transforms/modules/base.html#RandomCrop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.RandomCrop" title="Permalink to this definition">#</a></dt>
 <dd><p>Randomly crop a tensor image and its boxes</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>scale</strong> – tuple of floats, relative (min_area, max_area) of the crop</p></li>
-<li><p><strong>ratio</strong> – tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id11">
+<h3>Args:<a class="headerlink" href="#id11" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>scale: tuple of floats, relative (min_area, max_area) of the crop
+ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -506,14 +506,13 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>kernel_shape</strong> – size of the blurring kernel</p></li>
-<li><p><strong>std</strong> – min and max value of the standard deviation</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id12">
+<h3>Args:<a class="headerlink" href="#id12" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>kernel_shape: size of the blurring kernel
+std: min and max value of the standard deviation</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -532,14 +531,13 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mean</strong> – mean of the gaussian distribution</p></li>
-<li><p><strong>std</strong> – std of the gaussian distribution</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id13">
+<h3>Args:<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>mean : mean of the gaussian distribution
+std : std of the gaussian distribution</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -557,11 +555,12 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>p</strong> – probability of Horizontal Flip</p>
-</dd>
-</dl>
+<section id="id14">
+<h3>Args:<a class="headerlink" href="#id14" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>p : probability of Horizontal Flip</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -574,11 +573,12 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>opacity_range</strong> – minimum and maximum opacity of the shade</p>
-</dd>
-</dl>
+<section id="id15">
+<h3>Args:<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>opacity_range : minimum and maximum opacity of the shade</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 </section>
@@ -595,11 +595,12 @@ increasing saturation by a factor.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfos</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>transforms</strong> – list of transformation modules</p>
-</dd>
-</dl>
+<section id="id16">
+<h3>Args:<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>transforms: list of transformation modules</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -620,11 +621,12 @@ increasing saturation by a factor.</p>
 </pre></div>
 </div>
 </div></div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>transforms</strong> – list of transformations, one only will be picked</p>
-</dd>
-</dl>
+<section id="id17">
+<h3>Args:<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>transforms: list of transformations, one only will be picked</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py class">
@@ -645,14 +647,13 @@ increasing saturation by a factor.</p>
 </pre></div>
 </div>
 </div></div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>transform</strong> – transformation to apply</p></li>
-<li><p><strong>p</strong> – probability to apply</p></li>
-</ul>
-</dd>
-</dl>
+<section id="id18">
+<h3>Args:<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h3>
+<blockquote>
+<div><p>transform: transformation to apply
+p: probability to apply</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 </section>

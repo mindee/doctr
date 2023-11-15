@@ -290,6 +290,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfos(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        transforms: list of transformation modules</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -314,6 +315,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        output_size: expected output size</span>
 <span class="sd">        method: interpolation method</span>
 <span class="sd">        preserve_aspect_ratio: if `True`, preserve aspect ratio and pad the rest with zeros</span>
@@ -404,6 +406,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        mean: average value per channel</span>
 <span class="sd">        std: standard deviation per channel</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -430,6 +433,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        fn: the function to be applied to the input tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -467,6 +471,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
 <span class="sd">        p: probability to apply transformation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -491,6 +496,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce contrast if factor&lt;1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -514,6 +520,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        delta: multiplicative factor is picked in [1-delta, 1+delta] (reduce saturation if factor&lt;1)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -536,6 +543,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        max_delta: offset to add to each pixel is randomly picked in [-max_delta, max_delta]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -558,6 +566,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        min_gamma: non-negative real number, lower bound for gamma param</span>
 <span class="sd">        max_gamma: non-negative real number, upper bound for gamma</span>
 <span class="sd">        min_gain: lower bound for constant multiplier</span>
@@ -595,6 +604,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        min_quality: int between [0, 100]</span>
 <span class="sd">        max_quality: int between [0, 100]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -619,6 +629,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        kernel_shape: size of the blurring kernel</span>
 <span class="sd">        std: min and max value of the standard deviation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -662,6 +673,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        mean : mean of the gaussian distribution</span>
 <span class="sd">        std : std of the gaussian distribution</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -699,6 +711,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(image, target)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        p : probability of Horizontal Flip</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -707,13 +720,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Args:</span>
-<span class="sd">            img: Image to be flipped.</span>
-<span class="sd">            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys</span>
-<span class="sd">        Returns:</span>
-<span class="sd">            Tuple of numpy nd-array or Tensor and target</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
             <span class="n">_img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">flip_left_right</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
             <span class="n">_target</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -732,6 +738,7 @@
 <span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        opacity_range : minimum and maximum opacity of the shade</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 

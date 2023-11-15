@@ -281,6 +281,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements encoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        rnn_units: number of hidden rnn units</span>
 <span class="sd">        dropout_prob: dropout probability</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -307,6 +308,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements attention module of the SAR model</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        attention_units: number of hidden attention units</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -368,6 +370,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements decoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        rnn_units: number of hidden units in recurrent cells</span>
 <span class="sd">        max_length: maximum length of a sequence</span>
 <span class="sd">        vocab_size: number of classes in the model alphabet</span>
@@ -463,6 +466,7 @@
 <span class="sd">    Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
 <span class="sd">        vocab: vocabulary used for encoding</span>
 <span class="sd">        rnn_units: number of hidden units in both encoder and decoder LSTM</span>
@@ -521,11 +525,13 @@
 <span class="sd">        Sequences are masked after the EOS character.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            gt: the encoded tensor with gt labels</span>
 <span class="sd">            model_output: predicted logits of the model</span>
 <span class="sd">            seq_len: lengths of each gt word inside the batch</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Input length : number of timesteps</span>
@@ -590,6 +596,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post processor for SAR architectures</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -659,12 +666,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the SAR architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_sar</span><span class="p">(</span><span class="s2">&quot;sar_resnet31&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">resnet31</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>

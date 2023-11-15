@@ -292,10 +292,10 @@
 
 
 <span class="k">class</span> <span class="nc">CTCPostProcessor</span><span class="p">(</span><span class="n">RecognitionPostProcessor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Postprocess raw prediction of the model (logits) to a list of words using CTC decoding</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Postprocess raw prediction of the model (logits) to a list of words using CTC decoding</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">        ignore_case: if True, ignore case of letters</span>
 <span class="sd">        ignore_accents: if True, ignore accents of letters</span>
@@ -307,16 +307,17 @@
         <span class="n">beam_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">top_paths</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Performs decoding of raw output with CTC and decoding of CTC predictions</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs decoding of raw output with CTC and decoding of CTC predictions</span>
 <span class="sd">        with label_to_idx mapping dictionnary</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1</span>
 <span class="sd">            beam_width: An int scalar &gt;= 0 (beam search beam width).</span>
 <span class="sd">            top_paths: An int scalar &gt;= 0, &lt;= beam_width (controls output size).</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A list of decoded words of length BATCH_SIZE</span>
 
 
@@ -361,6 +362,7 @@
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition&quot; &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
 <span class="sd">        vocab: vocabulary used for encoding</span>
 <span class="sd">        rnn_units: number of units in the LSTM layers</span>
@@ -414,10 +416,12 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute CTC loss for the model.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            model_output: predicted logits of the model</span>
 <span class="sd">            target: lengths of each gt word inside the batch</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
@@ -509,12 +513,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the CRNN architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">vgg16_bn_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -529,12 +535,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the CRNN architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">mobilenet_v3_small_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -549,12 +557,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the CRNN architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">mobilenet_v3_large_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>

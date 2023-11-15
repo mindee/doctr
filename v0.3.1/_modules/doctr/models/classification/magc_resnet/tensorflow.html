@@ -284,6 +284,7 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        inplanes: input channels</span>
 <span class="sd">        headers: number of headers to split channels</span>
 <span class="sd">        attn_scale: if True, re-scale attention to counteract the variance distibutions</span>
@@ -417,12 +418,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the ResNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        A feature extractor model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_magc_resnet</span><span class="p">(</span>
         <span class="s2">&quot;magc_resnet31&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>

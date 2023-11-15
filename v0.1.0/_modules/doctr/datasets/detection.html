@@ -274,6 +274,7 @@
 <span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
 <span class="sd">        label_path: path to the annotations of each image</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
@@ -314,14 +315,16 @@
     <span class="k">def</span> <span class="nf">format_polygons</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">polygons</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">np_dtype</span><span class="p">:</span> <span class="n">Type</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;format polygons into an array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format polygons into an array</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            polygons: the bounding boxes</span>
 <span class="sd">            use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">            np_dtype: dtype of array</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            geoms: bounding boxes as np array</span>
 <span class="sd">            polygons_classes: list of classes for each bounding box</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -340,7 +343,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">class_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_class_names</span><span class="p">)))</span></div>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_class_names</span><span class="p">))</span></div>
 </pre></div>
         </article>
       </div>

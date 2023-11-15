@@ -323,7 +323,7 @@ You can also export them as a nested dict, more appropriate for JSON format::
 
   json_output = result.export()
 
-For reference, here is the JSON export for the same `Document` as above::
+For reference, here is the export for the same `Document` as above::
 
   {
     'pages': [

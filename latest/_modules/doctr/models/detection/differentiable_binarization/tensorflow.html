@@ -293,6 +293,7 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1612.03144.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        channels: number of channel to output</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -314,14 +315,15 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Module which performs a 3x3 convolution followed by up-sampling</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            channels: number of output channels</span>
 <span class="sd">            dilation_factor (int): dilation factor to scale the convolution output before concatenation</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            a keras.layers.Layer object, wrapping these operations in a sequential module</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">_layers</span> <span class="o">=</span> <span class="n">conv_sequence</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dilation_factor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -355,6 +357,7 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
 <span class="sd">        assume_straight_pages: if True, fit straight bounding boxes only</span>
@@ -420,14 +423,15 @@
 <span class="sd">        and a list of masks for each image. From there it computes the loss with the model output</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            out_map: output feature map of the model of shape (N, H, W, C)</span>
 <span class="sd">            thresh_map: threshold map of shape (N, H, W, C)</span>
 <span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">out_map</span><span class="p">)</span>
         <span class="n">thresh_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">thresh_map</span><span class="p">)</span>
 
@@ -590,12 +594,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_db_resnet</span><span class="p">(</span>
         <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
@@ -616,12 +622,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_db_mobilenet</span><span class="p">(</span>
         <span class="s2">&quot;db_mobilenet_v3_large&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
