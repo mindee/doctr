@@ -18,6 +18,8 @@ __all__ = ["AbstractDataset", "VisionDataset"]
 
 
 class AbstractDataset(_AbstractDataset):
+    """Abstract class for all datasets"""
+
     def _read_sample(self, index: int) -> Tuple[tf.Tensor, Any]:
         img_name, target = self.data[index]
 
@@ -53,5 +55,5 @@ class AbstractDataset(_AbstractDataset):
         return images, list(targets)
 
 
-class VisionDataset(AbstractDataset, _VisionDataset):
+class VisionDataset(AbstractDataset, _VisionDataset):  # noqa: D101
     pass

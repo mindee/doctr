@@ -30,10 +30,18 @@ RECO_ARCHS = [
 ]
 
 
-def load_predictor(det_arch: str, reco_arch: str, device) -> OCRPredictor:
-    """
+def load_predictor(det_arch: str, reco_arch: str, device: torch.device) -> OCRPredictor:
+    """Load a predictor from doctr.models
+
     Args:
-        device is torch.device
+    ----
+        det_arch: detection architecture
+        reco_arch: recognition architecture
+        device: torch.device, the device to load the predictor on
+
+    Returns:
+    -------
+        instance of OCRPredictor
     """
     predictor = ocr_predictor(
         det_arch, reco_arch, pretrained=True, assume_straight_pages=("rotation" not in det_arch)
@@ -41,10 +49,18 @@ def load_predictor(det_arch: str, reco_arch: str, device) -> OCRPredictor:
     return predictor
 
 
-def forward_image(predictor: OCRPredictor, image: np.ndarray, device) -> np.ndarray:
-    """
+def forward_image(predictor: OCRPredictor, image: np.ndarray, device: torch.device) -> np.ndarray:
+    """Forward an image through the predictor
+
     Args:
-        device is torch.device
+    ----
+        predictor: instance of OCRPredictor
+        image: image to process
+        device: torch.device, the device to process the image on
+
+    Returns:
+    -------
+        segmentation map
     """
     with torch.no_grad():
         processed_batches = predictor.det_predictor.pre_processor([image])

@@ -42,6 +42,7 @@ class SampleCompose(NestedObject):
                 >>> out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))
 
     Args:
+    ----
         transforms: list of transformation modules
     """
 
@@ -81,6 +82,7 @@ class ImageTransform(NestedObject):
                 >>> out, _ = transfo(torch.rand(8, 64, 64, 3), None)
 
     Args:
+    ----
         transform: the image transformation module to wrap
     """
 
@@ -119,6 +121,7 @@ class ColorInversion(NestedObject):
                 >>> out = transfo(torch.rand(8, 64, 64, 3))
 
     Args:
+    ----
         min_val: range [min_val, 1] to colorize RGB pixels
     """
 
@@ -156,6 +159,7 @@ class OneOf(NestedObject):
                 >>> out = transfo(torch.rand(1, 64, 64, 3))
 
     Args:
+    ----
         transforms: list of transformations, one only will be picked
     """
 
@@ -195,6 +199,7 @@ class RandomApply(NestedObject):
                 >>> out = transfo(torch.rand(1, 64, 64, 3))
 
     Args:
+    ----
         transform: transformation to apply
         p: probability to apply
     """
@@ -219,6 +224,7 @@ class RandomRotate(NestedObject):
         :align: center
 
     Args:
+    ----
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
             [-max_angle, max_angle]
         expand: whether the image should be padded before the rotation
@@ -243,6 +249,7 @@ class RandomCrop(NestedObject):
     """Randomly crop a tensor image and its boxes
 
     Args:
+    ----
         scale: tuple of floats, relative (min_area, max_area) of the crop
         ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w
     """

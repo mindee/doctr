@@ -29,6 +29,7 @@ class FUNSD(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
+    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
@@ -81,7 +82,7 @@ class FUNSD(VisionDataset):
             text_targets, box_targets = zip(*_targets)
             if use_polygons:
                 # xmin, ymin, xmax, ymax -> (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                box_targets = [
+                box_targets = [  # type: ignore[assignment]
                     [
                         [box[0], box[1]],
                         [box[2], box[1]],

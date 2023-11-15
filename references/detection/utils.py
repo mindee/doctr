@@ -22,7 +22,7 @@ def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
 
         target = np.zeros(img.shape[:2], np.uint8)
         tgts = targets[idx].copy()
-        for key, boxes in tgts.items():
+        for boxes in tgts.values():
             boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
             boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
             boxes[:, :4] = boxes[:, :4].round().astype(int)
@@ -50,11 +50,12 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
 
     Args:
+    ----
         lr_recorder: list of LR values
         loss_recorder: list of loss values
         beta (float, optional): smoothing factor
+        **kwargs: keyword arguments from `matplotlib.pyplot.show`
     """
-
     if len(lr_recorder) != len(loss_recorder) or len(lr_recorder) == 0:
         raise AssertionError("Both `lr_recorder` and `loss_recorder` should have the same length")
 

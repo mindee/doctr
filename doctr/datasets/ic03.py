@@ -28,6 +28,7 @@ class IC03(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
+    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
@@ -73,7 +74,7 @@ class IC03(VisionDataset):
         xml_root = xml_tree.getroot()
 
         for image in tqdm(iterable=xml_root, desc="Unpacking IC03", total=len(xml_root)):
-            name, resolution, rectangles = image
+            name, _resolution, rectangles = image
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, name.text)):

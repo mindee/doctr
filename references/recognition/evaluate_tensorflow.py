@@ -91,7 +91,7 @@ def main(args):
         use_polygons=args.regular,
         img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
     )
-    ds.data.extend([(np_img, target) for np_img, target in _ds.data])
+    ds.data.extend((np_img, target) for np_img, target in _ds.data)
 
     test_loader = DataLoader(
         ds,

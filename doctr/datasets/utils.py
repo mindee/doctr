@@ -8,9 +8,8 @@ import unicodedata
 from collections.abc import Sequence
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
 from typing import Sequence as SequenceType
-from typing import Tuple, TypeVar, Union
 
 import numpy as np
 from PIL import Image
@@ -33,13 +32,15 @@ def translate(
     """Translate a string input in a given vocabulary
 
     Args:
+    ----
         input_string: input string to translate
         vocab_name: vocabulary to use (french, latin, ...)
         unknown_char: unknown character for non-translatable characters
 
     Returns:
-        A string translated in a given vocab"""
-
+    -------
+        A string translated in a given vocab
+    """
     if VOCABS.get(vocab_name) is None:
         raise KeyError("output vocabulary must be in vocabs dictionnary")
 
@@ -66,12 +67,14 @@ def encode_string(
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
+    ----
         input_string: string to encode
         vocab: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-        A list encoding the input_string"""
-
+    -------
+        A list encoding the input_string
+    """
     try:
         return list(map(vocab.index, input_string))
     except ValueError:
@@ -85,13 +88,14 @@ def decode_sequence(
     """Given a predefined mapping, decode the sequence of numbers to a string
 
     Args:
+    ----
         input_seq: array to decode
         mapping: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
+    -------
         A string, decoded from input_seq
     """
-
     if not isinstance(input_seq, (Sequence, np.ndarray)):
         raise TypeError("Invalid sequence type")
     if isinstance(input_seq, np.ndarray) and (input_seq.dtype != np.int_ or input_seq.max() >= len(mapping)):
@@ -108,11 +112,11 @@ def encode_sequences(
     sos: Optional[int] = None,
     pad: Optional[int] = None,
     dynamic_seq_length: bool = False,
-    **kwargs: Any,
 ) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
 
     Args:
+    ----
         sequences: the list of character sequences of size N
         vocab: the ordered vocab to use for encoding
         target_size: maximum length of the encoded data
@@ -122,9 +126,9 @@ def encode_sequences(
         dynamic_seq_length: if `target_size` is specified, uses it as upper bound and enables dynamic sequence size
 
     Returns:
+    -------
         the padded encoded data as a tensor
     """
-
     if 0 <= eos < len(vocab):
         raise ValueError("argument 'eos' needs to be outside of vocab possible indices")
 
@@ -169,10 +173,14 @@ def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tupl
 
 def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> List[np.ndarray]:
     """Crop a set of bounding boxes from an image
+
     Args:
+    ----
         img_path: path to the image
         geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
+
     Returns:
+    -------
         a list of cropped images
     """
     img: np.ndarray = np.array(Image.open(img_path).convert("RGB"))
@@ -188,8 +196,13 @@ def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.n
     """Converts multiclass target to relative coordinates.
 
     Args:
+    ----
         img: Image
         target: tuple of target polygons and their classes names
+
+    Returns:
+    -------
+        Image and dictionary of boxes, with class names as keys
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]

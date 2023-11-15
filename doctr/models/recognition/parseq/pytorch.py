@@ -38,6 +38,7 @@ class CharEmbedding(nn.Module):
     """Implements the character embedding module
 
     Args:
+    ----
         vocab_size: size of the vocabulary
         d_model: dimension of the model
     """
@@ -55,6 +56,7 @@ class PARSeqDecoder(nn.Module):
     """Implements decoder module of the PARSeq model
 
     Args:
+    ----
         d_model: dimension of the model
         num_heads: number of attention heads
         ffd: dimension of the feed forward layer
@@ -110,6 +112,7 @@ class PARSeq(_PARSeq, nn.Module):
     Slightly modified implementation based on the official Pytorch implementation: <https://github.com/baudm/parseq/tree/main`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         embedding_units: number of embedding units
@@ -197,7 +200,7 @@ class PARSeq(_PARSeq, nn.Module):
             final_perms = torch.stack(perms)
             if len(perm_pool):
                 i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(final_perms), replace=False)
-                final_perms = torch.cat([final_perms, perm_pool[i]])  # type: ignore[index]
+                final_perms = torch.cat([final_perms, perm_pool[i]])
         else:
             perms.extend(
                 [torch.randperm(max_num_chars, device=seqlen.device) for _ in range(num_gen_perms - len(perms))]
@@ -209,7 +212,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         sos_idx = torch.zeros(len(final_perms), 1, device=seqlen.device)
         eos_idx = torch.full((len(final_perms), 1), max_num_chars + 1, device=seqlen.device)
-        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()
+        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()  # type: ignore
         if len(combined) > 1:
             combined[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=seqlen.device)
         return combined
@@ -237,7 +240,6 @@ class PARSeq(_PARSeq, nn.Module):
         target_query: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Add positional information to the target sequence and pass it through the decoder."""
-
         batch_size, sequence_length = target.shape
         # apply positional information to the target sequence excluding the SOS token
         null_ctx = self.embed(target[:, :1])
@@ -280,7 +282,7 @@ class PARSeq(_PARSeq, nn.Module):
                 ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
 
                 # Stop decoding if all sequences have reached the EOS token
-                if max_len is None and (ys == self.vocab_size).any(dim=-1).all():
+                if max_len is None and (ys == self.vocab_size).any(dim=-1).all():  # type: ignore[attr-defined]
                     break
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
@@ -295,7 +297,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
-        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
+        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)  # type: ignore[attr-defined]
         mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
@@ -329,11 +331,9 @@ class PARSeq(_PARSeq, nn.Module):
                 gt_out = gt[:, 1:]  # remove SOS token
                 # Create padding mask for target input
                 # [True, True, True, ..., False, False, False] -> False is masked
-                padding_mask = (
-                    ~(((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0)
-                    .unsqueeze(1)
-                    .unsqueeze(1)
-                )  # (N, 1, 1, seq_len)
+                padding_mask = ~(
+                    ((gt_in == self.vocab_size + 2) | (gt_in == self.vocab_size)).int().cumsum(-1) > 0
+                ).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, seq_len)
 
                 loss = torch.tensor(0.0, device=features.device)
                 loss_numel: Union[int, float] = 0
@@ -386,6 +386,7 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
     """Post processor for PARSeq architecture
 
     Args:
+    ----
         vocab: string containing the ordered sequence of supported characters
     """
 
@@ -460,12 +461,14 @@ def parseq(pretrained: bool = False, **kwargs: Any) -> PARSeq:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the PARSeq architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _parseq(
         "parseq",
         pretrained,

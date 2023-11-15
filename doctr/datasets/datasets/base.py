@@ -59,7 +59,7 @@ class _AbstractDataset:
             # Conditions to assess it is detection model with multiple classes and avoid confusion with other tasks.
             if (
                 isinstance(target, dict)
-                and all([isinstance(item, np.ndarray) for item in target.values()])
+                and all(isinstance(item, np.ndarray) for item in target.values())
                 and set(target.keys()) != {"boxes", "labels"}  # avoid confusion with obj detection target
             ):
                 img_transformed = _copy_tensor(img)
@@ -82,6 +82,7 @@ class _VisionDataset(_AbstractDataset):
     """Implements an abstract dataset
 
     Args:
+    ----
         url: URL of the dataset
         file_name: name of the file once downloaded
         file_hash: expected SHA256 of the file

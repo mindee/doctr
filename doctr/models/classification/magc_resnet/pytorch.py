@@ -36,6 +36,7 @@ class MAGC(nn.Module):
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
     Args:
+    ----
         inplanes: input channels
         headers: number of headers to split channels
         attn_scale: if True, re-scale attention to counteract the variance distibutions
@@ -153,12 +154,14 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A feature extractor model
     """
-
     return _magc_resnet(
         "magc_resnet31",
         pretrained,

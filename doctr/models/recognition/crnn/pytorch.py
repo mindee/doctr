@@ -45,10 +45,10 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class CTCPostProcessor(RecognitionPostProcessor):
-    """
-    Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
+    """Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
 
     Args:
+    ----
         vocab: string containing the ordered sequence of supported characters
     """
 
@@ -62,14 +62,15 @@ class CTCPostProcessor(RecognitionPostProcessor):
         <https://github.com/githubharald/CTCDecoder>`_.
 
         Args:
+        ----
             logits: model output, shape: N x T x C
             vocab: vocabulary to use
             blank: index of blank label
 
         Returns:
+        -------
             A list of tuples: (word, confidence)
         """
-
         # Gather the most confident characters, and assign the smallest conf among those to the sequence prob
         probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
 
@@ -82,14 +83,15 @@ class CTCPostProcessor(RecognitionPostProcessor):
         return list(zip(words, probs.tolist()))
 
     def __call__(self, logits: torch.Tensor) -> List[Tuple[str, float]]:
-        """
-        Performs decoding of raw output with CTC and decoding of CTC predictions
+        """Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
 
         Args:
+        ----
             logits: raw output of the model, shape (N, C + 1, seq_len)
 
         Returns:
+        -------
             A tuple of 2 lists: a list of str (words) and a list of float (probs)
 
         """
@@ -102,6 +104,7 @@ class CRNN(RecognitionModel, nn.Module):
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
@@ -165,11 +168,12 @@ class CRNN(RecognitionModel, nn.Module):
         """Compute CTC loss for the model.
 
         Args:
-            gt: the encoded tensor with gt labels
+        ----
             model_output: predicted logits of the model
-            seq_len: lengths of each gt word inside the batch
+            target: list of target strings
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         gt, seq_len = self.build_target(target)
@@ -268,12 +272,14 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _crnn("crnn_vgg16_bn", pretrained, vgg16_bn_r, ignore_keys=["linear.weight", "linear.bias"], **kwargs)
 
 
@@ -288,12 +294,14 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _crnn(
         "crnn_mobilenet_v3_small",
         pretrained,
@@ -314,12 +322,14 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _crnn(
         "crnn_mobilenet_v3_large",
         pretrained,

@@ -28,6 +28,7 @@ class SVT(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
+    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
@@ -66,7 +67,7 @@ class SVT(VisionDataset):
         xml_root = xml_tree.getroot()
 
         for image in tqdm(iterable=xml_root, desc="Unpacking SVT", total=len(xml_root)):
-            name, _, _, resolution, rectangles = image
+            name, _, _, _resolution, rectangles = image
 
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, name.text)):

@@ -42,12 +42,15 @@ class PositionalEncoding(layers.Layer, NestedObject):
         x: tf.Tensor,
         **kwargs: Any,
     ) -> tf.Tensor:
-        """
+        """Forward pass
+
         Args:
+        ----
             x: embeddings (batch, max_len, d_model)
             **kwargs: additional arguments
 
-        Returns:
+        Returns
+        -------
             positional embeddings (batch, max_len, d_model)
         """
         if x.dtype == tf.float16:  # amp fix: cast to half
@@ -62,7 +65,6 @@ def scaled_dot_product_attention(
     query: tf.Tensor, key: tf.Tensor, value: tf.Tensor, mask: Optional[tf.Tensor] = None
 ) -> Tuple[tf.Tensor, tf.Tensor]:
     """Scaled Dot-Product Attention"""
-
     scores = tf.matmul(query, tf.transpose(key, perm=[0, 1, 3, 2])) / math.sqrt(query.shape[-1])
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, tf.where works only with bool type condition

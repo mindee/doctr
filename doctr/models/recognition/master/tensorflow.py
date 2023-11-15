@@ -31,11 +31,11 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 class MASTER(_MASTER, Model):
-
     """Implements MASTER as described in paper: <https://arxiv.org/pdf/1910.02562.pdf>`_.
     Implementation based on the official TF implementation: <https://github.com/jiangxiluning/MASTER-TF>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary, (without EOS, SOS, PAD)
         d_model: d parameter for the transformer decoder
@@ -115,11 +115,13 @@ class MASTER(_MASTER, Model):
         Sequences are masked after the EOS character.
 
         Args:
+        ----
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         # Input length : number of timesteps
@@ -150,15 +152,17 @@ class MASTER(_MASTER, Model):
         """Call function for training
 
         Args:
+        ----
             x: images
             target: list of str labels
             return_model_output: if True, return logits
             return_preds: if True, decode logits
+            **kwargs: keyword arguments passed to the decoder
 
-        Return:
+        Returns:
+        -------
             A dictionnary containing eventually loss, logits and predictions.
         """
-
         # Encode
         feature = self.feat_extractor(x, **kwargs)
         b, h, w, c = feature.get_shape()
@@ -205,9 +209,12 @@ class MASTER(_MASTER, Model):
         """Decode function for prediction
 
         Args:
+        ----
             encoded: encoded features
+            **kwargs: keyword arguments passed to the decoder
 
-        Return:
+        Returns:
+        -------
             A Tuple of tf.Tensor: predictions, logits
         """
         b = encoded.shape[0]
@@ -240,6 +247,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
     """Post processor for MASTER architectures
 
     Args:
+    ----
         vocab: string containing the ordered sequence of supported characters
     """
 
@@ -299,10 +307,12 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keywoard arguments passed to the MASTER architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _master("master", pretrained, magc_resnet31, **kwargs)

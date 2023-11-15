@@ -32,6 +32,7 @@ class VGG(Sequential):
     <https://arxiv.org/pdf/1409.1556.pdf>`_.
 
     Args:
+    ----
         num_blocks: number of convolutional block in each stage
         planes: number of output channels in each stage
         rect_pools: whether pooling square kernels should be replace with rectangular ones
@@ -99,12 +100,14 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> VGG:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on ImageNet
+        **kwargs: keyword arguments of the VGG architecture
 
     Returns:
+    -------
         VGG feature extractor
     """
-
     return _vgg(
         "vgg16_bn_r", pretrained, [2, 2, 3, 3, 3], [64, 128, 256, 512, 512], [False, False, True, True, True], **kwargs
     )

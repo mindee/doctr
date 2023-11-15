@@ -18,12 +18,13 @@ def default_collate(samples):
     """Collate multiple elements into batches
 
     Args:
+    ----
         samples: list of N tuples containing M elements
 
     Returns:
+    -------
         Tuple of M sequences contianing N elements each
     """
-
     batch_data = zip(*samples)
 
     tf_data = tuple(tf.stack(elt, axis=0) for elt in batch_data)
@@ -41,6 +42,7 @@ class DataLoader:
     >>> images, targets = next(train_iter)
 
     Args:
+    ----
         dataset: the dataset
         shuffle: whether the samples should be shuffled before passing it to the iterator
         batch_size: number of elements in each batch

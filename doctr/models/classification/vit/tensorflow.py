@@ -41,6 +41,7 @@ class ClassifierHead(layers.Layer, NestedObject):
     """Classifier head for Vision Transformer
 
     Args:
+    ----
         num_classes: number of output classes
     """
 
@@ -60,6 +61,7 @@ class VisionTransformer(Sequential):
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     Args:
+    ----
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
@@ -140,12 +142,14 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:
+    -------
         A feature extractor model
     """
-
     return _vit(
         "vit_s",
         pretrained,
@@ -169,12 +173,14 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:
+    -------
         A feature extractor model
     """
-
     return _vit(
         "vit_b",
         pretrained,

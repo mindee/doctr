@@ -3,8 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-"""
-Based on https://github.com/pytorch/pytorch/blob/master/torch/utils/collect_env.py
+"""Based on https://github.com/pytorch/pytorch/blob/master/torch/utils/collect_env.py
 This script outputs relevant system environment info
 Run it with `python collect_env.py`.
 """
@@ -163,7 +162,7 @@ def get_cudnn_version(run_lambda):
     if not files:
         return None
     # Alphabetize the result because the order is non-deterministic otherwise
-    files = list(sorted(files))
+    files = sorted(files)
     if len(files) == 1:
         return files[0]
     result = "\n".join(files)

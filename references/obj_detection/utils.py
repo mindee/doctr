@@ -44,11 +44,12 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
 
     Args:
+    ----
         lr_recorder: list of LR values
         loss_recorder: list of loss values
         beta (float, optional): smoothing factor
+        **kwargs: keyword arguments from `matplotlib.pyplot.show`
     """
-
     if len(lr_recorder) != len(loss_recorder) or len(lr_recorder) == 0:
         raise AssertionError("Both `lr_recorder` and `loss_recorder` should have the same length")
 

@@ -14,7 +14,6 @@ from doctr.utils.visualization import visualize_page
 
 if is_tf_available():
     import tensorflow as tf
-
     from backend.tensorflow import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
     if any(tf.config.experimental.list_physical_devices("gpu")):
@@ -24,7 +23,6 @@ if is_tf_available():
 
 else:
     import torch
-
     from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
     forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -32,7 +30,6 @@ else:
 
 def main(det_archs, reco_archs):
     """Build a streamlit layout"""
-
     # Wide mode
     st.set_page_config(layout="wide")
 

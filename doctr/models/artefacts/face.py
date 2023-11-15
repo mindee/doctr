@@ -14,11 +14,11 @@ __all__ = ["FaceDetector"]
 
 
 class FaceDetector(NestedObject):
-
     """Implements a face detector to detect profile pictures on resumes, IDS, driving licenses, passports...
     Based on open CV CascadeClassifier (haarcascades)
 
     Args:
+    ----
         n_faces: maximal number of faces to detect on a single image, default = 1
     """
 
@@ -42,9 +42,11 @@ class FaceDetector(NestedObject):
         """Detect n_faces on the img
 
         Args:
+        ----
             img: image to detect faces on
 
         Returns:
+        -------
             A list of size n_faces, each face is a tuple of relative xmin, ymin, xmax, ymax
         """
         height, width = img.shape[:2]

@@ -22,6 +22,7 @@ class PreProcessor(nn.Module):
     """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
 
     Args:
+    ----
         output_size: expected size of each page in format (H, W)
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
@@ -47,12 +48,13 @@ class PreProcessor(nn.Module):
         """Gather samples into batches for inference purposes
 
         Args:
+        ----
             samples: list of samples of shape (C, H, W)
 
         Returns:
+        -------
             list of batched samples (*, C, H, W)
         """
-
         num_batches = int(math.ceil(len(samples) / self.batch_size))
         batches = [
             torch.stack(samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))], dim=0)
@@ -78,17 +80,19 @@ class PreProcessor(nn.Module):
         else:
             x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
 
-        return x
+        return x  # type: ignore[return-value]
 
     def __call__(self, x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]) -> List[torch.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
+        ----
             x: list of images (np.array) or tensors (already resized and batched)
+
         Returns:
+        -------
             list of page batches
         """
-
         # Input type check
         if isinstance(x, (np.ndarray, torch.Tensor)):
             if x.ndim != 4:
@@ -100,7 +104,7 @@ class PreProcessor(nn.Module):
             elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
                 raise TypeError("unsupported data type for torch.Tensor")
             # Resizing
-            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
+            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:  # type: ignore[union-attr]
                 x = F.resize(
                     x, self.resize.size, interpolation=self.resize.interpolation, antialias=self.resize.antialias
                 )
@@ -115,11 +119,11 @@ class PreProcessor(nn.Module):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching
-            batches = self.batch_inputs(samples)
+            batches = self.batch_inputs(samples)  # type: ignore[assignment]
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
         batches = list(multithread_exec(self.normalize, batches))
 
-        return batches
+        return batches  # type: ignore[return-value]

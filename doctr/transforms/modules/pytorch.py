@@ -19,6 +19,8 @@ __all__ = ["Resize", "GaussianNoise", "ChannelShuffle", "RandomHorizontalFlip", 
 
 
 class Resize(T.Resize):
+    """Resize the input image to the given size"""
+
     def __init__(
         self,
         size: Union[int, Tuple[int, int]],
@@ -119,6 +121,7 @@ class GaussianNoise(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 224, 224)))
 
     Args:
+    ----
         mean : mean of the gaussian distribution
         std : std of the gaussian distribution
     """
@@ -132,9 +135,9 @@ class GaussianNoise(torch.nn.Module):
         # Reshape the distribution
         noise = self.mean + 2 * self.std * torch.rand(x.shape, device=x.device) - self.std
         if x.dtype == torch.uint8:
-            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)
+            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)  # type: ignore[attr-defined]
         else:
-            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)
+            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)  # type: ignore[attr-defined]
 
     def extra_repr(self) -> str:
         return f"mean={self.mean}, std={self.std}"
@@ -153,17 +156,11 @@ class ChannelShuffle(torch.nn.Module):
 
 
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
+    """Randomly flip the input image horizontally"""
+
     def forward(
         self, img: Union[torch.Tensor, Image], target: Dict[str, Any]
     ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
-        """
-        Args:
-            img: Image to be flipped.
-            target: Dictionary with boxes (in relative coordinates of shape (N, 4)) and labels as keys
-
-        Returns:
-            Tuple of PIL Image or Tensor and target
-        """
         if torch.rand(1) < self.p:
             _img = F.hflip(img)
             _target = target.copy()
@@ -182,6 +179,7 @@ class RandomShadow(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 64, 64)))
 
     Args:
+    ----
         opacity_range : minimum and maximum opacity of the shade
     """
 
@@ -201,7 +199,7 @@ class RandomShadow(torch.nn.Module):
                             self.opacity_range,
                         )
                     )
-                    .round()
+                    .round()  # type: ignore[attr-defined]
                     .clip(0, 255)
                     .to(dtype=torch.uint8)
                 )

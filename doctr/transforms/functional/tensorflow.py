@@ -19,6 +19,17 @@ __all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
 
 
 def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
+    """Invert the colors of an image
+
+    Args:
+    ----
+        img : tf.Tensor, the image to invert
+        min_val : minimum value of the random shift
+
+    Returns:
+    -------
+        the inverted image
+    """
     out = tf.image.rgb_to_grayscale(img)  # Convert to gray
     # Random RGB shift
     shift_shape = [img.shape[0], 1, 1, 3] if img.ndim == 4 else [1, 1, 3]
@@ -37,11 +48,13 @@ def rotated_img_tensor(img: tf.Tensor, angle: float, expand: bool = False) -> tf
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
     Args:
+    ----
         img: image to rotate
         angle: angle in degrees. +: counter-clockwise, -: clockwise
         expand: whether the image should be padded before the rotation
 
     Returns:
+    -------
         the rotated image (tensor)
     """
     # Compute the expanded padding
@@ -94,12 +107,14 @@ def rotate_sample(
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
     Args:
+    ----
         img: image to rotate
         geoms: array of geometries of shape (N, 4) or (N, 4, 2)
         angle: angle in degrees. +: counter-clockwise, -: clockwise
         expand: whether the image should be padded before the rotation
 
     Returns:
+    -------
         A tuple of rotated img (tensor), rotated boxes (np array)
     """
     # Rotated the image
@@ -134,11 +149,13 @@ def crop_detection(
     """Crop and image and associated bboxes
 
     Args:
+    ----
         img: image to crop
         boxes: array of boxes to clip, absolute (int) or relative (float)
         crop_box: box (xmin, ymin, xmax, ymax) to crop the image. Relative coords.
 
     Returns:
+    -------
         A tuple of cropped image, cropped boxes, where the image is not resized.
     """
     if any(val < 0 or val > 1 for val in crop_box):
@@ -164,14 +181,15 @@ def _gaussian_filter(
     Adapted from: https://github.com/tensorflow/addons/blob/master/tensorflow_addons/image/filters.py
 
     Args:
-
-        input: image to filter of shape (N, H, W, C)
+    ----
+        img: image to filter of shape (N, H, W, C)
         kernel_size: kernel size of the filter
         sigma: standard deviation of the Gaussian filter
         mode: padding mode, one of "CONSTANT", "REFLECT", "SYMMETRIC"
         pad_value: value to pad the image with
 
     Returns:
+    -------
         A tensor of shape (N, H, W, C)
     """
     ksize = tf.convert_to_tensor(tf.broadcast_to(kernel_size, [2]), dtype=tf.int32)
@@ -221,13 +239,15 @@ def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) 
     """Apply a random shadow to a given image
 
     Args:
+    ----
         img: image to modify
         opacity_range: the minimum and maximum desired opacity of the shadow
+        **kwargs: additional arguments to pass to `create_shadow_mask`
 
     Returns:
+    -------
         shadowed image
     """
-
     shadow_mask = create_shadow_mask(img.shape[:2], **kwargs)
 
     opacity = np.random.uniform(*opacity_range)

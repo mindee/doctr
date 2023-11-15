@@ -24,6 +24,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
+    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
@@ -73,7 +74,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
 
         # Detect document rotation and rotate pages
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+            origin_page_orientations = [estimate_orientation(page) for page in pages]
             orientations = [
                 {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
             ]
@@ -81,14 +82,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             orientations = None
         if self.straighten_pages:
             origin_page_orientations = (
-                origin_page_orientations
-                if self.detect_orientation
-                else [estimate_orientation(page) for page in pages]  # type: ignore[arg-type]
+                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]
             )
-            pages = [
-                rotate_image(page, -angle, expand=True)  # type: ignore[arg-type]
-                for page, angle in zip(pages, origin_page_orientations)
-            ]
+            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
 
         # Localize text elements
         loc_preds = self.det_predictor(pages, **kwargs)
@@ -97,15 +93,13 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Rectify crops if aspect ratio
-        dict_loc_preds = {
-            k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()  # type: ignore[arg-type]
-        }
+        dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
 
         # Crop images
         crops = {}
         for class_name in dict_loc_preds.keys():
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages,  # type: ignore[arg-type]
+                pages,
                 dict_loc_preds[class_name],
                 channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
@@ -143,10 +137,8 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                     k: rotate_boxes(
                         page_boxes,
                         angle,
-                        orig_shape=page.shape[:2]
-                        if isinstance(page, np.ndarray)
-                        else page.shape[1:],  # type: ignore[arg-type]
-                        target_shape=mask,  # type: ignore[arg-type]
+                        orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[1:],
+                        target_shape=mask,
                     )
                     for k, page_boxes in page_boxes_dict.items()
                 }

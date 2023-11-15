@@ -56,6 +56,7 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, arch: str, task
     """Save model and config to disk for pushing to huggingface hub
 
     Args:
+    ----
         model: TF or PyTorch model to be saved
         save_dir: directory to save model and config
         arch: architecture name
@@ -91,6 +92,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
     >>> push_to_hf_hub(model, 'my-model', 'recognition', arch='crnn_mobilenet_v3_small')
 
     Args:
+    ----
         model: TF or PyTorch model to be saved
         model_name: name of the model which is also the repository name
         task: task name
@@ -183,13 +185,14 @@ def from_hub(repo_id: str, **kwargs: Any):
     >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn")
 
     Args:
+    ----
         repo_id: HuggingFace model hub repo
         kwargs: kwargs of `hf_hub_download` or `snapshot_download`
 
     Returns:
+    -------
         Model loaded with the checkpoint
     """
-
     # Get the config
     with open(hf_hub_download(repo_id, filename="config.json", **kwargs), "rb") as f:
         cfg = json.load(f)

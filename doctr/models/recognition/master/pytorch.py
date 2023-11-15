@@ -37,6 +37,7 @@ class MASTER(_MASTER, nn.Module):
     Implementation based on the official Pytorch implementation: <https://github.com/wenwenyu/MASTER-pytorch>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary, (without EOS, SOS, PAD)
         d_model: d parameter for the transformer decoder
@@ -105,7 +106,8 @@ class MASTER(_MASTER, nn.Module):
         # borrowed and slightly modified from  https://github.com/wenwenyu/MASTER-pytorch
         # NOTE: nn.TransformerDecoder takes the inverse from this implementation
         # [True, True, True, ..., False, False, False] -> False is masked
-        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # (N, 1, 1, max_length)
+        # (N, 1, 1, max_length)
+        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # type: ignore[attr-defined]
         target_length = target.size(1)
         # sub mask filled diagonal with True = see and False = masked (max_length, max_length)
         # NOTE: onnxruntime tril/triu works only with float currently (onnxruntime 1.11.1 - opset 14)
@@ -128,17 +130,19 @@ class MASTER(_MASTER, nn.Module):
         Sequences are masked after the EOS character.
 
         Args:
+        ----
             gt: the encoded tensor with gt labels
             model_output: predicted logits of the model
             seq_len: lengths of each gt word inside the batch
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         # Input length : number of timesteps
         input_len = model_output.shape[1]
         # Add one for additional <eos> token (sos disappear in shift!)
-        seq_len = seq_len + 1
+        seq_len = seq_len + 1  # type: ignore[assignment]
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
         cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")
@@ -159,15 +163,16 @@ class MASTER(_MASTER, nn.Module):
         """Call function for training
 
         Args:
+        ----
             x: images
             target: list of str labels
             return_model_output: if True, return logits
             return_preds: if True, decode logits
 
         Returns:
+        -------
             A dictionnary containing eventually loss, logits and predictions.
         """
-
         # Encode
         features = self.feat_extractor(x)["features"]
         b, c, h, w = features.shape
@@ -216,9 +221,11 @@ class MASTER(_MASTER, nn.Module):
         """Decode function for prediction
 
         Args:
+        ----
             encoded: input tensor
 
-        Return:
+        Returns:
+        -------
             A Tuple of torch.Tensor: predictions, logits
         """
         b = encoded.size(0)
@@ -309,12 +316,14 @@ def master(pretrained: bool = False, **kwargs: Any) -> MASTER:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keywoard arguments passed to the MASTER architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _master(
         "master",
         pretrained,

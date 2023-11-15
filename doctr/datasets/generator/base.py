@@ -24,6 +24,7 @@ def synthesize_text_img(
     """Generate a synthetic text image
 
     Args:
+    ----
         text: the text to render as an image
         font_size: the size of the font
         font_family: the font family (has to be installed on your system)
@@ -31,9 +32,9 @@ def synthesize_text_img(
         text_color: text color on the final image
 
     Returns:
+    -------
         PIL image of the text
     """
-
     background_color = (0, 0, 0) if background_color is None else background_color
     text_color = (255, 255, 255) if text_color is None else text_color
 

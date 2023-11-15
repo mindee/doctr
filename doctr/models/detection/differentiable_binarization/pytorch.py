@@ -106,6 +106,7 @@ class DBNet(_DBNet, nn.Module):
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
+    ----
         feature extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
@@ -227,14 +228,15 @@ class DBNet(_DBNet, nn.Module):
         and a list of masks for each image. From there it computes the loss with the model output
 
         Args:
+        ----
             out_map: output feature map of the model of shape (N, C, H, W)
             thresh_map: threshold map of shape (N, C, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
 
         Returns:
+        -------
             A loss tensor
         """
-
         prob_map = torch.sigmoid(out_map)
         thresh_map = torch.sigmoid(thresh_map)
 
@@ -271,7 +273,7 @@ class DBNet(_DBNet, nn.Module):
             bce_min = bce_loss.min()
             weights = (bce_loss - bce_min) / (bce_loss.max() - bce_min) + 1.0
             inter = torch.sum(bin_map * seg_target[seg_mask] * weights)
-            union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8
+            union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8  # type: ignore[call-overload]
             dice_loss = 1 - 2.0 * inter / union
 
         # Compute l1 loss for thresh_map
@@ -279,7 +281,7 @@ class DBNet(_DBNet, nn.Module):
         if torch.any(thresh_mask):
             l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
 
-        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
+        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss  # type: ignore[return-value]
 
 
 def _dbnet(
@@ -337,12 +339,14 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _dbnet(
         "db_resnet34",
         pretrained,
@@ -370,12 +374,14 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _dbnet(
         "db_resnet50",
         pretrained,
@@ -403,12 +409,14 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _dbnet(
         "db_mobilenet_v3_large",
         pretrained,
@@ -437,12 +445,14 @@ def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
+    -------
         text detection architecture
     """
-
     return _dbnet(
         "db_resnet50_rotation",
         pretrained,

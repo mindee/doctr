@@ -144,11 +144,11 @@ def test_random_rotate():
     rotator = RandomRotate(max_angle=10.0, expand=False)
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
     boxes = np.array([[15, 20, 35, 30]])
-    r_img, r_boxes = rotator(input_t, boxes)
+    r_img, _r_boxes = rotator(input_t, boxes)
     assert r_img.shape == input_t.shape
 
     rotator = RandomRotate(max_angle=10.0, expand=True)
-    r_img, r_boxes = rotator(input_t, boxes)
+    r_img, _r_boxes = rotator(input_t, boxes)
     assert r_img.shape != input_t.shape
 
     # FP16 (only on GPU)

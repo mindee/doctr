@@ -80,6 +80,7 @@ class SARDecoder(nn.Module):
     """Implements decoder module of the SAR model
 
     Args:
+    ----
         rnn_units: number of hidden units in recurrent cells
         max_length: maximum length of a sequence
         vocab_size: number of classes in the model alphabet
@@ -164,6 +165,7 @@ class SAR(nn.Module, RecognitionModel):
     Irregular Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
     Args:
+    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         rnn_units: number of hidden units in both encoder and decoder LSTM
@@ -278,17 +280,19 @@ class SAR(nn.Module, RecognitionModel):
         Sequences are masked after the EOS character.
 
         Args:
+        ----
             model_output: predicted logits of the model
             gt: the encoded tensor with gt labels
             seq_len: lengths of each gt word inside the batch
 
         Returns:
+        -------
             The loss of the model on the batch
         """
         # Input length : number of timesteps
         input_len = model_output.shape[1]
         # Add one for additional <eos> token
-        seq_len = seq_len + 1
+        seq_len = seq_len + 1  # type: ignore[assignment]
         # Compute loss
         # (N, L, vocab_size + 1)
         cce = F.cross_entropy(model_output.permute(0, 2, 1), gt, reduction="none")
@@ -303,6 +307,7 @@ class SARPostProcessor(RecognitionPostProcessor):
     """Post processor for SAR architectures
 
     Args:
+    ----
         vocab: string containing the ordered sequence of supported characters
     """
 
@@ -373,12 +378,14 @@ def sar_resnet31(pretrained: bool = False, **kwargs: Any) -> SAR:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the SAR architecture
 
     Returns:
+    -------
         text recognition architecture
     """
-
     return _sar(
         "sar_resnet31",
         pretrained,

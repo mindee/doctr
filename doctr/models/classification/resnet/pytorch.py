@@ -61,6 +61,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 
 def resnet_stage(in_channels: int, out_channels: int, num_blocks: int, stride: int) -> List[nn.Module]:
+    """Build a ResNet stage"""
     _layers: List[nn.Module] = []
 
     in_chan = in_channels
@@ -83,6 +84,7 @@ class ResNet(nn.Sequential):
     Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
     Args:
+    ----
         num_blocks: number of resnet block in each stage
         output_channels: number of channels in each stage
         stage_conv: whether to add a conv_sequence after each stage
@@ -224,12 +226,14 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A resnet18 model
     """
-
     return _tv_resnet(
         "resnet18",
         pretrained,
@@ -251,12 +255,14 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A resnet31 model
     """
-
     return _resnet(
         "resnet31",
         pretrained,
@@ -283,12 +289,14 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A resnet34 model
     """
-
     return _tv_resnet(
         "resnet34",
         pretrained,
@@ -309,12 +317,14 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A resnet34_wide model
     """
-
     return _resnet(
         "resnet34_wide",
         pretrained,
@@ -341,12 +351,14 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
+    ----
         pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
+    -------
         A resnet50 model
     """
-
     return _tv_resnet(
         "resnet50",
         pretrained,
