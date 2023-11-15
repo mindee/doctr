@@ -13,7 +13,7 @@ __all__ = ["read_html"]
 def read_html(url: str, **kwargs: Any) -> bytes:
     """Read a PDF file and convert it into an image in numpy format
 
-    >>> from doctr.documents import read_html
+    >>> from doctr.io import read_html
     >>> doc = read_html("https://www.yoursite.com")
 
     Args:

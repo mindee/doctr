@@ -24,7 +24,7 @@ class DocumentFile:
     def from_pdf(cls, file: AbstractFile, **kwargs) -> List[np.ndarray]:
         """Read a PDF file
 
-        >>> from doctr.documents import DocumentFile
+        >>> from doctr.io import DocumentFile
         >>> doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 
         Args:
@@ -42,7 +42,7 @@ class DocumentFile:
     def from_url(cls, url: str, **kwargs) -> List[np.ndarray]:
         """Interpret a web page as a PDF document
 
-        >>> from doctr.documents import DocumentFile
+        >>> from doctr.io import DocumentFile
         >>> doc = DocumentFile.from_url("https://www.yoursite.com")
 
         Args:
@@ -61,7 +61,7 @@ class DocumentFile:
     def from_images(cls, files: Union[Sequence[AbstractFile], AbstractFile], **kwargs) -> List[np.ndarray]:
         """Read an image file (or a collection of image files) and convert it into an image in numpy format
 
-        >>> from doctr.documents import DocumentFile
+        >>> from doctr.io import DocumentFile
         >>> pages = DocumentFile.from_images(["path/to/your/page1.png", "path/to/your/page2.png"])
 
         Args:
