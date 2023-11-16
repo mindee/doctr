@@ -234,6 +234,7 @@ class Page(Element):
     """Implements a page element as a collection of blocks
 
     Args:
+    ----
         page: image encoded as a numpy array in uint8
         blocks: list of block elements
         page_idx: the index of the page in the input raw document

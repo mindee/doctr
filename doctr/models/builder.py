@@ -297,6 +297,7 @@ class DocumentBuilder(NestedObject):
         """Re-arrange detected words into structured blocks
 
         Args:
+        ----
             pages: list of N elements, where each element represents the page image
             boxes: list of N elements, where each element represents the localization predictions, of shape (*, 5)
                 or (*, 6) for all words for a given page
@@ -368,6 +369,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         """Re-arrange detected words into structured predictions
 
         Args:
+        ----
             pages: list of N elements, where each element represents the page image
             boxes: list of N dictionaries, where each element represents the localization predictions for a class,
                 of shape (*, 5) or (*, 6) for all predictions
