@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -37,14 +37,21 @@ class DetectionPredictor(NestedObject):
     def __call__(
         self,
         pages: List[Union[np.ndarray, tf.Tensor]],
+        return_maps: bool = False,
         **kwargs: Any,
-    ) -> List[Dict[str, np.ndarray]]:
+    ) -> Union[List[Dict[str, np.ndarray]], Tuple[List[Dict[str, np.ndarray]], List[np.ndarray]]]:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
         processed_batches = self.pre_processor(pages)
         predicted_batches = [
-            self.model(batch, return_preds=True, training=False, **kwargs)["preds"] for batch in processed_batches
+            self.model(batch, return_preds=True, return_model_output=True, training=False, **kwargs)
+            for batch in processed_batches
         ]
-        return [pred for batch in predicted_batches for pred in batch]
+
+        preds = [pred for batch in predicted_batches for pred in batch["preds"]]
+        if return_maps:
+            seg_maps = [pred.numpy() for batch in predicted_batches for pred in batch["out_map"]]
+            return preds, seg_maps
+        return preds

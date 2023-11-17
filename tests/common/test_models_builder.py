@@ -20,25 +20,29 @@ def test_documentbuilder():
 
     # Don't resolve lines
     doc_builder = builder.DocumentBuilder(resolve_lines=False, resolve_blocks=False)
+    pages = [np.zeros((100, 200, 3))] * num_pages
     boxes = np.random.rand(words_per_page, 6)  # array format
     boxes[:2] *= boxes[2:4]
     # Arg consistency check
     with pytest.raises(ValueError):
-        doc_builder([boxes, boxes], [("hello", 1.0)] * 3, [(100, 200), (100, 200)])
-    out = doc_builder([boxes, boxes], [[("hello", 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
+        doc_builder(pages, [boxes, boxes], [("hello", 1.0)] * 3, [(100, 200), (100, 200)])
+    out = doc_builder(pages, [boxes, boxes], [[("hello", 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
     assert isinstance(out, Document)
     assert len(out.pages) == num_pages
+    assert all(isinstance(page.page, np.ndarray) for page in out.pages) and all(
+        page.page.shape == (100, 200, 3) for page in out.pages
+    )
     # 1 Block & 1 line per page
     assert len(out.pages[0].blocks) == 1 and len(out.pages[0].blocks[0].lines) == 1
     assert len(out.pages[0].blocks[0].lines[0].words) == words_per_page
 
     # Resolve lines
     doc_builder = builder.DocumentBuilder(resolve_lines=True, resolve_blocks=True)
-    out = doc_builder([boxes, boxes], [[("hello", 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
+    out = doc_builder(pages, [boxes, boxes], [[("hello", 1.0)] * words_per_page] * num_pages, [(100, 200), (100, 200)])
 
     # No detection
     boxes = np.zeros((0, 5))
-    out = doc_builder([boxes, boxes], [[], []], [(100, 200), (100, 200)])
+    out = doc_builder(pages, [boxes, boxes], [[], []], [(100, 200), (100, 200)])
     assert len(out.pages[0].blocks) == 0
 
     # Rotated boxes to export as straight boxes
@@ -49,7 +53,7 @@ def test_documentbuilder():
         ]
     )
     doc_builder_2 = builder.DocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
-    out = doc_builder_2([boxes], [[("hello", 0.99), ("word", 0.99)]], [(100, 100)])
+    out = doc_builder_2([np.zeros((100, 100, 3))], [boxes], [[("hello", 0.99), ("word", 0.99)]], [(100, 100)])
     assert out.pages[0].blocks[0].lines[0].words[-1].geometry == ((0.45, 0.5), (0.6, 0.65))
 
     # Repr
@@ -64,18 +68,23 @@ def test_kiedocumentbuilder():
 
     # Don't resolve lines
     doc_builder = builder.KIEDocumentBuilder(resolve_lines=False, resolve_blocks=False)
+    pages = [np.zeros((100, 200, 3))] * num_pages
     predictions = {CLASS_NAME: np.random.rand(words_per_page, 6)}  # dict format
     predictions[CLASS_NAME][:2] *= predictions[CLASS_NAME][2:4]
     # Arg consistency check
     with pytest.raises(ValueError):
-        doc_builder([predictions, predictions], [{CLASS_NAME: ("hello", 1.0)}] * 3, [(100, 200), (100, 200)])
+        doc_builder(pages, [predictions, predictions], [{CLASS_NAME: ("hello", 1.0)}] * 3, [(100, 200), (100, 200)])
     out = doc_builder(
+        pages,
         [predictions, predictions],
         [{CLASS_NAME: [("hello", 1.0)] * words_per_page}] * num_pages,
         [(100, 200), (100, 200)],
     )
     assert isinstance(out, KIEDocument)
     assert len(out.pages) == num_pages
+    assert all(isinstance(page.page, np.ndarray) for page in out.pages) and all(
+        page.page.shape == (100, 200, 3) for page in out.pages
+    )
     # 1 Block & 1 line per page
     assert len(out.pages[0].predictions) == 1
     assert len(out.pages[0].predictions[CLASS_NAME]) == words_per_page
@@ -83,6 +92,7 @@ def test_kiedocumentbuilder():
     # Resolve lines
     doc_builder = builder.KIEDocumentBuilder(resolve_lines=True, resolve_blocks=True)
     out = doc_builder(
+        pages,
         [predictions, predictions],
         [{CLASS_NAME: [("hello", 1.0)] * words_per_page}] * num_pages,
         [(100, 200), (100, 200)],
@@ -90,7 +100,7 @@ def test_kiedocumentbuilder():
 
     # No detection
     predictions = {CLASS_NAME: np.zeros((0, 5))}
-    out = doc_builder([predictions, predictions], [{CLASS_NAME: []}, {CLASS_NAME: []}], [(100, 200), (100, 200)])
+    out = doc_builder(pages, [predictions, predictions], [{CLASS_NAME: []}, {CLASS_NAME: []}], [(100, 200), (100, 200)])
     assert len(out.pages[0].predictions[CLASS_NAME]) == 0
 
     # Rotated boxes to export as straight boxes
@@ -103,7 +113,9 @@ def test_kiedocumentbuilder():
         )
     }
     doc_builder_2 = builder.KIEDocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
-    out = doc_builder_2([predictions], [{CLASS_NAME: [("hello", 0.99), ("word", 0.99)]}], [(100, 100)])
+    out = doc_builder_2(
+        [np.zeros((100, 100, 3))], [predictions], [{CLASS_NAME: [("hello", 0.99), ("word", 0.99)]}], [(100, 100)]
+    )
     assert out.pages[0].predictions[CLASS_NAME][0].geometry == ((0.05, 0.1), (0.2, 0.25))
     assert out.pages[0].predictions[CLASS_NAME][1].geometry == ((0.45, 0.5), (0.6, 0.65))
 

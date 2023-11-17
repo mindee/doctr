@@ -287,6 +287,7 @@ class DocumentBuilder(NestedObject):
 
     def __call__(
         self,
+        pages: List[np.ndarray],
         boxes: List[np.ndarray],
         text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
@@ -297,6 +298,7 @@ class DocumentBuilder(NestedObject):
 
         Args:
         ----
+            pages: list of N elements, where each element represents the page image
             boxes: list of N elements, where each element represents the localization predictions, of shape (*, 5)
                 or (*, 6) for all words for a given page
             text_preds: list of N elements, where each element is the list of all word prediction (text + confidence)
@@ -325,6 +327,7 @@ class DocumentBuilder(NestedObject):
 
         _pages = [
             Page(
+                page,
                 self._build_blocks(
                     page_boxes,
                     word_preds,
@@ -334,8 +337,8 @@ class DocumentBuilder(NestedObject):
                 orientation,
                 language,
             )
-            for _idx, shape, page_boxes, word_preds, orientation, language in zip(
-                range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            for page, _idx, shape, page_boxes, word_preds, orientation, language in zip(
+                pages, range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
             )
         ]
 
@@ -356,6 +359,7 @@ class KIEDocumentBuilder(DocumentBuilder):
 
     def __call__(  # type: ignore[override]
         self,
+        pages: List[np.ndarray],
         boxes: List[Dict[str, np.ndarray]],
         text_preds: List[Dict[str, List[Tuple[str, float]]]],
         page_shapes: List[Tuple[int, int]],
@@ -366,6 +370,7 @@ class KIEDocumentBuilder(DocumentBuilder):
 
         Args:
         ----
+            pages: list of N elements, where each element represents the page image
             boxes: list of N dictionaries, where each element represents the localization predictions for a class,
                 of shape (*, 5) or (*, 6) for all predictions
             text_preds: list of N dictionaries, where each element is the list of all word prediction
@@ -400,6 +405,7 @@ class KIEDocumentBuilder(DocumentBuilder):
 
         _pages = [
             KIEPage(
+                page,
                 {
                     k: self._build_blocks(
                         page_boxes[k],
@@ -412,8 +418,8 @@ class KIEDocumentBuilder(DocumentBuilder):
                 orientation,
                 language,
             )
-            for _idx, shape, page_boxes, word_preds, orientation, language in zip(
-                range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            for page, _idx, shape, page_boxes, word_preds, orientation, language in zip(
+                pages, range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
             )
         ]
 

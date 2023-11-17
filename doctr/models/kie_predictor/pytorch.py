@@ -13,7 +13,7 @@ from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation, get_language, invert_data_structure
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import rotate_boxes, rotate_image
+from doctr.utils.geometry import rotate_image
 
 from .base import _KIEPredictor
 
@@ -36,7 +36,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        kwargs: keyword args of `DocumentBuilder`
+        **kwargs: keyword args of `DocumentBuilder`
     """
 
     def __init__(
@@ -72,22 +72,33 @@ class KIEPredictor(nn.Module, _KIEPredictor):
 
         origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
 
+        # Localize text elements
+        loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+
         # Detect document rotation and rotate pages
+        seg_maps = [
+            np.where(np.expand_dims(np.amax(out_map, axis=-1), axis=-1) > kwargs.get("bin_thresh", 0.3), 255, 0).astype(
+                np.uint8
+            )
+            for out_map in out_maps
+        ]
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(page) for page in pages]
+            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seg_maps]
             orientations = [
-                {"value": orientation_page, "confidence": 1.0} for orientation_page in origin_page_orientations
+                {"value": orientation_page, "confidence": None} for orientation_page in origin_page_orientations
             ]
         else:
             orientations = None
         if self.straighten_pages:
             origin_page_orientations = (
-                origin_page_orientations if self.detect_orientation else [estimate_orientation(page) for page in pages]
+                origin_page_orientations
+                if self.detect_orientation
+                else [estimate_orientation(seq_map) for seq_map in seg_maps]
             )
-            pages = [rotate_image(page, -angle, expand=True) for page, angle in zip(pages, origin_page_orientations)]
+            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]
+            # Forward again to get predictions on straight pages
+            loc_preds = self.det_predictor(pages, **kwargs)
 
-        # Localize text elements
-        loc_preds = self.det_predictor(pages, **kwargs)
         dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
@@ -130,27 +141,12 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             languages_dict = [{"value": lang[0], "confidence": lang[1]} for lang in languages]
         else:
             languages_dict = None
-        # Rotate back pages and boxes while keeping original image size
-        if self.straighten_pages:
-            boxes_per_page = [
-                {
-                    k: rotate_boxes(
-                        page_boxes,
-                        angle,
-                        orig_shape=page.shape[:2] if isinstance(page, np.ndarray) else page.shape[1:],
-                        target_shape=mask,
-                    )
-                    for k, page_boxes in page_boxes_dict.items()
-                }
-                for page_boxes_dict, page, angle, mask in zip(
-                    boxes_per_page, pages, origin_page_orientations, origin_page_shapes
-                )
-            ]
 
         out = self.doc_builder(
+            pages,
             boxes_per_page,
             text_preds_per_page,
-            [page.shape[:2] if channels_last else page.shape[-2:] for page in pages],  # type: ignore[misc]
+            origin_page_shapes,
             orientations,
             languages_dict,
         )

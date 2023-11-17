@@ -235,6 +235,7 @@ class Page(Element):
 
     Args:
     ----
+        page: image encoded as a numpy array in uint8
         blocks: list of block elements
         page_idx: the index of the page in the input raw document
         dimensions: the page size in pixels in format (height, width)
@@ -248,6 +249,7 @@ class Page(Element):
 
     def __init__(
         self,
+        page: np.ndarray,
         blocks: List[Block],
         page_idx: int,
         dimensions: Tuple[int, int],
@@ -255,6 +257,7 @@ class Page(Element):
         language: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(blocks=blocks)
+        self.page = page
         self.page_idx = page_idx
         self.dimensions = dimensions
         self.orientation = orientation if isinstance(orientation, dict) else dict(value=None, confidence=None)
@@ -267,17 +270,15 @@ class Page(Element):
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
 
-    def show(self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs) -> None:
+    def show(self, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs) -> None:
         """Overlay the result on a given image
 
         Args:
-        ----
-            page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
         """
-        visualize_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
+        visualize_page(self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
         plt.show(**kwargs)
 
     def synthesize(self, **kwargs) -> np.ndarray:
@@ -408,6 +409,7 @@ class KIEPage(Element):
     Args:
     ----
         predictions: Dictionary with list of block elements for each detection class
+        page: image encoded as a numpy array in uint8
         page_idx: the index of the page in the input raw document
         dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
@@ -420,6 +422,7 @@ class KIEPage(Element):
 
     def __init__(
         self,
+        page: np.ndarray,
         predictions: Dict[str, List[Prediction]],
         page_idx: int,
         dimensions: Tuple[int, int],
@@ -427,6 +430,7 @@ class KIEPage(Element):
         language: Optional[Dict[str, Any]] = None,
     ) -> None:
         super().__init__(predictions=predictions)
+        self.page = page
         self.page_idx = page_idx
         self.dimensions = dimensions
         self.orientation = orientation if isinstance(orientation, dict) else dict(value=None, confidence=None)
@@ -441,17 +445,17 @@ class KIEPage(Element):
     def extra_repr(self) -> str:
         return f"dimensions={self.dimensions}"
 
-    def show(self, page: np.ndarray, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs) -> None:
+    def show(self, interactive: bool = True, preserve_aspect_ratio: bool = False, **kwargs) -> None:
         """Overlay the result on a given image
 
         Args:
-        ----
-            page: image encoded as a numpy array in uint8
             interactive: whether the display should be interactive
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: keyword arguments passed to the matplotlib.pyplot.show method
         """
-        visualize_kie_page(self.export(), page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
+        visualize_kie_page(
+            self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio
+        )
         plt.show(**kwargs)
 
     def synthesize(self, **kwargs) -> np.ndarray:
@@ -561,16 +565,10 @@ class Document(Element):
         """Renders the full text of the element"""
         return page_break.join(p.render() for p in self.pages)
 
-    def show(self, pages: List[np.ndarray], **kwargs) -> None:
-        """Overlay the result on a given image
-
-        Args:
-        ----
-            pages: list of images encoded as numpy arrays in uint8
-            **kwargs: keyword arguments passed to the Page.show method
-        """
-        for img, result in zip(pages, self.pages):
-            result.show(img, **kwargs)
+    def show(self, **kwargs) -> None:
+        """Overlay the result on a given image"""
+        for result in self.pages:
+            result.show(**kwargs)
 
     def synthesize(self, **kwargs) -> List[np.ndarray]:
         """Synthesize all pages from their predictions

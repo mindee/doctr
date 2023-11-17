@@ -146,9 +146,13 @@ def test_detection_zoo(arch_name):
     # object check
     assert isinstance(predictor, DetectionPredictor)
     input_tensor = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
-    out = predictor(input_tensor)
+    out, seq_maps = predictor(input_tensor, return_maps=True)
     assert all(isinstance(boxes, dict) for boxes in out)
     assert all(isinstance(boxes[CLASS_NAME], np.ndarray) and boxes[CLASS_NAME].shape[1] == 5 for boxes in out)
+    assert all(isinstance(seq_map, np.ndarray) for seq_map in seq_maps)
+    assert all(seq_map.shape[:2] == (1024, 1024) for seq_map in seq_maps)
+    # check that all values in the seq_maps are between 0 and 1
+    assert all((seq_map >= 0).all() and (seq_map <= 1).all() for seq_map in seq_maps)
 
 
 def test_detection_zoo_error():

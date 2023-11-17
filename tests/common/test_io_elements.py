@@ -72,6 +72,7 @@ def _mock_blocks(size=(1, 1), offset=(0, 0)):
 def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
     return [
         elements.Page(
+            np.random.randint(0, 255, (300, 200, 3), dtype=np.uint8),
             _mock_blocks(block_size, block_offset),
             0,
             (300, 200),
@@ -79,6 +80,7 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
             {"value": "EN", "confidence": 0.8},
         ),
         elements.Page(
+            np.random.randint(0, 255, (500, 1000, 3), dtype=np.uint8),
             _mock_blocks(block_size, block_offset),
             1,
             (500, 1000),
@@ -91,6 +93,7 @@ def _mock_pages(block_size=(1, 1), block_offset=(0, 0)):
 def _mock_kie_pages(prediction_size=(1, 1), prediction_offset=(0, 0)):
     return [
         elements.KIEPage(
+            np.random.randint(0, 255, (300, 200, 3), dtype=np.uint8),
             {CLASS_NAME: _mock_prediction(prediction_size, prediction_offset)},
             0,
             (300, 200),
@@ -98,6 +101,7 @@ def _mock_kie_pages(prediction_size=(1, 1), prediction_offset=(0, 0)):
             {"value": "EN", "confidence": 0.8},
         ),
         elements.KIEPage(
+            np.random.randint(0, 255, (500, 1000, 3), dtype=np.uint8),
             {CLASS_NAME: _mock_prediction(prediction_size, prediction_offset)},
             1,
             (500, 1000),
@@ -243,16 +247,18 @@ def test_block():
 
 
 def test_page():
+    page = np.zeros((300, 200, 3), dtype=np.uint8)
     page_idx = 0
     page_size = (300, 200)
     orientation = {"value": 0.0, "confidence": 0.0}
     language = {"value": "EN", "confidence": 0.8}
     blocks = _mock_blocks()
-    page = elements.Page(blocks, page_idx, page_size, orientation, language)
+    page = elements.Page(page, blocks, page_idx, page_size, orientation, language)
 
     # Attribute checks
     assert len(page.blocks) == len(blocks)
     assert all(isinstance(b, elements.Block) for b in page.blocks)
+    assert isinstance(page.page, np.ndarray)
     assert page.page_idx == page_idx
     assert page.dimensions == page_size
     assert page.orientation == orientation
@@ -281,7 +287,7 @@ def test_page():
     assert "\n".join(repr(page).split("\n")[:2]) == f"Page(\n  dimensions={page_size!r}"
 
     # Show
-    page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
+    page.show(block=False)
 
     # Synthesize
     img = page.synthesize()
@@ -290,16 +296,18 @@ def test_page():
 
 
 def test_kiepage():
+    page = np.zeros((300, 200, 3), dtype=np.uint8)
     page_idx = 0
     page_size = (300, 200)
     orientation = {"value": 0.0, "confidence": 0.0}
     language = {"value": "EN", "confidence": 0.8}
     predictions = {CLASS_NAME: _mock_prediction()}
-    kie_page = elements.KIEPage(predictions, page_idx, page_size, orientation, language)
+    kie_page = elements.KIEPage(page, predictions, page_idx, page_size, orientation, language)
 
     # Attribute checks
     assert len(kie_page.predictions) == len(predictions)
     assert all(isinstance(b, elements.Prediction) for b in kie_page.predictions[CLASS_NAME])
+    assert isinstance(kie_page.page, np.ndarray)
     assert kie_page.page_idx == page_idx
     assert kie_page.dimensions == page_size
     assert kie_page.orientation == orientation
@@ -328,7 +336,7 @@ def test_kiepage():
     assert "\n".join(repr(kie_page).split("\n")[:2]) == f"KIEPage(\n  dimensions={page_size!r}"
 
     # Show
-    kie_page.show(np.zeros((256, 256, 3), dtype=np.uint8), block=False)
+    kie_page.show(block=False)
 
     # Synthesize
     img = kie_page.synthesize()
@@ -355,7 +363,7 @@ def test_document():
     assert isinstance(doc.export_as_xml(), list) and len(doc.export_as_xml()) == len(pages)
 
     # Show
-    doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)
+    doc.show(block=False)
 
     # Synthesize
     img_list = doc.synthesize()
@@ -381,7 +389,7 @@ def test_kie_document():
     assert isinstance(doc.export_as_xml(), list) and len(doc.export_as_xml()) == len(pages)
 
     # Show
-    doc.show([np.zeros((256, 256, 3), dtype=np.uint8) for _ in range(len(pages))], block=False)
+    doc.show(block=False)
 
     # Synthesize
     img_list = doc.synthesize()

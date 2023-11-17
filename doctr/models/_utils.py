@@ -11,7 +11,7 @@ import cv2
 import numpy as np
 from langdetect import LangDetectException, detect_langs
 
-__all__ = ["estimate_orientation", "get_bitmap_angle", "get_language", "invert_data_structure"]
+__all__ = ["estimate_orientation", "get_language", "invert_data_structure"]
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:
@@ -21,19 +21,21 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     ----
         contour: the contour from cv2.findContour
 
-    Returns: the maximum shape ratio
+    Returns:
+    -------
+        the maximum shape ratio
     """
     _, (w, h), _ = cv2.minAreaRect(contour)
     return max(w / h, h / w)
 
 
-def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> float:
+def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> int:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
 
     Args:
     ----
-        img: the img to analyze
+        img: the img or bitmap to analyze (H, W, C)
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
 
@@ -41,9 +43,15 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     -------
         the angle of the general document orientation
     """
-    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    gray_img = cv2.medianBlur(gray_img, 5)
-    thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+    assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
+    max_value = np.max(img)
+    min_value = np.min(img)
+    if max_value <= 1 and min_value >= 0 or (max_value <= 255 and min_value >= 0 and img.shape[-1] == 1):
+        thresh = img.astype(np.uint8)
+    if max_value <= 255 and min_value >= 0 and img.shape[-1] == 3:
+        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray_img = cv2.medianBlur(gray_img, 5)
+        thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     # try to merge words in lines
     (h, w) = img.shape[:2]
@@ -69,47 +77,8 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     if len(angles) == 0:
         return 0  # in case no angles is found
     else:
-        return -median_low(angles)
-
-
-def get_bitmap_angle(bitmap: np.ndarray, n_ct: int = 20, std_max: float = 3.0) -> float:
-    """From a binarized segmentation map, find contours and fit min area rectangles to determine page angle
-
-    Args:
-    ----
-        bitmap: binarized segmentation map
-        n_ct: number of contours to use to fit page angle
-        std_max: maximum deviation of the angle distribution to consider the mean angle reliable
-
-    Returns:
-    -------
-        The angle of the page
-    """
-    # Find all contours on binarized seg map
-    contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
-    # Sort contours
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)
-
-    # Find largest contours and fit angles
-    # Track heights and widths to find aspect ratio (determine is rotation is clockwise)
-    angles, heights, widths = [], [], []
-    for ct in contours[:n_ct]:
-        _, (w, h), alpha = cv2.minAreaRect(ct)
-        widths.append(w)
-        heights.append(h)
-        angles.append(alpha)
-
-    if np.std(angles) > std_max:
-        # Edge case with angles of both 0 and 90°, or multi_oriented docs
-        angle = 0.0
-    else:
-        angle = -np.mean(angles)
-        # Determine rotation direction (clockwise/counterclockwise)
-        # Angle coverage: [-90°, +90°], half of the quadrant
-        if np.sum(widths) < np.sum(heights):  # CounterClockwise
-            angle = 90 + angle
-
-    return angle
+        median = -median_low(angles)
+        return round(median) if abs(median) != 0 else 0
 
 
 def rectify_crops(
@@ -154,9 +123,13 @@ def rectify_loc_preds(
 def get_language(text: str) -> Tuple[str, float]:
     """Get languages of a text using langdetect model.
     Get the language with the highest probability or no language if only a few words or a low probability
+
     Args:
+    ----
         text (str): text
+
     Returns:
+    -------
         The detected language in ISO 639 code and confidence score
     """
     try:
