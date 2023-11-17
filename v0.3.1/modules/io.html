@@ -342,12 +342,13 @@ all lines and artefacts in it.</p>
 <p>A Page is a collection of Blocks that were on the same physical page.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.Page">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">Page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Block" title="doctr.io.elements.Block"><span class="pre">Block</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">Page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Block" title="doctr.io.elements.Block"><span class="pre">Block</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page" title="Permalink to this definition">#</a></dt>
 <dd><p>Implements a page element as a collection of blocks</p>
 <section id="id5">
 <h4>Args:<a class="headerlink" href="#id5" title="Permalink to this heading">#</a></h4>
 <blockquote>
-<div><p>blocks: list of block elements
+<div><p>page: image encoded as a numpy array in uint8
+blocks: list of block elements
 page_idx: the index of the page in the input raw document
 dimensions: the page size in pixels in format (height, width)
 orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
@@ -355,17 +356,17 @@ language: a dictionary with the language value and confidence of the prediction<
 </div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.Page.show">
-<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page.show" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page.show" title="Permalink to this definition">#</a></dt>
 <dd><p>Overlay the result on a given image</p>
-<section id="id6">
-<h5>Args:<a class="headerlink" href="#id6" title="Permalink to this heading">#</a></h5>
-<blockquote>
-<div><p>page: image encoded as a numpy array in uint8
-interactive: whether the display should be interactive
-preserve_aspect_ratio: pass True if you passed True to the predictor
-<a href="#id7"><span class="problematic" id="id8">**</span></a>kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method</p>
-</div></blockquote>
-</section>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interactive</strong> – whether the display should be interactive</p></li>
+<li><p><strong>preserve_aspect_ratio</strong> – pass True if you passed True to the predictor</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the matplotlib.pyplot.show method</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>
@@ -379,22 +380,15 @@ preserve_aspect_ratio: pass True if you passed True to the predictor
 <dt class="sig sig-object py" id="doctr.io.Document">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">Document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Page" title="doctr.io.elements.Page"><span class="pre">Page</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Document" title="Permalink to this definition">#</a></dt>
 <dd><p>Implements a document element as a collection of pages</p>
-<section id="id9">
-<h4>Args:<a class="headerlink" href="#id9" title="Permalink to this heading">#</a></h4>
+<section id="id6">
+<h4>Args:<a class="headerlink" href="#id6" title="Permalink to this heading">#</a></h4>
 <blockquote>
 <div><p>pages: list of page elements</p>
 </div></blockquote>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.Document.show">
-<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/elements.html#Document.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Document.show" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/elements.html#Document.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Document.show" title="Permalink to this definition">#</a></dt>
 <dd><p>Overlay the result on a given image</p>
-<section id="id10">
-<h5>Args:<a class="headerlink" href="#id10" title="Permalink to this heading">#</a></h5>
-<blockquote>
-<div><p>pages: list of images encoded as numpy arrays in uint8
-<a href="#id11"><span class="problematic" id="id12">**</span></a>kwargs: keyword arguments passed to the Page.show method</p>
-</div></blockquote>
-</section>
 </dd></dl>
 
 </section>
@@ -413,14 +407,14 @@ preserve_aspect_ratio: pass True if you passed True to the predictor
 <span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">read_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id13">
-<h3>Args:<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h3>
+<section id="id7">
+<h3>Args:<a class="headerlink" href="#id7" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>file: the path to the PDF file
 scale: rendering scale (1 corresponds to 72dpi)
 rgb_mode: if True, the output will be RGB, otherwise BGR
 password: a password to unlock the document, if encrypted
-<a href="#id14"><span class="problematic" id="id15">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">pypdfium2.PdfPage.render()</span></code></p>
+<a href="#id8"><span class="problematic" id="id9">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">pypdfium2.PdfPage.render()</span></code></p>
 </div></blockquote>
 </section>
 <section id="returns">
@@ -439,16 +433,16 @@ password: a password to unlock the document, if encrypted
 <span class="gp">&gt;&gt;&gt; </span><span class="n">page</span> <span class="o">=</span> <span class="n">read_img_as_numpy</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.jpg&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id16">
-<h3>Args:<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
+<section id="id10">
+<h3>Args:<a class="headerlink" href="#id10" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>file: the path to the image file
 output_size: the expected output size of each page in format H x W
 rgb_output: whether the output ndarray channel order should be RGB instead of BGR.</p>
 </div></blockquote>
 </section>
-<section id="id17">
-<h3>Returns:<a class="headerlink" href="#id17" title="Permalink to this heading">#</a></h3>
+<section id="id11">
+<h3>Returns:<a class="headerlink" href="#id11" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>the page decoded as numpy ndarray of shape H x W x 3</p>
 </div></blockquote>
@@ -459,15 +453,15 @@ rgb_output: whether the output ndarray channel order should be RGB instead of BG
 <dt class="sig sig-object py" id="doctr.io.read_img_as_tensor">
 <span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">read_img_as_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.12)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/doctr/io/image/tensorflow.html#read_img_as_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.read_img_as_tensor" title="Permalink to this definition">#</a></dt>
 <dd><p>Read an image file as a TensorFlow tensor</p>
-<section id="id18">
-<h3>Args:<a class="headerlink" href="#id18" title="Permalink to this heading">#</a></h3>
+<section id="id12">
+<h3>Args:<a class="headerlink" href="#id12" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>img_path: location of the image file
 dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</p>
 </div></blockquote>
 </section>
-<section id="id19">
-<h3>Returns:<a class="headerlink" href="#id19" title="Permalink to this heading">#</a></h3>
+<section id="id13">
+<h3>Returns:<a class="headerlink" href="#id13" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>decoded image as a tensor</p>
 </div></blockquote>
@@ -478,15 +472,15 @@ dtype: the desired data type of the output tensor. If it is float-related, value
 <dt class="sig sig-object py" id="doctr.io.decode_img_as_tensor">
 <span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">decode_img_as_tensor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_content</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.12)"><span class="pre">bytes</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DType</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">tf.float32</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tensor</span></span></span><a class="reference internal" href="../_modules/doctr/io/image/tensorflow.html#decode_img_as_tensor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.decode_img_as_tensor" title="Permalink to this definition">#</a></dt>
 <dd><p>Read a byte stream as a TensorFlow tensor</p>
-<section id="id20">
-<h3>Args:<a class="headerlink" href="#id20" title="Permalink to this heading">#</a></h3>
+<section id="id14">
+<h3>Args:<a class="headerlink" href="#id14" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>img_content: bytes of a decoded image
 dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</p>
 </div></blockquote>
 </section>
-<section id="id21">
-<h3>Returns:<a class="headerlink" href="#id21" title="Permalink to this heading">#</a></h3>
+<section id="id15">
+<h3>Returns:<a class="headerlink" href="#id15" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>decoded image as a tensor</p>
 </div></blockquote>
@@ -501,15 +495,15 @@ dtype: the desired data type of the output tensor. If it is float-related, value
 <span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">read_html</span><span class="p">(</span><span class="s2">&quot;https://www.yoursite.com&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id22">
-<h3>Args:<a class="headerlink" href="#id22" title="Permalink to this heading">#</a></h3>
+<section id="id16">
+<h3>Args:<a class="headerlink" href="#id16" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>url: URL of the target web page
-<a href="#id23"><span class="problematic" id="id24">**</span></a>kwargs: keyword arguments from <cite>weasyprint.HTML</cite></p>
+<a href="#id17"><span class="problematic" id="id18">**</span></a>kwargs: keyword arguments from <cite>weasyprint.HTML</cite></p>
 </div></blockquote>
 </section>
-<section id="id25">
-<h3>Returns:<a class="headerlink" href="#id25" title="Permalink to this heading">#</a></h3>
+<section id="id19">
+<h3>Returns:<a class="headerlink" href="#id19" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>decoded PDF file as a bytes stream</p>
 </div></blockquote>
@@ -528,15 +522,15 @@ dtype: the desired data type of the output tensor. If it is float-related, value
 <span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="s2">&quot;path/to/your/doc.pdf&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id26">
-<h3>Args:<a class="headerlink" href="#id26" title="Permalink to this heading">#</a></h3>
+<section id="id20">
+<h3>Args:<a class="headerlink" href="#id20" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>file: the path to the PDF file or a binary stream
-<a href="#id27"><span class="problematic" id="id28">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">pypdfium2.PdfPage.render()</span></code></p>
+<a href="#id21"><span class="problematic" id="id22">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">pypdfium2.PdfPage.render()</span></code></p>
 </div></blockquote>
 </section>
-<section id="id29">
-<h3>Returns:<a class="headerlink" href="#id29" title="Permalink to this heading">#</a></h3>
+<section id="id23">
+<h3>Returns:<a class="headerlink" href="#id23" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
 </div></blockquote>
@@ -551,15 +545,15 @@ dtype: the desired data type of the output tensor. If it is float-related, value
 <span class="gp">&gt;&gt;&gt; </span><span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_url</span><span class="p">(</span><span class="s2">&quot;https://www.yoursite.com&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id30">
-<h3>Args:<a class="headerlink" href="#id30" title="Permalink to this heading">#</a></h3>
+<section id="id24">
+<h3>Args:<a class="headerlink" href="#id24" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>url: the URL of the target web page
-<a href="#id31"><span class="problematic" id="id32">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">pypdfium2.PdfPage.render()</span></code></p>
+<a href="#id25"><span class="problematic" id="id26">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">pypdfium2.PdfPage.render()</span></code></p>
 </div></blockquote>
 </section>
-<section id="id33">
-<h3>Returns:<a class="headerlink" href="#id33" title="Permalink to this heading">#</a></h3>
+<section id="id27">
+<h3>Returns:<a class="headerlink" href="#id27" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
 </div></blockquote>
@@ -574,15 +568,15 @@ dtype: the desired data type of the output tensor. If it is float-related, value
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pages</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s2">&quot;path/to/your/page1.png&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/your/page2.png&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
-<section id="id34">
-<h3>Args:<a class="headerlink" href="#id34" title="Permalink to this heading">#</a></h3>
+<section id="id28">
+<h3>Args:<a class="headerlink" href="#id28" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>files: the path to the image file or a binary stream, or a collection of those
-<a href="#id35"><span class="problematic" id="id36">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">doctr.io.image.read_img_as_numpy()</span></code></p>
+<a href="#id29"><span class="problematic" id="id30">**</span></a>kwargs: additional parameters to <code class="xref py py-meth docutils literal notranslate"><span class="pre">doctr.io.image.read_img_as_numpy()</span></code></p>
 </div></blockquote>
 </section>
-<section id="id37">
-<h3>Returns:<a class="headerlink" href="#id37" title="Permalink to this heading">#</a></h3>
+<section id="id31">
+<h3>Returns:<a class="headerlink" href="#id31" title="Permalink to this heading">#</a></h3>
 <blockquote>
 <div><p>the list of pages decoded as numpy ndarray of shape H x W x 3</p>
 </div></blockquote>
