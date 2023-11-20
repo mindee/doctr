@@ -85,6 +85,7 @@ class Resize(NestedObject):
         self.method = method
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
+        self.antialias = True
 
         if isinstance(self.output_size, int):
             self.wanted_size = (self.output_size, self.output_size)
@@ -106,7 +107,7 @@ class Resize(NestedObject):
     ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
         input_dtype = img.dtype
 
-        img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio)
+        img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio, self.antialias)
         # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
         raw_shape = img.shape[:2]
         if self.preserve_aspect_ratio:
