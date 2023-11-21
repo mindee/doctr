@@ -28,11 +28,6 @@ The following architectures are currently supported:
 * :py:meth:`db_resnet50 <doctr.models.detection.db_resnet50>`
 * :py:meth:`db_mobilenet_v3_large <doctr.models.detection.db_mobilenet_v3_large>`
 
-We also provide 2 models working with any kind of rotated documents:
-
-* :py:meth:`linknet_resnet18_rotation <doctr.models.detection.linknet_resnet18_rotation>` (TensorFlow)
-* :py:meth:`db_resnet50_rotation <doctr.models.detection.differentiable_binarization.pytorch.db_resnet50_rotation>` (PyTorch)
-
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
 
@@ -47,8 +42,6 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | TensorFlow     | linknet_resnet18                | (1024, 1024, 3) | 11.5 M       | 78.23      | 83.77         | 82.88      | 82.42         | 0.7                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | linknet_resnet18_rotation       | (1024, 1024, 3) | 11.5 M       | 81.12      | 82.13         | 83.55      | 80.14         | 0.6                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | TensorFlow     | linknet_resnet34                | (1024, 1024, 3) | 21.6 M       | 82.14      | 87.64         | 85.55      | 86.02         | 0.8                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | TensorFlow     | linknet_resnet50                | (1024, 1024, 3) | 28.8 M       | 79.00      | 84.79         | 85.89      | 65.75         | 1.1                |
@@ -56,8 +49,6 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 | PyTorch        | db_resnet34                     | (1024, 1024, 3) | 22.4 M       |            |               |            |               |                    |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | PyTorch        | db_resnet50                     | (1024, 1024, 3) | 25.4 M       | 79.17      | 86.31         | 92.96      | 91.23         | 1.1                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | db_resnet50_rotation            | (1024, 1024, 3) | 25.4 M       | 83.30      | 91.07         | 91.63      | 90.53         | 1.6                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | PyTorch        | db_mobilenet_v3_large           | (1024, 1024, 3) | 4.2 M        | 80.06      | 84.12         | 80.51      | 66.51         | 0.5                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
@@ -101,9 +92,7 @@ For instance, this snippet will instantiates a detection predictor able to detec
 .. code:: python3
 
     from doctr.models import detection_predictor
-    predictor = detection_predictor('db_resnet50_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
-
-NB: for the moment, `db_resnet50_rotation` is pretrained in Pytorch only and `linknet_resnet18_rotation` in Tensorflow only.
+    predictor = detection_predictor('db_resnet50', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 
 Text Recognition
