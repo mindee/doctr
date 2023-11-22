@@ -179,7 +179,7 @@ preview=true
 
 [tool.ruff.isort]
 known-first-party = ["doctr", "app", "utils"]
-known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "fastprogress", "fastapi"]
+known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "tqdm", "fastapi"]
 
 [tool.ruff.per-file-ignores]
 "doctr/models/**.py" = ["N806", "F841"]

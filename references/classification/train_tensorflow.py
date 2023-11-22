@@ -14,8 +14,8 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
+from tqdm.auto import tqdm, trange
 
 from doctr.models import login_to_hub, push_to_hf_hub
 
@@ -83,9 +83,10 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_loader, parent=mb):
+    pbar = tqdm(train_loader, position=1)
+    for images, targets in pbar:
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
@@ -96,7 +97,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=Fals
             grads = optimizer.get_unscaled_gradients(grads)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
-        mb.child.comment = f"Training loss: {train_loss.numpy().mean():.6}"
+        pbar.set_description(f"Training loss: {train_loss.numpy().mean():.6}")
 
 
 def evaluate(model, val_loader, batch_transforms):
@@ -293,9 +294,9 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
-    mb = master_bar(range(args.epochs))
+    mb = trange(args.epochs)
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, args.amp)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, acc = evaluate(model, val_loader, batch_transforms)

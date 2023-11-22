@@ -16,10 +16,10 @@ import numpy as np
 import torch
 import torch.optim as optim
 import wandb
-from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, GaussianBlur
+from tqdm.auto import tqdm, trange
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
@@ -113,13 +113,14 @@ def convert_to_abs_coords(targets, img_shape):
     return targets
 
 
-def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
+def fit_one_epoch(model, train_loader, optimizer, scheduler, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_loader, parent=mb):
+    pbar = tqdm(train_loader, position=1)
+    for images, targets in pbar:
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()
@@ -140,7 +141,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=False):
             loss.backward()
             optimizer.step()
 
-        mb.child.comment = f"Training loss: {loss.item()}"
+        pbar.set_description(f"Training loss: {loss.item()}")
     scheduler.step()
 
 
@@ -303,11 +304,11 @@ def main(args):
             },
         )
 
-    mb = master_bar(range(args.epochs))
+    mb = trange(args.epochs)
     max_score = 0.0
 
     for epoch in mb:
-        fit_one_epoch(model, train_loader, optimizer, scheduler, mb, amp=args.amp)
+        fit_one_epoch(model, train_loader, optimizer, scheduler, amp=args.amp)
         # Validation loop at the end of each epoch
         recall, precision, mean_iou = evaluate(model, val_loader, metric, amp=args.amp)
         f1_score = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0

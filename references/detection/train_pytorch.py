@@ -17,10 +17,10 @@ import numpy as np
 import psutil
 import torch
 import wandb
-from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
+from tqdm.auto import tqdm, trange
 
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
@@ -100,13 +100,14 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_loader, parent=mb):
+    pbar = tqdm(train_loader, position=1)
+    for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -130,7 +131,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         scheduler.step()
 
-        mb.child.comment = f"Training loss: {train_loss.item():.6}"
+        pbar.set_description(f"Training loss: {train_loss.item():.6}")
 
 
 @torch.no_grad()
@@ -368,9 +369,9 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
-    mb = master_bar(range(args.epochs))
+    mb = trange(args.epochs)
     for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
