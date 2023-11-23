@@ -13,7 +13,6 @@ DET_ARCHS = [
     "db_resnet50",
     "db_mobilenet_v3_large",
     "linknet_resnet18",
-    "linknet_resnet18_rotation",
     "linknet_resnet34",
     "linknet_resnet50",
 ]
@@ -29,13 +28,17 @@ RECO_ARCHS = [
 ]
 
 
-def load_predictor(det_arch: str, reco_arch: str, device: tf.device) -> OCRPredictor:
+def load_predictor(
+    det_arch: str, reco_arch: str, assume_straight_pages: bool, straighten_pages: bool, device: tf.device
+) -> OCRPredictor:
     """Load a predictor from doctr.models
 
     Args:
     ----
         det_arch: detection architecture
         reco_arch: recognition architecture
+        assume_straight_pages: whether to assume straight pages or not
+        straighten_pages: whether to straighten rotated pages or not
         device: tf.device, the device to load the predictor on
 
     Returns:
@@ -44,7 +47,13 @@ def load_predictor(det_arch: str, reco_arch: str, device: tf.device) -> OCRPredi
     """
     with device:
         predictor = ocr_predictor(
-            det_arch, reco_arch, pretrained=True, assume_straight_pages=("rotation" not in det_arch)
+            det_arch,
+            reco_arch,
+            pretrained=True,
+            assume_straight_pages=assume_straight_pages,
+            straighten_pages=straighten_pages,
+            export_as_straight_boxes=straighten_pages,
+            detect_orientation=not assume_straight_pages,
         )
     return predictor
 

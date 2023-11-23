@@ -14,12 +14,10 @@ from .predictor import DetectionPredictor
 __all__ = ["detection_predictor"]
 
 ARCHS: List[str]
-ROT_ARCHS: List[str]
 
 
 if is_tf_available():
     ARCHS = ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
-    ROT_ARCHS = ["linknet_resnet18_rotation"]
 elif is_torch_available():
     ARCHS = [
         "db_resnet34",
@@ -29,21 +27,12 @@ elif is_torch_available():
         "linknet_resnet34",
         "linknet_resnet50",
     ]
-    ROT_ARCHS = ["db_resnet50_rotation"]
 
 
 def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, **kwargs: Any) -> DetectionPredictor:
     if isinstance(arch, str):
-        if arch not in ARCHS + ROT_ARCHS:
+        if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
-
-        if arch not in ROT_ARCHS and not assume_straight_pages:
-            raise AssertionError(
-                "You are trying to use a model trained on straight pages while not assuming"
-                " your pages are straight. If you have only straight documents, don't pass"
-                " assume_straight_pages=False, otherwise you should use one of these archs:"
-                f"{ROT_ARCHS}"
-            )
 
         _model = detection.__dict__[arch](
             pretrained=pretrained,

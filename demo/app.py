@@ -70,6 +70,13 @@ def main(det_archs, reco_archs):
 
     # For newline
     st.sidebar.write("\n")
+    # Only straight pages or possible rotation
+    st.sidebar.title("Parameters")
+    assume_straight_pages = st.sidebar.checkbox("Assume straight pages", value=True)
+    st.sidebar.write("\n")
+    # Straighten pages
+    straighten_pages = st.sidebar.checkbox("Straighten pages", value=False)
+    st.sidebar.write("\n")
 
     if st.sidebar.button("Analyze page"):
         if uploaded_file is None:
@@ -77,7 +84,7 @@ def main(det_archs, reco_archs):
 
         else:
             with st.spinner("Loading model..."):
-                predictor = load_predictor(det_arch, reco_arch, forward_device)
+                predictor = load_predictor(det_arch, reco_arch, assume_straight_pages, straighten_pages, forward_device)
 
             with st.spinner("Analyzing..."):
                 # Forward the image to the model
@@ -93,12 +100,13 @@ def main(det_archs, reco_archs):
 
                 # Plot OCR output
                 out = predictor([page])
-                fig = visualize_page(out.pages[0].export(), page, interactive=False)
+                print(out)
+                fig = visualize_page(out.pages[0].export(), out.pages[0].page, interactive=False, add_labels=False)
                 cols[2].pyplot(fig)
 
                 # Page reconsitution under input page
                 page_export = out.pages[0].export()
-                if "rotation" not in det_arch:
+                if assume_straight_pages or (not assume_straight_pages and straighten_pages):
                     img = out.pages[0].synthesize()
                     cols[3].image(img, clamp=True)
 

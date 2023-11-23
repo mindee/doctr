@@ -27,12 +27,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/linknet_resnet18-611b50f2.zip&src=0",
-    },
-    "linknet_resnet18_rotation": {
-        "mean": (0.798, 0.785, 0.772),
-        "std": (0.264, 0.2749, 0.287),
-        "input_shape": (1024, 1024, 3),
         "url": "https://doctr-static.mindee.com/models?id=v0.5.0/linknet_resnet18-a48e6ed3.zip&src=0",
     },
     "linknet_resnet34": {

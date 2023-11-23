@@ -41,12 +41,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.264, 0.2749, 0.287),
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/db_mobilenet_v3_large-fd62154b.pt&src=0",
     },
-    "db_resnet50_rotation": {
-        "input_shape": (3, 1024, 1024),
-        "mean": (0.798, 0.785, 0.772),
-        "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/db_resnet50-1138863a.pt&src=0",
-    },
 }
 
 
