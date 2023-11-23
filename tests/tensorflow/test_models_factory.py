@@ -37,7 +37,6 @@ def test_push_to_hf_hub():
         ["db_resnet50", "detection", "Felix92/doctr-dummy-tf-db-resnet50"],
         ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-tf-db-mobilenet-v3-large"],
         ["linknet_resnet18", "detection", "Felix92/doctr-dummy-tf-linknet-resnet18"],
-        ["linknet_resnet18_rotation", "detection", "Felix92/doctr-dummy-tf-linknet-resnet18-rotation"],
         ["linknet_resnet34", "detection", "Felix92/doctr-dummy-tf-linknet-resnet34"],
         ["linknet_resnet50", "detection", "Felix92/doctr-dummy-tf-linknet-resnet50"],
         ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-tf-crnn-vgg16-bn"],
