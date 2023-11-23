@@ -77,6 +77,9 @@ def main(det_archs, reco_archs):
     # Straighten pages
     straighten_pages = st.sidebar.checkbox("Straighten pages", value=False)
     st.sidebar.write("\n")
+    # Binarization threshold
+    bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
+    st.sidebar.write("\n")
 
     if st.sidebar.button("Analyze page"):
         if uploaded_file is None:
@@ -84,7 +87,9 @@ def main(det_archs, reco_archs):
 
         else:
             with st.spinner("Loading model..."):
-                predictor = load_predictor(det_arch, reco_arch, assume_straight_pages, straighten_pages, forward_device)
+                predictor = load_predictor(
+                    det_arch, reco_arch, assume_straight_pages, straighten_pages, bin_thresh, forward_device
+                )
 
             with st.spinner("Analyzing..."):
                 # Forward the image to the model

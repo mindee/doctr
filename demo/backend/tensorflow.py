@@ -29,7 +29,12 @@ RECO_ARCHS = [
 
 
 def load_predictor(
-    det_arch: str, reco_arch: str, assume_straight_pages: bool, straighten_pages: bool, device: tf.device
+    det_arch: str,
+    reco_arch: str,
+    assume_straight_pages: bool,
+    straighten_pages: bool,
+    bin_thresh: float,
+    device: tf.device,
 ) -> OCRPredictor:
     """Load a predictor from doctr.models
 
@@ -39,6 +44,7 @@ def load_predictor(
         reco_arch: recognition architecture
         assume_straight_pages: whether to assume straight pages or not
         straighten_pages: whether to straighten rotated pages or not
+        bin_thresh: binarization threshold for the segmentation map
         device: tf.device, the device to load the predictor on
 
     Returns:
@@ -55,6 +61,7 @@ def load_predictor(
             export_as_straight_boxes=straighten_pages,
             detect_orientation=not assume_straight_pages,
         )
+        predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
     return predictor
 
 
