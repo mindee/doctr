@@ -105,7 +105,6 @@ def main(det_archs, reco_archs):
 
                 # Plot OCR output
                 out = predictor([page])
-                print(out)
                 fig = visualize_page(out.pages[0].export(), out.pages[0].page, interactive=False, add_labels=False)
                 cols[2].pyplot(fig)
 
