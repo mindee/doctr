@@ -20,7 +20,7 @@ import wandb
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
-from tqdm.auto import tqdm, trange
+from tqdm.auto import tqdm
 
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
@@ -369,8 +369,7 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
-    mb = trange(args.epochs)
-    for epoch in mb:
+    for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
@@ -383,7 +382,7 @@ def main(args):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
-        mb.write(log_msg)
+        print(log_msg)
         # W&B
         if args.wb:
             wandb.log(

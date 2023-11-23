@@ -15,7 +15,7 @@ import time
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import mixed_precision
-from tqdm.auto import tqdm, trange
+from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
 
@@ -294,8 +294,7 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
-    mb = trange(args.epochs)
-    for epoch in mb:
+    for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
 
         # Validation loop at the end of each epoch
@@ -304,7 +303,7 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(f"./{exp_name}/weights")
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
         if args.wb:
             wandb.log(

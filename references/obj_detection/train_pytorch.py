@@ -19,7 +19,7 @@ import wandb
 from torch.optim.lr_scheduler import MultiplicativeLR, StepLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms import ColorJitter, Compose, GaussianBlur
-from tqdm.auto import tqdm, trange
+from tqdm.auto import tqdm
 
 from doctr import transforms as T
 from doctr.datasets import DocArtefacts
@@ -304,10 +304,9 @@ def main(args):
             },
         )
 
-    mb = trange(args.epochs)
     max_score = 0.0
 
-    for epoch in mb:
+    for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, optimizer, scheduler, amp=args.amp)
         # Validation loop at the end of each epoch
         recall, precision, mean_iou = evaluate(model, val_loader, metric, amp=args.amp)
@@ -322,7 +321,7 @@ def main(args):
             log_msg += "Undefined metric value, caused by empty GTs or predictions"
         else:
             log_msg += f"Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%}"
-        mb.write(log_msg)
+        print(log_msg)
         # W&B
         if args.wb:
             wandb.log(

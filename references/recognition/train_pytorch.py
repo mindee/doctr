@@ -27,7 +27,7 @@ from torchvision.transforms.v2 import (
     RandomPerspective,
     RandomPhotometricDistort,
 )
-from tqdm.auto import tqdm, trange
+from tqdm.auto import tqdm
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -392,8 +392,7 @@ def main(args):
     # Create loss queue
     min_loss = np.inf
     # Training loop
-    mb = trange(args.epochs)
-    for epoch in mb:
+    for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
 
         # Validation loop at the end of each epoch
@@ -402,7 +401,7 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
             min_loss = val_loss
-        mb.write(
+        print(
             f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
         )
