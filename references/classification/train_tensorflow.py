@@ -104,7 +104,7 @@ def evaluate(model, val_loader, batch_transforms):
     # Validation loop
     val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
     val_iter = iter(val_loader)
-    for images, targets in val_iter:
+    for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
         out = model(images, training=False)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)

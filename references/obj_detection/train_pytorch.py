@@ -149,7 +149,7 @@ def fit_one_epoch(model, train_loader, optimizer, scheduler, amp=False):
 def evaluate(model, val_loader, metric, amp=False):
     model.eval()
     metric.reset()
-    for images, targets in val_loader:
+    for images, targets in tqdm(val_loader):
         targets = convert_to_abs_coords(targets, images.shape)
         if torch.cuda.is_available():
             images = images.cuda()

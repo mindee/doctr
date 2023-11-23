@@ -107,7 +107,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     # Validation loop
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
-    for images, targets in val_iter:
+    for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
         out = model(images, targets, training=False, return_preds=True)
         # Compute metric

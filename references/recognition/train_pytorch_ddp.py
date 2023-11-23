@@ -82,7 +82,7 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False)
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in val_loader:
+    for images, targets in tqdm(val_loader):
         images = images.to(device)
         images = batch_transforms(images)
         if amp:
