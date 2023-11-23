@@ -17,7 +17,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import wandb
-from fastprogress.fastprogress import master_bar, progress_bar
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms.v2 import (
@@ -28,6 +27,7 @@ from torchvision.transforms.v2 import (
     RandomPerspective,
     RandomPhotometricDistort,
 )
+from tqdm.auto import tqdm
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -107,13 +107,14 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_loader, parent=mb):
+    pbar = tqdm(train_loader, position=1)
+    for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -139,7 +140,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, m
 
         scheduler.step()
 
-        mb.child.comment = f"Training loss: {train_loss.item():.6}"
+        pbar.set_description(f"Training loss: {train_loss.item():.6}")
 
 
 @torch.no_grad()
@@ -150,7 +151,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in val_loader:
+    for images, targets in tqdm(val_loader):
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -391,9 +392,8 @@ def main(args):
     # Create loss queue
     min_loss = np.inf
     # Training loop
-    mb = master_bar(range(args.epochs))
-    for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, mb, amp=args.amp)
+    for epoch in range(args.epochs):
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
@@ -401,7 +401,7 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), f"./{exp_name}.pt")
             min_loss = val_loss
-        mb.write(
+        print(
             f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
         )

@@ -14,8 +14,8 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from fastprogress.fastprogress import master_bar, progress_bar
 from tensorflow.keras import mixed_precision
+from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
 
@@ -83,9 +83,10 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     # Iterate over the batches of the dataset
-    for images, targets in progress_bar(train_loader, parent=mb):
+    pbar = tqdm(train_loader, position=1)
+    for images, targets in pbar:
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
@@ -96,14 +97,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, amp=Fals
             grads = optimizer.get_unscaled_gradients(grads)
         optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
-        mb.child.comment = f"Training loss: {train_loss.numpy().mean():.6}"
+        pbar.set_description(f"Training loss: {train_loss.numpy().mean():.6}")
 
 
 def evaluate(model, val_loader, batch_transforms):
     # Validation loop
     val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
     val_iter = iter(val_loader)
-    for images, targets in val_iter:
+    for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
         out = model(images, training=False)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
@@ -293,9 +294,8 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
-    mb = master_bar(range(args.epochs))
-    for epoch in mb:
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, mb, args.amp)
+    for epoch in range(args.epochs):
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
 
         # Validation loop at the end of each epoch
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
@@ -303,7 +303,7 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(f"./{exp_name}/weights")
             min_loss = val_loss
-        mb.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
         if args.wb:
             wandb.log(
