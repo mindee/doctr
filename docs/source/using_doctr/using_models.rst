@@ -277,7 +277,7 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
 .. code:: python3
 
     from doctr.model import ocr_predictor
-    model = ocr_predictor('linknet_resnet18_rotation', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+    model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 
 What should I do with the output?
