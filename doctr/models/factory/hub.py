@@ -26,7 +26,7 @@ __all__ = ["login_to_hub", "push_to_hf_hub", "from_hub", "_save_model_and_config
 
 AVAILABLE_ARCHS = {
     "classification": models.classification.zoo.ARCHS,
-    "detection": models.detection.zoo.ARCHS + models.detection.zoo.ROT_ARCHS,
+    "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
     "obj_detection": ["fasterrcnn_mobilenet_v3_large_fpn"] if is_torch_available() else None,
 }

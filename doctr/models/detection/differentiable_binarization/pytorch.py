@@ -19,7 +19,7 @@ from ...classification import mobilenet_v3_large
 from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import DBPostProcessor, _DBNet
 
-__all__ = ["DBNet", "db_resnet50", "db_resnet34", "db_mobilenet_v3_large", "db_resnet50_rotation"]
+__all__ = ["DBNet", "db_resnet50", "db_resnet34", "db_mobilenet_v3_large"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -40,12 +40,6 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "url": "https://doctr-static.mindee.com/models?id=v0.3.1/db_mobilenet_v3_large-fd62154b.pt&src=0",
-    },
-    "db_resnet50_rotation": {
-        "input_shape": (3, 1024, 1024),
-        "mean": (0.798, 0.785, 0.772),
-        "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/db_resnet50-1138863a.pt&src=0",
     },
 }
 
@@ -423,42 +417,6 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
         mobilenet_v3_large,
         ["3", "6", "12", "16"],
         "features",
-        ignore_keys=[
-            "prob_head.6.weight",
-            "prob_head.6.bias",
-            "thresh_head.6.weight",
-            "thresh_head.6.bias",
-        ],
-        **kwargs,
-    )
-
-
-def db_resnet50_rotation(pretrained: bool = False, **kwargs: Any) -> DBNet:
-    """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
-    <https://arxiv.org/pdf/1911.08947.pdf>`_, using a ResNet-50 backbone.
-    This model is trained with rotated documents
-
-    >>> import torch
-    >>> from doctr.models import db_resnet50_rotation
-    >>> model = db_resnet50_rotation(pretrained=True)
-    >>> input_tensor = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
-    >>> out = model(input_tensor)
-
-    Args:
-    ----
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-        **kwargs: keyword arguments of the DBNet architecture
-
-    Returns:
-    -------
-        text detection architecture
-    """
-    return _dbnet(
-        "db_resnet50_rotation",
-        pretrained,
-        resnet50,
-        ["layer1", "layer2", "layer3", "layer4"],
-        None,
         ignore_keys=[
             "prob_head.6.weight",
             "prob_head.6.bias",
