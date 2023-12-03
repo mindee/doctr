@@ -75,7 +75,7 @@ If both options are set to False, the predictor will always fit and return rotat
 To interpret your model's predictions, you can visualize them interactively as follows:
 
 ```python
-result.show()
+result.show(doc)
 ```
 
 ![Visualization sample](docs/images/doctr_example_script.gif)
