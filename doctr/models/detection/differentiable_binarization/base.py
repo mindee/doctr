@@ -299,7 +299,7 @@ class _DBNet:
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
         seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
         thresh_target: np.ndarray = np.zeros(target_shape, dtype=np.float32)
-        thresh_mask: np.ndarray = np.ones(target_shape, dtype=np.uint8)
+        thresh_mask: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
 
         for idx, tgt in enumerate(target):
             for class_idx, _tgt in enumerate(tgt.values()):
