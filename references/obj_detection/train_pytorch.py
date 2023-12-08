@@ -25,7 +25,7 @@ from doctr import transforms as T
 from doctr.datasets import DocArtefacts
 from doctr.models import login_to_hub, obj_detection, push_to_hf_hub
 from doctr.utils import DetectionMetric
-from utils import plot_recorder, plot_samples
+from utils import EarlyStopper, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -305,7 +305,8 @@ def main(args):
         )
 
     max_score = 0.0
-
+    if args.early_stop:
+        early_stopper = EarlyStopper(patience=args.early_stop_epochs)
     for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, optimizer, scheduler, amp=args.amp)
         # Validation loop at the end of each epoch
@@ -331,6 +332,9 @@ def main(args):
                     "mean_iou": mean_iou,
                 }
             )
+        if args.early_stop and early_stopper.early_stop(f1_score):
+            print("Training halted early due to reaching patience limit.")
+            break
 
     if args.wb:
         run.finish()
@@ -373,6 +377,8 @@ def parse_args():
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
+    parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
+    parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience of for early stopping")
     args = parser.parse_args()
     return args
 

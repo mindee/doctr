@@ -36,7 +36,7 @@ from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
-from utils import plot_samples
+from utils import EarlyStopper, plot_samples
 
 
 def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False):
@@ -321,6 +321,8 @@ def main(rank: int, world_size: int, args):
 
     # Create loss queue
     min_loss = np.inf
+    if args.early_stop:
+        early_stopper = EarlyStopper(patience=args.early_stop_epochs)
     # Training loop
     for epoch in range(args.epochs):
         fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
@@ -350,7 +352,9 @@ def main(rank: int, world_size: int, args):
                         "partial_match": partial_match,
                     }
                 )
-
+            if args.early_stop and early_stopper.early_stop(val_loss):
+                print("Training halted early due to reaching patience limit.")
+                break
     if rank == 0:
         if args.wb:
             run.finish()
@@ -415,6 +419,8 @@ def parse_args():
     )
     parser.add_argument("--sched", type=str, default="cosine", help="scheduler to use")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
+    parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience of for early stopping")
     args = parser.parse_args()
 
     return args
