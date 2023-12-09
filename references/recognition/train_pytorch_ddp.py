@@ -322,7 +322,7 @@ def main(rank: int, world_size: int, args):
     # Create loss queue
     min_loss = np.inf
     if args.early_stop:
-        early_stopper = EarlyStopper(patience=args.early_stop_epochs)
+        early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     # Training loop
     for epoch in range(args.epochs):
         fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
@@ -421,6 +421,7 @@ def parse_args():
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
     parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
+    parser.add_argument("--early-stop-delta", type=float, default=0.01, help="Minimum Delta for early stopping")
     args = parser.parse_args()
 
     return args

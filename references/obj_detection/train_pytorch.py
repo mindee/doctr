@@ -306,7 +306,7 @@ def main(args):
 
     max_score = 0.0
     if args.early_stop:
-        early_stopper = EarlyStopper(patience=args.early_stop_epochs)
+        early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, optimizer, scheduler, amp=args.amp)
         # Validation loop at the end of each epoch
