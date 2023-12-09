@@ -94,13 +94,13 @@ def load_backbone(model, weights_path):
 
 
 class EarlyStopper:
-    def __init__(self, patience: int = 5, min_delta: int = 0):
+    def __init__(self, patience: int = 5, min_delta: float = 0.01):
         self.patience = patience
         self.min_delta = min_delta
         self.counter = 0
         self.min_validation_loss = float("inf")
 
-    def early_stop(self, validation_loss):
+    def early_stop(self, validation_loss: float):
         if validation_loss < self.min_validation_loss:
             self.min_validation_loss = validation_loss
             self.counter = 0

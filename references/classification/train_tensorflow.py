@@ -394,7 +394,7 @@ def parse_args():
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
-    parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience of for early stopping")
+    parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
     args = parser.parse_args()
 
     return args
