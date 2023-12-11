@@ -27,7 +27,7 @@ from doctr import transforms as T
 from doctr.datasets import VOCABS, CharacterGenerator, DataLoader
 from doctr.models import classification
 from doctr.models.utils import export_model_to_onnx
-from utils import plot_recorder, plot_samples
+from utils import EarlyStopper, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -294,6 +294,8 @@ def main(args):
     min_loss = np.inf
 
     # Training loop
+    if args.early_stop:
+        early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
         fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
 
@@ -320,7 +322,9 @@ def main(args):
             logger = Logger.current_logger()
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
             logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
-
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            print("Training halted early due to reaching patience limit.")
+            break
     if args.wb:
         run.finish()
 
@@ -389,6 +393,9 @@ def parse_args():
     parser.add_argument("--export-onnx", dest="export_onnx", action="store_true", help="Export the model to ONNX")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
+    parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
+    parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
+    parser.add_argument("--early-stop-delta", type=float, default=0.01, help="Minimum Delta for early stopping")
     args = parser.parse_args()
 
     return args

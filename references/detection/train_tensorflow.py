@@ -29,7 +29,7 @@ from doctr import transforms as T
 from doctr.datasets import DataLoader, DetectionDataset
 from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
-from utils import load_backbone, plot_recorder, plot_samples
+from utils import EarlyStopper, load_backbone, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -326,6 +326,8 @@ def main(args):
             layer.trainable = False
 
     min_loss = np.inf
+    if args.early_stop:
+        early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
 
     # Training loop
     for epoch in range(args.epochs):
@@ -362,7 +364,9 @@ def main(args):
             logger.report_scalar(title="Precision Recall", series="recall", value=recall, iteration=epoch)
             logger.report_scalar(title="Precision Recall", series="precision", value=precision, iteration=epoch)
             logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
-
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            print("Training halted early due to reaching patience limit.")
+            break
     if args.wb:
         run.finish()
 
@@ -413,6 +417,9 @@ def parse_args():
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
+    parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
+    parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
+    parser.add_argument("--early-stop-delta", type=float, default=0.01, help="Minimum Delta for early stopping")
     args = parser.parse_args()
 
     return args
