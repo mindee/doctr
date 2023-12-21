@@ -46,12 +46,10 @@ def test_documentbuilder():
     assert len(out.pages[0].blocks) == 0
 
     # Rotated boxes to export as straight boxes
-    boxes = np.array(
-        [
-            [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
-            [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
-        ]
-    )
+    boxes = np.array([
+        [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
+        [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
+    ])
     doc_builder_2 = builder.DocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
     out = doc_builder_2([np.zeros((100, 100, 3))], [boxes], [[("hello", 0.99), ("word", 0.99)]], [(100, 100)])
     assert out.pages[0].blocks[0].lines[0].words[-1].geometry == ((0.45, 0.5), (0.6, 0.65))
@@ -105,12 +103,10 @@ def test_kiedocumentbuilder():
 
     # Rotated boxes to export as straight boxes
     predictions = {
-        CLASS_NAME: np.array(
-            [
-                [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
-                [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
-            ]
-        )
+        CLASS_NAME: np.array([
+            [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
+            [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
+        ])
     }
     doc_builder_2 = builder.KIEDocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
     out = doc_builder_2(

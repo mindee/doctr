@@ -136,12 +136,10 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     -------
         the height and width of the rotated image
     """
-    points: np.ndarray = np.array(
-        [
-            [img_shape[1] / 2, img_shape[0] / 2],
-            [-img_shape[1] / 2, img_shape[0] / 2],
-        ]
-    )
+    points: np.ndarray = np.array([
+        [img_shape[1] / 2, img_shape[0] / 2],
+        [-img_shape[1] / 2, img_shape[0] / 2],
+    ])
 
     rotated_points = rotate_abs_points(points, angle)
 

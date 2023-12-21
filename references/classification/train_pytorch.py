@@ -193,13 +193,11 @@ def main(args):
         vocab=vocab,
         num_samples=args.val_samples * len(vocab),
         cache_samples=True,
-        img_transforms=Compose(
-            [
-                T.Resize((args.input_size, args.input_size)),
-                # Ensure we have a 90% split of white-background images
-                T.RandomApply(T.ColorInversion(), 0.9),
-            ]
-        ),
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Ensure we have a 90% split of white-background images
+            T.RandomApply(T.ColorInversion(), 0.9),
+        ]),
         font_family=fonts,
     )
     val_loader = DataLoader(
@@ -251,20 +249,18 @@ def main(args):
         vocab=vocab,
         num_samples=args.train_samples * len(vocab),
         cache_samples=True,
-        img_transforms=Compose(
-            [
-                T.Resize((args.input_size, args.input_size)),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.9),
-                RandomGrayscale(p=0.1),
-                RandomPhotometricDistort(p=0.1),
-                T.RandomApply(T.RandomShadow(), p=0.4),
-                T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
-                T.RandomApply(GaussianBlur(3), 0.3),
-                RandomPerspective(distortion_scale=0.2, p=0.3),
-                RandomRotation(15, interpolation=InterpolationMode.BILINEAR),
-            ]
-        ),
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Augmentations
+            T.RandomApply(T.ColorInversion(), 0.9),
+            RandomGrayscale(p=0.1),
+            RandomPhotometricDistort(p=0.1),
+            T.RandomApply(T.RandomShadow(), p=0.4),
+            T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+            T.RandomApply(GaussianBlur(3), 0.3),
+            RandomPerspective(distortion_scale=0.2, p=0.3),
+            RandomRotation(15, interpolation=InterpolationMode.BILINEAR),
+        ]),
         font_family=fonts,
     )
 
@@ -344,12 +340,10 @@ def main(args):
         print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
         if args.wb:
-            wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "acc": acc,
-                }
-            )
+            wandb.log({
+                "val_loss": val_loss,
+                "acc": acc,
+            })
         if args.early_stop and early_stopper.early_stop(val_loss):
             print("Training halted early due to reaching patience limit.")
             break

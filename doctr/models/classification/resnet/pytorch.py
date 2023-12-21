@@ -136,13 +136,11 @@ class ResNet(nn.Sequential):
             _layers.append(nn.Sequential(*_stage))
 
         if include_top:
-            _layers.extend(
-                [
-                    nn.AdaptiveAvgPool2d(1),
-                    nn.Flatten(1),
-                    nn.Linear(output_channels[-1], num_classes, bias=True),
-                ]
-            )
+            _layers.extend([
+                nn.AdaptiveAvgPool2d(1),
+                nn.Flatten(1),
+                nn.Linear(output_channels[-1], num_classes, bias=True),
+            ])
 
         super().__init__(*_layers)
         self.cfg = cfg

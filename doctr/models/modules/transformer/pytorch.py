@@ -123,12 +123,12 @@ class EncoderBlock(nn.Module):
         self.layer_norm_output = nn.LayerNorm(d_model, eps=1e-5)
         self.dropout = nn.Dropout(dropout)
 
-        self.attention = nn.ModuleList(
-            [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
-        )
-        self.position_feed_forward = nn.ModuleList(
-            [PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)]
-        )
+        self.attention = nn.ModuleList([
+            MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)
+        ])
+        self.position_feed_forward = nn.ModuleList([
+            PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)
+        ])
 
     def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         output = x
@@ -169,15 +169,15 @@ class Decoder(nn.Module):
         self.embed = nn.Embedding(vocab_size, d_model)
         self.positional_encoding = PositionalEncoding(d_model, dropout, maximum_position_encoding)
 
-        self.attention = nn.ModuleList(
-            [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
-        )
-        self.source_attention = nn.ModuleList(
-            [MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)]
-        )
-        self.position_feed_forward = nn.ModuleList(
-            [PositionwiseFeedForward(d_model, dff, dropout) for _ in range(self.num_layers)]
-        )
+        self.attention = nn.ModuleList([
+            MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)
+        ])
+        self.source_attention = nn.ModuleList([
+            MultiHeadAttention(num_heads, d_model, dropout) for _ in range(self.num_layers)
+        ])
+        self.position_feed_forward = nn.ModuleList([
+            PositionwiseFeedForward(d_model, dff, dropout) for _ in range(self.num_layers)
+        ])
 
     def forward(
         self,

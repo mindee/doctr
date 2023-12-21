@@ -160,11 +160,9 @@ class Line(Element):
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update(
-            {
-                "words": [Word.from_dict(_dict) for _dict in save_dict["words"]],
-            }
-        )
+        kwargs.update({
+            "words": [Word.from_dict(_dict) for _dict in save_dict["words"]],
+        })
         return cls(**kwargs)
 
 
@@ -221,12 +219,10 @@ class Block(Element):
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update(
-            {
-                "lines": [Line.from_dict(_dict) for _dict in save_dict["lines"]],
-                "artefacts": [Artefact.from_dict(_dict) for _dict in save_dict["artefacts"]],
-            }
-        )
+        kwargs.update({
+            "lines": [Line.from_dict(_dict) for _dict in save_dict["lines"]],
+            "artefacts": [Artefact.from_dict(_dict) for _dict in save_dict["artefacts"]],
+        })
         return cls(**kwargs)
 
 
@@ -538,9 +534,9 @@ class KIEPage(Element):
     @classmethod
     def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update(
-            {"predictions": [Prediction.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]}
-        )
+        kwargs.update({
+            "predictions": [Prediction.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]
+        })
         return cls(**kwargs)
 
 

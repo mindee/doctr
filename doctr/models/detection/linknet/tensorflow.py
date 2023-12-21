@@ -46,22 +46,20 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 
 def decoder_block(in_chan: int, out_chan: int, stride: int, **kwargs: Any) -> Sequential:
     """Creates a LinkNet decoder block"""
-    return Sequential(
-        [
-            *conv_sequence(in_chan // 4, "relu", True, kernel_size=1, **kwargs),
-            layers.Conv2DTranspose(
-                filters=in_chan // 4,
-                kernel_size=3,
-                strides=stride,
-                padding="same",
-                use_bias=False,
-                kernel_initializer="he_normal",
-            ),
-            layers.BatchNormalization(),
-            layers.Activation("relu"),
-            *conv_sequence(out_chan, "relu", True, kernel_size=1),
-        ]
-    )
+    return Sequential([
+        *conv_sequence(in_chan // 4, "relu", True, kernel_size=1, **kwargs),
+        layers.Conv2DTranspose(
+            filters=in_chan // 4,
+            kernel_size=3,
+            strides=stride,
+            padding="same",
+            use_bias=False,
+            kernel_initializer="he_normal",
+        ),
+        layers.BatchNormalization(),
+        layers.Activation("relu"),
+        *conv_sequence(out_chan, "relu", True, kernel_size=1),
+    ])
 
 
 class LinkNetFPN(Model, NestedObject):
@@ -131,30 +129,28 @@ class LinkNet(_LinkNet, keras.Model):
         self.fpn = LinkNetFPN(fpn_channels, [_shape[1:] for _shape in self.feat_extractor.output_shape])
         self.fpn.build(self.feat_extractor.output_shape)
 
-        self.classifier = Sequential(
-            [
-                layers.Conv2DTranspose(
-                    filters=32,
-                    kernel_size=3,
-                    strides=2,
-                    padding="same",
-                    use_bias=False,
-                    kernel_initializer="he_normal",
-                    input_shape=self.fpn.decoders[-1].output_shape[1:],
-                ),
-                layers.BatchNormalization(),
-                layers.Activation("relu"),
-                *conv_sequence(32, "relu", True, kernel_size=3, strides=1),
-                layers.Conv2DTranspose(
-                    filters=num_classes,
-                    kernel_size=2,
-                    strides=2,
-                    padding="same",
-                    use_bias=True,
-                    kernel_initializer="he_normal",
-                ),
-            ]
-        )
+        self.classifier = Sequential([
+            layers.Conv2DTranspose(
+                filters=32,
+                kernel_size=3,
+                strides=2,
+                padding="same",
+                use_bias=False,
+                kernel_initializer="he_normal",
+                input_shape=self.fpn.decoders[-1].output_shape[1:],
+            ),
+            layers.BatchNormalization(),
+            layers.Activation("relu"),
+            *conv_sequence(32, "relu", True, kernel_size=3, strides=1),
+            layers.Conv2DTranspose(
+                filters=num_classes,
+                kernel_size=2,
+                strides=2,
+                padding="same",
+                use_bias=True,
+                kernel_initializer="he_normal",
+            ),
+        ])
 
         self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 

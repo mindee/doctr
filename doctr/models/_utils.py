@@ -142,7 +142,7 @@ def get_language(text: str) -> Tuple[str, float]:
 
 
 def invert_data_structure(
-    x: Union[List[Dict[str, Any]], Dict[str, List[Any]]]
+    x: Union[List[Dict[str, Any]], Dict[str, List[Any]]],
 ) -> Union[List[Dict[str, Any]], Dict[str, List[Any]]]:
     """Invert a List of Dict of elements to a Dict of list of elements and the other way around
 

@@ -92,9 +92,10 @@ class IIIT5K(VisionDataset):
                     box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
                 # label are casted to list where each char corresponds to the character's bounding box
-                self.data.append(
-                    (_raw_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(_raw_label)))
-                )
+                self.data.append((
+                    _raw_path,
+                    dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(_raw_label)),
+                ))
 
         self.root = tmp_root
 

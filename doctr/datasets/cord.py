@@ -110,9 +110,10 @@ class CORD(VisionDataset):
                 for crop, label in zip(crops, list(text_targets)):
                     self.data.append((crop, label))
             else:
-                self.data.append(
-                    (img_path, dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)))
-                )
+                self.data.append((
+                    img_path,
+                    dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)),
+                ))
 
         self.root = tmp_root
 

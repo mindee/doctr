@@ -101,12 +101,10 @@ class FUNSD(VisionDataset):
                     if not any(char in label for char in ["☑", "☐", "\uf703", "\uf702"]):
                         self.data.append((crop, label))
             else:
-                self.data.append(
-                    (
-                        img_path,
-                        dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
-                    )
-                )
+                self.data.append((
+                    img_path,
+                    dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=list(text_targets)),
+                ))
 
         self.root = tmp_root
 

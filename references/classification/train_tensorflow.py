@@ -150,13 +150,11 @@ def main(args):
         vocab=vocab,
         num_samples=args.val_samples * len(vocab),
         cache_samples=True,
-        img_transforms=T.Compose(
-            [
-                T.Resize((args.input_size, args.input_size)),
-                # Ensure we have a 90% split of white-background images
-                T.RandomApply(T.ColorInversion(), 0.9),
-            ]
-        ),
+        img_transforms=T.Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Ensure we have a 90% split of white-background images
+            T.RandomApply(T.ColorInversion(), 0.9),
+        ]),
         font_family=fonts,
     )
     val_loader = DataLoader(
@@ -185,11 +183,9 @@ def main(args):
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
 
-    batch_transforms = T.Compose(
-        [
-            T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
-        ]
-    )
+    batch_transforms = T.Compose([
+        T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
+    ])
 
     if args.test_only:
         print("Running evaluation")
@@ -204,20 +200,18 @@ def main(args):
         vocab=vocab,
         num_samples=args.train_samples * len(vocab),
         cache_samples=True,
-        img_transforms=T.Compose(
-            [
-                T.Resize((args.input_size, args.input_size)),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.9),
-                T.RandomApply(T.ToGray(3), 0.1),
-                T.RandomJpegQuality(60),
-                T.RandomSaturation(0.3),
-                T.RandomContrast(0.3),
-                T.RandomBrightness(0.3),
-                # Blur
-                T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), 0.3),
-            ]
-        ),
+        img_transforms=T.Compose([
+            T.Resize((args.input_size, args.input_size)),
+            # Augmentations
+            T.RandomApply(T.ColorInversion(), 0.9),
+            T.RandomApply(T.ToGray(3), 0.1),
+            T.RandomJpegQuality(60),
+            T.RandomSaturation(0.3),
+            T.RandomContrast(0.3),
+            T.RandomBrightness(0.3),
+            # Blur
+            T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), 0.3),
+        ]),
         font_family=fonts,
     )
     train_loader = DataLoader(
@@ -308,12 +302,10 @@ def main(args):
         print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
         if args.wb:
-            wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "acc": acc,
-                }
-            )
+            wandb.log({
+                "val_loss": val_loss,
+                "acc": acc,
+            })
 
         # ClearML
         if args.clearml:

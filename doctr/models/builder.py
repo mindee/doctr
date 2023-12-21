@@ -167,12 +167,10 @@ class DocumentBuilder(NestedObject):
         """
         # Resolve enclosing boxes of lines
         if boxes.ndim == 3:
-            box_lines: np.ndarray = np.asarray(
-                [
-                    resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])  # type: ignore[misc]
-                    for line in lines
-                ]
-            )
+            box_lines: np.ndarray = np.asarray([
+                resolve_enclosing_rbbox([tuple(boxes[idx, :, :]) for idx in line])  # type: ignore[misc]
+                for line in lines
+            ])
         else:
             _box_lines = [
                 resolve_enclosing_bbox([(tuple(boxes[idx, :2]), tuple(boxes[idx, 2:])) for idx in line])
@@ -255,24 +253,18 @@ class DocumentBuilder(NestedObject):
             _blocks = [lines]
 
         blocks = [
-            Block(
-                [
-                    Line(
-                        [
-                            Word(
-                                *word_preds[idx],
-                                tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
-                            )
-                            if boxes.ndim == 3
-                            else Word(
-                                *word_preds[idx], ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3]))
-                            )
-                            for idx in line
-                        ]
+            Block([
+                Line([
+                    Word(
+                        *word_preds[idx],
+                        tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
                     )
-                    for line in lines
-                ]
-            )
+                    if boxes.ndim == 3
+                    else Word(*word_preds[idx], ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])))
+                    for idx in line
+                ])
+                for line in lines
+            ])
             for lines in _blocks
         ]
 

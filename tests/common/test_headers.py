@@ -5,13 +5,11 @@ from pathlib import Path
 
 
 def test_copyright_header():
-    copyright_header = "".join(
-        [
-            f"# Copyright (C) {2021}-{datetime.now().year}, Mindee.\n\n",
-            "# This program is licensed under the Apache License 2.0.\n",
-            "# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.\n",
-        ]
-    )
+    copyright_header = "".join([
+        f"# Copyright (C) {2021}-{datetime.now().year}, Mindee.\n\n",
+        "# This program is licensed under the Apache License 2.0.\n",
+        "# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.\n",
+    ])
     excluded_files = ["__init__.py", "version.py"]
     invalid_files = []
     locations = [".github", "api/app", "demo", "docs", "doctr", "references", "scripts"]

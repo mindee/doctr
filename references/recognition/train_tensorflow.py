@@ -162,13 +162,11 @@ def main(args):
             max_chars=args.max_chars,
             num_samples=args.val_samples * len(vocab),
             font_family=fonts,
-            img_transforms=T.Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                ]
-            ),
+            img_transforms=T.Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+            ]),
         )
 
     val_loader = DataLoader(
@@ -196,11 +194,9 @@ def main(args):
     # Metrics
     val_metric = TextMatch()
 
-    batch_transforms = T.Compose(
-        [
-            T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
-        ]
-    )
+    batch_transforms = T.Compose([
+        T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
+    ])
 
     if args.test_only:
         print("Running evaluation")
@@ -224,21 +220,19 @@ def main(args):
         train_set = RecognitionDataset(
             parts[0].joinpath("images"),
             parts[0].joinpath("labels.json"),
-            img_transforms=T.Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Augmentations
-                    T.RandomApply(T.ColorInversion(), 0.1),
-                    T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
-                    T.RandomJpegQuality(60),
-                    T.RandomSaturation(0.3),
-                    T.RandomContrast(0.3),
-                    T.RandomBrightness(0.3),
-                    T.RandomApply(T.RandomShadow(), 0.4),
-                    T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-                    T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
-                ]
-            ),
+            img_transforms=T.Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.1),
+                T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
+                T.RandomJpegQuality(60),
+                T.RandomSaturation(0.3),
+                T.RandomContrast(0.3),
+                T.RandomBrightness(0.3),
+                T.RandomApply(T.RandomShadow(), 0.4),
+                T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+                T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
+            ]),
         )
         if len(parts) > 1:
             for subfolder in parts[1:]:
@@ -254,21 +248,19 @@ def main(args):
             max_chars=args.max_chars,
             num_samples=args.train_samples * len(vocab),
             font_family=fonts,
-            img_transforms=T.Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                    T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
-                    T.RandomJpegQuality(60),
-                    T.RandomSaturation(0.3),
-                    T.RandomContrast(0.3),
-                    T.RandomBrightness(0.3),
-                    T.RandomApply(T.RandomShadow(), 0.4),
-                    T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-                    T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
-                ]
-            ),
+            img_transforms=T.Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+                T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
+                T.RandomJpegQuality(60),
+                T.RandomSaturation(0.3),
+                T.RandomContrast(0.3),
+                T.RandomBrightness(0.3),
+                T.RandomApply(T.RandomShadow(), 0.4),
+                T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+                T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
+            ]),
         )
 
     train_loader = DataLoader(
@@ -365,13 +357,11 @@ def main(args):
         )
         # W&B
         if args.wb:
-            wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "exact_match": exact_match,
-                    "partial_match": partial_match,
-                }
-            )
+            wandb.log({
+                "val_loss": val_loss,
+                "exact_match": exact_match,
+                "partial_match": partial_match,
+            })
 
         # ClearML
         if args.clearml:

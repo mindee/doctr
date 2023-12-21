@@ -82,14 +82,12 @@ class SqueezeExcitation(Sequential):
     """Squeeze and Excitation."""
 
     def __init__(self, chan: int, squeeze_factor: int = 4) -> None:
-        super().__init__(
-            [
-                layers.GlobalAveragePooling2D(),
-                layers.Dense(chan // squeeze_factor, activation="relu"),
-                layers.Dense(chan, activation="hard_sigmoid"),
-                layers.Reshape((1, 1, chan)),
-            ]
-        )
+        super().__init__([
+            layers.GlobalAveragePooling2D(),
+            layers.Dense(chan // squeeze_factor, activation="relu"),
+            layers.Dense(chan, activation="hard_sigmoid"),
+            layers.Reshape((1, 1, chan)),
+        ])
 
     def call(self, inputs: tf.Tensor, **kwargs: Any) -> tf.Tensor:
         x = super().call(inputs, **kwargs)
@@ -221,14 +219,12 @@ class MobileNetV3(Sequential):
         )
 
         if include_top:
-            _layers.extend(
-                [
-                    layers.GlobalAveragePooling2D(),
-                    layers.Dense(head_chans, activation=hard_swish),
-                    layers.Dropout(0.2),
-                    layers.Dense(num_classes),
-                ]
-            )
+            _layers.extend([
+                layers.GlobalAveragePooling2D(),
+                layers.Dense(head_chans, activation=hard_swish),
+                layers.Dropout(0.2),
+                layers.Dense(num_classes),
+            ])
 
         super().__init__(_layers)
         self.cfg = cfg

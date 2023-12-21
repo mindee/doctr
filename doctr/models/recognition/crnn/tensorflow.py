@@ -146,13 +146,11 @@ class CRNN(RecognitionModel, Model):
         self.exportable = exportable
         self.feat_extractor = feature_extractor
 
-        self.decoder = Sequential(
-            [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Dense(units=len(vocab) + 1),
-            ]
-        )
+        self.decoder = Sequential([
+            layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+            layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+            layers.Dense(units=len(vocab) + 1),
+        ])
         self.decoder.build(input_shape=(None, w, h * c))
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)
