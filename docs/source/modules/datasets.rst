@@ -145,7 +145,7 @@ of vocabs.
    * - danish
      - 106
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~°£€¥¢฿æøåÆØÅ
-   * finnish
+   * - finnish
      - 104
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöÄÖ
    * - swedish
