@@ -1,18 +1,18 @@
-name: pypi-publish
+name: publish
 
 on:
   release:
     types: [published]
 
 jobs:
-
-  pypi-publish:
-    runs-on: ${{ matrix.os }}
+  pypi:
+    if: "!github.event.release.prerelease"
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python: ["3.8"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -44,14 +44,14 @@ jobs:
           twine upload dist/*
 
   pypi-check:
+    needs: pypi
     if: "!github.event.release.prerelease"
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python: ["3.8"]
-    needs: pypi-publish
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.8
