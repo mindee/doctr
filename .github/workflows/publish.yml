@@ -64,3 +64,43 @@ jobs:
           python -m pip install --upgrade pip
           pip install python-doctr
           python -c "import doctr; print(doctr.__version__)"
+  
+  conda:
+    if: "!github.event.release.prerelease"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.8
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: conda install -y conda-build conda-verify anaconda-client
+      - name: Build and publish
+        shell: bash -el {0}
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+        run: |
+          echo "BUILD_VERSION=${GITHUB_REF#refs/*/}" | cut -c 2- >> $GITHUB_ENV
+          python setup.py sdist
+          mkdir conda-dist
+          conda build .conda/ -c conda-forge -c pypdfium2-team --output-folder conda-dist
+          ls -l conda-dist/noarch/*tar.bz2
+          anaconda upload conda-dist/noarch/*tar.bz2
+
+  conda-check:
+    if: "!github.event.release.prerelease"
+    runs-on: ubuntu-latest
+    needs: conda
+    steps:
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.8
+      - name: Install package
+        shell: bash -el {0}
+        run: |
+          conda install -c mindee doctr
+          python -c "import doctr; print(doctr.__version__)"
+
