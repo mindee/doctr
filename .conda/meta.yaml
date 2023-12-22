@@ -1,0 +1,64 @@
+{% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
+{% set project = pyproject.get('project') %}
+{% set urls = pyproject.get('project', {}).get('urls') %}
+{% set version = environ.get('BUILD_VERSION', '0.4.1.dev0') %}
+package:
+  name: {{ project.get('name') }}
+  version: {{ version }}
+
+source:
+  fn: {{ project.get('name') }}-{{ version }}.tar.gz
+  url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
+
+build:
+  noarch: python
+  script: python setup.py install --single-version-externally-managed --record=record.txt
+
+requirements:
+  host:
+    - python>=3.8, <4.0
+    - setuptools
+
+  run:
+    - importlib_metadata
+    - numpy >=1.16.0, <2.0.0
+    - scipy >=1.4.0, <2.0.0
+    - pillow >=9.2.0
+    - matplotlib >=3.1.0
+    - h5py >=3.1.0, <4.0.0
+    - opencv >=4.5.0, <5.0.0
+    - pypdfium2_helpers >=4.0.0, <5.0.0
+    - pyclipper >=1.2.0, <2.0.0
+    - shapely >=1.6.0, <3.0.0
+    - langdetect >=1.0.9, <2.0.0
+    - rapidfuzz >=3.0.0, <4.0.0
+    - matplotlib >=3.1.0
+    - weasyprint >=55.0
+    - defusedxml >=0.7.0
+    - mplcursors >=0.3
+    - unidecode >=1.0.0
+    - tqdm >=4.30.0
+    - huggingface_hub >=0.5.0
+
+
+test:
+  # Python imports
+  imports:
+    - doctr
+    - doctr.io
+    - doctr.utils
+    - doctr.datasets
+    - doctr.models
+    - doctr.transforms
+  requires:
+    - python
+
+about:
+  home: {{ urls.get('repository') }}
+  license: Apache 2.0
+  license_file: {{ project.get('license', {}).get('file') }}
+  summary: {{ project.get('description') }}
+  # description: |
+  #   {{ data['long_description'] | replace("\n", "\n    ") | replace("#", '\#')}}
+  doc_url: {{ urls.get('documentation') }}
+  dev_url: {{ urls.get('repository') }}
