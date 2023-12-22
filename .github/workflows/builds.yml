@@ -67,5 +67,45 @@ jobs:
           echo "BUILD_VERSION=0.8.0a0" | cut -c 2- >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
-          conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
+          conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon -c pytorch --output-folder conda-dist
+          ls -l conda-dist/noarch/*tar.bz2
+  
+  conda-pt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.9
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: conda install -y conda-build conda-verify anaconda-client
+      - name: Build and publish
+        shell: bash -el {0}
+        run: |
+          echo "BUILD_VERSION=0.8.0a0" | cut -c 2- >> $GITHUB_ENV
+          python setup.py sdist
+          mkdir conda-dist
+          conda build .conda/meta-pytorch.yaml -c conda-forge -c pypdfium2-team -c bblanchon -c pytorch --output-folder conda-dist
+          ls -l conda-dist/noarch/*tar.bz2
+  
+  conda-tf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.9
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: conda install -y conda-build conda-verify anaconda-client
+      - name: Build and publish
+        shell: bash -el {0}
+        run: |
+          echo "BUILD_VERSION=0.8.0a0" | cut -c 2- >> $GITHUB_ENV
+          python setup.py sdist
+          mkdir conda-dist
+          conda build .conda/meta-tensorflow.yaml -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
           ls -l conda-dist/noarch/*tar.bz2
