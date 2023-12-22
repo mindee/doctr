@@ -2,7 +2,6 @@
 {% set project = pyproject.get('project') %}
 {% set urls = pyproject.get('project', {}).get('urls') %}
 {% set version = environ.get('BUILD_VERSION', '0.8.0a0') %}
-{% set description = str(project.get('description')) %}
 package:
   name: {{ project.get('name') }}
   version: {{ version }}
@@ -56,6 +55,6 @@ about:
   home: {{ urls.get('repository') }}
   license: Apache 2.0
   license_file: {{ project.get('license', {}).get('file') }}
-  summary: {{ description }}
+  summary: {{ project.get('description') | replace(":", " -")}}
   doc_url: {{ urls.get('documentation') }}
   dev_url: {{ urls.get('repository') }}
