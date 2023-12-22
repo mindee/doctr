@@ -64,7 +64,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install python-doctr
           python -c "import doctr; print(doctr.__version__)"
-  
+
   conda:
     if: "!github.event.release.prerelease"
     runs-on: ubuntu-latest
@@ -85,7 +85,7 @@ jobs:
           echo "BUILD_VERSION=${GITHUB_REF#refs/*/}" | cut -c 2- >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
-          conda build .conda/ -c conda-forge -c pypdfium2-team --output-folder conda-dist
+          conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
           ls -l conda-dist/noarch/*tar.bz2
           anaconda upload conda-dist/noarch/*tar.bz2
 
@@ -102,5 +102,3 @@ jobs:
         shell: bash -el {0}
         run: |
           conda install -c mindee doctr
-          python -c "import doctr; print(doctr.__version__)"
-
