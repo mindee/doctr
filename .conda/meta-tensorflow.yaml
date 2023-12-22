@@ -39,6 +39,20 @@ requirements:
     - unidecode >=1.0.0
     - tqdm >=4.30.0
     - huggingface_hub >=0.5.0
+    - tensorflow >=2.11.0, <3.0.0
+    - tf2onnx >=1.15.1, <2.0.0
+    - onnx >=1.12.0, !=1.15.0, <3.0.0
+
+test:
+  imports:
+    - doctr
+    - doctr.io
+    - doctr.utils
+    - doctr.datasets
+    - doctr.models
+    - doctr.transforms
+  requires:
+    - python
 
 about:
   home: {{ urls.get('repository') }}
