@@ -102,7 +102,7 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024
     # Convert to absolute for minAreaRect
     cloud *= intermed_size
     rect = cv2.minAreaRect(cloud.astype(np.int32))
-    return cv2.boxPoints(rect) / intermed_size
+    return cv2.boxPoints(rect) / intermed_size  # type: ignore[operator]
 
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:

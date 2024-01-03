@@ -81,7 +81,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         if len(expanded_points) < 1:
             return None  # type: ignore[return-value]
         return (
-            cv2.boundingRect(expanded_points)
+            cv2.boundingRect(expanded_points)  # type: ignore[return-value]
             if self.assume_straight_pages
             else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
         )
@@ -246,7 +246,7 @@ class _LinkNet(BaseModel):
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1)
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
 
         # Don't forget to switch back to channel last if Tensorflow is used
         if channels_last:
