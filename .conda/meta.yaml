@@ -38,7 +38,7 @@ requirements:
     - mplcursors >=0.3
     - unidecode >=1.0.0
     - tqdm >=4.30.0
-    - huggingface_hub >=0.5.0
+    - huggingface_hub >=0.20.0
 
 about:
   home: {{ urls.get('repository') }}
