@@ -64,7 +64,6 @@ jobs:
       - name: Build and publish
         shell: bash -el {0}
         run: |
-          echo "BUILD_VERSION=0.8.0a0" | cut -c 2- >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist

@@ -77,12 +77,16 @@ jobs:
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
+      - name: Get release tag
+        id: release_tag
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: Build and publish
         shell: bash -el {0}
         env:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+          VERSION: ${{ steps.release_tag.outputs.VERSION }}
         run: |
-          echo "BUILD_VERSION=${GITHUB_REF#refs/*/}" | cut -c 2- >> $GITHUB_ENV
+          echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
