@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -209,13 +209,11 @@ def main(args):
             max_chars=args.max_chars,
             num_samples=args.val_samples * len(vocab),
             font_family=fonts,
-            img_transforms=Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                ]
-            ),
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+            ]),
         )
 
     val_loader = DataLoader(
@@ -280,19 +278,17 @@ def main(args):
         train_set = RecognitionDataset(
             parts[0].joinpath("images"),
             parts[0].joinpath("labels.json"),
-            img_transforms=Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Augmentations
-                    T.RandomApply(T.ColorInversion(), 0.1),
-                    RandomGrayscale(p=0.1),
-                    RandomPhotometricDistort(p=0.1),
-                    T.RandomApply(T.RandomShadow(), p=0.4),
-                    T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
-                    T.RandomApply(GaussianBlur(3), 0.3),
-                    RandomPerspective(distortion_scale=0.2, p=0.3),
-                ]
-            ),
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.1),
+                RandomGrayscale(p=0.1),
+                RandomPhotometricDistort(p=0.1),
+                T.RandomApply(T.RandomShadow(), p=0.4),
+                T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                T.RandomApply(GaussianBlur(3), 0.3),
+                RandomPerspective(distortion_scale=0.2, p=0.3),
+            ]),
         )
         if len(parts) > 1:
             for subfolder in parts[1:]:
@@ -308,19 +304,17 @@ def main(args):
             max_chars=args.max_chars,
             num_samples=args.train_samples * len(vocab),
             font_family=fonts,
-            img_transforms=Compose(
-                [
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                    RandomGrayscale(p=0.1),
-                    RandomPhotometricDistort(p=0.1),
-                    T.RandomApply(T.RandomShadow(), p=0.4),
-                    T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
-                    T.RandomApply(GaussianBlur(3), 0.3),
-                    RandomPerspective(distortion_scale=0.2, p=0.3),
-                ]
-            ),
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+                RandomGrayscale(p=0.1),
+                RandomPhotometricDistort(p=0.1),
+                T.RandomApply(T.RandomShadow(), p=0.4),
+                T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
+                T.RandomApply(GaussianBlur(3), 0.3),
+                RandomPerspective(distortion_scale=0.2, p=0.3),
+            ]),
         )
 
     train_loader = DataLoader(
@@ -409,13 +403,11 @@ def main(args):
         )
         # W&B
         if args.wb:
-            wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "exact_match": exact_match,
-                    "partial_match": partial_match,
-                }
-            )
+            wandb.log({
+                "val_loss": val_loss,
+                "exact_match": exact_match,
+                "partial_match": partial_match,
+            })
         if args.early_stop and early_stopper.early_stop(val_loss):
             print("Training halted early due to reaching patience limit.")
             break

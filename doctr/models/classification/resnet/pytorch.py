@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -136,13 +136,11 @@ class ResNet(nn.Sequential):
             _layers.append(nn.Sequential(*_stage))
 
         if include_top:
-            _layers.extend(
-                [
-                    nn.AdaptiveAvgPool2d(1),
-                    nn.Flatten(1),
-                    nn.Linear(output_channels[-1], num_classes, bias=True),
-                ]
-            )
+            _layers.extend([
+                nn.AdaptiveAvgPool2d(1),
+                nn.Flatten(1),
+                nn.Linear(output_channels[-1], num_classes, bias=True),
+            ])
 
         super().__init__(*_layers)
         self.cfg = cfg

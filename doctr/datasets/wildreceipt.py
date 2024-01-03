@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -101,9 +101,10 @@ class WILDRECEIPT(AbstractDataset):
                     if label and " " not in label:
                         self.data.append((crop, label))
             else:
-                self.data.append(
-                    (img_path, dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)))
-                )
+                self.data.append((
+                    img_path,
+                    dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)),
+                ))
         self.root = tmp_root
 
     def extra_repr(self) -> str:

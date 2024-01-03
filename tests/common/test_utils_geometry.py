@@ -23,12 +23,10 @@ def test_resolve_enclosing_bbox():
 
 
 def test_resolve_enclosing_rbbox():
-    pred = geometry.resolve_enclosing_rbbox(
-        [
-            np.asarray([[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]]),
-            np.asarray([[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]]),
-        ]
-    )
+    pred = geometry.resolve_enclosing_rbbox([
+        np.asarray([[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]]),
+        np.asarray([[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]]),
+    ])
     target1 = np.asarray([[0.55, 0.65], [0.05, 0.15], [0.1, 0.1], [0.6, 0.6]])
     target2 = np.asarray([[0.05, 0.15], [0.1, 0.1], [0.6, 0.6], [0.55, 0.65]])
     assert np.all(target1 - pred <= 1e-3) or np.all(target2 - pred <= 1e-3)
@@ -153,13 +151,11 @@ def test_convert_to_relative_coords(abs_geoms, img_size, rel_geoms):
 
 
 def test_estimate_page_angle():
-    straight_polys = np.array(
-        [
-            [[0.3, 0.3], [0.4, 0.3], [0.4, 0.4], [0.3, 0.4]],
-            [[0.4, 0.4], [0.5, 0.4], [0.5, 0.5], [0.4, 0.5]],
-            [[0.5, 0.5], [0.6, 0.5], [0.6, 0.6], [0.5, 0.6]],
-        ]
-    )
+    straight_polys = np.array([
+        [[0.3, 0.3], [0.4, 0.3], [0.4, 0.4], [0.3, 0.4]],
+        [[0.4, 0.4], [0.5, 0.4], [0.5, 0.5], [0.4, 0.5]],
+        [[0.5, 0.5], [0.6, 0.5], [0.6, 0.6], [0.5, 0.6]],
+    ])
     rotated_polys = geometry.rotate_boxes(straight_polys, angle=20, orig_shape=(512, 512))
     angle = geometry.estimate_page_angle(rotated_polys)
     assert np.isclose(angle, 20)

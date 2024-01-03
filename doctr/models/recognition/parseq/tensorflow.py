@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -194,9 +194,9 @@ class PARSeq(_PARSeq, Model):
                 i = self.rng.choice(len(perm_pool), size=num_gen_perms - len(final_perms), replace=False)
                 final_perms = tf.concat([final_perms, perm_pool[i[0] : i[1]]], axis=0)
         else:
-            perms.extend(
-                [tf.random.shuffle(tf.range(max_num_chars, dtype=tf.int32)) for _ in range(num_gen_perms - len(perms))]
-            )
+            perms.extend([
+                tf.random.shuffle(tf.range(max_num_chars, dtype=tf.int32)) for _ in range(num_gen_perms - len(perms))
+            ])
             final_perms = tf.stack(perms)
 
         comp = tf.reverse(final_perms, axis=[-1])
