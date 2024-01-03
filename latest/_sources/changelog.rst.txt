@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v0.7.0 (2023-09-09)
+v0.7.0 (2024-09-09)
 -------------------
 Release note: `v0.7.0 <https://github.com/mindee/doctr/releases/tag/v0.7.0>`_
 
