@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -136,12 +136,10 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     -------
         the height and width of the rotated image
     """
-    points: np.ndarray = np.array(
-        [
-            [img_shape[1] / 2, img_shape[0] / 2],
-            [-img_shape[1] / 2, img_shape[0] / 2],
-        ]
-    )
+    points: np.ndarray = np.array([
+        [img_shape[1] / 2, img_shape[0] / 2],
+        [-img_shape[1] / 2, img_shape[0] / 2],
+    ])
 
     rotated_points = rotate_abs_points(points, angle)
 

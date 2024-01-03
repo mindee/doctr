@@ -51,14 +51,13 @@ dependencies = [
     "mplcursors>=0.3",
     "unidecode>=1.0.0",
     "tqdm>=4.30.0",
-    "huggingface-hub>=0.5.0",
+    "huggingface-hub>=0.20.0",
 ]
 
 [project.optional-dependencies]
 tf = [
     "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
-    "tf2onnx>=1.15.1,<2.0.0",  # cf.https://github.com/onnx/tensorflow-onnx/releases/tag/v1.15.1
-    "onnx>=1.12.0,!=1.15.0,<3.0.0",  # TODO: remove this line once tf2onnx supports onnx>=1.15.0
+    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
 ]
 torch = [
     "torch>=1.12.0,<3.0.0",
@@ -91,13 +90,11 @@ docs = [
 dev = [
     # Tensorflow
     "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
-    "tf2onnx>=1.15.1,<2.0.0",  # cf.https://github.com/onnx/tensorflow-onnx/releases/tag/v1.15.1
+    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
     "torch>=1.12.0,<3.0.0",
     "torchvision>=0.13.0",
-    # TODO: remove the constraint once tf2onnx supports onnx>=1.15.0
-    # TODO: cf. https://github.com/onnx/tensorflow-onnx/pull/2252
-    "onnx>=1.12.0,!=1.15.0,<3.0.0",
+    "onnx>=1.12.0,<3.0.0",
     # Testing
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",

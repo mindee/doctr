@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -266,17 +266,15 @@ def main(args):
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, "images"),
         label_path=os.path.join(args.train_path, "labels.json"),
-        img_transforms=Compose(
-            [
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.1),
-                T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-                T.RandomApply(T.RandomShadow(), 0.4),
-                T.RandomApply(GaussianBlur(kernel_size=3), 0.3),
-                RandomPhotometricDistort(p=0.1),
-                RandomGrayscale(p=0.1),
-            ]
-        ),
+        img_transforms=Compose([
+            # Augmentations
+            T.RandomApply(T.ColorInversion(), 0.1),
+            T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
+            T.RandomApply(T.RandomShadow(), 0.4),
+            T.RandomApply(GaussianBlur(kernel_size=3), 0.3),
+            RandomPhotometricDistort(p=0.1),
+            RandomGrayscale(p=0.1),
+        ]),
         sample_transforms=T.SampleCompose(
             (
                 [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
@@ -387,14 +385,12 @@ def main(args):
         print(log_msg)
         # W&B
         if args.wb:
-            wandb.log(
-                {
-                    "val_loss": val_loss,
-                    "recall": recall,
-                    "precision": precision,
-                    "mean_iou": mean_iou,
-                }
-            )
+            wandb.log({
+                "val_loss": val_loss,
+                "recall": recall,
+                "precision": precision,
+                "mean_iou": mean_iou,
+            })
         if args.early_stop and early_stopper.early_stop(val_loss):
             print("Training halted early due to reaching patience limit.")
             break

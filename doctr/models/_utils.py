@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -142,7 +142,7 @@ def get_language(text: str) -> Tuple[str, float]:
 
 
 def invert_data_structure(
-    x: Union[List[Dict[str, Any]], Dict[str, List[Any]]]
+    x: Union[List[Dict[str, Any]], Dict[str, List[Any]]],
 ) -> Union[List[Dict[str, Any]], Dict[str, List[Any]]]:
     """Invert a List of Dict of elements to a Dict of list of elements and the other way around
 

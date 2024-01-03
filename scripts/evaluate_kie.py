@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -123,36 +123,30 @@ def main(args):
                                 pred_boxes.append([int(a * width), int(b * height), int(c * width), int(d * height)])
                             else:
                                 if args.eval_straight:
-                                    pred_boxes.append(
-                                        [
-                                            int(width * min(x1, x2, x3, x4)),
-                                            int(height * min(y1, y2, y3, y4)),
-                                            int(width * max(x1, x2, x3, x4)),
-                                            int(height * max(y1, y2, y3, y4)),
-                                        ]
-                                    )
+                                    pred_boxes.append([
+                                        int(width * min(x1, x2, x3, x4)),
+                                        int(height * min(y1, y2, y3, y4)),
+                                        int(width * max(x1, x2, x3, x4)),
+                                        int(height * max(y1, y2, y3, y4)),
+                                    ])
                                 else:
-                                    pred_boxes.append(
-                                        [
-                                            [int(x1 * width), int(y1 * height)],
-                                            [int(x2 * width), int(y2 * height)],
-                                            [int(x3 * width), int(y3 * height)],
-                                            [int(x4 * width), int(y4 * height)],
-                                        ]
-                                    )
+                                    pred_boxes.append([
+                                        [int(x1 * width), int(y1 * height)],
+                                        [int(x2 * width), int(y2 * height)],
+                                        [int(x3 * width), int(y3 * height)],
+                                        [int(x4 * width), int(y4 * height)],
+                                    ])
                         else:
                             if not args.rotation:
                                 pred_boxes.append([a, b, c, d])
                             else:
                                 if args.eval_straight:
-                                    pred_boxes.append(
-                                        [
-                                            min(x1, x2, x3, x4),
-                                            min(y1, y2, y3, y4),
-                                            max(x1, x2, x3, x4),
-                                            max(y1, y2, y3, y4),
-                                        ]
-                                    )
+                                    pred_boxes.append([
+                                        min(x1, x2, x3, x4),
+                                        min(y1, y2, y3, y4),
+                                        max(x1, x2, x3, x4),
+                                        max(y1, y2, y3, y4),
+                                    ])
                                 else:
                                     pred_boxes.append([[x1, y1], [x2, y2], [x3, y3], [x4, y4]])
                         pred_labels.append(prediction.value)

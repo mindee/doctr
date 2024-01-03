@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -146,13 +146,11 @@ class CRNN(RecognitionModel, Model):
         self.exportable = exportable
         self.feat_extractor = feature_extractor
 
-        self.decoder = Sequential(
-            [
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
-                layers.Dense(units=len(vocab) + 1),
-            ]
-        )
+        self.decoder = Sequential([
+            layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+            layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
+            layers.Dense(units=len(vocab) + 1),
+        ])
         self.decoder.build(input_shape=(None, w, h * c))
 
         self.postprocessor = CTCPostProcessor(vocab=vocab)

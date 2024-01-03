@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -236,14 +236,12 @@ def main(args):
     train_set = DocArtefacts(
         train=True,
         download=True,
-        img_transforms=Compose(
-            [
-                T.Resize((args.input_size, args.input_size)),
-                T.RandomApply(T.GaussianNoise(0.0, 0.25), p=0.5),
-                ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
-                T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), 0.3),
-            ]
-        ),
+        img_transforms=Compose([
+            T.Resize((args.input_size, args.input_size)),
+            T.RandomApply(T.GaussianNoise(0.0, 0.25), p=0.5),
+            ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0.02),
+            T.RandomApply(GaussianBlur(kernel_size=(3, 3), sigma=(0.1, 3)), 0.3),
+        ]),
         sample_transforms=T.RandomHorizontalFlip(p=0.5),
     )
     train_loader = DataLoader(
@@ -325,13 +323,11 @@ def main(args):
         print(log_msg)
         # W&B
         if args.wb:
-            wandb.log(
-                {
-                    "recall": recall,
-                    "precision": precision,
-                    "mean_iou": mean_iou,
-                }
-            )
+            wandb.log({
+                "recall": recall,
+                "precision": precision,
+                "mean_iou": mean_iou,
+            })
         if args.early_stop and early_stopper.early_stop(f1_score):
             print("Training halted early due to reaching patience limit.")
             break

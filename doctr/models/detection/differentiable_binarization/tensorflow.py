@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -144,24 +144,20 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         _inputs = [layers.Input(shape=in_shape[1:]) for in_shape in self.feat_extractor.output_shape]
         output_shape = tuple(self.fpn(_inputs).shape)
 
-        self.probability_head = keras.Sequential(
-            [
-                *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
-                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
-                layers.BatchNormalization(),
-                layers.Activation("relu"),
-                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
-            ]
-        )
-        self.threshold_head = keras.Sequential(
-            [
-                *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
-                layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
-                layers.BatchNormalization(),
-                layers.Activation("relu"),
-                layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
-            ]
-        )
+        self.probability_head = keras.Sequential([
+            *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
+            layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
+            layers.BatchNormalization(),
+            layers.Activation("relu"),
+            layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
+        ])
+        self.threshold_head = keras.Sequential([
+            *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
+            layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
+            layers.BatchNormalization(),
+            layers.Activation("relu"),
+            layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
+        ])
 
         self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 

@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -71,19 +71,17 @@ class ResnetBlock(layers.Layer):
     def __init__(self, output_channels: int, conv_shortcut: bool, strides: int = 1, **kwargs) -> None:
         super().__init__(**kwargs)
         if conv_shortcut:
-            self.shortcut = Sequential(
-                [
-                    layers.Conv2D(
-                        filters=output_channels,
-                        strides=strides,
-                        padding="same",
-                        kernel_size=1,
-                        use_bias=False,
-                        kernel_initializer="he_normal",
-                    ),
-                    layers.BatchNormalization(),
-                ]
-            )
+            self.shortcut = Sequential([
+                layers.Conv2D(
+                    filters=output_channels,
+                    strides=strides,
+                    padding="same",
+                    kernel_size=1,
+                    use_bias=False,
+                    kernel_initializer="he_normal",
+                ),
+                layers.BatchNormalization(),
+            ])
         else:
             self.shortcut = layers.Lambda(lambda x: x)
         self.conv_block = Sequential(self.conv_resnetblock(output_channels, 3, strides))
@@ -178,12 +176,10 @@ class ResNet(Sequential):
             inplanes = out_chan
 
         if include_top:
-            _layers.extend(
-                [
-                    layers.GlobalAveragePooling2D(),
-                    layers.Dense(num_classes),
-                ]
-            )
+            _layers.extend([
+                layers.GlobalAveragePooling2D(),
+                layers.Dense(num_classes),
+            ])
 
         super().__init__(_layers)
         self.cfg = cfg

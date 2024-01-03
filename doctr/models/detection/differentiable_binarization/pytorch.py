@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2023, Mindee.
+# Copyright (C) 2021-2024, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -57,28 +57,24 @@ class FeaturePyramidNetwork(nn.Module):
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
-        self.in_branches = nn.ModuleList(
-            [
-                nn.Sequential(
-                    conv_layer(chans, out_channels, 1, bias=False),
-                    nn.BatchNorm2d(out_channels),
-                    nn.ReLU(inplace=True),
-                )
-                for idx, chans in enumerate(in_channels)
-            ]
-        )
+        self.in_branches = nn.ModuleList([
+            nn.Sequential(
+                conv_layer(chans, out_channels, 1, bias=False),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(inplace=True),
+            )
+            for idx, chans in enumerate(in_channels)
+        ])
         self.upsample = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
-        self.out_branches = nn.ModuleList(
-            [
-                nn.Sequential(
-                    conv_layer(out_channels, out_chans, 3, padding=1, bias=False),
-                    nn.BatchNorm2d(out_chans),
-                    nn.ReLU(inplace=True),
-                    nn.Upsample(scale_factor=2**idx, mode="bilinear", align_corners=True),
-                )
-                for idx, chans in enumerate(in_channels)
-            ]
-        )
+        self.out_branches = nn.ModuleList([
+            nn.Sequential(
+                conv_layer(out_channels, out_chans, 3, padding=1, bias=False),
+                nn.BatchNorm2d(out_chans),
+                nn.ReLU(inplace=True),
+                nn.Upsample(scale_factor=2**idx, mode="bilinear", align_corners=True),
+            )
+            for idx, chans in enumerate(in_channels)
+        ])
 
     def forward(self, x: List[torch.Tensor]) -> torch.Tensor:
         if len(x) != len(self.out_branches):

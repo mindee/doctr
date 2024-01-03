@@ -160,24 +160,20 @@ def test_random_rotate():
 
 def test_crop_detection():
     img = torch.ones((3, 50, 50), dtype=torch.float32)
-    abs_boxes = np.array(
-        [
-            [15, 20, 35, 30],
-            [5, 10, 10, 20],
-        ]
-    )
+    abs_boxes = np.array([
+        [15, 20, 35, 30],
+        [5, 10, 10, 20],
+    ])
     crop_box = (12 / 50, 23 / 50, 50 / 50, 50 / 50)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
     assert c_boxes.shape == (1, 4)
     assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
 
-    rel_boxes = np.array(
-        [
-            [0.3, 0.4, 0.7, 0.6],
-            [0.1, 0.2, 0.2, 0.4],
-        ]
-    )
+    rel_boxes = np.array([
+        [0.3, 0.4, 0.7, 0.6],
+        [0.1, 0.2, 0.2, 0.4],
+    ])
     crop_box = (0.24, 0.46, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
     assert c_img.shape == (3, 26, 37)
