@@ -57,7 +57,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: 3.9
+          python-version: 3.8
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
