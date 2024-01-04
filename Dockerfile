@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     unzip \
     git \
     # - Packages to build Python
-    tar make gcc zlib1g-dev libffi-dev libssl-dev liblzma-dev libbz2-dev \
+    tar make gcc zlib1g-dev libffi-dev libssl-dev liblzma-dev libbz2-dev libsqlite3-dev \
     # - Packages for docTR
     libgl1-mesa-dev libsm6 libxext6 libxrender-dev libpangocairo-1.0-0 \
     && apt-get clean \
