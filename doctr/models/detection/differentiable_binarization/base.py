@@ -83,7 +83,7 @@ class DBPostProcessor(DetectionPostProcessor):
         if len(expanded_points) < 1:
             return None  # type: ignore[return-value]
         return (
-            cv2.boundingRect(expanded_points)
+            cv2.boundingRect(expanded_points)  # type: ignore[return-value]
             if self.assume_straight_pages
             else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
         )
@@ -233,7 +233,7 @@ class _DBNet:
         padded_polygon: np.ndarray = np.array(padding.Execute(distance)[0])
 
         # Fill the mask with 1 on the new padded polygon
-        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
+        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)  # type: ignore[call-overload]
 
         # Get min/max to recover polygon after distance computation
         xmin = padded_polygon[:, 0].min()
@@ -351,7 +351,7 @@ class _DBNet:
                         # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrinked.astype(np.int32)], 1)
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrinked.astype(np.int32)], 1.0)  # type: ignore[call-overload]
 
                     # Draw on both thresh map and thresh mask
                     poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(

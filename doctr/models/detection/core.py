@@ -57,7 +57,7 @@ class DetectionPostProcessor(NestedObject):
 
         else:
             mask: np.ndarray = np.zeros((h, w), np.int32)
-            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
+            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)  # type: ignore[call-overload]
             product = pred * mask
             return np.sum(product) / np.count_nonzero(product)
 
