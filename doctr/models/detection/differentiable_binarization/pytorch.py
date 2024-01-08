@@ -213,7 +213,15 @@ class DBNet(_DBNet, nn.Module):
 
         return out
 
-    def compute_loss(self, out_map: torch.Tensor, thresh_map: torch.Tensor, target: List[np.ndarray]) -> torch.Tensor:
+    def compute_loss(
+        self,
+        out_map: torch.Tensor,
+        thresh_map: torch.Tensor,
+        target: List[np.ndarray],
+        gamma: float = 2.0,
+        alpha: float = 0.5,
+        eps: float = 1e-8,
+    ) -> torch.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
 
@@ -222,6 +230,9 @@ class DBNet(_DBNet, nn.Module):
             out_map: output feature map of the model of shape (N, C, H, W)
             thresh_map: threshold map of shape (N, C, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            gamma: modulating factor in the focal loss formula
+            alpha: balancing factor in the focal loss formula
+            eps: epsilon factor in dice loss
 
         Returns:
         -------
@@ -229,9 +240,7 @@ class DBNet(_DBNet, nn.Module):
         """
         prob_map = torch.sigmoid(out_map)
         thresh_map = torch.sigmoid(thresh_map)
-        binary_mask = torch.reciprocal(1.0 + torch.exp(-50 * (prob_map - thresh_map)))
 
-        # TODO: needs also some checks again shrunk masks
         targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
@@ -239,64 +248,33 @@ class DBNet(_DBNet, nn.Module):
         thresh_target, thresh_mask = torch.from_numpy(targets[2]), torch.from_numpy(targets[3])
         thresh_target, thresh_mask = thresh_target.to(out_map.device), thresh_mask.to(out_map.device)
 
-        balanced_bce_loss = torch.zeros(1, device=out_map.device)
+        focal_loss = torch.zeros(1, device=out_map.device)
         dice_loss = torch.zeros(1, device=out_map.device)
         l1_loss = torch.zeros(1, device=out_map.device)
-
-        # TODO: Still in progress @Oliver @Charles
-
         if torch.any(seg_mask):
-            # Compute balanced bce loss
-            bce_loss = F.binary_cross_entropy_with_logits(
-                out_map,
-                seg_target,
-                reduction="none",
-            )
+            # Focal loss
+            bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
 
-            positive = (seg_target * seg_mask).float()
-            negative = ((1 - seg_target) * seg_mask).float()
-            positive_count = int(positive.sum())
-            if positive_count == 0:
-                negative_count = min(int(negative.sum()), 0)
-            else:
-                negative_count = min(int(negative.sum()), int(positive_count * 3))
+            if gamma < 0:
+                raise ValueError("Value of gamma should be greater than or equal to zero.")
+            p_t = prob_map * seg_target + (1 - prob_map) * (1 - seg_target)
+            alpha_t = alpha * seg_target + (1 - alpha) * (1 - seg_target)
+            # Unreduced version
+            focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+            # Class reduced
+            focal_loss = (seg_mask * focal_loss).sum() / seg_mask.sum()
 
-            positive_loss = bce_loss * positive
-            negative_loss = bce_loss * negative
+            # Dice loss
+            inter = (seg_mask * prob_map * seg_target).sum()
+            cardinality = (seg_mask * (prob_map + seg_target)).sum()
+            dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
-            negative_loss, _ = torch.topk(negative_loss.view(-1), negative_count)
-
-            balanced_bce_loss = (
-                (positive_loss.sum() + negative_loss.sum()) / (positive_count + negative_count + 1e-6) * 5.0
-            )
-
-            # Compute dice loss
-            binary_mask = binary_mask.contiguous().view(binary_mask.size(0), -1)
-            seg_target = seg_target.contiguous().view(seg_target.size(0), -1)
-
-            seg_mask = seg_mask.contiguous().view(seg_mask.size(0), -1)
-            binary_mask = binary_mask * seg_mask
-            seg_target = seg_target * seg_mask
-
-            dice_coeff = (2 * (binary_mask * seg_target).sum()) / (binary_mask.sum() + seg_target.sum() + 1e-6)
-
-            dice_loss = 1 - dice_coeff
-
+        # Compute l1 loss for thresh_map
+        l1_scale = 10.0
         if torch.any(thresh_mask):
-            # Compute l1 loss
-            assert thresh_map.size() == thresh_target.size() and thresh_target.numel() > 0
-            assert thresh_mask.size() == thresh_target.size()
-            x = thresh_map * thresh_mask
-            y = thresh_target * thresh_mask
+            l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
 
-            loss = torch.zeros_like(thresh_target)
-            diff = torch.abs(x - y)
-            mask_beta = diff < 1
-            loss[mask_beta] = 0.5 * torch.square(diff)[mask_beta] / 1
-            loss[~mask_beta] = diff[~mask_beta] - 0.5 * 1
-            l1_loss = loss.sum() / (thresh_mask.sum() + 1e-6) * 10.0
-
-        return (balanced_bce_loss + dice_loss + l1_loss) / 3
+        return l1_scale * l1_loss + focal_loss + dice_loss  # type: ignore[return-value]
 
 
 def _dbnet(

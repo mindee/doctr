@@ -166,6 +166,9 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         out_map: tf.Tensor,
         thresh_map: tf.Tensor,
         target: List[Dict[str, np.ndarray]],
+        gamma: float = 2.0,
+        alpha: float = 0.5,
+        eps: float = 1e-8,
     ) -> tf.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -175,6 +178,9 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             out_map: output feature map of the model of shape (N, H, W, C)
             thresh_map: threshold map of shape (N, H, W, C)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            gamma: modulating factor in the focal loss formula
+            alpha: balancing factor in the focal loss formula
+            eps: epsilon factor in dice loss
 
         Returns:
         -------
@@ -186,33 +192,27 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         seg_target, seg_mask, thresh_target, thresh_mask = self.build_target(target, out_map.shape[1:], True)
         seg_target = tf.convert_to_tensor(seg_target, dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
+        seg_mask = tf.cast(seg_mask, tf.float32)
         thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
         thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
 
-        # Compute balanced BCE loss for proba_map
-        bce_scale = 5.0
-        bce_loss = tf.keras.losses.binary_crossentropy(
-            seg_target[..., None],
-            out_map[..., None],
-            from_logits=True,
-        )[seg_mask]
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
 
-        neg_target = 1 - seg_target[seg_mask]
-        positive_count = tf.math.reduce_sum(seg_target[seg_mask])
-        negative_count = tf.math.reduce_min([tf.math.reduce_sum(neg_target), 3.0 * positive_count])
-        negative_loss = bce_loss * neg_target
-        negative_loss, _ = tf.nn.top_k(negative_loss, tf.cast(negative_count, tf.int32))
-        sum_losses = tf.math.reduce_sum(bce_loss * seg_target[seg_mask]) + tf.math.reduce_sum(negative_loss)
-        balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
+        # Focal loss
+        if gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+        # Convert logits to prob, compute gamma factor
+        p_t = (seg_target * prob_map) + ((1 - seg_target) * (1 - prob_map))
+        alpha_t = seg_target * alpha + (1 - seg_target) * (1 - alpha)
+        # Unreduced loss
+        focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+        # Class reduced
+        focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2, 3)) / tf.reduce_sum(seg_mask, (0, 1, 2, 3))
 
-        # Compute dice loss for approxbin_map
-        bin_map = 1 / (1 + tf.exp(-50.0 * (prob_map[seg_mask] - thresh_map[seg_mask])))
-
-        bce_min = tf.math.reduce_min(bce_loss)
-        weights = (bce_loss - bce_min) / (tf.math.reduce_max(bce_loss) - bce_min) + 1.0
-        inter = tf.math.reduce_sum(bin_map * seg_target[seg_mask] * weights)
-        union = tf.math.reduce_sum(bin_map) + tf.math.reduce_sum(seg_target[seg_mask]) + 1e-8
-        dice_loss = 1 - 2.0 * inter / union
+        # Dice loss
+        inter = tf.math.reduce_sum(seg_mask * prob_map * seg_target, (0, 1, 2, 3))
+        cardinality = tf.math.reduce_sum((prob_map + seg_target), (0, 1, 2, 3))
+        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
         l1_scale = 10.0
@@ -221,7 +221,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         else:
             l1_loss = tf.constant(0.0)
 
-        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss
+        return l1_scale * l1_loss + focal_loss + dice_loss
 
     def call(
         self,
