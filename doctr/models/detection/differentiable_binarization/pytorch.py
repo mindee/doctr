@@ -253,6 +253,7 @@ class DBNet(_DBNet, nn.Module):
         l1_loss = torch.zeros(1, device=out_map.device)
         if torch.any(seg_mask):
             # Focal loss
+            focal_scale = 5.0
             bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
 
             if gamma < 0:
@@ -264,17 +265,18 @@ class DBNet(_DBNet, nn.Module):
             # Class reduced
             focal_loss = (seg_mask * focal_loss).sum() / seg_mask.sum()
 
-            # Dice loss
-            inter = (seg_mask * prob_map * seg_target).sum()
-            cardinality = (seg_mask * (prob_map + seg_target)).sum()
+            # Compute dice loss for approx binary_map
+            binary_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))
+            inter = (seg_mask * binary_map * seg_target).sum()
+            cardinality = (seg_mask * (binary_map + seg_target)).sum()
             dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
         l1_scale = 10.0
         if torch.any(thresh_mask):
-            l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
+            l1_loss = (torch.abs(thresh_map - thresh_target) * thresh_mask).sum() / (thresh_mask.sum() + eps)
 
-        return l1_scale * l1_loss + focal_loss + dice_loss  # type: ignore[return-value]
+        return l1_scale * l1_loss + focal_scale * focal_loss + dice_loss  # type: ignore[return-value]
 
 
 def _dbnet(

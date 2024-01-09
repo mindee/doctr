@@ -196,9 +196,9 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         thresh_target = tf.convert_to_tensor(thresh_target, dtype=out_map.dtype)
         thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
 
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
-
         # Focal loss
+        focal_scale = 5.0
+        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
         # Convert logits to prob, compute gamma factor
@@ -209,19 +209,23 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         # Class reduced
         focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2, 3)) / tf.reduce_sum(seg_mask, (0, 1, 2, 3))
 
-        # Dice loss
-        inter = tf.math.reduce_sum(seg_mask * prob_map * seg_target, (0, 1, 2, 3))
-        cardinality = tf.math.reduce_sum((prob_map + seg_target), (0, 1, 2, 3))
+        # Compute dice loss for approx binary_map
+        binary_map = 1.0 / (1.0 + tf.exp(-50 * (prob_map - thresh_map)))
+        inter = tf.reduce_sum(seg_mask * binary_map * seg_target, (0, 1, 2, 3))
+        cardinality = tf.reduce_sum((binary_map + seg_target), (0, 1, 2, 3))
         dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
         l1_scale = 10.0
         if tf.reduce_any(thresh_mask):
-            l1_loss = tf.math.reduce_mean(tf.math.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
+            thresh_mask = tf.cast(thresh_mask, tf.float32)
+            l1_loss = tf.reduce_sum(tf.abs(thresh_map - thresh_target) * thresh_mask) / (
+                tf.reduce_sum(thresh_mask) + eps
+            )
         else:
             l1_loss = tf.constant(0.0)
 
-        return l1_scale * l1_loss + focal_loss + dice_loss
+        return l1_scale * l1_loss + focal_scale * focal_loss + dice_loss
 
     def call(
         self,
