@@ -97,15 +97,15 @@ class DBPostProcessor(DetectionPostProcessor):
 
         Args:
         ----
-            pred: Pred map from differentiable linknet output
+            pred: Pred map from differentiable binarization output
             bitmap: Bitmap map computed from pred (binarized)
             angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
         -------
-            np tensor boxes for the bitmap, each box is a 6-element list
-                containing x, y, w, h, alpha, score for the box
+            np tensor boxes for the bitmap, each box is a 5-element list
+                containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
         boxes: List[Union[np.ndarray, List[float]]] = []
