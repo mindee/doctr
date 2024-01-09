@@ -267,8 +267,8 @@ class DBNet(_DBNet, nn.Module):
 
             # Compute dice loss for approx binary_map
             binary_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))
-            inter = (seg_mask * binary_map * seg_target).sum()
-            cardinality = (seg_mask * (binary_map + seg_target)).sum()
+            inter = (seg_mask * binary_map * seg_target).sum()  # type: ignore[attr-defined]
+            cardinality = (seg_mask * (binary_map + seg_target)).sum()  # type: ignore[attr-defined]
             dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
