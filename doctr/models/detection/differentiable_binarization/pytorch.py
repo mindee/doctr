@@ -273,7 +273,7 @@ class DBNet(_DBNet, nn.Module):
         if torch.any(thresh_mask):
             l1_loss = (torch.abs(thresh_map - thresh_target) * thresh_mask).sum() / (thresh_mask.sum() + eps)
 
-        return l1_scale * l1_loss + focal_scale * focal_loss + dice_loss  # type: ignore[return-value]
+        return l1_scale * l1_loss + focal_scale * focal_loss + dice_loss
 
 
 def _dbnet(
