@@ -33,8 +33,8 @@ class DBPostProcessor(DetectionPostProcessor):
 
     def __init__(
         self,
-        bin_thresh: float = 0.3,
         box_thresh: float = 0.1,
+        bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
@@ -108,12 +108,13 @@ class DBPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
+        min_size_box = 2
         boxes: List[Union[np.ndarray, List[float]]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < 2):
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
             if self.assume_straight_pages:
@@ -131,13 +132,22 @@ class DBPostProcessor(DetectionPostProcessor):
             else:
                 _box = self.polygon_to_box(np.squeeze(contour))
 
+            # Remove too small boxes
             if self.assume_straight_pages:
-                # compute relative polygon to get rid of img shape
+                if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
+                    continue
+            elif np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
+                continue
+
+            if self.assume_straight_pages:
                 x, y, w, h = _box
+                # compute relative polygon to get rid of img shape
                 xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
-                # compute relative box to get rid of img shape
+                # compute relative box to get rid of img shape, in that case _box is a 4pt polygon
+                if not isinstance(_box, np.ndarray) and _box.shape == (4, 2):
+                    raise AssertionError("When assume straight pages is false a box is a (4, 2) array (polygon)")
                 _box[:, 0] /= width
                 _box[:, 1] /= height
                 boxes.append(_box)
@@ -170,7 +180,7 @@ class _DBNet:
         ys: np.ndarray,
         a: np.ndarray,
         b: np.ndarray,
-        eps: float = 1e-7,
+        eps: float = 1e-6,
     ) -> float:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
 

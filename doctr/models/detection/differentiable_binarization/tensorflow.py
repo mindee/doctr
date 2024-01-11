@@ -197,7 +197,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         thresh_mask = tf.convert_to_tensor(thresh_mask, dtype=tf.bool)
 
         # Focal loss
-        focal_scale = 5.0
+        focal_scale = 10.0
         bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
         if gamma < 0:
             raise ValueError("Value of gamma should be greater than or equal to zero.")
@@ -216,7 +216,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
-        l1_scale = 10.0
+        l1_scale = 1.0
         if tf.reduce_any(thresh_mask):
             thresh_mask = tf.cast(thresh_mask, tf.float32)
             l1_loss = tf.reduce_sum(tf.abs(thresh_map - thresh_target) * thresh_mask) / (
