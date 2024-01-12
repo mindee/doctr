@@ -36,7 +36,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
-        self.unclip_ratio = 1.2
+        self.unclip_ratio = 1.5
 
     def polygon_to_box(
         self,
