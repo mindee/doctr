@@ -216,7 +216,7 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TextNet:
                 "stride": [2, 1, 1, 1, 1],
             },
         ],
-        ignore_keys=["4.3.weight", "4.3.bias"],
+        ignore_keys=["4.2.weight", "4.2.bias"],
         **kwargs,
     )
 
@@ -270,6 +270,6 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TextNet:
                 "stride": [2, 1, 1, 1, 1],
             },
         ],
-        ignore_keys=["4.3.weight", "4.3.bias"],
+        ignore_keys=["4.2.weight", "4.2.bias"],
         **kwargs,
     )
