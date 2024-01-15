@@ -68,7 +68,7 @@ class TextNet(Sequential):
             ),
             *[
                 Sequential([
-                    RepConvLayer(**params)
+                    RepConvLayer(**params)  # type: ignore[arg-type]
                     for params in [{key: stage[key][i] for key in stage} for i in range(len(stage["in_channels"]))]
                 ])
                 for stage in stages

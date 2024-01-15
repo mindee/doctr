@@ -18,7 +18,7 @@ class RepConvLayer(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size: Union[int, Tuple[int]],
+        kernel_size: Union[int, Tuple[int, int]],
         stride: int = 1,
         dilation: int = 1,
         groups: int = 1,
