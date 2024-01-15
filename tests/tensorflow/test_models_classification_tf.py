@@ -103,7 +103,7 @@ def test_crop_orientation_model(mock_text_box):
         ["mobilenet_v3_large", (512, 512, 3), (126,)],
         ["mobilenet_v3_small_orientation", (128, 128, 3), (4,)],
         ["resnet18", (32, 32, 3), (126,)],
-        ["vit_s", (32, 32, 3), (126,)],
+        ["vit_s", (3, 32, 32), (126,)],
         ["textnet_tiny", (3, 32, 32), (126,)],
         ["textnet_small", (3, 32, 32), (126,)],
         pytest.param(
