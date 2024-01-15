@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.datasets import VOCABS
 
-from ...modules.layers.pytorch import RepConvLayer
+from ...modules.layers.pytorch import FASTConvLayer
 from ...utils import conv_sequence_pt, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
@@ -68,7 +68,7 @@ class TextNet(nn.Sequential):
             ),
             nn.Sequential(*[
                 nn.Sequential(*[
-                    RepConvLayer(**params)  # type: ignore[arg-type]
+                    FASTConvLayer(**params)  # type: ignore[arg-type]
                     for params in [{key: stage[key][i] for key in stage} for i in range(len(stage["in_channels"]))]
                 ])
                 for stage in stages

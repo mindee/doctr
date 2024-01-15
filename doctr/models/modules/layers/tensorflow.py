@@ -10,11 +10,11 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["RepConvLayer"]
+__all__ = ["FASTConvLayer"]
 
 
-class RepConvLayer(layers.Layer, NestedObject):
-    """Reparameterized Convolutional Layer"""
+class FASTConvLayer(layers.Layer, NestedObject):
+    """Convolutional layer used in the TextNet and FAST architectures"""
 
     def __init__(
         self,
@@ -69,7 +69,6 @@ class RepConvLayer(layers.Layer, NestedObject):
             self.hor_conv = layers.Conv2D(
                 filters=out_channels,
                 kernel_size=(1, converted_ks[1]),
-                padding="valid",
                 strides=stride,
                 dilation_rate=dilation,
                 groups=groups,
@@ -81,20 +80,16 @@ class RepConvLayer(layers.Layer, NestedObject):
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
         main_outputs = self.bn(self.conv(self.conv_pad(x, **kwargs), **kwargs), **kwargs)
-
-        if self.ver_conv is not None and self.ver_bn is not None:
-            vertical_outputs = self.ver_bn(self.ver_conv(self.ver_pad(x, **kwargs), **kwargs), **kwargs)
-        else:
-            vertical_outputs = 0
-
-        if self.hor_bn is not None and self.hor_conv is not None:
-            horizontal_outputs = self.hor_bn(self.hor_conv(self.hor_pad(x, **kwargs), **kwargs), **kwargs)
-        else:
-            horizontal_outputs = 0
-
-        if self.rbr_identity is not None and self.ver_bn is not None:
-            id_out = self.rbr_identity(x, **kwargs)
-        else:
-            id_out = 0
+        vertical_outputs = (
+            self.ver_bn(self.ver_conv(self.ver_pad(x, **kwargs), **kwargs), **kwargs)
+            if self.ver_conv is not None and self.ver_bn is not None
+            else 0
+        )
+        horizontal_outputs = (
+            self.hor_bn(self.hor_conv(self.hor_pad(x, **kwargs), **kwargs), **kwargs)
+            if self.hor_bn is not None and self.hor_conv is not None
+            else 0
+        )
+        id_out = self.rbr_identity(x, **kwargs) if self.rbr_identity is not None and self.ver_bn is not None else 0
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
