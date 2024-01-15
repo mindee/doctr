@@ -67,21 +67,27 @@ class TextNet(Sequential):
                 out_channels=64, activation="relu", bn=True, kernel_size=3, strides=2, input_shape=input_shape
             ),
             *[
-                Sequential([
-                    FASTConvLayer(**params)  # type: ignore[arg-type]
-                    for params in [{key: stage[key][i] for key in stage} for i in range(len(stage["in_channels"]))]
-                ])
-                for stage in stages
+                Sequential(
+                    [
+                        FASTConvLayer(**params)  # type: ignore[arg-type]
+                        for params in [{key: stage[key][i] for key in stage} for i in range(len(stage["in_channels"]))]
+                    ],
+                    name=f"stage_{i}",
+                )
+                for i, stage in enumerate(stages)
             ],
         ]
 
         if include_top:
             _layers.append(
-                Sequential([
-                    layers.AveragePooling2D(1),
-                    layers.Flatten(),
-                    layers.Dense(num_classes),
-                ])
+                Sequential(
+                    [
+                        layers.AveragePooling2D(1),
+                        layers.Flatten(),
+                        layers.Dense(num_classes),
+                    ],
+                    name="classifier",
+                )
             )
 
         super().__init__(_layers)
