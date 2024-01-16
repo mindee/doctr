@@ -238,6 +238,9 @@ class DBNet(_DBNet, nn.Module):
         -------
             A loss tensor
         """
+        if gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+
         prob_map = torch.sigmoid(out_map)
         thresh_map = torch.sigmoid(thresh_map)
 
@@ -253,8 +256,6 @@ class DBNet(_DBNet, nn.Module):
             focal_scale = 10.0
             bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
 
-            if gamma < 0:
-                raise ValueError("Value of gamma should be greater than or equal to zero.")
             p_t = prob_map * seg_target + (1 - prob_map) * (1 - seg_target)
             alpha_t = alpha * seg_target + (1 - alpha) * (1 - seg_target)
             # Unreduced version
@@ -269,11 +270,10 @@ class DBNet(_DBNet, nn.Module):
             dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
-        l1_scale = 1.0
         if torch.any(thresh_mask):
             l1_loss = (torch.abs(thresh_map - thresh_target) * thresh_mask).sum() / (thresh_mask.sum() + eps)
 
-        return l1_scale * l1_loss + focal_scale * focal_loss + dice_loss
+        return l1_loss + focal_scale * focal_loss + dice_loss
 
 
 def _dbnet(
