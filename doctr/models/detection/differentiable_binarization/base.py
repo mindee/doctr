@@ -38,7 +38,7 @@ class DBPostProcessor(DetectionPostProcessor):
         assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
-        self.unclip_ratio = 1.5 if assume_straight_pages else 2.2
+        self.unclip_ratio = 1.5
 
     def polygon_to_box(
         self,
@@ -93,7 +93,7 @@ class DBPostProcessor(DetectionPostProcessor):
         pred: np.ndarray,
         bitmap: np.ndarray,
     ) -> np.ndarray:
-        """Compute boxes from a bitmap/pred_map
+        """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
         ----
@@ -108,7 +108,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
-        min_size_box = 1 + int(height / 512)
+        min_size_box = 2
         boxes: List[Union[np.ndarray, List[float]]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -180,7 +180,7 @@ class _DBNet:
         ys: np.ndarray,
         a: np.ndarray,
         b: np.ndarray,
-        eps: float = 1e-7,
+        eps: float = 1e-6,
     ) -> float:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
 
@@ -201,9 +201,10 @@ class _DBNet:
         square_dist_2 = np.square(xs - b[0]) + np.square(ys - b[1])
         square_dist = np.square(a[0] - b[0]) + np.square(a[1] - b[1])
         cosin = (square_dist - square_dist_1 - square_dist_2) / (2 * np.sqrt(square_dist_1 * square_dist_2) + eps)
+        cosin = np.clip(cosin, -1.0, 1.0)
         square_sin = 1 - np.square(cosin)
         square_sin = np.nan_to_num(square_sin)
-        result = np.sqrt(square_dist_1 * square_dist_2 * square_sin / square_dist)
+        result = np.sqrt(square_dist_1 * square_dist_2 * square_sin / square_dist + eps)
         result[cosin < 0] = np.sqrt(np.fmin(square_dist_1, square_dist_2))[cosin < 0]
         return result
 
@@ -265,7 +266,10 @@ class _DBNet:
 
         # Fill the canvas with the distances computed inside the valid padded polygon
         canvas[ymin_valid : ymax_valid + 1, xmin_valid : xmax_valid + 1] = np.fmax(
-            1 - distance_map[ymin_valid - ymin : ymax_valid - ymin + 1, xmin_valid - xmin : xmax_valid - xmin + 1],
+            1
+            - distance_map[
+                ymin_valid - ymin : ymax_valid - ymax + height, xmin_valid - xmin : xmax_valid - xmax + width
+            ],
             canvas[ymin_valid : ymax_valid + 1, xmin_valid : xmax_valid + 1],
         )
 
@@ -274,7 +278,7 @@ class _DBNet:
     def build_target(
         self,
         target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int, int],
+        output_shape: Tuple[int, int, int],
         channels_last: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
@@ -284,23 +288,24 @@ class _DBNet:
 
         input_dtype = next(iter(target[0].values())).dtype if len(target) > 0 else np.float32
 
+        h: int
+        w: int
         if channels_last:
-            h, w = output_shape[1:-1]
-            target_shape = (output_shape[0], output_shape[-1], h, w)  # (Batch_size, num_classes, h, w)
+            h, w, num_classes = output_shape
         else:
-            h, w = output_shape[-2:]
-            target_shape = output_shape  # (Batch_size, num_classes, h, w)
+            num_classes, h, w = output_shape
+        target_shape = (len(target), num_classes, h, w)
+
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
         seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
         thresh_target: np.ndarray = np.zeros(target_shape, dtype=np.float32)
-        thresh_mask: np.ndarray = np.ones(target_shape, dtype=np.uint8)
+        thresh_mask: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
 
         for idx, tgt in enumerate(target):
             for class_idx, _tgt in enumerate(tgt.values()):
                 # Draw each polygon on gt
                 if _tgt.shape[0] == 0:
                     # Empty image, full masked
-                    # seg_mask[idx, :, :, class_idx] = False
                     seg_mask[idx, class_idx] = False
 
                 # Absolute bounding boxes
@@ -326,10 +331,9 @@ class _DBNet:
                     )
                     boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
-                for box, box_size, poly in zip(abs_boxes, boxes_size, polys):
+                for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
                     # Mask boxes that are too small
                     if box_size < self.min_size_box:
-                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
 
@@ -339,19 +343,17 @@ class _DBNet:
                     subject = [tuple(coor) for coor in poly]
                     padding = pyclipper.PyclipperOffset()
                     padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                    shrinked = padding.Execute(-distance)
+                    shrunken = padding.Execute(-distance)
 
                     # Draw polygon on gt if it is valid
-                    if len(shrinked) == 0:
-                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                    if len(shrunken) == 0:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    shrinked = np.array(shrinked[0]).reshape(-1, 2)
-                    if shrinked.shape[0] <= 2 or not Polygon(shrinked).is_valid:
-                        # seg_mask[idx, box[1] : box[3] + 1, box[0] : box[2] + 1, class_idx] = False
+                    shrunken = np.array(shrunken[0]).reshape(-1, 2)
+                    if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrinked.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
 
                     # Draw on both thresh map and thresh mask
                     poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(

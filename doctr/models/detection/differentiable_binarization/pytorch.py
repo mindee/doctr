@@ -213,7 +213,15 @@ class DBNet(_DBNet, nn.Module):
 
         return out
 
-    def compute_loss(self, out_map: torch.Tensor, thresh_map: torch.Tensor, target: List[np.ndarray]) -> torch.Tensor:
+    def compute_loss(
+        self,
+        out_map: torch.Tensor,
+        thresh_map: torch.Tensor,
+        target: List[np.ndarray],
+        gamma: float = 2.0,
+        alpha: float = 0.5,
+        eps: float = 1e-8,
+    ) -> torch.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
 
@@ -222,56 +230,50 @@ class DBNet(_DBNet, nn.Module):
             out_map: output feature map of the model of shape (N, C, H, W)
             thresh_map: threshold map of shape (N, C, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            gamma: modulating factor in the focal loss formula
+            alpha: balancing factor in the focal loss formula
+            eps: epsilon factor in dice loss
 
         Returns:
         -------
             A loss tensor
         """
+        if gamma < 0:
+            raise ValueError("Value of gamma should be greater than or equal to zero.")
+
         prob_map = torch.sigmoid(out_map)
         thresh_map = torch.sigmoid(thresh_map)
 
-        targets = self.build_target(target, prob_map.shape, False)  # type: ignore[arg-type]
+        targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         thresh_target, thresh_mask = torch.from_numpy(targets[2]), torch.from_numpy(targets[3])
         thresh_target, thresh_mask = thresh_target.to(out_map.device), thresh_mask.to(out_map.device)
 
-        # Compute balanced BCE loss for proba_map
-        bce_scale = 5.0
-        balanced_bce_loss = torch.zeros(1, device=out_map.device)
-        dice_loss = torch.zeros(1, device=out_map.device)
-        l1_loss = torch.zeros(1, device=out_map.device)
         if torch.any(seg_mask):
-            bce_loss = F.binary_cross_entropy_with_logits(
-                out_map,
-                seg_target,
-                reduction="none",
-            )[seg_mask]
+            # Focal loss
+            focal_scale = 10.0
+            bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
 
-            neg_target = 1 - seg_target[seg_mask]
-            positive_count = seg_target[seg_mask].sum()
-            negative_count = torch.minimum(neg_target.sum(), 3.0 * positive_count)
-            negative_loss = bce_loss * neg_target
-            negative_loss = negative_loss.sort().values[-int(negative_count.item()) :]
-            sum_losses = torch.sum(bce_loss * seg_target[seg_mask]) + torch.sum(negative_loss)
-            balanced_bce_loss = sum_losses / (positive_count + negative_count + 1e-6)
+            p_t = prob_map * seg_target + (1 - prob_map) * (1 - seg_target)
+            alpha_t = alpha * seg_target + (1 - alpha) * (1 - seg_target)
+            # Unreduced version
+            focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
+            # Class reduced
+            focal_loss = (seg_mask * focal_loss).sum() / seg_mask.sum()
 
-            # Compute dice loss for approxbin_map
-            bin_map = 1 / (1 + torch.exp(-50.0 * (prob_map[seg_mask] - thresh_map[seg_mask])))
-
-            bce_min = bce_loss.min()
-            weights = (bce_loss - bce_min) / (bce_loss.max() - bce_min) + 1.0
-            inter = torch.sum(bin_map * seg_target[seg_mask] * weights)
-            union = torch.sum(bin_map) + torch.sum(seg_target[seg_mask]) + 1e-8  # type: ignore[call-overload]
-            dice_loss = 1 - 2.0 * inter / union
+            # Compute dice loss for approx binary_map
+            binary_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))
+            inter = (seg_mask * binary_map * seg_target).sum()  # type: ignore[attr-defined]
+            cardinality = (seg_mask * (binary_map + seg_target)).sum()  # type: ignore[attr-defined]
+            dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
 
         # Compute l1 loss for thresh_map
-        l1_scale = 10.0
         if torch.any(thresh_mask):
-            l1_loss = torch.mean(torch.abs(thresh_map[thresh_mask] - thresh_target[thresh_mask]))
+            l1_loss = (torch.abs(thresh_map - thresh_target) * thresh_mask).sum() / (thresh_mask.sum() + eps)
 
-        return l1_scale * l1_loss + bce_scale * balanced_bce_loss + dice_loss  # type: ignore[return-value]
+        return l1_loss + focal_scale * focal_loss + dice_loss
 
 
 def _dbnet(
