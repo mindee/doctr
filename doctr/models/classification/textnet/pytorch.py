@@ -137,7 +137,7 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TextNet:
     Args:
     ----
         pretrained: boolean, True if model is pretrained
-        **kwargs: keyword arguments of the ResNet architecture
+        **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
     -------
