@@ -294,22 +294,20 @@
 
 <span class="k">def</span> <span class="nf">decoder_block</span><span class="p">(</span><span class="n">in_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequential</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">Sequential</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                <span class="n">filters</span><span class="o">=</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                <span class="n">strides</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
-                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">Sequential</span><span class="p">([</span>
+        <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+            <span class="n">filters</span><span class="o">=</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">strides</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+        <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">])</span>
 
 
 <span class="k">class</span> <span class="nc">LinkNetFPN</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
@@ -379,30 +377,28 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span> <span class="o">=</span> <span class="n">LinkNetFPN</span><span class="p">(</span><span class="n">fpn_channels</span><span class="p">,</span> <span class="p">[</span><span class="n">_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">_shape</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                    <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                    <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                    <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                    <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
-                    <span class="n">input_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">decoders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
-                <span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
-                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                    <span class="n">filters</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
-                    <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                    <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
-                <span class="p">),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+                <span class="n">input_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">decoders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+            <span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                <span class="n">filters</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LinkNetPostProcessor</span><span class="p">(</span><span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span> <span class="n">bin_thresh</span><span class="o">=</span><span class="n">bin_thresh</span><span class="p">)</span>
 
