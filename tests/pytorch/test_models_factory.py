@@ -34,6 +34,7 @@ def test_push_to_hf_hub():
         ["mobilenet_v3_small", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-small"],
         ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-large"],
         ["vit_s", "classification", "Felix92/doctr-dummy-torch-vit-s"],
+        ["textnet_tiny", "classification", "Felix92/doctr-dummy-torch-textnet-tiny"],
         ["db_resnet34", "detection", "Felix92/doctr-dummy-torch-db-resnet34"],
         ["db_resnet50", "detection", "Felix92/doctr-dummy-torch-db-resnet50"],
         ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-torch-db-mobilenet-v3-large"],
