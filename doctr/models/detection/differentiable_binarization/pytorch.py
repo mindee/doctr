@@ -39,7 +39,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.1/db_mobilenet_v3_large-fd62154b.pt&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/db_mobilenet_v3_large-81e9b152.pt&src=0",
     },
 }
 
@@ -57,24 +57,28 @@ class FeaturePyramidNetwork(nn.Module):
 
         conv_layer = DeformConv2d if deform_conv else nn.Conv2d
 
-        self.in_branches = nn.ModuleList([
-            nn.Sequential(
-                conv_layer(chans, out_channels, 1, bias=False),
-                nn.BatchNorm2d(out_channels),
-                nn.ReLU(inplace=True),
-            )
-            for idx, chans in enumerate(in_channels)
-        ])
+        self.in_branches = nn.ModuleList(
+            [
+                nn.Sequential(
+                    conv_layer(chans, out_channels, 1, bias=False),
+                    nn.BatchNorm2d(out_channels),
+                    nn.ReLU(inplace=True),
+                )
+                for idx, chans in enumerate(in_channels)
+            ]
+        )
         self.upsample = nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
-        self.out_branches = nn.ModuleList([
-            nn.Sequential(
-                conv_layer(out_channels, out_chans, 3, padding=1, bias=False),
-                nn.BatchNorm2d(out_chans),
-                nn.ReLU(inplace=True),
-                nn.Upsample(scale_factor=2**idx, mode="bilinear", align_corners=True),
-            )
-            for idx, chans in enumerate(in_channels)
-        ])
+        self.out_branches = nn.ModuleList(
+            [
+                nn.Sequential(
+                    conv_layer(out_channels, out_chans, 3, padding=1, bias=False),
+                    nn.BatchNorm2d(out_chans),
+                    nn.ReLU(inplace=True),
+                    nn.Upsample(scale_factor=2**idx, mode="bilinear", align_corners=True),
+                )
+                for idx, chans in enumerate(in_channels)
+            ]
+        )
 
     def forward(self, x: List[torch.Tensor]) -> torch.Tensor:
         if len(x) != len(self.out_branches):
