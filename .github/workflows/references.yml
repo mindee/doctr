@@ -109,10 +109,10 @@ jobs:
           unzip toy_detection_set-bbbb4243.zip -d det_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/classification/train_pytorch_orientation.py ./det_set ./det_set mobilenet_v3_small -b 2 --epochs 1
+        run: python references/classification/train_tensorflow_orientation.py ./det_set ./det_set mobilenet_v3_small -b 2 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
-        run: python references/classification/train_tensorflow_orientation.py ./det_set ./det_set mobilenet_v3_small -b 2 --epochs 1
+        run: python references/classification/train_pytorch_orientation.py ./det_set ./det_set mobilenet_v3_small -b 2 --epochs 1
 
   train-text-recognition:
     runs-on: ${{ matrix.os }}
