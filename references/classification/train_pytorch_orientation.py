@@ -195,7 +195,7 @@ def main(args):
     st = time.time()
     val_set = RotationDataset(
         img_folder=os.path.join(args.val_path, "images"),
-        img_transforms=T.Compose([
+        img_transforms=Compose([
             T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
         ]),
         sample_transforms=T.SampleCompose([
