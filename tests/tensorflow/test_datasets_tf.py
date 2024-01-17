@@ -64,6 +64,26 @@ def test_visiondataset():
     assert repr(dataset) == "VisionDataset()"
 
 
+def test_rotation_dataset(mock_image_folder):
+    input_size = (1024, 1024)
+
+    ds = datasets.RotationDataset(img_folder=mock_image_folder, img_transforms=Resize(input_size))
+    assert len(ds) == 5
+    img, target = ds[0]
+    assert isinstance(img, tf.Tensor)
+    assert img.dtype == tf.float32
+    assert img.shape[:2] == input_size
+    # Prefilled rotation targets
+    assert isinstance(target, np.ndarray) and target.dtype == np.int64
+    # check that all prefilled targets are 0 (degrees)
+    assert np.all(target == 0)
+
+    loader = DataLoader(ds, batch_size=2)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
+    assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
+
+
 def test_detection_dataset(mock_image_folder, mock_detection_label):
     input_size = (1024, 1024)
 
