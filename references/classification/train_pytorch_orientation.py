@@ -153,7 +153,7 @@ def evaluate(model, val_loader, batch_transforms, amp=False):
     # Model in eval mode
     model.eval()
     # Validation loop
-    val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
+    val_loss, correct, samples, batch_cnt = 0.0, 0.0, 0.0, 0.0
     for images, targets in tqdm(val_loader):
         images = batch_transforms(images)
 
@@ -191,16 +191,18 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
+    input_size = (1024, 1024) if args.type == "document" else (32, 128)
+
     # Load val data generator
     st = time.time()
     val_set = RotationDataset(
         img_folder=os.path.join(args.val_path, "images"),
         img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
         ]),
         sample_transforms=T.SampleCompose([
             lambda x, y: rnd_rotate(x, y),
-            T.Resize((args.input_size, args.input_size)),
+            T.Resize(input_size),
         ]),
     )
     val_loader = DataLoader(
@@ -251,7 +253,7 @@ def main(args):
     train_set = RotationDataset(
         img_folder=os.path.join(args.train_path, "images"),
         img_transforms=Compose([
-            T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
             # Augmentations
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
@@ -263,7 +265,7 @@ def main(args):
         ]),
         sample_transforms=T.SampleCompose([
             lambda x, y: rnd_rotate(x, y),
-            T.Resize((args.input_size, args.input_size)),
+            T.Resize(input_size),
         ]),
     )
 
@@ -317,7 +319,7 @@ def main(args):
                 "weight_decay": args.weight_decay,
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
-                "input_size": args.input_size,
+                "input_size": input_size,
                 "optimizer": "adam",
                 "framework": "pytorch",
                 "classes": CLASSES,
@@ -375,11 +377,11 @@ def parse_args():
     parser.add_argument("train_path", type=str, help="path to training data folder")
     parser.add_argument("val_path", type=str, help="path to validation data folder")
     parser.add_argument("arch", type=str, help="classification model to train")
+    parser.add_argument("type", type=str, choices=["document", "crop"], help="type of data to train on")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
     parser.add_argument("--device", default=None, type=int, help="device")
-    parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")

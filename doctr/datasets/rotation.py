@@ -7,6 +7,7 @@ import os
 from typing import Any, List, Tuple
 
 import numpy as np
+from PIL import Image
 
 from .datasets import AbstractDataset
 
@@ -38,7 +39,8 @@ class RotationDataset(AbstractDataset):
 
         self.data: List[Tuple[str, np.ndarray]] = []
         for img_name in os.listdir(self.root):
-            # File existence check
-            if not os.path.exists(os.path.join(self.root, img_name)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+            # File type check
+            path = os.path.join(self.root, img_name)
+            if Image.open(path).format.lower() not in ["png", "jpeg", "jpg"]:
+                raise ValueError(f"File {path} is not a valid image")
             self.data.append((img_name, np.array([0])))

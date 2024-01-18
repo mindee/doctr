@@ -83,6 +83,10 @@ def test_rotation_dataset(mock_image_folder):
     assert isinstance(images, tf.Tensor) and images.shape == (2, *input_size, 3)
     assert isinstance(targets, list) and all(isinstance(elt, np.ndarray) for elt in targets)
 
+    # File existence check
+    with pytest.raises(ValueError):
+        datasets.RotationDataset("/random/path/")
+
 
 def test_detection_dataset(mock_image_folder, mock_detection_label):
     input_size = (1024, 1024)

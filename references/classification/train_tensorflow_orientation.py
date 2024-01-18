@@ -27,6 +27,7 @@ from doctr import transforms as T
 from doctr.datasets import DataLoader, RotationDataset
 from doctr.models import classification
 from doctr.models.utils import export_model_to_onnx
+from doctr.transforms.functional import rotated_img_tensor
 from utils import EarlyStopper, plot_recorder, plot_samples
 
 CLASSES = [0, 90, 180, -90]
@@ -35,9 +36,8 @@ CLASSES = [0, 90, 180, -90]
 def rnd_rotate(img: tf.Tensor, target):
     angle = int(np.random.choice(CLASSES))
     idx = CLASSES.index(angle)
-    # counter-clockwise rotation (change index sign)
-    rotated_img = tf.image.rot90(img, k=idx)
-    idx = 1 if idx == 3 else 3 if idx == 1 else idx
+    # clockwise rotation
+    rotated_img = rotated_img_tensor(img, -angle, expand=False)
     return rotated_img, idx
 
 
@@ -113,7 +113,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
 
 def evaluate(model, val_loader, batch_transforms):
     # Validation loop
-    val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
+    val_loss, correct, samples, batch_cnt = 0.0, 0.0, 0.0, 0.0
     val_iter = iter(val_loader)
     for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
@@ -147,6 +147,8 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
+    input_size = (1024, 1024) if args.type == "document" else (32, 128)
+
     # AMP
     if args.amp:
         mixed_precision.set_global_policy("mixed_float16")
@@ -155,11 +157,11 @@ def main(args):
     val_set = RotationDataset(
         img_folder=os.path.join(args.val_path, "images"),
         img_transforms=T.Compose([
-            T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
         ]),
         sample_transforms=T.SampleCompose([
             lambda x, y: rnd_rotate(x, y),
-            T.Resize((args.input_size, args.input_size)),
+            T.Resize(input_size),
         ]),
     )
 
@@ -179,7 +181,7 @@ def main(args):
     # Load doctr model
     model = classification.__dict__[args.arch](
         pretrained=args.pretrained,
-        input_shape=(args.input_size, args.input_size, 3),
+        input_shape=(*(input_size), 3),
         num_classes=4,
         classes=CLASSES,
         include_top=True,
@@ -203,7 +205,7 @@ def main(args):
     train_set = RotationDataset(
         img_folder=os.path.join(args.train_path, "images"),
         img_transforms=T.Compose([
-            T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
             # Augmentations
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomApply(T.ToGray(3), 0.1),
@@ -216,7 +218,7 @@ def main(args):
         ]),
         sample_transforms=T.SampleCompose([
             lambda x, y: rnd_rotate(x, y),
-            T.Resize((args.input_size, args.input_size)),
+            T.Resize(input_size),
         ]),
     )
     train_loader = DataLoader(
@@ -332,10 +334,10 @@ def main(args):
         print("Exporting model to ONNX...")
         if args.arch == "vit_b":
             # fixed batch size for vit
-            dummy_input = [tf.TensorSpec([1, args.input_size, args.input_size, 3], tf.float32, name="input")]
+            dummy_input = [tf.TensorSpec([1, *(input_size), 3], tf.float32, name="input")]
         else:
             # dynamic batch size
-            dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
+            dummy_input = [tf.TensorSpec([None, *(input_size), 3], tf.float32, name="input")]
         model_path, _ = export_model_to_onnx(model, exp_name, dummy_input)
         print(f"Exported model saved in {model_path}")
 
@@ -351,11 +353,11 @@ def parse_args():
     parser.add_argument("train_path", type=str, help="path to training data folder")
     parser.add_argument("val_path", type=str, help="path to validation data folder")
     parser.add_argument("arch", type=str, help="classification model to train")
+    parser.add_argument("type", type=str, choices=["document", "crop"], help="type of data to train on")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
     parser.add_argument("--device", default=None, type=int, help="device")
-    parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
