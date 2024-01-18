@@ -283,12 +283,12 @@ def main(args):
     if args.wb:
         import wandb
 
-        run = wandb.init(name=exp_name, project="character-classification", config=config)
+        run = wandb.init(name=exp_name, project="orientation-classification", config=config)
     # ClearML
     if args.clearml:
         from clearml import Task
 
-        task = Task.init(project_name="docTR/character-classification", task_name=exp_name, reuse_last_task_id=False)
+        task = Task.init(project_name="docTR/orientation-classification", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
 
     # Create loss queue
