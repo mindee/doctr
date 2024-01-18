@@ -120,10 +120,10 @@ jobs:
         run: python references/classification/train_pytorch_orientation.py ./det_set ./det_set resnet18 document -b 2 --epochs 1
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF) (crop orientation)
-        run: python references/classification/train_tensorflow_orientation.py ./reco_set ./reco_set crnn_vgg16_bn crop -b 4 --epochs 1
+        run: python references/classification/train_tensorflow_orientation.py ./reco_set ./reco_set rresnet18 crop -b 4 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT) (crop orientation)
-        run: python references/classification/train_pytorch_orientation.py ./reco_set ./reco_set crnn_mobilenet_v3_small crop -b 4 --epochs 1
+        run: python references/classification/train_pytorch_orientation.py ./reco_set ./reco_set resnet18 crop -b 4 --epochs 1
 
   train-text-recognition:
     runs-on: ${{ matrix.os }}
