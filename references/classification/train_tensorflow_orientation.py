@@ -147,7 +147,7 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    input_size = (256, 256) if args.type == "document" else (32, 32)
+    input_size = (256, 256) if args.type == "page" else (32, 32)
 
     # AMP
     if args.amp:
@@ -353,7 +353,7 @@ def parse_args():
     parser.add_argument("train_path", type=str, help="path to training data folder")
     parser.add_argument("val_path", type=str, help="path to validation data folder")
     parser.add_argument("arch", type=str, help="classification model to train")
-    parser.add_argument("type", type=str, choices=["document", "crop"], help="type of data to train on")
+    parser.add_argument("type", type=str, choices=["page", "crop"], help="type of data to train on")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
