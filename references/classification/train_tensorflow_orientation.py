@@ -271,7 +271,7 @@ def main(args):
         "epochs": args.epochs,
         "batch_size": args.batch_size,
         "architecture": args.arch,
-        "input_size": args.input_size,
+        "input_size": input_size,
         "optimizer": "adam",
         "framework": "pytorch",
         "classes": CLASSES,
