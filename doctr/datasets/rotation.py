@@ -7,7 +7,6 @@ import os
 from typing import Any, List, Tuple
 
 import numpy as np
-from PIL import Image
 
 from .datasets import AbstractDataset
 
@@ -37,10 +36,5 @@ class RotationDataset(AbstractDataset):
             **kwargs,
         )
 
-        self.data: List[Tuple[str, np.ndarray]] = []
-        for img_name in os.listdir(self.root):
-            # File type check
-            path = os.path.join(self.root, img_name)
-            if Image.open(path).format.lower() not in ["png", "jpeg", "jpg"]:
-                raise ValueError(f"File {path} is not a valid image")
-            self.data.append((img_name, np.array([0])))
+        # initialize dataset with 0 degree rotation targets
+        self.data: List[Tuple[str, np.ndarray]] = [(img_name, np.array([0])) for img_name in os.listdir(self.root)]

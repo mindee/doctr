@@ -147,7 +147,7 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    input_size = (1024, 1024) if args.type == "document" else (32, 128)
+    input_size = (256, 256) if args.type == "document" else (32, 32)
 
     # AMP
     if args.amp:
@@ -214,7 +214,7 @@ def main(args):
             T.RandomContrast(0.3),
             T.RandomBrightness(0.3),
             # Blur
-            T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), 0.3),
+            T.RandomApply(T.GaussianBlur(kernel_shape=(3, 3), std=(0.1, 3)), 0.1),
         ]),
         sample_transforms=T.SampleCompose([
             lambda x, y: rnd_rotate(x, y),

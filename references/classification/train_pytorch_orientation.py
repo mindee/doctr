@@ -191,7 +191,7 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
-    input_size = (1024, 1024) if args.type == "document" else (32, 128)
+    input_size = (256, 256) if args.type == "document" else (32, 32)
 
     # Load val data generator
     st = time.time()
@@ -257,11 +257,11 @@ def main(args):
             # Augmentations
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.4),
-            T.RandomApply(GaussianBlur(kernel_size=3), 0.3),
+            T.RandomApply(T.RandomShadow(), 0.2),
+            T.RandomApply(GaussianBlur(kernel_size=3), 0.1),
             RandomPhotometricDistort(p=0.1),
             RandomGrayscale(p=0.1),
-            RandomPerspective(distortion_scale=0.2, p=0.3),
+            RandomPerspective(distortion_scale=0.1, p=0.3),
         ]),
         sample_transforms=T.SampleCompose([
             lambda x, y: rnd_rotate(x, y),
