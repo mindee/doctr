@@ -85,7 +85,7 @@ def test_visiondataset():
 def test_rotation_dataset(mock_image_folder):
     input_size = (1024, 1024)
 
-    ds = datasets.RotationDataset(img_folder=mock_image_folder, img_transforms=Resize(input_size))
+    ds = datasets.OrientationDataset(img_folder=mock_image_folder, img_transforms=Resize(input_size))
     assert len(ds) == 5
     img, target = ds[0]
     assert isinstance(img, torch.Tensor)

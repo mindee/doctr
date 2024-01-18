@@ -10,14 +10,14 @@ import numpy as np
 
 from .datasets import AbstractDataset
 
-__all__ = ["RotationDataset"]
+__all__ = ["OrientationDataset"]
 
 
-class RotationDataset(AbstractDataset):
+class OrientationDataset(AbstractDataset):
     """Implements a basic image dataset where targets are filled with zeros.
 
-    >>> from doctr.datasets import RotationDataset
-    >>> train_set = RotationDataset(img_folder="/path/to/images")
+    >>> from doctr.datasets import OrientationDataset
+    >>> train_set = OrientationDataset(img_folder="/path/to/images")
     >>> img, target = train_set[0]
 
     Args:

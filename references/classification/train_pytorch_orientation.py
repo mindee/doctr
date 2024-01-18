@@ -30,7 +30,7 @@ from torchvision.transforms.v2 import (
 from tqdm.auto import tqdm
 
 from doctr import transforms as T
-from doctr.datasets import RotationDataset
+from doctr.datasets import OrientationDataset
 from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_model_to_onnx
 from utils import EarlyStopper, plot_recorder, plot_samples
@@ -195,7 +195,7 @@ def main(args):
 
     # Load val data generator
     st = time.time()
-    val_set = RotationDataset(
+    val_set = OrientationDataset(
         img_folder=os.path.join(args.val_path, "images"),
         img_transforms=Compose([
             T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
@@ -248,7 +248,7 @@ def main(args):
         return
 
     st = time.time()
-    train_set = RotationDataset(
+    train_set = OrientationDataset(
         img_folder=os.path.join(args.train_path, "images"),
         img_transforms=Compose([
             T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),

@@ -24,7 +24,7 @@ if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 from doctr import transforms as T
-from doctr.datasets import DataLoader, RotationDataset
+from doctr.datasets import DataLoader, OrientationDataset
 from doctr.models import classification
 from doctr.models.utils import export_model_to_onnx
 from doctr.transforms.functional import rotated_img_tensor
@@ -154,7 +154,7 @@ def main(args):
         mixed_precision.set_global_policy("mixed_float16")
 
     st = time.time()
-    val_set = RotationDataset(
+    val_set = OrientationDataset(
         img_folder=os.path.join(args.val_path, "images"),
         img_transforms=T.Compose([
             T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
@@ -202,7 +202,7 @@ def main(args):
         return
 
     st = time.time()
-    train_set = RotationDataset(
+    train_set = OrientationDataset(
         img_folder=os.path.join(args.train_path, "images"),
         img_transforms=T.Compose([
             T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
