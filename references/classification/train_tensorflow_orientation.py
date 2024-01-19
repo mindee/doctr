@@ -30,7 +30,7 @@ from doctr.models.utils import export_model_to_onnx
 from doctr.transforms.functional import rotated_img_tensor
 from utils import EarlyStopper, plot_recorder, plot_samples
 
-CLASSES = [0, 90, 180, -90]
+CLASSES = [0, 90, 180, 270]
 
 
 def rnd_rotate(img: tf.Tensor, target):

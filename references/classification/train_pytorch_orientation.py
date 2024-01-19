@@ -35,7 +35,7 @@ from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_model_to_onnx
 from utils import EarlyStopper, plot_recorder, plot_samples
 
-CLASSES = [0, 90, 180, -90]
+CLASSES = [0, 90, 180, 270]
 
 
 def rnd_rotate(img: torch.Tensor, target):
