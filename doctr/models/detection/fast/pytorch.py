@@ -52,6 +52,7 @@ class FAST(_FAST, nn.Module):
 
     Args:
     ----
+        in_module: the first layers of the backbone serving as input module
         feat extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
