@@ -182,7 +182,7 @@ def main(args):
     model = classification.__dict__[args.arch](
         pretrained=args.pretrained,
         input_shape=(*(input_size), 3),
-        num_classes=4,
+        num_classes=len(CLASSES),
         classes=CLASSES,
         include_top=True,
     )

@@ -218,7 +218,7 @@ def main(args):
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = classification.__dict__[args.arch](pretrained=args.pretrained, num_classes=4, classes=CLASSES)
+    model = classification.__dict__[args.arch](pretrained=args.pretrained, num_classes=len(CLASSES), classes=CLASSES)
 
     # Resume weights
     if isinstance(args.resume, str):
