@@ -27,7 +27,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.1/db_resnet50-ac60cadc.pt&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/db_resnet50-d37c05f2.pt&src=0",
     },
     "db_resnet34": {
         "input_shape": (3, 1024, 1024),
