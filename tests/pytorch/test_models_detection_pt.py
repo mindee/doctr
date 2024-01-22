@@ -23,6 +23,9 @@ from doctr.models.utils import export_model_to_onnx
         ["linknet_resnet18", (3, 512, 512), (1, 512, 512), True],
         ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True],
         ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True],
+        ["fast_tiny", (3, 512, 512), (1, 512, 512), True],
+        ["fast_small", (3, 512, 512), (1, 512, 512), True],
+        ["fast_base", (3, 512, 512), (1, 512, 512), True],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
@@ -81,6 +84,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob, train_m
         "db_resnet50",
         "db_mobilenet_v3_large",
         "linknet_resnet18",
+        "fast_tiny",
     ],
 )
 def test_detection_zoo(arch_name):
@@ -129,6 +133,9 @@ def test_dilate():
         ["linknet_resnet18", (3, 512, 512), (1, 512, 512)],
         ["linknet_resnet34", (3, 512, 512), (1, 512, 512)],
         ["linknet_resnet50", (3, 512, 512), (1, 512, 512)],
+        ["fast_tiny", (3, 512, 512), (1, 512, 512)],
+        ["fast_small", (3, 512, 512), (1, 512, 512)],
+        ["fast_base", (3, 512, 512), (1, 512, 512)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

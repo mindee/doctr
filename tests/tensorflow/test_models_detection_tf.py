@@ -27,6 +27,9 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["linknet_resnet18", (512, 512, 3), (512, 512, 1), True],
         ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True],
         ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True],
+        ["fast_tiny", (512, 512, 3), (512, 512, 1), True],
+        ["fast_small", (512, 512, 3), (512, 512, 1), True],
+        ["fast_base", (512, 512, 3), (512, 512, 1), True],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
@@ -137,6 +140,7 @@ def test_rotated_detectionpredictor(mock_pdf):
         "db_resnet50",
         "db_mobilenet_v3_large",
         "linknet_resnet18",
+        "fast_tiny",
     ],
 )
 def test_detection_zoo(arch_name):
@@ -183,6 +187,8 @@ def test_dilate():
     [
         ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1)],
         ["linknet_resnet18", (1024, 1024, 3), (1024, 1024, 1)],
+        ["fast_tiny", (1024, 1024, 3), (1024, 1024, 1)],
+        ["fast_small", (1024, 1024, 3), (1024, 1024, 1)],
         pytest.param(
             "db_resnet50",
             (512, 512, 3),
@@ -197,6 +203,12 @@ def test_dilate():
         ),
         pytest.param(
             "linknet_resnet50",
+            (512, 512, 3),
+            (512, 512, 1),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+        ),
+        pytest.param(
+            "fast_base",
             (512, 512, 3),
             (512, 512, 1),
             marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),

@@ -8,6 +8,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 from torch import nn
+import torch
 
 from doctr.datasets import VOCABS
 

@@ -17,7 +17,16 @@ ARCHS: List[str]
 
 
 if is_tf_available():
-    ARCHS = ["db_resnet50", "db_mobilenet_v3_large", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
+    ARCHS = [
+        "db_resnet50",
+        "db_mobilenet_v3_large",
+        "linknet_resnet18",
+        "linknet_resnet34",
+        "linknet_resnet50",
+        "fast_tiny",
+        "fast_small",
+        "fast_base",
+        ]
 elif is_torch_available():
     ARCHS = [
         "db_resnet34",
@@ -26,6 +35,9 @@ elif is_torch_available():
         "linknet_resnet18",
         "linknet_resnet34",
         "linknet_resnet50",
+        "fast_tiny",
+        "fast_small",
+        "fast_base",
     ]
 
 
