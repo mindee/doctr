@@ -33,6 +33,12 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.vit_b
 
+.. autofunction:: doctr.models.classification.textnet_tiny
+
+.. autofunction:: doctr.models.classification.textnet_small
+
+.. autofunction:: doctr.models.classification.textnet_base
+
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 
