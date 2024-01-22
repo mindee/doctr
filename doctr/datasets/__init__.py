@@ -13,6 +13,7 @@ from .imgur5k import *
 from .mjsynth import *
 from .ocr import *
 from .recognition import *
+from .orientation import *
 from .sroie import *
 from .svhn import *
 from .svt import *

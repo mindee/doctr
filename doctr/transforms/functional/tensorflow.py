@@ -15,7 +15,7 @@ from doctr.utils.geometry import compute_expanded_shape, rotate_abs_geoms
 
 from .base import create_shadow_mask, crop_boxes
 
-__all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
+__all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow", "rotated_img_tensor"]
 
 
 def invert_colors(img: tf.Tensor, min_val: float = 0.6) -> tf.Tensor:
