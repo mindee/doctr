@@ -100,9 +100,7 @@ class FAST(_FAST, keras.Model, NestedObject):
         return_preds: bool = False,
         **kwargs: Any,
     ) -> Dict[str, Any]:
-        # Extract output from first conv -> bn -> relu
-        init_out = self.in_module(x, **kwargs)[2]
-        feat_maps = self.feat_extractor(init_out, **kwargs)
+        feat_maps = self.feat_extractor(x, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
