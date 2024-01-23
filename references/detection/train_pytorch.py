@@ -270,10 +270,10 @@ def main(args):
             # Augmentations
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.4),
-            T.RandomApply(GaussianBlur(kernel_size=3), 0.3),
-            RandomPhotometricDistort(p=0.1),
-            RandomGrayscale(p=0.1),
+            T.RandomApply(T.RandomShadow(), 0.05),
+            T.RandomApply(GaussianBlur(kernel_size=3), 0.1),
+            RandomPhotometricDistort(p=0.05),
+            RandomGrayscale(p=0.05),
         ]),
         sample_transforms=T.SampleCompose(
             (
