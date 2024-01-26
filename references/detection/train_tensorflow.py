@@ -224,12 +224,12 @@ def main(args):
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomJpegQuality(60),
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.4),
-            T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
+            T.RandomApply(T.RandomShadow(), 0.1),
+            T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.1),
             T.RandomSaturation(0.3),
             T.RandomContrast(0.3),
             T.RandomBrightness(0.3),
-            T.RandomApply(T.ToGray(num_output_channels=3), 0.1),
+            T.RandomApply(T.ToGray(num_output_channels=3), 0.05),
         ]),
         sample_transforms=T.SampleCompose(
             (

@@ -22,21 +22,21 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/textnet_tiny-c23a1b9a.pt&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/textnet_tiny-c5970fe0.pt&src=0",
     },
     "textnet_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/textnet_small-775169f7.pt&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/textnet_small-6e8ab0ce.pt&src=0",
     },
     "textnet_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/textnet_base-6121c044.pt&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/textnet_base-8295dc85.pt&src=0",
     },
 }
 
@@ -66,13 +66,13 @@ class TextNet(nn.Sequential):
             *conv_sequence_pt(
                 in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
             ),
-            nn.Sequential(*[
+            *[
                 nn.Sequential(*[
                     FASTConvLayer(**params)  # type: ignore[arg-type]
                     for params in [{key: stage[key][i] for key in stage} for i in range(len(stage["in_channels"]))]
                 ])
                 for stage in stages
-            ]),
+            ],
         ]
 
         if include_top:
@@ -167,7 +167,7 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TextNet:
                 "stride": [2, 1, 1, 1],
             },
         ],
-        ignore_keys=["4.2.weight", "4.2.bias"],
+        ignore_keys=["7.2.weight", "7.2.bias"],
         **kwargs,
     )
 
@@ -216,7 +216,7 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TextNet:
                 "stride": [2, 1, 1, 1, 1],
             },
         ],
-        ignore_keys=["4.2.weight", "4.2.bias"],
+        ignore_keys=["7.2.weight", "7.2.bias"],
         **kwargs,
     )
 
@@ -270,6 +270,6 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TextNet:
                 "stride": [2, 1, 1, 1, 1],
             },
         ],
-        ignore_keys=["4.2.weight", "4.2.bias"],
+        ignore_keys=["7.2.weight", "7.2.bias"],
         **kwargs,
     )

@@ -270,10 +270,10 @@ def main(args):
             # Augmentations
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.4),
-            T.RandomApply(GaussianBlur(kernel_size=3), 0.3),
-            RandomPhotometricDistort(p=0.1),
-            RandomGrayscale(p=0.1),
+            T.RandomApply(T.RandomShadow(), 0.1),
+            T.RandomApply(GaussianBlur(kernel_size=3), 0.1),
+            RandomPhotometricDistort(p=0.05),
+            RandomGrayscale(p=0.05),
         ]),
         sample_transforms=T.SampleCompose(
             (
@@ -442,7 +442,7 @@ def parse_args():
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
-    parser.add_argument("--sched", type=str, default="cosine", help="scheduler to use")
+    parser.add_argument("--sched", type=str, default="onecycle", help="scheduler to use")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
