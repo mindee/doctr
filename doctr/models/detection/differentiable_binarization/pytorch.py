@@ -263,11 +263,13 @@ class DBNet(_DBNet, nn.Module):
             # Class reduced
             focal_loss = (seg_mask * focal_loss).sum() / seg_mask.sum()
 
-            # Compute dice loss for approx binary_map
+            # Compute dice loss for each class or for approx binary_map
             binary_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))
-            inter = (seg_mask * binary_map * seg_target).sum()  # type: ignore[attr-defined]
-            cardinality = (seg_mask * (binary_map + seg_target)).sum()  # type: ignore[attr-defined]
-            dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+            dice_map = torch.softmax(out_map, dim=1) if len(self.class_names) > 1 else binary_map
+            # Class reduced
+            inter = (seg_mask * dice_map * seg_target).sum((0, 2, 3))
+            cardinality = (seg_mask * (dice_map + seg_target)).sum((0, 2, 3))
+            dice_loss = (1 - 2 * inter / (cardinality + eps)).mean()
 
         # Compute l1 loss for thresh_map
         if torch.any(thresh_mask):
