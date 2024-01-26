@@ -234,10 +234,12 @@ class LinkNet(nn.Module, _LinkNet):
         # Class reduced
         focal_loss = (seg_mask * focal_loss).sum((0, 1, 2, 3)) / seg_mask.sum((0, 1, 2, 3))
 
-        # Dice loss
-        inter = (seg_mask * proba_map * seg_target).sum((0, 1, 2, 3))
-        cardinality = (seg_mask * (proba_map + seg_target)).sum((0, 1, 2, 3))
-        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+        # Compute dice loss for each class
+        dice_map = torch.softmax(out_map, dim=1) if len(self.class_names) > 1 else proba_map
+        # Class reduced
+        inter = (seg_mask * dice_map * seg_target).sum((0, 2, 3))
+        cardinality = (seg_mask * (dice_map + seg_target)).sum((0, 2, 3))
+        dice_loss = (1 - 2 * inter / (cardinality + eps)).mean()
 
         # Return the full loss (equal sum of focal loss and dice loss)
         return focal_loss + dice_loss

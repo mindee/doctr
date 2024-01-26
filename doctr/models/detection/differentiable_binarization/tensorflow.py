@@ -211,11 +211,16 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         # Class reduced
         focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2, 3)) / tf.reduce_sum(seg_mask, (0, 1, 2, 3))
 
-        # Compute dice loss for approx binary_map
-        binary_map = 1.0 / (1.0 + tf.exp(-50 * (prob_map - thresh_map)))
-        inter = tf.reduce_sum(seg_mask * binary_map * seg_target, (0, 1, 2, 3))
-        cardinality = tf.reduce_sum((binary_map + seg_target), (0, 1, 2, 3))
-        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+        # Compute dice loss for each class or for approx binary_map
+        if len(self.class_names) > 1:
+            dice_map = tf.nn.softmax(out_map, axis=-1)
+        else:
+            # compute binary map instead
+            dice_map = 1.0 / (1.0 + tf.exp(-50 * (prob_map - thresh_map)))
+        # Class-reduced dice loss
+        inter = tf.reduce_sum(seg_mask * dice_map * seg_target, axis=[0, 1, 2])
+        cardinality = tf.reduce_sum(seg_mask * (dice_map + seg_target), axis=[0, 1, 2])
+        dice_loss = tf.reduce_mean(1 - 2 * inter / (cardinality + eps))
 
         # Compute l1 loss for thresh_map
         if tf.reduce_any(thresh_mask):

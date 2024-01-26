@@ -196,10 +196,12 @@ class LinkNet(_LinkNet, keras.Model):
         # Class reduced
         focal_loss = tf.reduce_sum(seg_mask * focal_loss, (0, 1, 2, 3)) / tf.reduce_sum(seg_mask, (0, 1, 2, 3))
 
-        # Dice loss
-        inter = tf.math.reduce_sum(seg_mask * proba_map * seg_target, (0, 1, 2, 3))
-        cardinality = tf.math.reduce_sum((proba_map + seg_target), (0, 1, 2, 3))
-        dice_loss = 1 - 2 * (inter + eps) / (cardinality + eps)
+        # Compute dice loss for each class
+        dice_map = tf.nn.softmax(out_map, axis=-1) if len(self.class_names) > 1 else proba_map
+        # Class-reduced dice loss
+        inter = tf.reduce_sum(seg_mask * dice_map * seg_target, axis=[0, 1, 2])
+        cardinality = tf.reduce_sum(seg_mask * (dice_map + seg_target), axis=[0, 1, 2])
+        dice_loss = tf.reduce_mean(1 - 2 * inter / (cardinality + eps))
 
         return focal_loss + dice_loss
 
