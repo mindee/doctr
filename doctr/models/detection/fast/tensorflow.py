@@ -11,14 +11,13 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
 
 from doctr.file_utils import CLASS_NAME
-from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, conv_sequence, load_pretrained_params
+from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
-from ...classification import textnet_tiny, textnet_small, textnet_base
-from .base import FASTPostProcessor, _FAST
+from ...classification import textnet_base, textnet_small, textnet_tiny
+from .base import _FAST, FASTPostProcessor
 
 __all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
 

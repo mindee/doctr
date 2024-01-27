@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 
 from doctr.models.detection.differentiable_binarization.base import DBPostProcessor
-from doctr.models.detection.linknet.base import LinkNetPostProcessor
 from doctr.models.detection.fast.base import FASTPostProcessor
+from doctr.models.detection.linknet.base import LinkNetPostProcessor
 
 
 def test_dbpostprocessor():

@@ -10,13 +10,13 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from torchvision.models._utils import IntermediateLayerGetter
-from torchvision.ops.deform_conv import DeformConv2d
 
 from doctr.file_utils import CLASS_NAME
 
-from ...classification import textnet_tiny, textnet_small, textnet_base
+from ...classification import textnet_base, textnet_small, textnet_tiny
+from ...modules.layers import FASTConvLayer
 from ...utils import _bf16_to_float32, load_pretrained_params
-from .base import FASTPostProcessor, _FAST
+from .base import _FAST, FASTPostProcessor
 
 __all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
 
@@ -42,7 +42,54 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
 }
 
+class FastNeck(nn.Module):
+    """Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layers.
 
+    Args:
+    ----
+        in_channels: number of input channels
+        out_channels: number of output channels
+        upsample_size: size of the upsampling layer
+    """
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int = 128,
+        upsample_size: int = 256,
+    ) -> None:
+        super().__init__()
+        self.reduction = nn.ModuleList([
+            FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]
+        ])
+        self.upsample = nn.Upsample(size=upsample_size, mode="bilinear", align_corners=False)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        f1, f2, f3, f4 = x
+        f1, f2, f3, f4 = [reduction(f) for reduction, f in zip(self.reduction, (f1, f2, f3, f4))]
+        f2, f3, f4 = [self.upsample(f) for f in (f2, f3, f4)]
+        f = torch.cat((f1, f2, f3, f4), 1)
+        return f
+
+
+class FastHead(nn.Sequential):
+    """Head of the FAST architecture
+
+    Args:
+    ----
+    """
+    def __init__(
+        self,
+        in_channels: int,
+        num_classes: int,
+        out_channels: int = 128,
+        dropout: float = 0.1,
+    ) -> None:
+        _layers: List[nn.Module] = [
+                FASTConvLayer(in_channels, out_channels, kernel_size=3),
+                nn.Dropout(dropout),
+                nn.Conv2d(out_channels, num_classes, kernel_size=1, bias=False)
+            ]
+        super().__init__(*_layers)
 
 
 
@@ -53,8 +100,8 @@ class FAST(_FAST, nn.Module):
     Args:
     ----
         feat extractor: the backbone serving as feature extractor
-        head_chans: the number of channels in the head
-        deform_conv: whether to use deformable convolution
+        bin_thresh: threshold for binarization
+        dropout_prob: dropout probability
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -65,6 +112,7 @@ class FAST(_FAST, nn.Module):
         self,
         feat_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
+        dropout_prob: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -79,15 +127,25 @@ class FAST(_FAST, nn.Module):
         self.assume_straight_pages = assume_straight_pages
 
         self.feat_extractor = feat_extractor
+        # Identify the number of channels for the neck & head initialization
+        _is_training = self.feat_extractor.training
+        self.feat_extractor = self.feat_extractor.eval()
+        with torch.no_grad():
+            out = self.feat_extractor(torch.zeros((1, 3, 32, 32)))
+            feat_out_channels = [v.shape[1] for _, v in out.items()]
 
+        if _is_training:
+            self.feat_extractor = self.feat_extractor.train()
 
-
+        # Initialize the neck
+        self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1], feat_out_channels[0] * 4)
+        self.prob_head = FastHead(feat_out_channels[-1], num_classes, feat_out_channels[1], dropout_prob)
 
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
-            if n.startswith("feat_extractor.") or n.startswith("in_module."):
+            if n.startswith("feat_extractor."):
                 continue
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight.data, mode="fan_out", nonlinearity="relu")
@@ -96,6 +154,10 @@ class FAST(_FAST, nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
+
+    def _upsample(self, x, size, scale=1):
+        _, _, H, W = size
+        return F.interpolate(x, size=(H // scale, W // scale), mode="bilinear")
 
     def forward(
         self,
@@ -107,12 +169,9 @@ class FAST(_FAST, nn.Module):
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
         feats = [feats[str(idx)] for idx in range(len(feats))]
-
-        # TODO: Neck + Head  -> keep in mind the output needs to be (Batch, Class, H, W)
         # Pass through the Neck
-        #feat_concat = self.neck(feats)
-
-        #logits = self.prob_head(feat_concat)
+        feat_concat = self.neck(feats)
+        logits = self.prob_head(feat_concat)
 
         out: Dict[str, Any] = {}
         if self.exportable:
@@ -120,7 +179,7 @@ class FAST(_FAST, nn.Module):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_to_float32(torch.sigmoid(logits))
+            prob_map = _bf16_to_float32(torch.sigmoid(self._upsample(logits, x.shape)))  # TODO: correct?
 
         if return_model_output:
             out["out_map"] = prob_map
@@ -133,8 +192,7 @@ class FAST(_FAST, nn.Module):
             ]
 
         if target is not None:
-            thresh_map = self.thresh_head(feat_concat)
-            loss = self.compute_loss(logits, thresh_map, target)
+            loss = self.compute_loss(logits, target)
             out["loss"] = loss
 
         return out
@@ -208,7 +266,7 @@ def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
         pretrained,
         textnet_tiny,
         ["3", "4", "5", "6"],
-        ignore_keys=[], # TODO: ignore_keys
+        ignore_keys=[],  # TODO: ignore_keys
         **kwargs,
     )
 
@@ -237,7 +295,7 @@ def fast_small(pretrained: bool = False, **kwargs: Any) -> FAST:
         pretrained,
         textnet_small,
         ["3", "4", "5", "6"],
-        ignore_keys=[], # TODO: ignore_keys
+        ignore_keys=[],  # TODO: ignore_keys
         **kwargs,
     )
 
@@ -266,6 +324,6 @@ def fast_base(pretrained: bool = False, **kwargs: Any) -> FAST:
         pretrained,
         textnet_base,
         ["3", "4", "5", "6"],
-        ignore_keys=[], # TODO: ignore_keys
+        ignore_keys=[],  # TODO: ignore_keys
         **kwargs,
     )
