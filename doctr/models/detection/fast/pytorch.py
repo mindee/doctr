@@ -52,7 +52,6 @@ class FAST(_FAST, nn.Module):
 
     Args:
     ----
-        in_module: the first layers of the backbone serving as input module
         feat extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
@@ -64,7 +63,6 @@ class FAST(_FAST, nn.Module):
 
     def __init__(
         self,
-        in_module: IntermediateLayerGetter,
         feat_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
         assume_straight_pages: bool = True,
@@ -80,7 +78,6 @@ class FAST(_FAST, nn.Module):
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
-        self.in_module = in_module
         self.feat_extractor = feat_extractor
 
 
@@ -107,10 +104,8 @@ class FAST(_FAST, nn.Module):
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> Dict[str, torch.Tensor]:
-        # Extract output from first conv -> bn -> relu
-        init_out = self.in_module(x)["2"]
         # Extract feature maps at different stages
-        feats = self.feat_extractor(init_out)
+        feats = self.feat_extractor(x)
         feats = [feats[str(idx)] for idx in range(len(feats))]
 
         # TODO: Neck + Head  -> keep in mind the output needs to be (Batch, Class, H, W)
@@ -166,15 +161,8 @@ def _fast(
     pretrained_backbone = pretrained_backbone and not pretrained
 
     # Build the feature extractor
-    backbone = backbone_fn(pretrained_backbone)
-    in_module = IntermediateLayerGetter(
-        backbone,
-        {layer_name: str(idx) for idx, layer_name in enumerate(["0", "1", "2"])},
-    )
-
-    backbone = getattr(backbone, "3")
     feat_extractor = IntermediateLayerGetter(
-        backbone,
+        backbone_fn(pretrained_backbone),
         {layer_name: str(idx) for idx, layer_name in enumerate(feat_layers)},
     )
 
@@ -183,7 +171,7 @@ def _fast(
     else:
         kwargs["class_names"] = sorted(kwargs["class_names"])
     # Build the model
-    model = FAST(in_module, feat_extractor, cfg=default_cfgs[arch], **kwargs)
+    model = FAST(feat_extractor, cfg=default_cfgs[arch], **kwargs)
     # Load pretrained parameters
     if pretrained:
         # The number of class_names is not the same as the number of classes in the pretrained model =>
@@ -219,7 +207,7 @@ def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
         "fast_tiny",
         pretrained,
         textnet_tiny,
-        ["0", "1", "2", "3"],
+        ["3", "4", "5", "6"],
         ignore_keys=[], # TODO: ignore_keys
         **kwargs,
     )
@@ -248,7 +236,7 @@ def fast_small(pretrained: bool = False, **kwargs: Any) -> FAST:
         "fast_small",
         pretrained,
         textnet_small,
-        ["0", "1", "2", "3"],
+        ["3", "4", "5", "6"],
         ignore_keys=[], # TODO: ignore_keys
         **kwargs,
     )
@@ -277,7 +265,7 @@ def fast_base(pretrained: bool = False, **kwargs: Any) -> FAST:
         "fast_base",
         pretrained,
         textnet_base,
-        ["0", "1", "2", "3"],
+        ["3", "4", "5", "6"],
         ignore_keys=[], # TODO: ignore_keys
         **kwargs,
     )
