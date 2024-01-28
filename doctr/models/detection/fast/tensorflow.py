@@ -11,12 +11,14 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras import Sequential, layers
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from ...classification import textnet_base, textnet_small, textnet_tiny
+from ...modules.layers import FASTConvLayer
 from .base import _FAST, FASTPostProcessor
 
 __all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
@@ -44,6 +46,59 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
+class FastNeck(layers.Layer, NestedObject):
+    """Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layer.
+
+    Args:
+    ----
+        in_channels: number of input channels
+        out_channels: number of output channels
+        upsample_size: size of the upsampling layer
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int = 128,
+        upsample_size: int = 256,
+    ) -> None:
+        super().__init__()
+        self.reduction = [FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]]
+        self.upsample = [layers.UpSampling2D(size=scale, interpolation="bilinear") for scale in [2, 4, 8]]
+
+    def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
+        f1, f2, f3, f4 = x
+        f1, f2, f3, f4 = [reduction(f, **kwargs) for reduction, f in zip(self.reduction, (f1, f2, f3, f4))]
+        f2, f3, f4 = [upsample(f) for upsample, f in zip(self.upsample, (f2, f3, f4))]
+        f = tf.concat((f1, f2, f3, f4), axis=-1)
+        return f
+
+
+class FastHead(Sequential):
+    """Head of the FAST architecture
+
+    Args:
+    ----
+        in_channels: number of input channels
+        num_classes: number of output classes
+        out_channels: number of output channels
+        dropout: dropout probability
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        num_classes: int,
+        out_channels: int = 128,
+        dropout: float = 0.1,
+    ) -> None:
+        _layers = [
+            FASTConvLayer(in_channels, out_channels, kernel_size=3),
+            layers.Dropout(dropout),
+            layers.Conv2D(num_classes, kernel_size=1, use_bias=False),
+        ]
+        super().__init__(_layers)
+
 
 class FAST(_FAST, keras.Model, NestedObject):
     """FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"
@@ -52,18 +107,21 @@ class FAST(_FAST, keras.Model, NestedObject):
     Args:
     ----
         feature extractor: the backbone serving as feature extractor
+        bin_thresh: threshold for binarization
+        dropout_prob: dropout probability
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
         class_names: list of class names
     """
 
-    _children_names: List[str] = ["in_module", "feat_extractor", "postprocessor"]
+    _children_names: List[str] = ["feat_extractor", "neck", "head", "postprocessor"]
 
     def __init__(
         self,
         feature_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
+        dropout_prob: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -78,9 +136,18 @@ class FAST(_FAST, keras.Model, NestedObject):
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
 
-
+        # Identify the number of channels for the neck & head initialization
+        feat_out_channels = [
+            layers.Input(shape=in_shape[1:]).shape[-1] for in_shape in self.feat_extractor.output_shape
+        ]
+        # Initialize neck & head
+        self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1], feat_out_channels[0] * 4)
+        self.head = FastHead(feat_out_channels[-1], num_classes, feat_out_channels[1], dropout_prob)
 
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
+
+    def _upsample(self, x: tf.Tensor, scale: int = 1) -> tf.Tensor:
+        return layers.UpSampling2D(size=scale, interpolation="bilinear")(x)
 
     def compute_loss(
         self,
@@ -100,6 +167,9 @@ class FAST(_FAST, keras.Model, NestedObject):
         **kwargs: Any,
     ) -> Dict[str, Any]:
         feat_maps = self.feat_extractor(x, **kwargs)
+        # Pass through the Neck & Head
+        feat_concat = self.neck(feat_maps, **kwargs)
+        logits = self.head(feat_concat, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
@@ -107,7 +177,7 @@ class FAST(_FAST, keras.Model, NestedObject):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_to_float32(tf.math.sigmoid(logits))
+            prob_map = _bf16_to_float32(tf.math.sigmoid(self._upsample(logits, scale=4)))
 
         if return_model_output:
             out["out_map"] = prob_map
@@ -117,8 +187,7 @@ class FAST(_FAST, keras.Model, NestedObject):
             out["preds"] = [dict(zip(self.class_names, preds)) for preds in self.postprocessor(prob_map.numpy())]
 
         if target is not None:
-            thresh_map = self.threshold_head(feat_concat, **kwargs)
-            loss = self.compute_loss(logits, thresh_map, target)
+            loss = self.compute_loss(logits, target)
             out["loss"] = loss
 
         return out
@@ -160,9 +229,6 @@ def _fast(
         load_pretrained_params(model, _cfg["url"])
 
     return model
-
-
-
 
 
 def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:

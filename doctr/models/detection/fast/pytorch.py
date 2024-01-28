@@ -42,6 +42,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
     },
 }
 
+
 class FastNeck(nn.Module):
     """Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layers.
 
@@ -51,6 +52,7 @@ class FastNeck(nn.Module):
         out_channels: number of output channels
         upsample_size: size of the upsampling layer
     """
+
     def __init__(
         self,
         in_channels: int,
@@ -76,7 +78,12 @@ class FastHead(nn.Sequential):
 
     Args:
     ----
+        in_channels: number of input channels
+        num_classes: number of output classes
+        out_channels: number of output channels
+        dropout: dropout probability
     """
+
     def __init__(
         self,
         in_channels: int,
@@ -85,12 +92,11 @@ class FastHead(nn.Sequential):
         dropout: float = 0.1,
     ) -> None:
         _layers: List[nn.Module] = [
-                FASTConvLayer(in_channels, out_channels, kernel_size=3),
-                nn.Dropout(dropout),
-                nn.Conv2d(out_channels, num_classes, kernel_size=1, bias=False)
-            ]
+            FASTConvLayer(in_channels, out_channels, kernel_size=3),
+            nn.Dropout(dropout),
+            nn.Conv2d(out_channels, num_classes, kernel_size=1, bias=False),
+        ]
         super().__init__(*_layers)
-
 
 
 class FAST(_FAST, nn.Module):
@@ -137,7 +143,7 @@ class FAST(_FAST, nn.Module):
         if _is_training:
             self.feat_extractor = self.feat_extractor.train()
 
-        # Initialize the neck
+        # Initialize neck & head
         self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1], feat_out_channels[0] * 4)
         self.prob_head = FastHead(feat_out_channels[-1], num_classes, feat_out_channels[1], dropout_prob)
 
@@ -169,7 +175,7 @@ class FAST(_FAST, nn.Module):
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
         feats = [feats[str(idx)] for idx in range(len(feats))]
-        # Pass through the Neck
+        # Pass through the Neck & Head
         feat_concat = self.neck(feats)
         logits = self.prob_head(feat_concat)
 
@@ -202,7 +208,6 @@ class FAST(_FAST, nn.Module):
         out_map: torch.Tensor,
         target: List[np.ndarray],
     ) -> torch.Tensor:
-
         # TODO: Tversky Loss for multi-class segmentation (alpha=0.5, beta=0.5 -> same as Dice Loss)
         return torch.tensor(0.0, device=out_map.device, dtype=out_map.dtype)
 

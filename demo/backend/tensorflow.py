@@ -15,6 +15,9 @@ DET_ARCHS = [
     "linknet_resnet18",
     "linknet_resnet34",
     "linknet_resnet50",
+    "fast_tiny",
+    "fast_small",
+    "fast_base",
 ]
 RECO_ARCHS = [
     "crnn_vgg16_bn",

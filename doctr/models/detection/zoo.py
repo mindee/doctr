@@ -26,7 +26,7 @@ if is_tf_available():
         "fast_tiny",
         "fast_small",
         "fast_base",
-        ]
+    ]
 elif is_torch_available():
     ARCHS = [
         "db_resnet34",
