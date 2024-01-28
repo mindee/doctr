@@ -109,6 +109,7 @@ class FAST(_FAST, keras.Model, NestedObject):
         feature extractor: the backbone serving as feature extractor
         bin_thresh: threshold for binarization
         dropout_prob: dropout probability
+        pooling_size: size of the pooling layer
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -122,9 +123,10 @@ class FAST(_FAST, keras.Model, NestedObject):
         feature_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
         dropout_prob: float = 0.1,
+        pooling_size: int = 13,
         assume_straight_pages: bool = True,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: Optional[Dict[str, Any]] = {},
         class_names: List[str] = [CLASS_NAME],
     ) -> None:
         super().__init__()
@@ -146,8 +148,8 @@ class FAST(_FAST, keras.Model, NestedObject):
 
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
-    def _upsample(self, x: tf.Tensor, scale: int = 1) -> tf.Tensor:
-        return layers.UpSampling2D(size=scale, interpolation="bilinear")(x)
+        # Pooling layer as erosion reversal as described in the paper
+        self.pooling = layers.MaxPooling2D(pool_size=pooling_size, strides=1, padding="same")
 
     def compute_loss(
         self,
@@ -167,9 +169,10 @@ class FAST(_FAST, keras.Model, NestedObject):
         **kwargs: Any,
     ) -> Dict[str, Any]:
         feat_maps = self.feat_extractor(x, **kwargs)
-        # Pass through the Neck & Head
+        # Pass through the Neck & Head & Upsample
         feat_concat = self.neck(feat_maps, **kwargs)
-        logits = self.head(feat_concat, **kwargs)
+        logits: tf.Tensor = self.head(feat_concat, **kwargs)
+        logits = layers.UpSampling2D(size=x.shape[-2] // logits.shape[-2], interpolation="bilinear")(logits, **kwargs)
 
         out: Dict[str, tf.Tensor] = {}
         if self.exportable:
@@ -177,7 +180,7 @@ class FAST(_FAST, keras.Model, NestedObject):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_to_float32(tf.math.sigmoid(self._upsample(logits, scale=4)))
+            prob_map = _bf16_to_float32(tf.math.sigmoid(self.pooling(logits, **kwargs)))
 
         if return_model_output:
             out["out_map"] = prob_map

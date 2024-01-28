@@ -108,6 +108,7 @@ class FAST(_FAST, nn.Module):
         feat extractor: the backbone serving as feature extractor
         bin_thresh: threshold for binarization
         dropout_prob: dropout probability
+        pooling_size: size of the pooling layer
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -119,9 +120,10 @@ class FAST(_FAST, nn.Module):
         feat_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
         dropout_prob: float = 0.1,
+        pooling_size: int = 13,
         assume_straight_pages: bool = True,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: Optional[Dict[str, Any]] = {},
         class_names: List[str] = [CLASS_NAME],
     ) -> None:
         super().__init__()
@@ -149,6 +151,9 @@ class FAST(_FAST, nn.Module):
 
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
+        # Pooling layer as erosion reversal as described in the paper
+        self.pooling = nn.MaxPool2d(kernel_size=pooling_size, stride=1, padding=(pooling_size - 1) // 2)
+
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
@@ -161,10 +166,6 @@ class FAST(_FAST, nn.Module):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
 
-    def _upsample(self, x, size, scale=1):
-        _, _, H, W = size
-        return F.interpolate(x, size=(H // scale, W // scale), mode="bilinear")
-
     def forward(
         self,
         x: torch.Tensor,
@@ -175,9 +176,9 @@ class FAST(_FAST, nn.Module):
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
         feats = [feats[str(idx)] for idx in range(len(feats))]
-        # Pass through the Neck & Head
+        # Pass through the Neck & Head & Upsample
         feat_concat = self.neck(feats)
-        logits = self.prob_head(feat_concat)
+        logits = F.interpolate(self.prob_head(feat_concat), size=x.shape[-2:], mode="bilinear")
 
         out: Dict[str, Any] = {}
         if self.exportable:
@@ -185,7 +186,7 @@ class FAST(_FAST, nn.Module):
             return out
 
         if return_model_output or target is None or return_preds:
-            prob_map = _bf16_to_float32(torch.sigmoid(self._upsample(logits, x.shape)))  # TODO: correct?
+            prob_map = _bf16_to_float32(torch.sigmoid(self.pooling(logits)))
 
         if return_model_output:
             out["out_map"] = prob_map
@@ -207,9 +208,64 @@ class FAST(_FAST, nn.Module):
         self,
         out_map: torch.Tensor,
         target: List[np.ndarray],
+        eps: float = 1e-6,
     ) -> torch.Tensor:
-        # TODO: Tversky Loss for multi-class segmentation (alpha=0.5, beta=0.5 -> same as Dice Loss)
-        return torch.tensor(0.0, device=out_map.device, dtype=out_map.dtype)
+        """Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.
+
+        Args:
+        ----
+            out_map: output feature map of the model of shape (N, num_classes, H, W)
+            target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            eps: epsilon factor in dice loss
+
+        Returns:
+        -------
+            A loss tensor
+        """
+        targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
+
+        seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
+        seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
+        # TODO: Update target builder !!!!
+        # TODO: seg_target, seg_mask should be without any shrink (that's gt_texts and training_masks)
+        # TODO gt_kernels should be with shrunken (text kernels)
+
+        def ohem_single(score, gt, mask):
+            pos_num = int(torch.sum(gt > 0.5)) - int(torch.sum((gt > 0.5) & (mask <= 0.5)))
+            neg_num = int(torch.sum(gt <= 0.5))
+            neg_num = int(min(pos_num * 3, neg_num))
+
+            if neg_num == 0 or pos_num == 0:
+                return mask
+
+            neg_score_sorted, _ = torch.sort(-score[gt <= 0.5])
+            threshold = -neg_score_sorted[neg_num - 1]
+
+            selected_mask = ((score >= threshold) | (gt > 0.5)) & (mask > 0.5)
+            return selected_mask
+
+        if len(self.class_names) > 1:
+            kernels = torch.softmax(out_map, dim=1)
+            prob_map = torch.softmax(self.pooling(out_map), dim=1)
+        else:
+            kernels = torch.sigmoid(out_map)
+            prob_map = torch.sigmoid(self.pooling(out_map))  # bs x num_classes x H x W
+
+        # As described in the paper, we use the Dice loss for the text segmentation map and the Dice loss scaled by 0.5.
+        selected_masks = torch.cat(
+            [ohem_single(score, gt, mask) for score, gt, mask in zip(prob_map, seg_target, seg_mask)], 0
+        ).float()
+        inter = (selected_masks * prob_map * seg_target).sum((0, 2, 3))
+        cardinality = (selected_masks * (prob_map + seg_target)).sum((0, 2, 3))
+        text_loss = (1 - 2 * inter / (cardinality + eps)).mean() * 0.5
+
+        # As described in the paper, we use the Dice loss for the text kernel map.
+        selected_masks = seg_target * seg_mask
+        inter = (selected_masks * kernels * shrunken_kernels).sum((0, 2, 3))  # noqa
+        cardinality = (selected_masks * (kernels + shrunken_kernels)).sum((0, 2, 3))  # noqa
+        kernel_loss = (1 - 2 * inter / (cardinality + eps)).mean()
+
+        return text_loss + kernel_loss
 
 
 def _fast(
@@ -271,7 +327,7 @@ def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
         pretrained,
         textnet_tiny,
         ["3", "4", "5", "6"],
-        ignore_keys=[],  # TODO: ignore_keys
+        ignore_keys=["prob_head.2.weight"],
         **kwargs,
     )
 
@@ -300,7 +356,7 @@ def fast_small(pretrained: bool = False, **kwargs: Any) -> FAST:
         pretrained,
         textnet_small,
         ["3", "4", "5", "6"],
-        ignore_keys=[],  # TODO: ignore_keys
+        ignore_keys=["prob_head.2.weight"],
         **kwargs,
     )
 
@@ -329,6 +385,6 @@ def fast_base(pretrained: bool = False, **kwargs: Any) -> FAST:
         pretrained,
         textnet_base,
         ["3", "4", "5", "6"],
-        ignore_keys=[],  # TODO: ignore_keys
+        ignore_keys=["prob_head.2.weight"],
         **kwargs,
     )
