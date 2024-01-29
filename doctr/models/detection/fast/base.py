@@ -31,7 +31,7 @@ class FASTPostProcessor(DetectionPostProcessor):
 
     def __init__(
         self,
-        bin_thresh: float = 0.1,
+        bin_thresh: float = 0.3,
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
     ) -> None:
@@ -177,8 +177,6 @@ class _FAST(BaseModel):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
             raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
-
-        # TODO: implement target building
 
         h: int
         w: int

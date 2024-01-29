@@ -123,7 +123,7 @@ class FAST(_FAST, keras.Model, NestedObject):
         feature_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
         dropout_prob: float = 0.1,
-        pooling_size: int = 13,
+        pooling_size: int = 9,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},
@@ -175,7 +175,7 @@ class FAST(_FAST, keras.Model, NestedObject):
         seg_mask = tf.convert_to_tensor(targets[1], dtype=out_map.dtype)
         shrunken_kernel = tf.convert_to_tensor(targets[2], dtype=out_map.dtype)
 
-        def ohem_single(score: tf.Tensor, gt: tf.Tensor, mask: tf.Tensor) -> tf.Tensor:
+        def ohem(score: tf.Tensor, gt: tf.Tensor, mask: tf.Tensor) -> tf.Tensor:
             pos_num = tf.reduce_sum(tf.cast(gt > 0.5, dtype=tf.int32)) - tf.reduce_sum(
                 tf.cast((gt > 0.5) & (mask <= 0.5), dtype=tf.int32)
             )
@@ -185,8 +185,8 @@ class FAST(_FAST, keras.Model, NestedObject):
             if neg_num == 0 or pos_num == 0:
                 return mask
 
-            neg_score_sorted, _ = tf.math.top_k(-tf.boolean_mask(score, gt <= 0.5), k=tf.cast(neg_num, dtype=tf.int32))
-            threshold = -neg_score_sorted[-1]
+            neg_score_sorted, _ = tf.nn.top_k(-tf.boolean_mask(score, gt <= 0.5), k=neg_num)
+            threshold = -neg_score_sorted[:, -1]
 
             selected_mask = tf.math.logical_and((score >= threshold) | (gt > 0.5), (mask > 0.5))
             return tf.cast(selected_mask, dtype=tf.float32)
@@ -198,13 +198,9 @@ class FAST(_FAST, keras.Model, NestedObject):
             kernels = tf.sigmoid(out_map)
             prob_map = tf.sigmoid(self.pooling(out_map))
 
-        selected_masks = tf.concat(
-            [ohem_single(score, gt, mask) for score, gt, mask in zip(prob_map, seg_target, seg_mask)], axis=0
-        )
-        print(selected_masks.shape)
-        print(prob_map.shape)
-        print(seg_target.shape)
-        # TODO: Fix OHEM
+        # TODO: check targets and fix loss
+
+        selected_masks = ohem(prob_map, seg_target, seg_mask)
         inter = tf.reduce_sum(selected_masks * prob_map * seg_target, axis=(0, 1, 2))
         cardinality = tf.reduce_sum(selected_masks * (prob_map + seg_target), axis=(0, 1, 2))
         eps = 1e-5

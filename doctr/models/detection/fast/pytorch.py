@@ -120,7 +120,7 @@ class FAST(_FAST, nn.Module):
         feat_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
         dropout_prob: float = 0.1,
-        pooling_size: int = 13,
+        pooling_size: int = 9,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},
@@ -152,7 +152,7 @@ class FAST(_FAST, nn.Module):
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
         # Pooling layer as erosion reversal as described in the paper
-        self.pooling = nn.MaxPool2d(kernel_size=pooling_size, stride=1, padding=(pooling_size - 1) // 2)
+        self.pooling = nn.MaxPool2d(kernel_size=pooling_size // 2 + 1, stride=1, padding=(pooling_size // 2) // 2)
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
@@ -227,9 +227,8 @@ class FAST(_FAST, nn.Module):
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         shrunken_kernel = torch.from_numpy(targets[2]).to(out_map.device)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
-        # TODO: Update/Check target building !!!!
 
-        def ohem_single(score: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
+        def ohem_sample(score: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
             pos_num = int(torch.sum(gt > 0.5)) - int(torch.sum((gt > 0.5) & (mask <= 0.5)))
             neg_num = int(torch.sum(gt <= 0.5))
             neg_num = int(min(pos_num * 3, neg_num))
@@ -241,18 +240,18 @@ class FAST(_FAST, nn.Module):
             threshold = -neg_score_sorted[neg_num - 1]
 
             selected_mask = ((score >= threshold) | (gt > 0.5)) & (mask > 0.5)
-            return selected_mask
+            return selected_mask.unsqueeze(1).float()
 
         if len(self.class_names) > 1:
             kernels = torch.softmax(out_map, dim=1)
             prob_map = torch.softmax(self.pooling(out_map), dim=1)
         else:
             kernels = torch.sigmoid(out_map)
-            prob_map = torch.sigmoid(self.pooling(out_map))  # bs x num_classes x H x W
+            prob_map = torch.sigmoid(self.pooling(out_map))
 
         # As described in the paper, we use the Dice loss for the text segmentation map and the Dice loss scaled by 0.5.
         selected_masks = torch.cat(
-            [ohem_single(score, gt, mask) for score, gt, mask in zip(prob_map, seg_target, seg_mask)], 0
+            [ohem_sample(score, gt, mask) for score, gt, mask in zip(prob_map, seg_target, seg_mask)], 0
         ).float()
         inter = (selected_masks * prob_map * seg_target).sum((0, 2, 3))
         cardinality = (selected_masks * (prob_map + seg_target)).sum((0, 2, 3))
