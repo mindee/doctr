@@ -50,25 +50,25 @@ class FastNeck(nn.Module):
     ----
         in_channels: number of input channels
         out_channels: number of output channels
-        upsample_size: size of the upsampling layer
     """
 
     def __init__(
         self,
         in_channels: int,
         out_channels: int = 128,
-        upsample_size: int = 256,
     ) -> None:
         super().__init__()
         self.reduction = nn.ModuleList([
             FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]
         ])
-        self.upsample = nn.Upsample(size=upsample_size, mode="bilinear", align_corners=False)
+
+    def _upsample(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        return F.interpolate(x, size=y.shape[-2:], mode="bilinear")
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         f1, f2, f3, f4 = x
         f1, f2, f3, f4 = [reduction(f) for reduction, f in zip(self.reduction, (f1, f2, f3, f4))]
-        f2, f3, f4 = [self.upsample(f) for f in (f2, f3, f4)]
+        f2, f3, f4 = [self._upsample(f, f1) for f in (f2, f3, f4)]
         f = torch.cat((f1, f2, f3, f4), 1)
         return f
 
@@ -146,7 +146,7 @@ class FAST(_FAST, nn.Module):
             self.feat_extractor = self.feat_extractor.train()
 
         # Initialize neck & head
-        self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1], feat_out_channels[0] * 4)
+        self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1])
         self.prob_head = FastHead(feat_out_channels[-1], num_classes, feat_out_channels[1], dropout_prob)
 
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
@@ -229,8 +229,8 @@ class FAST(_FAST, nn.Module):
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
 
         def ohem_sample(score: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-            pos_num = int(torch.sum(gt > 0.5)) - int(torch.sum((gt > 0.5) & (mask <= 0.5)))
-            neg_num = int(torch.sum(gt <= 0.5))
+            pos_num = int(torch.sum(gt > 0.5)) - int(torch.sum((gt > 0.5) & (mask <= 0.5)))  # type: ignore[call-overload]
+            neg_num = int(torch.sum(gt <= 0.5))  # type: ignore[call-overload]
             neg_num = int(min(pos_num * 3, neg_num))
 
             if neg_num == 0 or pos_num == 0:

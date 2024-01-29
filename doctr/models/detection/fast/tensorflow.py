@@ -53,23 +53,23 @@ class FastNeck(layers.Layer, NestedObject):
     ----
         in_channels: number of input channels
         out_channels: number of output channels
-        upsample_size: size of the upsampling layer
     """
 
     def __init__(
         self,
         in_channels: int,
         out_channels: int = 128,
-        upsample_size: int = 256,
     ) -> None:
         super().__init__()
         self.reduction = [FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]]
-        self.upsample = [layers.UpSampling2D(size=scale, interpolation="bilinear") for scale in [2, 4, 8]]
+
+    def _upsample(self, x: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+        return tf.image.resize(x, size=y.shape[1:3], method="bilinear")
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
         f1, f2, f3, f4 = x
         f1, f2, f3, f4 = [reduction(f, **kwargs) for reduction, f in zip(self.reduction, (f1, f2, f3, f4))]
-        f2, f3, f4 = [upsample(f) for upsample, f in zip(self.upsample, (f2, f3, f4))]
+        f2, f3, f4 = [self._upsample(f, f1) for f in (f2, f3, f4)]
         f = tf.concat((f1, f2, f3, f4), axis=-1)
         return f
 
@@ -143,13 +143,13 @@ class FAST(_FAST, keras.Model, NestedObject):
             layers.Input(shape=in_shape[1:]).shape[-1] for in_shape in self.feat_extractor.output_shape
         ]
         # Initialize neck & head
-        self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1], feat_out_channels[0] * 4)
+        self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1])
         self.head = FastHead(feat_out_channels[-1], num_classes, feat_out_channels[1], dropout_prob)
 
         self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
 
         # Pooling layer as erosion reversal as described in the paper
-        self.pooling = layers.MaxPooling2D(pool_size=pooling_size, strides=1, padding="same")
+        self.pooling = layers.MaxPooling2D(pool_size=pooling_size // 2 + 1, strides=1, padding="same")
 
     def compute_loss(
         self,
@@ -169,7 +169,7 @@ class FAST(_FAST, keras.Model, NestedObject):
         -------
             A loss tensor
         """
-        targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
+        targets = self.build_target(target, out_map.shape[1:], True)
 
         seg_target = tf.convert_to_tensor(targets[0], dtype=out_map.dtype)
         seg_mask = tf.convert_to_tensor(targets[1], dtype=out_map.dtype)
@@ -186,7 +186,7 @@ class FAST(_FAST, keras.Model, NestedObject):
                 return mask
 
             neg_score_sorted, _ = tf.nn.top_k(-tf.boolean_mask(score, gt <= 0.5), k=neg_num)
-            threshold = -neg_score_sorted[:, -1]
+            threshold = -neg_score_sorted[-1]
 
             selected_mask = tf.math.logical_and((score >= threshold) | (gt > 0.5), (mask > 0.5))
             return tf.cast(selected_mask, dtype=tf.float32)
@@ -197,8 +197,6 @@ class FAST(_FAST, keras.Model, NestedObject):
         else:
             kernels = tf.sigmoid(out_map)
             prob_map = tf.sigmoid(self.pooling(out_map))
-
-        # TODO: check targets and fix loss
 
         selected_masks = ohem(prob_map, seg_target, seg_mask)
         inter = tf.reduce_sum(selected_masks * prob_map * seg_target, axis=(0, 1, 2))
