@@ -36,7 +36,7 @@ class FASTPostProcessor(DetectionPostProcessor):
         assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
-        self.unclip_ratio = 1.5
+        self.unclip_ratio = 1.0
 
     def polygon_to_box(
         self,
@@ -153,14 +153,14 @@ class _FAST(BaseModel):
 
     min_size_box: int = 3
     assume_straight_pages: bool = True
-    shrink_ratio = 0.5
+    shrink_ratio = 0.1
 
     def build_target(
         self,
         target: List[Dict[str, np.ndarray]],
         output_shape: Tuple[int, int, int],
         channels_last: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
 
         Args:
@@ -171,7 +171,7 @@ class _FAST(BaseModel):
 
         Returns:
         -------
-            the new formatted target and the mask
+            the new formatted target, mask and shrunken text kernel
         """
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -190,6 +190,7 @@ class _FAST(BaseModel):
 
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
         seg_mask: np.ndarray = np.ones(target_shape, dtype=bool)
+        shrunken_kernel: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
 
         for idx, tgt in enumerate(target):
             for class_idx, _tgt in enumerate(tgt.values()):
@@ -244,11 +245,14 @@ class _FAST(BaseModel):
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(shrunken_kernel[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    # draw the original polygon on the segmentation target
+                    cv2.fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)
 
         # Don't forget to switch back to channel last if Tensorflow is used
         if channels_last:
             seg_target = seg_target.transpose((0, 2, 3, 1))
             seg_mask = seg_mask.transpose((0, 2, 3, 1))
+            shrunken_kernel = shrunken_kernel.transpose((0, 2, 3, 1))
 
-        return seg_target, seg_mask
+        return seg_target, seg_mask, shrunken_kernel

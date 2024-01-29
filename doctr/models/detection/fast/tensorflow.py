@@ -155,10 +155,67 @@ class FAST(_FAST, keras.Model, NestedObject):
         self,
         out_map: tf.Tensor,
         target: List[Dict[str, np.ndarray]],
+        eps: float = 1e-6,
     ) -> tf.Tensor:
-        # TODO: same as pytorch
+        """Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.
 
-        return tf.constant(0.0)
+        Args:
+        ----
+            out_map: output feature map of the model of shape (N, num_classes, H, W)
+            target: list of dictionary where each dict has a `boxes` and a `flags` entry
+            eps: epsilon factor in dice loss
+
+        Returns:
+        -------
+            A loss tensor
+        """
+        targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
+
+        seg_target = tf.convert_to_tensor(targets[0], dtype=out_map.dtype)
+        seg_mask = tf.convert_to_tensor(targets[1], dtype=out_map.dtype)
+        shrunken_kernel = tf.convert_to_tensor(targets[2], dtype=out_map.dtype)
+
+        def ohem_single(score: tf.Tensor, gt: tf.Tensor, mask: tf.Tensor) -> tf.Tensor:
+            pos_num = tf.reduce_sum(tf.cast(gt > 0.5, dtype=tf.int32)) - tf.reduce_sum(
+                tf.cast((gt > 0.5) & (mask <= 0.5), dtype=tf.int32)
+            )
+            neg_num = tf.reduce_sum(tf.cast(gt <= 0.5, dtype=tf.int32))
+            neg_num = tf.minimum(pos_num * 3, neg_num)
+
+            if neg_num == 0 or pos_num == 0:
+                return mask
+
+            neg_score_sorted, _ = tf.math.top_k(-tf.boolean_mask(score, gt <= 0.5), k=tf.cast(neg_num, dtype=tf.int32))
+            threshold = -neg_score_sorted[-1]
+
+            selected_mask = tf.math.logical_and((score >= threshold) | (gt > 0.5), (mask > 0.5))
+            return tf.cast(selected_mask, dtype=tf.float32)
+
+        if len(self.class_names) > 1:
+            kernels = tf.nn.softmax(out_map, axis=-1)
+            prob_map = tf.nn.softmax(self.pooling(out_map), axis=-1)
+        else:
+            kernels = tf.sigmoid(out_map)
+            prob_map = tf.sigmoid(self.pooling(out_map))
+
+        selected_masks = tf.concat(
+            [ohem_single(score, gt, mask) for score, gt, mask in zip(prob_map, seg_target, seg_mask)], axis=0
+        )
+        print(selected_masks.shape)
+        print(prob_map.shape)
+        print(seg_target.shape)
+        # TODO: Fix OHEM
+        inter = tf.reduce_sum(selected_masks * prob_map * seg_target, axis=(0, 1, 2))
+        cardinality = tf.reduce_sum(selected_masks * (prob_map + seg_target), axis=(0, 1, 2))
+        eps = 1e-5
+        text_loss = tf.reduce_mean((1 - 2 * inter / (cardinality + eps)) * 0.5)
+
+        selected_masks = seg_target * seg_mask
+        inter = tf.reduce_sum(selected_masks * kernels * shrunken_kernel, axis=(0, 1, 2))
+        cardinality = tf.reduce_sum(selected_masks * (kernels + shrunken_kernel), axis=(0, 1, 2))
+        kernel_loss = tf.reduce_mean((1 - 2 * inter / (cardinality + eps)))
+
+        return text_loss + kernel_loss
 
     def call(
         self,

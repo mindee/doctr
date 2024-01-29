@@ -225,12 +225,11 @@ class FAST(_FAST, nn.Module):
         targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
+        shrunken_kernel = torch.from_numpy(targets[2]).to(out_map.device)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
-        # TODO: Update target builder !!!!
-        # TODO: seg_target, seg_mask should be without any shrink (that's gt_texts and training_masks)
-        # TODO gt_kernels should be with shrunken (text kernels)
+        # TODO: Update/Check target building !!!!
 
-        def ohem_single(score, gt, mask):
+        def ohem_single(score: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
             pos_num = int(torch.sum(gt > 0.5)) - int(torch.sum((gt > 0.5) & (mask <= 0.5)))
             neg_num = int(torch.sum(gt <= 0.5))
             neg_num = int(min(pos_num * 3, neg_num))
@@ -261,8 +260,8 @@ class FAST(_FAST, nn.Module):
 
         # As described in the paper, we use the Dice loss for the text kernel map.
         selected_masks = seg_target * seg_mask
-        inter = (selected_masks * kernels * shrunken_kernels).sum((0, 2, 3))  # noqa
-        cardinality = (selected_masks * (kernels + shrunken_kernels)).sum((0, 2, 3))  # noqa
+        inter = (selected_masks * kernels * shrunken_kernel).sum((0, 2, 3))  # noqa
+        cardinality = (selected_masks * (kernels + shrunken_kernel)).sum((0, 2, 3))  # noqa
         kernel_loss = (1 - 2 * inter / (cardinality + eps)).mean()
 
         return text_loss + kernel_loss
