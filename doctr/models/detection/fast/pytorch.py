@@ -231,11 +231,10 @@ class FAST(_FAST, nn.Module):
         def ohem_sample(score: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
             masks = []
             for class_idx in range(gt.shape[0]):
-                pos_num = (
-                    int(torch.sum(gt[class_idx] > 0.5))  # type: ignore[call-overload]
-                    - int(torch.sum((gt[class_idx] > 0.5) & (mask[class_idx] <= 0.5)))  # type: ignore[call-overload]
+                pos_num = int(torch.sum(gt[class_idx] > 0.5)) - int(
+                    torch.sum((gt[class_idx] > 0.5) & (mask[class_idx] <= 0.5))
                 )
-                neg_num = int(torch.sum(gt[class_idx] <= 0.5))  # type: ignore[call-overload]
+                neg_num = int(torch.sum(gt[class_idx] <= 0.5))
                 neg_num = int(min(pos_num * 3, neg_num))
 
                 if neg_num == 0 or pos_num == 0:
