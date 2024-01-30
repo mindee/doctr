@@ -198,12 +198,15 @@ class FAST(_FAST, keras.Model, NestedObject):
             kernels = tf.sigmoid(out_map)
             prob_map = tf.sigmoid(self.pooling(out_map))
 
-        selected_masks = ohem(prob_map, seg_target, seg_mask)
+        # As described in the paper, we use the Dice loss for the text segmentation map and the Dice loss scaled by 0.5.
+        selected_masks = tf.stack(
+            [ohem(score, gt, mask) for score, gt, mask in zip(prob_map, seg_target, seg_mask)], axis=0
+        )
         inter = tf.reduce_sum(selected_masks * prob_map * seg_target, axis=(0, 1, 2))
         cardinality = tf.reduce_sum(selected_masks * (prob_map + seg_target), axis=(0, 1, 2))
-        eps = 1e-5
-        text_loss = tf.reduce_mean((1 - 2 * inter / (cardinality + eps)) * 0.5)
+        text_loss = tf.reduce_mean((1 - 2 * inter / (cardinality + eps))) * 0.5
 
+        # As described in the paper, we use the Dice loss for the text kernel map.
         selected_masks = seg_target * seg_mask
         inter = tf.reduce_sum(selected_masks * kernels * shrunken_kernel, axis=(0, 1, 2))
         cardinality = tf.reduce_sum(selected_masks * (kernels + shrunken_kernel), axis=(0, 1, 2))

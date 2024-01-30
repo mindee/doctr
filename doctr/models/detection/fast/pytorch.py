@@ -229,18 +229,26 @@ class FAST(_FAST, nn.Module):
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
 
         def ohem_sample(score: torch.Tensor, gt: torch.Tensor, mask: torch.Tensor) -> torch.Tensor:
-            pos_num = int(torch.sum(gt > 0.5)) - int(torch.sum((gt > 0.5) & (mask <= 0.5)))  # type: ignore[call-overload]
-            neg_num = int(torch.sum(gt <= 0.5))  # type: ignore[call-overload]
-            neg_num = int(min(pos_num * 3, neg_num))
+            masks = []
+            for class_idx in range(gt.shape[0]):
+                pos_num = (
+                    int(torch.sum(gt[class_idx] > 0.5))  # type: ignore[call-overload]
+                    - int(torch.sum((gt[class_idx] > 0.5) & (mask[class_idx] <= 0.5)))  # type: ignore[call-overload]
+                )
+                neg_num = int(torch.sum(gt[class_idx] <= 0.5))  # type: ignore[call-overload]
+                neg_num = int(min(pos_num * 3, neg_num))
 
-            if neg_num == 0 or pos_num == 0:
-                return mask
+                if neg_num == 0 or pos_num == 0:
+                    masks.append(mask[class_idx])
+                    continue
 
-            neg_score_sorted, _ = torch.sort(-score[gt <= 0.5])
-            threshold = -neg_score_sorted[neg_num - 1]
+                neg_score_sorted, _ = torch.sort(-score[class_idx][gt[class_idx] <= 0.5])
+                threshold = -neg_score_sorted[neg_num - 1]
 
-            selected_mask = ((score >= threshold) | (gt > 0.5)) & (mask > 0.5)
-            return selected_mask.unsqueeze(1).float()
+                selected_mask = ((score[class_idx] >= threshold) | (gt[class_idx] > 0.5)) & (mask[class_idx] > 0.5)
+                masks.append(selected_mask)
+            # combine all masks to shape (len(masks), H, W)
+            return torch.stack(masks).unsqueeze(0).float()
 
         if len(self.class_names) > 1:
             kernels = torch.softmax(out_map, dim=1)

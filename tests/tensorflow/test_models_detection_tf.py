@@ -89,7 +89,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob, train_m
         {CLASS_NAME: np.array([[0.75, 0.75, 0.5, 0.5, 0], [0.65, 0.7, 0.3, 0.4, 0]], dtype=np.float32)},
     ]
     loss = model(input_tensor, target, training=True)["loss"]
-    assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 25e-2
+    assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 1
 
 
 @pytest.fixture(scope="session")

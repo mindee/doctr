@@ -153,7 +153,7 @@ class _FAST(BaseModel):
 
     min_size_box: int = 3
     assume_straight_pages: bool = True
-    shrink_ratio = 0.1
+    shrink_ratio = 0.2
 
     def build_target(
         self,
@@ -245,7 +245,7 @@ class _FAST(BaseModel):
                         continue
                     cv2.fillPoly(shrunken_kernel[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
                     # draw the original polygon on the segmentation target
-                    cv2.fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)
+                    cv2.fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)  # type: ignore[call-overload]
 
         # Don't forget to switch back to channel last if Tensorflow is used
         if channels_last:

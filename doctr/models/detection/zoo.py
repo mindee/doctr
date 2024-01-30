@@ -52,7 +52,7 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
             assume_straight_pages=assume_straight_pages,
         )
     else:
-        if not isinstance(arch, (detection.DBNet, detection.LinkNet)):
+        if not isinstance(arch, (detection.DBNet, detection.LinkNet, detection.FAST)):
             raise ValueError(f"unknown architecture: {type(arch)}")
 
         _model = arch
