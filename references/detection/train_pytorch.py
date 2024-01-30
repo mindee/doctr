@@ -17,7 +17,7 @@ import numpy as np
 import psutil
 import torch
 import wandb
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
 from tqdm.auto import tqdm
@@ -335,6 +335,8 @@ def main(args):
         scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
     elif args.sched == "onecycle":
         scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(train_loader))
+    elif args.sched == "poly":
+        scheduler = PolynomialLR(optimizer, args.epochs * len(train_loader))
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
