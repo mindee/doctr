@@ -120,7 +120,7 @@ class FAST(_FAST, nn.Module):
         feat_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
         dropout_prob: float = 0.1,
-        pooling_size: int = 9,
+        pooling_size: int = 4,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},
