@@ -49,8 +49,6 @@ def main(det_archs, reco_archs):
     # Sidebar
     # File selection
     st.sidebar.title("Document selection")
-    # Disabling warning
-    st.set_option("deprecation.showfileUploaderEncoding", False)
     # Choose your own image
     uploaded_file = st.sidebar.file_uploader("Upload files", type=["pdf", "png", "jpeg", "jpg"])
     if uploaded_file is not None:
