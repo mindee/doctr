@@ -49,8 +49,6 @@ def main(det_archs, reco_archs):
     # Sidebar
     # File selection
     st.sidebar.title("Document selection")
-    # Disabling warning
-    st.set_option("deprecation.showfileUploaderEncoding", False)
     # Choose your own image
     uploaded_file = st.sidebar.file_uploader("Upload files", type=["pdf", "png", "jpeg", "jpg"])
     if uploaded_file is not None:
@@ -116,7 +114,7 @@ def main(det_archs, reco_archs):
 
                 # Display JSON
                 st.markdown("\nHere are your analysis results in JSON format:")
-                st.json(page_export)
+                st.json(page_export, expanded=False)
 
 
 if __name__ == "__main__":
