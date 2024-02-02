@@ -268,14 +268,25 @@ def main(args):
         plot_samples(x, target)
         return
 
+    # Scheduler
+    if args.sched == "exponential":
+        scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+            args.lr,
+            decay_steps=args.epochs * len(train_loader),
+            decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
+            staircase=False,
+            name="ExponentialDecay",
+        )
+    elif args.sched == "poly":
+        scheduler = tf.keras.optimizers.schedules.PolynomialDecay(
+            args.lr,
+            decay_steps=args.epochs * len(train_loader),
+            end_learning_rate=1e-7,
+            power=1.0,
+            cycle=False,
+            name="PolynomialDecay",
+        )
     # Optimizer
-    scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
-        args.lr,
-        decay_steps=args.epochs * len(train_loader),
-        decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
-        staircase=False,
-        name="ExponentialDecay",
-    )
     optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
@@ -408,6 +419,9 @@ def parse_args():
         "--eval-straight",
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
+    )
+    parser.add_argument(
+        "--sched", type=str, default="poly", choices=["exponential", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
