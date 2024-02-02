@@ -421,7 +421,7 @@ def parse_args():
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
     parser.add_argument(
-        "--sched", type=str, default="exponential", choices=["exponential", "poly"], help="scheduler to use"
+        "--sched", type=str, default="poly", choices=["exponential", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
