@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any
+from typing import Any, Callable, List
 
 from .detection.zoo import detection_predictor
 from .kie_predictor import KIEPredictor
@@ -26,6 +26,7 @@ def _predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    callbacks: List[Callable] = [],
     **kwargs,
 ) -> OCRPredictor:
     # Detection
@@ -56,6 +57,7 @@ def _predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        callbacks=callbacks,
         **kwargs,
     )
 
@@ -72,6 +74,7 @@ def ocr_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    callbacks: List[Callable] = [],
     **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -105,6 +108,7 @@ def ocr_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        callbacks: list of callbacks to be applied to the OCR pipelines `loc_preds`
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -123,6 +127,7 @@ def ocr_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        callbacks=callbacks,
         **kwargs,
     )
 
@@ -140,6 +145,7 @@ def _kie_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    callbacks: List[Callable] = [],
     **kwargs,
 ) -> KIEPredictor:
     # Detection
@@ -170,6 +176,7 @@ def _kie_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        callbacks=callbacks,
         **kwargs,
     )
 
@@ -186,6 +193,7 @@ def kie_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    callbacks: List[Callable] = [],
     **kwargs: Any,
 ) -> KIEPredictor:
     """End-to-end KIE architecture using one model for localization, and another for text recognition.
@@ -219,6 +227,7 @@ def kie_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        callbacks: list of callbacks to be applied to the OCR pipelines `loc_preds`
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -237,5 +246,6 @@ def kie_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        callbacks=callbacks,
         **kwargs,
     )

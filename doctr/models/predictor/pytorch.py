@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Union
+from typing import Any, Callable, List, Union
 
 import numpy as np
 import torch
@@ -36,6 +36,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        callbacks: list of callbacks to be applied to the OCR pipelines `loc_preds`
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -49,6 +50,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,
+        callbacks: List[Callable] = [],
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
@@ -59,6 +61,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         )
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
+        self.callbacks = callbacks
 
     @torch.inference_mode()
     def forward(
@@ -107,6 +110,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Rectify crops if aspect ratio
         loc_preds = self._remove_padding(pages, loc_preds)
+
+        # Apply callbacks to loc_preds if any
+        for callback in self.callbacks:
+            loc_preds = callback(loc_preds)
 
         # Crop images
         crops, loc_preds = self._prepare_crops(
