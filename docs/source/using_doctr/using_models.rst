@@ -398,3 +398,48 @@ For reference, here is a sample XML byte string output:
       </div>
     </body>
   </html>
+
+
+Advanced options
+^^^^^^^^^^^^^^^^
+We provide a few advanced options to customize the behavior of the predictor to your needs:
+
+* Modify the binarization threshold for the detection model.
+* Modify the box threshold for the detection model.
+
+This is useful to detect (possible less) text regions more accurately with a higher threshold, or to detect more text regions with a lower threshold.
+
+
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import ocr_predictor
+    predictor = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+
+    # Modify the binarization threshold and the box threshold
+    predictor.det_predictor.model.postprocessor.bin_thresh = 0.5
+    predictor.det_predictor.model.postprocessor.box_thresh = 0.2
+
+    input_page = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
+    out = predictor([input_page])
+
+
+* Add a hook to the `ocr_predictor` to manipulate the location predictions before the crops are passed to the recognition model.
+
+.. code:: python3
+
+    from doctr.model import ocr_predictor
+
+    class CustomHook:
+        def __call__(self, loc_preds):
+            # Manipulate the location predictions here
+            # The outpout structure needs to be the same as the input location predictions
+            return loc_preds
+
+    my_hook = CustomHook()
+
+    predictor = ocr_predictor(pretrained=True)
+    # Add a hook in the middle of the pipeline
+    predictor.add_hook(my_hook)
+    # You can also add multiple hooks which will be executed sequentially
+    [predictor.add_hook(hook) for hook in [my_hook, my_hook, my_hook]]

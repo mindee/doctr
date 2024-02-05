@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import numpy as np
 import tensorflow as tf
@@ -36,7 +36,6 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
-        callbacks: list of callbacks to be applied to the OCR pipelines `loc_preds`
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -52,7 +51,6 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,
-        callbacks: List[Callable] = [],
         **kwargs: Any,
     ) -> None:
         self.det_predictor = det_predictor
@@ -62,7 +60,6 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         )
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
-        self.callbacks = callbacks
 
     def __call__(
         self,
@@ -106,9 +103,9 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         # Rectify crops if aspect ratio
         dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
 
-        # Apply callbacks to loc_preds if any
-        for callback in self.callbacks:
-            dict_loc_preds = callback(dict_loc_preds)
+        # Apply hooks to loc_preds if any
+        for hook in self.hooks:
+            dict_loc_preds = hook(dict_loc_preds)
 
         # Crop images
         crops = {}

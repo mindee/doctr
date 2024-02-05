@@ -126,8 +126,9 @@ def test_trained_ocr_predictor(mock_payslip):
         straighten_pages=True,
         preserve_aspect_ratio=True,
         symmetric_pad=True,
-        callbacks=[_DummyCallback()],
     )
+    # test hooks
+    predictor.add_hook(_DummyCallback())
 
     out = predictor(doc)
 
@@ -210,8 +211,9 @@ def test_trained_kie_predictor(mock_payslip):
         assume_straight_pages=True,
         straighten_pages=True,
         preserve_aspect_ratio=False,
-        callbacks=[_DummyCallback()],
     )
+    # test hooks
+    predictor.add_hook(_DummyCallback())
 
     out = predictor(doc)
 

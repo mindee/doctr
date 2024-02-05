@@ -112,6 +112,8 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
+        bin_tresh: threshold for binarization
+        box_thresh: minimal objectness score to consider a box
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -125,6 +127,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         feature_extractor: IntermediateLayerGetter,
         fpn_channels: int = 128,  # to be set to 256 to represent the author's initial idea
         bin_thresh: float = 0.3,
+        box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -159,7 +162,9 @@ class DBNet(_DBNet, keras.Model, NestedObject):
             layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
         ])
 
-        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
+        self.postprocessor = DBPostProcessor(
+            assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh, box_thresh=box_thresh
+        )
 
     def compute_loss(
         self,

@@ -100,6 +100,8 @@ class DBNet(_DBNet, nn.Module):
         feature extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
+        bin_thresh: threshold for binarization
+        box_thresh: minimal objectness score to consider a box
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -112,6 +114,7 @@ class DBNet(_DBNet, nn.Module):
         head_chans: int = 256,
         deform_conv: bool = False,
         bin_thresh: float = 0.3,
+        box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -160,7 +163,9 @@ class DBNet(_DBNet, nn.Module):
             nn.ConvTranspose2d(head_chans // 4, num_classes, 2, stride=2),
         )
 
-        self.postprocessor = DBPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
+        self.postprocessor = DBPostProcessor(
+            assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh, box_thresh=box_thresh
+        )
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone

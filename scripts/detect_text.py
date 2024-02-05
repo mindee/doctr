@@ -62,6 +62,7 @@ def main(args):
     detection_model = detection.__dict__[args.detection](
         pretrained=True,
         bin_thresh=args.bin_thresh,
+        box_thresh=args.box_thresh,
     )
     model = ocr_predictor(detection_model, args.recognition, pretrained=True)
     path = Path(args.path)
@@ -86,6 +87,7 @@ def parse_args():
     parser.add_argument("path", type=str, help="Path to process: PDF, image, directory")
     parser.add_argument("--detection", type=str, default="db_resnet50", help="Text detection model to use for analysis")
     parser.add_argument("--bin-thresh", type=float, default=0.3, help="Binarization threshold for the detection model.")
+    parser.add_argument("--box-thresh", type=float, default=0.1, help="Threshold for the detection boxes.")
     parser.add_argument(
         "--recognition", type=str, default="crnn_vgg16_bn", help="Text recognition model to use for analysis"
     )
