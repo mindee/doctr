@@ -112,7 +112,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
     ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
-        bin_tresh: threshold for binarization
+        bin_thresh: threshold for binarization
         box_thresh: minimal objectness score to consider a box
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
