@@ -48,7 +48,7 @@ class _OCRPredictor:
         self.doc_builder = DocumentBuilder(**kwargs)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
-        self.hooks = []
+        self.hooks: List[Callable] = []
 
     @staticmethod
     def _generate_crops(
@@ -152,4 +152,10 @@ class _OCRPredictor:
         return loc_preds, text_preds
 
     def add_hook(self, hook: Callable) -> None:
+        """Add a hook to the predictor
+
+        Args:
+        ----
+            hook: a callable that takes as input the `loc_preds` and returns the modified `loc_preds`
+        """
         self.hooks.append(hook)
