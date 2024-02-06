@@ -1,18 +1,18 @@
-name: pypi-publish
+name: publish
 
 on:
   release:
     types: [published]
 
 jobs:
-
-  pypi-publish:
-    runs-on: ${{ matrix.os }}
+  pypi:
+    if: "!github.event.release.prerelease"
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python: ["3.8"]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python
@@ -44,14 +44,14 @@ jobs:
           twine upload dist/*
 
   pypi-check:
+    needs: pypi
     if: "!github.event.release.prerelease"
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
         python: ["3.8"]
-    needs: pypi-publish
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.8
@@ -64,3 +64,45 @@ jobs:
           python -m pip install --upgrade pip
           pip install python-doctr
           python -c "import doctr; print(doctr.__version__)"
+
+  conda:
+    if: "!github.event.release.prerelease"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.8
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: conda install -y conda-build conda-verify anaconda-client
+      - name: Get release tag
+        id: release_tag
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Build and publish
+        shell: bash -el {0}
+        env:
+          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+          VERSION: ${{ steps.release_tag.outputs.VERSION }}
+        run: |
+          echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
+          python setup.py sdist
+          mkdir conda-dist
+          conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
+          ls -l conda-dist/noarch/*tar.bz2
+          anaconda upload conda-dist/noarch/*tar.bz2
+
+  conda-check:
+    if: "!github.event.release.prerelease"
+    runs-on: ubuntu-latest
+    needs: conda
+    steps:
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.8
+      - name: Install package
+        shell: bash -el {0}
+        run: |
+          conda install -c mindee doctr

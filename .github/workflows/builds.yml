@@ -49,3 +49,22 @@ jobs:
           pip install -e .[torch] --upgrade
       - name: Import package
         run: python -c "import doctr; print(doctr.__version__)"
+
+  conda:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: 3.8
+      - name: Install dependencies
+        shell: bash -el {0}
+        run: conda install -y conda-build conda-verify anaconda-client
+      - name: Build and publish
+        shell: bash -el {0}
+        run: |
+          python setup.py sdist
+          mkdir conda-dist
+          conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
+          ls -l conda-dist/noarch/*tar.bz2
