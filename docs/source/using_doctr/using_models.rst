@@ -433,7 +433,8 @@ This is useful to detect (possible less) text regions more accurately with a hig
     class CustomHook:
         def __call__(self, loc_preds):
             # Manipulate the location predictions here
-            # The outpout structure needs to be the same as the input location predictions
+            # 1. The outpout structure needs to be the same as the input location predictions
+            # 2. Be aware that the coordinates are relative and needs to be between 0 and 1
             return loc_preds
 
     my_hook = CustomHook()
@@ -442,4 +443,5 @@ This is useful to detect (possible less) text regions more accurately with a hig
     # Add a hook in the middle of the pipeline
     predictor.add_hook(my_hook)
     # You can also add multiple hooks which will be executed sequentially
-    [predictor.add_hook(hook) for hook in [my_hook, my_hook, my_hook]]
+    for hook in [my_hook, my_hook, my_hook]:
+        predictor.add_hook(hook)
