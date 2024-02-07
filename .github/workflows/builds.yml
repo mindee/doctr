@@ -55,7 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
-        continue-on-error: true
+      #  continue-on-error: true
         with:
           auto-update-conda: true
           python-version: 3.8
