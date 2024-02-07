@@ -14,7 +14,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.8"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -47,7 +47,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.8"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -80,7 +80,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.8"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -112,7 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ pytest-common, pytest-tf, pytest-torch ]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v3
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3

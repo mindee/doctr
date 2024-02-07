@@ -10,7 +10,7 @@ jobs:
   docker-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build docker image
         run: docker build -t doctr-tf-py3.8-slim --build-arg SYSTEM=cpu .
       - name: Run docker container
@@ -23,7 +23,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.8"]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
