@@ -53,7 +53,7 @@ jobs:
   conda:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
         #continue-on-error: true
         with:
