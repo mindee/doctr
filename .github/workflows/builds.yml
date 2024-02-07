@@ -67,4 +67,4 @@ jobs:
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
-          ls -l conda-dist/noarch/*tar.bz2
+          conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
