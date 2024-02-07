@@ -63,7 +63,7 @@ jobs:
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
       - name: Build
-      #  shell: bash -el {0}
+        shell: bash -el {0}
         run: |
           python setup.py sdist
           mkdir conda-dist
