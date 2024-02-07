@@ -71,9 +71,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
+        continue-on-error: true
         with:
           auto-update-conda: true
           python-version: 3.8
+          channels: pypdfium2-team,bblanchon,conda-forge
+          channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
@@ -89,7 +92,7 @@ jobs:
           echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
-          conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
+          conda build .conda/ --output-folder conda-dist
           conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
           anaconda upload conda-dist/noarch/*tar.bz2
 
