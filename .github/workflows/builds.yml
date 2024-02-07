@@ -63,10 +63,11 @@ jobs:
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
       - name: Build
-        shell: bash -el {0}
+      #  shell: bash -el {0}
         run: |
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
-          sleep 5
-          conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
+        #  conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
+      - name: Verify
+        run: conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
