@@ -345,6 +345,9 @@ def main(args):
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(f"./{exp_name}/weights")
             min_loss = val_loss
+        if args.save_interval_epoch:
+            print(f"Saving state at epoch: {epoch + 1}")
+            model.save_weights(f"./{exp_name}_{epoch + 1}/weights")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
@@ -393,6 +396,9 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
+    parser.add_argument(
+        "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
+    )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
@@ -420,9 +426,7 @@ def parse_args():
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
-    parser.add_argument(
-        "--sched", type=str, default="poly", choices=["exponential", "poly"], help="scheduler to use"
-    )
+    parser.add_argument("--sched", type=str, default="poly", choices=["exponential", "poly"], help="scheduler to use")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
