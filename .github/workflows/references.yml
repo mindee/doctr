@@ -16,7 +16,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -68,7 +68,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -134,7 +134,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -189,7 +189,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -233,7 +233,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -277,7 +277,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -332,7 +332,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -378,7 +378,7 @@ jobs:
         python: ["3.8"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -422,7 +422,7 @@ jobs:
         python: ["3.8"]
         framework: [pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v4
         with:

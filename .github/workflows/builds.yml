@@ -16,7 +16,7 @@ jobs:
         python: ["3.8", "3.9"]
         framework: [tensorflow, pytorch]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
@@ -55,6 +55,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: conda-incubator/setup-miniconda@v3
+        #continue-on-error: true
         with:
           auto-update-conda: true
           python-version: 3.8
@@ -67,4 +68,5 @@ jobs:
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ -c conda-forge -c pypdfium2-team -c bblanchon --output-folder conda-dist
+          sleep 5
           conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
