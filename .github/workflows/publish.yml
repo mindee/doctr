@@ -107,4 +107,5 @@ jobs:
       - name: Install package
         shell: bash -el {0}
         run: |
+          conda config --set channel_priority strict
           conda install -c mindee -c pypdfium2-team -c bblanchon -c conda-forge doctr
