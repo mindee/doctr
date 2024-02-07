@@ -107,4 +107,4 @@ jobs:
       - name: Install package
         shell: bash -el {0}
         run: |
-          conda install -c mindee -c conda-forge -c pypdfium2-team -c bblanchon doctr
+          conda install -c mindee -c pypdfium2-team -c bblanchon -c conda-forge doctr
