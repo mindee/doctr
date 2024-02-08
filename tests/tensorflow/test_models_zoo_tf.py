@@ -16,6 +16,12 @@ from doctr.models.recognition.zoo import recognition_predictor
 from doctr.utils.repr import NestedObject
 
 
+# Create a dummy callback
+class _DummyCallback:
+    def __call__(self, loc_preds):
+        return loc_preds
+
+
 @pytest.mark.parametrize(
     "assume_straight_pages, straighten_pages",
     [
@@ -92,6 +98,8 @@ def test_trained_ocr_predictor(mock_payslip):
         straighten_pages=True,
         preserve_aspect_ratio=False,
     )
+    # test hooks
+    predictor.add_hook(_DummyCallback())
 
     out = predictor(doc)
 
@@ -202,6 +210,8 @@ def test_trained_kie_predictor(mock_payslip):
         straighten_pages=True,
         preserve_aspect_ratio=False,
     )
+    # test hooks
+    predictor.add_hook(_DummyCallback())
 
     out = predictor(doc)
 

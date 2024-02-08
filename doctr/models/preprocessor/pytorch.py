@@ -35,7 +35,6 @@ class PreProcessor(nn.Module):
         batch_size: int,
         mean: Tuple[float, float, float] = (0.5, 0.5, 0.5),
         std: Tuple[float, float, float] = (1.0, 1.0, 1.0),
-        fp16: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__()

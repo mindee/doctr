@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 
@@ -48,6 +48,7 @@ class _OCRPredictor:
         self.doc_builder = DocumentBuilder(**kwargs)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
+        self.hooks: List[Callable] = []
 
     @staticmethod
     def _generate_crops(
@@ -149,3 +150,12 @@ class _OCRPredictor:
                 _idx += page_boxes.shape[0]
 
         return loc_preds, text_preds
+
+    def add_hook(self, hook: Callable) -> None:
+        """Add a hook to the predictor
+
+        Args:
+        ----
+            hook: a callable that takes as input the `loc_preds` and returns the modified `loc_preds`
+        """
+        self.hooks.append(hook)

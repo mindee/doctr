@@ -98,6 +98,8 @@ class LinkNet(_LinkNet, keras.Model):
     ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
+        bin_thresh: threshold for binarization of the output feature map
+        box_thresh: minimal objectness score to consider a box
         assume_straight_pages: if True, fit straight bounding boxes only
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
@@ -111,6 +113,7 @@ class LinkNet(_LinkNet, keras.Model):
         feat_extractor: IntermediateLayerGetter,
         fpn_channels: int = 64,
         bin_thresh: float = 0.1,
+        box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = None,
@@ -152,7 +155,9 @@ class LinkNet(_LinkNet, keras.Model):
             ),
         ])
 
-        self.postprocessor = LinkNetPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
+        self.postprocessor = LinkNetPostProcessor(
+            assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh, box_thresh=box_thresh
+        )
 
     def compute_loss(
         self,

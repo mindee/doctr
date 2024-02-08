@@ -105,6 +105,10 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         # Rectify crops if aspect ratio
         loc_preds = self._remove_padding(pages, loc_preds)
 
+        # Apply hooks to loc_preds if any
+        for hook in self.hooks:
+            loc_preds = hook(loc_preds)
+
         # Crop images
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=True, assume_straight_pages=self.assume_straight_pages
