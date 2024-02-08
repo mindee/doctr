@@ -976,6 +976,49 @@ To get a better understanding of our document model, check our <a class="referen
 </pre></div>
 </div>
 </section>
+<section id="advanced-options">
+<h3>Advanced options<a class="headerlink" href="#advanced-options" title="Permalink to this heading">#</a></h3>
+<p>We provide a few advanced options to customize the behavior of the predictor to your needs:</p>
+<ul class="simple">
+<li><p>Modify the binarization threshold for the detection model.</p></li>
+<li><p>Modify the box threshold for the detection model.</p></li>
+</ul>
+<p>This is useful to detect (possible less) text regions more accurately with a higher threshold, or to detect more text regions with a lower threshold.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Modify the binarization threshold and the box threshold</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">det_predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">bin_thresh</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">det_predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">box_thresh</span> <span class="o">=</span> <span class="mf">0.2</span>
+
+<span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Add a hook to the <cite>ocr_predictor</cite> to manipulate the location predictions before the crops are passed to the recognition model.</p></li>
+</ul>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="k">class</span> <span class="nc">CustomHook</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">):</span>
+        <span class="c1"># Manipulate the location predictions here</span>
+        <span class="c1"># 1. The outpout structure needs to be the same as the input location predictions</span>
+        <span class="c1"># 2. Be aware that the coordinates are relative and needs to be between 0 and 1</span>
+        <span class="k">return</span> <span class="n">loc_preds</span>
+
+<span class="n">my_hook</span> <span class="o">=</span> <span class="n">CustomHook</span><span class="p">()</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Add a hook in the middle of the pipeline</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">add_hook</span><span class="p">(</span><span class="n">my_hook</span><span class="p">)</span>
+<span class="c1"># You can also add multiple hooks which will be executed sequentially</span>
+<span class="k">for</span> <span class="n">hook</span> <span class="ow">in</span> <span class="p">[</span><span class="n">my_hook</span><span class="p">,</span> <span class="n">my_hook</span><span class="p">,</span> <span class="n">my_hook</span><span class="p">]:</span>
+    <span class="n">predictor</span><span class="o">.</span><span class="n">add_hook</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
 </section>
 </section>
 
@@ -1049,6 +1092,7 @@ To get a better understanding of our document model, check our <a class="referen
 <li><a class="reference internal" href="#id2">Available architectures</a></li>
 <li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
 <li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+<li><a class="reference internal" href="#advanced-options">Advanced options</a></li>
 </ul>
 </li>
 </ul>
