@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -54,10 +54,10 @@ jobs:
           sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/classification/train_tensorflow_character.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
+        run: python references/classification/train_tensorflow_character.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
-        run: python references/classification/train_pytorch_character.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
+        run: python references/classification/train_pytorch_character.py mobilenet_v3_small -b 32 --val-samples 1 --train-samples 1 --epochs 1
 
   train-orientation-classification:
     runs-on: ${{ matrix.os }}
@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -114,16 +114,16 @@ jobs:
           unzip toy_recogition_set-036a4d80.zip -d reco_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF) (document orientation)
-        run: python references/classification/train_tensorflow_orientation.py ./det_set ./det_set resnet18 page -b 2 --epochs 1
+        run: python references/classification/train_tensorflow_orientation.py ./det_set ./det_set mobilenet_v3_small page -b 2 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT) (document orientation)
-        run: python references/classification/train_pytorch_orientation.py ./det_set ./det_set resnet18 page -b 2 --epochs 1
+        run: python references/classification/train_pytorch_orientation.py ./det_set ./det_set mobilenet_v3_small page -b 2 --epochs 1
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF) (crop orientation)
-        run: python references/classification/train_tensorflow_orientation.py ./reco_set ./reco_set resnet18 crop -b 4 --epochs 1
+        run: python references/classification/train_tensorflow_orientation.py ./reco_set ./reco_set mobilenet_v3_small crop -b 4 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT) (crop orientation)
-        run: python references/classification/train_pytorch_orientation.py ./reco_set ./reco_set resnet18 crop -b 4 --epochs 1
+        run: python references/classification/train_pytorch_orientation.py ./reco_set ./reco_set mobilenet_v3_small crop -b 4 --epochs 1
 
   train-text-recognition:
     runs-on: ${{ matrix.os }}
@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -175,7 +175,7 @@ jobs:
           unzip toy_recogition_set-036a4d80.zip -d reco_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
+        run: python references/recognition/train_tensorflow.py crnn_mobilenet_v3_small --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
         run: python references/recognition/train_pytorch.py crnn_mobilenet_v3_small --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
@@ -186,7 +186,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -230,7 +230,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -263,7 +263,7 @@ jobs:
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: python references/recognition/latency_tensorflow.py crnn_vgg16_bn --it 5
+        run: python references/recognition/latency_tensorflow.py crnn_mobilenet_v3_small --it 5
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
         run: python references/recognition/latency_pytorch.py crnn_mobilenet_v3_small --it 5
@@ -274,7 +274,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -318,7 +318,7 @@ jobs:
           unzip toy_detection_set-bbbb4243.zip -d det_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/detection/train_tensorflow.py --train_path ./det_set --val_path ./det_set db_resnet50 -b 2 --epochs 1
+        run: python references/detection/train_tensorflow.py --train_path ./det_set --val_path ./det_set db_mobilenet_v3_large -b 2 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
         run: python references/detection/train_pytorch.py ./det_set ./det_set db_mobilenet_v3_large -b 2 --epochs 1
@@ -329,7 +329,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -375,7 +375,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -408,10 +408,10 @@ jobs:
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: python references/detection/latency_tensorflow.py linknet_resnet18 --it 5 --size 512
+        run: python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
-        run: python references/detection/latency_pytorch.py linknet_resnet18 --it 5 --size 512
+        run: python references/detection/latency_pytorch.py db_mobilenet_v3_large --it 5 --size 512
 
   latency-object-detection:
     runs-on: ${{ matrix.os }}
@@ -419,7 +419,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [pytorch]
     steps:
       - uses: actions/checkout@v4

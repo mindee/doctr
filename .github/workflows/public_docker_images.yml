@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         # Must match version at https://www.python.org/ftp/python/
-        python: ["3.8.18", "3.9.18", "3.10.13"]
+        python: ["3.9.18", "3.10.13", "3.11.8"]
         framework: ["tf", "torch"]
         system: ["cpu", "gpu"]
 
