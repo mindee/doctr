@@ -108,6 +108,7 @@ class FAST(_FAST, keras.Model, NestedObject):
     ----
         feature extractor: the backbone serving as feature extractor
         bin_thresh: threshold for binarization
+        box_thresh: minimal objectness score to consider a box
         dropout_prob: dropout probability
         pooling_size: size of the pooling layer
         assume_straight_pages: if True, fit straight bounding boxes only
@@ -122,8 +123,9 @@ class FAST(_FAST, keras.Model, NestedObject):
         self,
         feature_extractor: IntermediateLayerGetter,
         bin_thresh: float = 0.3,
+        box_thresh: float = 0.1,
         dropout_prob: float = 0.1,
-        pooling_size: int = 4,
+        pooling_size: int = 4,  # different from paper performs better on close text-rich images
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},
@@ -146,7 +148,11 @@ class FAST(_FAST, keras.Model, NestedObject):
         self.neck = FastNeck(feat_out_channels[0], feat_out_channels[1])
         self.head = FastHead(feat_out_channels[-1], num_classes, feat_out_channels[1], dropout_prob)
 
-        self.postprocessor = FASTPostProcessor(assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh)
+        # NOTE: The post processing from the paper works not well for text-rich images
+        # so we use a modified version from DBNet
+        self.postprocessor = FASTPostProcessor(
+            assume_straight_pages=assume_straight_pages, bin_thresh=bin_thresh, box_thresh=box_thresh
+        )
 
         # Pooling layer as erosion reversal as described in the paper
         self.pooling = layers.MaxPooling2D(pool_size=pooling_size // 2 + 1, strides=1, padding="same")
