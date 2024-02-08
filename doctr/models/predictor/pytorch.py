@@ -93,7 +93,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 if self.detect_orientation
                 else [estimate_orientation(seq_map) for seq_map in seg_maps]
             )
-            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]
+            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]  # type: ignore[arg-type]
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
@@ -106,7 +106,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Rectify crops if aspect ratio
-        loc_preds = self._remove_padding(pages, loc_preds)
+        loc_preds = self._remove_padding(pages, loc_preds)  # type: ignore[arg-type]
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
@@ -114,7 +114,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Crop images
         crops, loc_preds = self._prepare_crops(
-            pages,
+            pages,  # type: ignore[arg-type]
             loc_preds,
             channels_last=channels_last,
             assume_straight_pages=self.assume_straight_pages,
@@ -134,10 +134,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             languages_dict = None
 
         out = self.doc_builder(
-            pages,
+            pages,  # type: ignore[arg-type]
             boxes,
             text_preds,
-            origin_page_shapes,
+            origin_page_shapes,  # type: ignore[arg-type]
             orientations,
             languages_dict,
         )

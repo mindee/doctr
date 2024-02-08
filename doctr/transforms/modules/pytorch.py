@@ -135,9 +135,9 @@ class GaussianNoise(torch.nn.Module):
         # Reshape the distribution
         noise = self.mean + 2 * self.std * torch.rand(x.shape, device=x.device) - self.std
         if x.dtype == torch.uint8:
-            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)  # type: ignore[attr-defined]
+            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)
         else:
-            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)  # type: ignore[attr-defined]
+            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)
 
     def extra_repr(self) -> str:
         return f"mean={self.mean}, std={self.std}"
@@ -199,7 +199,7 @@ class RandomShadow(torch.nn.Module):
                             self.opacity_range,
                         )
                     )
-                    .round()  # type: ignore[attr-defined]
+                    .round()
                     .clip(0, 255)
                     .to(dtype=torch.uint8)
                 )
