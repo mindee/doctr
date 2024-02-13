@@ -222,9 +222,9 @@ def test_trained_kie_predictor(mock_payslip):
     geometry_mr = np.array([[0.1083984375, 0.0634765625], [0.1494140625, 0.0859375]])
     assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][0].geometry), geometry_mr, rtol=0.05)
 
-    assert out.pages[0].predictions[CLASS_NAME][6].value == "revised"
+    assert out.pages[0].predictions[CLASS_NAME][4].value == "revised"
     geometry_revised = np.array([[0.7548828125, 0.126953125], [0.8388671875, 0.1484375]])
-    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][6].geometry), geometry_revised, rtol=0.05)
+    assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][4].geometry), geometry_revised, rtol=0.05)
 
     det_predictor = detection_predictor(
         "db_resnet50",
