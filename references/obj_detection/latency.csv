@@ -1,3 +1,0 @@
-arch,input_shape,framework,hardware,mean,std
-fasterrcnn_mobilenet_v3_large_fpn,"(1024, 1024)",pytorch,cpu,257.85,14.28
-fasterrcnn_mobilenet_v3_large_fpn,"(1024, 1024)",pytorch,gpu,17.76,0.68
