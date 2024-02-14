@@ -16,13 +16,13 @@ pip install -r references/requirements.txt
 You can start your training in TensorFlow:
 
 ```shell
-python references/classification/train_tensorflow.py mobilenet_v3_large --epochs 5
+python references/classification/train_tensorflow_character.py mobilenet_v3_large --epochs 5
 ```
 
 or PyTorch:
 
 ```shell
-python references/classification/train_pytorch.py mobilenet_v3_large --epochs 5 --device 0
+python references/classification/train_pytorch_character.py mobilenet_v3_large --epochs 5 --device 0
 ```
 
 ## Usage orientation classification
@@ -61,7 +61,7 @@ Feel free to inspect the multiple script option to customize your training to yo
 Character classification:
 
 ```python
-python references/classification/train_tensorflow.py --help
+python references/classification/train_tensorflow_character.py --help
 ```
 
 Orientation classification:

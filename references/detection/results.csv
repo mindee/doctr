@@ -1,9 +1,0 @@
-architecture,input_shape,framework,test_set,recall,precision,mean_iou
-db_resnet50,"(1024, 1024)",tensorflow,funsd,0.8121,0.8665,0.6681
-db_resnet50,"(1024, 1024)",tensorflow,cord,0.9245,0.8962,0.7457
-db_mobilenet_v3_large,"(1024, 1024)",tensorflow,funsd,0.783,0.828,0.6396
-db_mobilenet_v3_large,"(1024, 1024)",tensorflow,cord,0.8098,0.6657,0.5978
-db_resnet50,"(1024, 1024)",pytorch,funsd,0.7917,0.863,0.6652
-db_mobilenet_v3_large,"(1024, 1024)",pytorch,funsd,0.8006,0.841,0.6476
-db_resnet50,"(1024, 1024)",pytorch,cord,0.9296,0.9123,0.7654
-db_mobilenet_v3_large,"(1024, 1024)",pytorch,cord,0.8053,0.6653,0.5976

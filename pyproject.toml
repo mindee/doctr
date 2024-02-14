@@ -44,6 +44,7 @@ dependencies = [
     "shapely>=1.6.0,<3.0.0",
     "langdetect>=1.0.9,<2.0.0",
     "rapidfuzz>=3.0.0,<4.0.0",
+    "huggingface-hub>=0.20.0,<1.0.0",
     "matplotlib>=3.1.0",
     "weasyprint>=55.0",
     "Pillow>=9.2.0",
@@ -51,12 +52,13 @@ dependencies = [
     "mplcursors>=0.3",
     "unidecode>=1.0.0",
     "tqdm>=4.30.0",
-    "huggingface-hub>=0.20.0",
 ]
 
 [project.optional-dependencies]
 tf = [
-    "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
+    # cf. https://github.com/mindee/doctr/pull/1182
+    # cf. https://github.com/mindee/doctr/pull/1461
+    "tensorflow>=2.11.0,<2.16.0",
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
 ]
 torch = [
@@ -89,7 +91,9 @@ docs = [
 ]
 dev = [
     # Tensorflow
-    "tensorflow>=2.11.0,<3.0.0",  # cf. https://github.com/mindee/doctr/pull/1182
+    # cf. https://github.com/mindee/doctr/pull/1182
+    # cf. https://github.com/mindee/doctr/pull/1461
+    "tensorflow>=2.11.0,<2.16.0",
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
     "torch>=1.12.0,<3.0.0",
