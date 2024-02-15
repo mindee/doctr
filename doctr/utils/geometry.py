@@ -337,7 +337,7 @@ def estimate_page_angle(polys: np.ndarray) -> float:
     yleft = polys[:, 0, 1] + polys[:, 3, 1]
     xright = polys[:, 1, 0] + polys[:, 2, 0]
     yright = polys[:, 1, 1] + polys[:, 2, 1]
-    with np.errstate(divide="raise"):
+    with np.errstate(divide="raise", invalid="raise"):
         try:
             return float(
                 np.median(np.arctan((yleft - yright) / (xright - xleft)) * 180 / np.pi)  # Y axis from top to bottom!
