@@ -159,6 +159,10 @@ def test_estimate_page_angle():
     rotated_polys = geometry.rotate_boxes(straight_polys, angle=20, orig_shape=(512, 512))
     angle = geometry.estimate_page_angle(rotated_polys)
     assert np.isclose(angle, 20)
+    # Test divide by zero / NaN
+    invalid_poly = np.array([[[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]])
+    angle = geometry.estimate_page_angle(invalid_poly)
+    assert angle == 0.0
 
 
 def test_extract_crops(mock_pdf):

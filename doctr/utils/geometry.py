@@ -337,7 +337,13 @@ def estimate_page_angle(polys: np.ndarray) -> float:
     yleft = polys[:, 0, 1] + polys[:, 3, 1]
     xright = polys[:, 1, 0] + polys[:, 2, 0]
     yright = polys[:, 1, 1] + polys[:, 2, 1]
-    return float(np.median(np.arctan((yleft - yright) / (xright - xleft))) * 180 / np.pi)  # Y axis from top to bottom!
+    with np.errstate(divide="raise", invalid="raise"):
+        try:
+            return float(
+                np.median(np.arctan((yleft - yright) / (xright - xleft)) * 180 / np.pi)  # Y axis from top to bottom!
+            )
+        except FloatingPointError:
+            return 0.0
 
 
 def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) -> np.ndarray:
