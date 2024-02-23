@@ -75,7 +75,7 @@ The order of entries in the json does not matter.
 }
 ```
 
-When typing your labels, be aware that the VOCAB doesn't handle spaces.
+When typing your labels, be aware that the VOCAB doesn't handle spaces. Also make sure your `labels.json` file is using UTF-8 encoding.
 
 ## Advanced options
 
