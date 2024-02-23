@@ -326,7 +326,10 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;some characters cannot be found in &#39;vocab&#39;&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;some characters cannot be found in &#39;vocab&#39;. </span><span class="se">\</span>
+<span class="s2">                         Please check the input string </span><span class="si">{</span><span class="n">input_string</span><span class="si">}</span><span class="s2"> and the vocabulary </span><span class="si">{</span><span class="n">vocab</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">decode_sequence</span><span class="p">(</span>
