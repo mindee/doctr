@@ -55,6 +55,12 @@ doctr.models.detection
 
 .. autofunction:: doctr.models.detection.db_mobilenet_v3_large
 
+.. autofunction:: doctr.models.detection.fast_tiny
+
+.. autofunction:: doctr.models.detection.fast_small
+
+.. autofunction:: doctr.models.detection.fast_base
+
 .. autofunction:: doctr.models.detection.detection_predictor
 
 

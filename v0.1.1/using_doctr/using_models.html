@@ -270,6 +270,9 @@ Our latest detection models works with rotated and skewed documents!</p>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet50" title="doctr.models.detection.linknet_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet50</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_resnet50" title="doctr.models.detection.db_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_mobilenet_v3_large" title="doctr.models.detection.db_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_mobilenet_v3_large</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.fast_tiny" title="doctr.models.detection.fast_tiny"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fast_tiny</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.fast_small" title="doctr.models.detection.fast_small"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fast_small</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.fast_base" title="doctr.models.detection.fast_base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fast_base</span></code></a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -342,7 +345,37 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>84.94</p></td>
 <td><p>1.1</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>fast_tiny</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>13.5 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>fast_small</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>14.7 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>fast_base</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>16.3 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>db_resnet34</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>22.4 M</p></td>
@@ -352,7 +385,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>71.74</p></td>
 <td><p>0.8</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>25.4 M</p></td>
@@ -362,7 +395,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>86.39</p></td>
 <td><p>1.1</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>db_mobilenet_v3_large</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>4.2 M</p></td>
@@ -372,7 +405,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>79.38</p></td>
 <td><p>0.5</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>linknet_resnet18</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>11.5 M</p></td>
@@ -382,7 +415,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>82.74</p></td>
 <td><p>0.6</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>linknet_resnet34</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>21.6 M</p></td>
@@ -392,7 +425,7 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>81.06</p></td>
 <td><p>0.7</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>linknet_resnet50</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>28.8 M</p></td>
@@ -401,6 +434,36 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>87.29</p></td>
 <td><p>85.54</p></td>
 <td><p>1.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>fast_tiny</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>13.5 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>fast_small</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>14.7 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>fast_base</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>16.3 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
