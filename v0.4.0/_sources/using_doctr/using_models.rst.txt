@@ -279,6 +279,19 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
     from doctr.model import ocr_predictor
     model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
+To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying `DocumentBuilder`:
+
+* `resolve_lines`: whether words should be automatically grouped into lines (default: True)
+* `resolve_blocks`: whether lines should be automatically grouped into blocks (default: True)
+* `paragraph_break`: relative length of the minimum space separating paragraphs (default: 0.035)
+
+For example to disable the automatic grouping of lines into blocks:
+
+.. code:: python3
+
+    from doctr.model import ocr_predictor
+    model = ocr_predictor(pretrained=True, resolve_blocks=False)
+
 
 What should I do with the output?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -303,6 +316,14 @@ Here is a typical `Document` layout::
       )]
     )]
   )
+
+To get only the text content of the `Document`, you can use the `render` method::
+
+  text_output = result.render()
+
+For reference, here is the output for the `Document` above::
+
+  No. RECEIPT DATE
 
 You can also export them as a nested dict, more appropriate for JSON format::
 

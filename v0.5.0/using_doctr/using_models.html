@@ -836,6 +836,17 @@ Explanations about the metrics being used are available in <a class="reference i
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying <cite>DocumentBuilder</cite>:</p>
+<ul class="simple">
+<li><p><cite>resolve_lines</cite>: whether words should be automatically grouped into lines (default: True)</p></li>
+<li><p><cite>resolve_blocks</cite>: whether lines should be automatically grouped into blocks (default: True)</p></li>
+<li><p><cite>paragraph_break</cite>: relative length of the minimum space separating paragraphs (default: 0.035)</p></li>
+</ul>
+<p>For example to disable the automatic grouping of lines into blocks:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">resolve_blocks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="what-should-i-do-with-the-output">
 <h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Permalink to this heading">#</a></h3>
@@ -857,6 +868,14 @@ To get a better understanding of our document model, check our <a class="referen
     <span class="p">)]</span>
   <span class="p">)]</span>
 <span class="p">)</span>
+</pre></div>
+</div>
+<p>To get only the text content of the <cite>Document</cite>, you can use the <cite>render</cite> method:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">text_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For reference, here is the output for the <cite>Document</cite> above:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">No</span><span class="o">.</span> <span class="n">RECEIPT</span> <span class="n">DATE</span>
 </pre></div>
 </div>
 <p>You can also export them as a nested dict, more appropriate for JSON format:</p>
