@@ -65,7 +65,7 @@ Install the last stable release of the package using `conda <https://docs.conda.
 .. code:: bash
 
     conda config --set channel_priority strict
-    conda install -c mindee -c pypdfium2-team -c bblanchon -c conda-forge python-doctr
+    conda install -c techMindee -c pypdfium2-team -c bblanchon -c conda-forge python-doctr
 
 
 Via Git
