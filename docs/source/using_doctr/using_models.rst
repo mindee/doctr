@@ -27,6 +27,9 @@ The following architectures are currently supported:
 * :py:meth:`linknet_resnet50 <doctr.models.detection.linknet_resnet50>`
 * :py:meth:`db_resnet50 <doctr.models.detection.db_resnet50>`
 * :py:meth:`db_mobilenet_v3_large <doctr.models.detection.db_mobilenet_v3_large>`
+* :py:meth:`fast_tiny <doctr.models.detection.fast_tiny>`
+* :py:meth:`fast_small <doctr.models.detection.fast_small>`
+* :py:meth:`fast_base <doctr.models.detection.fast_base>`
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
 
@@ -45,6 +48,12 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 | TensorFlow     | linknet_resnet34                | (1024, 1024, 3) | 21.6 M       | 82.20      | 85.49         | 87.63      | 87.17         | 0.8                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | TensorFlow     | linknet_resnet50                | (1024, 1024, 3) | 28.8 M       | 80.70      | 83.51         | 86.46      | 84.94         | 1.1                |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| TensorFlow     | fast_tiny                       | (1024, 1024, 3) | 13.5 M       |            |               |            |               |                    |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| TensorFlow     | fast_small                      | (1024, 1024, 3) | 14.7 M       |            |               |            |               |                    |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| TensorFlow     | fast_base                       | (1024, 1024, 3) | 16.3 M       |            |               |            |               |                    |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | PyTorch        | db_resnet34                     | (1024, 1024, 3) | 22.4 M       | 82.76      | 76.75         | 89.20      | 71.74         | 0.8                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
