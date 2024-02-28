@@ -179,15 +179,15 @@ def test_recognition_zoo_error():
         pytest.param(
             "sar_resnet31",
             (32, 128, 3),
-            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory"),
         ),
         pytest.param(
-            "master", (32, 128, 3), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
+            "master", (32, 128, 3), marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory")
         ),
         pytest.param(
             "parseq",
             (32, 128, 3),
-            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory"),
         ),
     ],
 )

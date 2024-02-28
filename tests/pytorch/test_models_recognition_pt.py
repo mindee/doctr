@@ -121,10 +121,10 @@ def test_recognition_zoo(arch_name):
         pytest.param(
             "sar_resnet31",
             (3, 32, 128),
-            marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory"),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory"),
         ),
         pytest.param(
-            "master", (3, 32, 128), marks=pytest.mark.skipif(system_available_memory < 16, reason="to less memory")
+            "master", (3, 32, 128), marks=pytest.mark.skipif(system_available_memory < 16, reason="too less memory")
         ),
         ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
         ["parseq", (3, 32, 128)],
