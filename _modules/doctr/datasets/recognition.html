@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.datasets.recognition</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -270,6 +270,7 @@
 <span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        img_folder: path to the images folder</span>
 <span class="sd">        labels_path: pathe to the json file containing all labels (character sequences)</span>
 <span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
@@ -284,7 +285,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">labels_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">labels_path</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">labels</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">img_name</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -333,13 +334,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

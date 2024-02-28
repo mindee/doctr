@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.recognition.master.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -261,7 +261,7 @@
 <span class="kn">from</span> <span class="nn">doctr.models.classification</span> <span class="kn">import</span> <span class="n">magc_resnet31</span>
 <span class="kn">from</span> <span class="nn">doctr.models.modules.transformer</span> <span class="kn">import</span> <span class="n">Decoder</span><span class="p">,</span> <span class="n">PositionalEncoding</span>
 
-<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_MASTER</span><span class="p">,</span> <span class="n">_MASTERPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MASTER&quot;</span><span class="p">,</span> <span class="s2">&quot;master&quot;</span><span class="p">]</span>
@@ -279,11 +279,11 @@
 
 
 <span class="k">class</span> <span class="nc">MASTER</span><span class="p">(</span><span class="n">_MASTER</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements MASTER as described in paper: &lt;https://arxiv.org/pdf/1910.02562.pdf&gt;`_.</span>
 <span class="sd">    Implementation based on the official TF implementation: &lt;https://github.com/jiangxiluning/MASTER-TF&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
 <span class="sd">        vocab: vocabulary, (without EOS, SOS, PAD)</span>
 <span class="sd">        d_model: d parameter for the transformer decoder</span>
@@ -363,11 +363,13 @@
 <span class="sd">        Sequences are masked after the EOS character.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            gt: the encoded tensor with gt labels</span>
 <span class="sd">            model_output: predicted logits of the model</span>
 <span class="sd">            seq_len: lengths of each gt word inside the batch</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Input length : number of timesteps</span>
@@ -398,15 +400,17 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Call function for training</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            x: images</span>
 <span class="sd">            target: list of str labels</span>
 <span class="sd">            return_model_output: if True, return logits</span>
 <span class="sd">            return_preds: if True, decode logits</span>
+<span class="sd">            **kwargs: keyword arguments passed to the decoder</span>
 
-<span class="sd">        Return:</span>
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A dictionnary containing eventually loss, logits and predictions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># Encode</span>
         <span class="n">feature</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">b</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">feature</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span>
@@ -431,6 +435,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
             <span class="k">return</span> <span class="n">out</span>
@@ -451,9 +457,12 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Decode function for prediction</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            encoded: encoded features</span>
+<span class="sd">            **kwargs: keyword arguments passed to the decoder</span>
 
-<span class="sd">        Return:</span>
+<span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A Tuple of tf.Tensor: predictions, logits</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">b</span> <span class="o">=</span> <span class="n">encoded</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -486,6 +495,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post processor for MASTER architectures</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -508,7 +518,7 @@
         <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;not valid&quot;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">word_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
 
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
 
 
 <span class="k">def</span> <span class="nf">_master</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">backbone_fn</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MASTER</span><span class="p">:</span>
@@ -545,12 +555,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keywoard arguments passed to the MASTER architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_master</span><span class="p">(</span><span class="s2">&quot;master&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">magc_resnet31</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
@@ -584,13 +596,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

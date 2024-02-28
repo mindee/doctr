@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.io.image.base</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -269,18 +269,19 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file into numpy format</span>
 
-<span class="sd">    &gt;&gt;&gt; from doctr.documents import read_img</span>
-<span class="sd">    &gt;&gt;&gt; page = read_img(&quot;path/to/your/doc.jpg&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.io import read_img_as_numpy</span>
+<span class="sd">    &gt;&gt;&gt; page = read_img_as_numpy(&quot;path/to/your/doc.jpg&quot;)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        file: the path to the image file</span>
 <span class="sd">        output_size: the expected output size of each page in format H x W</span>
 <span class="sd">        rgb_output: whether the output ndarray channel order should be RGB instead of BGR.</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        the page decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">)):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">Path</span><span class="p">(</span><span class="n">file</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to access </span><span class="si">{</span><span class="n">file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -333,13 +334,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.recognition.sar.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -261,7 +261,7 @@
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
 <span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">resnet31</span>
-<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SAR&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_resnet31&quot;</span><span class="p">]</span>
@@ -281,18 +281,17 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements encoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        rnn_units: number of hidden rnn units</span>
 <span class="sd">        dropout_prob: dropout probability</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recurrent_dropout</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">recurrent_dropout</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recurrent_dropout</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">recurrent_dropout</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">),</span>
+        <span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -307,6 +306,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements attention module of the SAR model</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        attention_units: number of hidden attention units</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -368,6 +368,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements decoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        rnn_units: number of hidden units in recurrent cells</span>
 <span class="sd">        max_length: maximum length of a sequence</span>
 <span class="sd">        vocab_size: number of classes in the model alphabet</span>
@@ -395,9 +396,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">embed</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">embedding_units</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">embed_tgt</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">embedding_units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">lstm_cells</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">StackedRNNCells</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">implementation</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_decoder_cells</span><span class="p">)]</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lstm_cells</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">StackedRNNCells</span><span class="p">([</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">implementation</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_decoder_cells</span><span class="p">)</span>
+        <span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attention_module</span> <span class="o">=</span> <span class="n">AttentionModule</span><span class="p">(</span><span class="n">attention_units</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">output_dense</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_prob</span><span class="p">)</span>
@@ -463,6 +464,7 @@
 <span class="sd">    Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
 <span class="sd">        vocab: vocabulary used for encoding</span>
 <span class="sd">        rnn_units: number of hidden units in both encoder and decoder LSTM</span>
@@ -521,11 +523,13 @@
 <span class="sd">        Sequences are masked after the EOS character.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            gt: the encoded tensor with gt labels</span>
 <span class="sd">            model_output: predicted logits of the model</span>
 <span class="sd">            seq_len: lengths of each gt word inside the batch</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Input length : number of timesteps</span>
@@ -564,7 +568,9 @@
         <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to provide labels during training for teacher forcing&quot;</span><span class="p">)</span>
 
-        <span class="n">decoded_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">gt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">decoded_features</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">encoded</span><span class="p">,</span> <span class="n">gt</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">gt</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="p">)</span>
 
         <span class="n">out</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
@@ -588,6 +594,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post processor for SAR architectures</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -610,7 +617,7 @@
         <span class="n">decoded_strings_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">to_dense</span><span class="p">(</span><span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">to_sparse</span><span class="p">(),</span> <span class="n">default_value</span><span class="o">=</span><span class="s2">&quot;not valid&quot;</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="n">word_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">decoded_strings_pred</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()]</span>
 
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
 
 
 <span class="k">def</span> <span class="nf">_sar</span><span class="p">(</span>
@@ -657,12 +664,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the SAR architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_sar</span><span class="p">(</span><span class="s2">&quot;sar_resnet31&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">resnet31</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
@@ -696,13 +705,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

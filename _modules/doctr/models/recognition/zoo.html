@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.recognition.zoo</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -311,13 +311,15 @@
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        arch: name of the architecture or model itself to use (e.g. &#39;crnn_vgg16_bn&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: optional parameters to be passed to the architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        Recognition predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
@@ -351,13 +353,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

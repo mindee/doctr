@@ -1,0 +1,1073 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-40DVRMX8T4');
+</script>
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Choose a ready to use dataset" href="using_datasets.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
+
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+        <title>Choosing the right model - docTR documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
+    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=36a5483c" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f0f0f0;
+  --color-code-foreground: black;
+  --color-sidebar-background: #082747;
+  --color-sidebar-background-border: #082747;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  --color-sidebar-link-text: white;
+  --sidebar-caption-font-size: normal;
+  --color-sidebar-item-background--hover:  #5dade2;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  --color-sidebar-background: #1a1c1e;
+  --color-sidebar-background-border: #1a1c1e;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  --color-sidebar-background: #1a1c1e;
+  --color-sidebar-background-border: #1a1c1e;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-half" viewBox="0 0 24 24">
+    <title>Auto light/dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-shadow">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M13 12h5" />
+      <path d="M13 15h4" />
+      <path d="M13 18h1" />
+      <path d="M13 9h4" />
+      <path d="M13 6h1" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">docTR documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/Logo-docTR-white.png" alt="Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/contributing.html">Contributing to docTR</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main">
+          <section id="choosing-the-right-model">
+<h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Permalink to this heading">#</a></h1>
+<p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
+Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
+<p>For a given task, docTR provides a Predictor, which is composed of 2 components:</p>
+<ul class="simple">
+<li><p>PreProcessor: a module in charge of making inputs directly usable by the deep learning model.</p></li>
+<li><p>Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow &amp; PyTorch) along with its specific post-processor to make outputs structured and reusable.</p></li>
+</ul>
+<section id="text-detection">
+<h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this heading">#</a></h2>
+<p>The task consists of localizing textual elements in a given image.
+While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).
+Our latest detection models works with rotated and skewed documents!</p>
+<section id="available-architectures">
+<h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this heading">#</a></h3>
+<p>The following architectures are currently supported:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18" title="doctr.models.detection.linknet_resnet18"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet34" title="doctr.models.detection.linknet_resnet34"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet34</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet50" title="doctr.models.detection.linknet_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet50</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_resnet50" title="doctr.models.detection.db_resnet50"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.db_mobilenet_v3_large" title="doctr.models.detection.db_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_mobilenet_v3_large</span></code></a></p></li>
+</ul>
+<p>We also provide 2 models working with any kind of rotated documents:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18_rotation" title="doctr.models.detection.linknet_resnet18_rotation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18_rotation</span></code></a> (TensorFlow)</p></li>
+<li><p><code class="xref py py-meth docutils literal notranslate"><span class="pre">db_resnet50_rotation</span></code> (PyTorch)</p></li>
+</ul>
+<p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head" colspan="4"></th>
+<th class="head" colspan="2"><p>FUNSD</p></th>
+<th class="head" colspan="2"><p>CORD</p></th>
+<th class="head"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Backend</strong></p></td>
+<td><p><strong>Architecture</strong></p></td>
+<td><p><strong>Input shape</strong></p></td>
+<td><p><strong># params</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
+<td><p><strong>sec/it (B: 1)</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>25.2 M</p></td>
+<td><p>81.22</p></td>
+<td><p>86.66</p></td>
+<td><p>92.46</p></td>
+<td><p>89.62</p></td>
+<td><p>1.2</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>db_mobilenet_v3_large</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>4.2 M</p></td>
+<td><p>78.27</p></td>
+<td><p>82.77</p></td>
+<td><p>80.99</p></td>
+<td><p>66.57</p></td>
+<td><p>0.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>linknet_resnet18</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>11.5 M</p></td>
+<td><p>78.23</p></td>
+<td><p>83.77</p></td>
+<td><p>82.88</p></td>
+<td><p>82.42</p></td>
+<td><p>0.7</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>linknet_resnet18_rotation</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>11.5 M</p></td>
+<td><p>81.12</p></td>
+<td><p>82.13</p></td>
+<td><p>83.55</p></td>
+<td><p>80.14</p></td>
+<td><p>0.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>linknet_resnet34</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>21.6 M</p></td>
+<td><p>82.14</p></td>
+<td><p>87.64</p></td>
+<td><p>85.55</p></td>
+<td><p>86.02</p></td>
+<td><p>0.8</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>linknet_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>28.8 M</p></td>
+<td><p>79.00</p></td>
+<td><p>84.79</p></td>
+<td><p>85.89</p></td>
+<td><p>65.75</p></td>
+<td><p>1.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet34</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>22.4 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>25.4 M</p></td>
+<td><p>79.17</p></td>
+<td><p>86.31</p></td>
+<td><p>92.96</p></td>
+<td><p>91.23</p></td>
+<td><p>1.1</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50_rotation</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>25.4 M</p></td>
+<td><p>83.30</p></td>
+<td><p>91.07</p></td>
+<td><p>91.63</p></td>
+<td><p>90.53</p></td>
+<td><p>1.6</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_mobilenet_v3_large</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>4.2 M</p></td>
+<td><p>80.06</p></td>
+<td><p>84.12</p></td>
+<td><p>80.51</p></td>
+<td><p>66.51</p></td>
+<td><p>0.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>linknet_resnet18</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>11.5 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>linknet_resnet34</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>21.6 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>linknet_resnet50</p></td>
+<td><p>(1024, 1024, 3)</p></td>
+<td><p>28.8 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
+Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
+<p><em>Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities</em></p>
+<p>Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>11th Gen Intel(R) Core(TM) i7-11800H &#64; 2.30GHz</cite>.</p>
+</section>
+<section id="detection-predictors">
+<h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this heading">#</a></h3>
+<p><a class="reference internal" href="../modules/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detection_predictor</span></code></a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
+<span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>You can pass specific boolean arguments to the predictor:</p>
+<ul class="simple">
+<li><p><cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.</p></li>
+<li><p><cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.</p></li>
+<li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
+</ul>
+<p>For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>NB: for the moment, <cite>db_resnet50_rotation</cite> is pretrained in Pytorch only and <cite>linknet_resnet18_rotation</cite> in Tensorflow only.</p>
+</section>
+</section>
+<section id="text-recognition">
+<h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this heading">#</a></h2>
+<p>The task consists of transcribing the character sequence in a given image.</p>
+<section id="id1">
+<h3>Available architectures<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<p>The following architectures are currently supported:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_vgg16_bn" title="doctr.models.recognition.crnn_vgg16_bn"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_small" title="doctr.models.recognition.crnn_mobilenet_v3_small"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_small</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_large" title="doctr.models.recognition.crnn_mobilenet_v3_large"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_large</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.sar_resnet31" title="doctr.models.recognition.sar_resnet31"><code class="xref py py-meth docutils literal notranslate"><span class="pre">sar_resnet31</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.master" title="doctr.models.recognition.master"><code class="xref py py-meth docutils literal notranslate"><span class="pre">master</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.vitstr_small" title="doctr.models.recognition.vitstr_small"><code class="xref py py-meth docutils literal notranslate"><span class="pre">vitstr_small</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.vitstr_base" title="doctr.models.recognition.vitstr_base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">vitstr_base</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.parseq" title="doctr.models.recognition.parseq"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parseq</span></code></a></p></li>
+</ul>
+<p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head" colspan="4"></th>
+<th class="head" colspan="2"><p>FUNSD</p></th>
+<th class="head" colspan="2"><p>CORD</p></th>
+<th class="head"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Backend</strong></p></td>
+<td><p><strong>Architecture</strong></p></td>
+<td><p><strong>Input shape</strong></p></td>
+<td><p><strong># params</strong></p></td>
+<td><p><strong>Exact</strong></p></td>
+<td><p><strong>Partial</strong></p></td>
+<td><p><strong>Exact</strong></p></td>
+<td><p><strong>Partial</strong></p></td>
+<td><p><strong>sec/it (B: 64)</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>crnn_vgg16_bn</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>15.8 M</p></td>
+<td><p>88.12</p></td>
+<td><p>88.85</p></td>
+<td><p>94.68</p></td>
+<td><p>95.10</p></td>
+<td><p>0.9</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>crnn_mobilenet_v3_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>2.1 M</p></td>
+<td><p>86.88</p></td>
+<td><p>87.61</p></td>
+<td><p>92.28</p></td>
+<td><p>92.73</p></td>
+<td><p>0.25</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>crnn_mobilenet_v3_large</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>4.5 M</p></td>
+<td><p>87.44</p></td>
+<td><p>88.12</p></td>
+<td><p>94.14</p></td>
+<td><p>94.55</p></td>
+<td><p>0.34</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>master</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>58.8 M</p></td>
+<td><p>87.44</p></td>
+<td><p>88.21</p></td>
+<td><p>93.83</p></td>
+<td><p>94.25</p></td>
+<td><p>22.3</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>sar_resnet31</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>57.2 M</p></td>
+<td><p>87.67</p></td>
+<td><p>88.48</p></td>
+<td><p>94.21</p></td>
+<td><p>94.66</p></td>
+<td><p>7.1</p></td>
+</tr>
+<tr class="row-even"><td><p>Tensorflow</p></td>
+<td><p>vitstr_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>21.4 M</p></td>
+<td><p>83.01</p></td>
+<td><p>83.84</p></td>
+<td><p>86.57</p></td>
+<td><p>87.00</p></td>
+<td><p>2.0</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>vitstr_base</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>85.2 M</p></td>
+<td><p>85.98</p></td>
+<td><p>86.70</p></td>
+<td><p>90.47</p></td>
+<td><p>90.95</p></td>
+<td><p>5.8</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>parseq</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>23.8 M</p></td>
+<td><p>81.62</p></td>
+<td><p>82.29</p></td>
+<td><p>79.13</p></td>
+<td><p>79.52</p></td>
+<td><p>3.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>crnn_vgg16_bn</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>15.8 M</p></td>
+<td><p>86.54</p></td>
+<td><p>87.41</p></td>
+<td><p>94.29</p></td>
+<td><p>94.69</p></td>
+<td><p>0.6</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>crnn_mobilenet_v3_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>2.1 M</p></td>
+<td><p>87.25</p></td>
+<td><p>87.99</p></td>
+<td><p>93.91</p></td>
+<td><p>94.34</p></td>
+<td><p>0.05</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>crnn_mobilenet_v3_large</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>4.5 M</p></td>
+<td><p>87.38</p></td>
+<td><p>88.09</p></td>
+<td><p>94.46</p></td>
+<td><p>94.92</p></td>
+<td><p>0.08</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>master</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>58.7 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>17.6</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>sar_resnet31</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>55.4 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>4.9</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>vitstr_small</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>21.4 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>1.5</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>vitstr_base</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>85.2 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>4.1</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>parseq</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>23.8 M</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td><p>2.2</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
+Explanations about the metric being used (exact match) are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
+<p>While most of our recognition models were trained on our french vocab (cf. <a class="reference internal" href="../modules/datasets.html#vocabs"><span class="std std-ref">Supported Vocabs</span></a>), you can easily access the vocab of any model as follows:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s1">&#39;vocab&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><em>Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities</em></p>
+<p>Seconds per iteration (with a batch size of 64) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>11th Gen Intel(R) Core(TM) i7-11800H &#64; 2.30GHz</cite>.</p>
+</section>
+<section id="recognition-predictors">
+<h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this heading">#</a></h3>
+<p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">recognition_predictor</span></code></a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="end-to-end-ocr">
+<h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this heading">#</a></h2>
+<p>The task consists of both localizing and transcribing textual elements in a given image.</p>
+<section id="id2">
+<h3>Available architectures<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<p>You can use any combination of detection and recognition models supported by docTR.</p>
+<p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head" colspan="2"></th>
+<th class="head" colspan="2"><p>FUNSD</p></th>
+<th class="head" colspan="2"><p>CORD</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Backend</strong></p></td>
+<td><p><strong>Architecture</strong></p></td>
+<td colspan="2"><p><strong>Recall</strong> | <strong>Precision</strong></p></td>
+<td><p><strong>Recall</strong></p></td>
+<td><p><strong>Precision</strong></p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + crnn_vgg16_bn</p></td>
+<td><p>70.82</p></td>
+<td><p>75.56</p></td>
+<td><p>83.97</p></td>
+<td><p>81.40</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
+<td><p>69.63</p></td>
+<td><p>74.29</p></td>
+<td><p>81.08</p></td>
+<td><p>78.59</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
+<td><p>70.01</p></td>
+<td><p>74.70</p></td>
+<td><p>83.28</p></td>
+<td><p>80.73</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>68.75</p></td>
+<td><p>73.76</p></td>
+<td><p>78.56</p></td>
+<td><p>76.24</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + master</p></td>
+<td><p>68.75</p></td>
+<td><p>73.76</p></td>
+<td><p>78.56</p></td>
+<td><p>76.24</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + vitstr_small</p></td>
+<td><p>64.58</p></td>
+<td><p>68.91</p></td>
+<td><p>74.66</p></td>
+<td><p>72.37</p></td>
+</tr>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + vitstr_base</p></td>
+<td><p>66.89</p></td>
+<td><p>71.37</p></td>
+<td><p>79.11</p></td>
+<td><p>76.68</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + parseq</p></td>
+<td><p>65.77</p></td>
+<td><p>70.18</p></td>
+<td><p>71.57</p></td>
+<td><p>69.37</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + crnn_vgg16_bn</p></td>
+<td><p>67.82</p></td>
+<td><p>73.35</p></td>
+<td><p>84.84</p></td>
+<td><p>83.27</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
+<td><p>67.89</p></td>
+<td><p>74.01</p></td>
+<td><p>84.43</p></td>
+<td><p>82.85</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
+<td><p>68.45</p></td>
+<td><p>74.63</p></td>
+<td><p>84.86</p></td>
+<td><p>83.27</p></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + master</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + vitstr_small</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + vitstr_base</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + parseq</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p>None</p></td>
+<td><p>Gvision text detection</p></td>
+<td><p>59.50</p></td>
+<td><p>62.50</p></td>
+<td><p>75.30</p></td>
+<td><p>59.03</p></td>
+</tr>
+<tr class="row-even"><td><p>None</p></td>
+<td><p>Gvision doc. text detection</p></td>
+<td><p>64.00</p></td>
+<td><p>53.30</p></td>
+<td><p>68.90</p></td>
+<td><p>61.10</p></td>
+</tr>
+<tr class="row-odd"><td><p>None</p></td>
+<td><p>AWS textract</p></td>
+<td><p>78.10</p></td>
+<td><p>83.00</p></td>
+<td><p>87.50</p></td>
+<td><p>66.00</p></td>
+</tr>
+<tr class="row-even"><td><p>None</p></td>
+<td><p>Azure Form Recognizer (v3.2)</p></td>
+<td><p>79.42</p></td>
+<td><p>85.89</p></td>
+<td><p>89.62</p></td>
+<td><p>88.93</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. <a class="reference internal" href="../modules/datasets.html#datasets"><span class="std std-ref">doctr.datasets</span></a>).
+Explanations about the metrics being used are available in <a class="reference internal" href="../modules/utils.html#metrics"><span class="std std-ref">Task evaluation</span></a>.</p>
+<p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
+</section>
+<section id="two-stage-approaches">
+<h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this heading">#</a></h3>
+<p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference internal" href="../modules/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ocr_predictor</span></code></a>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>You can pass specific boolean arguments to the predictor:</p>
+<ul class="simple">
+<li><p><cite>assume_straight_pages</cite></p></li>
+<li><p><cite>preserve_aspect_ratio</cite></p></li>
+<li><p><cite>symmetric_pad</cite></p></li>
+</ul>
+<p>Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).</p>
+<ul class="simple">
+<li><p><cite>export_as_straight_boxes</cite>: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.</p></li>
+</ul>
+<p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18_rotation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="what-should-i-do-with-the-output">
+<h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Permalink to this heading">#</a></h3>
+<p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
+To get a better understanding of our document model, check our <a class="reference internal" href="../modules/io.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
+<p>Here is a typical <cite>Document</cite> layout:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Document</span><span class="p">(</span>
+  <span class="p">(</span><span class="n">pages</span><span class="p">):</span> <span class="p">[</span><span class="n">Page</span><span class="p">(</span>
+    <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">blocks</span><span class="p">):</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span>
+      <span class="p">(</span><span class="n">lines</span><span class="p">):</span> <span class="p">[</span><span class="n">Line</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">words</span><span class="p">):</span> <span class="p">[</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;No.&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.91</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.99</span><span class="p">),</span>
+          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.96</span><span class="p">),</span>
+        <span class="p">]</span>
+      <span class="p">)]</span>
+      <span class="p">(</span><span class="n">artefacts</span><span class="p">):</span> <span class="p">[]</span>
+    <span class="p">)]</span>
+  <span class="p">)]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>You can also export them as a nested dict, more appropriate for JSON format:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">json_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>For reference, here is the JSON export for the same <cite>Document</cite> as above:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;pages&#39;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span>
+          <span class="s1">&#39;page_idx&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+          <span class="s1">&#39;dimensions&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">),</span>
+          <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+          <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
+          <span class="s1">&#39;blocks&#39;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="p">{</span>
+                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
+                  <span class="s1">&#39;lines&#39;</span><span class="p">:</span> <span class="p">[</span>
+                      <span class="p">{</span>
+                          <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
+                          <span class="s1">&#39;words&#39;</span><span class="p">:</span> <span class="p">[</span>
+                              <span class="p">{</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;No.&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
+                              <span class="p">},</span>
+                              <span class="p">{</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
+                              <span class="p">},</span>
+                              <span class="p">{</span>
+                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
+                              <span class="p">}</span>
+                          <span class="p">]</span>
+                      <span class="p">}</span>
+                  <span class="p">],</span>
+                  <span class="s1">&#39;artefacts&#39;</span><span class="p">:</span> <span class="p">[]</span>
+              <span class="p">}</span>
+          <span class="p">]</span>
+      <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
+    <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xml_element</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For reference, here is a sample XML byte string output:</p>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="cp">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="nt">&lt;html</span><span class="w"> </span><span class="na">xmlns=</span><span class="s">&quot;http://www.w3.org/1999/xhtml&quot;</span><span class="w"> </span><span class="na">xml:lang=</span><span class="s">&quot;en&quot;</span><span class="nt">&gt;</span>
+<span class="w">  </span><span class="nt">&lt;head&gt;</span>
+<span class="w">    </span><span class="nt">&lt;title&gt;</span>docTR<span class="w"> </span>-<span class="w"> </span>hOCR<span class="nt">&lt;/title&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">http-equiv=</span><span class="s">&quot;Content-Type&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;text/html; charset=utf-8&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-system&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;doctr 0.5.0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-capabilities&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/head&gt;</span>
+<span class="w">  </span><span class="nt">&lt;body&gt;</span>
+<span class="w">    </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_page&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;page_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;image; bbox 0 0 3456 3456; ppageno 0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_carea&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;block_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
+<span class="w">      </span><span class="nt">&lt;p</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_par&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;par_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_line&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;line_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1552 540 1778 580; x_wconf 99&quot;</span><span class="nt">&gt;</span>Hello<span class="nt">&lt;/span&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_2&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1782 529 1900 583; x_wconf 99&quot;</span><span class="nt">&gt;</span>XML<span class="nt">&lt;/span&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_3&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1420 597 1684 641; x_wconf 81&quot;</span><span class="nt">&gt;</span>World<span class="nt">&lt;/span&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/span&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/p&gt;</span>
+<span class="w">    </span><span class="nt">&lt;/div&gt;</span>
+<span class="w">  </span><span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="using_datasets.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Choose a ready to use dataset</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="../notebooks.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">docTR Notebooks</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2024, Mindee
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Choosing the right model</a><ul>
+<li><a class="reference internal" href="#text-detection">Text Detection</a><ul>
+<li><a class="reference internal" href="#available-architectures">Available architectures</a></li>
+<li><a class="reference internal" href="#detection-predictors">Detection predictors</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#text-recognition">Text Recognition</a><ul>
+<li><a class="reference internal" href="#id1">Available architectures</a></li>
+<li><a class="reference internal" href="#recognition-predictors">Recognition predictors</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
+<li><a class="reference internal" href="#id2">Available architectures</a></li>
+<li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
+<li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=245ab14c"></script>
+    <script src="../_static/doctools.js?v=888ff710"></script>
+    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/custom.js?v=f9c076be"></script>
+    </body>
+</html>

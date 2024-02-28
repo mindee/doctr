@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.detection.differentiable_binarization.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -263,7 +263,7 @@
 <span class="kn">from</span> <span class="nn">tensorflow.keras.applications</span> <span class="kn">import</span> <span class="n">ResNet50</span>
 
 <span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">CLASS_NAME</span>
-<span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
 <span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">mobilenet_v3_large</span>
@@ -277,13 +277,13 @@
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.2.0/db_resnet50-adcafc63.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/db_resnet50-84171458.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;db_mobilenet_v3_large&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.3.1/db_mobilenet_v3_large-8c16d5bf.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/db_mobilenet_v3_large-da524564.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -293,6 +293,7 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1612.03144.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        channels: number of channel to output</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -314,14 +315,15 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Module which performs a 3x3 convolution followed by up-sampling</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            channels: number of output channels</span>
 <span class="sd">            dilation_factor (int): dilation factor to scale the convolution output before concatenation</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            a keras.layers.Layer object, wrapping these operations in a sequential module</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">_layers</span> <span class="o">=</span> <span class="n">conv_sequence</span><span class="p">(</span><span class="n">channels</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">dilation_factor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -355,8 +357,11 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
+<span class="sd">        bin_thresh: threshold for binarization</span>
+<span class="sd">        box_thresh: minimal objectness score to consider a box</span>
 <span class="sd">        assume_straight_pages: if True, fit straight bounding boxes only</span>
 <span class="sd">        exportable: onnx exportable returns only logits</span>
 <span class="sd">        cfg: the configuration dict of the model</span>
@@ -370,6 +375,7 @@
         <span class="n">feature_extractor</span><span class="p">:</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span>
         <span class="n">fpn_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>  <span class="c1"># to be set to 256 to represent the author&#39;s initial idea</span>
         <span class="n">bin_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
+        <span class="n">box_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">exportable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -408,68 +414,81 @@
             <span class="p">]</span>
         <span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">DBPostProcessor</span><span class="p">(</span><span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span> <span class="n">bin_thresh</span><span class="o">=</span><span class="n">bin_thresh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">DBPostProcessor</span><span class="p">(</span>
+            <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span> <span class="n">bin_thresh</span><span class="o">=</span><span class="n">bin_thresh</span><span class="p">,</span> <span class="n">box_thresh</span><span class="o">=</span><span class="n">box_thresh</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">out_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">thresh_map</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]],</span>
+        <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes</span>
 <span class="sd">        and a list of masks for each image. From there it computes the loss with the model output</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            out_map: output feature map of the model of shape (N, H, W, C)</span>
 <span class="sd">            thresh_map: threshold map of shape (N, H, W, C)</span>
 <span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
+<span class="sd">            gamma: modulating factor in the focal loss formula</span>
+<span class="sd">            alpha: balancing factor in the focal loss formula</span>
+<span class="sd">            eps: epsilon factor in dice loss</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">gamma</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value of gamma should be greater than or equal to zero.&quot;</span><span class="p">)</span>
 
         <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">out_map</span><span class="p">)</span>
         <span class="n">thresh_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">thresh_map</span><span class="p">)</span>
 
-        <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span><span class="p">,</span> <span class="n">thresh_target</span><span class="p">,</span> <span class="n">thresh_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span><span class="p">,</span> <span class="n">thresh_target</span><span class="p">,</span> <span class="n">thresh_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">seg_target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">seg_target</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">out_map</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">seg_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+        <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">seg_mask</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">thresh_target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">thresh_target</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">out_map</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
         <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">thresh_mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
 
-        <span class="c1"># Compute balanced BCE loss for proba_map</span>
-        <span class="n">bce_scale</span> <span class="o">=</span> <span class="mf">5.0</span>
-        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">binary_crossentropy</span><span class="p">(</span>
-            <span class="n">seg_target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
-            <span class="n">out_map</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
-            <span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)[</span><span class="n">seg_mask</span><span class="p">]</span>
+        <span class="c1"># Focal loss</span>
+        <span class="n">focal_scale</span> <span class="o">=</span> <span class="mf">10.0</span>
+        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">binary_crossentropy</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">out_map</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">neg_target</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">]</span>
-        <span class="n">positive_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])</span>
-        <span class="n">negative_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">neg_target</span><span class="p">),</span> <span class="mf">3.0</span> <span class="o">*</span> <span class="n">positive_count</span><span class="p">])</span>
-        <span class="n">negative_loss</span> <span class="o">=</span> <span class="n">bce_loss</span> <span class="o">*</span> <span class="n">neg_target</span>
-        <span class="n">negative_loss</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">top_k</span><span class="p">(</span><span class="n">negative_loss</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">negative_count</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
-        <span class="n">sum_losses</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">bce_loss</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">negative_loss</span><span class="p">)</span>
-        <span class="n">balanced_bce_loss</span> <span class="o">=</span> <span class="n">sum_losses</span> <span class="o">/</span> <span class="p">(</span><span class="n">positive_count</span> <span class="o">+</span> <span class="n">negative_count</span> <span class="o">+</span> <span class="mf">1e-6</span><span class="p">)</span>
+        <span class="c1"># Convert logits to prob, compute gamma factor</span>
+        <span class="n">p_t</span> <span class="o">=</span> <span class="p">(</span><span class="n">seg_target</span> <span class="o">*</span> <span class="n">prob_map</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prob_map</span><span class="p">))</span>
+        <span class="n">alpha_t</span> <span class="o">=</span> <span class="n">seg_target</span> <span class="o">*</span> <span class="n">alpha</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span>
+        <span class="c1"># Unreduced loss</span>
+        <span class="n">focal_loss</span> <span class="o">=</span> <span class="n">alpha_t</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_t</span><span class="p">)</span> <span class="o">**</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">bce_loss</span>
+        <span class="c1"># Class reduced</span>
+        <span class="n">focal_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="n">focal_loss</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
-        <span class="c1"># Compute dice loss for approxbin_map</span>
-        <span class="n">bin_map</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">50.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">prob_map</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">thresh_map</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])))</span>
-
-        <span class="n">bce_min</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">(</span><span class="n">bce_loss</span><span class="p">)</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">bce_loss</span> <span class="o">-</span> <span class="n">bce_min</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">bce_loss</span><span class="p">)</span> <span class="o">-</span> <span class="n">bce_min</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1.0</span>
-        <span class="n">inter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">bin_map</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">]</span> <span class="o">*</span> <span class="n">weights</span><span class="p">)</span>
-        <span class="n">union</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">bin_map</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="n">seg_mask</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-8</span>
-        <span class="n">dice_loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">inter</span> <span class="o">/</span> <span class="n">union</span>
+        <span class="c1"># Compute dice loss for each class or for approx binary_map</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">dice_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">out_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># compute binary map instead</span>
+            <span class="n">dice_map</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mi">50</span> <span class="o">*</span> <span class="p">(</span><span class="n">prob_map</span> <span class="o">-</span> <span class="n">thresh_map</span><span class="p">)))</span>
+        <span class="c1"># Class-reduced dice loss</span>
+        <span class="n">inter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="n">dice_map</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">cardinality</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="p">(</span><span class="n">dice_map</span> <span class="o">+</span> <span class="n">seg_target</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">dice_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">inter</span> <span class="o">/</span> <span class="p">(</span><span class="n">cardinality</span> <span class="o">+</span> <span class="n">eps</span><span class="p">))</span>
 
         <span class="c1"># Compute l1 loss for thresh_map</span>
-        <span class="n">l1_scale</span> <span class="o">=</span> <span class="mf">10.0</span>
         <span class="k">if</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_any</span><span class="p">(</span><span class="n">thresh_mask</span><span class="p">):</span>
-            <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">thresh_map</span><span class="p">[</span><span class="n">thresh_mask</span><span class="p">]</span> <span class="o">-</span> <span class="n">thresh_target</span><span class="p">[</span><span class="n">thresh_mask</span><span class="p">]))</span>
+            <span class="n">thresh_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">thresh_mask</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">thresh_map</span> <span class="o">-</span> <span class="n">thresh_target</span><span class="p">)</span> <span class="o">*</span> <span class="n">thresh_mask</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">thresh_mask</span><span class="p">)</span> <span class="o">+</span> <span class="n">eps</span>
+            <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">l1_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">l1_scale</span> <span class="o">*</span> <span class="n">l1_loss</span> <span class="o">+</span> <span class="n">bce_scale</span> <span class="o">*</span> <span class="n">balanced_bce_loss</span> <span class="o">+</span> <span class="n">dice_loss</span>
+        <span class="k">return</span> <span class="n">l1_loss</span> <span class="o">+</span> <span class="n">focal_scale</span> <span class="o">*</span> <span class="n">focal_loss</span> <span class="o">+</span> <span class="n">dice_loss</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -489,7 +508,7 @@
             <span class="k">return</span> <span class="n">out</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
-            <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+            <span class="n">prob_map</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
@@ -590,12 +609,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_db_resnet</span><span class="p">(</span>
         <span class="s2">&quot;db_resnet50&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
@@ -616,12 +637,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_db_mobilenet</span><span class="p">(</span>
         <span class="s2">&quot;db_mobilenet_v3_large&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
@@ -661,13 +684,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

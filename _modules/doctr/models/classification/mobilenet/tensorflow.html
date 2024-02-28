@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.classification.mobilenet.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -330,14 +330,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Squeeze and Excitation.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">squeeze_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span> <span class="o">//</span> <span class="n">squeeze_factor</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;hard_sigmoid&quot;</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chan</span><span class="p">)),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span> <span class="o">//</span> <span class="n">squeeze_factor</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;hard_sigmoid&quot;</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chan</span><span class="p">)),</span>
+        <span class="p">])</span>
 
     <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -374,6 +372,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;InvertedResidual for mobilenet</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        conf: configuration object for inverted residual</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -468,14 +467,12 @@
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">include_top</span><span class="p">:</span>
-            <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
-                <span class="p">[</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">head_chans</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">hard_swish</span><span class="p">),</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>
-                    <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">),</span>
-                <span class="p">]</span>
-            <span class="p">)</span>
+            <span class="n">_layers</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">head_chans</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">hard_swish</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="mf">0.2</span><span class="p">),</span>
+                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">num_classes</span><span class="p">),</span>
+            <span class="p">])</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
@@ -557,12 +554,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -578,12 +577,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -599,9 +600,12 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -619,9 +623,12 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -639,12 +646,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
@@ -678,13 +687,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

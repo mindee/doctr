@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.datasets.detection</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -274,6 +274,7 @@
 <span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
 <span class="sd">        label_path: path to the annotations of each image</span>
 <span class="sd">        use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
@@ -314,14 +315,16 @@
     <span class="k">def</span> <span class="nf">format_polygons</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">polygons</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">],</span> <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">np_dtype</span><span class="p">:</span> <span class="n">Type</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;format polygons into an array</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format polygons into an array</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            polygons: the bounding boxes</span>
 <span class="sd">            use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)</span>
 <span class="sd">            np_dtype: dtype of array</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            geoms: bounding boxes as np array</span>
 <span class="sd">            polygons_classes: list of classes for each bounding box</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -340,7 +343,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">class_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_class_names</span><span class="p">)))</span></div>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_class_names</span><span class="p">))</span></div>
 </pre></div>
         </article>
       </div>
@@ -373,13 +376,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

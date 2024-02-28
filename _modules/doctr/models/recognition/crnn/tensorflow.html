@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.recognition.crnn.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -261,7 +261,7 @@
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">mobilenet_v3_large_r</span><span class="p">,</span> <span class="n">mobilenet_v3_small_r</span><span class="p">,</span> <span class="n">vgg16_bn_r</span>
-<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CRNN&quot;</span><span class="p">,</span> <span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span> <span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="s2">&quot;crnn_mobilenet_v3_large&quot;</span><span class="p">]</span>
@@ -292,10 +292,10 @@
 
 
 <span class="k">class</span> <span class="nc">CTCPostProcessor</span><span class="p">(</span><span class="n">RecognitionPostProcessor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Postprocess raw prediction of the model (logits) to a list of words using CTC decoding</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Postprocess raw prediction of the model (logits) to a list of words using CTC decoding</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">        ignore_case: if True, ignore case of letters</span>
 <span class="sd">        ignore_accents: if True, ignore accents of letters</span>
@@ -307,16 +307,17 @@
         <span class="n">beam_width</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">top_paths</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]],</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Performs decoding of raw output with CTC and decoding of CTC predictions</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs decoding of raw output with CTC and decoding of CTC predictions</span>
 <span class="sd">        with label_to_idx mapping dictionnary</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1</span>
 <span class="sd">            beam_width: An int scalar &gt;= 0 (beam search beam width).</span>
 <span class="sd">            top_paths: An int scalar &gt;= 0, &lt;= beam_width (controls output size).</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A list of decoded words of length BATCH_SIZE</span>
 
 
@@ -361,6 +362,7 @@
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition&quot; &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
 <span class="sd">        vocab: vocabulary used for encoding</span>
 <span class="sd">        rnn_units: number of units in the LSTM layers</span>
@@ -392,13 +394,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span> <span class="o">=</span> <span class="n">exportable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">feature_extractor</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Bidirectional</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">input_shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">CTCPostProcessor</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
@@ -414,10 +414,12 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute CTC loss for the model.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            model_output: predicted logits of the model</span>
 <span class="sd">            target: lengths of each gt word inside the batch</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            The loss of the model on the batch</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
@@ -447,7 +449,7 @@
         <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">transposed_feat</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="c1"># B x W x H x C --&gt; B x W x H * C</span>
         <span class="n">features_seq</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transposed_feat</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">*</span> <span class="n">c</span><span class="p">))</span>
-        <span class="n">logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features_seq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span><span class="n">features_seq</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
 
         <span class="n">out</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
@@ -509,12 +511,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the CRNN architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">vgg16_bn_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -529,12 +533,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the CRNN architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">mobilenet_v3_small_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -549,12 +555,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the CRNN architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text recognition architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">mobilenet_v3_large_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 </pre></div>
         </article>
@@ -588,13 +596,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

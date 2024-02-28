@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.io.image.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -267,13 +267,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a PIL Image to a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pil_img: a PIL image</span>
 <span class="sd">        dtype: the output tensor data type</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        decoded image as tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="n">npy_img</span> <span class="o">=</span> <span class="n">img_to_array</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">tensor_from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
@@ -283,13 +284,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        img_path: location of the image file</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        decoded image as a tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
 
@@ -307,13 +309,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a byte stream as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        img_content: bytes of a decoded image</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        decoded image as a tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
 
@@ -330,13 +333,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
+<span class="sd">    ----</span>
+<span class="sd">        npy_img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        same image as a tensor of shape (H, W, C)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
 
@@ -350,6 +354,7 @@
 
 
 <span class="k">def</span> <span class="nf">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the shape of an image&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
 </pre></div>
         </article>
@@ -383,13 +388,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.models.detection.linknet.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -263,60 +263,51 @@
 
 <span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">CLASS_NAME</span>
 <span class="kn">from</span> <span class="nn">doctr.models.classification</span> <span class="kn">import</span> <span class="n">resnet18</span><span class="p">,</span> <span class="n">resnet34</span><span class="p">,</span> <span class="n">resnet50</span>
-<span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">LinkNetPostProcessor</span><span class="p">,</span> <span class="n">_LinkNet</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LinkNet&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LinkNet&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.6.0/linknet_resnet18-611b50f2.zip&amp;src=0&quot;</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.5.0/linknet_resnet18-a48e6ed3.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet18-b9ee56e6.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.6.0/linknet_resnet34-bf30afb1.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet34-51909c56.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.6.0/linknet_resnet50-cd299262.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet50-ac9f3829.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">def</span> <span class="nf">decoder_block</span><span class="p">(</span><span class="n">in_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequential</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="n">Sequential</span><span class="p">(</span>
-        <span class="p">[</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                <span class="n">filters</span><span class="o">=</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span>
-                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                <span class="n">strides</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
-                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
-            <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
-            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-        <span class="p">]</span>
-    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">Sequential</span><span class="p">([</span>
+        <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+            <span class="n">filters</span><span class="o">=</span><span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="n">strides</span><span class="o">=</span><span class="n">stride</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+        <span class="p">),</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+        <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+        <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">out_chan</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+    <span class="p">])</span>
 
 
 <span class="k">class</span> <span class="nc">LinkNetFPN</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
@@ -352,8 +343,11 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
+<span class="sd">        bin_thresh: threshold for binarization of the output feature map</span>
+<span class="sd">        box_thresh: minimal objectness score to consider a box</span>
 <span class="sd">        assume_straight_pages: if True, fit straight bounding boxes only</span>
 <span class="sd">        exportable: onnx exportable returns only logits</span>
 <span class="sd">        cfg: the configuration dict of the model</span>
@@ -367,6 +361,7 @@
         <span class="n">feat_extractor</span><span class="p">:</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span>
         <span class="n">fpn_channels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">64</span><span class="p">,</span>
         <span class="n">bin_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">box_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
         <span class="n">assume_straight_pages</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">exportable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -385,32 +380,32 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span> <span class="o">=</span> <span class="n">LinkNetFPN</span><span class="p">(</span><span class="n">fpn_channels</span><span class="p">,</span> <span class="p">[</span><span class="n">_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">for</span> <span class="n">_shape</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                    <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                    <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-                    <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                    <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
-                    <span class="n">input_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">decoders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
-                <span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
-                <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
-                    <span class="n">filters</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
-                    <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
-                    <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
-                    <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
-                <span class="p">),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">classifier</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                <span class="n">filters</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+                <span class="n">input_shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="o">.</span><span class="n">decoders</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+            <span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
+            <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span>
+                <span class="n">filters</span><span class="o">=</span><span class="n">num_classes</span><span class="p">,</span>
+                <span class="n">kernel_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;same&quot;</span><span class="p">,</span>
+                <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LinkNetPostProcessor</span><span class="p">(</span><span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span> <span class="n">bin_thresh</span><span class="o">=</span><span class="n">bin_thresh</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LinkNetPostProcessor</span><span class="p">(</span>
+            <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span> <span class="n">bin_thresh</span><span class="o">=</span><span class="n">bin_thresh</span><span class="p">,</span> <span class="n">box_thresh</span><span class="o">=</span><span class="n">box_thresh</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -424,6 +419,7 @@
 <span class="sd">        &lt;https://github.com/tensorflow/addons/&gt;`_.</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            out_map: output feature map of the model of shape N x H x W x 1</span>
 <span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
 <span class="sd">            gamma: modulating factor in the focal loss formula</span>
@@ -431,6 +427,7 @@
 <span class="sd">            eps: epsilon factor in dice loss</span>
 
 <span class="sd">        Returns:</span>
+<span class="sd">        -------</span>
 <span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">True</span><span class="p">)</span>
@@ -452,10 +449,12 @@
         <span class="c1"># Class reduced</span>
         <span class="n">focal_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="n">focal_loss</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
 
-        <span class="c1"># Dice loss</span>
-        <span class="n">inter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="n">proba_map</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">cardinality</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">((</span><span class="n">proba_map</span> <span class="o">+</span> <span class="n">seg_target</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-        <span class="n">dice_loss</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">inter</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">cardinality</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)</span>
+        <span class="c1"># Compute dice loss for each class</span>
+        <span class="n">dice_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">out_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">proba_map</span>
+        <span class="c1"># Class-reduced dice loss</span>
+        <span class="n">inter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="n">dice_map</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">cardinality</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="p">(</span><span class="n">dice_map</span> <span class="o">+</span> <span class="n">seg_target</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">dice_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">inter</span> <span class="o">/</span> <span class="p">(</span><span class="n">cardinality</span> <span class="o">+</span> <span class="n">eps</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">focal_loss</span> <span class="o">+</span> <span class="n">dice_loss</span>
 
@@ -477,7 +476,8 @@
             <span class="k">return</span> <span class="n">out</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
-            <span class="n">prob_map</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+            <span class="n">prob_map</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">))</span>
+
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
 
@@ -541,40 +541,16 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the LinkNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
         <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span>
-        <span class="n">pretrained</span><span class="p">,</span>
-        <span class="n">resnet18</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;resnet_block_1&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_3&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_5&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_7&quot;</span><span class="p">],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="linknet_resnet18_rotation"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet18_rotation">[docs]</a><span class="k">def</span> <span class="nf">linknet_resnet18_rotation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
-<span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
-
-<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">    &gt;&gt;&gt; from doctr.models import linknet_resnet18_rotation</span>
-<span class="sd">    &gt;&gt;&gt; model = linknet_resnet18_rotation(pretrained=True)</span>
-<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 1024, 1024, 3], maxval=1, dtype=tf.float32)</span>
-<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s2">&quot;linknet_resnet18_rotation&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet18</span><span class="p">,</span>
         <span class="p">[</span><span class="s2">&quot;resnet_block_1&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_3&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_5&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet_block_7&quot;</span><span class="p">],</span>
@@ -593,12 +569,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the LinkNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
         <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
@@ -619,12 +597,14 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the LinkNet architecture</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
         <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
@@ -664,13 +644,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

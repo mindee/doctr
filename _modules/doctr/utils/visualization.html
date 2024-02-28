@@ -246,7 +246,7 @@
         </div>
         <article role="main">
           <h1>Source code for doctr.utils.visualization</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2023, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -282,6 +282,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib rectangular patch for the element</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        geometry: bounding box of the element</span>
 <span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
 <span class="sd">        label: label to display when hovered</span>
@@ -292,9 +293,9 @@
 <span class="sd">        preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a rectangular Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">elt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
 
@@ -332,6 +333,7 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib polygon patch for the element</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        geometry: bounding box of the element</span>
 <span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
 <span class="sd">        label: label to display when hovered</span>
@@ -342,9 +344,9 @@
 <span class="sd">        preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a polygon Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
 
@@ -371,15 +373,18 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib patch for the element</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        geometry: bounding box (straight or rotated) of the element</span>
 <span class="sd">        page_dimensions: dimensions of the page in format (height, width)</span>
+<span class="sd">        **kwargs: keyword arguments for the patch</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a matplotlib Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># straight word BB (2 pts)</span>
-            <span class="k">return</span> <span class="n">rect_patch</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+            <span class="k">return</span> <span class="n">rect_patch</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># rotated word BB (4 pts)</span>
             <span class="k">return</span> <span class="n">polygon_patch</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geometry</span><span class="p">),</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">geometry</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>  <span class="c1"># rotated line</span>
@@ -391,9 +396,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate num_colors color for matplotlib</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        num_colors: number of colors to generate</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        colors: list of generated colors</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
@@ -428,6 +435,7 @@
 <span class="sd">    &gt;&gt;&gt; plt.show()</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        page: the exported Page of a Document</span>
 <span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
@@ -435,6 +443,11 @@
 <span class="sd">        scale: figsize of the largest windows side</span>
 <span class="sd">        interactive: whether the plot should be interactive</span>
 <span class="sd">        add_labels: for static plot, adds text labels on top of bounding box</span>
+<span class="sd">        **kwargs: keyword arguments for the polygon patch</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">        the matplotlib figure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -531,15 +544,16 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a the content of the element page (OCR response) on a blank page.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        page: exported Page object to represent</span>
 <span class="sd">        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0</span>
 <span class="sd">        font_size: size of the font, default font = 13</span>
 <span class="sd">        font_family: family of the font</span>
 
-<span class="sd">    Return:</span>
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        the synthesized page</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="c1"># Draw template</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
     <span class="n">response</span> <span class="o">=</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -602,6 +616,7 @@
 <span class="sd">    &gt;&gt;&gt; plt.show()</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        page: the exported Page of a Document</span>
 <span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
@@ -609,6 +624,11 @@
 <span class="sd">        scale: figsize of the largest windows side</span>
 <span class="sd">        interactive: whether the plot should be interactive</span>
 <span class="sd">        add_labels: for static plot, adds text labels on top of bounding box</span>
+<span class="sd">        **kwargs: keyword arguments for the polygon patch</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">        the matplotlib figure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -656,15 +676,16 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a the content of the element page (OCR response) on a blank page.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        page: exported Page object to represent</span>
 <span class="sd">        draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0</span>
 <span class="sd">        font_size: size of the font, default font = 13</span>
 <span class="sd">        font_family: family of the font</span>
 
-<span class="sd">    Return:</span>
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        the synthesized page</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
     <span class="c1"># Draw template</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
     <span class="n">response</span> <span class="o">=</span> <span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
@@ -707,9 +728,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw an array of relative straight boxes on an image</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        boxes: array of relative boxes, of shape (*, 4)</span>
 <span class="sd">        image: np array, float32 or uint8</span>
 <span class="sd">        color: color to use for bounding box edges</span>
+<span class="sd">        **kwargs: keyword arguments from `matplotlib.pyplot.plot`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="c1"># Convert boxes to absolute coords</span>
@@ -756,13 +779,13 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=d9cbba5a"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
     <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
     <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=6fc3bf22"></script>
+    <script src="../../../_static/js/custom.js?v=f9c076be"></script>
     <script src="../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>
