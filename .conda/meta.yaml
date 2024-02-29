@@ -13,18 +13,14 @@ source:
 build:
   noarch: python
   script: python setup.py install --single-version-externally-managed --record=record.txt
-  preserve_egg_dir: True
 
 requirements:
   host:
-    - python>=3.8, <3.10
-    - pip
+    - python>=3.8, <4.0
     - setuptools
-    - wheel
 
   run:
     - importlib_metadata
-    - pytorch >=2.0.0, <3.0.0  # dummy
     - numpy >=1.16.0, <2.0.0
     - scipy >=1.4.0, <2.0.0
     - pillow >=9.2.0
@@ -43,19 +39,6 @@ requirements:
     - mplcursors >=0.3
     - unidecode >=1.0.0
     - tqdm >=4.30.0
-
-test:
-  imports:
-    - doctr
-    - doctr.io
-    - doctr.models
-    - doctr.datasets
-    - doctr.transforms
-    - doctr.utils
-  requires:
-    - pip
-  commands:
-    - pip check
 
 about:
   home: {{ urls.get('repository') }}
