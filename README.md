@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/Logo_doctr.gif" width="40%">
+  <img src="https://github.com/mindee/doctr/raw/main/docs/images/Logo_doctr.gif" width="40%">
 </p>
 
 [![Slack Icon](https://img.shields.io/badge/Slack-Community-4A154B?style=flat-square&logo=slack&logoColor=white)](https://slack.mindee.com) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![Docker Images](https://img.shields.io/badge/Docker-4287f5?style=flat&logo=docker&logoColor=white)](https://github.com/mindee/doctr/pkgs/container/doctr) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.8.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb)
@@ -12,7 +12,7 @@ What you can expect from this repository:
 - efficient ways to parse textual information (localize and identify each word) from your documents
 - guidance on how to integrate this in your current architecture
 
-![OCR_example](docs/images/ocr.png)
+![OCR_example](https://github.com/mindee/doctr/raw/main/docs/images/ocr.png)
 
 ## Quick Tour
 
@@ -78,7 +78,7 @@ To interpret your model's predictions, you can visualize them interactively as f
 result.show()
 ```
 
-![Visualization sample](docs/images/doctr_example_script.gif)
+![Visualization sample](https://github.com/mindee/doctr/raw/main/docs/images/doctr_example_script.gif)
 
 Or even rebuild the original document from its predictions:
 
@@ -89,7 +89,7 @@ synthetic_pages = result.synthesize()
 plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
 ```
 
-![Synthesis sample](docs/images/synthesized_sample.png)
+![Synthesis sample](https://github.com/mindee/doctr/raw/main/docs/images/synthesized_sample.png)
 
 The `ocr_predictor` returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
 To get a better understanding of our document model, check our [documentation](https://mindee.github.io/doctr/modules/io.html#document-structure):
@@ -128,7 +128,7 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ### If you are looking for support from the Mindee team
 
-[![Bad OCR test detection image asking the developer if they need help](docs/images/doctr-need-help.png)](https://mindee.com/product/doctr)
+[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/raw/main/docs/images/doctr-need-help.png)](https://mindee.com/product/doctr)
 
 ## Installation
 
@@ -217,7 +217,7 @@ The full package documentation is available [here](https://mindee.github.io/doct
 
 A minimal demo app is provided for you to play with our end-to-end OCR models!
 
-![Demo app](docs/images/demo_update.png)
+![Demo app](https://github.com/mindee/doctr/raw/main/docs/images/demo_update.png)
 
 #### Live demo
 
@@ -257,7 +257,7 @@ USE_TORCH=1 streamlit run demo/app.py
 Instead of having your demo actually running Python, you would prefer to run everything in your web browser?
 Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to get started!
 
-![TFJS demo](docs/images/demo_illustration_mini.png)
+![TFJS demo](https://github.com/mindee/doctr/raw/main/docs/images/demo_illustration_mini.png)
 
 ### Docker container
 

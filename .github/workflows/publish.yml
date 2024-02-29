@@ -108,4 +108,6 @@ jobs:
         shell: bash -el {0}
         run: |
           conda config --set channel_priority strict
+          conda install pytorch torchvision torchaudio cpuonly -c pytorch
           conda install -c techMindee -c pypdfium2-team -c bblanchon -c conda-forge python-doctr
+          python -c "import doctr; print(doctr.__version__)"
