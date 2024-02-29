@@ -17,7 +17,9 @@ build:
 requirements:
   host:
     - python>=3.8, <4.0
+    - pip
     - setuptools
+    - wheel
 
   run:
     - importlib_metadata
@@ -48,6 +50,10 @@ test:
     - doctr.datasets
     - doctr.transforms
     - doctr.utils
+  requires:
+    - pip
+  commands:
+    - pip check
 
 about:
   home: {{ urls.get('repository') }}
