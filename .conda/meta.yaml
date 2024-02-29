@@ -3,7 +3,7 @@
 {% set urls = pyproject.get('project', {}).get('urls') %}
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
 package:
-  name: {{ project.get('name') | replace("python-", "")}}
+  name: {{ project.get('name') }}
   version: {{ version }}
 
 source:
@@ -13,6 +13,7 @@ source:
 build:
   noarch: python
   script: python setup.py install --single-version-externally-managed --record=record.txt
+  preserve_egg_dir: True
 
 requirements:
   host:
