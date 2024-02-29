@@ -3,7 +3,7 @@
 {% set urls = pyproject.get('project', {}).get('urls') %}
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
 package:
-  name: {{ project.get('name') }}
+  name: {{ project.get('name') | replace("python-", "")}}
   version: {{ version }}
 
 source:
@@ -22,8 +22,8 @@ requirements:
     - wheel
 
   run:
-    - {{ pin_subpackage("python-doctr", exact=True) }}
     - importlib_metadata
+    - pytorch >=2.0.0, <3.0.0  # dummy
     - numpy >=1.16.0, <2.0.0
     - scipy >=1.4.0, <2.0.0
     - pillow >=9.2.0
