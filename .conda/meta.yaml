@@ -17,7 +17,7 @@ build:
 
 requirements:
   host:
-    - python>=3.8, <4.0
+    - python>=3.8, <3.10
     - pip
     - setuptools
     - wheel
@@ -60,7 +60,6 @@ test:
 about:
   home: {{ urls.get('repository') }}
   license: Apache-2.0
-  license_family: Apache
   license_file: {{ project.get('license', {}).get('file') }}
   summary: {{ project.get('description') | replace(":", " -")}}
   doc_url: {{ urls.get('documentation') }}
