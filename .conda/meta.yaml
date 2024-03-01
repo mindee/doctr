@@ -18,6 +18,8 @@ requirements:
   host:
     - python>=3.8, <4.0
     - setuptools
+    - pytorch >=2.0.0, <3.0.0
+    - torchvision
 
   run:
     - importlib_metadata
