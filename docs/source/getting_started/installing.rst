@@ -57,8 +57,8 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
             pip install "python-doctr[torch]"
 
 
-Via Conda
-=========
+Via Conda (Only for Linux)
+==========================
 
 Install the last stable release of the package using `conda <https://docs.conda.io/en/latest/>`_:
 
