@@ -248,7 +248,7 @@ def main(args):
     elif torch.cuda.is_available():
         args.device = 0
     else:
-        logging.warning("No accessible GPU, targe device set to CPU.")
+        logging.warning("No accessible GPU, target device set to CPU.")
     if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
