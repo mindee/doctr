@@ -2,10 +2,6 @@
 requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-include-package-data = false
-where = ["doctr"]
-
 [project]
 name = "python-doctr"
 description = "Document Text Recognition (docTR): deep Learning for high-performance OCR on documents."
@@ -132,9 +128,11 @@ tracker = "https://github.com/mindee/doctr/issues"
 changelog = "https://mindee.github.io/doctr/changelog.html"
 
 [tool.setuptools]
+include-package-data = false
 zip-safe = true
 
 [tool.setuptools.packages.find]
+where = ["doctr"]
 exclude = ["api*", "demo*", "docs*", "notebooks*", "references*", "scripts*", "tests*"]
 
 [tool.mypy]
