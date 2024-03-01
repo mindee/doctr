@@ -74,7 +74,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.8
-          channels: pypdfium2-team,bblanchon,conda-forge
+          channels: pypdfium2-team,bblanchon,pytorch,conda-forge
           channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
@@ -91,8 +91,7 @@ jobs:
           echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
-          conda config --set channel_priority strict
-          conda build .conda/ --output-folder conda-dist -c default -c pypdfium2-team -c bblanchon -c pytorch -c conda-forge
+          conda build .conda/ --output-folder conda-dist
           conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
           anaconda upload conda-dist/noarch/*tar.bz2
 
@@ -105,10 +104,11 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.8
+          channels: techMindee,pypdfium2-team,bblanchon,pytorch,conda-forge
+          channel-priority: strict
       - name: Install package
         shell: bash -el {0}
         run: |
-          conda config --set channel_priority strict
           conda install pytorch torchvision torchaudio cpuonly -c pytorch
-          conda install -c techMindee -c pypdfium2-team -c bblanchon -c conda-forge python-doctr
+          conda install python-doctr
           python -c "import doctr; print(doctr.__version__)"
