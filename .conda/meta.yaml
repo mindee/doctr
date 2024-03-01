@@ -4,7 +4,7 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') | replace("a0", "") %}
 
 package:
-  name: {{ project.get('name') | replace("python-", "")}}
+  name: {{ project.get('name') }}
   version: {{ version }}
 
 source:
@@ -12,7 +12,7 @@ source:
 
 build:
   noarch: python
-  script: {{ PYTHON }} -m pip install . -vv
+  script: python setup.py install
 
 requirements:
   host:
