@@ -1,14 +1,14 @@
 {% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
 {% set project = pyproject.get('project') %}
 {% set urls = pyproject.get('project', {}).get('urls') %}
-{% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
+{% set version = environ.get('BUILD_VERSION', '0.8.1a0') | replace("a0", "") %}
 package:
   name: {{ project.get('name') }}
   version: {{ version }}
 
 source:
-  fn: {{ project.get('name') }}-{{ version }}.tar.gz
-  url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
+  url: https://files.pythonhosted.org/packages/0d/6f/2b9a2b3d5d06d8d69d93e5d67eeed9777dbd5c87eddb477d88626c8707ef/python-doctr-0.8.0.tar.gz
+  sha256: 8d63f7e6c76d43024d94681105e7ea2022e4b7b4dc7c7cecbf75db281ae51220
 
 build:
   noarch: python
