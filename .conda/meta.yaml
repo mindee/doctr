@@ -16,7 +16,7 @@ build:
 
 requirements:
   host:
-    - python>=3.8, <4.0
+    - python>=3.8, <3.12
     - setuptools
 
   run:
@@ -43,7 +43,7 @@ requirements:
 test:
   requires:
     - pip
-    - pytorch>=2.0.0, <3.0.0
+    - pytorch >=2.0.0, <3.0.0
     - torchvision
 
   imports:

@@ -74,7 +74,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.8
-          channels: pypdfium2-team,bblanchon,pytorch,conda-forge
+          channels: defaults,pypdfium2-team,bblanchon,pytorch,conda-forge
           channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
@@ -104,7 +104,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.8
-          channels: techMindee,pypdfium2-team,bblanchon,pytorch,conda-forge
+          channels: defaults,techMindee,pypdfium2-team,bblanchon,pytorch,conda-forge
           channel-priority: strict
       - name: Install package
         shell: bash -el {0}
