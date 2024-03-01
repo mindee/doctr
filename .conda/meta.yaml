@@ -1,15 +1,15 @@
 {% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
 {% set project = pyproject.get('project') %}
 {% set urls = pyproject.get('project', {}).get('urls') %}
-{% set version = environ.get('BUILD_VERSION', '0.8.1a0') | replace("a0", "") %}
+{% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
 
 package:
   name: {{ project.get('name') }}
   version: {{ version }}
 
 source:
-    fn: {{ project.get('name') }}-{{ version }}.tar.gz
-    url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
+  fn: {{ project.get('name') }}-{{ version }}.tar.gz
+  url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
 
 build:
   script: python setup.py install --single-version-externally-managed --record=record.txt
