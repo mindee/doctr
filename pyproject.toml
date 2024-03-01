@@ -2,6 +2,10 @@
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.packages.find]
+include-package-data = true
+where = ["doctr"]
+
 [project]
 name = "python-doctr"
 description = "Document Text Recognition (docTR): deep Learning for high-performance OCR on documents."

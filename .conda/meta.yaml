@@ -4,13 +4,14 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') | replace("a0", "") %}
 
 package:
-  name: {{ project.get('name') }}
+  name: {{ project.get('name') | lower }}
   version: {{ version }}
 
 source:
     path: ../
 
 build:
+  preserve_egg_dir: False
   noarch: python
   script: {{ PYTHON }} -m pip install . -v --no-deps --no-build-isolation
 
@@ -43,8 +44,14 @@ requirements:
     - tqdm >=4.30.0
 
 test:
+  requires:
+    - pip
+
   imports:
     - doctr
+
+  commands:
+    - pip check
 
 about:
   home: {{ urls.get('repository') }}
