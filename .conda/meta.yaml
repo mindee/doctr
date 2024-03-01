@@ -4,7 +4,7 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
 
 package:
-  name: {{ project.get('name') }}
+  name: doctr
   version: {{ version }}
 
 source:
@@ -12,7 +12,7 @@ source:
   url: ../dist/doctr-{{ version }}.tar.gz
 
 build:
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script: PKG_NAME=doctr python setup.py install --single-version-externally-managed --record=record.txt
 
 requirements:
   host:
