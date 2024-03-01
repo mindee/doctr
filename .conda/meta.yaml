@@ -4,7 +4,7 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
 
 package:
-  name: {{ project.get('name') }}
+  name: doctr
   version: {{ version }}
 
 source:
