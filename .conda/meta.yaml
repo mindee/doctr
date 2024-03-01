@@ -4,7 +4,7 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') | replace("a0", "") %}
 
 package:
-  name: {{ project.get('name') }}
+  name: {{ project.get('name') | replace("python-", "")}}
   version: {{ version }}
 
 source:
@@ -18,6 +18,8 @@ requirements:
   host:
     - python>=3.8, <4.0
     - setuptools
+    - pytorch
+    - torchvision
     - ocl-icd-system
 
   run:
