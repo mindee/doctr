@@ -4,23 +4,20 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') | replace("a0", "") %}
 
 package:
-  name: {{ project.get('name') | lower }}
+  name: {{ project.get('name') }}
   version: {{ version }}
 
 source:
-    path: ../
+    fn: {{ project.get('name') }}-{{ version }}.tar.gz
+    url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
 
 build:
-  preserve_egg_dir: False
-  noarch: python
-  script: {{ PYTHON }} -m pip install . -v --no-deps --no-build-isolation
+  script: python setup.py install --single-version-externally-managed --record=record.txt
 
 requirements:
   host:
     - python>=3.8, <4.0
     - setuptools
-    - pytorch
-    - torchvision
 
   run:
     - importlib_metadata

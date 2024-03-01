@@ -8,7 +8,7 @@ from pathlib import Path
 
 from setuptools import setup
 
-PKG_NAME = "python-doctr"
+PKG_NAME = "doctr"
 VERSION = os.getenv("BUILD_VERSION", "0.8.1a0")
 
 
