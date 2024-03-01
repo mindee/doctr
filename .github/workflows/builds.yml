@@ -68,5 +68,7 @@ jobs:
         run: |
           python setup.py sdist
           mkdir conda-dist
+          conda config --set channel_priority strict
+          conda config --add channels -c pypdfium2-team -c bblanchon -c pytorch -c conda-forge
           conda build .conda/ --output-folder conda-dist
           conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
