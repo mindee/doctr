@@ -8,8 +8,8 @@ package:
   version: {{ version }}
 
 source:
-  fn: {{ project.get('name') }}-{{ version }}.tar.gz
-  url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
+  fn: doctr-{{ version }}.tar.gz
+  url: ../dist/doctr-{{ version }}.tar.gz
 
 build:
   noarch: python

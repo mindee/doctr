@@ -89,7 +89,7 @@ jobs:
           VERSION: ${{ steps.release_tag.outputs.VERSION }}
         run: |
           echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
-          python setup.py sdist
+          PKG_NAME=doctr python setup.py sdist
           mkdir conda-dist
           conda build .conda/ --output-folder conda-dist
           conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
