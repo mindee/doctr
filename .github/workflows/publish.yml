@@ -89,11 +89,11 @@ jobs:
           VERSION: ${{ steps.release_tag.outputs.VERSION }}
         run: |
           echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
-          PKG_NAME=doctr python setup.py sdist
+          python setup.py sdist
           mkdir conda-dist
           conda build .conda/ --output-folder conda-dist
-          conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
-          anaconda upload conda-dist/noarch/*tar.bz2
+          conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115
+          anaconda upload conda-dist/linux-64/*tar.bz2
 
   conda-check:
     if: "!github.event.release.prerelease"

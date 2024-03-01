@@ -66,7 +66,7 @@ jobs:
       - name: Build and verify
         shell: bash -el {0}
         run: |
-          PKG_NAME=doctr python setup.py sdist
+          python setup.py sdist
           mkdir conda-dist
           conda build .conda/ --output-folder conda-dist
-          conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
+          conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115
