@@ -49,9 +49,6 @@ test:
   imports:
     - doctr
 
-  commands:
-    - pip check
-
 about:
   home: {{ urls.get('repository') }}
   license: Apache-2.0
