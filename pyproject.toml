@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
+[tool.setuptools]
 include-package-data = true
-where = ["doctr"]
+packages = ["doctr", "doctr.io", "doctr.models", "doctr.datasets", "doctr.transforms", "doctr.utils"]
 
 [project]
 name = "python-doctr"
