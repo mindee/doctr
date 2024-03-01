@@ -12,7 +12,7 @@ source:
 
 build:
   noarch: python
-  script: python setup.py install
+  script: {{ PYTHON }} -m pip install . -v --no-deps --no-build-isolation
 
 requirements:
   host:
@@ -20,7 +20,6 @@ requirements:
     - setuptools
     - pytorch
     - torchvision
-    - ocl-icd-system
 
   run:
     - importlib_metadata
