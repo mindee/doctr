@@ -4,11 +4,11 @@
 {% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
 
 package:
-  name: {{ project.get('name') }}
+  name: {{ doctr }}
   version: {{ version }}
 
 source:
-  fn: {{ project.get('name') }}-{{ version }}.tar.gz
+  fn: {{ doctr }}-{{ version }}.tar.gz
   url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
 
 build:
@@ -18,8 +18,8 @@ requirements:
   host:
     - python>=3.8, <4.0
     - setuptools
-    - pytorch >=2.0.0, <3.0.0
-    - torchvision
+    - pytorch>=2.0.0, <3.0.0
+    - pytorch::torchvision
 
   run:
     - importlib_metadata
@@ -45,6 +45,8 @@ requirements:
 test:
   requires:
     - pip
+    - pytorch>=2.0.0, <3.0.0
+    - pytorch::torchvision
 
   imports:
     - doctr
