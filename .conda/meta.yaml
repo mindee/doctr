@@ -43,7 +43,7 @@ requirements:
 test:
   requires:
     - pip
-    - pytorch>=2.0.0, <3.0.0
+    - pytorch::pytorch>=2.0.0, <3.0.0
     - pytorch::torchvision
 
   imports:
