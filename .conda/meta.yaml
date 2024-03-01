@@ -13,7 +13,7 @@ source:
 build:
   noarch: python
   preserve_egg_dir: True
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script: {{ PYTHON }} -m pip install . --no-deps -vv
 
 requirements:
   host:
@@ -40,6 +40,10 @@ requirements:
     - mplcursors >=0.3
     - unidecode >=1.0.0
     - tqdm >=4.30.0
+
+test:
+  imports:
+    - doctr
 
 about:
   home: {{ urls.get('repository') }}
