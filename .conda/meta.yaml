@@ -1,7 +1,8 @@
 {% set pyproject = load_file_data('../pyproject.toml', from_recipe_dir=True) %}
 {% set project = pyproject.get('project') %}
 {% set urls = pyproject.get('project', {}).get('urls') %}
-{% set version = environ.get('BUILD_VERSION', '0.9.0a0') %}
+{% set version = environ.get('BUILD_VERSION', '0.8.1a0') %}
+
 package:
   name: {{ project.get('name') }}
   version: {{ version }}
@@ -12,7 +13,7 @@ source:
 
 build:
   noarch: python
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script: PKG_NAME=doctr python setup.py install --single-version-externally-managed --record=record.txt
 
 requirements:
   host:
@@ -40,9 +41,18 @@ requirements:
     - unidecode >=1.0.0
     - tqdm >=4.30.0
 
+test:
+  requires:
+    - pip
+    - pytorch >=2.0.0, <3.0.0
+    - torchvision
+
+  imports:
+    - doctr
+
 about:
   home: {{ urls.get('repository') }}
-  license: Apache 2.0
+  license: Apache-2.0
   license_file: {{ project.get('license', {}).get('file') }}
   summary: {{ project.get('description') | replace(":", " -")}}
   doc_url: {{ urls.get('documentation') }}
