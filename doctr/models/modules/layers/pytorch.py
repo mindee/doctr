@@ -5,6 +5,7 @@
 
 from typing import Tuple, Union
 
+import numpy as np
 import torch
 import torch.nn as nn
 
@@ -26,56 +27,74 @@ class FASTConvLayer(nn.Module):
     ) -> None:
         super().__init__()
 
-        converted_ks = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
+        self.set_rep = False
+        self.groups = groups
+        self.in_channels = in_channels
+        self.converted_ks = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
 
         self.hor_conv, self.hor_bn = None, None
         self.ver_conv, self.ver_bn = None, None
 
-        padding = (int(((converted_ks[0] - 1) * dilation) / 2), int(((converted_ks[1] - 1) * dilation) / 2))
+        padding = (int(((self.converted_ks[0] - 1) * dilation) / 2), int(((self.converted_ks[1] - 1) * dilation) / 2))
 
         self.activation = nn.ReLU(inplace=True)
-        self.conv = nn.Conv2d(
-            in_channels,
-            out_channels,
-            kernel_size=converted_ks,
-            stride=stride,
-            padding=padding,
-            dilation=dilation,
-            groups=groups,
-            bias=bias,
-        )
-
-        self.bn = nn.BatchNorm2d(out_channels)
-
-        if converted_ks[1] != 1:
-            self.ver_conv = nn.Conv2d(
+        if self.set_rep:
+            self.fused_conv = nn.Conv2d(
                 in_channels,
                 out_channels,
-                kernel_size=(converted_ks[0], 1),
-                padding=(int(((converted_ks[0] - 1) * dilation) / 2), 0),
+                kernel_size=self.converted_ks,
                 stride=stride,
+                padding=padding,
+                dilation=dilation,
+                groups=groups,
+                bias=True,
+            )
+        else:
+            self.conv = nn.Conv2d(
+                in_channels,
+                out_channels,
+                kernel_size=self.converted_ks,
+                stride=stride,
+                padding=padding,
                 dilation=dilation,
                 groups=groups,
                 bias=bias,
             )
-            self.ver_bn = nn.BatchNorm2d(out_channels)
 
-        if converted_ks[0] != 1:
-            self.hor_conv = nn.Conv2d(
-                in_channels,
-                out_channels,
-                kernel_size=(1, converted_ks[1]),
-                padding=(0, int(((converted_ks[1] - 1) * dilation) / 2)),
-                stride=stride,
-                dilation=dilation,
-                groups=groups,
-                bias=bias,
-            )
-            self.hor_bn = nn.BatchNorm2d(out_channels)
+            self.bn = nn.BatchNorm2d(out_channels)
 
-        self.rbr_identity = nn.BatchNorm2d(in_channels) if out_channels == in_channels and stride == 1 else None
+            if self.converted_ks[1] != 1:
+                self.ver_conv = nn.Conv2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=(self.converted_ks[0], 1),
+                    padding=(int(((self.converted_ks[0] - 1) * dilation) / 2), 0),
+                    stride=stride,
+                    dilation=dilation,
+                    groups=groups,
+                    bias=bias,
+                )
+                self.ver_bn = nn.BatchNorm2d(out_channels)
+
+            if self.converted_ks[0] != 1:
+                self.hor_conv = nn.Conv2d(
+                    in_channels,
+                    out_channels,
+                    kernel_size=(1, self.converted_ks[1]),
+                    padding=(0, int(((self.converted_ks[1] - 1) * dilation) / 2)),
+                    stride=stride,
+                    dilation=dilation,
+                    groups=groups,
+                    bias=bias,
+                )
+                self.hor_bn = nn.BatchNorm2d(out_channels)
+
+            self.rbr_identity = nn.BatchNorm2d(in_channels) if out_channels == in_channels and stride == 1 else None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if hasattr(self, "fused_conv"):
+            return self.activation(self.fused_conv(x))
+
         main_outputs = self.bn(self.conv(x))
         vertical_outputs = self.ver_bn(self.ver_conv(x)) if self.ver_conv is not None and self.ver_bn is not None else 0
         horizontal_outputs = (
@@ -84,3 +103,85 @@ class FASTConvLayer(nn.Module):
         id_out = self.rbr_identity(x) if self.rbr_identity is not None and self.ver_bn is not None else 0
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
+
+    def _identity_to_conv(self, identity):
+        if identity is None:
+            return 0, 0
+        assert isinstance(identity, nn.BatchNorm2d)
+        if not hasattr(self, "id_tensor"):
+            input_dim = self.in_channels // self.groups
+            kernel_value = np.zeros((self.in_channels, input_dim, 1, 1), dtype=np.float32)
+            for i in range(self.in_channels):
+                kernel_value[i, i % input_dim, 0, 0] = 1
+            id_tensor = torch.from_numpy(kernel_value).to(identity.weight.device)
+            self.id_tensor = self._pad_to_mxn_tensor(id_tensor)
+        kernel = self.id_tensor
+        running_mean = identity.running_mean
+        running_var = identity.running_var
+        gamma = identity.weight
+        beta = identity.bias
+        eps = identity.eps
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
+
+    def _fuse_bn_tensor(self, conv, bn):
+        kernel = conv.weight
+        kernel = self._pad_to_mxn_tensor(kernel)
+        running_mean = bn.running_mean
+        running_var = bn.running_var
+        gamma = bn.weight
+        beta = bn.bias
+        eps = bn.eps
+        std = (running_var + eps).sqrt()
+        t = (gamma / std).reshape(-1, 1, 1, 1)
+        return kernel * t, beta - running_mean * gamma / std
+
+    def get_equivalent_kernel_bias(self):
+        kernel_mxn, bias_mxn = self._fuse_bn_tensor(self.conv, self.bn)
+        if self.ver_conv is not None:
+            kernel_mx1, bias_mx1 = self._fuse_bn_tensor(self.ver_conv, self.ver_bn)
+        else:
+            kernel_mx1, bias_mx1 = 0, 0
+        if self.hor_conv is not None:
+            kernel_1xn, bias_1xn = self._fuse_bn_tensor(self.hor_conv, self.hor_bn)
+        else:
+            kernel_1xn, bias_1xn = 0, 0
+        kernel_id, bias_id = self._identity_to_conv(self.rbr_identity)
+        kernel_mxn = kernel_mxn + kernel_mx1 + kernel_1xn + kernel_id
+        bias_mxn = bias_mxn + bias_mx1 + bias_1xn + bias_id
+        return kernel_mxn, bias_mxn
+
+    def _pad_to_mxn_tensor(self, kernel):
+        kernel_height, kernel_width = self.converted_ks
+        height, width = kernel.shape[2:]
+        pad_left_right = (kernel_width - width) // 2
+        pad_top_down = (kernel_height - height) // 2
+        return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right, pad_top_down, pad_top_down])
+
+    def reparameterize(self):
+        self.set_rep = True
+        if hasattr(self, "fused_conv"):
+            return
+        kernel, bias = self.get_equivalent_kernel_bias()
+        self.fused_conv = nn.Conv2d(
+            in_channels=self.conv.in_channels,
+            out_channels=self.conv.out_channels,
+            kernel_size=self.conv.kernel_size,
+            stride=self.conv.stride,
+            padding=self.conv.padding,
+            dilation=self.conv.dilation,
+            groups=self.conv.groups,
+            bias=True,
+        )
+        self.fused_conv.weight.data = kernel
+        self.fused_conv.bias.data = bias
+        self.deploy = True
+        for para in self.parameters():
+            para.detach_()
+        for attr in ["conv", "bn", "ver_conv", "ver_bn", "hor_conv", "hor_bn"]:
+            if hasattr(self, attr):
+                self.__delattr__(attr)
+
+        if hasattr(self, "rbr_identity"):
+            self.__delattr__("rbr_identity")

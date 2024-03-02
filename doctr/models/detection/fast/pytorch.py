@@ -279,12 +279,47 @@ class FAST(_FAST, nn.Module):
         return text_loss + kernel_loss
 
 
+def _fuse_module(m):
+    last_conv = None
+    last_conv_name = None
+
+    for name, child in m.named_children():
+        if isinstance(child, nn.BatchNorm2d):
+            if last_conv is None:  # only fuse BN that is after Conv
+                continue
+            conv_w = last_conv.weight
+            conv_b = last_conv.bias if last_conv.bias is not None else torch.zeros_like(child.running_mean)
+
+            factor = child.weight / torch.sqrt(child.running_var + child.eps)
+            last_conv.weight = nn.Parameter(conv_w * factor.reshape([last_conv.out_channels, 1, 1, 1]))
+            last_conv.bias = nn.Parameter((conv_b - child.running_mean) * factor + child.bias)
+            m._modules[last_conv_name] = last_conv
+            # To reduce changes, set BN as Identity instead of deleting it.
+            m._modules[name] = nn.Identity()
+            last_conv = None
+        elif isinstance(child, nn.Conv2d):
+            last_conv = child
+            last_conv_name = name
+        else:
+            _fuse_module(child)
+    return m
+
+
+def _reparameterize(model: FAST) -> FAST:
+    for module in model.modules():
+        if hasattr(module, "reparameterize"):
+            module.reparameterize()
+
+    return _fuse_module(model)
+
+
 def _fast(
     arch: str,
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
     feat_layers: List[str],
     pretrained_backbone: bool = True,
+    reparameterize: bool = False,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> FAST:
@@ -310,6 +345,10 @@ def _fast(
             ignore_keys if kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]) else None
         )
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+
+        # reparemeterize the model and fuse conv and bn operations
+        if reparameterize:
+            model = _reparameterize(model)
 
     return model
 

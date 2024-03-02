@@ -256,12 +256,59 @@ class FAST(_FAST, keras.Model, NestedObject):
         return out
 
 
+def _fuse_module(m: keras.Model):
+    last_conv = None
+    last_conv_idx = None
+
+    for idx, layer in enumerate(m.layers):
+        try:
+            if isinstance(layer, layers.BatchNormalization):
+                if last_conv is None:  # only fuse BN that is after Conv
+                    continue
+                conv_w = last_conv.kernel
+                conv_b = last_conv.bias if last_conv.use_bias else tf.zeros_like(layer.moving_mean)
+
+                factor = layer.gamma / tf.sqrt(layer.moving_variance + layer.epsilon)
+                last_conv.kernel = conv_w * factor.numpy().reshape([1, 1, 1, -1])
+                if last_conv.use_bias:
+                    last_conv.bias.assign((conv_b - layer.moving_mean) * factor + layer.beta)
+                m.layers[last_conv_idx] = last_conv  # Replace the last conv layer with the fused version
+                # To reduce changes, set BN as Identity instead of deleting it.
+                m.layers[idx] = layers.Lambda(lambda x: x)
+                last_conv = None
+            elif isinstance(layer, layers.Conv2D):
+                last_conv = layer
+                last_conv_idx = idx
+            else:
+                _fuse_module(layer)
+        except AttributeError:
+            continue
+    return m
+
+
+def _reparameterize(model):
+
+    for layer in model.layers:
+        try:
+            print(layer.layers)
+            # TODO: :)
+            if hasattr(layer, "reparameterize"):
+                print(layer)
+                layer.reparameterize()
+
+        except AttributeError:
+            continue
+
+    return _fuse_module(model)
+
+
 def _fast(
     arch: str,
     pretrained: bool,
     backbone_fn,
     feat_layers: List[str],
     pretrained_backbone: bool = True,
+    reparameterize: bool = False,
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> FAST:
@@ -290,6 +337,10 @@ def _fast(
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg["url"])
+
+        # reparemeterize the model and fuse conv and bn operations
+        if reparameterize:
+            model = _reparameterize(model)
 
     return model
 
