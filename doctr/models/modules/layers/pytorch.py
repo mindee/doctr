@@ -38,58 +38,46 @@ class FASTConvLayer(nn.Module):
         padding = (int(((self.converted_ks[0] - 1) * dilation) / 2), int(((self.converted_ks[1] - 1) * dilation) / 2))
 
         self.activation = nn.ReLU(inplace=True)
-        if self.set_rep:
-            self.fused_conv = nn.Conv2d(
+        self.conv = nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size=self.converted_ks,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            bias=bias,
+        )
+
+        self.bn = nn.BatchNorm2d(out_channels)
+
+        if self.converted_ks[1] != 1:
+            self.ver_conv = nn.Conv2d(
                 in_channels,
                 out_channels,
-                kernel_size=self.converted_ks,
+                kernel_size=(self.converted_ks[0], 1),
+                padding=(int(((self.converted_ks[0] - 1) * dilation) / 2), 0),
                 stride=stride,
-                padding=padding,
-                dilation=dilation,
-                groups=groups,
-                bias=True,
-            )
-        else:
-            self.conv = nn.Conv2d(
-                in_channels,
-                out_channels,
-                kernel_size=self.converted_ks,
-                stride=stride,
-                padding=padding,
                 dilation=dilation,
                 groups=groups,
                 bias=bias,
             )
+            self.ver_bn = nn.BatchNorm2d(out_channels)
 
-            self.bn = nn.BatchNorm2d(out_channels)
+        if self.converted_ks[0] != 1:
+            self.hor_conv = nn.Conv2d(
+                in_channels,
+                out_channels,
+                kernel_size=(1, self.converted_ks[1]),
+                padding=(0, int(((self.converted_ks[1] - 1) * dilation) / 2)),
+                stride=stride,
+                dilation=dilation,
+                groups=groups,
+                bias=bias,
+            )
+            self.hor_bn = nn.BatchNorm2d(out_channels)
 
-            if self.converted_ks[1] != 1:
-                self.ver_conv = nn.Conv2d(
-                    in_channels,
-                    out_channels,
-                    kernel_size=(self.converted_ks[0], 1),
-                    padding=(int(((self.converted_ks[0] - 1) * dilation) / 2), 0),
-                    stride=stride,
-                    dilation=dilation,
-                    groups=groups,
-                    bias=bias,
-                )
-                self.ver_bn = nn.BatchNorm2d(out_channels)
-
-            if self.converted_ks[0] != 1:
-                self.hor_conv = nn.Conv2d(
-                    in_channels,
-                    out_channels,
-                    kernel_size=(1, self.converted_ks[1]),
-                    padding=(0, int(((self.converted_ks[1] - 1) * dilation) / 2)),
-                    stride=stride,
-                    dilation=dilation,
-                    groups=groups,
-                    bias=bias,
-                )
-                self.hor_bn = nn.BatchNorm2d(out_channels)
-
-            self.rbr_identity = nn.BatchNorm2d(in_channels) if out_channels == in_channels and stride == 1 else None
+        self.rbr_identity = nn.BatchNorm2d(in_channels) if out_channels == in_channels and stride == 1 else None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         if hasattr(self, "fused_conv"):
@@ -153,7 +141,6 @@ class FASTConvLayer(nn.Module):
         return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right, pad_top_down, pad_top_down])
 
     def reparameterize(self):
-        self.set_rep = True
         if hasattr(self, "fused_conv"):
             return
         kernel, bias = self._get_equivalent_kernel_bias()

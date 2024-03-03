@@ -42,57 +42,46 @@ class FASTConvLayer(layers.Layer, NestedObject):
         self.activation = layers.ReLU()
         self.conv_pad = layers.ZeroPadding2D(padding=padding)
 
-        if self.set_rep:
-            self.fused_conv = layers.Conv2D(
-                filters=out_channels,
-                kernel_size=self.converted_ks,
-                strides=stride,
-                dilation_rate=dilation,
-                groups=groups,
-                use_bias=True,
-            )
+        self.conv = layers.Conv2D(
+            filters=out_channels,
+            kernel_size=self.converted_ks,
+            strides=stride,
+            dilation_rate=dilation,
+            groups=groups,
+            use_bias=bias,
+        )
 
-        else:
-            self.conv = layers.Conv2D(
+        self.bn = layers.BatchNormalization()
+
+        if self.converted_ks[1] != 1:
+            self.ver_pad = layers.ZeroPadding2D(
+                padding=(int(((self.converted_ks[0] - 1) * dilation) / 2), 0),
+            )
+            self.ver_conv = layers.Conv2D(
                 filters=out_channels,
-                kernel_size=self.converted_ks,
+                kernel_size=(self.converted_ks[0], 1),
                 strides=stride,
                 dilation_rate=dilation,
                 groups=groups,
                 use_bias=bias,
             )
+            self.ver_bn = layers.BatchNormalization()
 
-            self.bn = layers.BatchNormalization()
+        if self.converted_ks[0] != 1:
+            self.hor_pad = layers.ZeroPadding2D(
+                padding=(0, int(((self.converted_ks[1] - 1) * dilation) / 2)),
+            )
+            self.hor_conv = layers.Conv2D(
+                filters=out_channels,
+                kernel_size=(1, self.converted_ks[1]),
+                strides=stride,
+                dilation_rate=dilation,
+                groups=groups,
+                use_bias=bias,
+            )
+            self.hor_bn = layers.BatchNormalization()
 
-            if self.converted_ks[1] != 1:
-                self.ver_pad = layers.ZeroPadding2D(
-                    padding=(int(((self.converted_ks[0] - 1) * dilation) / 2), 0),
-                )
-                self.ver_conv = layers.Conv2D(
-                    filters=out_channels,
-                    kernel_size=(self.converted_ks[0], 1),
-                    strides=stride,
-                    dilation_rate=dilation,
-                    groups=groups,
-                    use_bias=bias,
-                )
-                self.ver_bn = layers.BatchNormalization()
-
-            if self.converted_ks[0] != 1:
-                self.hor_pad = layers.ZeroPadding2D(
-                    padding=(0, int(((self.converted_ks[1] - 1) * dilation) / 2)),
-                )
-                self.hor_conv = layers.Conv2D(
-                    filters=out_channels,
-                    kernel_size=(1, self.converted_ks[1]),
-                    strides=stride,
-                    dilation_rate=dilation,
-                    groups=groups,
-                    use_bias=bias,
-                )
-                self.hor_bn = layers.BatchNormalization()
-
-            self.rbr_identity = layers.BatchNormalization() if out_channels == in_channels and stride == 1 else None
+        self.rbr_identity = layers.BatchNormalization() if out_channels == in_channels and stride == 1 else None
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
         if hasattr(self, "fused_conv"):
@@ -164,9 +153,6 @@ class FASTConvLayer(layers.Layer, NestedObject):
         return tf.pad(kernel, [[0, 0], [0, 0], [pad_top_down, pad_top_down], [pad_left_right, pad_left_right]])
 
     def reparameterize(self):
-        self.set_rep = True
-        if hasattr(self, "fused_conv"):
-            return
         kernel, bias = self._get_equivalent_kernel_bias()
         self.fused_conv = layers.Conv2D(
             filters=self.conv.filters,
@@ -181,7 +167,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
         self.fused_conv.build(input_shape=(None, None, None, kernel.shape[-2]))
         self.fused_conv.set_weights([kernel.numpy(), bias.numpy()])
         for para in self.trainable_variables:
-            para._trainable = False  # Equivalent to para.detach_()
+            para._trainable = False
         for attr in ["conv", "bn", "ver_conv", "ver_bn", "hor_conv", "hor_bn"]:
             if hasattr(self, attr):
                 delattr(self, attr)

@@ -261,7 +261,9 @@ def _reparameterize(model: FAST) -> FAST:
     last_conv_idx = None
 
     for idx, layer in enumerate(model.layers):
-        if hasattr(layer, "layers") or isinstance(layer, (FASTConvLayer, FastNeck, FastHead)):
+        if hasattr(layer, "layers") or isinstance(
+            layer, (FASTConvLayer, FastNeck, FastHead, layers.BatchNormalization, layers.Conv2D)
+        ):
             if isinstance(layer, layers.BatchNormalization):
                 # fuse batchnorm only if it is followed by a conv layer
                 if last_conv is None:
