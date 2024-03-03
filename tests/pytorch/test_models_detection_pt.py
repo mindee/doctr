@@ -24,14 +24,19 @@ from doctr.models.utils import export_model_to_onnx
         ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True],
         ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True],
         ["fast_tiny", (3, 512, 512), (1, 512, 512), True],
+        ["fast_tiny_rep", (3, 512, 512), (1, 512, 512), True],  # Reparameterized model
         ["fast_small", (3, 512, 512), (1, 512, 512), True],
         ["fast_base", (3, 512, 512), (1, 512, 512), True],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
-    model = detection.__dict__[arch_name](pretrained=True)
-    model = model.train() if train_mode else model.eval()
+    if arch_name.endswith("_rep"):
+        model = detection.__dict__[arch_name](pretrained=True, reparameterize=True)
+        train_mode = False  # Reparameterized model is not trainable
+    else:
+        model = detection.__dict__[arch_name](pretrained=True)
+        model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [

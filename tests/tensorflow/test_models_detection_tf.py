@@ -28,6 +28,7 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["linknet_resnet34", (512, 512, 3), (512, 512, 1), True],
         ["linknet_resnet50", (512, 512, 3), (512, 512, 1), True],
         ["fast_tiny", (512, 512, 3), (512, 512, 1), True],
+        ["fast_tiny_rep", (512, 512, 3), (512, 512, 1), True],  # Reparameterized model
         ["fast_small", (512, 512, 3), (512, 512, 1), True],
         ["fast_base", (512, 512, 3), (512, 512, 1), True],
     ],
@@ -35,7 +36,11 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
     tf.keras.backend.clear_session()
-    model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
+    if arch_name.endswith("_rep"):
+        model = detection.__dict__[arch_name](pretrained=True, reparameterize=True, input_shape=input_shape)
+        train_mode = False  # Reparameterized model is not trainable
+    else:
+        model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [

@@ -288,7 +288,7 @@ def _reparameterize(model: FAST) -> FAST:
                 _reparameterize(layer)
             else:
                 _reparameterize(layer)
-    return model  # type: ignore[return-value]
+    return model
 
 
 def _fast(
