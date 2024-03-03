@@ -31,8 +31,8 @@ from doctr.models.utils import export_model_to_onnx
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
-    if arch_name.endswith("_rep"):
-        model = detection.__dict__[arch_name](pretrained=True, reparameterize=True)
+    if arch_name == "fast_tiny_rep":
+        model = detection.fast_tiny(pretrained=True, reparameterize=True)
         train_mode = False  # Reparameterized model is not trainable
     else:
         model = detection.__dict__[arch_name](pretrained=True)
@@ -147,8 +147,8 @@ def test_dilate():
 def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    if arch_name.endswith("_rep"):
-        model = detection.__dict__[arch_name](pretrained=True, exportable=True, reparameterize=True).eval()
+    if arch_name == "fast_tiny_rep":
+        model = detection.fast_tiny(pretrained=True, exportable=True, reparameterize=True).eval()
     else:
         model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
