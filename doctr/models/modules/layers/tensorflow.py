@@ -113,10 +113,13 @@ class FASTConvLayer(layers.Layer, NestedObject):
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
 
-    def _identity_to_conv(self, identity):
-        if identity is None:
+    # The following logic is used to reparmetrize the layer
+    # Adapted from: https://github.com/mindee/doctr/blob/main/doctr/models/modules/layers/pytorch.py
+    def _identity_to_conv(
+        self, identity: layers.BatchNormalization
+    ) -> Union[Tuple[tf.Tensor, tf.Tensor], Tuple[int, int]]:
+        if identity is None or not hasattr(identity, "moving_mean") or not hasattr(identity, "moving_variance"):
             return 0, 0
-        assert isinstance(identity, layers.BatchNormalization)
         if not hasattr(self, "id_tensor"):
             input_dim = self.in_channels // self.groups
             kernel_value = np.zeros((self.in_channels, input_dim, 1, 1), dtype=np.float32)
@@ -125,28 +128,18 @@ class FASTConvLayer(layers.Layer, NestedObject):
             id_tensor = tf.constant(kernel_value, dtype=tf.float32)
             self.id_tensor = self._pad_to_mxn_tensor(id_tensor)
         kernel = self.id_tensor
-        running_mean = identity.moving_mean
-        running_var = identity.moving_variance
-        gamma = identity.gamma
-        beta = identity.beta
-        eps = identity.epsilon
-        std = tf.sqrt(running_var + eps)
-        t = tf.reshape(gamma / std, (-1, 1, 1, 1))
-        return kernel * t, beta - running_mean * gamma / std
+        std = tf.sqrt(identity.moving_variance + identity.epsilon)
+        t = tf.reshape(identity.gamma / std, (-1, 1, 1, 1))
+        return kernel * t, identity.beta - identity.moving_mean * identity.gamma / std
 
-    def _fuse_bn_tensor(self, conv, bn):
+    def _fuse_bn_tensor(self, conv: layers.Conv2D, bn: layers.BatchNormalization) -> Tuple[tf.Tensor, tf.Tensor]:
         kernel = conv.kernel
         kernel = self._pad_to_mxn_tensor(kernel)
-        running_mean = bn.moving_mean
-        running_var = bn.moving_variance
-        gamma = bn.gamma
-        beta = bn.beta
-        eps = bn.epsilon
-        std = tf.sqrt(running_var + eps)
-        t = tf.reshape(gamma / std, (-1, 1, 1, 1))
-        return kernel * t, beta - running_mean * gamma / std
+        std = tf.sqrt(bn.moving_variance + bn.epsilon)
+        t = tf.reshape(bn.gamma / std, (1, 1, 1, -1))
+        return kernel * t, bn.beta - bn.moving_mean * bn.gamma / std
 
-    def get_equivalent_kernel_bias(self):
+    def _get_equivalent_kernel_bias(self):
         kernel_mxn, bias_mxn = self._fuse_bn_tensor(self.conv, self.bn)
         if self.ver_conv is not None:
             kernel_mx1, bias_mx1 = self._fuse_bn_tensor(self.ver_conv, self.ver_bn)
@@ -157,22 +150,24 @@ class FASTConvLayer(layers.Layer, NestedObject):
         else:
             kernel_1xn, bias_1xn = 0, 0
         kernel_id, bias_id = self._identity_to_conv(self.rbr_identity)
+        if not isinstance(kernel_id, int):
+            kernel_id = tf.transpose(kernel_id, (2, 3, 0, 1))
         kernel_mxn = kernel_mxn + kernel_mx1 + kernel_1xn + kernel_id
         bias_mxn = bias_mxn + bias_mx1 + bias_1xn + bias_id
         return kernel_mxn, bias_mxn
 
-    def _pad_to_mxn_tensor(self, kernel):
+    def _pad_to_mxn_tensor(self, kernel: tf.Tensor) -> tf.Tensor:
         kernel_height, kernel_width = self.converted_ks
         height, width = kernel.shape[2:]
-        pad_left_right = (kernel_width - width) // 2
-        pad_top_down = (kernel_height - height) // 2
-        return tf.pad(kernel, [[0, 0], [pad_top_down, pad_top_down], [pad_left_right, pad_left_right], [0, 0]])
+        pad_left_right = tf.maximum(0, (kernel_width - width) // 2)
+        pad_top_down = tf.maximum(0, (kernel_height - height) // 2)
+        return tf.pad(kernel, [[0, 0], [0, 0], [pad_top_down, pad_top_down], [pad_left_right, pad_left_right]])
 
     def reparameterize(self):
         self.set_rep = True
         if hasattr(self, "fused_conv"):
             return
-        kernel, bias = self.get_equivalent_kernel_bias()
+        kernel, bias = self._get_equivalent_kernel_bias()
         self.fused_conv = layers.Conv2D(
             filters=self.conv.filters,
             kernel_size=self.conv.kernel_size,
@@ -182,9 +177,9 @@ class FASTConvLayer(layers.Layer, NestedObject):
             groups=self.conv.groups,
             use_bias=True,
         )
-        self.fused_conv.build(input_shape=(None, None, None, self.conv.filters))
+        # build layer to initialize weights and biases
+        self.fused_conv.build(input_shape=(None, None, None, kernel.shape[-2]))
         self.fused_conv.set_weights([kernel.numpy(), bias.numpy()])
-        self.deploy = True
         for para in self.trainable_variables:
             para._trainable = False  # Equivalent to para.detach_()
         for attr in ["conv", "bn", "ver_conv", "ver_bn", "hor_conv", "hor_bn"]:

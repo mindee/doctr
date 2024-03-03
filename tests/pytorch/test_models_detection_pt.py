@@ -136,12 +136,16 @@ def test_dilate():
         ["fast_tiny", (3, 512, 512), (1, 512, 512)],
         ["fast_small", (3, 512, 512), (1, 512, 512)],
         ["fast_base", (3, 512, 512), (1, 512, 512)],
+        ["fast_tiny_rep", (3, 512, 512), (1, 512, 512)],  # Reparameterized model
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    if arch_name.endswith("_rep"):
+        model = detection.__dict__[arch_name](pretrained=True, exportable=True, reparameterize=True).eval()
+    else:
+        model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export

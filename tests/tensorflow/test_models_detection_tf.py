@@ -188,6 +188,7 @@ def test_dilate():
         ["db_mobilenet_v3_large", (512, 512, 3), (512, 512, 1)],
         ["linknet_resnet18", (1024, 1024, 3), (1024, 1024, 1)],
         ["fast_tiny", (1024, 1024, 3), (1024, 1024, 1)],
+        ["fast_tiny_rep", (1024, 1024, 3), (1024, 1024, 1)],  # Reparameterized model
         ["fast_small", (1024, 1024, 3), (1024, 1024, 1)],
         pytest.param(
             "db_resnet50",
@@ -219,7 +220,12 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
     tf.keras.backend.clear_session()
-    model = detection.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
+    if arch_name.endswith("_rep"):
+        model = detection.__dict__[arch_name](
+            pretrained=True, exportable=True, reparameterize=True, input_shape=input_shape
+        )
+    else:
+        model = detection.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
     # batch_size = None for dynamic batch size
     dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)

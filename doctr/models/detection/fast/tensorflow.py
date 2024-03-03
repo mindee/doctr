@@ -256,14 +256,14 @@ class FAST(_FAST, keras.Model, NestedObject):
         return out
 
 
-def _fuse_module(m: keras.Model):
+def _reparameterize(model: FAST) -> FAST:
     last_conv = None
     last_conv_idx = None
 
-    for idx, layer in enumerate(m.layers):
-        try:
+    for idx, layer in enumerate(model.layers):
+        if hasattr(layer, "layers") or isinstance(layer, (FASTConvLayer, FastNeck, FastHead)):
             if isinstance(layer, layers.BatchNormalization):
-                if last_conv is None:  # only fuse BN that is after Conv
+                if last_conv is None:
                     continue
                 conv_w = last_conv.kernel
                 conv_b = last_conv.bias if last_conv.use_bias else tf.zeros_like(layer.moving_mean)
@@ -272,34 +272,23 @@ def _fuse_module(m: keras.Model):
                 last_conv.kernel = conv_w * factor.numpy().reshape([1, 1, 1, -1])
                 if last_conv.use_bias:
                     last_conv.bias.assign((conv_b - layer.moving_mean) * factor + layer.beta)
-                m.layers[last_conv_idx] = last_conv  # Replace the last conv layer with the fused version
+                model.layers[last_conv_idx] = last_conv  # Replace the last conv layer with the fused version
                 # To reduce changes, set BN as Identity instead of deleting it.
-                m.layers[idx] = layers.Lambda(lambda x: x)
+                model.layers[idx] = layers.Lambda(lambda x: x)
                 last_conv = None
             elif isinstance(layer, layers.Conv2D):
                 last_conv = layer
                 last_conv_idx = idx
-            else:
-                _fuse_module(layer)
-        except AttributeError:
-            continue
-    return m
-
-
-def _reparameterize(model):
-
-    for layer in model.layers:
-        try:
-            print(layer.layers)
-            # TODO: :)
-            if hasattr(layer, "reparameterize"):
-                print(layer)
+            elif isinstance(layer, FASTConvLayer):
                 layer.reparameterize()
-
-        except AttributeError:
-            continue
-
-    return _fuse_module(model)
+            elif isinstance(layer, FastNeck):
+                for reduction in layer.reduction:
+                    reduction.reparameterize()
+            elif isinstance(layer, FastHead):
+                _reparameterize(layer)
+            else:
+                _reparameterize(layer)
+    return model  # type: ignore[return-value]
 
 
 def _fast(
@@ -340,6 +329,10 @@ def _fast(
 
         # reparemeterize the model and fuse conv and bn operations
         if reparameterize:
+            # build the model to initialize the layers
+            dummy = tf.random.uniform(shape=[1, *_cfg["input_shape"]], maxval=1, dtype=tf.float32)
+            _ = model(dummy, training=False)
+            # reparameterize the model
             model = _reparameterize(model)
 
     return model

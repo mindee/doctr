@@ -33,7 +33,6 @@ def main(args):
     model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
         pretrained_backbone=False,
-        reparameterize=True,
         input_shape=(args.size, args.size, 3),
     )
 

@@ -104,10 +104,13 @@ class FASTConvLayer(nn.Module):
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
 
-    def _identity_to_conv(self, identity):
-        if identity is None:
+    # The following logic is used to reparmetrize the layer
+    # Borrowed from: https://github.com/czczup/FAST/blob/main/models/utils/nas_utils.py
+    def _identity_to_conv(
+        self, identity: Union[nn.BatchNorm2d, None]
+    ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[int, int]]:
+        if identity is None or identity.running_var is None:
             return 0, 0
-        assert isinstance(identity, nn.BatchNorm2d)
         if not hasattr(self, "id_tensor"):
             input_dim = self.in_channels // self.groups
             kernel_value = np.zeros((self.in_channels, input_dim, 1, 1), dtype=np.float32)
@@ -116,43 +119,33 @@ class FASTConvLayer(nn.Module):
             id_tensor = torch.from_numpy(kernel_value).to(identity.weight.device)
             self.id_tensor = self._pad_to_mxn_tensor(id_tensor)
         kernel = self.id_tensor
-        running_mean = identity.running_mean
-        running_var = identity.running_var
-        gamma = identity.weight
-        beta = identity.bias
-        eps = identity.eps
-        std = (running_var + eps).sqrt()
-        t = (gamma / std).reshape(-1, 1, 1, 1)
-        return kernel * t, beta - running_mean * gamma / std
+        std = (identity.running_var + identity.eps).sqrt()  # type: ignore[attr-defined]
+        t = (identity.weight / std).reshape(-1, 1, 1, 1)
+        return kernel * t, identity.bias - identity.running_mean * identity.weight / std
 
-    def _fuse_bn_tensor(self, conv, bn):
+    def _fuse_bn_tensor(self, conv: nn.Conv2d, bn: nn.BatchNorm2d) -> Tuple[torch.Tensor, torch.Tensor]:
         kernel = conv.weight
         kernel = self._pad_to_mxn_tensor(kernel)
-        running_mean = bn.running_mean
-        running_var = bn.running_var
-        gamma = bn.weight
-        beta = bn.bias
-        eps = bn.eps
-        std = (running_var + eps).sqrt()
-        t = (gamma / std).reshape(-1, 1, 1, 1)
-        return kernel * t, beta - running_mean * gamma / std
+        std = (bn.running_var + bn.eps).sqrt()  # type: ignore
+        t = (bn.weight / std).reshape(-1, 1, 1, 1)
+        return kernel * t, bn.bias - bn.running_mean * bn.weight / std
 
-    def get_equivalent_kernel_bias(self):
+    def _get_equivalent_kernel_bias(self) -> Tuple[torch.Tensor, torch.Tensor]:
         kernel_mxn, bias_mxn = self._fuse_bn_tensor(self.conv, self.bn)
         if self.ver_conv is not None:
-            kernel_mx1, bias_mx1 = self._fuse_bn_tensor(self.ver_conv, self.ver_bn)
+            kernel_mx1, bias_mx1 = self._fuse_bn_tensor(self.ver_conv, self.ver_bn)  # type: ignore[arg-type]
         else:
-            kernel_mx1, bias_mx1 = 0, 0
+            kernel_mx1, bias_mx1 = 0, 0  # type: ignore[assignment]
         if self.hor_conv is not None:
-            kernel_1xn, bias_1xn = self._fuse_bn_tensor(self.hor_conv, self.hor_bn)
+            kernel_1xn, bias_1xn = self._fuse_bn_tensor(self.hor_conv, self.hor_bn)  # type: ignore[arg-type]
         else:
-            kernel_1xn, bias_1xn = 0, 0
+            kernel_1xn, bias_1xn = 0, 0  # type: ignore[assignment]
         kernel_id, bias_id = self._identity_to_conv(self.rbr_identity)
         kernel_mxn = kernel_mxn + kernel_mx1 + kernel_1xn + kernel_id
         bias_mxn = bias_mxn + bias_mx1 + bias_1xn + bias_id
         return kernel_mxn, bias_mxn
 
-    def _pad_to_mxn_tensor(self, kernel):
+    def _pad_to_mxn_tensor(self, kernel: torch.Tensor) -> torch.Tensor:
         kernel_height, kernel_width = self.converted_ks
         height, width = kernel.shape[2:]
         pad_left_right = (kernel_width - width) // 2
@@ -163,19 +156,19 @@ class FASTConvLayer(nn.Module):
         self.set_rep = True
         if hasattr(self, "fused_conv"):
             return
-        kernel, bias = self.get_equivalent_kernel_bias()
+        kernel, bias = self._get_equivalent_kernel_bias()
         self.fused_conv = nn.Conv2d(
             in_channels=self.conv.in_channels,
             out_channels=self.conv.out_channels,
-            kernel_size=self.conv.kernel_size,
-            stride=self.conv.stride,
-            padding=self.conv.padding,
-            dilation=self.conv.dilation,
+            kernel_size=self.conv.kernel_size,  # type: ignore[arg-type]
+            stride=self.conv.stride,  # type: ignore[arg-type]
+            padding=self.conv.padding,  # type: ignore[arg-type]
+            dilation=self.conv.dilation,  # type: ignore[arg-type]
             groups=self.conv.groups,
             bias=True,
         )
         self.fused_conv.weight.data = kernel
-        self.fused_conv.bias.data = bias
+        self.fused_conv.bias.data = bias  # type: ignore[union-attr]
         self.deploy = True
         for para in self.parameters():
             para.detach_()
