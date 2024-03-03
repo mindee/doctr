@@ -263,6 +263,7 @@ def _reparameterize(model: FAST) -> FAST:
     for idx, layer in enumerate(model.layers):
         if hasattr(layer, "layers") or isinstance(layer, (FASTConvLayer, FastNeck, FastHead)):
             if isinstance(layer, layers.BatchNormalization):
+                # fuse batchnorm only if it is followed by a conv layer
                 if last_conv is None:
                     continue
                 conv_w = last_conv.kernel
@@ -273,7 +274,6 @@ def _reparameterize(model: FAST) -> FAST:
                 if last_conv.use_bias:
                     last_conv.bias.assign((conv_b - layer.moving_mean) * factor + layer.beta)
                 model.layers[last_conv_idx] = last_conv  # Replace the last conv layer with the fused version
-                # To reduce changes, set BN as Identity instead of deleting it.
                 model.layers[idx] = layers.Lambda(lambda x: x)
                 last_conv = None
             elif isinstance(layer, layers.Conv2D):
