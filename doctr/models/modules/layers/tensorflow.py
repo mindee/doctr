@@ -152,7 +152,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
         pad_top_down = tf.maximum(0, (kernel_height - height) // 2)
         return tf.pad(kernel, [[0, 0], [0, 0], [pad_top_down, pad_top_down], [pad_left_right, pad_left_right]])
 
-    def reparameterize(self):
+    def reparameterize_layer(self):
         kernel, bias = self._get_equivalent_kernel_bias()
         self.fused_conv = layers.Conv2D(
             filters=self.conv.filters,

@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -21,7 +21,7 @@ from ...classification import textnet_base, textnet_small, textnet_tiny
 from ...modules.layers import FASTConvLayer
 from .base import _FAST, FASTPostProcessor
 
-__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
+__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base", "reparameterize"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -256,7 +256,17 @@ class FAST(_FAST, keras.Model, NestedObject):
         return out
 
 
-def _reparameterize(model: FAST) -> FAST:
+def reparameterize(model: Union[FAST, layers.Layer]) -> FAST:
+    """Fuse batchnorm and conv layers and reparameterize the model
+
+    args:
+    ----
+        model: the FAST model to reparameterize
+
+    Returns:
+    -------
+        the reparameterized model
+    """
     last_conv = None
     last_conv_idx = None
 
@@ -282,14 +292,14 @@ def _reparameterize(model: FAST) -> FAST:
                 last_conv = layer
                 last_conv_idx = idx
             elif isinstance(layer, FASTConvLayer):
-                layer.reparameterize()
+                layer.reparameterize_layer()
             elif isinstance(layer, FastNeck):
                 for reduction in layer.reduction:
-                    reduction.reparameterize()
+                    reduction.reparameterize_layer()
             elif isinstance(layer, FastHead):
-                _reparameterize(layer)
+                reparameterize(layer)
             else:
-                _reparameterize(layer)
+                reparameterize(layer)
     return model
 
 
@@ -299,7 +309,6 @@ def _fast(
     backbone_fn,
     feat_layers: List[str],
     pretrained_backbone: bool = True,
-    reparameterize: bool = False,
     input_shape: Optional[Tuple[int, int, int]] = None,
     **kwargs: Any,
 ) -> FAST:
@@ -329,13 +338,8 @@ def _fast(
     if pretrained:
         load_pretrained_params(model, _cfg["url"])
 
-        # reparemeterize the model and fuse conv and bn operations
-        if reparameterize:
-            # build the model to initialize the layers
-            dummy = tf.random.uniform(shape=[1, *_cfg["input_shape"]], maxval=1, dtype=tf.float32)
-            _ = model(dummy, training=False)
-            # reparameterize the model
-            model = _reparameterize(model)
+    # Build the model for reparameterization to access the layers
+    _ = model(tf.random.uniform(shape=[1, *_cfg["input_shape"]], maxval=1, dtype=tf.float32), training=False)
 
     return model
 

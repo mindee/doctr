@@ -46,19 +46,11 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
 
-        if arch.startswith("fast"):
-            _model = detection.__dict__[arch](
-                pretrained=pretrained,
-                pretrained_backbone=kwargs.get("pretrained_backbone", True),
-                assume_straight_pages=assume_straight_pages,
-                reparameterize=True,  # reparameterize model for faster inference
-            )
-        else:
-            _model = detection.__dict__[arch](
-                pretrained=pretrained,
-                pretrained_backbone=kwargs.get("pretrained_backbone", True),
-                assume_straight_pages=assume_straight_pages,
-            )
+        _model = detection.__dict__[arch](
+            pretrained=pretrained,
+            pretrained_backbone=kwargs.get("pretrained_backbone", True),
+            assume_straight_pages=assume_straight_pages,
+        )
     else:
         if not isinstance(arch, (detection.DBNet, detection.LinkNet, detection.FAST)):
             raise ValueError(f"unknown architecture: {type(arch)}")

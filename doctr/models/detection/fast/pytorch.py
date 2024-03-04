@@ -18,7 +18,7 @@ from ...modules.layers import FASTConvLayer
 from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import _FAST, FASTPostProcessor
 
-__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
+__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base", "reparameterize"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -279,13 +279,23 @@ class FAST(_FAST, nn.Module):
         return text_loss + kernel_loss
 
 
-def _reparameterize(model: Union[FAST, nn.Module]) -> FAST:
+def reparameterize(model: Union[FAST, nn.Module]) -> FAST:
+    """Fuse batchnorm and conv layers and reparameterize the model
+
+    args:
+    ----
+        model: the FAST model to reparameterize
+
+    Returns:
+    -------
+        the reparameterized model
+    """
     last_conv = None
     last_conv_name = None
 
     for module in model.modules():
-        if hasattr(module, "reparameterize"):
-            module.reparameterize()
+        if hasattr(module, "reparameterize_layer"):
+            module.reparameterize_layer()
 
     for name, child in model.named_children():
         if isinstance(child, nn.BatchNorm2d):
@@ -305,7 +315,7 @@ def _reparameterize(model: Union[FAST, nn.Module]) -> FAST:
             last_conv = child
             last_conv_name = name
         else:
-            _reparameterize(child)
+            reparameterize(child)
 
     return model  # type: ignore[return-value]
 
@@ -316,7 +326,6 @@ def _fast(
     backbone_fn: Callable[[bool], nn.Module],
     feat_layers: List[str],
     pretrained_backbone: bool = True,
-    reparameterize: bool = False,
     ignore_keys: Optional[List[str]] = None,
     **kwargs: Any,
 ) -> FAST:
@@ -342,10 +351,6 @@ def _fast(
             ignore_keys if kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]) else None
         )
         load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
-
-        # reparemeterize the model and fuse conv and bn operations
-        if reparameterize:
-            model = _reparameterize(model)
 
     return model
 

@@ -140,7 +140,7 @@ class FASTConvLayer(nn.Module):
         pad_top_down = (kernel_height - height) // 2
         return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right, pad_top_down, pad_top_down])
 
-    def reparameterize(self):
+    def reparameterize_layer(self):
         if hasattr(self, "fused_conv"):
             return
         kernel, bias = self._get_equivalent_kernel_bias()

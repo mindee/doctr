@@ -11,6 +11,7 @@ from doctr.file_utils import CLASS_NAME
 from doctr.io import DocumentFile
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
+from doctr.models.detection.fast.tensorflow import reparameterize
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import export_model_to_onnx
@@ -36,11 +37,10 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
     tf.keras.backend.clear_session()
+    model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     if arch_name == "fast_tiny_rep":
-        model = detection.fast_tiny(pretrained=True, reparameterize=True, input_shape=input_shape)
+        model = reparameterize(model)
         train_mode = False  # Reparameterized model is not trainable
-    else:
-        model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
@@ -225,10 +225,9 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
     tf.keras.backend.clear_session()
+    model = detection.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
     if arch_name == "fast_tiny_rep":
-        model = detection.fast_tiny(pretrained=True, exportable=True, reparameterize=True, input_shape=input_shape)
-    else:
-        model = detection.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
+        model = reparameterize(model)
     # batch_size = None for dynamic batch size
     dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
