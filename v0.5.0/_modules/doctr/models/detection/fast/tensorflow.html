@@ -254,7 +254,7 @@
 <span class="c1"># Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization</span>
 
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -269,7 +269,7 @@
 <span class="kn">from</span> <span class="nn">...modules.layers</span> <span class="kn">import</span> <span class="n">FASTConvLayer</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_FAST</span><span class="p">,</span> <span class="n">FASTPostProcessor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FAST&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_small&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_base&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FAST&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_small&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_base&quot;</span><span class="p">,</span> <span class="s2">&quot;reparameterize&quot;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -504,6 +504,53 @@
         <span class="k">return</span> <span class="n">out</span>
 
 
+<span class="k">def</span> <span class="nf">reparameterize</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">FAST</span><span class="p">,</span> <span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">FAST</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fuse batchnorm and conv layers and reparameterize the model</span>
+
+<span class="sd">    args:</span>
+<span class="sd">    ----</span>
+<span class="sd">        model: the FAST model to reparameterize</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">        the reparameterized model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">last_conv</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">last_conv_idx</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="s2">&quot;layers&quot;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">layer</span><span class="p">,</span> <span class="p">(</span><span class="n">FASTConvLayer</span><span class="p">,</span> <span class="n">FastNeck</span><span class="p">,</span> <span class="n">FastHead</span><span class="p">,</span> <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">,</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">):</span>
+                <span class="c1"># fuse batchnorm only if it is followed by a conv layer</span>
+                <span class="k">if</span> <span class="n">last_conv</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">conv_w</span> <span class="o">=</span> <span class="n">last_conv</span><span class="o">.</span><span class="n">kernel</span>
+                <span class="n">conv_b</span> <span class="o">=</span> <span class="n">last_conv</span><span class="o">.</span><span class="n">bias</span> <span class="k">if</span> <span class="n">last_conv</span><span class="o">.</span><span class="n">use_bias</span> <span class="k">else</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">moving_mean</span><span class="p">)</span>
+
+                <span class="n">factor</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">gamma</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">moving_variance</span> <span class="o">+</span> <span class="n">layer</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+                <span class="n">last_conv</span><span class="o">.</span><span class="n">kernel</span> <span class="o">=</span> <span class="n">conv_w</span> <span class="o">*</span> <span class="n">factor</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">reshape</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">last_conv</span><span class="o">.</span><span class="n">use_bias</span><span class="p">:</span>
+                    <span class="n">last_conv</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">assign</span><span class="p">((</span><span class="n">conv_b</span> <span class="o">-</span> <span class="n">layer</span><span class="o">.</span><span class="n">moving_mean</span><span class="p">)</span> <span class="o">*</span> <span class="n">factor</span> <span class="o">+</span> <span class="n">layer</span><span class="o">.</span><span class="n">beta</span><span class="p">)</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">last_conv_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">last_conv</span>  <span class="c1"># Replace the last conv layer with the fused version</span>
+                <span class="n">model</span><span class="o">.</span><span class="n">layers</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Lambda</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">)</span>
+                <span class="n">last_conv</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">):</span>
+                <span class="n">last_conv</span> <span class="o">=</span> <span class="n">layer</span>
+                <span class="n">last_conv_idx</span> <span class="o">=</span> <span class="n">idx</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">FASTConvLayer</span><span class="p">):</span>
+                <span class="n">layer</span><span class="o">.</span><span class="n">reparameterize_layer</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">FastNeck</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="n">layer</span><span class="o">.</span><span class="n">reduction</span><span class="p">:</span>
+                    <span class="n">reduction</span><span class="o">.</span><span class="n">reparameterize_layer</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">FastHead</span><span class="p">):</span>
+                <span class="n">reparameterize</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">reparameterize</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+
 <span class="k">def</span> <span class="nf">_fast</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -538,6 +585,9 @@
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
+
+    <span class="c1"># Build the model for reparameterization to access the layers</span>
+    <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
