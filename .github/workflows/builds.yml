@@ -58,7 +58,7 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.8
-          channels: pypdfium2-team,bblanchon,conda-forge
+          channels: pypdfium2-team,bblanchon,defaults,conda-forge
           channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
@@ -69,4 +69,4 @@ jobs:
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ --output-folder conda-dist
-          conda-verify conda-dist/noarch/*tar.bz2 --ignore=C1115
+          conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115

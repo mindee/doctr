@@ -125,7 +125,7 @@ dev = [
 documentation = "https://mindee.github.io/doctr"
 repository = "https://github.com/mindee/doctr"
 tracker = "https://github.com/mindee/doctr/issues"
-changelog = "https://github.com/mindee/doctr/latest/changelog.html"
+changelog = "https://mindee.github.io/doctr/changelog.html"
 
 [tool.setuptools]
 zip-safe = true
