@@ -26,7 +26,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": None,
+        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/fast_tiny-7bee86e2.pt&src=0",
     },
     "fast_small": {
         "input_shape": (3, 1024, 1024),
@@ -58,9 +58,9 @@ class FastNeck(nn.Module):
         out_channels: int = 128,
     ) -> None:
         super().__init__()
-        self.reduction = nn.ModuleList([
-            FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]
-        ])
+        self.reduction = nn.ModuleList(
+            [FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]]
+        )
 
     def _upsample(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         return F.interpolate(x, size=y.shape[-2:], mode="bilinear")
