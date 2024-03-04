@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -21,7 +21,7 @@ from ...classification import textnet_base, textnet_small, textnet_tiny
 from ...modules.layers import FASTConvLayer
 from .base import _FAST, FASTPostProcessor
 
-__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
+__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base", "reparameterize"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -256,6 +256,53 @@ class FAST(_FAST, keras.Model, NestedObject):
         return out
 
 
+def reparameterize(model: Union[FAST, layers.Layer]) -> FAST:
+    """Fuse batchnorm and conv layers and reparameterize the model
+
+    args:
+    ----
+        model: the FAST model to reparameterize
+
+    Returns:
+    -------
+        the reparameterized model
+    """
+    last_conv = None
+    last_conv_idx = None
+
+    for idx, layer in enumerate(model.layers):
+        if hasattr(layer, "layers") or isinstance(
+            layer, (FASTConvLayer, FastNeck, FastHead, layers.BatchNormalization, layers.Conv2D)
+        ):
+            if isinstance(layer, layers.BatchNormalization):
+                # fuse batchnorm only if it is followed by a conv layer
+                if last_conv is None:
+                    continue
+                conv_w = last_conv.kernel
+                conv_b = last_conv.bias if last_conv.use_bias else tf.zeros_like(layer.moving_mean)
+
+                factor = layer.gamma / tf.sqrt(layer.moving_variance + layer.epsilon)
+                last_conv.kernel = conv_w * factor.numpy().reshape([1, 1, 1, -1])
+                if last_conv.use_bias:
+                    last_conv.bias.assign((conv_b - layer.moving_mean) * factor + layer.beta)
+                model.layers[last_conv_idx] = last_conv  # Replace the last conv layer with the fused version
+                model.layers[idx] = layers.Lambda(lambda x: x)
+                last_conv = None
+            elif isinstance(layer, layers.Conv2D):
+                last_conv = layer
+                last_conv_idx = idx
+            elif isinstance(layer, FASTConvLayer):
+                layer.reparameterize_layer()
+            elif isinstance(layer, FastNeck):
+                for reduction in layer.reduction:
+                    reduction.reparameterize_layer()
+            elif isinstance(layer, FastHead):
+                reparameterize(layer)
+            else:
+                reparameterize(layer)
+    return model
+
+
 def _fast(
     arch: str,
     pretrained: bool,
@@ -290,6 +337,9 @@ def _fast(
     # Load pretrained parameters
     if pretrained:
         load_pretrained_params(model, _cfg["url"])
+
+    # Build the model for reparameterization to access the layers
+    _ = model(tf.random.uniform(shape=[1, *_cfg["input_shape"]], maxval=1, dtype=tf.float32), training=False)
 
     return model
 

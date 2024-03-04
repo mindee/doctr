@@ -9,6 +9,7 @@ import torch
 from doctr.file_utils import CLASS_NAME
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
+from doctr.models.detection.fast.pytorch import reparameterize
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.utils import export_model_to_onnx
 
@@ -24,14 +25,19 @@ from doctr.models.utils import export_model_to_onnx
         ["linknet_resnet34", (3, 512, 512), (1, 512, 512), True],
         ["linknet_resnet50", (3, 512, 512), (1, 512, 512), True],
         ["fast_tiny", (3, 512, 512), (1, 512, 512), True],
+        ["fast_tiny_rep", (3, 512, 512), (1, 512, 512), True],  # Reparameterized model
         ["fast_small", (3, 512, 512), (1, 512, 512), True],
         ["fast_base", (3, 512, 512), (1, 512, 512), True],
     ],
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
-    model = detection.__dict__[arch_name](pretrained=True)
-    model = model.train() if train_mode else model.eval()
+    if arch_name == "fast_tiny_rep":
+        model = reparameterize(detection.fast_tiny(pretrained=True).eval())
+        train_mode = False  # Reparameterized model is not trainable
+    else:
+        model = detection.__dict__[arch_name](pretrained=True)
+        model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     target = [
@@ -136,12 +142,16 @@ def test_dilate():
         ["fast_tiny", (3, 512, 512), (1, 512, 512)],
         ["fast_small", (3, 512, 512), (1, 512, 512)],
         ["fast_base", (3, 512, 512), (1, 512, 512)],
+        ["fast_tiny_rep", (3, 512, 512), (1, 512, 512)],  # Reparameterized model
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    if arch_name == "fast_tiny_rep":
+        model = reparameterize(detection.fast_tiny(pretrained=True, exportable=True).eval())
+    else:
+        model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export

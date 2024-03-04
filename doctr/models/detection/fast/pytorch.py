@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import numpy as np
 import torch
@@ -18,7 +18,7 @@ from ...modules.layers import FASTConvLayer
 from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import _FAST, FASTPostProcessor
 
-__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base"]
+__all__ = ["FAST", "fast_tiny", "fast_small", "fast_base", "reparameterize"]
 
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
@@ -277,6 +277,47 @@ class FAST(_FAST, nn.Module):
         kernel_loss = (1 - 2 * inter / (cardinality + eps)).mean()
 
         return text_loss + kernel_loss
+
+
+def reparameterize(model: Union[FAST, nn.Module]) -> FAST:
+    """Fuse batchnorm and conv layers and reparameterize the model
+
+    args:
+    ----
+        model: the FAST model to reparameterize
+
+    Returns:
+    -------
+        the reparameterized model
+    """
+    last_conv = None
+    last_conv_name = None
+
+    for module in model.modules():
+        if hasattr(module, "reparameterize_layer"):
+            module.reparameterize_layer()
+
+    for name, child in model.named_children():
+        if isinstance(child, nn.BatchNorm2d):
+            # fuse batchnorm only if it is followed by a conv layer
+            if last_conv is None:
+                continue
+            conv_w = last_conv.weight
+            conv_b = last_conv.bias if last_conv.bias is not None else torch.zeros_like(child.running_mean)
+
+            factor = child.weight / torch.sqrt(child.running_var + child.eps)
+            last_conv.weight = nn.Parameter(conv_w * factor.reshape([last_conv.out_channels, 1, 1, 1]))
+            last_conv.bias = nn.Parameter((conv_b - child.running_mean) * factor + child.bias)
+            model._modules[last_conv_name] = last_conv
+            model._modules[name] = nn.Identity()
+            last_conv = None
+        elif isinstance(child, nn.Conv2d):
+            last_conv = child
+            last_conv_name = name
+        else:
+            reparameterize(child)
+
+    return model  # type: ignore[return-value]
 
 
 def _fast(
