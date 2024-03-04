@@ -29,7 +29,6 @@ class FASTConvLayer(layers.Layer, NestedObject):
     ) -> None:
         super().__init__()
 
-        self.set_rep = False
         self.groups = groups
         self.in_channels = in_channels
         self.converted_ks = (kernel_size, kernel_size) if isinstance(kernel_size, int) else kernel_size
