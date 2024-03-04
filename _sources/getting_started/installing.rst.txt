@@ -57,6 +57,17 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
             pip install "python-doctr[torch]"
 
 
+Via Conda (Only for Linux)
+==========================
+
+Install the last stable release of the package using `conda <https://docs.conda.io/en/latest/>`_:
+
+.. code:: bash
+
+    conda config --set channel_priority strict
+    conda install -c techMindee -c pypdfium2-team -c bblanchon -c defaults -c conda-forge python-doctr
+
+
 Via Git
 =======
 
