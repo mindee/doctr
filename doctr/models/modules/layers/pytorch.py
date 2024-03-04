@@ -91,7 +91,7 @@ class FASTConvLayer(nn.Module):
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
 
-    # The following logic is used to reparmetrize the layer
+    # The following logic is used to reparametrize the layer
     # Borrowed from: https://github.com/czczup/FAST/blob/main/models/utils/nas_utils.py
     def _identity_to_conv(
         self, identity: Union[nn.BatchNorm2d, None]
@@ -137,7 +137,7 @@ class FASTConvLayer(nn.Module):
         height, width = kernel.shape[2:]
         pad_left_right = (kernel_width - width) // 2
         pad_top_down = (kernel_height - height) // 2
-        return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right, pad_top_down, pad_top_down])
+        return torch.nn.functional.pad(kernel, [pad_left_right, pad_left_right, pad_top_down, pad_top_down], value=0)
 
     def reparameterize_layer(self):
         if hasattr(self, "fused_conv"):

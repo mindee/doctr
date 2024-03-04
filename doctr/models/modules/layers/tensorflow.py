@@ -101,7 +101,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
 
-    # The following logic is used to reparmetrize the layer
+    # The following logic is used to reparametrize the layer
     # Adapted from: https://github.com/mindee/doctr/blob/main/doctr/models/modules/layers/pytorch.py
     def _identity_to_conv(
         self, identity: layers.BatchNormalization
