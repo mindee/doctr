@@ -58,9 +58,9 @@ class FastNeck(nn.Module):
         out_channels: int = 128,
     ) -> None:
         super().__init__()
-        self.reduction = nn.ModuleList(
-            [FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]]
-        )
+        self.reduction = nn.ModuleList([
+            FASTConvLayer(in_channels * scale, out_channels, kernel_size=3) for scale in [1, 2, 4, 8]
+        ])
 
     def _upsample(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         return F.interpolate(x, size=y.shape[-2:], mode="bilinear")
@@ -122,7 +122,7 @@ class FAST(_FAST, nn.Module):
         bin_thresh: float = 0.3,
         box_thresh: float = 0.1,
         dropout_prob: float = 0.1,
-        pooling_size: int = 4,  # different from paper performs better on close text-rich images
+        pooling_size: int = 9,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},
