@@ -43,4 +43,4 @@ jobs:
           conda config --set channel_priority strict
           conda install -c techMindee -c pypdfium2-team -c bblanchon -c defaults -c conda-forge python-doctr
           conda list python-doctr
-          python -c "from importlib.metadata import version; print(version('doctr'))"
+          python -c "from importlib.metadata import version; print(version('python-doctr'))"
