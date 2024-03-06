@@ -23,9 +23,9 @@ jobs:
           architecture: x64
       - name: Install package
         run: |
-          python -m pip install --upgrade pip
-          pip install python-doctr[torch]
-          python -c "import doctr; print(doctr.__version__)"
+          python -m pip3 install --upgrade pip
+          pip3 install python-doctr[torch]
+          python3 -c "import doctr; print(doctr.__version__)"
 
   conda-check:
     runs-on: ubuntu-latest
@@ -34,12 +34,12 @@ jobs:
         with:
           auto-update-conda: true
           python-version: 3.8
+          channels: pypdfium2-team,bblanchon,techMindee,defaults,conda-forge,pytorch
+          channel-priority: strict
       - name: Install package
         shell: bash -el {0}
         run: |
-          conda config --set channel_priority strict
-          conda install pytorch torchvision torchaudio cpuonly -c pytorch
-          conda config --remove channels pytorch
           conda config --show channels
-          conda install -c techMindee -c pypdfium2-team -c bblanchon -c defaults -c conda-forge python-doctr
+          conda install python-doctr
+          conda install pytorch torchvision torchaudio
           python -c "import doctr; print(doctr.__version__)"
