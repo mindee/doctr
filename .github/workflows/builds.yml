@@ -57,7 +57,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: 3.8
+          python-version: 3.9
           channels: pypdfium2-team,bblanchon,defaults,conda-forge
           channel-priority: strict
       - name: Install dependencies
