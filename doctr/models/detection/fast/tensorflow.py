@@ -125,7 +125,7 @@ class FAST(_FAST, keras.Model, NestedObject):
         bin_thresh: float = 0.3,
         box_thresh: float = 0.1,
         dropout_prob: float = 0.1,
-        pooling_size: int = 9,
+        pooling_size: int = 4,  # different from paper performs better on close text-rich images
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},

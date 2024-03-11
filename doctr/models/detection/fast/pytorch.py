@@ -26,7 +26,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/fast_tiny-7bee86e2.pt&src=0",
+        "url": None,
     },
     "fast_small": {
         "input_shape": (3, 1024, 1024),
@@ -122,7 +122,7 @@ class FAST(_FAST, nn.Module):
         bin_thresh: float = 0.3,
         box_thresh: float = 0.1,
         dropout_prob: float = 0.1,
-        pooling_size: int = 9,
+        pooling_size: int = 4,  # different from paper performs better on close text-rich images
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: Optional[Dict[str, Any]] = {},

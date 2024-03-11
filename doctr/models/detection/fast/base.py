@@ -153,7 +153,7 @@ class _FAST(BaseModel):
 
     min_size_box: int = 3
     assume_straight_pages: bool = True
-    shrink_ratio = 0.1
+    shrink_ratio = 0.4
 
     def build_target(
         self,

@@ -97,7 +97,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
             if self.hor_bn is not None and self.hor_conv is not None
             else 0
         )
-        id_out = self.rbr_identity(x, **kwargs) if self.rbr_identity is not None and self.ver_bn is not None else 0
+        id_out = self.rbr_identity(x, **kwargs) if self.rbr_identity is not None else 0
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
 
@@ -110,14 +110,14 @@ class FASTConvLayer(layers.Layer, NestedObject):
             return 0, 0
         if not hasattr(self, "id_tensor"):
             input_dim = self.in_channels // self.groups
-            kernel_value = np.zeros((self.in_channels, input_dim, 1, 1), dtype=np.float32)
+            kernel_value = np.zeros((1, 1, input_dim, self.in_channels), dtype=np.float32)
             for i in range(self.in_channels):
-                kernel_value[i, i % input_dim, 0, 0] = 1
+                kernel_value[0, 0, i % input_dim, i] = 1
             id_tensor = tf.constant(kernel_value, dtype=tf.float32)
             self.id_tensor = self._pad_to_mxn_tensor(id_tensor)
         kernel = self.id_tensor
         std = tf.sqrt(identity.moving_variance + identity.epsilon)
-        t = tf.reshape(identity.gamma / std, (-1, 1, 1, 1))
+        t = tf.reshape(identity.gamma / std, (1, 1, 1, -1))
         return kernel * t, identity.beta - identity.moving_mean * identity.gamma / std
 
     def _fuse_bn_tensor(self, conv: layers.Conv2D, bn: layers.BatchNormalization) -> Tuple[tf.Tensor, tf.Tensor]:
@@ -138,18 +138,16 @@ class FASTConvLayer(layers.Layer, NestedObject):
         else:
             kernel_1xn, bias_1xn = 0, 0
         kernel_id, bias_id = self._identity_to_conv(self.rbr_identity)
-        if not isinstance(kernel_id, int):
-            kernel_id = tf.transpose(kernel_id, (2, 3, 0, 1))
         kernel_mxn = kernel_mxn + kernel_mx1 + kernel_1xn + kernel_id
         bias_mxn = bias_mxn + bias_mx1 + bias_1xn + bias_id
         return kernel_mxn, bias_mxn
 
     def _pad_to_mxn_tensor(self, kernel: tf.Tensor) -> tf.Tensor:
         kernel_height, kernel_width = self.converted_ks
-        height, width = kernel.shape[2:]
+        height, width = kernel.shape[:2]
         pad_left_right = tf.maximum(0, (kernel_width - width) // 2)
         pad_top_down = tf.maximum(0, (kernel_height - height) // 2)
-        return tf.pad(kernel, [[0, 0], [0, 0], [pad_top_down, pad_top_down], [pad_left_right, pad_left_right]])
+        return tf.pad(kernel, [[pad_top_down, pad_top_down], [pad_left_right, pad_left_right], [0, 0], [0, 0]])
 
     def reparameterize_layer(self):
         kernel, bias = self._get_equivalent_kernel_bias()
