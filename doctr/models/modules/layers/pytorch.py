@@ -87,7 +87,7 @@ class FASTConvLayer(nn.Module):
         horizontal_outputs = (
             self.hor_bn(self.hor_conv(x)) if self.hor_bn is not None and self.hor_conv is not None else 0
         )
-        id_out = self.rbr_identity(x) if self.rbr_identity is not None and self.ver_bn is not None else 0
+        id_out = self.rbr_identity(x) if self.rbr_identity is not None else 0
 
         return self.activation(main_outputs + vertical_outputs + horizontal_outputs + id_out)
 
@@ -155,7 +155,6 @@ class FASTConvLayer(nn.Module):
         )
         self.fused_conv.weight.data = kernel
         self.fused_conv.bias.data = bias  # type: ignore[union-attr]
-        self.deploy = True
         for para in self.parameters():
             para.detach_()
         for attr in ["conv", "bn", "ver_conv", "ver_bn", "hor_conv", "hor_bn"]:

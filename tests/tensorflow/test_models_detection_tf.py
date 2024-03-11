@@ -170,6 +170,16 @@ def test_detection_zoo_error():
         _ = detection.zoo.detection_predictor("my_fancy_model", pretrained=False)
 
 
+def test_fast_reparameterization():
+    dummy_input = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
+    base_model = detection.fast_tiny(pretrained=True, exportable=True)
+    base_out = base_model(dummy_input, training=False)["logits"]
+    rep_model = reparameterize(base_model)
+    rep_out = rep_model(dummy_input, training=False)["logits"]
+    diff = base_out - rep_out
+    assert tf.math.reduce_mean(diff) < 5e-2 and tf.math.reduce_std(diff) < 5e-2
+
+
 def test_erode():
     x = np.zeros((1, 3, 3, 1), dtype=np.float32)
     x[:, 1, 1] = 1

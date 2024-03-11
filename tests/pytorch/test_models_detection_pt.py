@@ -114,6 +114,16 @@ def test_detection_zoo(arch_name):
     assert all((seq_map >= 0).all() and (seq_map <= 1).all() for seq_map in seq_maps)
 
 
+def test_fast_reparameterization():
+    dummy_input = torch.rand((2, 3, 1024, 1024), dtype=torch.float32)
+    base_model = detection.fast_tiny(pretrained=True, exportable=True).eval()
+    base_out = base_model(dummy_input)["logits"]
+    rep_model = reparameterize(base_model)
+    rep_out = rep_model(dummy_input)["logits"]
+    diff = base_out - rep_out
+    assert diff.mean() < 5e-2 and diff.mean() < 5e-2
+
+
 def test_erode():
     x = torch.zeros((1, 1, 3, 3))
     x[..., 1, 1] = 1
