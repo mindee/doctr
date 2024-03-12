@@ -255,8 +255,8 @@
 
 <span class="kn">import</span> <span class="nn">cv2</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">anyascii</span> <span class="kn">import</span> <span class="n">anyascii</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
-<span class="kn">from</span> <span class="nn">unidecode</span> <span class="kn">import</span> <span class="n">unidecode</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;TextMatch&quot;</span><span class="p">,</span>
@@ -282,16 +282,16 @@
 <span class="sd">    Returns:</span>
 <span class="sd">    -------</span>
 <span class="sd">        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their</span>
-<span class="sd">            unidecode counterparts and their lower-case unidecode counterparts match</span>
+<span class="sd">            anyascii counterparts and their lower-case anyascii counterparts match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">raw_match</span> <span class="o">=</span> <span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span>
     <span class="n">caseless_match</span> <span class="o">=</span> <span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-    <span class="n">unidecode_match</span> <span class="o">=</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span>
+    <span class="n">anyascii_match</span> <span class="o">=</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span>
 
     <span class="c1"># Warning: the order is important here otherwise the pair (&quot;EUR&quot;, &quot;€&quot;) cannot be matched</span>
-    <span class="n">unicase_match</span> <span class="o">=</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">unicase_match</span> <span class="o">=</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">unidecode_match</span><span class="p">,</span> <span class="n">unicase_match</span>
+    <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">anyascii_match</span><span class="p">,</span> <span class="n">unicase_match</span>
 
 
 <div class="viewcode-block" id="TextMatch"><a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch">[docs]</a><span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
@@ -342,10 +342,10 @@
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;prediction size does not match with ground-truth labels size&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
-            <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span><span class="p">)</span>
+            <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_anyascii</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_raw</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_caseless</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unidecode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">anyascii</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_anyascii</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unicase</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span></div>
@@ -355,8 +355,8 @@
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode</span>
-<span class="sd">            counterpart and its lower-case unidecode counterpart</span>
+<span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its anyascii</span>
+<span class="sd">            counterpart and its lower-case anyascii counterpart</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;you need to update the metric before getting the summary&quot;</span><span class="p">)</span>
@@ -364,14 +364,14 @@
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
             <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
-            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">anyascii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anyascii</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
             <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
         <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anyascii</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span></div>
 
@@ -792,10 +792,10 @@
             <span class="n">is_kept</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span>
             <span class="c1"># String comparison</span>
             <span class="k">for</span> <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">],</span> <span class="n">pred_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]):</span>
-                <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
+                <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_anyascii</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_raw</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_caseless</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unidecode</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_anyascii</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unicase</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -812,7 +812,7 @@
         <span class="n">recall</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">anyascii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -820,7 +820,7 @@
         <span class="n">precision</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">anyascii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -835,7 +835,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
