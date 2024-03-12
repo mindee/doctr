@@ -5,13 +5,13 @@ from doctr.utils import metrics
 
 
 @pytest.mark.parametrize(
-    "gt, pred, raw, caseless, unidecode, unicase",
+    "gt, pred, raw, caseless, anyascii, unicase",
     [
         [["grass", "56", "True", "EUR"], ["grass", "56", "true", "€"], 0.5, 0.75, 0.75, 1],
         [["éléphant", "ça"], ["elephant", "ca"], 0, 0, 1, 1],
     ],
 )
-def test_text_match(gt, pred, raw, caseless, unidecode, unicase):
+def test_text_match(gt, pred, raw, caseless, anyascii, unicase):
     metric = metrics.TextMatch()
     with pytest.raises(AssertionError):
         metric.summary()
@@ -20,10 +20,10 @@ def test_text_match(gt, pred, raw, caseless, unidecode, unicase):
         metric.update(["a", "b"], ["c"])
 
     metric.update(gt, pred)
-    assert metric.summary() == dict(raw=raw, caseless=caseless, unidecode=unidecode, unicase=unicase)
+    assert metric.summary() == dict(raw=raw, caseless=caseless, anyascii=anyascii, unicase=unicase)
 
     metric.reset()
-    assert metric.raw == metric.caseless == metric.unidecode == metric.unicase == metric.total == 0
+    assert metric.raw == metric.caseless == metric.anyascii == metric.unicase == metric.total == 0
 
 
 @pytest.mark.parametrize(
@@ -208,8 +208,8 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
             [[[0, 0, 0.5, 0.5]]],
             [["elephant"]],
             0.5,
-            {"raw": 1, "caseless": 1, "unidecode": 1, "unicase": 1},
-            {"raw": 1, "caseless": 1, "unidecode": 1, "unicase": 1},
+            {"raw": 1, "caseless": 1, "anyascii": 1, "unicase": 1},
+            {"raw": 1, "caseless": 1, "anyascii": 1, "unicase": 1},
             1,
         ],
         [  # Bad match
@@ -218,8 +218,8 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
             [[[0, 0, 0.5, 0.5]]],
             [["elephant"]],
             0.5,
-            {"raw": 0, "caseless": 0, "unidecode": 0, "unicase": 0},
-            {"raw": 0, "caseless": 0, "unidecode": 0, "unicase": 0},
+            {"raw": 0, "caseless": 0, "anyascii": 0, "unicase": 0},
+            {"raw": 0, "caseless": 0, "anyascii": 0, "unicase": 0},
             1,
         ],
         [  # Good match
@@ -228,8 +228,8 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
             [[[0, 0, 0.5, 0.5], [0.6, 0.6, 0.7, 0.7]]],
             [["€", "e"]],
             0.2,
-            {"raw": 0, "caseless": 0, "unidecode": 1, "unicase": 1},
-            {"raw": 0, "caseless": 0, "unidecode": 0.5, "unicase": 0.5},
+            {"raw": 0, "caseless": 0, "anyascii": 1, "unicase": 1},
+            {"raw": 0, "caseless": 0, "anyascii": 0.5, "unicase": 0.5},
             0.13,
         ],
         [  # No preds on 2nd sample
@@ -238,8 +238,8 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
             [[[0, 0, 0.5, 0.5]], None],
             [["elephant"], []],
             0.5,
-            {"raw": 0, "caseless": 0.5, "unidecode": 0, "unicase": 0.5},
-            {"raw": 0, "caseless": 1, "unidecode": 0, "unicase": 1},
+            {"raw": 0, "caseless": 0.5, "anyascii": 0, "unicase": 0.5},
+            {"raw": 0, "caseless": 1, "anyascii": 0, "unicase": 1},
             1,
         ],
     ],
@@ -256,7 +256,7 @@ def test_ocr_metric(gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, reca
     assert _mean_iou == mean_iou
     metric.reset()
     assert metric.num_gts == metric.num_preds == metric.tot_iou == 0
-    assert metric.raw_matches == metric.caseless_matches == metric.unidecode_matches == metric.unicase_matches == 0
+    assert metric.raw_matches == metric.caseless_matches == metric.anyascii_matches == metric.unicase_matches == 0
     # Shape check
     with pytest.raises(AssertionError):
         metric.update(
