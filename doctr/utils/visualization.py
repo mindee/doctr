@@ -11,9 +11,9 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import mplcursors
 import numpy as np
+from anyascii import anyascii
 from matplotlib.figure import Figure
 from PIL import Image, ImageDraw
-from unidecode import unidecode
 
 from .common_types import BoundingBox, Polygon4P
 from .fonts import get_font
@@ -327,8 +327,8 @@ def synthesize_page(
                 try:
                     d.text((0, 0), word["value"], font=font, fill=(0, 0, 0))
                 except UnicodeEncodeError:
-                    # When character cannot be encoded, use its unidecode version
-                    d.text((0, 0), unidecode(word["value"]), font=font, fill=(0, 0, 0))
+                    # When character cannot be encoded, use its anyascii version
+                    d.text((0, 0), anyascii(word["value"]), font=font, fill=(0, 0, 0))
 
                 # Colorize if draw_proba
                 if draw_proba:
@@ -458,8 +458,8 @@ def synthesize_kie_page(
             try:
                 d.text((0, 0), prediction["value"], font=font, fill=(0, 0, 0))
             except UnicodeEncodeError:
-                # When character cannot be encoded, use its unidecode version
-                d.text((0, 0), unidecode(prediction["value"]), font=font, fill=(0, 0, 0))
+                # When character cannot be encoded, use its anyascii version
+                d.text((0, 0), anyascii(prediction["value"]), font=font, fill=(0, 0, 0))
 
             # Colorize if draw_proba
             if draw_proba:

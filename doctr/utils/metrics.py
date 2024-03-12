@@ -7,8 +7,8 @@ from typing import Dict, List, Optional, Tuple
 
 import cv2
 import numpy as np
+from anyascii import anyascii
 from scipy.optimize import linear_sum_assignment
-from unidecode import unidecode
 
 __all__ = [
     "TextMatch",
@@ -34,16 +34,16 @@ def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
     Returns:
     -------
         a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their
-            unidecode counterparts and their lower-case unidecode counterparts match
+            anyascii counterparts and their lower-case anyascii counterparts match
     """
     raw_match = word1 == word2
     caseless_match = word1.lower() == word2.lower()
-    unidecode_match = unidecode(word1) == unidecode(word2)
+    anyascii_match = anyascii(word1) == anyascii(word2)
 
     # Warning: the order is important here otherwise the pair ("EUR", "€") cannot be matched
-    unicase_match = unidecode(word1).lower() == unidecode(word2).lower()
+    unicase_match = anyascii(word1).lower() == anyascii(word2).lower()
 
-    return raw_match, caseless_match, unidecode_match, unicase_match
+    return raw_match, caseless_match, anyascii_match, unicase_match
 
 
 class TextMatch:
@@ -94,10 +94,10 @@ class TextMatch:
             raise AssertionError("prediction size does not match with ground-truth labels size")
 
         for gt_word, pred_word in zip(gt, pred):
-            _raw, _caseless, _unidecode, _unicase = string_match(gt_word, pred_word)
+            _raw, _caseless, _anyascii, _unicase = string_match(gt_word, pred_word)
             self.raw += int(_raw)
             self.caseless += int(_caseless)
-            self.unidecode += int(_unidecode)
+            self.anyascii += int(_anyascii)
             self.unicase += int(_unicase)
 
         self.total += len(gt)
@@ -107,8 +107,8 @@ class TextMatch:
 
         Returns
         -------
-            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode
-            counterpart and its lower-case unidecode counterpart
+            a dictionary with the exact match score for the raw data, its lower-case counterpart, its anyascii
+            counterpart and its lower-case anyascii counterpart
         """
         if self.total == 0:
             raise AssertionError("you need to update the metric before getting the summary")
@@ -116,14 +116,14 @@ class TextMatch:
         return dict(
             raw=self.raw / self.total,
             caseless=self.caseless / self.total,
-            unidecode=self.unidecode / self.total,
+            anyascii=self.anyascii / self.total,
             unicase=self.unicase / self.total,
         )
 
     def reset(self) -> None:
         self.raw = 0
         self.caseless = 0
-        self.unidecode = 0
+        self.anyascii = 0
         self.unicase = 0
         self.total = 0
 
@@ -544,10 +544,10 @@ class OCRMetric:
             is_kept = iou_mat[gt_indices, pred_indices] >= self.iou_thresh
             # String comparison
             for gt_idx, pred_idx in zip(gt_indices[is_kept], pred_indices[is_kept]):
-                _raw, _caseless, _unidecode, _unicase = string_match(gt_labels[gt_idx], pred_labels[pred_idx])
+                _raw, _caseless, _anyascii, _unicase = string_match(gt_labels[gt_idx], pred_labels[pred_idx])
                 self.raw_matches += int(_raw)
                 self.caseless_matches += int(_caseless)
-                self.unidecode_matches += int(_unidecode)
+                self.anyascii_matches += int(_anyascii)
                 self.unicase_matches += int(_unicase)
 
         self.num_gts += gt_boxes.shape[0]
@@ -564,7 +564,7 @@ class OCRMetric:
         recall = dict(
             raw=self.raw_matches / self.num_gts if self.num_gts > 0 else None,
             caseless=self.caseless_matches / self.num_gts if self.num_gts > 0 else None,
-            unidecode=self.unidecode_matches / self.num_gts if self.num_gts > 0 else None,
+            anyascii=self.anyascii_matches / self.num_gts if self.num_gts > 0 else None,
             unicase=self.unicase_matches / self.num_gts if self.num_gts > 0 else None,
         )
 
@@ -572,7 +572,7 @@ class OCRMetric:
         precision = dict(
             raw=self.raw_matches / self.num_preds if self.num_preds > 0 else None,
             caseless=self.caseless_matches / self.num_preds if self.num_preds > 0 else None,
-            unidecode=self.unidecode_matches / self.num_preds if self.num_preds > 0 else None,
+            anyascii=self.anyascii_matches / self.num_preds if self.num_preds > 0 else None,
             unicase=self.unicase_matches / self.num_preds if self.num_preds > 0 else None,
         )
 
@@ -587,7 +587,7 @@ class OCRMetric:
         self.tot_iou = 0.0
         self.raw_matches = 0
         self.caseless_matches = 0
-        self.unidecode_matches = 0
+        self.anyascii_matches = 0
         self.unicase_matches = 0
 
 
