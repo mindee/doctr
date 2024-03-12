@@ -6,12 +6,12 @@ import colorsys
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from anyascii import anyascii
 import cv2
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import mplcursors
 import numpy as np
+from anyascii import anyascii
 from matplotlib.figure import Figure
 from PIL import Image, ImageDraw
 

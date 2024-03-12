@@ -5,9 +5,9 @@
 
 from typing import Dict, List, Optional, Tuple
 
-from anyascii import anyascii
 import cv2
 import numpy as np
+from anyascii import anyascii
 from scipy.optimize import linear_sum_assignment
 
 __all__ = [
