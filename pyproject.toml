@@ -145,7 +145,7 @@ implicit_reexport = false
 
 [[tool.mypy.overrides]]
 module = [
-    "anyascii.*",
+	"anyascii.*",
 	"tensorflow.*",
 	"torchvision.*",
 	"PIL.*",
