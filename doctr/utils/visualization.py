@@ -13,7 +13,7 @@ import mplcursors
 import numpy as np
 from matplotlib.figure import Figure
 from PIL import Image, ImageDraw
-from unidecode import unidecode
+from text_unidecode import unidecode
 
 from .common_types import BoundingBox, Polygon4P
 from .fonts import get_font

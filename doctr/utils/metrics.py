@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-from unidecode import unidecode
+from text_unidecode import unidecode
 
 __all__ = [
     "TextMatch",
