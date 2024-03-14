@@ -107,9 +107,9 @@ dev = [
     "requests>=2.20.0",
     "psutil>=5.9.5",
     # Quality
-    "ruff>=0.1.5",
-    "mypy>=0.812",
-    "pre-commit>=2.17.0",
+    "ruff>=0.3.0",
+    "mypy>=1.0",
+    "pre-commit>=3.0.0",
     # Docs
     "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
@@ -168,22 +168,24 @@ module = [
 ignore_missing_imports = true
 
 [tool.ruff]
+exclude = [".git", "venv*", "build", "**/__init__.py"]
+line-length = 120
+target-version = "py38"
+preview=true
+
+[tool.ruff.lint]
 select = [
     # https://docs.astral.sh/ruff/rules/
     "E", "W", "F", "I", "N", "Q", "C4", "T10", "LOG",
     "D101", "D103", "D201","D202","D207","D208","D214","D215","D300","D301","D417", "D419", "D207"  # pydocstyle
 ]
 ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408"]
-exclude = [".git", "venv*", "build", "**/__init__.py"]
-line-length = 120
-target-version = "py38"
-preview=true
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 known-first-party = ["doctr", "app", "utils"]
 known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "tqdm", "fastapi"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "doctr/models/**.py" = ["N806", "F841"]
 "doctr/datasets/**.py" = ["N806"]
 "tests/**.py" = ["D"]
@@ -195,7 +197,7 @@ known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "tqdm", "fas
 ".github/**.py" = ["D"]
 
 
-[tool.ruff.flake8-quotes]
+[tool.ruff.lint.flake8-quotes]
 docstring-quotes = "double"
 
 [tool.coverage.run]
