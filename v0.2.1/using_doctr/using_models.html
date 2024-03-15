@@ -913,6 +913,15 @@ Explanations about the metrics being used are available in <a class="reference i
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:</p>
+<ul class="simple">
+<li><p><cite>det_bs</cite>: batch size for the detection model (default: 2)</p></li>
+<li><p><cite>reco_bs</cite>: batch size for the recognition model (default: 128)</p></li>
+</ul>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying <cite>DocumentBuilder</cite>:</p>
 <ul class="simple">
 <li><p><cite>resolve_lines</cite>: whether words should be automatically grouped into lines (default: True)</p></li>
