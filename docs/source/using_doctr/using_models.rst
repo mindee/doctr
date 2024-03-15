@@ -294,6 +294,16 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
     from doctr.model import ocr_predictor
     model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
+Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
+
+* `det_bs`: batch size for the detection model (default: 2)
+* `reco_bs`: batch size for the recognition model (default: 512)
+
+.. code:: python3
+
+    from doctr.model import ocr_predictor
+    model = ocr_predictor(pretrained=True, det_bs=4, reco_bs=1024)
+
 To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying `DocumentBuilder`:
 
 * `resolve_lines`: whether words should be automatically grouped into lines (default: True)
