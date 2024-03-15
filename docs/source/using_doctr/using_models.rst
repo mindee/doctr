@@ -297,7 +297,7 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
 Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
 
 * `det_bs`: batch size for the detection model (default: 2)
-* `reco_bs`: batch size for the recognition model (default: 512)
+* `reco_bs`: batch size for the recognition model (default: 128)
 
 .. code:: python3
 
