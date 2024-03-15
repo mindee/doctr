@@ -177,23 +177,17 @@ class SARDecoder(layers.Layer, NestedObject):
             elif t == 1:
                 # step to init a 'blank' sequence of length vocab_size + 1 filled with zeros
                 # (N, vocab_size + 1) --> (N, embedding_units)
-                prev_symbol = tf.zeros([features.shape[0], self.vocab_size + 1])
+                prev_symbol = tf.zeros([features.shape[0], self.vocab_size + 1], dtype=features.dtype)
                 prev_symbol = self.embed(prev_symbol, **kwargs)
             else:
-                if gt is not None:
+                if gt is not None and kwargs.get("training", False):
                     # (N, embedding_units) -2 because of <bos> and <eos> (same)
                     prev_symbol = self.embed(gt_embedding[:, t - 2], **kwargs)
                 else:
                     # -1 to start at timestep where prev_symbol was initialized
                     index = tf.argmax(logits_list[t - 1], axis=-1)
                     # update prev_symbol with ones at the index of the previous logit vector
-                    # (N, embedding_units)
-                    index = tf.ones_like(index)
-                    prev_symbol = tf.scatter_nd(
-                        tf.expand_dims(index, axis=1),
-                        prev_symbol,
-                        tf.constant([features.shape[0], features.shape[-1]], dtype=tf.int64),
-                    )
+                    prev_symbol = self.embed(self.embed_tgt(index, **kwargs), **kwargs)
 
             # (N, C), (N, C)  take the last hidden state and cell state from current timestep
             _, states = self.lstm_cells(prev_symbol, states, **kwargs)
