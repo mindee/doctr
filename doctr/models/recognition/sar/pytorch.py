@@ -125,25 +125,26 @@ class SARDecoder(nn.Module):
             if t == 0:
                 # step to init the first states of the LSTMCell
                 hidden_state_init = cell_state_init = torch.zeros(
-                    features.size(0), features.size(1), device=features.device
+                    features.size(0), features.size(1), device=features.device, dtype=features.dtype
                 )
                 hidden_state, cell_state = hidden_state_init, cell_state_init
                 prev_symbol = holistic
             elif t == 1:
                 # step to init a 'blank' sequence of length vocab_size + 1 filled with zeros
                 # (N, vocab_size + 1) --> (N, embedding_units)
-                prev_symbol = torch.zeros(features.size(0), self.vocab_size + 1, device=features.device)
+                prev_symbol = torch.zeros(
+                    features.size(0), self.vocab_size + 1, device=features.device, dtype=features.dtype
+                )
                 prev_symbol = self.embed(prev_symbol)
             else:
-                if gt is not None:
+                if gt is not None and self.training:
                     # (N, embedding_units) -2 because of <bos> and <eos> (same)
                     prev_symbol = self.embed(gt_embedding[:, t - 2])
                 else:
                     # -1 to start at timestep where prev_symbol was initialized
                     index = logits_list[t - 1].argmax(-1)
                     # update prev_symbol with ones at the index of the previous logit vector
-                    # (N, embedding_units)
-                    prev_symbol = prev_symbol.scatter_(1, index.unsqueeze(1), 1)
+                    prev_symbol = self.embed(self.embed_tgt(index))
 
             # (N, C), (N, C)  take the last hidden state and cell state from current timestep
             hidden_state_init, cell_state_init = self.lstm_cell(prev_symbol, (hidden_state_init, cell_state_init))
