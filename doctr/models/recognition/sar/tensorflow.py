@@ -40,12 +40,10 @@ class SAREncoder(layers.Layer, NestedObject):
 
     def __init__(self, rnn_units: int, dropout_prob: float = 0.0) -> None:
         super().__init__()
-        self.rnn = Sequential(
-            [
-                layers.LSTM(units=rnn_units, return_sequences=True, recurrent_dropout=dropout_prob),
-                layers.LSTM(units=rnn_units, return_sequences=False, recurrent_dropout=dropout_prob),
-            ]
-        )
+        self.rnn = Sequential([
+            layers.LSTM(units=rnn_units, return_sequences=True, recurrent_dropout=dropout_prob),
+            layers.LSTM(units=rnn_units, return_sequences=False, recurrent_dropout=dropout_prob),
+        ])
 
     def call(
         self,
@@ -150,9 +148,9 @@ class SARDecoder(layers.Layer, NestedObject):
         self.embed = layers.Dense(embedding_units, use_bias=False)
         self.embed_tgt = layers.Embedding(embedding_units, self.vocab_size + 1)
 
-        self.lstm_cells = layers.StackedRNNCells(
-            [layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_cells)]
-        )
+        self.lstm_cells = layers.StackedRNNCells([
+            layers.LSTMCell(rnn_units, implementation=1) for _ in range(num_decoder_cells)
+        ])
         self.attention_module = AttentionModule(attention_units)
         self.output_dense = layers.Dense(self.vocab_size + 1, use_bias=True)
         self.dropout = layers.Dropout(dropout_prob)
