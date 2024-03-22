@@ -8,6 +8,7 @@ from typing import Any, List
 from doctr.file_utils import is_tf_available, is_torch_available
 
 from .. import detection
+from ..detection.fast import reparameterize
 from ..preprocessor import PreProcessor
 from .predictor import DetectionPredictor
 
@@ -51,6 +52,9 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
             pretrained_backbone=kwargs.get("pretrained_backbone", True),
             assume_straight_pages=assume_straight_pages,
         )
+        # Reparameterize FAST models by default to lower inference latency and memory usage
+        if isinstance(_model, detection.FAST):
+            _model = reparameterize(_model)
     else:
         if not isinstance(arch, (detection.DBNet, detection.LinkNet, detection.FAST)):
             raise ValueError(f"unknown architecture: {type(arch)}")
