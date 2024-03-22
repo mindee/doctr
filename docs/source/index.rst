@@ -77,7 +77,7 @@ Supported datasets
 
    using_doctr/using_models
    using_doctr/using_datasets
-   using_doctr/using_contrib
+   using_doctr/using_contrib_modules
    using_doctr/sharing_models
    using_doctr/using_model_export
    using_doctr/custom_models_training
