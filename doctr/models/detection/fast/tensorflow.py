@@ -122,7 +122,7 @@ class FAST(_FAST, keras.Model, NestedObject):
     def __init__(
         self,
         feature_extractor: IntermediateLayerGetter,
-        bin_thresh: float = 0.3,
+        bin_thresh: float = 0.1,
         box_thresh: float = 0.1,
         dropout_prob: float = 0.1,
         pooling_size: int = 4,  # different from paper performs better on close text-rich images

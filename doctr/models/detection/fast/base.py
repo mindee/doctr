@@ -31,7 +31,7 @@ class FASTPostProcessor(DetectionPostProcessor):
 
     def __init__(
         self,
-        bin_thresh: float = 0.3,
+        bin_thresh: float = 0.1,
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
     ) -> None:
