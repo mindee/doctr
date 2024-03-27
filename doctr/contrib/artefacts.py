@@ -1,8 +1,6 @@
 import math
-import re
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
-import cv2
 import numpy as np
 import onnxruntime as ort
 import torch
@@ -289,7 +287,9 @@ class ArtefactDetector:
             if in_place:
                 prediction[..., :4] = self.xywh2xyxy(prediction[..., :4])  # xywh to xyxy
             else:
-                prediction = torch.cat((self.xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
+                prediction = torch.cat(
+                    (self.xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1
+                )  # xywh to xyxy
 
         output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
         for xi, x in enumerate(prediction):  # image index, image inference
@@ -320,7 +320,7 @@ class ArtefactDetector:
                 x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
 
             # Filter by class
-            #if classes is not None:
+            # if classes is not None:
             #    x = x[(x[:, 5:6] == torch.tensor(classes, device=x.device)).any(1)]
 
             # Check shape
@@ -392,14 +392,11 @@ class ArtefactDetector:
         return xyxyxyxyn
 
     def _print_res(self, output, org_shape):
-
-
         c, conf = int(output[:, -1]), float(output[:, -2])
         line = (c, *(self.xyxyxyxyn(output, org_shape).view(-1)))
         print(f"{line[0]:>3} {conf:.2f} {' '.join(f'{x:.4f}' for x in line[1:])}")
 
     def _postprocess(self, output: np.ndarray, input_images: np.ndarray):
-
         # output to tensor
         output = torch.from_numpy(output)
 
