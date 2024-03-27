@@ -17,6 +17,13 @@ def mock_detection_image(tmpdir_factory):
     return requests.get(url).content
 
 
+@pytest_asyncio.fixture(scope="session")
+def mock_txt_file(tmpdir_factory):
+    txt_file = tmpdir_factory.mktemp("data").join("mock.txt")
+    txt_file.write("mock text")
+    return txt_file.read("rb")
+
+
 @pytest_asyncio.fixture(scope="function")
 async def test_app_asyncio():
     # for httpx>=20, follow_redirects=True (cf. https://github.com/encode/httpx/releases/tag/0.20.0)

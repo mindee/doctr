@@ -37,14 +37,21 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8080/detection", files={'file': data}).json())
+print(requests.post("http://localhost:8080/detection", files={'files': [data]}).json())
 ```
 
 should yield
 
 ```json
-[{'box': [0.826171875, 0.185546875, 0.90234375, 0.201171875]},
- {'box': [0.75390625, 0.185546875, 0.8173828125, 0.201171875]}]
+[
+  {
+      "name": "invitation.png",
+      "boxes": [
+        [0.50390625, 0.712890625, 0.5185546875, 0.720703125],
+        [0.4716796875, 0.712890625, 0.48828125, 0.720703125]
+      ]
+  },
+]
 ```
 
 #### Text recognition
@@ -58,13 +65,18 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8080/recognition", files={'file': data}).json())
+print(requests.post("http://localhost:8080/recognition", files={'files': [data]}).json())
 ```
 
 should yield
 
 ```json
-{'value': 'invite'}
+[
+  {
+      "name": "invitation.png",
+      "value": "invite"
+  },
+]
 ```
 
 #### End-to-end OCR
@@ -78,14 +90,25 @@ with this snippet:
 import requests
 with open('/path/to/your/img.jpg', 'rb') as f:
     data = f.read()
-print(requests.post("http://localhost:8080/ocr", files={'file': data}).json())
+print(requests.post("http://localhost:8080/ocr", files={'files': [data]}).json())
 ```
 
 should yield
 
 ```json
-[{'box': [0.75390625, 0.185546875, 0.8173828125, 0.201171875],
-  'value': 'Hello'},
- {'box': [0.826171875, 0.185546875, 0.90234375, 0.201171875],
-  'value': 'world!'}]
+[
+  {
+      "name": "hello_world.jpg",
+      "items": [
+      {
+          "value": "Hello",
+          "box": [0.005859375, 0.003312938981562763, 0.0205078125, 0.0332854340430202]
+      },
+      {
+          "value": "world!",
+          "box": [0.005859375, 0.003312938981562763, 0.0205078125, 0.0332854340430202]
+      },
+      ],
+  }
+]
 ```
