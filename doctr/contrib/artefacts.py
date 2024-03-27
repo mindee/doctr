@@ -1,4 +1,5 @@
 import math
+import re
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
@@ -52,6 +53,7 @@ class ArtefactDetector:
     ) -> None:
         self.onnx_model = self._init_model(default_cfgs[arch]["url"], model_path)
         self.labels = labels or default_cfgs[arch]["labels"]
+        self.input_shape = default_cfgs[arch]["input_shape"]
         self.mask_labels = mask_labels
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
@@ -229,7 +231,6 @@ class ArtefactDetector:
         labels=(),
         max_det=300,
         nc=0,  # number of classes (optional)
-        max_time_img=0.05,
         max_nms=30000,
         max_wh=7680,
         in_place=True,
@@ -281,17 +282,15 @@ class ArtefactDetector:
 
         # Settings
         # min_wh = 2  # (pixels) minimum box width and height
-        time_limit = 2.0 + max_time_img * bs  # seconds to quit after
         multi_label &= nc > 1  # multiple labels per box (adds 0.5ms/img)
 
         prediction = prediction.transpose(-1, -2)  # shape(1,84,6300) to shape(1,6300,84)
         if not rotated:
             if in_place:
-                prediction[..., :4] = xywh2xyxy(prediction[..., :4])  # xywh to xyxy
+                prediction[..., :4] = self.xywh2xyxy(prediction[..., :4])  # xywh to xyxy
             else:
-                prediction = torch.cat((xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
+                prediction = torch.cat((self.xywh2xyxy(prediction[..., :4]), prediction[..., 4:]), dim=-1)  # xywh to xyxy
 
-        t = time.time()
         output = [torch.zeros((0, 6 + nm), device=prediction.device)] * bs
         for xi, x in enumerate(prediction):  # image index, image inference
             # Apply constraints
@@ -302,7 +301,7 @@ class ArtefactDetector:
             if labels and len(labels[xi]) and not rotated:
                 lb = labels[xi]
                 v = torch.zeros((len(lb), nc + nm + 4), device=x.device)
-                v[:, :4] = xywh2xyxy(lb[:, 1:5])  # box
+                v[:, :4] = self.xywh2xyxy(lb[:, 1:5])  # box
                 v[range(len(lb)), lb[:, 0].long() + 4] = 1.0  # cls
                 x = torch.cat((x, v), 0)
 
@@ -321,8 +320,8 @@ class ArtefactDetector:
                 x = torch.cat((box, conf, j.float(), mask), 1)[conf.view(-1) > conf_thres]
 
             # Filter by class
-            if classes is not None:
-                x = x[(x[:, 5:6] == torch.tensor(classes, device=x.device)).any(1)]
+            #if classes is not None:
+            #    x = x[(x[:, 5:6] == torch.tensor(classes, device=x.device)).any(1)]
 
             # Check shape
             n = x.shape[0]  # number of boxes
@@ -336,7 +335,7 @@ class ArtefactDetector:
             scores = x[:, 4]  # scores
             if rotated:
                 boxes = torch.cat((x[:, :2] + c, x[:, 2:4], x[:, -1:]), dim=-1)  # xywhr
-                i = nms_rotated(boxes, scores, iou_thres)
+                i = self.nms_rotated(boxes, scores, iou_thres)
             else:
                 boxes = x[:, :4] + c  # boxes (offset by class)
                 i = torchvision.ops.nms(boxes, scores, iou_thres)  # NMS
@@ -355,79 +354,82 @@ class ArtefactDetector:
             #         i = i[iou.sum(1) > 1]  # require redundancy
 
             output[xi] = x[i]
-            if (time.time() - t) > time_limit:
-                LOGGER.warning(f"WARNING ⚠️ NMS time limit {time_limit:.3f}s exceeded")
-                break  # time limit exceeded
 
         return output
 
-    def _postprocess(self, output: np.ndarray, input_images: np.ndarray, org_shapes: List[Tuple[int, int]]):
-        predictions = np.transpose(np.squeeze(output[0]))
+    def xywhr2xyxyxyxy(self, rboxes):
+        """
+        Convert batched Oriented Bounding Boxes (OBB) from [xywh, rotation] to [xy1, xy2, xy3, xy4]. Rotation values should
+        be in degrees from 0 to 90.
 
-        # Lists to store the bounding boxes, scores, and class IDs of the detections
-        boxes = []
-        scores = []
-        class_ids = []
+        Args:
+            rboxes (numpy.ndarray | torch.Tensor): Boxes in [cx, cy, w, h, rotation] format of shape (n, 5) or (b, n, 5).
 
-        # TODO: Finish all + Testing + Clean up + Documentation
+        Returns:
+            (numpy.ndarray | torch.Tensor): Converted corner points of shape (n, 4, 2) or (b, n, 4, 2).
+        """
+        is_numpy = isinstance(rboxes, np.ndarray)
+        cos, sin = (np.cos, np.sin) if is_numpy else (torch.cos, torch.sin)
 
-        # Calculate the scaling factors for the bounding box coordinates
-        # x_factor = self. / self.input_width
-        # y_factor = self.img_height / self.input_height
-        x_factor = 1
-        y_factor = 1
+        ctr = rboxes[..., :2]
+        w, h, angle = (rboxes[..., i : i + 1] for i in range(2, 5))
+        cos_value, sin_value = cos(angle), sin(angle)
+        vec1 = [w / 2 * cos_value, w / 2 * sin_value]
+        vec2 = [-h / 2 * sin_value, h / 2 * cos_value]
+        vec1 = np.concatenate(vec1, axis=-1) if is_numpy else torch.cat(vec1, dim=-1)
+        vec2 = np.concatenate(vec2, axis=-1) if is_numpy else torch.cat(vec2, dim=-1)
+        pt1 = ctr + vec1 + vec2
+        pt2 = ctr + vec1 - vec2
+        pt3 = ctr - vec1 - vec2
+        pt4 = ctr - vec1 + vec2
+        return np.stack([pt1, pt2, pt3, pt4], axis=-2) if is_numpy else torch.stack([pt1, pt2, pt3, pt4], dim=-2)
 
-        # Iterate over each row in the outputs array
-        for pred in predictions:
-            # Extract the class scores from the current row
-            classes_scores = pred[4:]
+    def xyxyxyxyn(self, output, org_shape):
+        """Return the boxes in xyxyxyxy format, (N, 4, 2)."""
+        xyxyxyxyn = self.xywhr2xyxyxyxy(output)
+        xyxyxyxyn[..., 0] /= org_shape[1]
+        xyxyxyxyn[..., 1] /= org_shape[0]
+        return xyxyxyxyn
 
-            # Find the maximum score among the class scores
-            max_score = np.amax(classes_scores)
+    def _print_res(self, output, org_shape):
 
-            # If the maximum score is above the confidence threshold
-            if max_score >= self.conf_threshold:
-                # Get the class ID with the highest score
-                class_id = np.argmax(classes_scores)
-                print(class_id)
-                boxes = pred[..., :4]
-                print(boxes.shape)
-                # rboxes = self.regularize_rboxes(np.concatenate((pred[:, :4], pred[:, -1:]), axis=-1))
-                # rboxes = self.scale_boxes(input_images[0].shape, pred[:, :4], org_shapes[0], xywh=True)
 
-                # print(rboxes)
+        c, conf = int(output[:, -1]), float(output[:, -2])
+        line = (c, *(self.xyxyxyxyn(output, org_shape).view(-1)))
+        print(f"{line[0]:>3} {conf:.2f} {' '.join(f'{x:.4f}' for x in line[1:])}")
 
-                # FROM yolo:
+    def _postprocess(self, output: np.ndarray, input_images: np.ndarray):
 
-                # for pred, orig_img, img_path in zip(preds, orig_imgs, self.batch[0]):
-                #    rboxes = ops.regularize_rboxes(torch.cat([pred[:, :4], pred[:, -1:]], dim=-1))
-                #    rboxes[:, :4] = ops.scale_boxes(img.shape[2:], rboxes[:, :4], orig_img.shape, xywh=True)
-                #    # xywh, r, conf, cls
-                #    obb = torch.cat([rboxes, pred[:, 4:6]], dim=-1)
-                #    results.append(Results(orig_img, path=img_path, names=self.model.names, obb=obb))
-                # return results
+        # output to tensor
+        output = torch.from_numpy(output)
 
-                class_ids.append(class_id)
-                scores.append(max_score)
-                boxes.append(box.bounds)
+        preds = self.non_max_suppression(
+            output,
+            self.conf_threshold,
+            self.iou_threshold,
+            agnostic=False,
+            max_det=30,
+            nc=len(self.labels),
+            classes=self.labels,
+            rotated=True,
+        )
 
-        # Apply non-maximum suppression to filter out overlapping bounding boxes
-        indices = cv2.dnn.NMSBoxes(boxes, scores, self.conf_threshold, self.iou_threshold)
+        results = []
+        for pred, orig_img in zip(preds, input_images):
+            print(self.input_shape[-2:])
+            print(orig_img.shape[:-1])
+            rboxes = self.regularize_rboxes(torch.cat([pred[:, :4], pred[:, -1:]], dim=-1))
+            print(rboxes)
+            rboxes[:, :4] = self.scale_boxes(self.input_shape[-2:], rboxes[:, :4], orig_img.shape[:-1], xywh=True)
+            # xywh, r, conf, cls
+            rboxes = torch.from_numpy(rboxes).to(dtype=torch.int32)
+            print(rboxes)
+            obb = torch.cat([rboxes, pred[:, 4:6]], dim=-1)
 
-        if self.mask_labels:
-            pass
-            # TODO: mask detected label in org image with black box
-        return [
-            {
-                "boxes": [boxes[i] for i in indices],
-                "scores": [scores[i] for i in indices],
-                "labels": [self.labels[class_ids[i]] for i in indices],
-            }
-        ]
+        return results
 
     def __call__(self, inputs: List[np.ndarray]) -> Any:
         model_inputs = self.session.get_inputs()
-        org_shapes = [inp.shape[:-1] for inp in model_inputs]
 
         # Store the shape of the input for later use
         input_shape = model_inputs[0].shape
@@ -436,4 +438,5 @@ class ArtefactDetector:
 
         processed_batches = [batch.numpy() for batch in self.pre_processor(inputs)]
         outputs = [self.session.run(None, {model_inputs[0].name: batch}) for batch in processed_batches]
-        return self._postprocess(outputs, inputs, org_shapes)
+        outputs = np.concatenate([output[0] for output in outputs], axis=0)
+        return self._postprocess(outputs, inputs)
