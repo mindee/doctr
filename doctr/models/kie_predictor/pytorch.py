@@ -95,7 +95,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                 if self.detect_orientation
                 else [estimate_orientation(seq_map) for seq_map in seg_maps]
             )
-            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]
+            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]  # type: ignore[arg-type]
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
@@ -104,7 +104,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Rectify crops if aspect ratio
-        dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
+        dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}  # type: ignore[arg-type]
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
@@ -114,7 +114,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         crops = {}
         for class_name in dict_loc_preds.keys():
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages,
+                pages,  # type: ignore[arg-type]
                 dict_loc_preds[class_name],
                 channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
@@ -147,10 +147,10 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             languages_dict = None
 
         out = self.doc_builder(
-            pages,
+            pages,  # type: ignore[arg-type]
             boxes_per_page,
             text_preds_per_page,
-            origin_page_shapes,
+            origin_page_shapes,  # type: ignore[arg-type]
             orientations,
             languages_dict,
         )

@@ -79,7 +79,7 @@ class PreProcessor(nn.Module):
         else:
             x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
 
-        return x  # type: ignore[return-value]
+        return x
 
     def __call__(self, x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]) -> List[torch.Tensor]:
         """Prepare document data for model forwarding
@@ -103,7 +103,7 @@ class PreProcessor(nn.Module):
             elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
                 raise TypeError("unsupported data type for torch.Tensor")
             # Resizing
-            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:  # type: ignore[union-attr]
+            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(
                     x, self.resize.size, interpolation=self.resize.interpolation, antialias=self.resize.antialias
                 )
@@ -118,11 +118,11 @@ class PreProcessor(nn.Module):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching
-            batches = self.batch_inputs(samples)  # type: ignore[assignment]
+            batches = self.batch_inputs(samples)
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
         batches = list(multithread_exec(self.normalize, batches))
 
-        return batches  # type: ignore[return-value]
+        return batches

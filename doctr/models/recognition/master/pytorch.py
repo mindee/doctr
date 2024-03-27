@@ -107,7 +107,7 @@ class MASTER(_MASTER, nn.Module):
         # NOTE: nn.TransformerDecoder takes the inverse from this implementation
         # [True, True, True, ..., False, False, False] -> False is masked
         # (N, 1, 1, max_length)
-        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)  # type: ignore[attr-defined]
+        target_pad_mask = (target != self.vocab_size + 2).unsqueeze(1).unsqueeze(1)
         target_length = target.size(1)
         # sub mask filled diagonal with True = see and False = masked (max_length, max_length)
         # NOTE: onnxruntime tril/triu works only with float currently (onnxruntime 1.11.1 - opset 14)
@@ -142,7 +142,7 @@ class MASTER(_MASTER, nn.Module):
         # Input length : number of timesteps
         input_len = model_output.shape[1]
         # Add one for additional <eos> token (sos disappear in shift!)
-        seq_len = seq_len + 1  # type: ignore[assignment]
+        seq_len = seq_len + 1
         # Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!
         # The "masked" first gt char is <sos>. Delete last logit of the model output.
         cce = F.cross_entropy(model_output[:, :-1, :].permute(0, 2, 1), gt[:, 1:], reduction="none")

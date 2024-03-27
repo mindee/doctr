@@ -106,7 +106,7 @@ class FASTConvLayer(nn.Module):
             id_tensor = torch.from_numpy(kernel_value).to(identity.weight.device)
             self.id_tensor = self._pad_to_mxn_tensor(id_tensor)
         kernel = self.id_tensor
-        std = (identity.running_var + identity.eps).sqrt()  # type: ignore[attr-defined]
+        std = (identity.running_var + identity.eps).sqrt()
         t = (identity.weight / std).reshape(-1, 1, 1, 1)
         return kernel * t, identity.bias - identity.running_mean * identity.weight / std
 

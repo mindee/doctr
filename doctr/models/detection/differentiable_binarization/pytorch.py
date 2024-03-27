@@ -273,7 +273,7 @@ class DBNet(_DBNet, nn.Module):
                 dice_map = torch.softmax(out_map, dim=1)
             else:
                 # compute binary map instead
-                dice_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))  # type: ignore[assignment]
+                dice_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))
             # Class reduced
             inter = (seg_mask * dice_map * seg_target).sum((0, 2, 3))
             cardinality = (seg_mask * (dice_map + seg_target)).sum((0, 2, 3))
