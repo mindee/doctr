@@ -1,6 +1,7 @@
-try:
-    import onnxruntime
-except ImportError:
-    raise ImportError("onnxruntime is not installed. You must install onnxruntime to use this feature.")
+import logging
 
-from .artefacts import ArtefactDetector
+try:
+    from .artefacts import ArtefactDetector
+except ImportError:
+    logging.warning("onnxruntime is not installed, some features may not work")
+    pass
