@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Preparing your model for inference" href="using_model_export.html" /><link rel="prev" title="Choose a ready to use dataset" href="using_datasets.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Share your model with the community - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -248,11 +248,11 @@
         </div>
         <article role="main">
           <section id="share-your-model-with-the-community">
-<h1>Share your model with the community<a class="headerlink" href="#share-your-model-with-the-community" title="Permalink to this heading">#</a></h1>
+<h1>Share your model with the community<a class="headerlink" href="#share-your-model-with-the-community" title="Link to this heading">#</a></h1>
 <p>docTR’s focus is on open source, so if you also feel in love with than we appreciate sharing your trained model with the community.
 To make it easy for you, we have integrated a interface to the huggingface hub.</p>
 <section id="loading-from-huggingface-hub">
-<h2>Loading from Huggingface Hub<a class="headerlink" href="#loading-from-huggingface-hub" title="Permalink to this heading">#</a></h2>
+<h2>Loading from Huggingface Hub<a class="headerlink" href="#loading-from-huggingface-hub" title="Link to this heading">#</a></h2>
 <p>This section shows how you can easily load a pretrained model from the Huggingface Hub.</p>
 <div class="sphinx-tabs docutils container">
 <div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.io</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
@@ -282,7 +282,7 @@ To make it easy for you, we have integrated a interface to the huggingface hub.<
 </div></div>
 </section>
 <section id="pushing-to-the-huggingface-hub">
-<h2>Pushing to the Huggingface Hub<a class="headerlink" href="#pushing-to-the-huggingface-hub" title="Permalink to this heading">#</a></h2>
+<h2>Pushing to the Huggingface Hub<a class="headerlink" href="#pushing-to-the-huggingface-hub" title="Link to this heading">#</a></h2>
 <p>You can also push your trained model to the Huggingface Hub.
 You need only to provide the task type (classification, detection, recognition or obj_detection), a name for your trained model (NOTE:
 existing repositories will not be overwritten) and the model name itself.</p>
@@ -313,18 +313,18 @@ existing repositories will not be overwritten) and the model name itself.</p>
 </div></div>
 </section>
 <section id="pretrained-community-models">
-<h2>Pretrained community models<a class="headerlink" href="#pretrained-community-models" title="Permalink to this heading">#</a></h2>
+<h2>Pretrained community models<a class="headerlink" href="#pretrained-community-models" title="Link to this heading">#</a></h2>
 <p>This section is to provide some tables for pretrained community models.
 Feel free to open a pull request or issue to add your model to this list.</p>
 <section id="naming-conventions">
-<h3>Naming conventions<a class="headerlink" href="#naming-conventions" title="Permalink to this heading">#</a></h3>
+<h3>Naming conventions<a class="headerlink" href="#naming-conventions" title="Link to this heading">#</a></h3>
 <p>We suggest using the following naming conventions for your models:</p>
 <p><strong>Classification:</strong> <code class="docutils literal notranslate"><span class="pre">doctr-&lt;architecture&gt;-&lt;vocab&gt;</span></code></p>
 <p><strong>Detection:</strong> <code class="docutils literal notranslate"><span class="pre">doctr-&lt;architecture&gt;</span></code></p>
 <p><strong>Recognition:</strong> <code class="docutils literal notranslate"><span class="pre">doctr-&lt;architecture&gt;-&lt;vocab&gt;</span></code></p>
 </section>
 <section id="classification">
-<h3>Classification<a class="headerlink" href="#classification" title="Permalink to this heading">#</a></h3>
+<h3>Classification<a class="headerlink" href="#classification" title="Link to this heading">#</a></h3>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
@@ -350,7 +350,7 @@ Feel free to open a pull request or issue to add your model to this list.</p>
 </div>
 </section>
 <section id="detection">
-<h3>Detection<a class="headerlink" href="#detection" title="Permalink to this heading">#</a></h3>
+<h3>Detection<a class="headerlink" href="#detection" title="Link to this heading">#</a></h3>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
@@ -373,7 +373,7 @@ Feel free to open a pull request or issue to add your model to this list.</p>
 </div>
 </section>
 <section id="recognition">
-<h3>Recognition<a class="headerlink" href="#recognition" title="Permalink to this heading">#</a></h3>
+<h3>Recognition<a class="headerlink" href="#recognition" title="Link to this heading">#</a></h3>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
 <thead>
@@ -487,9 +487,9 @@ Feel free to open a pull request or issue to add your model to this list.</p>
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=a50710d5"></script>
+</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>

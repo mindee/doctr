@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../../../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../../genindex.html" /><link rel="search" title="Search" href="../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>doctr.transforms.modules.base - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=135e06be" />
@@ -253,7 +253,9 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ColorInversion&#39;</span><span class="p">,</span> <span class="s1">&#39;OneOf&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomApply&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomRotate&#39;</span><span class="p">,</span> <span class="s1">&#39;RandomCrop&#39;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="ColorInversion"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a><span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<div class="viewcode-block" id="ColorInversion">
+<a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.ColorInversion">[docs]</a>
+<span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
 <span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
 
@@ -276,7 +278,10 @@
         <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">invert_colors</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_val</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="OneOf"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.OneOf">[docs]</a><span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+
+<div class="viewcode-block" id="OneOf">
+<a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.OneOf">[docs]</a>
+<span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
 
 <span class="sd">    Example::</span>
@@ -301,7 +306,10 @@
         <span class="k">return</span> <span class="n">transfo</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomApply"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomApply">[docs]</a><span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RandomApply">
+<a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomApply">[docs]</a>
+<span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
 
 <span class="sd">    Example::</span>
@@ -327,7 +335,10 @@
         <span class="k">return</span> <span class="n">img</span></div>
 
 
-<div class="viewcode-block" id="RandomRotate"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomRotate">[docs]</a><span class="k">class</span> <span class="nc">RandomRotate</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RandomRotate">
+<a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomRotate">[docs]</a>
+<span class="k">class</span> <span class="nc">RandomRotate</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly rotate a tensor image and its boxes</span>
 
 <span class="sd">    Args:</span>
@@ -348,7 +359,10 @@
         <span class="k">return</span> <span class="n">r_img</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">r_boxes</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="RandomCrop"><a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomCrop">[docs]</a><span class="k">class</span> <span class="nc">RandomCrop</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RandomCrop">
+<a class="viewcode-back" href="../../../../transforms.html#doctr.transforms.RandomCrop">[docs]</a>
+<span class="k">class</span> <span class="nc">RandomCrop</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly crop a tensor image and its boxes</span>
 
 <span class="sd">    Args:</span>
@@ -377,6 +391,7 @@
         <span class="p">)</span>
         <span class="n">croped_img</span><span class="p">,</span> <span class="n">crop_boxes</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">crop_detection</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">],</span> <span class="n">crop_box</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">croped_img</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">crop_boxes</span><span class="p">)</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -409,9 +424,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js?v=a10f4edd"></script>
+</div><script src="../../../../_static/documentation_options.js?v=346710b6"></script>
     <script src="../../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>

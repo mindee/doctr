@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../../../../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>doctr.models.recognition.crnn.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=135e06be" />
@@ -499,7 +499,9 @@
     <span class="k">return</span> <span class="n">model</span>
 
 
-<div class="viewcode-block" id="crnn_vgg16_bn"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.crnn_vgg16_bn">[docs]</a><span class="k">def</span> <span class="nf">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+<div class="viewcode-block" id="crnn_vgg16_bn">
+<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.crnn_vgg16_bn">[docs]</a>
+<span class="k">def</span> <span class="nf">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;CRNN with a VGG-16 backbone as described in `&quot;An End-to-End Trainable Neural Network for Image-based</span>
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition&quot; &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
@@ -519,7 +521,10 @@
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_vgg16_bn&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">vgg16_bn_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="crnn_mobilenet_v3_small"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_small">[docs]</a><span class="k">def</span> <span class="nf">crnn_mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+
+<div class="viewcode-block" id="crnn_mobilenet_v3_small">
+<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_small">[docs]</a>
+<span class="k">def</span> <span class="nf">crnn_mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;CRNN with a MobileNet V3 Small backbone as described in `&quot;An End-to-End Trainable Neural Network for Image-based</span>
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition&quot; &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
@@ -539,7 +544,10 @@
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">mobilenet_v3_small_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="crnn_mobilenet_v3_large"><a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_large">[docs]</a><span class="k">def</span> <span class="nf">crnn_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
+
+<div class="viewcode-block" id="crnn_mobilenet_v3_large">
+<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.crnn_mobilenet_v3_large">[docs]</a>
+<span class="k">def</span> <span class="nf">crnn_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">CRNN</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;CRNN with a MobileNet V3 Large backbone as described in `&quot;An End-to-End Trainable Neural Network for Image-based</span>
 <span class="sd">    Sequence Recognition and Its Application to Scene Text Recognition&quot; &lt;https://arxiv.org/pdf/1507.05717.pdf&gt;`_.</span>
 
@@ -557,6 +565,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">return</span> <span class="n">_crnn</span><span class="p">(</span><span class="s2">&quot;crnn_mobilenet_v3_large&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">mobilenet_v3_large_r</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -589,9 +598,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../../../" id="documentation_options" src="../../../../../_static/documentation_options.js?v=58961bc3"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=cdfe45a8"></script>
     <script src="../../../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>

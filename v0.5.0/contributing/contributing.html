@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Changelog" href="../changelog.html" /><link rel="prev" title="Contributor Covenant Code of Conduct" href="code_of_conduct.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Contributing to docTR - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -248,10 +248,10 @@
         </div>
         <article role="main">
           <section id="contributing-to-doctr">
-<h1>Contributing to docTR<a class="headerlink" href="#contributing-to-doctr" title="Permalink to this heading">#</a></h1>
+<h1>Contributing to docTR<a class="headerlink" href="#contributing-to-doctr" title="Link to this heading">#</a></h1>
 <p>Everything you need to know to contribute efficiently to the project.</p>
 <section id="codebase-structure">
-<h2>Codebase structure<a class="headerlink" href="#codebase-structure" title="Permalink to this heading">#</a></h2>
+<h2>Codebase structure<a class="headerlink" href="#codebase-structure" title="Link to this heading">#</a></h2>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/mindee/doctr/blob/main/doctr">doctr</a> - The package codebase</p></li>
 <li><p><a class="reference external" href="https://github.com/mindee/doctr/blob/main/tests">tests</a> - Python unit tests</p></li>
@@ -263,7 +263,7 @@
 </ul>
 </section>
 <section id="continuous-integration">
-<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Permalink to this heading">#</a></h2>
+<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Link to this heading">#</a></h2>
 <p>This project uses the following integrations to ensure proper codebase maintenance:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow">Github Worklow</a> - run jobs for package build and coverage</p></li>
@@ -272,21 +272,21 @@
 <p>As a contributor, you will only have to ensure coverage of your code by adding appropriate unit testing of your code.</p>
 </section>
 <section id="feedback">
-<h2>Feedback<a class="headerlink" href="#feedback" title="Permalink to this heading">#</a></h2>
+<h2>Feedback<a class="headerlink" href="#feedback" title="Link to this heading">#</a></h2>
 <section id="feature-requests-bug-report">
-<h3>Feature requests &amp; bug report<a class="headerlink" href="#feature-requests-bug-report" title="Permalink to this heading">#</a></h3>
+<h3>Feature requests &amp; bug report<a class="headerlink" href="#feature-requests-bug-report" title="Link to this heading">#</a></h3>
 <p>Whether you encountered a problem, or you have a feature suggestion, your input has value and can be used by contributors to reference it in their developments. For this purpose, we advise you to use Github <a class="reference external" href="https://github.com/mindee/doctr/issues">issues</a>.</p>
 <p>First, check whether the topic wasn’t already covered in an open / closed issue. If not, feel free to open a new one! When doing so, use issue templates whenever possible and provide enough information for other contributors to jump in.</p>
 </section>
 <section id="questions">
-<h3>Questions<a class="headerlink" href="#questions" title="Permalink to this heading">#</a></h3>
+<h3>Questions<a class="headerlink" href="#questions" title="Link to this heading">#</a></h3>
 <p>If you are wondering how to do something with docTR, or a more general question, you should consider checking out Github <a class="reference external" href="https://github.com/mindee/doctr/discussions">discussions</a>. See it as a Q&amp;A forum, or the docTR-specific StackOverflow!</p>
 </section>
 </section>
 <section id="developing-doctr">
-<h2>Developing docTR<a class="headerlink" href="#developing-doctr" title="Permalink to this heading">#</a></h2>
+<h2>Developing docTR<a class="headerlink" href="#developing-doctr" title="Link to this heading">#</a></h2>
 <section id="developer-mode-installation">
-<h3>Developer mode installation<a class="headerlink" href="#developer-mode-installation" title="Permalink to this heading">#</a></h3>
+<h3>Developer mode installation<a class="headerlink" href="#developer-mode-installation" title="Link to this heading">#</a></h3>
 <p>Install all additional dependencies with the following command:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>pip
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.<span class="o">[</span>dev<span class="o">]</span>
@@ -295,27 +295,27 @@ pre-commit<span class="w"> </span>install
 </div>
 </section>
 <section id="commits">
-<h3>Commits<a class="headerlink" href="#commits" title="Permalink to this heading">#</a></h3>
+<h3>Commits<a class="headerlink" href="#commits" title="Link to this heading">#</a></h3>
 <ul class="simple">
 <li><p><strong>Code</strong>: ensure to provide docstrings to your Python code. In doing so, please follow <a class="reference external" href="https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html">Google-style</a> so it can ease the process of documentation later.</p></li>
 <li><p><strong>Commit message</strong>: please follow <a class="reference external" href="http://udacity.github.io/git-styleguide/">Udacity guide</a></p></li>
 </ul>
 </section>
 <section id="unit-tests">
-<h3>Unit tests<a class="headerlink" href="#unit-tests" title="Permalink to this heading">#</a></h3>
+<h3>Unit tests<a class="headerlink" href="#unit-tests" title="Link to this heading">#</a></h3>
 <p>In order to run the same unit tests as the CI workflows, you can run unittests locally:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nb">test</span>
 </pre></div>
 </div>
 </section>
 <section id="code-quality">
-<h3>Code quality<a class="headerlink" href="#code-quality" title="Permalink to this heading">#</a></h3>
+<h3>Code quality<a class="headerlink" href="#code-quality" title="Link to this heading">#</a></h3>
 <p>To run all quality checks together</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>quality
 </pre></div>
 </div>
 <section id="code-style-verification">
-<h4>Code style verification<a class="headerlink" href="#code-style-verification" title="Permalink to this heading">#</a></h4>
+<h4>Code style verification<a class="headerlink" href="#code-style-verification" title="Link to this heading">#</a></h4>
 <p>To run all style checks together</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>style
 </pre></div>
@@ -323,7 +323,7 @@ pre-commit<span class="w"> </span>install
 </section>
 </section>
 <section id="modifying-the-documentation">
-<h3>Modifying the documentation<a class="headerlink" href="#modifying-the-documentation" title="Permalink to this heading">#</a></h3>
+<h3>Modifying the documentation<a class="headerlink" href="#modifying-the-documentation" title="Link to this heading">#</a></h3>
 <p>The current documentation is built using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code> thanks to our CI.
 You can build the documentation locally:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>docs-single-version
@@ -334,7 +334,7 @@ You can build the documentation locally:</p>
 </section>
 </section>
 <section id="let-s-connect">
-<h2>Let’s connect<a class="headerlink" href="#let-s-connect" title="Permalink to this heading">#</a></h2>
+<h2>Let’s connect<a class="headerlink" href="#let-s-connect" title="Link to this heading">#</a></h2>
 <p>Should you wish to connect somewhere else than on GitHub, feel free to join us on <a class="reference external" href="https://join.slack.com/t/mindee-community/shared_invite/zt-uzgmljfl-MotFVfH~IdEZxjp~0zldww">Slack</a>, where you will find a <code class="docutils literal notranslate"><span class="pre">#doctr</span></code> channel!</p>
 </section>
 </section>
@@ -425,9 +425,9 @@ You can build the documentation locally:</p>
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=a50710d5"></script>
+</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>

@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>doctr.io.elements - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -307,7 +307,9 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span>
 
 
-<div class="viewcode-block" id="Word"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Word">[docs]</a><span class="k">class</span> <span class="nc">Word</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<div class="viewcode-block" id="Word">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Word">[docs]</a>
+<span class="k">class</span> <span class="nc">Word</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a word element</span>
 
 <span class="sd">    Args:</span>
@@ -339,7 +341,10 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Artefact"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Artefact">[docs]</a><span class="k">class</span> <span class="nc">Artefact</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Artefact">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Artefact">[docs]</a>
+<span class="k">class</span> <span class="nc">Artefact</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a non-textual element</span>
 
 <span class="sd">    Args:</span>
@@ -371,7 +376,10 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Line"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Line">[docs]</a><span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Line">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Line">[docs]</a>
+<span class="k">class</span> <span class="nc">Line</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a line element as a collection of words</span>
 
 <span class="sd">    Args:</span>
@@ -414,6 +422,7 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
+
 <span class="k">class</span> <span class="nc">Prediction</span><span class="p">(</span><span class="n">Word</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a prediction element&quot;&quot;&quot;</span>
 
@@ -425,7 +434,9 @@
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;value=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&#39;, confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">, bounding_box=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">&quot;</span>
 
 
-<div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<div class="viewcode-block" id="Block">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Block">[docs]</a>
+<span class="k">class</span> <span class="nc">Block</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a block element as a collection of lines and artefacts</span>
 
 <span class="sd">    Args:</span>
@@ -475,7 +486,10 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="Page"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Page">[docs]</a><span class="k">class</span> <span class="nc">Page</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Page">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Page">[docs]</a>
+<span class="k">class</span> <span class="nc">Page</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a page element as a collection of blocks</span>
 
 <span class="sd">    Args:</span>
@@ -511,7 +525,9 @@
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;dimensions=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="si">}</span><span class="s2">&quot;</span>
 
-<div class="viewcode-block" id="Page.show"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Page.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Page.show">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Page.show">[docs]</a>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Overlay the result on a given image</span>
 
 <span class="sd">        Args:</span>
@@ -521,6 +537,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">visualize_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesize the page from the predictions</span>
@@ -640,6 +657,7 @@
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Block</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">block_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">block_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">]]})</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 
 
 <span class="k">class</span> <span class="nc">KIEPage</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
@@ -771,7 +789,9 @@
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Document"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Document">[docs]</a><span class="k">class</span> <span class="nc">Document</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<div class="viewcode-block" id="Document">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Document">[docs]</a>
+<span class="k">class</span> <span class="nc">Document</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a document element as a collection of pages</span>
 
 <span class="sd">    Args:</span>
@@ -791,7 +811,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Renders the full text of the element&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">page_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">render</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Document.show"><a class="viewcode-back" href="../../../modules/io.html#doctr.io.Document.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Document.show">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Document.show">[docs]</a>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Overlay the result on a given image</span>
 
 <span class="sd">        Args:</span>
@@ -799,6 +821,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">img</span><span class="p">,</span> <span class="n">result</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">):</span>
             <span class="n">result</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Synthesize all pages from their predictions</span>
@@ -825,6 +848,7 @@
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;pages&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Page</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">page_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">page_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">&quot;pages&quot;</span><span class="p">]]})</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 
 
 <span class="k">class</span> <span class="nc">KIEDocument</span><span class="p">(</span><span class="n">Document</span><span class="p">):</span>
@@ -874,9 +898,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=245ab14c"></script>
+</div><script src="../../../_static/documentation_options.js?v=b132ef27"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>

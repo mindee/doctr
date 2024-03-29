@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Choose a ready to use dataset" href="using_datasets.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Choosing the right model - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -248,7 +248,7 @@
         </div>
         <article role="main">
           <section id="choosing-the-right-model">
-<h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Permalink to this heading">#</a></h1>
+<h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Link to this heading">#</a></h1>
 <p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
 <p>For a given task, docTR provides a Predictor, which is composed of 2 components:</p>
@@ -257,12 +257,12 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <li><p>Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow &amp; PyTorch) along with its specific post-processor to make outputs structured and reusable.</p></li>
 </ul>
 <section id="text-detection">
-<h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this heading">#</a></h2>
+<h2>Text Detection<a class="headerlink" href="#text-detection" title="Link to this heading">#</a></h2>
 <p>The task consists of localizing textual elements in a given image.
 While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).
 Our latest detection models works with rotated and skewed documents!</p>
 <section id="available-architectures">
-<h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this heading">#</a></h3>
+<h3>Available architectures<a class="headerlink" href="#available-architectures" title="Link to this heading">#</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.detection.linknet_resnet18" title="doctr.models.detection.linknet_resnet18"><code class="xref py py-meth docutils literal notranslate"><span class="pre">linknet_resnet18</span></code></a></p></li>
@@ -411,7 +411,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>11th Gen Intel(R) Core(TM) i7-11800H &#64; 2.30GHz</cite>.</p>
 </section>
 <section id="detection-predictors">
-<h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this heading">#</a></h3>
+<h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="../modules/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detection_predictor</span></code></a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
@@ -434,10 +434,10 @@ Explanations about the metrics being used are available in <a class="reference i
 </section>
 </section>
 <section id="text-recognition">
-<h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this heading">#</a></h2>
+<h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Link to this heading">#</a></h2>
 <p>The task consists of transcribing the character sequence in a given image.</p>
 <section id="id1">
-<h3>Available architectures<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<h3>Available architectures<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.crnn_vgg16_bn" title="doctr.models.recognition.crnn_vgg16_bn"><code class="xref py py-meth docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code></a></p></li>
@@ -645,7 +645,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p>Seconds per iteration (with a batch size of 64) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <cite>11th Gen Intel(R) Core(TM) i7-11800H &#64; 2.30GHz</cite>.</p>
 </section>
 <section id="recognition-predictors">
-<h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this heading">#</a></h3>
+<h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Link to this heading">#</a></h3>
 <p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">recognition_predictor</span></code></a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
@@ -657,10 +657,10 @@ Explanations about the metric being used (exact match) are available in <a class
 </section>
 </section>
 <section id="end-to-end-ocr">
-<h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this heading">#</a></h2>
+<h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Link to this heading">#</a></h2>
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
 <section id="id2">
-<h3>Available architectures<a class="headerlink" href="#id2" title="Permalink to this heading">#</a></h3>
+<h3>Available architectures<a class="headerlink" href="#id2" title="Link to this heading">#</a></h3>
 <p>You can use any combination of detection and recognition models supported by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -812,7 +812,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p><em>Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities</em></p>
 </section>
 <section id="two-stage-approaches">
-<h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this heading">#</a></h3>
+<h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Link to this heading">#</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference internal" href="../modules/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ocr_predictor</span></code></a>.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
@@ -849,7 +849,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </div>
 </section>
 <section id="what-should-i-do-with-the-output">
-<h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Permalink to this heading">#</a></h3>
+<h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Link to this heading">#</a></h3>
 <p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
 To get a better understanding of our document model, check our <a class="reference internal" href="../modules/io.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
 <p>Here is a typical <cite>Document</cite> layout:</p>
@@ -956,7 +956,7 @@ To get a better understanding of our document model, check our <a class="referen
 </div>
 </section>
 <section id="advanced-options">
-<h3>Advanced options<a class="headerlink" href="#advanced-options" title="Permalink to this heading">#</a></h3>
+<h3>Advanced options<a class="headerlink" href="#advanced-options" title="Link to this heading">#</a></h3>
 <p>We provide a few advanced options to customize the behavior of the predictor to your needs:</p>
 <ul class="simple">
 <li><p>Modify the binarization threshold for the detection model.</p></li>
@@ -1085,9 +1085,9 @@ To get a better understanding of our document model, check our <a class="referen
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=d9cbba5a"></script>
+</div><script src="../_static/documentation_options.js?v=4ca3e431"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>

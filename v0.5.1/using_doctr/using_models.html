@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Preparing your model for inference" href="using_model_export.html" /><link rel="prev" title="docTR Notebooks" href="../notebooks.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Choosing the right model - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -244,7 +244,7 @@
         </div>
         <article role="main">
           <section id="choosing-the-right-model">
-<h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Permalink to this heading">#</a></h1>
+<h1>Choosing the right model<a class="headerlink" href="#choosing-the-right-model" title="Link to this heading">#</a></h1>
 <p>The full Optical Character Recognition task can be seen as two consecutive tasks: text detection and text recognition.
 Either performed at once or separately, to each task corresponds a type of deep learning architecture.</p>
 <p>For a given task, docTR provides a Predictor, which is composed of 2 components:</p>
@@ -253,12 +253,12 @@ Either performed at once or separately, to each task corresponds a type of deep 
 <li><p>Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow &amp; PyTorch) along with its specific post-processor to make outputs structured and reusable.</p></li>
 </ul>
 <section id="text-detection">
-<h2>Text Detection<a class="headerlink" href="#text-detection" title="Permalink to this heading">#</a></h2>
+<h2>Text Detection<a class="headerlink" href="#text-detection" title="Link to this heading">#</a></h2>
 <p>The task consists of localizing textual elements in a given image.
 While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don’t).
 Our latest detection models works with rotated and skewed documents!</p>
 <section id="available-architectures">
-<h3>Available architectures<a class="headerlink" href="#available-architectures" title="Permalink to this heading">#</a></h3>
+<h3>Available architectures<a class="headerlink" href="#available-architectures" title="Link to this heading">#</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="models.html#doctr.models.detection.linknet_resnet18">linknet_resnet18</a></p></li>
@@ -317,7 +317,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
 </section>
 <section id="detection-predictors">
-<h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Permalink to this heading">#</a></h3>
+<h3>Detection predictors<a class="headerlink" href="#detection-predictors" title="Link to this heading">#</a></h3>
 <p><a class="reference external" href="models.html#doctr.models.detection.detection_predictor">detection_predictor</a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
@@ -341,10 +341,10 @@ Explanations about the metrics being used are available in <a class="reference i
 </section>
 </section>
 <section id="text-recognition">
-<h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Permalink to this heading">#</a></h2>
+<h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Link to this heading">#</a></h2>
 <p>The task consists of transcribing the character sequence in a given image.</p>
 <section id="id1">
-<h3>Available architectures<a class="headerlink" href="#id1" title="Permalink to this heading">#</a></h3>
+<h3>Available architectures<a class="headerlink" href="#id1" title="Link to this heading">#</a></h3>
 <p>The following architectures are currently supported:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="models.html#doctr.models.recognition.crnn_vgg16_bn">crnn_vgg16_bn</a></p></li>
@@ -356,7 +356,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container" id="id5">
 <table class="docutils align-default" id="id5">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id5" title="Permalink to this table">#</a></caption>
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id5" title="Link to this table">#</a></caption>
 <thead>
 <tr class="row-odd"><th class="head"><p>Architecture</p></th>
 <th class="head"><p>Input shape</p></th>
@@ -417,7 +417,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p>FPS (Frames per second) is computed after a warmup phase of 100 tensors (where the batch size is 1), by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a <a class="reference external" href="https://aws.amazon.com/ec2/instance-types/c5/">c5.x12large</a> AWS instance (CPU Xeon Platinum 8275L).</p>
 </section>
 <section id="recognition-predictors">
-<h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Permalink to this heading">#</a></h3>
+<h3>Recognition predictors<a class="headerlink" href="#recognition-predictors" title="Link to this heading">#</a></h3>
 <p><a class="reference external" href="models.html#doctr.models.recognition.recognition_predictor">recognition_predictor</a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
@@ -429,10 +429,10 @@ Explanations about the metric being used (exact match) are available in <a class
 </section>
 </section>
 <section id="end-to-end-ocr">
-<h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Permalink to this heading">#</a></h2>
+<h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Link to this heading">#</a></h2>
 <p>The task consists of both localizing and transcribing textual elements in a given image.</p>
 <section id="id3">
-<h3>Available architectures<a class="headerlink" href="#id3" title="Permalink to this heading">#</a></h3>
+<h3>Available architectures<a class="headerlink" href="#id3" title="Link to this heading">#</a></h3>
 <p>You can use any combination of detection and recognition models supporte by docTR.</p>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -676,7 +676,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </div>
 </section>
 <section id="two-stage-approaches">
-<h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Permalink to this heading">#</a></h3>
+<h3>Two-stage approaches<a class="headerlink" href="#two-stage-approaches" title="Link to this heading">#</a></h3>
 <p>Those architectures involve one stage of text detection, and one stage of text recognition. The text detection will be used to produces cropped images that will be passed into the text recognition block. Everything is wrapped up with <a class="reference external" href="models.html#doctr.models.ocr_predictor">ocr_predictor</a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
@@ -702,7 +702,7 @@ Explanations about the metrics being used are available in <a class="reference i
 </div>
 </section>
 <section id="what-should-i-do-with-the-output">
-<h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Permalink to this heading">#</a></h3>
+<h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Link to this heading">#</a></h3>
 <p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
 To get a better understanding of our document model, check our <a class="reference internal" href="../modules/io.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
 <p>Here is a typical <cite>Document</cite> layout:</p>
@@ -776,27 +776,27 @@ To get a better understanding of our document model, check our <a class="referen
 </pre></div>
 </div>
 <p>For reference, here is a sample XML byte string output:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;html xmlns=&quot;http://www.w3.org/1999/xhtml&quot; xml:lang=&quot;en&quot;&gt;
-  &lt;head&gt;
-    &lt;title&gt;docTR - hOCR&lt;/title&gt;
-    &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=utf-8&quot; /&gt;
-    &lt;meta name=&quot;ocr-system&quot; content=&quot;doctr 0.5.0&quot; /&gt;
-    &lt;meta name=&quot;ocr-capabilities&quot; content=&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot; /&gt;
-  &lt;/head&gt;
-  &lt;body&gt;
-    &lt;div class=&quot;ocr_page&quot; id=&quot;page_1&quot; title=&quot;image; bbox 0 0 3456 3456; ppageno 0&quot; /&gt;
-    &lt;div class=&quot;ocr_carea&quot; id=&quot;block_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
-      &lt;p class=&quot;ocr_par&quot; id=&quot;par_1_1&quot; title=&quot;bbox 857 529 2504 2710&quot;&gt;
-        &lt;span class=&quot;ocr_line&quot; id=&quot;line_1_1&quot; title=&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_1&quot; title=&quot;bbox 1552 540 1778 580; x_wconf 99&quot;&gt;Hello&lt;/span&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_2&quot; title=&quot;bbox 1782 529 1900 583; x_wconf 99&quot;&gt;XML&lt;/span&gt;
-          &lt;span class=&quot;ocrx_word&quot; id=&quot;word_1_3&quot; title=&quot;bbox 1420 597 1684 641; x_wconf 81&quot;&gt;World&lt;/span&gt;
-        &lt;/span&gt;
-      &lt;/p&gt;
-    &lt;/div&gt;
-  &lt;/body&gt;
-&lt;/html&gt;
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="err">?</span><span class="n">xml</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;1.0&quot;</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="err">?</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">html</span> <span class="n">xmlns</span><span class="o">=</span><span class="s2">&quot;http://www.w3.org/1999/xhtml&quot;</span> <span class="n">xml</span><span class="p">:</span><span class="n">lang</span><span class="o">=</span><span class="s2">&quot;en&quot;</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">head</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">title</span><span class="o">&gt;</span><span class="n">docTR</span> <span class="o">-</span> <span class="n">hOCR</span><span class="o">&lt;/</span><span class="n">title</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">meta</span> <span class="n">http</span><span class="o">-</span><span class="n">equiv</span><span class="o">=</span><span class="s2">&quot;Content-Type&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;text/html; charset=utf-8&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">meta</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ocr-system&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;doctr 0.5.0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">meta</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ocr-capabilities&quot;</span> <span class="n">content</span><span class="o">=</span><span class="s2">&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot;</span> <span class="o">/&gt;</span>
+  <span class="o">&lt;/</span><span class="n">head</span><span class="o">&gt;</span>
+  <span class="o">&lt;</span><span class="n">body</span><span class="o">&gt;</span>
+    <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocr_page&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;page_1&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;image; bbox 0 0 3456 3456; ppageno 0&quot;</span> <span class="o">/&gt;</span>
+    <span class="o">&lt;</span><span class="n">div</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocr_carea&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;block_1_1&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;bbox 857 529 2504 2710&quot;</span><span class="o">&gt;</span>
+      <span class="o">&lt;</span><span class="n">p</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocr_par&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;par_1_1&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;bbox 857 529 2504 2710&quot;</span><span class="o">&gt;</span>
+        <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocr_line&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;line_1_1&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocrx_word&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;word_1_1&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;bbox 1552 540 1778 580; x_wconf 99&quot;</span><span class="o">&gt;</span><span class="n">Hello</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocrx_word&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;word_1_2&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;bbox 1782 529 1900 583; x_wconf 99&quot;</span><span class="o">&gt;</span><span class="n">XML</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+          <span class="o">&lt;</span><span class="n">span</span> <span class="n">class</span><span class="o">=</span><span class="s2">&quot;ocrx_word&quot;</span> <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;word_1_3&quot;</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;bbox 1420 597 1684 641; x_wconf 81&quot;</span><span class="o">&gt;</span><span class="n">World</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+        <span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+      <span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+    <span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+  <span class="o">&lt;/</span><span class="n">body</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">html</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 </section>
@@ -886,9 +886,9 @@ To get a better understanding of our document model, check our <a class="referen
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=428170c8"></script>
+</div><script src="../_static/documentation_options.js?v=d7e92ea3"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>

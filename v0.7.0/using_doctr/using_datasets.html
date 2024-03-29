@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,7 +14,7 @@
 </script>
     <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Share your model with the community" href="sharing_models.html" /><link rel="prev" title="Choosing the right model" href="using_models.html" />
 
-    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>Choose a ready to use dataset - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=135e06be" />
@@ -248,15 +248,15 @@
         </div>
         <article role="main">
           <section id="choose-a-ready-to-use-dataset">
-<h1>Choose a ready to use dataset<a class="headerlink" href="#choose-a-ready-to-use-dataset" title="Permalink to this heading">#</a></h1>
+<h1>Choose a ready to use dataset<a class="headerlink" href="#choose-a-ready-to-use-dataset" title="Link to this heading">#</a></h1>
 <p>Whether it is for training or for evaluation, having predefined objects to access datasets in your prefered framework
 can be a significant save of time.</p>
 <section id="available-datasets">
-<h2>Available Datasets<a class="headerlink" href="#available-datasets" title="Permalink to this heading">#</a></h2>
+<h2>Available Datasets<a class="headerlink" href="#available-datasets" title="Link to this heading">#</a></h2>
 <p>In the package reference you will also find some samples for each dataset.</p>
 <p>Here are all datasets that are available through docTR:</p>
 <section id="detection">
-<h3>Detection<a class="headerlink" href="#detection" title="Permalink to this heading">#</a></h3>
+<h3>Detection<a class="headerlink" href="#detection" title="Link to this heading">#</a></h3>
 <p>This datasets contains the information to train or validate a text detection model.</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -331,7 +331,7 @@ can be a significant save of time.</p>
 </div>
 </section>
 <section id="recognition">
-<h3>Recognition<a class="headerlink" href="#recognition" title="Permalink to this heading">#</a></h3>
+<h3>Recognition<a class="headerlink" href="#recognition" title="Link to this heading">#</a></h3>
 <p>This datasets contains the information to train or validate a text recognition model.</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -416,7 +416,7 @@ can be a significant save of time.</p>
 </div>
 </section>
 <section id="object-detection">
-<h3>Object Detection<a class="headerlink" href="#object-detection" title="Permalink to this heading">#</a></h3>
+<h3>Object Detection<a class="headerlink" href="#object-detection" title="Link to this heading">#</a></h3>
 <p>This datasets contains the information to train or validate a object detection model.</p>
 <div class="table-wrapper docutils container">
 <table class="docutils align-default">
@@ -443,7 +443,7 @@ can be a significant save of time.</p>
 </div>
 </section>
 <section id="synthetic-dataset-generator">
-<h3>Synthetic dataset generator<a class="headerlink" href="#synthetic-dataset-generator" title="Permalink to this heading">#</a></h3>
+<h3>Synthetic dataset generator<a class="headerlink" href="#synthetic-dataset-generator" title="Link to this heading">#</a></h3>
 <p>docTR provides also some generator objects, which can be used to generate synthetic datasets.
 Both are also integrated in the training scripts to train a classification or recognition model.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CharacterGenerator</span>
@@ -459,7 +459,7 @@ Both are also integrated in the training scripts to train a classification or re
 </section>
 </section>
 <section id="use-your-own-datasets">
-<h2>Use your own datasets<a class="headerlink" href="#use-your-own-datasets" title="Permalink to this heading">#</a></h2>
+<h2>Use your own datasets<a class="headerlink" href="#use-your-own-datasets" title="Link to this heading">#</a></h2>
 <p>Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project.
 However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools more easily.
 You can find further information about the format in references.</p>
@@ -475,7 +475,7 @@ You can find further information about the format in references.</p>
 </div>
 </section>
 <section id="data-loading">
-<h2>Data Loading<a class="headerlink" href="#data-loading" title="Permalink to this heading">#</a></h2>
+<h2>Data Loading<a class="headerlink" href="#data-loading" title="Link to this heading">#</a></h2>
 <p>Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span><span class="p">,</span> <span class="n">DataLoader</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -563,9 +563,9 @@ You can find further information about the format in references.</p>
       
     </aside>
   </div>
-</div><script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js?v=245ab14c"></script>
+</div><script src="../_static/documentation_options.js?v=b132ef27"></script>
     <script src="../_static/doctools.js?v=888ff710"></script>
-    <script src="../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>

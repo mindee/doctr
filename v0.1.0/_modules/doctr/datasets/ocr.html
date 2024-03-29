@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" lang="en" data-content_root="">
+<html class="no-js" lang="en" data-content_root="../../../">
   <head><meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <meta name="color-scheme" content="light dark">
@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.1.2 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
         <title>doctr.datasets.ocr - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=135e06be" />
@@ -263,7 +263,9 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;OCRDataset&quot;</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="OCRDataset"><a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.OCRDataset">[docs]</a><span class="k">class</span> <span class="nc">OCRDataset</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
+<div class="viewcode-block" id="OCRDataset">
+<a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.OCRDataset">[docs]</a>
+<span class="k">class</span> <span class="nc">OCRDataset</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements an OCR dataset</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import OCRDataset</span>
@@ -317,6 +319,7 @@
             <span class="n">text_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">obj</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">annotations</span><span class="p">[</span><span class="s2">&quot;typed_words&quot;</span><span class="p">]]</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxes</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">),</span> <span class="n">labels</span><span class="o">=</span><span class="n">text_targets</span><span class="p">)))</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -349,9 +352,9 @@
       
     </aside>
   </div>
-</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=a50710d5"></script>
+</div><script src="../../../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../../../_static/doctools.js?v=888ff710"></script>
-    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
