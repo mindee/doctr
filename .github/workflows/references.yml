@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -186,7 +186,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -230,7 +230,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -263,7 +263,7 @@ jobs:
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: python references/recognition/latency_tensorflow.py crnn_vgg16_bn --it 5
+        run: python references/recognition/latency_tensorflow.py crnn_mobilenet_v3_small --it 5
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
         run: python references/recognition/latency_pytorch.py crnn_mobilenet_v3_small --it 5
@@ -274,7 +274,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -318,7 +318,7 @@ jobs:
           unzip toy_detection_set-bbbb4243.zip -d det_set
       - if: matrix.framework == 'tensorflow'
         name: Train for a short epoch (TF)
-        run: python references/detection/train_tensorflow.py --train_path ./det_set --val_path ./det_set db_resnet50 -b 2 --epochs 1
+        run: python references/detection/train_tensorflow.py --train_path ./det_set --val_path ./det_set linknet_resnet18 -b 2 --epochs 1
       - if: matrix.framework == 'pytorch'
         name: Train for a short epoch (PT)
         run: python references/detection/train_pytorch.py ./det_set ./det_set db_mobilenet_v3_large -b 2 --epochs 1
@@ -329,7 +329,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -375,7 +375,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -408,10 +408,10 @@ jobs:
           pip install -e .[torch] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: python references/detection/latency_tensorflow.py linknet_resnet18 --it 5 --size 512
+        run: python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
-        run: python references/detection/latency_pytorch.py linknet_resnet18 --it 5 --size 512
+        run: python references/detection/latency_pytorch.py db_mobilenet_v3_large --it 5 --size 512
 
   latency-object-detection:
     runs-on: ${{ matrix.os }}
@@ -419,7 +419,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8"]
+        python: ["3.9"]
         framework: [pytorch]
     steps:
       - uses: actions/checkout@v4

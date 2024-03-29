@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8", "3.9"]
+        python: ["3.9", "3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
@@ -51,7 +51,7 @@ jobs:
       - name: Run analysis script
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
-          python scripts/analyze.py sample.pdf --noblock
+          python scripts/analyze.py sample.pdf --noblock --detection db_mobilenet_v3_large
 
   test-detect-text:
     runs-on: ${{ matrix.os }}
@@ -59,7 +59,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8", "3.9"]
+        python: ["3.9", "3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
@@ -97,7 +97,7 @@ jobs:
       - name: Run detection script
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.1.0/sample.pdf
-          python scripts/detect_text.py sample.pdf
+          python scripts/detect_text.py sample.pdf --detection db_mobilenet_v3_large
 
   test-evaluate:
     runs-on: ${{ matrix.os }}
@@ -105,7 +105,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.8", "3.9"]
+        python: ["3.9", "3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
@@ -150,7 +150,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.8", "3.9"]
+        python: ["3.9", "3.10"]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python

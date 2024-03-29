@@ -35,9 +35,9 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
     rgb_shift = min_val + (1 - min_val) * torch.rand(shift_shape)
     # Inverse the color
     if out.dtype == torch.uint8:
-        out = (out.to(dtype=rgb_shift.dtype) * rgb_shift).to(dtype=torch.uint8)  # type: ignore[attr-defined]
+        out = (out.to(dtype=rgb_shift.dtype) * rgb_shift).to(dtype=torch.uint8)
     else:
-        out = out * rgb_shift.to(dtype=out.dtype)  # type: ignore[attr-defined]
+        out = out * rgb_shift.to(dtype=out.dtype)
     # Inverse the color
     out = 255 - out if out.dtype == torch.uint8 else 1 - out
     return out
@@ -81,7 +81,7 @@ def rotate_sample(
     rotated_geoms: np.ndarray = rotate_abs_geoms(
         _geoms,
         angle,
-        img.shape[1:],
+        img.shape[1:],  # type: ignore[arg-type]
         expand,
     ).astype(np.float32)
 
@@ -132,7 +132,7 @@ def random_shadow(img: torch.Tensor, opacity_range: Tuple[float, float], **kwarg
     -------
         shaded image
     """
-    shadow_mask = create_shadow_mask(img.shape[1:], **kwargs)
+    shadow_mask = create_shadow_mask(img.shape[1:], **kwargs)  # type: ignore[arg-type]
 
     opacity = np.random.uniform(*opacity_range)
     shadow_tensor = 1 - torch.from_numpy(shadow_mask[None, ...])
