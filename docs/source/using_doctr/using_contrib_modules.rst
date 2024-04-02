@@ -46,4 +46,4 @@ Reference: `YOLOv8 <https://github.com/ultralytics/ultralytics>`_
 
     from doctr.contrib import ArtefactDetection
 
-    detector = ArtefactDetection(model_path="path/to/your/model.onnx")
+    detector = ArtefactDetection(model_path="path/to/your/model.onnx", labels=["table", "figure"])
