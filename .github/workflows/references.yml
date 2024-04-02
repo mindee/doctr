@@ -411,4 +411,4 @@ jobs:
         run: python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
-        run: python references/detection/latency_pytorch.py linknet_resnet18 --it 5 --size 512
+        run: python references/detection/latency_pytorch.py db_mobilenet_v3_large --it 5 --size 512
