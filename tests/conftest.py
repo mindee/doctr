@@ -85,6 +85,12 @@ def mock_image_stream():
 
 
 @pytest.fixture(scope="session")
+def mock_artefact_image_stream():
+    url = "https://github.com/mindee/doctr/releases/download/v0.8.1/artefact_dummy.jpg"
+    return requests.get(url).content
+
+
+@pytest.fixture(scope="session")
 def mock_image_path(mock_image_stream, tmpdir_factory):
     file = BytesIO(mock_image_stream)
     folder = tmpdir_factory.mktemp("images")

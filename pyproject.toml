@@ -155,6 +155,7 @@ module = [
 	"anyascii.*",
 	"tensorflow.*",
 	"torchvision.*",
+    "onnxruntime.*",
 	"PIL.*",
 	"tqdm.*",
 	"scipy.*",
@@ -190,7 +191,7 @@ ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["doctr", "app", "utils"]
-known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "tqdm", "fastapi"]
+known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "tqdm", "fastapi", "onnxruntime", "cv2"]
 
 [tool.ruff.lint.per-file-ignores]
 "doctr/models/**.py" = ["N806", "F841"]

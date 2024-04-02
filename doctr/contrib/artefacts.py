@@ -1,11 +1,16 @@
+# Copyright (C) 2021-2024, Mindee.
+
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+
 from typing import Any, Dict, List, Optional
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
-import onnxruntime as ort
+from matplotlib.patches import Rectangle
 
-from doctr.utils.data import download_from_url
+from .base import _BasePredictor
 
 __all__ = ["ArtefactDetector"]
 
@@ -18,7 +23,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-class ArtefactDetector:
+class ArtefactDetector(_BasePredictor):
     """
     A class to detect artefacts in images
 
@@ -31,7 +36,7 @@ class ArtefactDetector:
         mask_labels: the mask labels to use
         conf_threshold: the confidence threshold to use
         iou_threshold: the intersection over union threshold to use
-        **kwargs: additional arguments to be passed to `doctr.models.preprocessor.PreProcessor`
+        **kwargs: additional arguments to be passed to `download_from_url`
     """
 
     def __init__(
@@ -40,29 +45,20 @@ class ArtefactDetector:
         batch_size: int = 2,
         model_path: Optional[str] = None,
         labels: Optional[List[str]] = default_cfgs["yolov8_artefact"]["labels"],
-        conf_threshold: float = 0.9,
+        conf_threshold: float = 0.5,
         iou_threshold: float = 0.5,
         **kwargs: Any,
     ) -> None:
-        self.onnx_model = self._init_model(default_cfgs[arch]["url"], model_path, **kwargs)
+        super().__init__(batch_size=batch_size, url=default_cfgs[arch]["url"], model_path=model_path, **kwargs)
         self.labels = labels or default_cfgs[arch]["labels"]
         self.input_shape = default_cfgs[arch]["input_shape"]
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
-        self.batch_size = batch_size
-        self.session = ort.InferenceSession(
-            self.onnx_model, providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
-        )
 
-        self._inputs: List[np.ndarray] = []
-        self._results: List[List[Dict[str, Any]]] = []
+    def preprocess(self, img: np.ndarray) -> np.ndarray:
+        return np.transpose(cv2.resize(img, (self.input_shape[2], self.input_shape[1])), (2, 0, 1)) / np.array(255.0)
 
-    def _init_model(self, url: str, model_path: Optional[str] = None, **kwargs: Any) -> str:
-        return model_path if model_path else str(download_from_url(url, cache_subdir="models", **kwargs))
-
-    def _postprocess(
-        self, output: List[np.ndarray], input_images: List[List[np.ndarray]]
-    ) -> List[List[Dict[str, Any]]]:
+    def postprocess(self, output: List[np.ndarray], input_images: List[List[np.ndarray]]) -> List[List[Dict[str, Any]]]:
         results = []
 
         for batch in zip(output, input_images):
@@ -85,14 +81,14 @@ class ArtefactDetector:
 
                             sample_results.append({
                                 "label": self.labels[class_id],
-                                "confidence": max_score,
+                                "confidence": float(max_score),
                                 "box": [xmin, ymin, xmax, ymax],
                             })
 
                     # Filter out overlapping boxes
                     boxes = [res["box"] for res in sample_results]
                     scores = [res["confidence"] for res in sample_results]
-                    keep_indices = cv2.dnn.NMSBoxes(boxes, scores, self.conf_threshold, self.iou_threshold)
+                    keep_indices = cv2.dnn.NMSBoxes(boxes, scores, self.conf_threshold, self.iou_threshold)  # type: ignore[arg-type]
                     sample_results = [sample_results[i] for i in keep_indices]
 
                     results.append(sample_results)
@@ -100,7 +96,14 @@ class ArtefactDetector:
         self._results = results
         return results
 
-    def show(self):
+    def show(self, **kwargs: Any) -> None:
+        """
+        Display the results
+
+        Args:
+        ----
+            **kwargs: additional keyword arguments to be passed to `plt.show`
+        """
         # visualize the results with matplotlib
         if self._results and self._inputs:
             for img, res in zip(self._inputs, self._results):
@@ -111,26 +114,6 @@ class ArtefactDetector:
                     label = obj["label"]
                     plt.text(xmin, ymin, f"{label} {obj['confidence']:.2f}", color="red")
                     plt.gca().add_patch(
-                        plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, fill=False, edgecolor="red", linewidth=2)
+                        Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, fill=False, edgecolor="red", linewidth=2)
                     )
-                plt.show()
-
-    def _prepare_img(self, img: np.ndarray) -> np.ndarray:
-        return np.transpose(cv2.resize(img, (self.input_shape[2], self.input_shape[1])), (2, 0, 1)) / 255.0
-
-    def __call__(self, inputs: List[np.ndarray]) -> List[List[Dict[str, Any]]]:
-        self._inputs = inputs
-        model_inputs = self.session.get_inputs()
-
-        # Store the shape of the input for later use
-        input_shape = model_inputs[0].shape
-        self.input_width = input_shape[2]
-        self.input_height = input_shape[3]
-
-        batched_inputs = [inputs[i : i + self.batch_size] for i in range(0, len(inputs), self.batch_size)]
-        processed_batches = [
-            np.array([self._prepare_img(img) for img in batch], dtype=np.float32) for batch in batched_inputs
-        ]
-
-        outputs = [self.session.run(None, {model_inputs[0].name: batch}) for batch in processed_batches]
-        return self._postprocess(outputs, batched_inputs)
+                plt.show(**kwargs)

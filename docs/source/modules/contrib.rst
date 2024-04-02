@@ -8,6 +8,6 @@ This module contains all the available contribution modules for docTR.
 
 Supported contribution modules
 ------------------------------
-Here are all transformations that are available through docTR:
+Here are all the available contribution modules:
 
-.. autoclass:: ObjectDetector
+.. autoclass:: ArtefactDetector
