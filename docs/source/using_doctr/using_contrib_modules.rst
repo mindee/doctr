@@ -40,7 +40,7 @@ It is based on the YOLOv8 architecture, which is a state-of-the-art object detec
 You can also use your custom trained YOLOv8 model to detect artefacts or anything else you need.
 Reference: `YOLOv8 <https://github.com/ultralytics/ultralytics>`_
 
-**NOTE:** the YOLOv8 model (no OBB supported yet) needs to be provided as onnx exported model with a dynamic batch size.
+**NOTE:** The YOLOv8 model (no OBB supported yet) needs to be provided as onnx exported model with a dynamic batch size.
 
 .. code:: python3
 
