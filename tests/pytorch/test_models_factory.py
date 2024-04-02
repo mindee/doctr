@@ -48,11 +48,6 @@ def test_push_to_hf_hub():
         ["master", "recognition", "Felix92/doctr-dummy-torch-master"],
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
-        [
-            "fasterrcnn_mobilenet_v3_large_fpn",
-            "obj_detection",
-            "Felix92/doctr-dummy-torch-fasterrcnn-mobilenet-v3-large-fpn",
-        ],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
