@@ -164,7 +164,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
                                   \n{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}"""
         )
 
-    if arch not in AVAILABLE_ARCHS[task]:  # type: ignore
+    if arch not in AVAILABLE_ARCHS[task]:
         raise ValueError(
             f"Architecture: {arch} for task: {task} not found.\
                          \nAvailable architectures: {AVAILABLE_ARCHS}"
