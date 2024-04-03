@@ -96,11 +96,6 @@ class _BasePredictor:
         self._inputs = inputs
         model_inputs = self.session.get_inputs()
 
-        # Get input shape to reuse it for postprocessing
-        input_shape = model_inputs[0].shape
-        self.input_width = input_shape[2]
-        self.input_height = input_shape[3]
-
         batched_inputs = [inputs[i : i + self.batch_size] for i in range(0, len(inputs), self.batch_size)]
         processed_batches = [
             np.array([self.preprocess(img) for img in batch], dtype=np.float32) for batch in batched_inputs

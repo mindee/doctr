@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
 import matplotlib.pyplot as plt
@@ -39,6 +39,7 @@ class ArtefactDetector(_BasePredictor):
         batch_size: the batch size to use
         model_path: the path to the model to use
         labels: the labels to use
+        input_shape: the input shape to use
         mask_labels: the mask labels to use
         conf_threshold: the confidence threshold to use
         iou_threshold: the intersection over union threshold to use
@@ -50,14 +51,15 @@ class ArtefactDetector(_BasePredictor):
         arch: str = "yolov8_artefact",
         batch_size: int = 2,
         model_path: Optional[str] = None,
-        labels: Optional[List[str]] = default_cfgs["yolov8_artefact"]["labels"],
+        labels: Optional[List[str]] = None,
+        input_shape: Optional[Tuple[int, int, int]] = None,
         conf_threshold: float = 0.5,
         iou_threshold: float = 0.5,
         **kwargs: Any,
     ) -> None:
         super().__init__(batch_size=batch_size, url=default_cfgs[arch]["url"], model_path=model_path, **kwargs)
         self.labels = labels or default_cfgs[arch]["labels"]
-        self.input_shape = default_cfgs[arch]["input_shape"]
+        self.input_shape = input_shape or default_cfgs[arch]["input_shape"]
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
 
