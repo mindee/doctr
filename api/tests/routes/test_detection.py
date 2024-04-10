@@ -17,9 +17,9 @@ async def test_text_detection(test_app_asyncio, mock_detection_image, mock_txt_f
 
     # Check that IoU with GT if reasonable
     assert isinstance(json_response, list) and len(json_response) == 2
-    first_pred = json_response[0]
-    assert isinstance(first_pred, dict) and len(first_pred["boxes"]) == gt_boxes.shape[0]
-    pred_boxes = np.array(first_pred["boxes"])
+    first_pred = json_response[0]  # it's enough to test for the first file because the same image is used twice
+    assert isinstance(first_pred, dict) and len(first_pred["geometries"]) == gt_boxes.shape[0]
+    pred_boxes = np.array(first_pred["geometries"])
     iou_mat = box_iou(gt_boxes, pred_boxes)
     gt_idxs, pred_idxs = linear_sum_assignment(-iou_mat)
     is_kept = iou_mat[gt_idxs, pred_idxs] >= 0.8

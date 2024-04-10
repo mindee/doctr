@@ -5,11 +5,11 @@
 
 from typing import List
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.schemas import RecognitionOut
-from app.vision import reco_predictor
-from doctr.io import DocumentFile
+from app.schemas import RecognitionIn, RecognitionOut
+from app.utils import get_documents
+from app.vision import init_predictor
 
 router = APIRouter()
 
@@ -17,18 +17,14 @@ router = APIRouter()
 @router.post(
     "/", response_model=List[RecognitionOut], status_code=status.HTTP_200_OK, summary="Perform text recognition"
 )
-async def text_recognition(files: List[UploadFile] = [File(...)]):
+async def text_recognition(request: RecognitionIn = Depends(), files: List[UploadFile] = [File(...)]):
     """Runs docTR text recognition model to analyze the input image"""
-    words: List[RecognitionOut] = []
-    for file in files:
-        mime_type = file.content_type
-        if mime_type in ["image/jpeg", "image/png"]:
-            content = DocumentFile.from_images([await file.read()])
-        else:
-            raise HTTPException(
-                status_code=400, detail=f"Unsupported file format for recognition endpoint: {mime_type}"
-            )
-
-        words.append(RecognitionOut(name=file.filename or "", value=reco_predictor(content)[0][0]))
-
-    return words
+    try:
+        predictor = init_predictor(request)
+        content, filenames = await get_documents(files)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return [
+        RecognitionOut(name=filename, value=res[0], confidence=round(res[1], 2))
+        for res, filename in zip(predictor(content), filenames)
+    ]

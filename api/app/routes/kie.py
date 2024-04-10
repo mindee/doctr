@@ -5,45 +5,47 @@
 
 from typing import List
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.schemas import KIEElement, KIEOut
-from app.vision import kie_predictor
-from doctr.io import DocumentFile
+from app.schemas import KIEElement, KIEIn, KIEOut
+from app.utils import get_documents, resolve_geometry
+from app.vision import init_predictor
 
 router = APIRouter()
 
 
 @router.post("/", response_model=List[KIEOut], status_code=status.HTTP_200_OK, summary="Perform KIE")
-async def perform_kie(files: List[UploadFile] = [File(...)]):
+async def perform_kie(request: KIEIn = Depends(), files: List[UploadFile] = [File(...)]):
     """Runs docTR KIE model to analyze the input image"""
-    results: List[KIEOut] = []
-    for file in files:
-        mime_type = file.content_type
-        if mime_type in ["image/jpeg", "image/png"]:
-            content = DocumentFile.from_images([await file.read()])
-        elif mime_type == "application/pdf":
-            content = DocumentFile.from_pdf(await file.read())
-        else:
-            raise HTTPException(status_code=400, detail=f"Unsupported file format for KIE endpoint: {mime_type}")
+    try:
+        predictor = init_predictor(request)
+        content, filenames = await get_documents(files)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-        out = kie_predictor(content)
+    out = predictor(content)
 
-        for page in out.pages:
-            results.append(
-                KIEOut(
-                    name=file.filename or "",
-                    predictions=[
-                        KIEElement(
-                            class_name=class_name,
-                            items=[
-                                dict(value=prediction.value, box=(*prediction.geometry[0], *prediction.geometry[1]))
-                                for prediction in page.predictions[class_name]
-                            ],
+    results = [
+        KIEOut(
+            name=filenames[i],
+            orientation=page.orientation,
+            language=page.language,
+            predictions=[
+                KIEElement(
+                    class_name=class_name,
+                    items=[
+                        dict(
+                            value=prediction.value,
+                            geometry=resolve_geometry(prediction.geometry),
+                            confidence=round(prediction.confidence, 2),
                         )
-                        for class_name in page.predictions.keys()
+                        for prediction in page.predictions[class_name]
                     ],
                 )
-            )
+                for class_name in page.predictions.keys()
+            ],
+        )
+        for i, page in enumerate(out.pages)
+    ]
 
     return results

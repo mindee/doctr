@@ -5,40 +5,58 @@
 
 from typing import List
 
-from fastapi import APIRouter, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.schemas import OCROut
-from app.vision import predictor
-from doctr.io import DocumentFile
+from app.schemas import OCRBlock, OCRIn, OCRLine, OCROut, OCRPage, OCRWord
+from app.utils import get_documents, resolve_geometry
+from app.vision import init_predictor
 
 router = APIRouter()
 
 
 @router.post("/", response_model=List[OCROut], status_code=status.HTTP_200_OK, summary="Perform OCR")
-async def perform_ocr(files: List[UploadFile] = [File(...)]):
+async def perform_ocr(request: OCRIn = Depends(), files: List[UploadFile] = [File(...)]):
     """Runs docTR OCR model to analyze the input image"""
-    results: List[OCROut] = []
-    for file in files:
-        mime_type = file.content_type
-        if mime_type in ["image/jpeg", "image/png"]:
-            content = DocumentFile.from_images([await file.read()])
-        elif mime_type == "application/pdf":
-            content = DocumentFile.from_pdf(await file.read())
-        else:
-            raise HTTPException(status_code=400, detail=f"Unsupported file format for OCR endpoint: {mime_type}")
+    try:
+        # generator object to list
+        content, filenames = await get_documents(files)
+        predictor = init_predictor(request)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-        out = predictor(content)
-        for page in out.pages:
-            results.append(
-                OCROut(
-                    name=file.filename or "",
-                    items=[
-                        dict(value=word.value, box=(*word.geometry[0], *word.geometry[1]))
+    out = predictor(content)
+
+    results = [
+        OCROut(
+            name=filenames[i],
+            orientation=page.orientation,
+            language=page.language,
+            items=[
+                OCRPage(
+                    blocks=[
+                        OCRBlock(
+                            geometry=resolve_geometry(block.geometry),
+                            lines=[
+                                OCRLine(
+                                    geometry=resolve_geometry(line.geometry),
+                                    words=[
+                                        OCRWord(
+                                            value=word.value,
+                                            geometry=resolve_geometry(word.geometry),
+                                            confidence=round(word.confidence, 2),
+                                        )
+                                        for word in line.words
+                                    ],
+                                )
+                                for line in block.lines
+                            ],
+                        )
                         for block in page.blocks
-                        for line in block.lines
-                        for word in line.words
-                    ],
+                    ]
                 )
-            )
+            ],
+        )
+        for i, page in enumerate(out.pages)
+    ]
 
     return results
