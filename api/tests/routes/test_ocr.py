@@ -19,9 +19,9 @@ async def test_perform_ocr(test_app_asyncio, mock_detection_image, mock_txt_file
     # Check that IoU with GT if reasonable
     assert isinstance(json_response, list) and len(json_response) == 2
     first_pred = json_response[0]  # it's enough to test for the first file because the same image is used twice
-    assert isinstance(first_pred, dict) and len(first_pred["items"]) == gt_boxes.shape[0]
-    pred_boxes = np.array([elt["box"] for elt in first_pred["items"]])
-    pred_labels = np.array([elt["value"] for elt in first_pred["items"]])
+    assert isinstance(first_pred, dict) and len(first_pred["items"]["blocks"]["lines"]["words"]) == gt_boxes.shape[0]
+    pred_boxes = np.array([elt["geometry"] for elt in first_pred["items"]["blocks"]["lines"]["words"]])
+    pred_labels = np.array([elt["value"] for elt in first_pred["items"]["blocks"]["lines"]["words"]])
     iou_mat = box_iou(gt_boxes, pred_boxes)
     gt_idxs, pred_idxs = linear_sum_assignment(-iou_mat)
     is_kept = iou_mat[gt_idxs, pred_idxs] >= 0.8
