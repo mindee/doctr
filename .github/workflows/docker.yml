@@ -34,4 +34,4 @@ jobs:
         run: wget --spider --tries=12 http://localhost:8080/docs
       - name: Run docker test
         run: |
-          docker compose -f api/docker-compose.yml exec --no-TTY web pytest tests/
+          docker-compose -f api/docker-compose.yml exec --no-TTY web pytest tests/
