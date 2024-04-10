@@ -252,6 +252,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         model_path, output = export_model_to_onnx(
             model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input
         )
+        tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
 
         assert os.path.exists(model_path)
         # Inference

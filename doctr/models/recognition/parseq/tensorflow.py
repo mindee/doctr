@@ -167,7 +167,6 @@ class PARSeq(_PARSeq, Model):
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
 
-    @tf.function
     def generate_permutations(self, seqlen: tf.Tensor) -> tf.Tensor:
         # Generates permutations of the target sequence.
         # Translated from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py
@@ -214,7 +213,6 @@ class PARSeq(_PARSeq, Model):
             )
         return combined
 
-    @tf.function
     def generate_permutations_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
@@ -234,7 +232,6 @@ class PARSeq(_PARSeq, Model):
         target_mask = mask[1:, :-1]
         return tf.cast(source_mask, dtype=tf.bool), tf.cast(target_mask, dtype=tf.bool)
 
-    @tf.function
     def decode(
         self,
         target: tf.Tensor,

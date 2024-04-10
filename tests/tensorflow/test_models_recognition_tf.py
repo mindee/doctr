@@ -214,6 +214,7 @@ def test_models_onnx_export(arch_name, input_shape):
             large_model=True if arch_name == "master" else False,
         )
         assert os.path.exists(model_path)
+        tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
 
         if arch_name == "master":
             # large models are exported as zip archive

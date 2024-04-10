@@ -6,6 +6,7 @@
 import os
 
 os.environ["USE_TF"] = "1"
+os.environ["TF_USE_LEGACY_KERAS"] = "1"  # docTR requires Keras v2
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
@@ -96,6 +97,11 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
+@tf.function
+def apply_grads(optimizer, grads, model):
+    optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     # Iterate over the batches of the dataset
     pbar = tqdm(train_loader, position=1)
@@ -108,7 +114,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
-        optimizer.apply_gradients(zip(grads, model.trainable_weights))
+        apply_grads(optimizer, grads, model)
 
         pbar.set_description(f"Training loss: {train_loss.numpy().mean():.6}")
 
