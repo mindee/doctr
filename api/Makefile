@@ -18,8 +18,8 @@ stop:
 # Run tests for the library
 test:
 	docker compose up -d --build
-	docker cp requirements-dev.txt api_web_1:/app/requirements-dev.txt
+	docker cp requirements-dev.txt api_web:/app/requirements-dev.txt
 	docker compose exec -T web pip install -r requirements-dev.txt
-	docker cp tests api_web_1:/app/tests
+	docker cp tests api_web:/app/tests
 	docker compose exec -T web pytest tests/
 	docker compose down

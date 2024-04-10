@@ -23,7 +23,7 @@ class KIEIn(BaseModel):
     box_thresh: float = Field(default=0.1, examples=[0.1])
 
 
-class OCRIn(KIEIn):
+class OCRIn(KIEIn, BaseModel):
     resolve_lines: bool = Field(default=True, examples=[True])
     resolve_blocks: bool = Field(default=True, examples=[True])
     paragraph_break: float = Field(default=0.0035, examples=[0.0035])
