@@ -136,13 +136,15 @@ class CRNN(RecognitionModel, Model):
         top_paths: int = 1,
         cfg: Optional[Dict[str, Any]] = None,
     ) -> None:
-        super().__init__()
-        self.feat_extractor = feature_extractor
+        # Initialize kernels
         h, w, c = feature_extractor.output_shape[1:]
+
+        super().__init__()
         self.vocab = vocab
         self.max_length = w
         self.cfg = cfg
         self.exportable = exportable
+        self.feat_extractor = feature_extractor
 
         self.decoder = Sequential([
             layers.Bidirectional(layers.LSTM(units=rnn_units, return_sequences=True)),
