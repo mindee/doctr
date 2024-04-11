@@ -35,9 +35,15 @@ with this snippet:
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"det_arch": "db_resnet50"}
+
 with open('/path/to/your/img.jpg', 'rb') as f:
-    data = f.read()
-print(requests.post("http://localhost:8080/detection", files={'files': [data]}).json())
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/detection", headers=headers, params=params, files=files).json())
 ```
 
 should yield
@@ -73,9 +79,15 @@ with this snippet:
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"reco_arch": "crnn_vgg16_bn"}
+
 with open('/path/to/your/img.jpg', 'rb') as f:
-    data = f.read()
-print(requests.post("http://localhost:8080/recognition", files={'files': [data]}).json())
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("117133599-c073fa00-ada4-11eb-831b-412de4d28341.jpeg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/recognition", headers=headers, params=params, files=files).json())
 ```
 
 should yield
@@ -99,9 +111,15 @@ with this snippet:
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn"}
+
 with open('/path/to/your/img.jpg', 'rb') as f:
-    data = f.read()
-print(requests.post("http://localhost:8080/ocr", files={'files': [data]}).json())
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/ocr", headers=headers, params=params, files=files).json())
 ```
 
 should yield
