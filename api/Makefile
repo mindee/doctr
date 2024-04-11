@@ -21,5 +21,5 @@ test:
 	docker cp requirements-dev.txt api_web:/app/requirements-dev.txt
 	docker compose exec -T web pip install -r requirements-dev.txt
 	docker cp tests api_web:/app/tests
-	docker compose exec -T web pytest tests/
+	docker compose exec -T web pytest tests/ -vv
 	docker compose down

@@ -7,7 +7,7 @@ from doctr.models.recognition.predictor import RecognitionPredictor
 
 
 def test_vision():
-    assert isinstance(init_predictor(OCRIn), OCRPredictor)
-    assert isinstance(init_predictor(DetectionIn), DetectionPredictor)
-    assert isinstance(init_predictor(RecognitionIn), RecognitionPredictor)
-    assert isinstance(init_predictor(KIEIn), KIEPredictor)
+    assert isinstance(init_predictor(OCRIn()), OCRPredictor)
+    assert isinstance(init_predictor(DetectionIn()), DetectionPredictor)
+    assert isinstance(init_predictor(RecognitionIn()), RecognitionPredictor)
+    assert isinstance(init_predictor(KIEIn()), KIEPredictor)
