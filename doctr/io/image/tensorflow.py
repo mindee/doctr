@@ -15,7 +15,7 @@ from doctr.utils.common_types import AbstractPath
 __all__ = ["tensor_from_pil", "read_img_as_tensor", "decode_img_as_tensor", "tensor_from_numpy", "get_img_shape"]
 
 
-def tensor_from_pil(pil_img: Image, dtype: tf.dtypes.DType = tf.float32) -> tf.Tensor:
+def tensor_from_pil(pil_img: Image.Image, dtype: tf.dtypes.DType = tf.float32) -> tf.Tensor:
     """Convert a PIL Image to a TensorFlow tensor
 
     Args:

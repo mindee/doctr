@@ -5,19 +5,31 @@
 
 from typing import List
 
-from fastapi import APIRouter, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.schemas import DetectionOut
-from app.vision import det_predictor
+from app.schemas import DetectionIn, DetectionOut
+from app.utils import get_documents, resolve_geometry
+from app.vision import init_predictor
 from doctr.file_utils import CLASS_NAME
-from doctr.io import decode_img_as_tensor
 
 router = APIRouter()
 
 
 @router.post("/", response_model=List[DetectionOut], status_code=status.HTTP_200_OK, summary="Perform text detection")
-async def text_detection(file: UploadFile = File(...)):
+async def text_detection(request: DetectionIn = Depends(), files: List[UploadFile] = [File(...)]):
     """Runs docTR text detection model to analyze the input image"""
-    img = decode_img_as_tensor(file.file.read())
-    boxes = det_predictor([img])[0]
-    return [DetectionOut(box=box.tolist()) for box in boxes[CLASS_NAME][:, :-1]]
+    try:
+        predictor = init_predictor(request)
+        content, filenames = await get_documents(files)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return [
+        DetectionOut(
+            name=filename,
+            geometries=[
+                geom[:-1].tolist() if len(geom) == 5 else resolve_geometry(geom.tolist()) for geom in doc[CLASS_NAME]
+            ],
+        )
+        for doc, filename in zip(predictor(content), filenames)
+    ]

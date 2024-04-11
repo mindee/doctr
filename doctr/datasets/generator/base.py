@@ -20,7 +20,7 @@ def synthesize_text_img(
     font_family: Optional[str] = None,
     background_color: Optional[Tuple[int, int, int]] = None,
     text_color: Optional[Tuple[int, int, int]] = None,
-) -> Image:
+) -> Image.Image:
     """Generate a synthetic text image
 
     Args:
@@ -81,7 +81,7 @@ class _CharacterGenerator(AbstractDataset):
         self._data: List[Image.Image] = []
         if cache_samples:
             self._data = [
-                (synthesize_text_img(char, font_family=font), idx)
+                (synthesize_text_img(char, font_family=font), idx)  # type: ignore[misc]
                 for idx, char in enumerate(self.vocab)
                 for font in self.font_family
             ]
@@ -93,7 +93,7 @@ class _CharacterGenerator(AbstractDataset):
         # Samples are already cached
         if len(self._data) > 0:
             idx = index % len(self._data)
-            pil_img, target = self._data[idx]
+            pil_img, target = self._data[idx]  # type: ignore[misc]
         else:
             target = index % len(self.vocab)
             pil_img = synthesize_text_img(self.vocab[target], font_family=random.choice(self.font_family))
@@ -132,7 +132,8 @@ class _WordGenerator(AbstractDataset):
         if cache_samples:
             _words = [self._generate_string(*self.wordlen_range) for _ in range(num_samples)]
             self._data = [
-                (synthesize_text_img(text, font_family=random.choice(self.font_family)), text) for text in _words
+                (synthesize_text_img(text, font_family=random.choice(self.font_family)), text)  # type: ignore[misc]
+                for text in _words
             ]
 
     def _generate_string(self, min_chars: int, max_chars: int) -> str:
@@ -145,7 +146,7 @@ class _WordGenerator(AbstractDataset):
     def _read_sample(self, index: int) -> Tuple[Any, str]:
         # Samples are already cached
         if len(self._data) > 0:
-            pil_img, target = self._data[index]
+            pil_img, target = self._data[index]  # type: ignore[misc]
         else:
             target = self._generate_string(*self.wordlen_range)
             pil_img = synthesize_text_img(target, font_family=random.choice(self.font_family))

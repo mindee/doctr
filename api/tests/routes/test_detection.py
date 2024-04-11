@@ -1,24 +1,58 @@
 import numpy as np
 import pytest
-from scipy.optimize import linear_sum_assignment
 
-from doctr.utils.metrics import box_iou
+
+def common_test(json_response, expected_response):
+    assert isinstance(json_response, list) and len(json_response) == 2
+    first_pred = json_response[0]  # it's enough to test for the first file because the same image is used twice
+
+    assert isinstance(first_pred["name"], str)
+    np.testing.assert_allclose(first_pred["geometries"], expected_response["geometries"], rtol=1e-2)
 
 
 @pytest.mark.asyncio
-async def test_text_detection(test_app_asyncio, mock_detection_image):
-    response = await test_app_asyncio.post("/detection", files={"file": mock_detection_image})
+async def test_text_detection_box(test_app_asyncio, mock_detection_image, mock_detection_response):
+    headers = {
+        "accept": "application/json",
+    }
+    params = {"det_arch": "db_resnet50"}
+    files = [
+        ("files", ("test.jpg", mock_detection_image, "image/jpeg")),
+        ("files", ("test2.jpg", mock_detection_image, "image/jpeg")),
+    ]
+    response = await test_app_asyncio.post("/detection", params=params, files=files, headers=headers)
     assert response.status_code == 200
     json_response = response.json()
 
-    gt_boxes = np.array([[1240, 430, 1355, 470], [1360, 430, 1495, 470]], dtype=np.float32)
-    gt_boxes[:, [0, 2]] = gt_boxes[:, [0, 2]] / 1654
-    gt_boxes[:, [1, 3]] = gt_boxes[:, [1, 3]] / 2339
+    expected_box_response = mock_detection_response["box"]
+    common_test(json_response, expected_box_response)
 
-    # Check that IoU with GT if reasonable
-    assert isinstance(json_response, list) and len(json_response) == gt_boxes.shape[0]
-    pred_boxes = np.array([elt["box"] for elt in json_response])
-    iou_mat = box_iou(gt_boxes, pred_boxes)
-    gt_idxs, pred_idxs = linear_sum_assignment(-iou_mat)
-    is_kept = iou_mat[gt_idxs, pred_idxs] >= 0.8
-    assert gt_idxs[is_kept].shape[0] == gt_boxes.shape[0]
+
+@pytest.mark.asyncio
+async def test_text_detection_poly(test_app_asyncio, mock_detection_image, mock_detection_response):
+    headers = {
+        "accept": "application/json",
+    }
+    params = {"det_arch": "db_resnet50", "assume_straight_pages": False}
+    files = [
+        ("files", ("test.jpg", mock_detection_image, "image/jpeg")),
+        ("files", ("test2.jpg", mock_detection_image, "image/jpeg")),
+    ]
+    response = await test_app_asyncio.post("/detection", params=params, files=files, headers=headers)
+    assert response.status_code == 200
+    json_response = response.json()
+
+    expected_poly_response = mock_detection_response["poly"]
+    common_test(json_response, expected_poly_response)
+
+
+@pytest.mark.asyncio
+async def test_text_detection_invalid_file(test_app_asyncio, mock_txt_file):
+    headers = {
+        "accept": "application/json",
+    }
+    files = [
+        ("files", ("test.txt", mock_txt_file)),
+    ]
+    response = await test_app_asyncio.post("/detection", files=files, headers=headers)
+    assert response.status_code == 400

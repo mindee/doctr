@@ -35,16 +35,39 @@ with this snippet:
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"det_arch": "db_resnet50"}
+
 with open('/path/to/your/img.jpg', 'rb') as f:
-    data = f.read()
-print(requests.post("http://localhost:8080/detection", files={'file': data}).json())
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/detection", headers=headers, params=params, files=files).json())
 ```
 
 should yield
 
 ```json
-[{'box': [0.826171875, 0.185546875, 0.90234375, 0.201171875]},
- {'box': [0.75390625, 0.185546875, 0.8173828125, 0.201171875]}]
+[
+  {
+    "name": "117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg",
+    "geometries": [
+      [
+        0.724609375,
+        0.1787109375,
+        0.7900390625,
+        0.2080078125
+      ],
+      [
+        0.6748046875,
+        0.1796875,
+        0.7314453125,
+        0.20703125
+      ]
+    ]
+  }
+]
 ```
 
 #### Text recognition
@@ -56,15 +79,27 @@ with this snippet:
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"reco_arch": "crnn_vgg16_bn"}
+
 with open('/path/to/your/img.jpg', 'rb') as f:
-    data = f.read()
-print(requests.post("http://localhost:8080/recognition", files={'file': data}).json())
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("117133599-c073fa00-ada4-11eb-831b-412de4d28341.jpeg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/recognition", headers=headers, params=params, files=files).json())
 ```
 
 should yield
 
 ```json
-{'value': 'invite'}
+[
+  {
+    "name": "117133599-c073fa00-ada4-11eb-831b-412de4d28341.jpeg",
+    "value": "invite",
+    "confidence": 1.0
+  }
+]
 ```
 
 #### End-to-end OCR
@@ -76,16 +111,78 @@ with this snippet:
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn"}
+
 with open('/path/to/your/img.jpg', 'rb') as f:
-    data = f.read()
-print(requests.post("http://localhost:8080/ocr", files={'file': data}).json())
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/ocr", headers=headers, params=params, files=files).json())
 ```
 
 should yield
 
 ```json
-[{'box': [0.75390625, 0.185546875, 0.8173828125, 0.201171875],
-  'value': 'Hello'},
- {'box': [0.826171875, 0.185546875, 0.90234375, 0.201171875],
-  'value': 'world!'}]
+[
+  {
+    "name": "117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg",
+    "orientation": {
+      "value": 0,
+      "confidence": null
+    },
+    "language": {
+      "value": null,
+      "confidence": null
+    },
+    "dimensions": [2339, 1654],
+    "items": [
+      {
+        "blocks": [
+          {
+            "geometry": [
+              0.7471996155154171,
+              0.1787109375,
+              0.9101580212741838,
+              0.2080078125
+            ],
+            "lines": [
+              {
+                "geometry": [
+                  0.7471996155154171,
+                  0.1787109375,
+                  0.9101580212741838,
+                  0.2080078125
+                ],
+                "words": [
+                  {
+                    "value": "Hello",
+                    "geometry": [
+                      0.7471996155154171,
+                      0.1796875,
+                      0.8272978149561669,
+                      0.20703125
+                    ],
+                    "confidence": 1.0
+                  },
+                  {
+                    "value": "world!",
+                    "geometry": [
+                      0.8176307908857315,
+                      0.1787109375,
+                      0.9101580212741838,
+                      0.2080078125
+                    ],
+                    "confidence": 1.0
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
 ```

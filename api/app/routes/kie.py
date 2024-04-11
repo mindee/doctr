@@ -3,27 +3,50 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Dict, List
+from typing import List
 
-from fastapi import APIRouter, File, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.schemas import OCROut
-from app.vision import kie_predictor
-from doctr.io import decode_img_as_tensor
+from app.schemas import KIEElement, KIEIn, KIEOut
+from app.utils import get_documents, resolve_geometry
+from app.vision import init_predictor
 
 router = APIRouter()
 
 
-@router.post("/", response_model=Dict[str, List[OCROut]], status_code=status.HTTP_200_OK, summary="Perform KIE")
-async def perform_kie(file: UploadFile = File(...)):
+@router.post("/", response_model=List[KIEOut], status_code=status.HTTP_200_OK, summary="Perform KIE")
+async def perform_kie(request: KIEIn = Depends(), files: List[UploadFile] = [File(...)]):
     """Runs docTR KIE model to analyze the input image"""
-    img = decode_img_as_tensor(file.file.read())
-    out = kie_predictor([img])
+    try:
+        predictor = init_predictor(request)
+        content, filenames = await get_documents(files)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    return {
-        class_name: [
-            OCROut(box=(*prediction.geometry[0], *prediction.geometry[1]), value=prediction.value)
-            for prediction in out.pages[0].predictions[class_name]
-        ]
-        for class_name in out.pages[0].predictions.keys()
-    }
+    out = predictor(content)
+
+    results = [
+        KIEOut(
+            name=filenames[i],
+            orientation=page.orientation,
+            language=page.language,
+            dimensions=page.dimensions,
+            predictions=[
+                KIEElement(
+                    class_name=class_name,
+                    items=[
+                        dict(
+                            value=prediction.value,
+                            geometry=resolve_geometry(prediction.geometry),
+                            confidence=round(prediction.confidence, 2),
+                        )
+                        for prediction in page.predictions[class_name]
+                    ],
+                )
+                for class_name in page.predictions.keys()
+            ],
+        )
+        for i, page in enumerate(out.pages)
+    ]
+
+    return results
