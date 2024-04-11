@@ -15,7 +15,7 @@ RUN apt-get update \
 COPY pyproject.toml  /app/pyproject.toml
 COPY Makefile /app/Makefile
 
-RUN pip install --upgrade pip setuptools wheel poetry \
+RUN pip install --upgrade pip setuptools wheel \
     && make lock \
     && pip install -r /app/requirements.txt \
     && pip cache purge \

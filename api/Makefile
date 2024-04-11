@@ -3,6 +3,7 @@
 .PHONY: lock run stop test
 # Pin the dependencies
 lock:
+	pip install poetry>=1.0
 	poetry lock
 	poetry export -f requirements.txt --without-hashes --output requirements.txt
 	poetry export -f requirements.txt --without-hashes --with dev --output requirements-dev.txt
