@@ -220,13 +220,16 @@ class DocumentBuilder(NestedObject):
 
         return blocks
 
-    def _build_blocks(self, boxes: np.ndarray, word_preds: List[Tuple[str, float]]) -> List[Block]:
+    def _build_blocks(
+        self, boxes: np.ndarray, word_preds: List[Tuple[str, float]], crop_orientations: List[Tuple[str, float]]
+    ) -> List[Block]:
         """Gather independent words in structured blocks
 
         Args:
         ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
             word_preds: list of all detected words of the page, of shape N
+            crop_orientations: list of orientations for each word crop
 
         Returns:
         -------
@@ -234,6 +237,8 @@ class DocumentBuilder(NestedObject):
         """
         if boxes.shape[0] != len(word_preds):
             raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
+
+        # TODO !!!! add crop_orientations to the Word object
 
         if boxes.shape[0] == 0:
             return []
@@ -284,6 +289,7 @@ class DocumentBuilder(NestedObject):
         text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
         orientations: Optional[List[Dict[str, Any]]] = None,
+        crop_orientations: Optional[List[Dict[str, Any]]] = None,
         languages: Optional[List[Dict[str, Any]]] = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
@@ -297,6 +303,8 @@ class DocumentBuilder(NestedObject):
             page_shapes: shape of each page, of size N
             orientations: optional, list of N elements,
                 where each element is a dictionary containing the orientation (orientation + confidence)
+            crop_orientations: optional, list of N elements, where each element is
+                a dictionary containing the general orientation (orientations + confidences) of the crops
             languages: optional, list of N elements,
                 where each element is a dictionary containing the language (language + confidence)
 
@@ -310,6 +318,9 @@ class DocumentBuilder(NestedObject):
         _orientations = (
             orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
         )
+        _crop_orientations = (
+            crop_orientations if isinstance(crop_orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
+        )
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
@@ -317,20 +328,24 @@ class DocumentBuilder(NestedObject):
                 # Iterate over pages and boxes
                 boxes = [np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1) for p_boxes in boxes]
 
+        # TODO: !!!!!
+        print(_crop_orientations)
+
         _pages = [
             Page(
                 page,
                 self._build_blocks(
                     page_boxes,
                     word_preds,
+                    crop_orientations,
                 ),
                 _idx,
                 shape,
                 orientation,
                 language,
             )
-            for page, _idx, shape, page_boxes, word_preds, orientation, language in zip(
-                pages, range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            for page, _idx, shape, page_boxes, word_preds, orientation, crop_orientations, language in zip(
+                pages, range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _crop_orientations, _languages
             )
         ]
 

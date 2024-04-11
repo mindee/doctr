@@ -113,9 +113,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         crops, loc_preds = self._prepare_crops(
             pages, loc_preds, channels_last=True, assume_straight_pages=self.assume_straight_pages
         )
-        # Rectify crop orientation
+        # Rectify crop orientation and get crop orientation predictions
         if not self.assume_straight_pages:
-            crops, loc_preds = self._rectify_crops(crops, loc_preds)
+            crops, loc_preds, crop_orientations = self._rectify_crops(crops, loc_preds)
+        else:
+            crop_orientations = None
 
         # Identify character sequences
         word_preds = self.reco_predictor([crop for page_crops in crops for crop in page_crops], **kwargs)
@@ -133,6 +135,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             boxes,
             text_preds,
             origin_page_shapes,  # type: ignore[arg-type]
+            crop_orientations,
             orientations,
             languages_dict,
         )

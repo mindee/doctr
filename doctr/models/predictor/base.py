@@ -88,17 +88,15 @@ class _OCRPredictor:
         self,
         crops: List[List[np.ndarray]],
         loc_preds: List[np.ndarray],
-    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray], List[int]]:
+    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray], List[Tuple[str, float]]]:
         # Work at a page level
-        orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]  # type: ignore[misc]
+        orientations, classes, probs = zip(*[self.crop_orientation_predictor(page_crops) for page_crops in crops])  # type: ignore[misc]
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
             rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
             for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
-        # map orientations to classes
-        orientations = [self.crop_orientation_predictor.model.cfg["classes"][idx] for idx in orientations[0]]
-        return rect_crops, rect_loc_preds, orientations  # type: ignore[return-value]
+        return rect_crops, rect_loc_preds, list(zip(classes, probs))  # type: ignore[return-value]
 
     def _remove_padding(
         self,
