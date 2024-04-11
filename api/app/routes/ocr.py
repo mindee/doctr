@@ -31,6 +31,7 @@ async def perform_ocr(request: OCRIn = Depends(), files: List[UploadFile] = [Fil
             name=filenames[i],
             orientation=page.orientation,
             language=page.language,
+            dimensions=page.dimensions,
             items=[
                 OCRPage(
                     blocks=[

@@ -5,6 +5,11 @@ import pytest
 def common_test(json_response, expected_response):
     first_pred = json_response[0]  # it's enough to test for the first file because the same image is used twice
     assert isinstance(first_pred["name"], str)
+    assert (
+        isinstance(first_pred["dimensions"], (tuple, list))
+        and len(first_pred["dimensions"]) == 2
+        and all(isinstance(dim, int) for dim in first_pred["dimensions"])
+    )
     assert isinstance(first_pred["predictions"], list)
     assert isinstance(expected_response["predictions"], list)
 

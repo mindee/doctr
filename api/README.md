@@ -136,6 +136,7 @@ should yield
       "value": null,
       "confidence": null
     },
+    "dimensions": [2339, 1654],
     "items": [
       {
         "blocks": [

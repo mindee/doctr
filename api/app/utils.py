@@ -42,7 +42,7 @@ async def get_documents(files: List[UploadFile]) -> Tuple[List[np.ndarray], List
         elif mime_type == "application/pdf":
             pdf_content = DocumentFile.from_pdf(await file.read())
             docs.extend(pdf_content)
-            filenames.append(file.filename or "" * len(pdf_content))
+            filenames.extend([file.filename] * len(pdf_content) or [""] * len(pdf_content))
         else:
             raise ValueError(f"Unsupported file format: {mime_type} for file {file.filename}")
 

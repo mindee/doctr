@@ -76,6 +76,7 @@ def mock_kie_response():
             "name": "117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg",
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
+            "dimensions": [2339, 1654],
             "predictions": [
                 {
                     "class_name": "words",
@@ -98,6 +99,7 @@ def mock_kie_response():
             "name": "117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg",
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
+            "dimensions": [2339, 1654],
             "predictions": [
                 {
                     "class_name": "words",
@@ -144,6 +146,7 @@ def mock_ocr_response():
             "name": "117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg",
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
+            "dimensions": [2339, 1654],
             "items": [
                 {
                     "blocks": [
@@ -180,6 +183,7 @@ def mock_ocr_response():
             "name": "117319856-fc35bf00-ae8b-11eb-9b51-ca5aba673466.jpg",
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
+            "dimensions": [2339, 1654],
             "items": [
                 {
                     "blocks": [

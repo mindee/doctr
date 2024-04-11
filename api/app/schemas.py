@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Dict, List, Union
+from typing import Dict, List, Tuple, Union
 
 from pydantic import BaseModel, Field
 
@@ -102,6 +102,7 @@ class OCROut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
     orientation: Dict[str, Union[float, None]] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
     language: Dict[str, Union[str, float, None]] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
+    dimensions: Tuple[int, int] = Field(..., examples=[(100, 100)])
     items: List[OCRPage] = Field(
         ...,
         examples=[
@@ -129,4 +130,5 @@ class KIEOut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
     orientation: Dict[str, Union[float, None]] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
     language: Dict[str, Union[str, float, None]] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
+    dimensions: Tuple[int, int] = Field(..., examples=[(100, 100)])
     predictions: List[KIEElement]

@@ -30,6 +30,7 @@ async def perform_kie(request: KIEIn = Depends(), files: List[UploadFile] = [Fil
             name=filenames[i],
             orientation=page.orientation,
             language=page.language,
+            dimensions=page.dimensions,
             predictions=[
                 KIEElement(
                     class_name=class_name,
