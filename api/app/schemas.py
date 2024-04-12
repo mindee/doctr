@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Dict, List, Tuple, Union
+from typing import Any, Dict, List, Tuple, Union
 
 from pydantic import BaseModel, Field
 
@@ -59,12 +59,21 @@ class OCRWord(BaseModel):
     value: str = Field(..., examples=["example"])
     geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
     confidence: float = Field(..., examples=[0.99])
+    crop_orientation: Dict[str, Any] = Field(..., examples=[{"value": 0, "confidence": None}])
 
 
 class OCRLine(BaseModel):
     geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
     words: List[OCRWord] = Field(
-        ..., examples=[{"value": "example", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}]
+        ...,
+        examples=[
+            {
+                "value": "example",
+                "geometry": [0.0, 0.0, 0.0, 0.0],
+                "confidence": 0.99,
+                "crop_orientation": {"value": 0, "confidence": None},
+            }
+        ],
     )
 
 
@@ -75,7 +84,14 @@ class OCRBlock(BaseModel):
         examples=[
             {
                 "geometry": [0.0, 0.0, 0.0, 0.0],
-                "words": [{"value": "example", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}],
+                "words": [
+                    {
+                        "value": "example",
+                        "geometry": [0.0, 0.0, 0.0, 0.0],
+                        "confidence": 0.99,
+                        "crop_orientation": {"value": 0, "confidence": None},
+                    }
+                ],
             }
         ],
     )
@@ -90,7 +106,14 @@ class OCRPage(BaseModel):
                 "lines": [
                     {
                         "geometry": [0.0, 0.0, 0.0, 0.0],
-                        "words": [{"value": "example", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}],
+                        "words": [
+                            {
+                                "value": "example",
+                                "geometry": [0.0, 0.0, 0.0, 0.0],
+                                "confidence": 0.99,
+                                "crop_orientation": {"value": 0, "confidence": None},
+                            }
+                        ],
                     }
                 ],
             }
@@ -111,7 +134,14 @@ class OCROut(BaseModel):
                 "lines": [
                     {
                         "geometry": [0.0, 0.0, 0.0, 0.0],
-                        "words": [{"value": "example", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}],
+                        "words": [
+                            {
+                                "value": "example",
+                                "geometry": [0.0, 0.0, 0.0, 0.0],
+                                "confidence": 0.99,
+                                "crop_orientation": {"value": 0, "confidence": None},
+                            }
+                        ],
                     }
                 ],
             }
@@ -121,8 +151,16 @@ class OCROut(BaseModel):
 
 class KIEElement(BaseModel):
     class_name: str = Field(..., examples=["example"])
-    items: List[Dict[str, Union[str, List[float], float]]] = Field(
-        ..., examples=[{"value": "example", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}]
+    items: List[Dict[str, Union[str, List[float], float, Dict[str, Any]]]] = Field(
+        ...,
+        examples=[
+            {
+                "value": "example",
+                "geometry": [0.0, 0.0, 0.0, 0.0],
+                "confidence": 0.99,
+                "crop_orientation": {"value": 0, "confidence": None},
+            }
+        ],
     )
 
 

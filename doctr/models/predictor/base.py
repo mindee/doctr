@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -88,15 +88,21 @@ class _OCRPredictor:
         self,
         crops: List[List[np.ndarray]],
         loc_preds: List[np.ndarray],
-    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
+    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray], List[Tuple[int, float]]]:
         # Work at a page level
-        orientations = [self.crop_orientation_predictor(page_crops) for page_crops in crops]  # type: ignore[misc]
+        orientations, classes, probs = zip(*[self.crop_orientation_predictor(page_crops) for page_crops in crops])  # type: ignore[misc]
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
             rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
             for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
-        return rect_crops, rect_loc_preds  # type: ignore[return-value]
+        # Flatten to list of tuples with (value, confidence)
+        crop_orientations = [
+            (orientation, prob)
+            for page_classes, page_probs in zip(classes, probs)
+            for orientation, prob in zip(page_classes, page_probs)
+        ]
+        return rect_crops, rect_loc_preds, crop_orientations  # type: ignore[return-value]
 
     def _remove_padding(
         self,
@@ -140,16 +146,19 @@ class _OCRPredictor:
     def _process_predictions(
         loc_preds: List[np.ndarray],
         word_preds: List[Tuple[str, float]],
-    ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]]]:
+        crop_orientations: List[Dict[str, Any]],
+    ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]], List[List[Dict[str, Any]]]]:
         text_preds = []
+        crop_orientation_preds = []
         if len(loc_preds) > 0:
-            # Text
+            # Text & crop orientation predictions at page level
             _idx = 0
             for page_boxes in loc_preds:
                 text_preds.append(word_preds[_idx : _idx + page_boxes.shape[0]])
+                crop_orientation_preds.append(crop_orientations[_idx : _idx + page_boxes.shape[0]])
                 _idx += page_boxes.shape[0]
 
-        return loc_preds, text_preds
+        return loc_preds, text_preds, crop_orientation_preds
 
     def add_hook(self, hook: Callable) -> None:
         """Add a hook to the predictor

@@ -20,6 +20,10 @@ def common_test(json_response, expected_response):
                     np.testing.assert_allclose(word["geometry"], expected_word["geometry"], rtol=1e-2)
                     assert isinstance(word["value"], str) and word["value"] == expected_word["value"]
                     assert isinstance(word["confidence"], (int, float))
+                    assert isinstance(word["crop_orientation"], dict)
+                    assert isinstance(word["crop_orientation"]["value"], int) and isinstance(
+                        word["crop_orientation"]["confidence"], (float, int, type(None))
+                    )
 
 
 @pytest.mark.asyncio

@@ -38,7 +38,7 @@ class CropOrientationPredictor(NestedObject):
     def __call__(
         self,
         crops: List[Union[np.ndarray, tf.Tensor]],
-    ) -> List[int]:
+    ) -> List[Union[List[int], List[float]]]:
         # Dimension check
         if any(crop.ndim != 3 for crop in crops):
             raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
@@ -46,7 +46,17 @@ class CropOrientationPredictor(NestedObject):
         processed_batches = self.pre_processor(crops)
         predicted_batches = [self.model(batch, training=False) for batch in processed_batches]
 
+        # confidence
+        probs = [tf.math.reduce_max(tf.nn.softmax(batch, axis=1), axis=1).numpy() for batch in predicted_batches]
         # Postprocess predictions
         predicted_batches = [out_batch.numpy().argmax(1) for out_batch in predicted_batches]
 
-        return [int(pred) for batch in predicted_batches for pred in batch]
+        class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
+        # Keep unified with page orientation range (counter clock rotation => negative) so 270 -> -90
+        classes = [
+            int(self.model.cfg["classes"][idx]) if int(self.model.cfg["classes"][idx]) != 270 else -90
+            for idx in class_idxs
+        ]
+        confs = [round(float(p), 2) for prob in probs for p in prob]
+
+        return [class_idxs, classes, confs]

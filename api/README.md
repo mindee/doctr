@@ -164,7 +164,8 @@ should yield
                       0.8272978149561669,
                       0.20703125
                     ],
-                    "confidence": 1.0
+                    "confidence": 1.0,
+                    "crop_orientation": {"value": 0, "confidence": null}
                   },
                   {
                     "value": "world!",
@@ -174,7 +175,8 @@ should yield
                       0.9101580212741838,
                       0.2080078125
                     ],
-                    "confidence": 1.0
+                    "confidence": 1.0,
+                    "crop_orientation": {"value": 0, "confidence": null}
                   }
                 ]
               }

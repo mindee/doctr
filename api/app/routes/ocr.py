@@ -45,6 +45,7 @@ async def perform_ocr(request: OCRIn = Depends(), files: List[UploadFile] = [Fil
                                             value=word.value,
                                             geometry=resolve_geometry(word.geometry),
                                             confidence=round(word.confidence, 2),
+                                            crop_orientation=word.crop_orientation,
                                         )
                                         for word in line.words
                                     ],

@@ -67,16 +67,24 @@ class Word(Element):
         confidence: the confidence associated with the text prediction
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
         the page's size
+        crop_orientation: the general orientation of the crop in degrees and its confidence
     """
 
-    _exported_keys: List[str] = ["value", "confidence", "geometry"]
+    _exported_keys: List[str] = ["value", "confidence", "geometry", "crop_orientation"]
     _children_names: List[str] = []
 
-    def __init__(self, value: str, confidence: float, geometry: Union[BoundingBox, np.ndarray]) -> None:
+    def __init__(
+        self,
+        value: str,
+        confidence: float,
+        geometry: Union[BoundingBox, np.ndarray],
+        crop_orientation: Dict[str, Any],
+    ) -> None:
         super().__init__()
         self.value = value
         self.confidence = confidence
         self.geometry = geometry
+        self.crop_orientation = crop_orientation
 
     def render(self) -> str:
         """Renders the full text of the element"""
