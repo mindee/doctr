@@ -144,7 +144,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             pages,  # type: ignore[arg-type]
             boxes,
             text_preds,
-            origin_page_shapes,
+            origin_page_shapes,  # type: ignore[arg-type]
             crop_orientations,
             orientations,
             languages_dict,

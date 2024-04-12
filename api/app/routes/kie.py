@@ -39,6 +39,7 @@ async def perform_kie(request: KIEIn = Depends(), files: List[UploadFile] = [Fil
                             value=prediction.value,
                             geometry=resolve_geometry(prediction.geometry),
                             confidence=round(prediction.confidence, 2),
+                            crop_orientation=prediction.crop_orientation,
                         )
                         for prediction in page.predictions[class_name]
                     ],

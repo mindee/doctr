@@ -85,11 +85,13 @@ def mock_kie_response():
                             "value": "Hello",
                             "geometry": [0.7471996155154171, 0.1796875, 0.8272978149561669, 0.20703125],
                             "confidence": 1,
+                            "crop_orientation": {"value": 0, "confidence": None},
                         },
                         {
                             "value": "world!",
                             "geometry": [0.8176307908857315, 0.1787109375, 0.9101580212741838, 0.2080078125],
                             "confidence": 1,
+                            "crop_orientation": {"value": 0, "confidence": None},
                         },
                     ],
                 }
@@ -117,6 +119,7 @@ def mock_kie_response():
                                 0.20540954172611237,
                             ],
                             "confidence": 0.99,
+                            "crop_orientation": {"value": 0, "confidence": 1},
                         },
                         {
                             "value": "world!",
@@ -131,6 +134,7 @@ def mock_kie_response():
                                 0.20735852420330048,
                             ],
                             "confidence": 1,
+                            "crop_orientation": {"value": 0, "confidence": 1},
                         },
                     ],
                 }
@@ -160,6 +164,7 @@ def mock_ocr_response():
                                             "value": "Hello",
                                             "geometry": [0.7471996155154171, 0.1796875, 0.8272978149561669, 0.20703125],
                                             "confidence": 1,
+                                            "crop_orientation": {"value": 0, "confidence": None},
                                         },
                                         {
                                             "value": "world!",
@@ -170,6 +175,7 @@ def mock_ocr_response():
                                                 0.2080078125,
                                             ],
                                             "confidence": 1,
+                                            "crop_orientation": {"value": 0, "confidence": None},
                                         },
                                     ],
                                 }
@@ -224,6 +230,7 @@ def mock_ocr_response():
                                                 0.20540954172611237,
                                             ],
                                             "confidence": 0.99,
+                                            "crop_orientation": {"value": 0, "confidence": 1},
                                         },
                                         {
                                             "value": "world!",
@@ -238,6 +245,7 @@ def mock_ocr_response():
                                                 0.20735852420330048,
                                             ],
                                             "confidence": 1,
+                                            "crop_orientation": {"value": 0, "confidence": 1},
                                         },
                                     ],
                                 }

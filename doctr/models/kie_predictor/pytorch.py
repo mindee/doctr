@@ -157,7 +157,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             pages,  # type: ignore[arg-type]
             boxes_per_page,
             text_preds_per_page,
-            origin_page_shapes,
+            origin_page_shapes,  # type: ignore[arg-type]
             crop_orientations_per_page,
             orientations,
             languages_dict,
