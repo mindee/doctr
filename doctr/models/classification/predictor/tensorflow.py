@@ -57,6 +57,6 @@ class CropOrientationPredictor(NestedObject):
             int(self.model.cfg["classes"][idx]) if int(self.model.cfg["classes"][idx]) != 270 else -90
             for idx in class_idxs
         ]
-        confs = [float(p) for prob in probs for p in prob]
+        confs = [round(float(p), 2) for prob in probs for p in prob]
 
         return [class_idxs, classes, confs]
