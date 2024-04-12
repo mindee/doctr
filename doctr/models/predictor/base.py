@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
@@ -147,7 +147,7 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
         word_preds: List[Tuple[str, float]],
         crop_orientations: List[Dict[str, Any]],
-    ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]], List[List[Union[Tuple[str, float], Dict[str, Any]]]]]:
+    ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]], List[List[Dict[str, Any]]]]:
         text_preds = []
         crop_orientation_preds = []
         if len(loc_preds) > 0:
