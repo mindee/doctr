@@ -113,10 +113,12 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
                 pages, dict_loc_preds[class_name], channels_last=True, assume_straight_pages=self.assume_straight_pages
             )
+
         # Rectify crop orientation
+        crop_orientations: Any = {}
         if not self.assume_straight_pages:
             for class_name in dict_loc_preds.keys():
-                crops[class_name], dict_loc_preds[class_name] = self._rectify_crops(
+                crops[class_name], dict_loc_preds[class_name], crop_orientations[class_name] = self._rectify_crops(
                     crops[class_name], dict_loc_preds[class_name]
                 )
 
@@ -125,16 +127,20 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             k: self.reco_predictor([crop for page_crops in crop_value for crop in page_crops], **kwargs)
             for k, crop_value in crops.items()
         }
+        if not crop_orientations:
+            crop_orientations = {k: [{"value": 0, "confidence": None} for _ in word_preds[k]] for k in word_preds}
 
         boxes: Dict = {}
         text_preds: Dict = {}
+        word_crop_orientations: Dict = {}
         for class_name in dict_loc_preds.keys():
-            boxes[class_name], text_preds[class_name] = self._process_predictions(
-                dict_loc_preds[class_name], word_preds[class_name]
+            boxes[class_name], text_preds[class_name], word_crop_orientations[class_name] = self._process_predictions(
+                dict_loc_preds[class_name], word_preds[class_name], crop_orientations[class_name]
             )
 
         boxes_per_page: List[Dict] = invert_data_structure(boxes)  # type: ignore[assignment]
         text_preds_per_page: List[Dict] = invert_data_structure(text_preds)  # type: ignore[assignment]
+        crop_orientations_per_page: List[Dict] = invert_data_structure(word_crop_orientations)  # type: ignore[assignment]
 
         if self.detect_language:
             languages = [get_language(self.get_text(text_pred)) for text_pred in text_preds_per_page]
@@ -147,6 +153,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             boxes_per_page,
             text_preds_per_page,
             origin_page_shapes,  # type: ignore[arg-type]
+            crop_orientations_per_page,
             orientations,
             languages_dict,
         )

@@ -10,12 +10,16 @@ from doctr.io import elements
 def _mock_words(size=(1.0, 1.0), offset=(0, 0), confidence=0.9):
     return [
         elements.Word(
-            "hello", confidence, ((offset[0], offset[1]), (size[0] / 2 + offset[0], size[1] / 2 + offset[1]))
+            "hello",
+            confidence,
+            ((offset[0], offset[1]), (size[0] / 2 + offset[0], size[1] / 2 + offset[1])),
+            {"value": 0, "confidence": None},
         ),
         elements.Word(
             "world",
             confidence,
             ((size[0] / 2 + offset[0], size[1] / 2 + offset[1]), (size[0] + offset[0], size[1] + offset[1])),
+            {"value": 0, "confidence": None},
         ),
     ]
 
@@ -45,12 +49,16 @@ def _mock_lines(size=(1, 1), offset=(0, 0)):
 def _mock_prediction(size=(1.0, 1.0), offset=(0, 0), confidence=0.9):
     return [
         elements.Prediction(
-            "hello", confidence, ((offset[0], offset[1]), (size[0] / 2 + offset[0], size[1] / 2 + offset[1]))
+            "hello",
+            confidence,
+            ((offset[0], offset[1]), (size[0] / 2 + offset[0], size[1] / 2 + offset[1])),
+            {"value": 0, "confidence": None},
         ),
         elements.Prediction(
             "world",
             confidence,
             ((size[0] / 2 + offset[0], size[1] / 2 + offset[1]), (size[0] + offset[0], size[1] + offset[1])),
+            {"value": 0, "confidence": None},
         ),
     ]
 
@@ -120,24 +128,36 @@ def test_word():
     word_str = "hello"
     conf = 0.8
     geom = ((0, 0), (1, 1))
-    word = elements.Word(word_str, conf, geom)
+    crop_orientation = {"value": 0, "confidence": None}
+    word = elements.Word(word_str, conf, geom, crop_orientation)
 
     # Attribute checks
     assert word.value == word_str
     assert word.confidence == conf
     assert word.geometry == geom
+    assert word.crop_orientation == crop_orientation
 
     # Render
     assert word.render() == word_str
 
     # Export
-    assert word.export() == {"value": word_str, "confidence": conf, "geometry": geom}
+    assert word.export() == {
+        "value": word_str,
+        "confidence": conf,
+        "geometry": geom,
+        "crop_orientation": crop_orientation,
+    }
 
     # Repr
     assert word.__repr__() == f"Word(value='hello', confidence={conf:.2})"
 
     # Class method
-    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (0.5, 0.5))}
+    state_dict = {
+        "value": "there",
+        "confidence": 0.1,
+        "geometry": ((0, 0), (0.5, 0.5)),
+        "crop_orientation": crop_orientation,
+    }
     word = elements.Word.from_dict(state_dict)
     assert word.export() == state_dict
 
@@ -167,7 +187,14 @@ def test_line():
 
     # from dict
     state_dict = {
-        "words": [{"value": "there", "confidence": 0.1, "geometry": ((0, 0), (1.0, 1.0))}],
+        "words": [
+            {
+                "value": "there",
+                "confidence": 0.1,
+                "geometry": ((0, 0), (1.0, 1.0)),
+                "crop_orientation": {"value": 0, "confidence": None},
+            }
+        ],
         "geometry": ((0, 0), (1.0, 1.0)),
     }
     line = elements.Line.from_dict(state_dict)
@@ -199,24 +226,36 @@ def test_prediction():
     prediction_str = "hello"
     conf = 0.8
     geom = ((0, 0), (1, 1))
-    prediction = elements.Prediction(prediction_str, conf, geom)
+    crop_orientation = {"value": 0, "confidence": None}
+    prediction = elements.Prediction(prediction_str, conf, geom, crop_orientation)
 
     # Attribute checks
     assert prediction.value == prediction_str
     assert prediction.confidence == conf
     assert prediction.geometry == geom
+    assert prediction.crop_orientation == crop_orientation
 
     # Render
     assert prediction.render() == prediction_str
 
     # Export
-    assert prediction.export() == {"value": prediction_str, "confidence": conf, "geometry": geom}
+    assert prediction.export() == {
+        "value": prediction_str,
+        "confidence": conf,
+        "geometry": geom,
+        "crop_orientation": crop_orientation,
+    }
 
     # Repr
     assert prediction.__repr__() == f"Prediction(value='hello', confidence={conf:.2}, bounding_box={geom})"
 
     # Class method
-    state_dict = {"value": "there", "confidence": 0.1, "geometry": ((0, 0), (0.5, 0.5))}
+    state_dict = {
+        "value": "there",
+        "confidence": 0.1,
+        "geometry": ((0, 0), (0.5, 0.5)),
+        "crop_orientation": crop_orientation,
+    }
     prediction = elements.Prediction.from_dict(state_dict)
     assert prediction.export() == state_dict
 

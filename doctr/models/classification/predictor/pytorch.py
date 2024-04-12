@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List, Tuple, Union
+from typing import List, Union
 
 import numpy as np
 import torch
@@ -38,7 +38,7 @@ class CropOrientationPredictor(nn.Module):
     def forward(
         self,
         crops: List[Union[np.ndarray, torch.Tensor]],
-    ) -> Tuple[List[int], List[int], List[float]]:
+    ) -> List[Union[List[int], List[float]]]:
         # Dimension check
         if any(crop.ndim != 3 for crop in crops):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
@@ -57,6 +57,11 @@ class CropOrientationPredictor(nn.Module):
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]
 
         class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
-        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]
-        confs = [float(p) for prob in probs for p in prob]
-        return class_idxs, classes, confs
+        # Keep unified with page orientation range (counter clock rotation => negative) so 270 -> -90
+        classes = [
+            int(self.model.cfg["classes"][idx]) if int(self.model.cfg["classes"][idx]) != 270 else -90
+            for idx in class_idxs
+        ]
+        confs = [round(float(p), 2) for prob in probs for p in prob]
+
+        return [class_idxs, classes, confs]

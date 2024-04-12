@@ -101,8 +101,13 @@ def test_classification_zoo(arch_name):
     with torch.no_grad():
         out = predictor(input_tensor)
     out = predictor(input_tensor)
-    assert isinstance(out, list) and len(out) == batch_size
-    assert all(isinstance(pred, int) for pred in out)
+    class_idxs, classes, confs = out[0], out[1], out[2]
+    assert isinstance(class_idxs, list) and len(class_idxs) == batch_size
+    assert isinstance(classes, list) and len(classes) == batch_size
+    assert isinstance(confs, list) and len(confs) == batch_size
+    assert all(isinstance(pred, int) for pred in class_idxs)
+    assert all(isinstance(pred, int) for pred in classes) and all(pred in [0, 90, 180, -90] for pred in classes)
+    assert all(isinstance(pred, float) for pred in confs)
 
 
 def test_crop_orientation_model(mock_text_box):
@@ -111,7 +116,10 @@ def test_crop_orientation_model(mock_text_box):
     text_box_180 = np.rot90(text_box_0, 2)
     text_box_270 = np.rot90(text_box_0, 3)
     classifier = classification.crop_orientation_predictor("mobilenet_v3_small_orientation", pretrained=True)
-    assert classifier([text_box_0, text_box_90, text_box_180, text_box_270]) == [0, 1, 2, 3]
+    assert classifier([text_box_0, text_box_90, text_box_180, text_box_270])[0] == [0, 1, 2, 3]
+    # 270 degrees is equivalent to -90 degrees
+    assert classifier([text_box_0, text_box_90, text_box_180, text_box_270])[1] == [0, 90, 180, -90]
+    assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_90, text_box_180, text_box_270])[2])
 
 
 @pytest.mark.parametrize(

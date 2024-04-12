@@ -221,7 +221,10 @@ class DocumentBuilder(NestedObject):
         return blocks
 
     def _build_blocks(
-        self, boxes: np.ndarray, word_preds: List[Tuple[str, float]], crop_orientations: List[Tuple[str, float]]
+        self,
+        boxes: np.ndarray,
+        word_preds: List[Tuple[str, float]],
+        crop_orientations: List[Dict[str, Any]],
     ) -> List[Block]:
         """Gather independent words in structured blocks
 
@@ -229,7 +232,8 @@ class DocumentBuilder(NestedObject):
         ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
             word_preds: list of all detected words of the page, of shape N
-            crop_orientations: list of orientations for each word crop
+            crop_orientations: list of dictoinaries containing
+                the general orientation (orientations + confidences) of the crops
 
         Returns:
         -------
@@ -237,8 +241,6 @@ class DocumentBuilder(NestedObject):
         """
         if boxes.shape[0] != len(word_preds):
             raise ValueError(f"Incompatible argument lengths: {boxes.shape[0]}, {len(word_preds)}")
-
-        # TODO !!!! add crop_orientations to the Word object
 
         if boxes.shape[0] == 0:
             return []
@@ -263,9 +265,14 @@ class DocumentBuilder(NestedObject):
                     Word(
                         *word_preds[idx],
                         tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+                        crop_orientations[idx],
                     )
                     if boxes.ndim == 3
-                    else Word(*word_preds[idx], ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])))
+                    else Word(
+                        *word_preds[idx],
+                        ((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])),
+                        crop_orientations[idx],
+                    )
                     for idx in line
                 ])
                 for line in lines
@@ -288,8 +295,8 @@ class DocumentBuilder(NestedObject):
         boxes: List[np.ndarray],
         text_preds: List[List[Tuple[str, float]]],
         page_shapes: List[Tuple[int, int]],
+        crop_orientations: List[Dict[str, Any]],
         orientations: Optional[List[Dict[str, Any]]] = None,
-        crop_orientations: Optional[List[Dict[str, Any]]] = None,
         languages: Optional[List[Dict[str, Any]]] = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
@@ -301,10 +308,10 @@ class DocumentBuilder(NestedObject):
                 or (*, 6) for all words for a given page
             text_preds: list of N elements, where each element is the list of all word prediction (text + confidence)
             page_shapes: shape of each page, of size N
+            crop_orientations: list of N elements, where each element is
+                a dictionary containing the general orientation (orientations + confidences) of the crops
             orientations: optional, list of N elements,
                 where each element is a dictionary containing the orientation (orientation + confidence)
-            crop_orientations: optional, list of N elements, where each element is
-                a dictionary containing the general orientation (orientations + confidences) of the crops
             languages: optional, list of N elements,
                 where each element is a dictionary containing the language (language + confidence)
 
@@ -312,14 +319,13 @@ class DocumentBuilder(NestedObject):
         -------
             document object
         """
-        if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
+        if len(boxes) != len(text_preds) != len(crop_orientations) or len(boxes) != len(page_shapes) != len(
+            crop_orientations
+        ):
             raise ValueError("All arguments are expected to be lists of the same size")
 
         _orientations = (
             orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
-        )
-        _crop_orientations = (
-            crop_orientations if isinstance(crop_orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
         )
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
         if self.export_as_straight_boxes and len(boxes) > 0:
@@ -328,24 +334,21 @@ class DocumentBuilder(NestedObject):
                 # Iterate over pages and boxes
                 boxes = [np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1) for p_boxes in boxes]
 
-        # TODO: !!!!!
-        print(_crop_orientations)
-
         _pages = [
             Page(
                 page,
                 self._build_blocks(
                     page_boxes,
                     word_preds,
-                    crop_orientations,
+                    word_crop_orientations,
                 ),
                 _idx,
                 shape,
                 orientation,
                 language,
             )
-            for page, _idx, shape, page_boxes, word_preds, orientation, crop_orientations, language in zip(
-                pages, range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _crop_orientations, _languages
+            for page, _idx, shape, page_boxes, word_preds, word_crop_orientations, orientation, language in zip(
+                pages, range(len(boxes)), page_shapes, boxes, text_preds, crop_orientations, _orientations, _languages
             )
         ]
 
@@ -370,6 +373,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         boxes: List[Dict[str, np.ndarray]],
         text_preds: List[Dict[str, List[Tuple[str, float]]]],
         page_shapes: List[Tuple[int, int]],
+        crop_orientations: List[Dict[str, List[Dict[str, Any]]]],
         orientations: Optional[List[Dict[str, Any]]] = None,
         languages: Optional[List[Dict[str, Any]]] = None,
     ) -> KIEDocument:
@@ -382,6 +386,8 @@ class KIEDocumentBuilder(DocumentBuilder):
                 of shape (*, 5) or (*, 6) for all predictions
             text_preds: list of N dictionaries, where each element is the list of all word prediction
             page_shapes: shape of each page, of size N
+            crop_orientations: list of N dictonaries, where each element is
+                a list containing the general crop orientations (orientations + confidences) of the crops
             orientations: optional, list of N elements,
                 where each element is a dictionary containing the orientation (orientation + confidence)
             languages: optional, list of N elements,
@@ -391,7 +397,9 @@ class KIEDocumentBuilder(DocumentBuilder):
         -------
             document object
         """
-        if len(boxes) != len(text_preds) or len(boxes) != len(page_shapes):
+        if len(boxes) != len(text_preds) != len(crop_orientations) or len(boxes) != len(page_shapes) != len(
+            crop_orientations
+        ):
             raise ValueError("All arguments are expected to be lists of the same size")
         _orientations = (
             orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
@@ -417,6 +425,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                     k: self._build_blocks(
                         page_boxes[k],
                         word_preds[k],
+                        word_crop_orientations[k],
                     )
                     for k in page_boxes.keys()
                 },
@@ -425,8 +434,8 @@ class KIEDocumentBuilder(DocumentBuilder):
                 orientation,
                 language,
             )
-            for page, _idx, shape, page_boxes, word_preds, orientation, language in zip(
-                pages, range(len(boxes)), page_shapes, boxes, text_preds, _orientations, _languages
+            for page, _idx, shape, page_boxes, word_preds, word_crop_orientations, orientation, language in zip(
+                pages, range(len(boxes)), page_shapes, boxes, text_preds, crop_orientations, _orientations, _languages
             )
         ]
 
@@ -436,6 +445,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         self,
         boxes: np.ndarray,
         word_preds: List[Tuple[str, float]],
+        crop_orientations: List[Dict[str, Any]],
     ) -> List[Prediction]:
         """Gather independent words in structured blocks
 
@@ -443,6 +453,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 5) or (N, 4, 2)
             word_preds: list of all detected words of the page, of shape N
+            crop_orientations: list of orientations for each word crop
 
         Returns:
         -------
@@ -462,12 +473,14 @@ class KIEDocumentBuilder(DocumentBuilder):
                 value=word_preds[idx][0],
                 confidence=word_preds[idx][1],
                 geometry=tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+                crop_orientation=crop_orientations[idx],
             )
             if boxes.ndim == 3
             else Prediction(
                 value=word_preds[idx][0],
                 confidence=word_preds[idx][1],
                 geometry=((boxes[idx, 0], boxes[idx, 1]), (boxes[idx, 2], boxes[idx, 3])),
+                crop_orientation=crop_orientations[idx],
             )
             for idx in idxs
         ]
