@@ -118,9 +118,12 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         crop_orientations: Any = {}
         if not self.assume_straight_pages:
             for class_name in dict_loc_preds.keys():
-                crops[class_name], dict_loc_preds[class_name], crop_orientations[class_name] = self._rectify_crops(
+                crops[class_name], dict_loc_preds[class_name], word_orientations = self._rectify_crops(
                     crops[class_name], dict_loc_preds[class_name]
                 )
+                crop_orientations[class_name] = [
+                    {"value": orientation[0], "confidence": orientation[1]} for orientation in word_orientations
+                ]
 
         # Identify character sequences
         word_preds = {
