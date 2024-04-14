@@ -63,7 +63,11 @@ torch = [
     "torchvision>=0.13.0",
     "onnx>=1.12.0,<3.0.0",
 ]
-extras = [
+tf-extras = [
+    # cf. https://github.com/mindee/doctr/pull/1182
+    # cf. https://github.com/mindee/doctr/pull/1461
+    "tensorflow>=2.11.0,<2.16.0",
+    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     "weasyprint>=55.0",
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
@@ -72,15 +76,6 @@ torch-extras = [
     "torch>=1.12.0,<3.0.0",
     "torchvision>=0.13.0",
     "onnx>=1.12.0,<3.0.0",
-    "weasyprint>=55.0",
-    "matplotlib>=3.1.0",
-    "mplcursors>=0.3",
-]
-tf-extras = [
-    # cf. https://github.com/mindee/doctr/pull/1182
-    # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.11.0,<2.16.0",
-    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     "weasyprint>=55.0",
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
