@@ -5,6 +5,7 @@
 
 # Adapted from https://github.com/huggingface/transformers/blob/master/src/transformers/file_utils.py
 
+import importlib.metadata
 import importlib.util
 import logging
 import os
@@ -13,8 +14,6 @@ from typing import Optional
 
 CLASS_NAME: str = "words"
 
-
-import importlib.metadata as importlib_metadata
 
 __all__ = ["is_tf_available", "is_torch_available", "requires_package", "CLASS_NAME"]
 
@@ -29,9 +28,9 @@ if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VA
     _torch_available = importlib.util.find_spec("torch") is not None
     if _torch_available:
         try:
-            _torch_version = importlib_metadata.version("torch")
+            _torch_version = importlib.metadata.version("torch")
             logging.info(f"PyTorch version {_torch_version} available.")
-        except importlib_metadata.PackageNotFoundError:  # pragma: no cover
+        except importlib.metadata.PackageNotFoundError:  # pragma: no cover
             _torch_available = False
 else:  # pragma: no cover
     logging.info("Disabling PyTorch because USE_TF is set")
@@ -56,9 +55,9 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         # For the metadata, we have to look for both tensorflow and tensorflow-cpu
         for pkg in candidates:
             try:
-                _tf_version = importlib_metadata.version(pkg)
+                _tf_version = importlib.metadata.version(pkg)
                 break
-            except importlib_metadata.PackageNotFoundError:
+            except importlib.metadata.PackageNotFoundError:
                 pass
         _tf_available = _tf_version is not None
     if _tf_available:
@@ -87,14 +86,10 @@ def requires_package(name: str, extra_message: Optional[str] = None) -> None:  #
     ----
         name: name of the package
         extra_message: additional message to display if the package is not found
-
-    Returns:
-    -------
-        bool: whether the package is available
     """
     try:
-        _ = importlib_metadata.version(name)
-    except importlib_metadata.PackageNotFoundError:
+        _ = importlib.metadata.version(name)
+    except importlib.metadata.PackageNotFoundError:
         raise ValueError(
             textwrap.dedent(f"""
     You need {name} to use this functionality. Please install it with the following command:

@@ -287,7 +287,7 @@ class Page(Element):
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
         """
-        requires_package("matplotlib" "`.show()` requires matplotlib & mplcursors installed")
+        requires_package("matplotlib", "`.show()` requires matplotlib & mplcursors installed")
         requires_package("mplcursors")
         import matplotlib.pyplot as plt
 
