@@ -8,6 +8,7 @@ from typing import List, Sequence, Union
 
 import numpy as np
 
+from doctr.file_utils import requires_package
 from doctr.utils.common_types import AbstractFile
 
 from .html import read_html
@@ -54,6 +55,11 @@ class DocumentFile:
         -------
             the list of pages decoded as numpy ndarray of shape H x W x 3
         """
+        requires_package(
+            "weasyprint",
+            "`.from_url` requires weasyprint installed.\n"
+            + "Installation instructions: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation",
+        )
         pdf_stream = read_html(url)
         return cls.from_pdf(pdf_stream, **kwargs)
 

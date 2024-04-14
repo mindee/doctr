@@ -9,7 +9,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import cv2
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
-import mplcursors
 import numpy as np
 from anyascii import anyascii
 from matplotlib.figure import Figure
@@ -281,6 +280,8 @@ def visualize_page(
                     artists.append(rect)
 
     if interactive:
+        import mplcursors
+
         # Create mlp Cursor to hover patches in artists
         mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
     fig.tight_layout(pad=0.0)
@@ -413,6 +414,8 @@ def visualize_kie_page(
                     artists.append(rect)
 
     if interactive:
+        import mplcursors
+
         # Create mlp Cursor to hover patches in artists
         mplcursors.Cursor(artists, hover=2).connect("add", lambda sel: sel.annotation.set_text(sel.artist.get_label()))
     fig.tight_layout(pad=0.0)

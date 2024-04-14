@@ -12,14 +12,19 @@ from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement
 from xml.etree.ElementTree import SubElement
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import doctr
+from doctr.file_utils import requires_package
 from doctr.utils.common_types import BoundingBox
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
+from doctr.utils.reconstitution import synthesize_kie_page, synthesize_page
 from doctr.utils.repr import NestedObject
-from doctr.utils.visualization import synthesize_kie_page, synthesize_page, visualize_kie_page, visualize_page
+
+try:  # optional dependency for visualization
+    from doctr.utils.visualization import visualize_kie_page, visualize_page
+except ModuleNotFoundError:
+    pass
 
 __all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page", "KIEPage", "Document"]
 
@@ -282,6 +287,10 @@ class Page(Element):
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
         """
+        requires_package("matplotlib" "`.show()` requires matplotlib & mplcursors installed")
+        requires_package("mplcursors")
+        import matplotlib.pyplot as plt
+
         visualize_page(self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
         plt.show(**kwargs)
 
@@ -457,6 +466,10 @@ class KIEPage(Element):
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: keyword arguments passed to the matplotlib.pyplot.show method
         """
+        requires_package("matplotlib", "`.show()` requires matplotlib & mplcursors installed")
+        requires_package("mplcursors")
+        import matplotlib.pyplot as plt
+
         visualize_kie_page(
             self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio
         )

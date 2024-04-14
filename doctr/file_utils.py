@@ -8,18 +8,15 @@
 import importlib.util
 import logging
 import os
-import sys
+import textwrap
+from typing import Optional
 
 CLASS_NAME: str = "words"
 
 
-if sys.version_info < (3, 8):  # pragma: no cover
-    import importlib_metadata
-else:
-    import importlib.metadata as importlib_metadata
+import importlib.metadata as importlib_metadata
 
-
-__all__ = ["is_tf_available", "is_torch_available", "CLASS_NAME"]
+__all__ = ["is_tf_available", "is_torch_available", "requires_package", "CLASS_NAME"]
 
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
@@ -80,6 +77,30 @@ if not _torch_available and not _tf_available:  # pragma: no cover
         "DocTR requires either TensorFlow or PyTorch to be installed. Please ensure one of them"
         " is installed and that either USE_TF or USE_TORCH is enabled."
     )
+
+
+def requires_package(name: str, extra_message: Optional[str] = None) -> None:  # pragma: no cover
+    """
+    package requirement helper
+
+    Args:
+    ----
+        name: name of the package
+        extra_message: additional message to display if the package is not found
+
+    Returns:
+    -------
+        bool: whether the package is available
+    """
+    try:
+        _ = importlib_metadata.version(name)
+    except importlib_metadata.PackageNotFoundError:
+        raise ValueError(
+            textwrap.dedent(f"""
+    You need {name} to use this functionality. Please install it with the following command:
+    pip install {name}
+    {extra_message if extra_message is not None else ""}""")
+        )
 
 
 def is_torch_available():
