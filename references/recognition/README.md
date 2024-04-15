@@ -16,7 +16,7 @@ pip install -r references/requirements.txt
 You can start your training in TensorFlow:
 
 ```shell
-python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set  --epochs 5
+TF_USE_LEGACY_KERAS=1 python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set  --epochs 5
 ```
 
 or PyTorch:
@@ -81,7 +81,7 @@ When typing your labels, be aware that the VOCAB doesn't handle spaces. Also mak
 
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
-```python
+```shell
 python references/recognition/train_pytorch.py --help
 ```
 
