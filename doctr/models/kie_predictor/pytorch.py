@@ -55,7 +55,13 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
         _KIEPredictor.__init__(
-            self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
+            self,
+            assume_straight_pages,
+            straighten_pages,
+            preserve_aspect_ratio,
+            symmetric_pad,
+            detect_orientation,
+            **kwargs,
         )
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
@@ -83,18 +89,29 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             for out_map in out_maps
         ]
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seg_maps]
+            general_page_orientations = self._get_general_page_orientation(pages)
+            origin_page_orientations = [
+                estimate_orientation(seq_map, general_page_orientation=general_orientation)
+                for seq_map, general_orientation in zip(seg_maps, general_page_orientations)
+            ]
             orientations = [
                 {"value": orientation_page, "confidence": None} for orientation_page in origin_page_orientations
             ]
         else:
             orientations = None
         if self.straighten_pages:
+            general_page_orientations = (
+                general_page_orientations if self.detect_orientation else self._get_general_page_orientation(pages)
+            )
             origin_page_orientations = (
                 origin_page_orientations
                 if self.detect_orientation
-                else [estimate_orientation(seq_map) for seq_map in seg_maps]
+                else [
+                    estimate_orientation(seq_map, general_page_orientation=general_orientation)
+                    for seq_map, general_orientation in zip(seg_maps, general_page_orientations)
+                ]
             )
+            # TODO: expand if width > height
             pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]  # type: ignore[arg-type]
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)

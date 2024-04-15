@@ -11,7 +11,11 @@ from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import extract_crops, extract_rcrops
 
 from .._utils import rectify_crops, rectify_loc_preds
+<<<<<<< HEAD
 from ..classification import crop_orientation_predictor
+=======
+from ..classification import crop_orientation_predictor, page_orientation_predictor
+>>>>>>> e5ed5912 (init gen page orientation interface)
 from ..classification.predictor import OrientationPredictor
 
 __all__ = ["_OCRPredictor"]
@@ -29,10 +33,16 @@ class _OCRPredictor:
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
         preserve_aspect_ratio: if True, resize preserving the aspect ratio (with padding)
         symmetric_pad: if True and preserve_aspect_ratio is True, pas the image symmetrically.
+        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
     crop_orientation_predictor: Optional[OrientationPredictor]
+<<<<<<< HEAD
+=======
+    page_orientation_predictor: Optional[OrientationPredictor]
+>>>>>>> e5ed5912 (init gen page orientation interface)
 
     def __init__(
         self,
@@ -40,15 +50,34 @@ class _OCRPredictor:
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
+        detect_orientation: bool = False,
         **kwargs: Any,
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
         self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
+        self.page_orientation_predictor = (
+            page_orientation_predictor(pretrained=True)
+            if detect_orientation or straighten_pages or not assume_straight_pages
+            else None
+        )
         self.doc_builder = DocumentBuilder(**kwargs)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
         self.hooks: List[Callable] = []
+
+    def _get_general_page_orientation(
+        self,
+        pages: List[np.ndarray],
+    ) -> List[Tuple[int, float]]:
+        _, classes, probs = zip(self.page_orientation_predictor(pages))  # type: ignore[misc]
+        # Flatten to list of tuples with (value, confidence)
+        page_orientations = [
+            (orientation, prob)
+            for page_classes, page_probs in zip(classes, probs)
+            for orientation, prob in zip(page_classes, page_probs)
+        ]
+        return page_orientations
 
     @staticmethod
     def _generate_crops(

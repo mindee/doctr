@@ -11,6 +11,8 @@ import cv2
 import numpy as np
 from langdetect import LangDetectException, detect_langs
 
+from doctr.utils.geometry import rotate_image
+
 __all__ = ["estimate_orientation", "get_language", "invert_data_structure"]
 
 
@@ -29,7 +31,12 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     return max(w / h, h / w)
 
 
-def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_lines: float = 5) -> int:
+def estimate_orientation(
+    img: np.ndarray,
+    n_ct: int = 50,
+    ratio_threshold_for_lines: float = 5,
+    general_page_orientation: Optional[Tuple[int, float]] = None,
+) -> int:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
 
@@ -38,6 +45,8 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         img: the img or bitmap to analyze (H, W, C)
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
+        general_page_orientation: the general orientation of the page (angle [0, 90, 180, 270], confidence)
+            estimated by a model
 
     Returns:
     -------
@@ -52,6 +61,9 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_img = cv2.medianBlur(gray_img, 5)
         thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+
+    if general_page_orientation:
+        thresh = rotate_image(img, -general_page_orientation[0], expand=img.shape[1] > img.shape[0])
 
     # try to merge words in lines
     (h, w) = img.shape[:2]
@@ -75,10 +87,16 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
             angles.append(angle - 90)
 
     if len(angles) == 0:
-        return 0  # in case no angles is found
+        estimated_angle = 0  # in case no angles is found
     else:
         median = -median_low(angles)
-        return round(median) if abs(median) != 0 else 0
+        estimated_angle = round(median) if abs(median) != 0 else 0
+
+    # combine with the general orientation (angle, confidence) where angle can be 0, 90, 180, -90
+    if general_page_orientation:
+        estimated_angle = estimated_angle + general_page_orientation[0]
+
+    return estimated_angle
 
 
 def rectify_crops(

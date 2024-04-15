@@ -25,10 +25,13 @@ class _KIEPredictor(_OCRPredictor):
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
         preserve_aspect_ratio: if True, resize preserving the aspect ratio (with padding)
         symmetric_pad: if True and preserve_aspect_ratio is True, pas the image symmetrically.
+        detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
+            page. Doing so will slightly deteriorate the overall latency.
         kwargs: keyword args of `DocumentBuilder`
     """
 
     crop_orientation_predictor: Optional[OrientationPredictor]
+    page_orientation_predictor: Optional[OrientationPredictor]
 
     def __init__(
         self,
@@ -36,8 +39,11 @@ class _KIEPredictor(_OCRPredictor):
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
+        detect_orientation: bool = False,
         **kwargs: Any,
     ) -> None:
-        super().__init__(assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs)
+        super().__init__(
+            assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, detect_orientation, **kwargs
+        )
 
         self.doc_builder: KIEDocumentBuilder = KIEDocumentBuilder(**kwargs)
