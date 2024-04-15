@@ -101,7 +101,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             orientations = None
         if self.straighten_pages:
             general_page_orientations = (
-                general_page_orientations if self.detect_orientation else self._get_general_page_orientation(pages)
+                general_page_orientations if self.detect_orientation else self._get_general_page_orientation(pages)  # type: ignore[arg-type]
             )
             origin_page_orientations = (
                 origin_page_orientations
