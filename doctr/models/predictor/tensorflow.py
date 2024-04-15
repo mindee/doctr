@@ -105,7 +105,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
                 origin_page_orientations
                 if self.detect_orientation
                 else [
-                    estimate_orientation(seq_map, general_orientation)
+                    estimate_orientation(seq_map, general_page_orientation=general_orientation)
                     for seq_map, general_orientation in zip(seg_maps, general_page_orientations)
                 ]
             )
