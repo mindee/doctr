@@ -63,7 +63,7 @@ def estimate_orientation(
         thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     if general_page_orientation:
-        thresh = rotate_image(img, -general_page_orientation[0], expand=img.shape[1] > img.shape[0])
+        thresh = rotate_image(img, -general_page_orientation[0], expand=abs(general_page_orientation[0]) == 90)
 
     # try to merge words in lines
     (h, w) = img.shape[:2]
