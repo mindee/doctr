@@ -111,8 +111,11 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                     for seq_map, general_orientation in zip(seg_maps, general_page_orientations)
                 ]
             )
-            # TODO: expand if width > height
-            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]  # type: ignore[arg-type]
+            # TODO: test the -> expand if page if -90 or 90 degrees rotated
+            pages = [
+                rotate_image(page, -angle, expand=abs(angle[0]) == 90)  # type: ignore[arg-type]
+                for page, angle in zip(pages, origin_page_orientations)
+            ]
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 

@@ -111,9 +111,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             )
             # TODO: test the -> expand if page if -90 or 90 degrees rotated
             pages = [
-                rotate_image(page, -angle, expand=abs(angle[0]) == 90)
+                rotate_image(page, -angle, expand=abs(angle[0]) == 90)  # type: ignore[arg-type]
                 for page, angle in zip(pages, origin_page_orientations)
-            ]  # type: ignore[arg-type]
+            ]
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
