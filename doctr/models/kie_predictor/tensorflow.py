@@ -105,9 +105,9 @@ class KIEPredictor(NestedObject, _KIEPredictor):
                     for seq_map, general_orientation in zip(seg_maps, general_page_orientations)
                 ]
             )
-            # TODO: test the -> expand if page if -90 or 90 degrees rotated
+            # TODO: test the -> expand if page page width is larger than height
             pages = [
-                rotate_image(page, -angle, expand=abs(angle[0]) == 90)  # type: ignore[arg-type]
+                rotate_image(page, -angle, expand=False)  # type: ignore[arg-type]
                 for page, angle in zip(pages, origin_page_orientations)
             ]
             # Forward again to get predictions on straight pages
