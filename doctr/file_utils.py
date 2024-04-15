@@ -87,7 +87,8 @@ def requires_package(name: str, extra_message: Optional[str] = None) -> None:  #
         extra_message: additional message to display if the package is not found
     """
     try:
-        _ = importlib.metadata.version(name)
+        _pkg_version = importlib.metadata.version(name)
+        logging.info(f"{name} version {_pkg_version} available.")
     except importlib.metadata.PackageNotFoundError:
         raise ImportError(
             f"\n\n{extra_message if extra_message is not None else ''} "
