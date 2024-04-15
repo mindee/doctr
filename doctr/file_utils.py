@@ -9,7 +9,6 @@ import importlib.metadata
 import importlib.util
 import logging
 import os
-import textwrap
 from typing import Optional
 
 CLASS_NAME: str = "words"
@@ -90,11 +89,9 @@ def requires_package(name: str, extra_message: Optional[str] = None) -> None:  #
     try:
         _ = importlib.metadata.version(name)
     except importlib.metadata.PackageNotFoundError:
-        raise ValueError(
-            textwrap.dedent(f"""
-    You need {name} to use this functionality. Please install it with the following command:
-    pip install {name}
-    {extra_message if extra_message is not None else ""}""")
+        raise ImportError(
+            f"\n\n{extra_message if extra_message is not None else ''} "
+            f"\nPlease install it with the following command: pip install {name}\n"
         )
 
 

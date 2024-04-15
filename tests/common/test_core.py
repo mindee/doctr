@@ -20,5 +20,5 @@ def test_is_torch_available():
 
 def test_requires_package():
     requires_package("numpy")  # availbable
-    with pytest.raises(ValueError):  # not available
+    with pytest.raises(ImportError):  # not available
         requires_package("non_existent_package")
