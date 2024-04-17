@@ -8,14 +8,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import extract_crops, extract_rcrops
+from doctr.utils.geometry import extract_crops, extract_rcrops, rotate_image
 
-from .._utils import rectify_crops, rectify_loc_preds
-<<<<<<< HEAD
-from ..classification import crop_orientation_predictor
-=======
+from .._utils import estimate_orientation, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
->>>>>>> e5ed5912 (init gen page orientation interface)
 from ..classification.predictor import OrientationPredictor
 
 __all__ = ["_OCRPredictor"]
@@ -39,10 +35,7 @@ class _OCRPredictor:
     """
 
     crop_orientation_predictor: Optional[OrientationPredictor]
-<<<<<<< HEAD
-=======
     page_orientation_predictor: Optional[OrientationPredictor]
->>>>>>> e5ed5912 (init gen page orientation interface)
 
     def __init__(
         self,
@@ -66,7 +59,7 @@ class _OCRPredictor:
         self.symmetric_pad = symmetric_pad
         self.hooks: List[Callable] = []
 
-    def _get_general_page_orientation(
+    def _get_general_pages_orientations(
         self,
         pages: List[np.ndarray],
     ) -> List[Tuple[int, float]]:
@@ -78,6 +71,54 @@ class _OCRPredictor:
             for orientation, prob in zip(page_classes, page_probs)
         ]
         return page_orientations
+
+    def _get_pages_orientations(
+        self, pages: List[np.ndarray], seg_maps: List[np.ndarray]
+    ) -> Tuple[List[Tuple[int, float]], List[int]]:
+        general_pages_orientations = self._get_general_pages_orientations(pages)
+        origin_page_orientations = [
+            estimate_orientation(seq_map, general_orientation)
+            for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
+        ]
+        return general_pages_orientations, origin_page_orientations
+
+    def _get_straightened_pages(
+        self,
+        pages: List[np.ndarray],
+        seg_maps: List[np.ndarray],
+        general_pages_orientations: Optional[List[Tuple[int, float]]] = None,
+        origin_pages_orientations: Optional[List[int]] = None,
+    ) -> List[np.ndarray]:
+        """
+        Straighten pages based on the estimated orientations
+
+        Args:
+        ----
+            pages: list of pages
+            seg_maps: list of segmentation maps
+            general_pages_orientations: list of tuples with (value, confidence) about the general page orientation
+            origin_pages_orientations: list of integers with the orientation of each page
+
+        Returns:
+        -------
+            pages: list of straightened pages
+        """
+        general_pages_orientations = (
+            general_pages_orientations if general_pages_orientations else self._get_general_pages_orientations(pages)  # type: ignore[arg-type]
+        )
+        origin_pages_orientations = (
+            origin_pages_orientations
+            if origin_pages_orientations
+            else [
+                estimate_orientation(seq_map, general_orientation)
+                for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
+            ]
+        )
+        # TODO: test the -> expand if page page width is larger than height
+        return [
+            rotate_image(page, -angle, expand=page.shape[1] > page.shape[0])  # type: ignore[arg-type]
+            for page, angle in zip(pages, origin_pages_orientations)
+        ]
 
     @staticmethod
     def _generate_crops(

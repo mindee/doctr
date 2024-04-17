@@ -33,9 +33,10 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
 
 def estimate_orientation(
     img: np.ndarray,
+    general_page_orientation: Optional[Tuple[int, float]] = None,
     n_ct: int = 50,
     ratio_threshold_for_lines: float = 5,
-    general_page_orientation: Optional[Tuple[int, float]] = None,
+    min_confidence: float = 0.5,
 ) -> int:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
@@ -43,10 +44,11 @@ def estimate_orientation(
     Args:
     ----
         img: the img or bitmap to analyze (H, W, C)
-        n_ct: the number of contours used for the orientation estimation
-        ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
         general_page_orientation: the general orientation of the page (angle [0, 90, 180, 270], confidence)
             estimated by a model
+        n_ct: the number of contours used for the orientation estimation
+        ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
+        min_confidence: the minimum confidence to consider the general_page_orientation
 
     Returns:
     -------
@@ -62,8 +64,8 @@ def estimate_orientation(
         gray_img = cv2.medianBlur(gray_img, 5)
         thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
-    if general_page_orientation:
-        thresh = rotate_image(img, -general_page_orientation[0], expand=abs(general_page_orientation[0]) == 90)
+    if general_page_orientation and general_page_orientation[1] >= min_confidence:
+        thresh = rotate_image(img, -general_page_orientation[0])
 
     # try to merge words in lines
     (h, w) = img.shape[:2]
@@ -93,7 +95,7 @@ def estimate_orientation(
         estimated_angle = round(median) if abs(median) != 0 else 0
 
     # combine with the general orientation (angle, confidence) where angle can be 0, 90, 180, -90
-    if general_page_orientation:
+    if general_page_orientation and general_page_orientation[1] >= min_confidence:
         estimated_angle = estimated_angle + general_page_orientation[0]
 
     return estimated_angle
