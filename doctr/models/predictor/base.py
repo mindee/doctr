@@ -104,7 +104,7 @@ class _OCRPredictor:
             pages: list of straightened pages
         """
         general_pages_orientations = (
-            general_pages_orientations if general_pages_orientations else self._get_general_pages_orientations(pages)  # type: ignore[arg-type]
+            general_pages_orientations if general_pages_orientations else self._get_general_pages_orientations(pages)
         )
         origin_pages_orientations = (
             origin_pages_orientations
@@ -116,7 +116,7 @@ class _OCRPredictor:
         )
         # TODO: test the -> expand if page page width is larger than height
         return [
-            rotate_image(page, -angle, expand=page.shape[1] > page.shape[0])  # type: ignore[arg-type]
+            rotate_image(page, -angle, expand=page.shape[1] > page.shape[0])
             for page, angle in zip(pages, origin_pages_orientations)
         ]
 
