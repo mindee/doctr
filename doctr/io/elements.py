@@ -288,7 +288,7 @@ class Page(Element):
             **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
         """
         requires_package("matplotlib", "`.show()` requires matplotlib & mplcursors installed")
-        requires_package("mplcursors")
+        requires_package("mplcursors", "`.show()` requires matplotlib & mplcursors installed")
         import matplotlib.pyplot as plt
 
         visualize_page(self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
