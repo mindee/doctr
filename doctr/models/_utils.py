@@ -128,7 +128,8 @@ def rectify_loc_preds(
     return (
         np.stack(
             [
-                np.roll(page_loc_pred, orientation, axis=0)
+                # shift clockwise
+                np.roll(page_loc_pred, -orientation, axis=0)
                 for orientation, page_loc_pred in zip(orientations, page_loc_preds)
             ],
             axis=0,
