@@ -41,12 +41,12 @@ jobs:
         name: Install package (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf-extras] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install package (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch-extras] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
 
       - name: Run analysis script
         run: |
@@ -87,12 +87,12 @@ jobs:
         name: Install package (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf-extras] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install package (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch-extras] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
 
       - name: Run detection script
         run: |
@@ -133,12 +133,12 @@ jobs:
         name: Install package (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf-extras] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install package (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch-extras] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
       - name: Run evaluation script
         run: |
           python scripts/evaluate.py db_resnet50 crnn_vgg16_bn --samples 10

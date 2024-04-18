@@ -38,16 +38,16 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
         .. code:: bash
 
             pip install "python-doctr[tf]"
-            # or with preinstalled packages for visualization
-            pip install "python-doctr[tf-extras]"
+            # or with preinstalled packages for visualization & html support
+            pip install "python-doctr[tf,viz,html]"
 
     .. tab:: PyTorch
 
         .. code:: bash
 
             pip install "python-doctr[torch]"
-            # or with preinstalled packages for visualization
-            pip install "python-doctr[torch-extras]"
+            # or with preinstalled packages for visualization & html support
+            pip install "python-doctr[torch,viz,html]"
 
 
 
