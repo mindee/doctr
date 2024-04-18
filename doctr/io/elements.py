@@ -467,7 +467,7 @@ class KIEPage(Element):
             **kwargs: keyword arguments passed to the matplotlib.pyplot.show method
         """
         requires_package("matplotlib", "`.show()` requires matplotlib & mplcursors installed")
-        requires_package("mplcursors")
+        requires_package("mplcursors", "`.show()` requires matplotlib & mplcursors installed")
         import matplotlib.pyplot as plt
 
         visualize_kie_page(
