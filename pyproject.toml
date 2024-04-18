@@ -65,12 +65,10 @@ torch = [
 html = [
     "weasyprint>=55.0",
 ]
-
 viz = [
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
 ]
-
 testing = [
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
