@@ -98,7 +98,7 @@ def estimate_orientation(
     if general_page_orientation and general_page_orientation[1] >= min_confidence:
         estimated_angle = estimated_angle + general_page_orientation[0]
 
-    return estimated_angle
+    return -estimated_angle  # return the clockwise angle
 
 
 def rectify_crops(
@@ -107,12 +107,10 @@ def rectify_crops(
 ) -> List[np.ndarray]:
     """Rotate each crop of the list according to the predicted orientation:
     0: already straight, no rotation
-    1: 90 ccw, rotate 3 times ccw
-    2: 180, rotate 2 times ccw
-    3: 270 ccw, rotate 1 time ccw
+    1: 90 cw, rotate 3 times ccw
+    2: 180 cw, rotate 2 times ccw
+    3: 270 cw, rotate 1 times ccw
     """
-    # Inverse predictions (if angle of +90 is detected, rotate by -90)
-    orientations = [4 - pred if pred != 0 else 0 for pred in orientations]
     return (
         [crop if orientation == 0 else np.rot90(crop, orientation) for orientation, crop in zip(orientations, crops)]
         if len(orientations) > 0

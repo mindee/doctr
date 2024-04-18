@@ -115,8 +115,9 @@ class _OCRPredictor:
             ]
         )
         # TODO: test the -> expand if page page width is larger than height
+        # rotate image counter clockwise
         return [
-            rotate_image(page, -angle, expand=page.shape[1] > page.shape[0])
+            rotate_image(page, angle, expand=page.shape[1] > page.shape[0])
             for page, angle in zip(pages, origin_pages_orientations)
         ]
 
