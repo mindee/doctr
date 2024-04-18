@@ -39,7 +39,7 @@ def synthesize_page(
     for block in page["blocks"]:
         for line in block["lines"]:
             for word in line["words"]:
-                # Get aboslute word geometry
+                # Get absolute word geometry
                 (xmin, ymin), (xmax, ymax) = word["geometry"]
                 xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
                 ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
