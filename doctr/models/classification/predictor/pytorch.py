@@ -12,10 +12,10 @@ from torch import nn
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import set_device_and_dtype
 
-__all__ = ["CropOrientationPredictor"]
+__all__ = ["OrientationPredictor"]
 
 
-class CropOrientationPredictor(nn.Module):
+class OrientationPredictor(nn.Module):
     """Implements an object able to detect the reading direction of a text box.
     4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
 
@@ -57,11 +57,7 @@ class CropOrientationPredictor(nn.Module):
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]
 
         class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
-        # Keep unified with page orientation range (counter clock rotation => negative) so 270 -> -90
-        classes = [
-            int(self.model.cfg["classes"][idx]) if int(self.model.cfg["classes"][idx]) != 270 else -90
-            for idx in class_idxs
-        ]
+        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]
         confs = [round(float(p), 2) for prob in probs for p in prob]
 
         return [class_idxs, classes, confs]

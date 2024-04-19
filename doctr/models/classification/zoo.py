@@ -9,7 +9,7 @@ from doctr.file_utils import is_tf_available
 
 from .. import classification
 from ..preprocessor import PreProcessor
-from .predictor import CropOrientationPredictor
+from .predictor import OrientationPredictor
 
 __all__ = ["crop_orientation_predictor"]
 
@@ -31,10 +31,10 @@ ARCHS: List[str] = [
     "vit_s",
     "vit_b",
 ]
-ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_orientation"]
+ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_crop_orientation"]
 
 
-def _crop_orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> CropOrientationPredictor:
+def _orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> OrientationPredictor:
     if arch not in ORIENTATION_ARCHS:
         raise ValueError(f"unknown architecture '{arch}'")
 
@@ -44,15 +44,15 @@ def _crop_orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> C
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128)
     input_shape = _model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:]
-    predictor = CropOrientationPredictor(
+    predictor = OrientationPredictor(
         PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs), _model
     )
     return predictor
 
 
 def crop_orientation_predictor(
-    arch: str = "mobilenet_v3_small_orientation", pretrained: bool = False, **kwargs: Any
-) -> CropOrientationPredictor:
+    arch: str = "mobilenet_v3_small_crop_orientation", pretrained: bool = False, **kwargs: Any
+) -> OrientationPredictor:
     """Orientation classification architecture.
 
     >>> import numpy as np
@@ -65,10 +65,10 @@ def crop_orientation_predictor(
     ----
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small')
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
-        **kwargs: keyword arguments to be passed to the CropOrientationPredictor
+        **kwargs: keyword arguments to be passed to the OrientationPredictor
 
     Returns:
     -------
-        CropOrientationPredictor
+        OrientationPredictor
     """
-    return _crop_orientation_predictor(arch, pretrained, **kwargs)
+    return _orientation_predictor(arch, pretrained, **kwargs)

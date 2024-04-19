@@ -35,7 +35,7 @@ from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_model_to_onnx
 from utils import EarlyStopper, plot_recorder, plot_samples
 
-CLASSES = [0, 90, 180, 270]
+CLASSES = [0, -90, 180, 90]
 
 
 def rnd_rotate(img: torch.Tensor, target):
@@ -191,7 +191,7 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
-    input_size = (256, 256) if args.type == "page" else (32, 32)
+    input_size = (512, 512) if args.type == "page" else (256, 256)
 
     # Load val data generator
     st = time.time()

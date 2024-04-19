@@ -12,10 +12,10 @@ from tensorflow import keras
 from doctr.models.preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
 
-__all__ = ["CropOrientationPredictor"]
+__all__ = ["OrientationPredictor"]
 
 
-class CropOrientationPredictor(NestedObject):
+class OrientationPredictor(NestedObject):
     """Implements an object able to detect the reading direction of a text box.
     4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
 
@@ -52,11 +52,7 @@ class CropOrientationPredictor(NestedObject):
         predicted_batches = [out_batch.numpy().argmax(1) for out_batch in predicted_batches]
 
         class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
-        # Keep unified with page orientation range (counter clock rotation => negative) so 270 -> -90
-        classes = [
-            int(self.model.cfg["classes"][idx]) if int(self.model.cfg["classes"][idx]) != 270 else -90
-            for idx in class_idxs
-        ]
+        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]
         confs = [round(float(p), 2) for prob in probs for p in prob]
 
         return [class_idxs, classes, confs]
