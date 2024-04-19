@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../../../genindex.html" /><link rel="search" title="Search" href="../../../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.2.6 and Furo 2024.01.29 -->
+    <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.3.7 and Furo 2024.01.29 -->
         <title>doctr.models.classification.mobilenet.tensorflow - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=135e06be" />
@@ -269,7 +269,7 @@
     <span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span>
     <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span>
     <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -302,12 +302,19 @@
         <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
         <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small_r-3d61452e.zip&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">270</span><span class="p">],</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span>
         <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -646,16 +653,16 @@
 
 
 
-<div class="viewcode-block" id="mobilenet_v3_small_orientation">
-<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_orientation">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<div class="viewcode-block" id="mobilenet_v3_small_crop_orientation">
+<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_crop_orientation">[docs]</a>
+<span class="k">def</span> <span class="nf">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">    &gt;&gt;&gt; from doctr.models import mobilenet_v3_small_orientation</span>
-<span class="sd">    &gt;&gt;&gt; model = mobilenet_v3_small_orientation(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import mobilenet_v3_small_crop_orientation</span>
+<span class="sd">    &gt;&gt;&gt; model = mobilenet_v3_small_crop_orientation(pretrained=False)</span>
 <span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
@@ -668,7 +675,7 @@
 <span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
@@ -703,7 +710,7 @@
     </aside>
   </div>
 </div><script src="../../../../../_static/documentation_options.js?v=306f4ebe"></script>
-    <script src="../../../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=32e29ea5"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>

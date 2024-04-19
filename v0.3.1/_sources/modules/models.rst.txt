@@ -25,7 +25,7 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_large_r
 
-.. autofunction:: doctr.models.classification.mobilenet_v3_small_orientation
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_crop_orientation
 
 .. autofunction:: doctr.models.classification.magc_resnet31
 
