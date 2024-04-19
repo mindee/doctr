@@ -7,7 +7,7 @@ from typing import Any, Optional
 
 from doctr.models.builder import KIEDocumentBuilder
 
-from ..classification.predictor import CropOrientationPredictor
+from ..classification.predictor import OrientationPredictor
 from ..predictor.base import _OCRPredictor
 
 __all__ = ["_KIEPredictor"]
@@ -28,7 +28,7 @@ class _KIEPredictor(_OCRPredictor):
         kwargs: keyword args of `DocumentBuilder`
     """
 
-    crop_orientation_predictor: Optional[CropOrientationPredictor]
+    crop_orientation_predictor: Optional[OrientationPredictor]
 
     def __init__(
         self,
