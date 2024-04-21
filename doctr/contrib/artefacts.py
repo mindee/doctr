@@ -6,9 +6,7 @@
 from typing import Any, Dict, List, Optional, Tuple
 
 import cv2
-import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import Rectangle
 
 from .base import _BasePredictor
 
@@ -112,6 +110,10 @@ class ArtefactDetector(_BasePredictor):
         ----
             **kwargs: additional keyword arguments to be passed to `plt.show`
         """
+        # TODO: requires check for matplotlib
+        import matplotlib.pyplot as plt
+        from matplotlib.patches import Rectangle
+
         # visualize the results with matplotlib
         if self._results and self._inputs:
             for img, res in zip(self._inputs, self._results):

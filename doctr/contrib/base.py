@@ -6,7 +6,6 @@
 from typing import Any, List, Optional
 
 import numpy as np
-import onnxruntime as ort
 
 from doctr.utils.data import download_from_url
 
@@ -18,7 +17,7 @@ class _BasePredictor:
     Args:
     ----
         batch_size: the batch size to use
-        url: the url to use
+        url: the url to use to download a model if needed
         model_path: the path to the model to use
         **kwargs: additional arguments to be passed to `download_from_url`
     """
@@ -26,15 +25,12 @@ class _BasePredictor:
     def __init__(self, batch_size: int, url: Optional[str] = None, model_path: Optional[str] = None, **kwargs) -> None:
         self.batch_size = batch_size
 
-        self.onnx_model_path = self._init_model(url, model_path, **kwargs)
-        self.session = ort.InferenceSession(
-            self.onnx_model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"]
-        )
+        self.session = self._init_model(url, model_path, **kwargs)
 
         self._inputs: List[np.ndarray] = []
         self._results: List[Any] = []
 
-    def _init_model(self, url: Optional[str] = None, model_path: Optional[str] = None, **kwargs: Any) -> str:
+    def _init_model(self, url: Optional[str] = None, model_path: Optional[str] = None, **kwargs: Any) -> Any:
         """
         Download the model from the given url if needed
 
@@ -48,9 +44,14 @@ class _BasePredictor:
         -------
             str: the path to the model
         """
+        # TODO: requires check
+
+        import onnxruntime as ort
+
         if not url and not model_path:
             raise ValueError("You must provide either a url or a model_path")
-        return model_path if model_path else str(download_from_url(url, cache_subdir="models", **kwargs))  # type: ignore[arg-type]
+        onnx_model_path = model_path if model_path else str(download_from_url(url, cache_subdir="models", **kwargs))  # type: ignore[arg-type]
+        return ort.InferenceSession(onnx_model_path, providers=["CUDAExecutionProvider", "CPUExecutionProvider"])
 
     def preprocess(self, img: np.ndarray) -> np.ndarray:
         """
