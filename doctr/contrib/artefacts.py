@@ -26,7 +26,7 @@ class ArtefactDetector(_BasePredictor):
     A class to detect artefacts in images
 
     >>> from doctr.io import DocumentFile
-    >>> from doctr.contrib import ArtefactDetector
+    >>> from doctr.contrib.artefacts import ArtefactDetector
     >>> doc = DocumentFile.from_images(["path/to/image.jpg"])
     >>> detector = ArtefactDetector()
     >>> results = detector(doc)

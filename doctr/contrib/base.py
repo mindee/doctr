@@ -24,7 +24,6 @@ class _BasePredictor:
 
     def __init__(self, batch_size: int, url: Optional[str] = None, model_path: Optional[str] = None, **kwargs) -> None:
         self.batch_size = batch_size
-
         self.session = self._init_model(url, model_path, **kwargs)
 
         self._inputs: List[np.ndarray] = []
