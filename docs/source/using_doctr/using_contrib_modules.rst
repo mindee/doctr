@@ -27,7 +27,7 @@ It is based on the YOLOv8 architecture, which is a state-of-the-art object detec
 .. code:: python3
 
     from doctr.io import DocumentFile
-    from doctr.contrib import ArtefactDetection
+    from doctr.contrib.artefacts import ArtefactDetection
 
     # Load the document
     doc = DocumentFile.from_images(["path/to/your/image"])
@@ -40,7 +40,7 @@ It is based on the YOLOv8 architecture, which is a state-of-the-art object detec
 You can also use your custom trained YOLOv8 model to detect artefacts or anything else you need.
 Reference: `YOLOv8 <https://github.com/ultralytics/ultralytics>`_
 
-**NOTE:** The YOLOv8 model (no OBB supported yet) needs to be provided as onnx exported model with a dynamic batch size.
+**NOTE:** The YOLOv8 model (no Oriented Bounding Box (OBB) inference supported yet) needs to be provided as onnx exported model with a dynamic batch size.
 
 .. code:: python3
 
