@@ -56,16 +56,9 @@ def main(args):
         sets = [train_set, val_set]
 
     reco_metric = TextMatch()
-    if args.mask_shape:
-        det_metric = LocalizationConfusion(
-            iou_thresh=args.iou, use_polygons=not args.eval_straight, mask_shape=(args.mask_shape, args.mask_shape)
-        )
-        e2e_metric = OCRMetric(
-            iou_thresh=args.iou, use_polygons=not args.eval_straight, mask_shape=(args.mask_shape, args.mask_shape)
-        )
-    else:
-        det_metric = LocalizationConfusion(iou_thresh=args.iou, use_polygons=not args.eval_straight)
-        e2e_metric = OCRMetric(iou_thresh=args.iou, use_polygons=not args.eval_straight)
+
+    det_metric = LocalizationConfusion(iou_thresh=args.iou, use_polygons=not args.eval_straight)
+    e2e_metric = OCRMetric(iou_thresh=args.iou, use_polygons=not args.eval_straight)
 
     sample_idx = 0
     extraction_fn = extract_crops if args.eval_straight else extract_rcrops
@@ -197,7 +190,6 @@ def parse_args():
     parser.add_argument("--label_file", type=str, default=None, help="Only for local sets, path to labels")
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="run rotated OCR + postprocessing")
     parser.add_argument("-b", "--batch_size", type=int, default=32, help="batch size for recognition")
-    parser.add_argument("--mask_shape", type=int, default=None, help="mask shape for mask iou (only for rotation)")
     parser.add_argument("--samples", type=int, default=None, help="evaluate only on the N first samples")
     parser.add_argument(
         "--eval-straight",
