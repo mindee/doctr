@@ -42,14 +42,14 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
           pip install -r references/requirements.txt
           sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
           pip install -r references/requirements.txt
           sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - if: matrix.framework == 'tensorflow'
@@ -94,13 +94,13 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
           pip install -r references/requirements.txt
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract detection toy set
         run: |
@@ -160,13 +160,13 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
           pip install -r references/requirements.txt
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
@@ -211,12 +211,12 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Evaluate text recognition (TF)
         run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small --dataset IIIT5K -b 32
@@ -255,12 +255,12 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
         run: python references/recognition/latency_tensorflow.py crnn_mobilenet_v3_small --it 5
@@ -303,13 +303,13 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
           pip install -r references/requirements.txt
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
@@ -354,13 +354,13 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
           pip install -r references/requirements.txt
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
           pip install -r references/requirements.txt
       - if: matrix.framework == 'tensorflow'
         name: Evaluate text detection (TF)
@@ -400,12 +400,12 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
         run: python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
@@ -444,12 +444,12 @@ jobs:
         name: Install dependencies (TF)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf] --upgrade
+          pip install -e .[tf,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Install dependencies (PT)
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch] --upgrade
+          pip install -e .[torch,viz,html] --upgrade
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
         run: python references/obj_detection/latency_pytorch.py fasterrcnn_mobilenet_v3_large_fpn --it 5 --size 512

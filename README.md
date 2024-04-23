@@ -37,7 +37,7 @@ from doctr.io import DocumentFile
 pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 # Image
 single_img_doc = DocumentFile.from_images("path/to/your/img.jpg")
-# Webpage
+# Webpage (requires `weasyprint` to be installed)
 webpage_doc = DocumentFile.from_url("https://www.yoursite.com")
 # Multiple page images
 multi_img_doc = DocumentFile.from_images(["path/to/page1.jpg", "path/to/page2.jpg"])
@@ -75,6 +75,7 @@ If both options are set to False, the predictor will always fit and return rotat
 To interpret your model's predictions, you can visualize them interactively as follows:
 
 ```python
+# Display the result (requires matplotlib & mplcursors to be installed)
 result.show()
 ```
 
@@ -135,16 +136,6 @@ The KIE predictor results per page are in a dictionary format with each key repr
 ### Prerequisites
 
 Python 3.9 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
-
-Since we use [weasyprint](https://weasyprint.org/), you will need extra dependencies if you are not running Linux.
-
-For MacOS users, you can install them as follows:
-
-```shell
-brew install cairo pango gdk-pixbuf libffi
-```
-
-For Windows users, those dependencies are included in GTK. You can find the latest installer over [here](https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases).
 
 ### Latest release
 
@@ -350,9 +341,15 @@ Your API should now be running locally on your port 8002. Access your automatica
 
 ```python
 import requests
+
+headers = {"accept": "application/json"}
+params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn"}
+
 with open('/path/to/your/doc.jpg', 'rb') as f:
-    data = f.read()
-response = requests.post("http://localhost:8002/ocr", files={'file': data}).json()
+    files = [  # application/pdf, image/jpeg, image/png supported
+        ("files", ("doc.jpg", f.read(), "image/jpeg")),
+    ]
+print(requests.post("http://localhost:8080/ocr", headers=headers, params=params, files=files).json())
 ```
 
 ### Example notebooks
