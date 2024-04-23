@@ -8,6 +8,8 @@ from typing import Any, Dict, List, Optional, Tuple
 import cv2
 import numpy as np
 
+from doctr.file_utils import requires_package
+
 from .base import _BasePredictor
 
 __all__ = ["ArtefactDetector"]
@@ -110,7 +112,7 @@ class ArtefactDetector(_BasePredictor):
         ----
             **kwargs: additional keyword arguments to be passed to `plt.show`
         """
-        # TODO: requires check for matplotlib
+        requires_package("matplotlib", "`.show()` requires matplotlib installed")
         import matplotlib.pyplot as plt
         from matplotlib.patches import Rectangle
 

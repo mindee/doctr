@@ -14,7 +14,9 @@ Available contribution modules
 
 .. code:: bash
 
-    pip install onnxruntime
+    pip install python-doctr[contrib]
+    # Or
+    pip install onnxruntime  # pip install onnxruntime-gpu
 
 Here are all contribution modules that are available through docTR:
 

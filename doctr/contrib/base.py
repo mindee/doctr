@@ -7,6 +7,7 @@ from typing import Any, List, Optional
 
 import numpy as np
 
+from doctr.file_utils import requires_package
 from doctr.utils.data import download_from_url
 
 
@@ -41,10 +42,9 @@ class _BasePredictor:
 
         Returns:
         -------
-            str: the path to the model
+            Any: the ONNX loaded model
         """
-        # TODO: requires check
-
+        requires_package("onnxruntime", "`.contrib` module requires `onnxruntime` to be installed.")
         import onnxruntime as ort
 
         if not url and not model_path:

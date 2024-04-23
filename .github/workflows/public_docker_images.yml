@@ -23,7 +23,7 @@ jobs:
       matrix:
         # Must match version at https://www.python.org/ftp/python/
         python: ["3.9.18", "3.10.13", "3.11.8"]
-        framework: ["tf", "torch", "tf,viz,html", "torch,viz,html"]
+        framework: ["tf", "torch", "tf,viz,html,contrib", "torch,viz,html,contrib"]
         system: ["cpu", "gpu"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
