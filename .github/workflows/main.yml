@@ -34,7 +34,7 @@ jobs:
         run: |
           coverage run -m pytest tests/common/
           coverage xml -o coverage-common.xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-common
           path: ./coverage-common.xml
@@ -67,7 +67,7 @@ jobs:
         run: |
           coverage run -m pytest tests/tensorflow/
           coverage xml -o coverage-tf.xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-tf
           path: ./coverage-tf.xml
