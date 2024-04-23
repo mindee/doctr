@@ -16,7 +16,7 @@ pip install -r references/requirements.txt
 You can start your training in TensorFlow:
 
 ```shell
-"TF_USE_LEGACY_KERAS"=1 python references/classification/train_tensorflow_character.py mobilenet_v3_large --epochs 5
+python references/classification/train_tensorflow_character.py mobilenet_v3_large --epochs 5
 ```
 
 or PyTorch:
