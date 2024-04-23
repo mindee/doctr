@@ -260,14 +260,19 @@
 <span class="kn">from</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">import</span> <span class="n">Element</span> <span class="k">as</span> <span class="n">ETElement</span>
 <span class="kn">from</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">import</span> <span class="n">SubElement</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">import</span> <span class="nn">doctr</span>
+<span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">requires_package</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">resolve_enclosing_bbox</span><span class="p">,</span> <span class="n">resolve_enclosing_rbbox</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.reconstitution</span> <span class="kn">import</span> <span class="n">synthesize_kie_page</span><span class="p">,</span> <span class="n">synthesize_page</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
-<span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">synthesize_kie_page</span><span class="p">,</span> <span class="n">synthesize_page</span><span class="p">,</span> <span class="n">visualize_kie_page</span><span class="p">,</span> <span class="n">visualize_page</span>
+
+<span class="k">try</span><span class="p">:</span>  <span class="c1"># optional dependency for visualization</span>
+    <span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">visualize_kie_page</span><span class="p">,</span> <span class="n">visualize_page</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">pass</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">,</span> <span class="s2">&quot;Word&quot;</span><span class="p">,</span> <span class="s2">&quot;Artefact&quot;</span><span class="p">,</span> <span class="s2">&quot;Line&quot;</span><span class="p">,</span> <span class="s2">&quot;Prediction&quot;</span><span class="p">,</span> <span class="s2">&quot;Block&quot;</span><span class="p">,</span> <span class="s2">&quot;Page&quot;</span><span class="p">,</span> <span class="s2">&quot;KIEPage&quot;</span><span class="p">,</span> <span class="s2">&quot;Document&quot;</span><span class="p">]</span>
 
@@ -546,6 +551,10 @@
 <span class="sd">            preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 <span class="sd">            **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;mplcursors&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
         <span class="n">visualize_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -723,6 +732,10 @@
 <span class="sd">            preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 <span class="sd">            **kwargs: keyword arguments passed to the matplotlib.pyplot.show method</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;mplcursors&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
         <span class="n">visualize_kie_page</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span>
         <span class="p">)</span>

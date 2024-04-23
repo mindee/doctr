@@ -262,12 +262,6 @@
 <li><p><a class="reference external" href="https://developer.apple.com/metal/tensorflow-plugin/">TensorFlow 2 Metal Plugin</a></p></li>
 <li><p><a class="reference external" href="https://pytorch.org/get-started/locally/#start-locally">PyTorch &gt;= 1.12.0</a></p></li>
 </ul>
-<p>If you are running another OS than Linux, you will need a few extra dependencies.</p>
-<p>For MacOS users, you can install them using <a class="reference external" href="https://brew.sh/">Homebrew</a> as follows:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>brew<span class="w"> </span>install<span class="w"> </span>cairo<span class="w"> </span>pango<span class="w"> </span>gdk-pixbuf<span class="w"> </span>libffi
-</pre></div>
-</div>
-<p>For Windows users, those dependencies are included in GTK. You can find the latest installer over <a class="reference external" href="https://github.com/tschoonj/GTK-for-Windows-Runtime-Environment-Installer/releases">here</a>.</p>
 </section>
 <section id="via-python-package">
 <h2>Via Python Package<a class="headerlink" href="#via-python-package" title="Link to this heading">¶</a></h2>
@@ -278,9 +272,13 @@
 <p>We strive towards reducing framework-specific dependencies to a minimum, but some necessary features are developed by third-parties for specific frameworks. To avoid missing some dependencies for a specific framework, you can install specific builds as follows:</p>
 <div class="sphinx-tabs docutils container">
 <div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[tf]&quot;</span>
+<span class="c1"># or with preinstalled packages for visualization &amp; html support</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[tf,viz,html]&quot;</span>
 </pre></div>
 </div>
 </div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[torch]&quot;</span>
+<span class="c1"># or with preinstalled packages for visualization &amp; html support</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[torch,viz,html]&quot;</span>
 </pre></div>
 </div>
 </div></div>

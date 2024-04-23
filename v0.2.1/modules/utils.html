@@ -289,27 +289,6 @@ add_labels: for static plot, adds text labels on top of bounding box
 </section>
 </dd></dl>
 
-<dl class="py function">
-<dt class="sig sig-object py" id="doctr.utils.visualization.synthesize_page">
-<span class="sig-prename descclassname"><span class="pre">doctr.utils.visualization.</span></span><span class="sig-name descname"><span class="pre">synthesize_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">draw_proba</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_family</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/doctr/utils/visualization.html#synthesize_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.visualization.synthesize_page" title="Link to this definition">¶</a></dt>
-<dd><p>Draw a the content of the element page (OCR response) on a blank page.</p>
-<section id="id3">
-<h3>Args:<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
-<blockquote>
-<div><p>page: exported Page object to represent
-draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
-font_size: size of the font, default font = 13
-font_family: family of the font</p>
-</div></blockquote>
-</section>
-<section id="id4">
-<h3>Returns:<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
-<blockquote>
-<div><p>the synthesized page</p>
-</div></blockquote>
-</section>
-</dd></dl>
-
 </section>
 <section id="task-evaluation">
 <span id="metrics"></span><h2>Task evaluation<a class="headerlink" href="#task-evaluation" title="Link to this heading">¶</a></h2>
@@ -347,8 +326,8 @@ f_a(x) = \left\{
 <dt class="sig sig-object py" id="doctr.utils.metrics.TextMatch.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#TextMatch.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.TextMatch.update" title="Link to this definition">¶</a></dt>
 <dd><p>Update the state of the metric with new predictions</p>
-<section id="id5">
-<h3>Args:<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
+<section id="id3">
+<h3>Args:<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>gt: list of groung-truth character sequences
 pred: list of predicted character sequences</p>
@@ -406,8 +385,8 @@ g_X(y) = \left\{
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
-<section id="id6">
-<h3>Args:<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<section id="id4">
+<h3>Args:<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
 use_polygons: if set to True, predictions and targets will be expected to have rotated format
@@ -418,8 +397,8 @@ use_broadcasting: if use_polygons is True, use broadcasting for IoU computation 
 <dt class="sig sig-object py" id="doctr.utils.metrics.LocalizationConfusion.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#LocalizationConfusion.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.LocalizationConfusion.update" title="Link to this definition">¶</a></dt>
 <dd><p>Updates the metric</p>
-<section id="id7">
-<h4>Args:<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h4>
+<section id="id5">
+<h4>Args:<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h4>
 <blockquote>
 <div><p>gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
 preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</p>
@@ -478,8 +457,8 @@ h_{B,L}(b, l) = \left\{
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
-<section id="id8">
-<h3>Args:<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<section id="id6">
+<h3>Args:<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
 use_polygons: if set to True, predictions and targets will be expected to have rotated format
@@ -490,8 +469,8 @@ use_broadcasting: if use_polygons is True, use broadcasting for IoU computation 
 <dt class="sig sig-object py" id="doctr.utils.metrics.OCRMetric.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gt_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gt_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#OCRMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.OCRMetric.update" title="Link to this definition">¶</a></dt>
 <dd><p>Updates the metric</p>
-<section id="id9">
-<h4>Args:<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h4>
+<section id="id7">
+<h4>Args:<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h4>
 <blockquote>
 <div><p>gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
 pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
@@ -552,8 +531,8 @@ h_{B,C}(b, c) = \left\{
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
-<section id="id10">
-<h3>Args:<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
+<section id="id8">
+<h3>Args:<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match
 use_polygons: if set to True, predictions and targets will be expected to have rotated format
@@ -564,8 +543,8 @@ use_broadcasting: if use_polygons is True, use broadcasting for IoU computation 
 <dt class="sig sig-object py" id="doctr.utils.metrics.DetectionMetric.update">
 <span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gt_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gt_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#DetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.DetectionMetric.update" title="Link to this definition">¶</a></dt>
 <dd><p>Updates the metric</p>
-<section id="id11">
-<h4>Args:<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h4>
+<section id="id9">
+<h4>Args:<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h4>
 <blockquote>
 <div><p>gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
 pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
@@ -650,7 +629,6 @@ pred_labels: an array of class indices of shape (M,)</p>
 <li><a class="reference internal" href="#">doctr.utils</a><ul>
 <li><a class="reference internal" href="#visualization">Visualization</a><ul>
 <li><a class="reference internal" href="#doctr.utils.visualization.visualize_page"><code class="docutils literal notranslate"><span class="pre">visualize_page()</span></code></a></li>
-<li><a class="reference internal" href="#doctr.utils.visualization.synthesize_page"><code class="docutils literal notranslate"><span class="pre">synthesize_page()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#task-evaluation">Task evaluation</a><ul>
