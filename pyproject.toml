@@ -53,8 +53,8 @@ dependencies = [
 [project.optional-dependencies]
 tf = [
     # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.15.0",
-    "tf-keras>=2.15.0",  # Keep keras 2 compatibility
+    "tensorflow>=2.15.0,<3.0.0",
+    "tf-keras>=2.15.0,<3.0.0",  # Keep keras 2 compatibility
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # TODO: This is a temporary fix until we can upgrade to a newer version of tensorflow
     "numpy>=1.16.0,<2.0.0",
@@ -99,8 +99,8 @@ docs = [
 dev = [
     # Tensorflow
     # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.15.0",
-    "tf-keras>=2.15.0",  # Keep keras 2 compatibility
+    "tensorflow>=2.15.0,<3.0.0",
+    "tf-keras>=2.15.0,<3.0.0",  # Keep keras 2 compatibility
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
     "torch>=1.12.0,<3.0.0",
