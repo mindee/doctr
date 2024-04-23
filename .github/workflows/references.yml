@@ -263,7 +263,7 @@ jobs:
           pip install -e .[torch,viz,html] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: TF_USE_LEGACY_KERAS=1 python references/recognition/latency_tensorflow.py crnn_mobilenet_v3_small --it 5
+        run: python references/recognition/latency_tensorflow.py crnn_mobilenet_v3_small --it 5
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
         run: python references/recognition/latency_pytorch.py crnn_mobilenet_v3_small --it 5
@@ -408,7 +408,7 @@ jobs:
           pip install -e .[torch,viz,html] --upgrade
       - if: matrix.framework == 'tensorflow'
         name: Benchmark latency (TF)
-        run: TF_USE_LEGACY_KERAS=1 python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
+        run: python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
       - if: matrix.framework == 'pytorch'
         name: Benchmark latency (PT)
         run: python references/detection/latency_pytorch.py db_mobilenet_v3_large --it 5 --size 512

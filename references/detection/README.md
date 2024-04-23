@@ -16,7 +16,7 @@ pip install -r references/requirements.txt
 You can start your training in TensorFlow:
 
 ```shell
-TF_USE_LEGACY_KERAS=1 python references/detection/train_tensorflow.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
+python references/detection/train_tensorflow.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
 ```
 
 or PyTorch:

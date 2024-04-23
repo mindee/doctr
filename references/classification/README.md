@@ -30,7 +30,7 @@ python references/classification/train_pytorch_character.py mobilenet_v3_large -
 You can start your training in TensorFlow:
 
 ```shell
-TF_USE_LEGACY_KERAS=1 python references/classification/train_tensorflow_orientation.py path/to/your/train_set path/to/your/val_set resnet18 page --epochs 5
+python references/classification/train_tensorflow_orientation.py path/to/your/train_set path/to/your/val_set resnet18 page --epochs 5
 ```
 
 or PyTorch:
@@ -61,7 +61,7 @@ Feel free to inspect the multiple script option to customize your training to yo
 Character classification:
 
 ```shell
-TF_USE_LEGACY_KERAS=1 python references/classification/train_tensorflow_character.py --help
+python references/classification/train_tensorflow_character.py --help
 ```
 
 Orientation classification:
