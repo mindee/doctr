@@ -6,7 +6,6 @@
 import os
 
 os.environ["USE_TF"] = "1"
-os.environ["TF_USE_LEGACY_KERAS"] = "1"  # docTR requires Keras v2
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
