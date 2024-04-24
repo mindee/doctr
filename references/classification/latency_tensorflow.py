@@ -9,13 +9,17 @@ import argparse
 import os
 import time
 
+from doctr.file_utils import ensure_keras_v2
+
+ensure_keras_v2()
+
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.models import classification  # isort: skip
-
 import numpy as np
 import tensorflow as tf
+
+from doctr.models import classification
 
 
 def main(args):
