@@ -85,6 +85,11 @@ elif os.environ["TF_USE_LEGACY_KERAS"] != "1":
     )
 
 
+def ensure_keras_v2() -> None:  # pragma: no cover
+    if not os.environ.get("TF_USE_LEGACY_KERAS") == "1":
+        os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
+
 def requires_package(name: str, extra_message: Optional[str] = None) -> None:  # pragma: no cover
     """
     package requirement helper
