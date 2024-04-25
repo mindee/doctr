@@ -191,6 +191,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -198,6 +199,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/models.html">doctr.models</a></li>
@@ -284,7 +286,6 @@
     <span class="s2">&quot;classification&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;detection&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;recognition&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
-    <span class="s2">&quot;obj_detection&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;fasterrcnn_mobilenet_v3_large_fpn&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -363,8 +364,8 @@
 
     <span class="k">if</span> <span class="n">run_config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">arch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;run_config or arch must be specified&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">,</span> <span class="s2">&quot;detection&quot;</span><span class="p">,</span> <span class="s2">&quot;recognition&quot;</span><span class="p">,</span> <span class="s2">&quot;obj_detection&quot;</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition, obj_detection&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">,</span> <span class="s2">&quot;detection&quot;</span><span class="p">,</span> <span class="s2">&quot;recognition&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition&quot;</span><span class="p">)</span>
 
     <span class="c1"># default readme</span>
     <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
@@ -418,7 +419,7 @@
 <span class="s2">                                  </span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AVAILABLE_ARCHS</span><span class="p">[</span><span class="n">task</span><span class="p">]:</span>  <span class="c1"># type: ignore</span>
+    <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AVAILABLE_ARCHS</span><span class="p">[</span><span class="n">task</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;Architecture: </span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2"> for task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span><span class="s2"> not found.</span><span class="se">\</span>
 <span class="s2">                         </span><span class="se">\n</span><span class="s2">Available architectures: </span><span class="si">{</span><span class="n">AVAILABLE_ARCHS</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -473,14 +474,6 @@
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;recognition&quot;</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">],</span> <span class="n">vocab</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">])</span>
-    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;obj_detection&quot;</span> <span class="ow">and</span> <span class="n">is_torch_available</span><span class="p">():</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">obj_detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span>
-            <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">image_mean</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span>
-            <span class="n">image_std</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;std&quot;</span><span class="p">],</span>
-            <span class="n">max_size</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-            <span class="n">num_classes</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]),</span>
-        <span class="p">)</span>
 
     <span class="c1"># update model cfg</span>
     <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
