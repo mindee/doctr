@@ -17,7 +17,7 @@ __all__ = ["OrientationPredictor"]
 
 class OrientationPredictor(NestedObject):
     """Implements an object able to detect the reading direction of a text box or a page.
-    4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
+    4 possible orientations: 0, 90, 180, 270 (-90) degrees counter clockwise.
 
     Args:
     ----
