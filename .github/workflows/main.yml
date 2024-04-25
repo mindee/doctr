@@ -34,7 +34,7 @@ jobs:
         run: |
           coverage run -m pytest tests/common/
           coverage xml -o coverage-common.xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-common
           path: ./coverage-common.xml
@@ -67,7 +67,7 @@ jobs:
         run: |
           coverage run -m pytest tests/tensorflow/
           coverage xml -o coverage-tf.xml
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: coverage-tf
           path: ./coverage-tf.xml
@@ -115,7 +115,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           flags: unittests
           fail_ci_if_error: true

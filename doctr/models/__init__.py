@@ -1,4 +1,3 @@
-from . import artefacts
 from .classification import *
 from .detection import *
 from .recognition import *

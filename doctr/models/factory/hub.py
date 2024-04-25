@@ -36,7 +36,6 @@ AVAILABLE_ARCHS = {
     "classification": models.classification.zoo.ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
-    "obj_detection": ["fasterrcnn_mobilenet_v3_large_fpn"] if is_torch_available() else None,
 }
 
 
@@ -110,8 +109,8 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     if run_config is None and arch is None:
         raise ValueError("run_config or arch must be specified")
-    if task not in ["classification", "detection", "recognition", "obj_detection"]:
-        raise ValueError("task must be one of classification, detection, recognition, obj_detection")
+    if task not in ["classification", "detection", "recognition"]:
+        raise ValueError("task must be one of classification, detection, recognition")
 
     # default readme
     readme = textwrap.dedent(
@@ -165,7 +164,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
                                   \n{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}"""
         )
 
-    if arch not in AVAILABLE_ARCHS[task]:  # type: ignore
+    if arch not in AVAILABLE_ARCHS[task]:
         raise ValueError(
             f"Architecture: {arch} for task: {task} not found.\
                          \nAvailable architectures: {AVAILABLE_ARCHS}"
@@ -217,14 +216,6 @@ def from_hub(repo_id: str, **kwargs: Any):
         model = models.detection.__dict__[arch](pretrained=False)
     elif task == "recognition":
         model = models.recognition.__dict__[arch](pretrained=False, input_shape=cfg["input_shape"], vocab=cfg["vocab"])
-    elif task == "obj_detection" and is_torch_available():
-        model = models.obj_detection.__dict__[arch](
-            pretrained=False,
-            image_mean=cfg["mean"],
-            image_std=cfg["std"],
-            max_size=cfg["input_shape"][-1],
-            num_classes=len(cfg["classes"]),
-        )
 
     # update model cfg
     model.cfg = cfg
