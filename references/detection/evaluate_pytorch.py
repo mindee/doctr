@@ -14,7 +14,6 @@ import multiprocessing as mp
 import time
 from pathlib import Path
 
-import psutil
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision.transforms import Normalize
@@ -66,7 +65,6 @@ def main(args):
         args.workers = min(16, mp.cpu_count())
 
     torch.backends.cudnn.benchmark = True
-    system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
     # Load docTR model
     model = detection.__dict__[args.arch](
@@ -134,11 +132,7 @@ def main(args):
         model = model.cuda()
 
     # Metrics
-    metric = LocalizationConfusion(
-        use_polygons=args.rotation,
-        mask_shape=input_shape,
-        use_broadcasting=True if system_available_memory > 62 else False,
-    )
+    metric = LocalizationConfusion(use_polygons=args.rotation)
 
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)
