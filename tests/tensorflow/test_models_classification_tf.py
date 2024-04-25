@@ -50,7 +50,8 @@ def test_classification_architectures(arch_name, input_shape, output_size):
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
-        ["mobilenet_v3_small_crop_orientation", (128, 128, 3)],
+        ["mobilenet_v3_small_crop_orientation", (256, 256, 3)],
+        ["mobilenet_v3_small_page_orientation", (512, 512, 3)],
     ],
 )
 def test_classification_models(arch_name, input_shape):
@@ -68,17 +69,28 @@ def test_classification_models(arch_name, input_shape):
     "arch_name",
     [
         "mobilenet_v3_small_crop_orientation",
+        "mobilenet_v3_small_page_orientation",
     ],
 )
 def test_classification_zoo(arch_name):
-    batch_size = 16
-    # Model
-    predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
-    with pytest.raises(ValueError):
-        predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
+    if "crop" in arch_name:
+        batch_size = 16
+        input_tensor = tf.random.uniform(shape=[batch_size, 256, 256, 3], minval=0, maxval=1)
+        # Model
+        predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
+
+        with pytest.raises(ValueError):
+            predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
+    else:
+        batch_size = 2
+        input_tensor = tf.random.uniform(shape=[batch_size, 512, 512, 3], minval=0, maxval=1)
+        # Model
+        predictor = classification.zoo.page_orientation_predictor(arch_name, pretrained=False)
+
+        with pytest.raises(ValueError):
+            predictor = classification.zoo.page_orientation_predictor(arch="wrong_model", pretrained=False)
     # object check
     assert isinstance(predictor, OrientationPredictor)
-    input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
     out = predictor(input_tensor)
     class_idxs, classes, confs = out[0], out[1], out[2]
     assert isinstance(class_idxs, list) and len(class_idxs) == batch_size
@@ -102,6 +114,22 @@ def test_crop_orientation_model(mock_text_box):
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
 
+# TODO: uncomment when model is available
+"""
+def test_page_orientation_model(mock_payslip):
+    text_box_0 = cv2.imread(mock_payslip)
+    # rotates counter-clockwise
+    text_box_270 = np.rot90(text_box_0, 1)
+    text_box_180 = np.rot90(text_box_0, 2)
+    text_box_90 = np.rot90(text_box_0, 3)
+    classifier = classification.crop_orientation_predictor("mobilenet_v3_small_page_orientation", pretrained=True)
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
+    # 270 degrees is equivalent to -90 degrees
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
+    assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
+"""
+
+
 # temporarily fix to avoid killing the CI (tf2onnx v1.14 memory leak issue)
 # ref.: https://github.com/mindee/doctr/pull/1201
 @pytest.mark.parametrize(
@@ -110,7 +138,8 @@ def test_crop_orientation_model(mock_text_box):
         ["vgg16_bn_r", (32, 32, 3), (126,)],
         ["mobilenet_v3_small", (512, 512, 3), (126,)],
         ["mobilenet_v3_large", (512, 512, 3), (126,)],
-        ["mobilenet_v3_small_crop_orientation", (128, 128, 3), (4,)],
+        ["mobilenet_v3_small_crop_orientation", (256, 256, 3), (4,)],
+        ["mobilenet_v3_small_page_orientation", (512, 512, 3), (4,)],
         ["resnet18", (32, 32, 3), (126,)],
         ["vit_s", (32, 32, 3), (126,)],
         ["textnet_tiny", (32, 32, 3), (126,)],
@@ -163,7 +192,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
     tf.keras.backend.clear_session()
-    if arch_name == "mobilenet_v3_small_crop_orientation":
+    if "orientation" in arch_name:
         model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     else:
         model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
