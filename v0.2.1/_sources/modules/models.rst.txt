@@ -27,6 +27,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_small_crop_orientation
 
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_page_orientation
+
 .. autofunction:: doctr.models.classification.magc_resnet31
 
 .. autofunction:: doctr.models.classification.vit_s
@@ -40,6 +42,8 @@ doctr.models.classification
 .. autofunction:: doctr.models.classification.textnet_base
 
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
+
+.. autofunction:: doctr.models.classification.page_orientation_predictor
 
 
 doctr.models.detection

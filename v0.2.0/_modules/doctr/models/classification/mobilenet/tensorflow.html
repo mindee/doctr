@@ -272,6 +272,7 @@
     <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span>
     <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span>
     <span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -678,6 +679,29 @@
 <span class="sd">        a keras.Model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mobilenet_v3_small_page_orientation">
+<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_page_orientation">[docs]</a>
+<span class="k">def</span> <span class="nf">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import mobilenet_v3_small_page_orientation</span>
+<span class="sd">    &gt;&gt;&gt; model = mobilenet_v3_small_page_orientation(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
+<span class="sd">    Args:</span>
+<span class="sd">    ----</span>
+<span class="sd">        pretrained: boolean, True if model is pretrained</span>
+<span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
+<span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
+<span class="sd">        a keras.Model</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">include_top</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 </pre></div>
         </article>
