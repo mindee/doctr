@@ -76,6 +76,19 @@ if not _torch_available and not _tf_available:  # pragma: no cover
         " is installed and that either USE_TF or USE_TORCH is enabled."
     )
 
+# Compatibility fix to make sure tf.keras stays at Keras 2
+if "TF_USE_LEGACY_KERAS" not in os.environ:
+    os.environ["TF_USE_LEGACY_KERAS"] = "1"
+elif os.environ["TF_USE_LEGACY_KERAS"] != "1":
+    raise ValueError(
+        "docTR is only compatible with Keras 2, but you have explicitly set `TF_USE_LEGACY_KERAS` to `0`. "
+    )
+
+
+def ensure_keras_v2() -> None:  # pragma: no cover
+    if not os.environ.get("TF_USE_LEGACY_KERAS") == "1":
+        os.environ["TF_USE_LEGACY_KERAS"] = "1"
+
 
 def requires_package(name: str, extra_message: Optional[str] = None) -> None:  # pragma: no cover
     """

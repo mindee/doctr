@@ -236,6 +236,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
     tf.keras.backend.clear_session()
+    tf.config.run_functions_eagerly(True)  # Required for some models
     if arch_name == "fast_tiny_rep":
         model = reparameterize(detection.fast_tiny(pretrained=True, exportable=True, input_shape=input_shape))
     else:
@@ -249,6 +250,8 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
             model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input
         )
         assert os.path.exists(model_path)
+        tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
+
         # Inference
         ort_session = onnxruntime.InferenceSession(
             os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]

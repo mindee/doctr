@@ -5,6 +5,10 @@
 
 import os
 
+from doctr.file_utils import ensure_keras_v2
+
+ensure_keras_v2()
+
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -83,6 +87,11 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
+@tf.function
+def apply_grads(optimizer, grads, model):
+    optimizer.apply_gradients(zip(grads, model.trainable_weights))
+
+
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
@@ -95,7 +104,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
-        optimizer.apply_gradients(zip(grads, model.trainable_weights))
+        apply_grads(optimizer, grads, model)
 
         pbar.set_description(f"Training loss: {train_loss.numpy():.6}")
 
@@ -218,7 +227,7 @@ def main(args):
             T.RandomApply(T.ColorInversion(), 0.1),
             T.RandomJpegQuality(60),
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.1),
+            # T.RandomApply(T.RandomShadow(), 0.1),  # NOTE: RandomShadow is broken atm
             T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.1),
             T.RandomSaturation(0.3),
             T.RandomContrast(0.3),

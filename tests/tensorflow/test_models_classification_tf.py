@@ -163,6 +163,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
     tf.keras.backend.clear_session()
+    tf.config.run_functions_eagerly(True)  # Required for some models
     if arch_name == "mobilenet_v3_small_crop_orientation":
         model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     else:
@@ -181,8 +182,8 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         model_path, output = export_model_to_onnx(
             model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input
         )
-
         assert os.path.exists(model_path)
+        tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
         # Inference
         ort_session = onnxruntime.InferenceSession(
             os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]

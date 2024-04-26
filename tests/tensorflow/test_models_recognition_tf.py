@@ -195,6 +195,7 @@ def test_models_onnx_export(arch_name, input_shape):
     # Model
     batch_size = 2
     tf.keras.backend.clear_session()
+    tf.config.run_functions_eagerly(True)  # Required for some models
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
     # SAR, MASTER, ViTSTR export currently only available with constant batch size
     if arch_name in ["sar_resnet31", "master", "vitstr_small", "parseq"]:
@@ -212,6 +213,7 @@ def test_models_onnx_export(arch_name, input_shape):
             large_model=True if arch_name == "master" else False,
         )
         assert os.path.exists(model_path)
+        tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
 
         if arch_name == "master":
             # large models are exported as zip archive
