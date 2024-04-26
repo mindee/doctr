@@ -41,6 +41,9 @@ CLASSES = [0, -90, 180, 90]
 def rnd_rotate(img: torch.Tensor, target):
     angle = int(np.random.choice(CLASSES))
     idx = CLASSES.index(angle)
+    # augment the angle randomly with a probability of 0.5
+    if np.random.rand() < 0.5:
+        angle += float(np.random.choice(np.arange(-20, 20, 5)))
     rotated_img = F.rotate(img, angle=-angle, fill=0, expand=False)[:3]
     return rotated_img, idx
 
