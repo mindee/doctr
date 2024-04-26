@@ -114,7 +114,7 @@ def test_crop_orientation_model(mock_text_box):
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
 
-# TODO: uncomment when model is available
+TODO: "uncomment when model is available"  # type: ignore # noqa: F722
 """
 def test_page_orientation_model(mock_payslip):
     text_box_0 = cv2.imread(mock_payslip)
