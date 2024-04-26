@@ -22,6 +22,7 @@ __all__ = [
     "mobilenet_v3_large",
     "mobilenet_v3_large_r",
     "mobilenet_v3_small_crop_orientation",
+    "mobilenet_v3_small_page_orientation",
 ]
 
 
@@ -414,3 +415,23 @@ def mobilenet_v3_small_crop_orientation(pretrained: bool = False, **kwargs: Any)
         a keras.Model
     """
     return _mobilenet_v3("mobilenet_v3_small_crop_orientation", pretrained, include_top=True, **kwargs)
+
+
+def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any) -> MobileNetV3:
+    """MobileNetV3-Small architecture as described in
+    `"Searching for MobileNetV3",
+    <https://arxiv.org/pdf/1905.02244.pdf>`_.
+    >>> import tensorflow as tf
+    >>> from doctr.models import mobilenet_v3_small_page_orientation
+    >>> model = mobilenet_v3_small_page_orientation(pretrained=False)
+    >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
+    >>> out = model(input_tensor)
+    Args:
+    ----
+        pretrained: boolean, True if model is pretrained
+        **kwargs: keyword arguments of the MobileNetV3 architecture
+    Returns:
+    -------
+        a keras.Model
+    """
+    return _mobilenet_v3("mobilenet_v3_small_page_orientation", pretrained, include_top=True, **kwargs)

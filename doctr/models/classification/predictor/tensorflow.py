@@ -16,8 +16,8 @@ __all__ = ["OrientationPredictor"]
 
 
 class OrientationPredictor(NestedObject):
-    """Implements an object able to detect the reading direction of a text box.
-    4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
+    """Implements an object able to detect the reading direction of a text box or a page.
+    4 possible orientations: 0, 90, 180, 270 (-90) degrees counter clockwise.
 
     Args:
     ----
@@ -37,13 +37,13 @@ class OrientationPredictor(NestedObject):
 
     def __call__(
         self,
-        crops: List[Union[np.ndarray, tf.Tensor]],
+        inputs: List[Union[np.ndarray, tf.Tensor]],
     ) -> List[Union[List[int], List[float]]]:
         # Dimension check
-        if any(crop.ndim != 3 for crop in crops):
-            raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
+        if any(input.ndim != 3 for input in inputs):
+            raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")
 
-        processed_batches = self.pre_processor(crops)
+        processed_batches = self.pre_processor(inputs)
         predicted_batches = [self.model(batch, training=False) for batch in processed_batches]
 
         # confidence

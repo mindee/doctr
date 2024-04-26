@@ -60,7 +60,8 @@ def test_classification_architectures(arch_name, input_shape, output_size):
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
-        ["mobilenet_v3_small_crop_orientation", (3, 128, 128)],
+        ["mobilenet_v3_small_crop_orientation", (3, 256, 256)],
+        ["mobilenet_v3_small_page_orientation", (3, 512, 512)],
     ],
 )
 def test_classification_models(arch_name, input_shape):
@@ -81,19 +82,30 @@ def test_classification_models(arch_name, input_shape):
     "arch_name",
     [
         "mobilenet_v3_small_crop_orientation",
+        "mobilenet_v3_small_page_orientation",
     ],
 )
 def test_classification_zoo(arch_name):
-    batch_size = 16
-    # Model
-    predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
-    predictor.model.eval()
+    if "crop" in arch_name:
+        batch_size = 16
+        input_tensor = torch.rand((batch_size, 3, 256, 256))
+        # Model
+        predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
+        predictor.model.eval()
 
-    with pytest.raises(ValueError):
-        predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
+        with pytest.raises(ValueError):
+            predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
+    else:
+        batch_size = 2
+        input_tensor = torch.rand((batch_size, 3, 512, 512))
+        # Model
+        predictor = classification.zoo.page_orientation_predictor(arch_name, pretrained=False)
+        predictor.model.eval()
+
+        with pytest.raises(ValueError):
+            predictor = classification.zoo.page_orientation_predictor(arch="wrong_model", pretrained=False)
     # object check
     assert isinstance(predictor, OrientationPredictor)
-    input_tensor = torch.rand((batch_size, 3, 128, 128))
     if torch.cuda.is_available():
         predictor.model.cuda()
         input_tensor = input_tensor.cuda()
@@ -123,6 +135,19 @@ def test_crop_orientation_model(mock_text_box):
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
 
+def test_page_orientation_model(mock_payslip):
+    text_box_0 = cv2.imread(mock_payslip)
+    # rotates counter-clockwise
+    text_box_270 = np.rot90(text_box_0, 1)
+    text_box_180 = np.rot90(text_box_0, 2)
+    text_box_90 = np.rot90(text_box_0, 3)
+    classifier = classification.crop_orientation_predictor("mobilenet_v3_small_page_orientation", pretrained=True)
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
+    # 270 degrees is equivalent to -90 degrees
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
+    assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
+
+
 @pytest.mark.parametrize(
     "arch_name, input_shape, output_size",
     [
@@ -135,7 +160,8 @@ def test_crop_orientation_model(mock_text_box):
         ["magc_resnet31", (3, 32, 32), (126,)],
         ["mobilenet_v3_small", (3, 32, 32), (126,)],
         ["mobilenet_v3_large", (3, 32, 32), (126,)],
-        ["mobilenet_v3_small_crop_orientation", (3, 128, 128), (4,)],
+        ["mobilenet_v3_small_crop_orientation", (3, 256, 256), (4,)],
+        ["mobilenet_v3_small_page_orientation", (3, 512, 512), (4,)],
         ["vit_s", (3, 32, 32), (126,)],
         ["vit_b", (3, 32, 32), (126,)],
         ["textnet_tiny", (3, 32, 32), (126,)],

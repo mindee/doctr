@@ -16,8 +16,8 @@ __all__ = ["OrientationPredictor"]
 
 
 class OrientationPredictor(nn.Module):
-    """Implements an object able to detect the reading direction of a text box.
-    4 possible orientations: 0, 90, 180, 270 degrees counter clockwise.
+    """Implements an object able to detect the reading direction of a text box or a page.
+    4 possible orientations: 0, 90, 180, 270 (-90) degrees counter clockwise.
 
     Args:
     ----
@@ -37,13 +37,13 @@ class OrientationPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        crops: List[Union[np.ndarray, torch.Tensor]],
+        inputs: List[Union[np.ndarray, torch.Tensor]],
     ) -> List[Union[List[int], List[float]]]:
         # Dimension check
-        if any(crop.ndim != 3 for crop in crops):
-            raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
+        if any(input.ndim != 3 for input in inputs):
+            raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")
 
-        processed_batches = self.pre_processor(crops)
+        processed_batches = self.pre_processor(inputs)
         _params = next(self.model.parameters())
         self.model, processed_batches = set_device_and_dtype(
             self.model, processed_batches, _params.device, _params.dtype
