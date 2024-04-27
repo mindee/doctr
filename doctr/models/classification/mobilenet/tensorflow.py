@@ -424,7 +424,7 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
 
     >>> import tensorflow as tf
     >>> from doctr.models import mobilenet_v3_small_page_orientation
-    >>> model = mobilenet_v3_small_orientation(pretrained=False)
+    >>> model = mobilenet_v3_small_page_orientation(pretrained=False)
     >>> input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
     >>> out = model(input_tensor)
 

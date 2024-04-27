@@ -255,7 +255,7 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
 
     >>> import torch
     >>> from doctr.models import mobilenet_v3_small_page_orientation
-    >>> model = mobilenet_v3_small_orientation(pretrained=False)
+    >>> model = mobilenet_v3_small_page_orientation(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
     >>> out = model(input_tensor)
 
