@@ -77,7 +77,7 @@ class _OCRPredictor:
     ) -> Tuple[List[Tuple[int, float]], List[int]]:
         general_pages_orientations = self._get_general_pages_orientations(pages)
         origin_page_orientations = [
-            -estimate_orientation(seq_map, general_orientation)
+            estimate_orientation(seq_map, general_orientation)
             for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
         ]
         return general_pages_orientations, origin_page_orientations
