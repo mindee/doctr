@@ -32,7 +32,7 @@ jobs:
           pip install -e .[testing]
       - name: Run unittests
         run: |
-          coverage run -m pytest tests/common/
+          coverage run -m pytest tests/common/ -rs
           coverage xml -o coverage-common.xml
       - uses: actions/upload-artifact@v4
         with:
@@ -65,7 +65,7 @@ jobs:
           pip install -e .[testing]
       - name: Run unittests
         run: |
-          coverage run -m pytest tests/tensorflow/
+          coverage run -m pytest tests/tensorflow/ -rs
           coverage xml -o coverage-tf.xml
       - uses: actions/upload-artifact@v4
         with:
@@ -99,7 +99,7 @@ jobs:
 
       - name: Run unittests
         run: |
-          coverage run -m pytest tests/pytorch/
+          coverage run -m pytest tests/pytorch/ -rs
           coverage xml -o coverage-pt.xml
 
       - uses: actions/upload-artifact@v4
