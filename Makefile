@@ -11,18 +11,18 @@ style:
 
 # Run tests for the library
 test:
-	coverage run -m pytest tests/common/
-	USE_TF='1' coverage run -m pytest tests/tensorflow/
-	USE_TORCH='1' coverage run -m pytest tests/pytorch/
+	coverage run -m pytest tests/common/ -rs
+	USE_TF='1' coverage run -m pytest tests/tensorflow/ -rs
+	USE_TORCH='1' coverage run -m pytest tests/pytorch/ -rs
 
 test-common:
-	coverage run -m pytest tests/common/
+	coverage run -m pytest tests/common/ -rs
 
 test-tf:
-	USE_TF='1' coverage run -m pytest tests/tensorflow/
+	USE_TF='1' coverage run -m pytest tests/tensorflow/ -rs
 
 test-torch:
-	USE_TORCH='1' coverage run -m pytest tests/pytorch/
+	USE_TORCH='1' coverage run -m pytest tests/pytorch/ -rs
 
 # Check that docs can build
 docs-single-version:

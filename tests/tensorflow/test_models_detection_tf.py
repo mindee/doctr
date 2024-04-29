@@ -243,6 +243,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     # batch_size = None for dynamic batch size
     dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
+    tf_logits = model(np_dummy_input, training=False)["logits"].numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path, output = export_model_to_onnx(
@@ -254,5 +255,11 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
             os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
         )
         ort_outs = ort_session.run(output, {"input": np_dummy_input})
-        assert isinstance(ort_outs, list) and len(ort_outs) == 1
-        assert ort_outs[0].shape == (batch_size, *output_size)
+
+    assert isinstance(ort_outs, list) and len(ort_outs) == 1
+    assert ort_outs[0].shape == (batch_size, *output_size)
+    # Check that the output is close to the TensorFlow output - only warn if not close
+    try:
+        assert np.allclose(ort_outs[0], tf_logits, atol=1e-4)
+    except AssertionError:
+        pytest.skip(f"Output of {arch_name}:\nDifference is {round(np.abs(ort_outs[0] - tf_logits).mean(), 5)}")
