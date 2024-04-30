@@ -189,18 +189,27 @@ def test_crop_detection():
         crop_detection(img, abs_boxes, (2, 6, 24, 56))
 
 
-def test_random_crop():
+@pytest.mark.parametrize(
+    "target",
+    [
+        np.array([[15, 20, 35, 30]]),  # box
+        np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]]),  # polygon
+    ],
+)
+def test_random_crop(target):
     cropper = RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
-    boxes = np.array([[15, 20, 35, 30]])
-    img, target = cropper(input_t, boxes)
+    img, target = cropper(input_t, target)
     # Check the scale
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.5
     # Check the target
     assert np.all(target >= 0)
-    assert np.all(target[:, [0, 2]] <= img.shape[-1]) and np.all(target[:, [1, 3]] <= img.shape[-2])
+    if target.ndim == 2:
+        assert np.all(target[:, [0, 2]] <= img.shape[-1]) and np.all(target[:, [1, 3]] <= img.shape[-2])
+    else:
+        assert np.all(target[..., 0] <= img.shape[-1]) and np.all(target[..., 1] <= img.shape[-2])
 
 
 @pytest.mark.parametrize(
@@ -253,13 +262,21 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert torch.all(transformed <= 1.0)
 
 
-@pytest.mark.parametrize("p", [1, 0])
-def test_randomhorizontalflip(p):
+@pytest.mark.parametrize(
+    "p,target",
+    [
+        [1, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [0, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [1, np.array([[[0.1, 0.1], [0.3, 0.1], [0.3, 0.4], [0.1, 0.4]]], dtype=np.float32)],
+        [0, np.array([[[0.1, 0.1], [0.3, 0.1], [0.3, 0.4], [0.1, 0.4]]], dtype=np.float32)],
+    ],
+)
+def test_randomhorizontalflip(p, target):
     # testing for 2 cases, with flip probability 1 and 0.
     transform = RandomHorizontalFlip(p)
     input_t = torch.ones((3, 32, 32), dtype=torch.float32)
     input_t[..., :16] = 0
-    target = np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)
+
     transformed, _target = transform(input_t, target)
     assert isinstance(transformed, torch.Tensor)
     assert transformed.shape == input_t.shape
@@ -267,12 +284,20 @@ def test_randomhorizontalflip(p):
     # integrity check of targets
     assert isinstance(_target, np.ndarray)
     assert _target.dtype == np.float32
-    if p == 1:
-        assert np.all(_target == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
-        assert torch.all(transformed.mean((0, 1)) == torch.tensor([1] * 16 + [0] * 16, dtype=torch.float32))
-    elif p == 0:
-        assert np.all(_target == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
-        assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
+    if _target.ndim == 2:
+        if p == 1:
+            assert np.all(_target == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+            assert torch.all(transformed.mean((0, 1)) == torch.tensor([1] * 16 + [0] * 16, dtype=torch.float32))
+        elif p == 0:
+            assert np.all(_target == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+            assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
+    else:
+        if p == 1:
+            assert np.all(_target == np.array([[[0.9, 0.1], [0.7, 0.1], [0.7, 0.4], [0.9, 0.4]]], dtype=np.float32))
+            assert torch.all(transformed.mean((0, 1)) == torch.tensor([1] * 16 + [0] * 16, dtype=torch.float32))
+        elif p == 0:
+            assert np.all(_target == np.array([[[0.1, 0.1], [0.3, 0.1], [0.3, 0.4], [0.1, 0.4]]], dtype=np.float32))
+            assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
 
 
 @pytest.mark.parametrize(
