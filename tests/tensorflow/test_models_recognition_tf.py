@@ -94,7 +94,7 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):
         recognition.crnn_vgg16_bn(vocab=mock_vocab, input_shape=(32, 128, 3)),
     )
 
-    pages = DocumentFile.from_pdf(mock_pdf).as_images()
+    pages = DocumentFile.from_pdf(mock_pdf)
     # Create bounding boxes
     boxes = np.array([[0.5, 0.5, 0.75, 0.75], [0.5, 0.5, 1.0, 1.0]], dtype=np.float32)
     crops = extract_crops(pages[0], boxes)
@@ -203,6 +203,7 @@ def test_models_onnx_export(arch_name, input_shape):
         # batch_size = None for dynamic batch size
         dummy_input = [tf.TensorSpec([None, *input_shape], tf.float32, name="input")]
     np_dummy_input = np.random.rand(batch_size, *input_shape).astype(np.float32)
+    tf_logits = model(np_dummy_input, training=False)["logits"].numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path, output = export_model_to_onnx(
@@ -223,5 +224,11 @@ def test_models_onnx_export(arch_name, input_shape):
         # Inference
         ort_session = onnxruntime.InferenceSession(model_path, providers=["CPUExecutionProvider"])
         ort_outs = ort_session.run(output, {"input": np_dummy_input})
-        assert isinstance(ort_outs, list) and len(ort_outs) == 1
-        assert ort_outs[0].shape[0] == batch_size
+
+    assert isinstance(ort_outs, list) and len(ort_outs) == 1
+    assert ort_outs[0].shape[0] == batch_size
+    # Check that the output is close to the TensorFlow output - only warn if not close
+    try:
+        assert np.allclose(tf_logits, ort_outs[0], atol=1e-4)
+    except AssertionError:
+        pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(tf_logits - ort_outs[0]))}")

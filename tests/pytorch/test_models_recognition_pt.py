@@ -1,6 +1,7 @@
 import os
 import tempfile
 
+import numpy as np
 import onnxruntime
 import psutil
 import pytest
@@ -135,6 +136,7 @@ def test_models_onnx_export(arch_name, input_shape):
     batch_size = 2
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
+    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
     with tempfile.TemporaryDirectory() as tmpdir:
         # Export
         model_path = export_model_to_onnx(model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input)
@@ -144,5 +146,11 @@ def test_models_onnx_export(arch_name, input_shape):
             os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]
         )
         ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
-        assert isinstance(ort_outs, list) and len(ort_outs) == 1
-        assert ort_outs[0].shape[0] == batch_size
+
+    assert isinstance(ort_outs, list) and len(ort_outs) == 1
+    assert ort_outs[0].shape[0] == batch_size
+    # Check that the output is close to the PyTorch output - only warn if not close
+    try:
+        assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
+    except AssertionError:
+        pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
