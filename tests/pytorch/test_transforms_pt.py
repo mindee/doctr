@@ -10,6 +10,7 @@ from doctr.transforms import (
     GaussianNoise,
     RandomCrop,
     RandomHorizontalFlip,
+    RandomResize,
     RandomRotate,
     RandomShadow,
     Resize,
@@ -326,3 +327,26 @@ def test_random_shadow(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.0)
+
+
+@pytest.mark.parametrize(
+    "p,target",
+    [
+        [1, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [0, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [1, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [0, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+    ],
+)
+def test_random_resize(p, target):
+    transfo = RandomResize(scale_range=(0.3, 1.3), p=p)
+    assert repr(transfo) == f"RandomResize(scale_range=(0.3, 1.3), p={p})"
+
+    img = torch.rand((3, 64, 64))
+    # Apply the transformation
+    out_img, out_target = transfo(img, target)
+    assert isinstance(out_img, torch.Tensor)
+    assert isinstance(out_target, np.ndarray)
+    # Resize is already well tested
+    assert torch.all(out_img == img) if p == 0 else out_img.shape != img.shape
+    assert out_target.shape == target.shape

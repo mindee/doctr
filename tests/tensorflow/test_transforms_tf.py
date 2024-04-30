@@ -468,3 +468,26 @@ def test_random_shadow(input_dtype, input_shape):
         assert tf.reduce_all(transformed <= 255)
     else:
         assert tf.reduce_all(transformed <= 1.0)
+
+
+@pytest.mark.parametrize(
+    "p,target",
+    [
+        [1, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [0, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [1, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [0, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+    ],
+)
+def test_random_resize(p, target):
+    transfo = T.RandomResize(scale_range=(0.3, 1.3), p=p)
+    assert repr(transfo) == f"RandomResize(scale_range=(0.3, 1.3), p={p})"
+
+    img = tf.random.uniform((64, 64, 3))
+    # Apply the transformation
+    out_img, out_target = transfo(img, target)
+    assert isinstance(out_img, tf.Tensor)
+    assert isinstance(out_target, np.ndarray)
+    # Resize is already well-tested
+    assert tf.reduce_all(tf.equal(out_img, img)) if p == 0 else out_img.shape != img.shape
+    assert out_target.shape == target.shape
