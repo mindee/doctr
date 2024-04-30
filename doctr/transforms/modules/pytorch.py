@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, Dict, Optional, Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -159,13 +159,16 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
     """Randomly flip the input image horizontally"""
 
     def forward(
-        self, img: Union[torch.Tensor, Image], target: Dict[str, Any]
-    ) -> Tuple[Union[torch.Tensor, Image], Dict[str, Any]]:
+        self, img: Union[torch.Tensor, Image], target: np.ndarray
+    ) -> Tuple[Union[torch.Tensor, Image], np.ndarray]:
         if torch.rand(1) < self.p:
             _img = F.hflip(img)
             _target = target.copy()
             # Changing the relative bbox coordinates
-            _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
+            if target.shape[1:] == (4,):
+                _target[:, ::2] = 1 - target[:, [2, 0]]
+            else:
+                _target[..., 0] = 1 - target[..., 0]
             return _img, _target
         return img, target
 

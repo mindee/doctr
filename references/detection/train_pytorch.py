@@ -271,9 +271,16 @@ def main(args):
         ]),
         sample_transforms=T.SampleCompose(
             (
-                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                [
+                    T.RandomHorizontalFlip(0.1),
+                    T.RandomApply(T.RandomCrop(), 0.2),
+                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                ]
                 if not args.rotation
-                else []
+                else [
+                    T.RandomHorizontalFlip(0.1),
+                    T.RandomApply(T.RandomCrop(), 0.2),
+                ]
             )
             + (
                 [

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -457,10 +457,7 @@ class RandomHorizontalFlip(NestedObject):
     >>> from doctr.transforms import RandomHorizontalFlip
     >>> transfo = RandomHorizontalFlip(p=0.5)
     >>> image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)
-    >>> target = {
-    >>> "boxes": np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),
-    >>> "labels": np.ones(1, dtype= np.int64)
-    >>> }
+    >>> target = np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32)
     >>> out = transfo(image, target)
 
     Args:
@@ -472,12 +469,15 @@ class RandomHorizontalFlip(NestedObject):
         super().__init__()
         self.p = p
 
-    def __call__(self, img: Union[tf.Tensor, np.ndarray], target: Dict[str, Any]) -> Tuple[tf.Tensor, Dict[str, Any]]:
+    def __call__(self, img: Union[tf.Tensor, np.ndarray], target: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
         if np.random.rand(1) <= self.p:
             _img = tf.image.flip_left_right(img)
             _target = target.copy()
             # Changing the relative bbox coordinates
-            _target["boxes"][:, ::2] = 1 - target["boxes"][:, [2, 0]]
+            if target.shape[1:] == (4,):
+                _target[:, ::2] = 1 - target[:, [2, 0]]
+            else:
+                _target[..., 0] = 1 - target[..., 0]
             return _img, _target
         return img, target
 
