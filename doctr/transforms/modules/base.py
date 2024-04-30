@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import math
 import random
 from typing import Any, Callable, List, Optional, Tuple, Union
 
@@ -269,8 +270,8 @@ class RandomCrop(NestedObject):
         # Calculate crop size
         crop_area = scale * width * height
         aspect_ratio = ratio * (width / height)
-        crop_width = int(round(np.sqrt(crop_area * aspect_ratio)))
-        crop_height = int(round(np.sqrt(crop_area / aspect_ratio)))
+        crop_width = int(round(math.sqrt(crop_area * aspect_ratio)))
+        crop_height = int(round(math.sqrt(crop_area / aspect_ratio)))
 
         # Ensure crop size does not exceed image dimensions
         crop_width = min(crop_width, width)
