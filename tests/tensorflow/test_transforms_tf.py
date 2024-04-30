@@ -455,18 +455,14 @@ def test_random_shadow(input_dtype, input_shape):
     ],
 )
 def test_random_resize(p, target):
-    # Create an instance of RandomResize
     transfo = T.RandomResize(scale_range=(0.3, 1.3), p=p)
     assert repr(transfo) == f"RandomResize(scale_range=(0.3, 1.3), p={p})"
 
-    # Generate a random input image
     img = tf.random.uniform((64, 64, 3))
-
     # Apply the transformation
     out_img, out_target = transfo(img, target)
     assert isinstance(out_img, tf.Tensor)
     assert isinstance(out_target, np.ndarray)
-
     # Resize is already well-tested
     assert tf.reduce_all(tf.equal(out_img, img)) if p == 0 else out_img.shape != img.shape
     assert out_target.shape == target.shape
