@@ -542,9 +542,8 @@ class RandomResize(NestedObject):
         if np.random.rand(1) <= self.p:
             scale_h = random.uniform(*self.scale_range)
             scale_w = random.uniform(*self.scale_range)
-            # Get the zoom factor
             new_size = (int(img.shape[-3] * scale_h), int(img.shape[-2] * scale_w))
-            # Resize the image
+
             _img, _target = self._resize(new_size, preserve_aspect_ratio=True, symmetric_pad=True)(img, target)
 
             return _img, _target

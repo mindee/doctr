@@ -234,12 +234,10 @@ class RandomResize(torch.nn.Module):
 
     def forward(self, img: torch.Tensor, target: np.ndarray) -> Tuple[torch.Tensor, np.ndarray]:
         if torch.rand(1) < self.p:
-            # Get the zoom factor
             scale_h = np.random.uniform(*self.scale_range)
             scale_w = np.random.uniform(*self.scale_range)
-            # Get the new size of the image
             new_size = (int(img.shape[-2] * scale_h), int(img.shape[-1] * scale_w))
-            # Resize the image
+
             _img, _target = self._resize(new_size, preserve_aspect_ratio=True, symmetric_pad=True)(img, target)
 
             return _img, _target
