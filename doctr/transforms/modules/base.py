@@ -3,9 +3,8 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import math
 import random
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -261,17 +260,37 @@ class RandomCrop(NestedObject):
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def __call__(self, img: Any, target: Dict[str, np.ndarray]) -> Tuple[Any, Dict[str, np.ndarray]]:
+    def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
         scale = random.uniform(self.scale[0], self.scale[1])
         ratio = random.uniform(self.ratio[0], self.ratio[1])
-        # Those might overflow
-        crop_h = math.sqrt(scale * ratio)
-        crop_w = math.sqrt(scale / ratio)
-        xmin, ymin = random.uniform(0, 1 - crop_w), random.uniform(0, 1 - crop_h)
-        xmax, ymax = xmin + crop_w, ymin + crop_h
-        # Clip them
-        xmin, ymin = max(xmin, 0), max(ymin, 0)
-        xmax, ymax = min(xmax, 1), min(ymax, 1)
 
-        croped_img, crop_boxes = F.crop_detection(img, target["boxes"], (xmin, ymin, xmax, ymax))
-        return croped_img, dict(boxes=crop_boxes)
+        height, width = img.shape[:2]
+
+        # Calculate crop size
+        crop_area = scale * width * height
+        aspect_ratio = ratio * (width / height)
+        crop_width = int(round(np.sqrt(crop_area * aspect_ratio)))
+        crop_height = int(round(np.sqrt(crop_area / aspect_ratio)))
+
+        # Ensure crop size does not exceed image dimensions
+        crop_width = min(crop_width, width)
+        crop_height = min(crop_height, height)
+
+        # Randomly select crop position
+        x = random.randint(0, width - crop_width)
+        y = random.randint(0, height - crop_height)
+
+        # relative crop box
+        crop_box = (x / width, y / height, (x + crop_width) / width, (y + crop_height) / height)
+        if target.shape[1:] == (4, 2):
+            min_xy = np.min(target, axis=1)
+            max_xy = np.max(target, axis=1)
+            target = np.concatenate((min_xy, max_xy), axis=1)
+
+        # Crop image and targets
+        croped_img, crop_boxes = F.crop_detection(img, target, crop_box)
+        # hard fallback if no box is kept
+        if crop_boxes.shape[0] == 0:
+            return img, target
+        # clip boxes
+        return croped_img, np.clip(crop_boxes, 0, 1)

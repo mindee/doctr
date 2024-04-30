@@ -184,9 +184,12 @@ def main(args):
         label_path=os.path.join(args.val_path, "labels.json"),
         sample_transforms=T.SampleCompose(
             (
-                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                [
+                    T.RandomCrop(),
+                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                ]
                 if not args.rotation or args.eval_straight
-                else []
+                else [T.RandomCrop()]
             )
             + (
                 [
@@ -271,9 +274,16 @@ def main(args):
         ]),
         sample_transforms=T.SampleCompose(
             (
-                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                [
+                    T.RandomHorizontalFlip(0.9),
+                    T.RandomApply(T.RandomCrop(), 0.9),
+                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                ]
                 if not args.rotation
-                else []
+                else [
+                    T.RandomHorizontalFlip(0.9),
+                    T.RandomApply(T.RandomCrop(), 0.9),
+                ]
             )
             + (
                 [

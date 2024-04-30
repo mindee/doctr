@@ -229,7 +229,7 @@ def main(args):
                 T.RandomSaturation(0.3),
                 T.RandomContrast(0.3),
                 T.RandomBrightness(0.3),
-                T.RandomApply(T.RandomShadow(), 0.4),
+                # T.RandomApply(T.RandomShadow(), 0.4), # Broken atm on GPU
                 T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
                 T.RandomApply(T.GaussianBlur(kernel_shape=3, std=(0.1, 0.1)), 0.3),
             ]),

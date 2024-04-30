@@ -193,14 +193,14 @@ def test_random_crop():
     cropper = RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
     boxes = np.array([[15, 20, 35, 30]])
-    img, target = cropper(input_t, dict(boxes=boxes))
+    img, target = cropper(input_t, boxes)
     # Check the scale
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.5
     # Check the target
-    assert np.all(target["boxes"] >= 0)
-    assert np.all(target["boxes"][:, [0, 2]] <= img.shape[-1]) and np.all(target["boxes"][:, [1, 3]] <= img.shape[-2])
+    assert np.all(target >= 0)
+    assert np.all(target[:, [0, 2]] <= img.shape[-1]) and np.all(target[:, [1, 3]] <= img.shape[-2])
 
 
 @pytest.mark.parametrize(
@@ -259,23 +259,20 @@ def test_randomhorizontalflip(p):
     transform = RandomHorizontalFlip(p)
     input_t = torch.ones((3, 32, 32), dtype=torch.float32)
     input_t[..., :16] = 0
-    target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    target = np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)
     transformed, _target = transform(input_t, target)
     assert isinstance(transformed, torch.Tensor)
     assert transformed.shape == input_t.shape
     assert transformed.dtype == input_t.dtype
     # integrity check of targets
-    assert isinstance(_target, dict)
-    assert all(isinstance(val, np.ndarray) for val in _target.values())
-    assert _target["boxes"].dtype == np.float32
-    assert _target["labels"].dtype == np.int64
+    assert isinstance(_target, np.ndarray)
+    assert _target.dtype == np.float32
     if p == 1:
-        assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+        assert np.all(_target == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
         assert torch.all(transformed.mean((0, 1)) == torch.tensor([1] * 16 + [0] * 16, dtype=torch.float32))
     elif p == 0:
-        assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+        assert np.all(_target == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
         assert torch.all(transformed.mean((0, 1)) == torch.tensor([0] * 16 + [1] * 16, dtype=torch.float32))
-    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
 
 
 @pytest.mark.parametrize(

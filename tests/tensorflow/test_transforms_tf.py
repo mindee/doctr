@@ -322,14 +322,14 @@ def test_random_crop():
     transfo = T.RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
     input_t = tf.ones((50, 50, 3), dtype=tf.float32)
     boxes = np.array([[15, 20, 35, 30]])
-    img, target = transfo(input_t, dict(boxes=boxes))
+    img, target = transfo(input_t, boxes)
     # Check the scale (take a margin)
     assert img.shape[0] * img.shape[1] >= 0.4 * input_t.shape[0] * input_t.shape[1]
     # Check aspect ratio (take a margin)
     assert 0.65 <= img.shape[0] / img.shape[1] <= 1.5
     # Check the target
-    assert np.all(target["boxes"] >= 0)
-    assert np.all(target["boxes"][:, [0, 2]] <= img.shape[1]) and np.all(target["boxes"][:, [1, 3]] <= img.shape[0])
+    assert np.all(target >= 0)
+    assert np.all(target[:, [0, 2]] <= img.shape[1]) and np.all(target[:, [1, 3]] <= img.shape[0])
 
 
 def test_gaussian_blur():
@@ -394,27 +394,24 @@ def test_randomhorizontalflip(p):
     input_t = np.ones((32, 32, 3))
     input_t[:, :16, :] = 0
     input_t = tf.convert_to_tensor(input_t)
-    target = {"boxes": np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32), "labels": np.ones(1, dtype=np.int64)}
+    target = np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)
     transformed, _target = transform(input_t, target)
     assert isinstance(transformed, tf.Tensor)
     assert transformed.shape == input_t.shape
     assert transformed.dtype == input_t.dtype
     # integrity check of targets
-    assert isinstance(_target, dict)
-    assert all(isinstance(val, np.ndarray) for val in _target.values())
-    assert _target["boxes"].dtype == np.float32
-    assert _target["labels"].dtype == np.int64
+    assert isinstance(_target, np.ndarray)
+    assert _target.dtype == np.float32
     if p == 1:
-        assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
+        assert np.all(_target == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
         assert tf.reduce_all(
             tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([1] * 16 + [0] * 16, dtype=tf.float64)
         )
     elif p == 0:
-        assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
+        assert np.all(_target == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
         assert tf.reduce_all(
             tf.math.reduce_mean(transformed, (0, 2)) == tf.constant([0] * 16 + [1] * 16, dtype=tf.float64)
         )
-    assert np.all(_target["labels"] == np.ones(1, dtype=np.int64))
 
 
 @pytest.mark.parametrize(
