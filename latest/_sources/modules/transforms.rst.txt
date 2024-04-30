@@ -28,6 +28,7 @@ Here are all transformations that are available through docTR:
 .. autoclass:: GaussianNoise
 .. autoclass:: RandomHorizontalFlip
 .. autoclass:: RandomShadow
+.. autoclass:: RandomResize
 
 
 Composing transformations

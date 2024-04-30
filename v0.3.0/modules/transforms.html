@@ -582,6 +582,25 @@ std : std of the gaussian distribution</p>
 </section>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.transforms.RandomResize">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.transforms.</span></span><span class="sig-name descname"><span class="pre">RandomResize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scale_range</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.12)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">(0.3,</span> <span class="pre">0.9)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/transforms/modules/tensorflow.html#RandomResize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.transforms.RandomResize" title="Link to this definition">¶</a></dt>
+<dd><p>Randomly resize the input image and align corresponding targets</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.transforms</span> <span class="kn">import</span> <span class="n">RandomResize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">transfo</span> <span class="o">=</span> <span class="n">RandomResize</span><span class="p">((</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span> <span class="n">p</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfo</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</pre></div>
+</div>
+<section id="id16">
+<h3>Args:<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>scale_range: range of the resizing factor for width and height (independently)
+p: probability to apply the transformation</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
 </section>
 <section id="composing-transformations">
 <h2>Composing transformations<a class="headerlink" href="#composing-transformations" title="Link to this heading">¶</a></h2>
@@ -596,8 +615,8 @@ std : std of the gaussian distribution</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">transfos</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">minval</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
 </pre></div>
 </div>
-<section id="id16">
-<h3>Args:<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
+<section id="id17">
+<h3>Args:<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>transforms: list of transformation modules</p>
 </div></blockquote>
@@ -622,8 +641,8 @@ std : std of the gaussian distribution</p>
 </pre></div>
 </div>
 </div></div>
-<section id="id17">
-<h3>Args:<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h3>
+<section id="id18">
+<h3>Args:<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>transforms: list of transformations, one only will be picked</p>
 </div></blockquote>
@@ -648,8 +667,8 @@ std : std of the gaussian distribution</p>
 </pre></div>
 </div>
 </div></div>
-<section id="id18">
-<h3>Args:<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h3>
+<section id="id19">
+<h3>Args:<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>transform: transformation to apply
 p: probability to apply</p>
@@ -735,6 +754,7 @@ p: probability to apply</p>
 <li><a class="reference internal" href="#doctr.transforms.GaussianNoise"><code class="docutils literal notranslate"><span class="pre">GaussianNoise</span></code></a></li>
 <li><a class="reference internal" href="#doctr.transforms.RandomHorizontalFlip"><code class="docutils literal notranslate"><span class="pre">RandomHorizontalFlip</span></code></a></li>
 <li><a class="reference internal" href="#doctr.transforms.RandomShadow"><code class="docutils literal notranslate"><span class="pre">RandomShadow</span></code></a></li>
+<li><a class="reference internal" href="#doctr.transforms.RandomResize"><code class="docutils literal notranslate"><span class="pre">RandomResize</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#composing-transformations">Composing transformations</a><ul>
