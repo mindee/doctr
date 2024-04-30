@@ -30,6 +30,7 @@ __all__ = [
     "GaussianNoise",
     "RandomHorizontalFlip",
     "RandomShadow",
+    "RandomResize",
 ]
 
 
@@ -515,3 +516,39 @@ class RandomShadow(NestedObject):
 
     def extra_repr(self) -> str:
         return f"opacity_range={self.opacity_range}"
+
+
+class RandomResize(NestedObject):
+    """Randomly resize the input image and align corresponding targets
+
+    >>> import tensorflow as tf
+    >>> from doctr.transforms import RandomResize
+    >>> transfo = RandomResize((0.3, 0.9), p=0.5)
+    >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
+    Args:
+    ----
+        scale_range: range of the resizing factor for width and height (independently)
+        p: probability to apply the transformation
+    """
+
+    def __init__(self, scale_range: Tuple[float, float] = (0.3, 0.9), p: float = 0.5) -> None:
+        super().__init__()
+        self.scale_range = scale_range
+        self.p = p
+        self._resize = Resize
+
+    def __call__(self, img: tf.Tensor, target: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
+        if np.random.rand(1) <= self.p:
+            scale_h = random.uniform(*self.scale_range)
+            scale_w = random.uniform(*self.scale_range)
+            # Get the zoom factor
+            new_size = (int(img.shape[-3] * scale_h), int(img.shape[-2] * scale_w))
+            # Resize the image
+            _img, _target = self._resize(new_size, preserve_aspect_ratio=True, symmetric_pad=True)(img, target)
+
+            return _img, _target
+        return img, target
+
+    def extra_repr(self) -> str:
+        return f"scale_range={self.scale_range}, p={self.p}"

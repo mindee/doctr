@@ -15,7 +15,7 @@ from torchvision.transforms import transforms as T
 
 from ..functional.pytorch import random_shadow
 
-__all__ = ["Resize", "GaussianNoise", "ChannelShuffle", "RandomHorizontalFlip", "RandomShadow"]
+__all__ = ["Resize", "GaussianNoise", "ChannelShuffle", "RandomHorizontalFlip", "RandomShadow", "RandomResize"]
 
 
 class Resize(T.Resize):
@@ -210,3 +210,40 @@ class RandomShadow(torch.nn.Module):
 
     def extra_repr(self) -> str:
         return f"opacity_range={self.opacity_range}"
+
+
+class RandomResize(torch.nn.Module):
+    """Randomly resize the input image and align corresponding targets
+
+    >>> import torch
+    >>> from doctr.transforms import RandomResize
+    >>> transfo = RandomResize((0.3, 0.9), p=0.5)
+    >>> out = transfo(torch.rand((3, 64, 64)))
+
+    Args:
+    ----
+        scale_range: range of the resizing factor for width and height (independently)
+        p: probability to apply the transformation
+    """
+
+    def __init__(self, scale_range: Tuple[float, float] = (0.3, 0.9), p: float = 0.5) -> None:
+        super().__init__()
+        self.scale_range = scale_range
+        self.p = p
+        self._resize = Resize
+
+    def forward(self, img: torch.Tensor, target: np.ndarray) -> Tuple[torch.Tensor, np.ndarray]:
+        if torch.rand(1) < self.p:
+            # Get the zoom factor
+            scale_h = np.random.uniform(*self.scale_range)
+            scale_w = np.random.uniform(*self.scale_range)
+            # Get the new size of the image
+            new_size = (int(img.shape[-2] * scale_h), int(img.shape[-1] * scale_w))
+            # Resize the image
+            _img, _target = self._resize(new_size, preserve_aspect_ratio=True, symmetric_pad=True)(img, target)
+
+            return _img, _target
+        return img, target
+
+    def extra_repr(self) -> str:
+        return f"scale_range={self.scale_range}, p={self.p}"
