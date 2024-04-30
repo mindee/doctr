@@ -192,4 +192,4 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
     try:
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
     except AssertionError:
-        pytest.skip(f"Output of {arch_name}:\nDifference is {round(np.abs(ort_outs[0] - pt_logits).mean(), 5)}")
+        pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
