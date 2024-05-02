@@ -278,8 +278,8 @@ def main(args):
             [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.28),
-                    T.RandomResize(scale_range=(0.4, 0.9), p=0.28),
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomResize(scale_range=(0.4, 0.9), p=0.25),
                 ]),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
@@ -287,8 +287,8 @@ def main(args):
             else [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.28),
-                    T.RandomResize(scale_range=(0.4, 0.9), p=0.28),
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomResize(scale_range=(0.4, 0.9), p=0.25),
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True),
