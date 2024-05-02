@@ -168,11 +168,11 @@ class OneOf(NestedObject):
     def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
 
-    def __call__(self, img: Any) -> Any:
+    def __call__(self, img: Any, target: Optional[np.ndarray] = None) -> Union[Any, Tuple[Any, np.ndarray]]:
         # Pick transformation
         transfo = self.transforms[int(random.random() * len(self.transforms))]
         # Apply
-        return transfo(img)
+        return transfo(img) if target is None else transfo(img, target)  # type: ignore[call-arg]
 
 
 class RandomApply(NestedObject):
@@ -286,10 +286,12 @@ class RandomCrop(NestedObject):
         if target.shape[1:] == (4, 2):
             min_xy = np.min(target, axis=1)
             max_xy = np.max(target, axis=1)
-            target = np.concatenate((min_xy, max_xy), axis=1)
+            _target = np.concatenate((min_xy, max_xy), axis=1)
+        else:
+            _target = target
 
         # Crop image and targets
-        croped_img, crop_boxes = F.crop_detection(img, target, crop_box)
+        croped_img, crop_boxes = F.crop_detection(img, _target, crop_box)
         # hard fallback if no box is kept
         if crop_boxes.shape[0] == 0:
             return img, target

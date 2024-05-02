@@ -21,6 +21,11 @@ def test_oneof():
     transfo = T.OneOf(transfos)
     out = transfo(1)
     assert out == 0 or out == 11
+    # test with target
+    transfos = [lambda x, y: (1 - x, y), lambda x, y: (x + 10, y)]
+    transfo = T.OneOf(transfos)
+    out = transfo(1, np.array([2]))
+    assert out == (0, 2) or out == (11, 2) and isinstance(out[1], np.ndarray)
 
 
 def test_randomapply():
