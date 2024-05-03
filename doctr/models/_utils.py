@@ -35,7 +35,7 @@ def estimate_orientation(
     img: np.ndarray,
     general_page_orientation: Optional[Tuple[int, float]] = None,
     n_ct: int = 50,
-    ratio_threshold_for_lines: float = 5,
+    ratio_threshold_for_lines: float = 3,
     min_confidence: float = 0.5,
 ) -> int:
     """Estimate the angle of the general document orientation based on the
