@@ -88,7 +88,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             for out_map in out_maps
         ]
         if self.detect_orientation:
-            general_pages_orientations, origin_pages_orientations = self._get_pages_orientations(pages, seg_maps)  # type: ignore[arg-type]
+            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)  # type: ignore[arg-type]
             orientations = [
                 {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
             ]
@@ -97,7 +97,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             general_pages_orientations = None
             origin_pages_orientations = None
         if self.straighten_pages:
-            pages = self._get_straightened_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)  # type: ignore
+            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)  # type: ignore
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 

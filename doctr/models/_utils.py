@@ -44,7 +44,7 @@ def estimate_orientation(
     Args:
     ----
         img: the img or bitmap to analyze (H, W, C)
-        general_page_orientation: the general orientation of the page (angle [0, 90, 180, 270], confidence)
+        general_page_orientation: the general orientation of the page (angle [0, 90, 180, 270 (-90)], confidence)
             estimated by a model
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
@@ -52,9 +52,10 @@ def estimate_orientation(
 
     Returns:
     -------
-        the angle of the general document orientation
+        the estimated angle of the page (clockwise, negative for left side rotation, positive for right side rotation)
     """
     assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
+    thresh = None
     max_value = np.max(img)
     min_value = np.min(img)
     if max_value <= 1 and min_value >= 0 or (max_value <= 255 and min_value >= 0 and img.shape[-1] == 1):
@@ -92,13 +93,17 @@ def estimate_orientation(
         estimated_angle = 0  # in case no angles is found
     else:
         median = -median_low(angles)
-        estimated_angle = round(median) if abs(median) != 0 else 0
+        estimated_angle = -round(median) if abs(median) != 0 else 0
 
-    # combine with the general orientation (angle, confidence) where angle can be 0, 90, 180, -90
-    if general_page_orientation and general_page_orientation[1] >= min_confidence:
-        estimated_angle = estimated_angle + general_page_orientation[0]
+    # combine with the general orientation and the estimated angle
+    if page_orientation and orientation_confidence >= min_confidence:
+        # special case where the estimated angle is mostly wrong:
+        # when estimated angle is + or - 90 degree, we should consider the general orientation
+        if abs(estimated_angle) == 90 and abs(page_orientation) in [0, 90]:
+            return page_orientation
+        estimated_angle = estimated_angle if page_orientation == 0 else page_orientation + estimated_angle
 
-    return estimated_angle  # return the clockwise angle
+    return estimated_angle  # return the clockwise angle (negative - left side rotation, positive - right side rotation)
 
 
 def rectify_crops(

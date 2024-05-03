@@ -59,7 +59,7 @@ class _OCRPredictor:
         self.symmetric_pad = symmetric_pad
         self.hooks: List[Callable] = []
 
-    def _get_general_pages_orientations(
+    def _general_page_orientations(
         self,
         pages: List[np.ndarray],
     ) -> List[Tuple[int, float]]:
@@ -72,39 +72,25 @@ class _OCRPredictor:
         ]
         return page_orientations
 
-    def _get_pages_orientations(
+    def _get_orientations(
         self, pages: List[np.ndarray], seg_maps: List[np.ndarray]
     ) -> Tuple[List[Tuple[int, float]], List[int]]:
-        general_pages_orientations = self._get_general_pages_orientations(pages)
+        general_pages_orientations = self._general_page_orientations(pages)
         origin_page_orientations = [
             estimate_orientation(seq_map, general_orientation)
             for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
         ]
         return general_pages_orientations, origin_page_orientations
 
-    def _get_straightened_pages(
+    def _straighten_pages(
         self,
         pages: List[np.ndarray],
         seg_maps: List[np.ndarray],
         general_pages_orientations: Optional[List[Tuple[int, float]]] = None,
         origin_pages_orientations: Optional[List[int]] = None,
     ) -> List[np.ndarray]:
-        """
-        Straighten pages based on the estimated orientations
-
-        Args:
-        ----
-            pages: list of pages
-            seg_maps: list of segmentation maps
-            general_pages_orientations: list of tuples with (value, confidence) about the general page orientation
-            origin_pages_orientations: list of integers with the orientation of each page
-
-        Returns:
-        -------
-            pages: list of straightened pages
-        """
         general_pages_orientations = (
-            general_pages_orientations if general_pages_orientations else self._get_general_pages_orientations(pages)
+            general_pages_orientations if general_pages_orientations else self._general_page_orientations(pages)
         )
         origin_pages_orientations = (
             origin_pages_orientations
@@ -114,9 +100,9 @@ class _OCRPredictor:
                 for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
             ]
         )
-        # TODO: test the -> expand if page page width is larger than height
         return [
-            rotate_image(page, angle, expand=page.shape[1] > page.shape[0])
+            # We exapnd if the page is wider than tall and the angle is 90 or -90
+            rotate_image(page, angle, expand=page.shape[1] > page.shape[0] and abs(angle) == 90)
             for page, angle in zip(pages, origin_pages_orientations)
         ]
 
