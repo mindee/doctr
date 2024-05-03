@@ -256,42 +256,54 @@ def main(args):
         return
 
     st = time.time()
+    # Augmentations
+    # Image augmentations
+    img_transforms = T.OneOf([
+        Compose([
+            T.RandomApply(T.ColorInversion(), 0.3),
+            T.RandomApply(GaussianBlur(kernel_size=5, sigma=(0.1, 4)), 0.2),
+        ]),
+        Compose([
+            T.RandomApply(T.RandomShadow(), 0.3),
+            T.RandomApply(T.GaussianNoise(), 0.1),
+            T.RandomApply(GaussianBlur(kernel_size=5, sigma=(0.1, 4)), 0.3),
+            RandomGrayscale(p=0.15),
+        ]),
+        RandomPhotometricDistort(p=0.3),
+        lambda x: x,  # Identity no transformation
+    ])
+    # Image + target augmentations
+    sample_transforms = T.SampleCompose(
+        (
+            [
+                T.RandomHorizontalFlip(0.15),
+                T.OneOf([
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomResize(scale_range=(0.4, 0.9), p=0.25),
+                ]),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+            if not args.rotation
+            else [
+                T.RandomHorizontalFlip(0.15),
+                T.OneOf([
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomResize(scale_range=(0.4, 0.9), p=0.25),
+                ]),
+                # Rotation augmentation
+                T.Resize(args.input_size, preserve_aspect_ratio=True),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+        )
+    )
+
     # Load both train and val data generators
     train_set = DetectionDataset(
         img_folder=os.path.join(args.train_path, "images"),
         label_path=os.path.join(args.train_path, "labels.json"),
-        img_transforms=Compose([
-            # Augmentations
-            T.RandomApply(T.ColorInversion(), 0.1),
-            T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
-            T.RandomApply(T.RandomShadow(), 0.1),
-            T.RandomApply(GaussianBlur(kernel_size=3), 0.1),
-            RandomPhotometricDistort(p=0.05),
-            RandomGrayscale(p=0.05),
-        ]),
-        sample_transforms=T.SampleCompose(
-            (
-                [
-                    T.RandomHorizontalFlip(0.1),
-                    T.RandomApply(T.RandomCrop(), 0.2),
-                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-                ]
-                if not args.rotation
-                else [
-                    T.RandomHorizontalFlip(0.1),
-                    T.RandomApply(T.RandomCrop(), 0.2),
-                ]
-            )
-            + (
-                [
-                    T.Resize(args.input_size, preserve_aspect_ratio=True),
-                    T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-                ]
-                if args.rotation
-                else []
-            )
-        ),
+        img_transforms=img_transforms,
+        sample_transforms=sample_transforms,
         use_polygons=args.rotation,
     )
 
