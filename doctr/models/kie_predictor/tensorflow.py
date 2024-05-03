@@ -55,7 +55,13 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         self.det_predictor = det_predictor
         self.reco_predictor = reco_predictor
         _KIEPredictor.__init__(
-            self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
+            self,
+            assume_straight_pages,
+            straighten_pages,
+            preserve_aspect_ratio,
+            symmetric_pad,
+            detect_orientation,
+            **kwargs,
         )
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
