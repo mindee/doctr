@@ -34,7 +34,7 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
 def estimate_orientation(
     img: np.ndarray,
     general_page_orientation: Optional[Tuple[int, float]] = None,
-    n_ct: int = 50,
+    n_ct: int = 70,
     ratio_threshold_for_lines: float = 3,
     min_confidence: float = 0.5,
 ) -> int:
@@ -56,24 +56,26 @@ def estimate_orientation(
     """
     assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
     thresh = None
-    max_value = np.max(img)
-    min_value = np.min(img)
-    if max_value <= 1 and min_value >= 0 or (max_value <= 255 and min_value >= 0 and img.shape[-1] == 1):
-        thresh = img.astype(np.uint8)
-    if max_value <= 255 and min_value >= 0 and img.shape[-1] == 3:
+    # Convert image to grayscale if necessary
+    if img.shape[-1] == 3:
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_img = cv2.medianBlur(gray_img, 5)
-        thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]  # type: ignore[assignment]
+    else:
+        thresh = img.astype(np.uint8)
 
-    if general_page_orientation and general_page_orientation[1] >= min_confidence:
-        thresh = rotate_image(img, -general_page_orientation[0])
-
-    # try to merge words in lines
-    (h, w) = img.shape[:2]
-    k_x = max(1, (floor(w / 100)))
-    k_y = max(1, (floor(h / 100)))
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
-    thresh = cv2.dilate(thresh, kernel, iterations=1)
+    page_orientation, orientation_confidence = general_page_orientation or (None, 0.0)
+    if page_orientation and orientation_confidence >= min_confidence:
+        # We rotate the image to the general orientation which improves the detection
+        # No expand needed bitmap is already padded
+        thresh = rotate_image(thresh, -page_orientation)
+    else:  # That's only required if we do not work on the detection models bin map
+        # try to merge words in lines
+        (h, w) = img.shape[:2]
+        k_x = max(1, (floor(w / 100)))
+        k_y = max(1, (floor(h / 100)))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
+        thresh = cv2.dilate(thresh, kernel, iterations=1)  # type: ignore[assignment]
 
     # extract contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
