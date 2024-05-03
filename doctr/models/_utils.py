@@ -75,7 +75,7 @@ def estimate_orientation(
         k_x = max(1, (floor(w / 100)))
         k_y = max(1, (floor(h / 100)))
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
-        thresh = cv2.dilate(thresh, kernel, iterations=1)  # type: ignore[assignment]
+        thresh = cv2.dilate(thresh, kernel, iterations=1)
 
     # extract contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
