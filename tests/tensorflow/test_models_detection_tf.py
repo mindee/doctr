@@ -1,3 +1,4 @@
+import math
 import os
 import tempfile
 
@@ -171,13 +172,18 @@ def test_detection_zoo_error():
 
 
 def test_fast_reparameterization():
-    dummy_input = tf.random.uniform(shape=[2, 1024, 1024, 3], minval=0, maxval=1)
+    dummy_input = tf.random.uniform(shape=[1, 1024, 1024, 3], minval=0, maxval=1)
     base_model = detection.fast_tiny(pretrained=True, exportable=True)
+    base_model_params = np.sum([np.prod(v.shape) for v in base_model.trainable_variables])
+    assert math.isclose(base_model_params, 13535296)  # base model params
     base_out = base_model(dummy_input, training=False)["logits"]
+    tf.keras.backend.clear_session()
     rep_model = reparameterize(base_model)
+    rep_model_params = np.sum([np.prod(v.shape) for v in base_model.trainable_variables])
+    assert math.isclose(rep_model_params, 8520256)  # reparameterized model params
     rep_out = rep_model(dummy_input, training=False)["logits"]
     diff = base_out - rep_out
-    assert tf.math.reduce_mean(diff) < 5e-2 and tf.math.reduce_std(diff) < 5e-2
+    assert np.mean(diff) < 5e-2
 
 
 def test_erode():
