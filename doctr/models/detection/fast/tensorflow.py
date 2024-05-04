@@ -29,19 +29,19 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.8.1/fast_tiny-959daecb.zip",
     },
     "fast_small": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.8.1/fast_small-f1617503.zip",
     },
     "fast_base": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.8.1/fast_base-255e2ac3.zip",
     },
 }
 
