@@ -544,7 +544,11 @@ class RandomResize(NestedObject):
             scale_w = random.uniform(*self.scale_range)
             new_size = (int(img.shape[-3] * scale_h), int(img.shape[-2] * scale_w))
 
-            _img, _target = self._resize(new_size, preserve_aspect_ratio=True, symmetric_pad=True)(img, target)
+            _img, _target = self._resize(
+                new_size,
+                preserve_aspect_ratio=True if np.random.rand(1) <= 0.5 else False,
+                symmetric_pad=True if np.random.rand(1) <= 0.5 else False,
+            )(img, target)
 
             return _img, _target
         return img, target
