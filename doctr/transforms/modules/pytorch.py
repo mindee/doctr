@@ -220,18 +220,25 @@ class RandomResize(torch.nn.Module):
 
     >>> import torch
     >>> from doctr.transforms import RandomResize
-    >>> transfo = RandomResize((0.3, 0.9), p=0.5)
+    >>> transfo = RandomResize((0.3, 0.9), rnd_ratio=True, p=0.5)
     >>> out = transfo(torch.rand((3, 64, 64)))
 
     Args:
     ----
         scale_range: range of the resizing factor for width and height (independently)
+        rnd_ratio: random keep aspect ratio and/or symmetric pad or not
         p: probability to apply the transformation
     """
 
-    def __init__(self, scale_range: Tuple[float, float] = (0.3, 0.9), p: float = 0.5) -> None:
+    def __init__(
+        self,
+        scale_range: Tuple[float, float] = (0.3, 0.9),
+        rnd_ratio: bool = False,
+        p: float = 0.5,
+    ) -> None:
         super().__init__()
         self.scale_range = scale_range
+        self.rnd_ratio = rnd_ratio
         self.p = p
         self._resize = Resize
 
@@ -243,12 +250,12 @@ class RandomResize(torch.nn.Module):
 
             _img, _target = self._resize(
                 new_size,
-                preserve_aspect_ratio=True if np.random.rand(1) <= 0.5 else False,
-                symmetric_pad=True if np.random.rand(1) <= 0.5 else False,
+                preserve_aspect_ratio=False if self.rnd_ratio and torch.rand(1) < 0.5 else True,
+                symmetric_pad=False if self.rnd_ratio and torch.rand(1) < 0.5 else True,
             )(img, target)
 
             return _img, _target
         return img, target
 
     def extra_repr(self) -> str:
-        return f"scale_range={self.scale_range}, p={self.p}"
+        return f"scale_range={self.scale_range}, rnd_ratio={self.rnd_ratio}, p={self.p}"

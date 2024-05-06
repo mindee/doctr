@@ -330,17 +330,17 @@ def test_random_shadow(input_dtype, input_shape):
 
 
 @pytest.mark.parametrize(
-    "p,target",
+    "p,rnd_ratio,target",
     [
-        [1, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
-        [0, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
-        [1, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
-        [0, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [1, [True, False], np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [0, [True, False], np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [1, [True, False], np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [0, [True, False], np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
     ],
 )
-def test_random_resize(p, target):
-    transfo = RandomResize(scale_range=(0.3, 1.3), p=p)
-    assert repr(transfo) == f"RandomResize(scale_range=(0.3, 1.3), p={p})"
+def test_random_resize(p, rnd_ratio, target):
+    transfo = RandomResize(scale_range=(0.3, 1.3), rnd_ratio=rnd_ratio, p=p)
+    assert repr(transfo) == f"RandomResize(scale_range=(0.3, 1.3), rnd_ratio={rnd_ratio}, p={p})"
 
     img = torch.rand((3, 64, 64))
     # Apply the transformation
