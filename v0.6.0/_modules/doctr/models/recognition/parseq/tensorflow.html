@@ -540,10 +540,11 @@
                 <span class="p">)</span>
 
                 <span class="c1"># Stop decoding if all sequences have reached the EOS token</span>
-                <span class="c1"># We need to check it on True to be compatible with ONNX</span>
+                <span class="c1"># NOTE: `break` isn&#39;t correctly translated to Onnx so we don&#39;t break here if we want to export</span>
                 <span class="k">if</span> <span class="p">(</span>
-                    <span class="n">max_len</span> <span class="ow">is</span> <span class="kc">None</span>
-                    <span class="ow">and</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_any</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span> <span class="ow">is</span> <span class="kc">True</span>
+                    <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span>
+                    <span class="ow">and</span> <span class="n">max_len</span> <span class="ow">is</span> <span class="kc">None</span>
+                    <span class="ow">and</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_any</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">ys</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
                 <span class="p">):</span>
                     <span class="k">break</span>
 
