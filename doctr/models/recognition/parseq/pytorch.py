@@ -282,7 +282,8 @@ class PARSeq(_PARSeq, nn.Module):
                 ys[:, i + 1] = pos_prob.squeeze().argmax(-1)
 
                 # Stop decoding if all sequences have reached the EOS token
-                if max_len is None and (ys == self.vocab_size).any(dim=-1).all():
+                # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
+                if not self.exportable and max_len is None and (ys == self.vocab_size).any(dim=-1).all():
                     break
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)

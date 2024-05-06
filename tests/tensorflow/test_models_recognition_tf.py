@@ -226,7 +226,7 @@ def test_models_onnx_export(arch_name, input_shape):
         ort_outs = ort_session.run(output, {"input": np_dummy_input})
 
     assert isinstance(ort_outs, list) and len(ort_outs) == 1
-    assert ort_outs[0].shape[0] == batch_size
+    assert ort_outs[0].shape == tf_logits.shape
     # Check that the output is close to the TensorFlow output - only warn if not close
     try:
         assert np.allclose(tf_logits, ort_outs[0], atol=1e-4)

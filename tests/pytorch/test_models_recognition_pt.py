@@ -148,7 +148,7 @@ def test_models_onnx_export(arch_name, input_shape):
         ort_outs = ort_session.run(["logits"], {"input": dummy_input.numpy()})
 
     assert isinstance(ort_outs, list) and len(ort_outs) == 1
-    assert ort_outs[0].shape[0] == batch_size
+    assert ort_outs[0].shape == pt_logits.shape
     # Check that the output is close to the PyTorch output - only warn if not close
     try:
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
