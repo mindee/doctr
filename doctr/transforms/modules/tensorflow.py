@@ -523,7 +523,7 @@ class RandomResize(NestedObject):
 
     >>> import tensorflow as tf
     >>> from doctr.transforms import RandomResize
-    >>> transfo = RandomResize((0.3, 0.9) rnd_ratio=True, p=0.5,)
+    >>> transfo = RandomResize((0.3, 0.9) rnd_ratio=True, p=0.5)
     >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
 
     Args:
