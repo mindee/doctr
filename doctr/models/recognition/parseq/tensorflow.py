@@ -288,10 +288,11 @@ class PARSeq(_PARSeq, Model):
                 )
 
                 # Stop decoding if all sequences have reached the EOS token
-                # We need to check it on True to be compatible with ONNX
+                # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
                 if (
-                    max_len is None
-                    and tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1)) is True
+                    not self.exportable
+                    and max_len is None
+                    and tf.reduce_any(tf.reduce_all(tf.equal(ys, tf.constant(self.vocab_size)), axis=-1))
                 ):
                     break
 
