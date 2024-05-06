@@ -1,3 +1,4 @@
+import math
 import os
 import tempfile
 
@@ -115,13 +116,17 @@ def test_detection_zoo(arch_name):
 
 
 def test_fast_reparameterization():
-    dummy_input = torch.rand((2, 3, 1024, 1024), dtype=torch.float32)
+    dummy_input = torch.rand((1, 3, 1024, 1024), dtype=torch.float32)
     base_model = detection.fast_tiny(pretrained=True, exportable=True).eval()
+    base_model_params = sum(p.numel() for p in base_model.parameters())
+    assert math.isclose(base_model_params, 13535296)  # base model params
     base_out = base_model(dummy_input)["logits"]
     rep_model = reparameterize(base_model)
+    rep_model_params = sum(p.numel() for p in rep_model.parameters())
+    assert math.isclose(rep_model_params, 8521920)  # reparameterized model params
     rep_out = rep_model(dummy_input)["logits"]
     diff = base_out - rep_out
-    assert diff.mean() < 5e-2 and diff.mean() < 5e-2
+    assert diff.mean() < 5e-2
 
 
 def test_erode():
