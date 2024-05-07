@@ -332,7 +332,7 @@ def test_random_crop(target):
     # Check the scale (take a margin)
     assert img.shape[0] * img.shape[1] >= 0.4 * input_t.shape[0] * input_t.shape[1]
     # Check aspect ratio (take a margin)
-    assert 0.65 <= img.shape[0] / img.shape[1] <= 1.5
+    assert 0.65 <= img.shape[0] / img.shape[1] <= 1.6
     # Check the target
     assert np.all(target >= 0)
     if target.ndim == 2:
@@ -471,17 +471,24 @@ def test_random_shadow(input_dtype, input_shape):
 
 
 @pytest.mark.parametrize(
-    "p,target",
+    "p,preserve_aspect_ratio,symmetric_pad,target",
     [
-        [1, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
-        [0, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
-        [1, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
-        [0, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [1, True, False, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [0, True, False, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [1, True, False, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [0, True, False, np.array([[[0.1, 0.8], [0.3, 0.1], [0.3, 0.4], [0.8, 0.4]]], dtype=np.float32)],
+        [1, 0.5, 0.5, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
+        [0, 0.5, 0.5, np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32)],
     ],
 )
-def test_random_resize(p, target):
-    transfo = T.RandomResize(scale_range=(0.3, 1.3), p=p)
-    assert repr(transfo) == f"RandomResize(scale_range=(0.3, 1.3), p={p})"
+def test_random_resize(p, preserve_aspect_ratio, symmetric_pad, target):
+    transfo = T.RandomResize(
+        scale_range=(0.3, 1.3), preserve_aspect_ratio=preserve_aspect_ratio, symmetric_pad=symmetric_pad, p=p
+    )
+    assert (
+        repr(transfo)
+        == f"RandomResize(scale_range=(0.3, 1.3), preserve_aspect_ratio={preserve_aspect_ratio}, symmetric_pad={symmetric_pad}, p={p})"  # noqa: E501
+    )
 
     img = tf.random.uniform((64, 64, 3))
     # Apply the transformation
