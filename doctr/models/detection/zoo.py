@@ -75,7 +75,7 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
 
 
 def detection_predictor(
-    arch: Any = "db_resnet50",
+    arch: Any = "fast_base",
     pretrained: bool = False,
     assume_straight_pages: bool = True,
     **kwargs: Any,

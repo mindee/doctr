@@ -43,7 +43,7 @@ def parse_args():
     )
 
     parser.add_argument("path", type=str, help="Path to the input document (PDF or image)")
-    parser.add_argument("--detection", type=str, default="db_resnet50", help="Text detection model to use for analysis")
+    parser.add_argument("--detection", type=str, default="fast_base", help="Text detection model to use for analysis")
     parser.add_argument(
         "--recognition", type=str, default="crnn_vgg16_bn", help="Text recognition model to use for analysis"
     )

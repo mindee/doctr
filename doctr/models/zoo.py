@@ -61,7 +61,7 @@ def _predictor(
 
 
 def ocr_predictor(
-    det_arch: Any = "db_resnet50",
+    det_arch: Any = "fast_base",
     reco_arch: Any = "crnn_vgg16_bn",
     pretrained: bool = False,
     pretrained_backbone: bool = True,
@@ -175,7 +175,7 @@ def _kie_predictor(
 
 
 def kie_predictor(
-    det_arch: Any = "db_resnet50",
+    det_arch: Any = "fast_base",
     reco_arch: Any = "crnn_vgg16_bn",
     pretrained: bool = False,
     pretrained_backbone: bool = True,
