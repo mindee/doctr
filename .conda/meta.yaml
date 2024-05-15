@@ -20,7 +20,6 @@ requirements:
     - setuptools
 
   run:
-    - importlib_metadata
     - numpy >=1.16.0, <2.0.0
     - scipy >=1.4.0, <2.0.0
     - pillow >=9.2.0
