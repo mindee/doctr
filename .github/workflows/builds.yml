@@ -12,12 +12,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-13]  # ref.: https://github.com/actions/setup-python/issues/855 & https://github.com/actions/setup-python/issues/865
         python: ["3.9", "3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
-      - if: matrix.os == 'macos-latest'
+      - if: matrix.os == 'macos-13'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
       - name: Set up Python
@@ -57,7 +57,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: 3.9
+          python-version: 3.10
           channels: pypdfium2-team,bblanchon,defaults,conda-forge
           channel-priority: strict
       - name: Install dependencies
