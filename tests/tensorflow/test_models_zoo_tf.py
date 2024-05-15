@@ -82,7 +82,7 @@ def test_trained_ocr_predictor(mock_payslip):
     doc = DocumentFile.from_images(mock_payslip)
 
     det_predictor = detection_predictor(
-        "db_resnet50",
+        "fast_base",
         pretrained=True,
         batch_size=2,
         assume_straight_pages=True,
@@ -112,7 +112,7 @@ def test_trained_ocr_predictor(mock_payslip):
     assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised, rtol=0.05)
 
     det_predictor = detection_predictor(
-        "db_resnet50",
+        "fast_base",
         pretrained=True,
         batch_size=2,
         assume_straight_pages=True,
@@ -194,7 +194,7 @@ def test_trained_kie_predictor(mock_payslip):
     doc = DocumentFile.from_images(mock_payslip)
 
     det_predictor = detection_predictor(
-        "db_resnet50",
+        "fast_base",
         pretrained=True,
         batch_size=2,
         assume_straight_pages=True,
@@ -225,7 +225,7 @@ def test_trained_kie_predictor(mock_payslip):
     assert np.allclose(np.array(out.pages[0].predictions[CLASS_NAME][3].geometry), geometry_revised, rtol=0.05)
 
     det_predictor = detection_predictor(
-        "db_resnet50",
+        "fast_base",
         pretrained=True,
         batch_size=2,
         assume_straight_pages=True,

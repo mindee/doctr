@@ -85,7 +85,7 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument("path", type=str, help="Path to process: PDF, image, directory")
-    parser.add_argument("--detection", type=str, default="db_resnet50", help="Text detection model to use for analysis")
+    parser.add_argument("--detection", type=str, default="fast_base", help="Text detection model to use for analysis")
     parser.add_argument("--bin-thresh", type=float, default=0.3, help="Binarization threshold for the detection model.")
     parser.add_argument("--box-thresh", type=float, default=0.1, help="Threshold for the detection boxes.")
     parser.add_argument(

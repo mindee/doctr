@@ -10,14 +10,14 @@ from doctr.models import ocr_predictor
 from doctr.models.predictor import OCRPredictor
 
 DET_ARCHS = [
+    "fast_base",
+    "fast_small",
+    "fast_tiny",
     "db_resnet50",
     "db_mobilenet_v3_large",
     "linknet_resnet18",
     "linknet_resnet34",
     "linknet_resnet50",
-    "fast_tiny",
-    "fast_small",
-    "fast_base",
 ]
 RECO_ARCHS = [
     "crnn_vgg16_bn",
