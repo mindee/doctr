@@ -69,6 +69,5 @@ jobs:
         run: |
           python setup.py sdist
           mkdir conda-dist
-          conda config --set remote_backoff_factor 5
           conda build .conda/ --output-folder conda-dist
           conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115
