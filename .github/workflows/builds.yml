@@ -63,11 +63,12 @@ jobs:
           channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
-        run: conda install -y conda-build!=24.5.0 conda-verify anaconda-client
+        run: conda install -y conda-build conda-verify anaconda-client
       - name: Build and verify
         shell: bash -el {0}
         run: |
           python setup.py sdist
           mkdir conda-dist
+          conda config --set remote_backoff_factor 5
           conda build .conda/ --output-folder conda-dist
           conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115
