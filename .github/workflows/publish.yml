@@ -78,7 +78,7 @@ jobs:
           channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
-        run: conda install -y conda-build conda-verify anaconda-client
+        run: conda install -y conda-build!=24.5.0 conda-verify anaconda-client
       - name: Get release tag
         id: release_tag
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
