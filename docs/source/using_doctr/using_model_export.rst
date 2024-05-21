@@ -82,7 +82,33 @@ It defines a common format for representing models, including the network struct
             model_path = export_model_to_onnx(model, model_name="vitstr.onnx, dummy_input=dummy_input)
 
 
-Using your ONNX exported model in docTR
----------------------------------------
+Using your ONNX exported model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**Coming soon**
+To use your exported model, we have build a dedicated lightweight package called `OnnxTR <https://github.com/felixdittrich92/OnnxTR>`_.
+The package doesn't require PyTorch or TensorFlow to be installed - build on top of ONNXRuntime.
+It is simple and easy-to-use (with the same interface you know already from docTR), that allows you to perform inference with your exported model.
+
+- `Installation <https://github.com/felixdittrich92/OnnxTR#installation>`_
+- `Loading custom exported model <https://github.com/felixdittrich92/OnnxTR#loading-custom-exported-models>`_
+
+.. code:: shell
+
+    pip install onnxtr[cpu]
+
+.. code:: python3
+
+    from onnxtr.io import DocumentFile
+    from onnxtr.models import ocr_predictor, parseq, linknet_resnet18
+    # Load your documents
+    single_img_doc = DocumentFile.from_images("path/to/your/img.jpg")
+
+    # Load your exported model/s
+    reco_model = parseq("path_to_custom_model.onnx", vocab="ABC")
+    det_model = linknet_resnet18("path_to_custom_model.onnx")
+    predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
+    # Or use any of the pre-trained models
+    predictor = ocr_predictor(det_arch="linknet_resnet18", reco_arch="parseq")
+
+    # Get your results
+    res = predictor(single_img_doc)
