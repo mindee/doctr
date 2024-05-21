@@ -8,8 +8,8 @@ package:
   version: {{ version }}
 
 source:
-  fn: {{ project.get('name') | replace("-", "_")}}-{{ version }}.tar.gz
-  url: ../dist/{{ project.get('name') | replace("-", "_")}}-{{ version }}.tar.gz
+  fn: {{ project.get('name') | replace("-", "_") }}-{{ version }}.tar.gz
+  url: ../dist/{{ project.get('name') | replace("-", "_") }}-{{ version }}.tar.gz
 
 build:
   script: python setup.py install --single-version-externally-managed --record=record.txt
@@ -49,6 +49,6 @@ about:
   home: {{ urls.get('repository') }}
   license: Apache-2.0
   license_file: {{ project.get('license', {}).get('file') }}
-  summary: {{ project.get('description') | replace(":", " -")}}
+  summary: {{ project.get('description') | replace(":", " -") }}
   doc_url: {{ urls.get('documentation') }}
   dev_url: {{ urls.get('repository') }}
