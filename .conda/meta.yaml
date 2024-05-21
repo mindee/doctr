@@ -8,8 +8,8 @@ package:
   version: {{ version }}
 
 source:
-  fn: {{ project.get('name') }}-{{ version }}.tar.gz
-  url: ../dist/{{ project.get('name') }}-{{ version }}.tar.gz
+  fn: python_doctr-{{ version }}.tar.gz
+  url: ../dist/python_doctr-{{ version }}.tar.gz
 
 build:
   script: python setup.py install --single-version-externally-managed --record=record.txt
