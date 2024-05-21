@@ -370,10 +370,35 @@ It defines a common format for representing models, including the network struct
 </div>
 </div></div>
 </section>
+<section id="using-your-onnx-exported-model">
+<h3>Using your ONNX exported model<a class="headerlink" href="#using-your-onnx-exported-model" title="Link to this heading">¶</a></h3>
+<p>To use your exported model, we have build a dedicated lightweight package called <a class="reference external" href="https://github.com/felixdittrich92/OnnxTR">OnnxTR</a>.
+The package doesn’t require PyTorch or TensorFlow to be installed - build on top of ONNXRuntime.
+It is simple and easy-to-use (with the same interface you know already from docTR), that allows you to perform inference with your exported model.</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/felixdittrich92/OnnxTR#installation">Installation</a></p></li>
+<li><p><a class="reference external" href="https://github.com/felixdittrich92/OnnxTR#loading-custom-exported-models">Loading custom exported model</a></p></li>
+</ul>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>onnxtr<span class="o">[</span>cpu<span class="o">]</span>
+</pre></div>
+</div>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">onnxtr.io</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span> <span class="nn">onnxtr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">parseq</span><span class="p">,</span> <span class="n">linknet_resnet18</span>
+<span class="c1"># Load your documents</span>
+<span class="n">single_img_doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">&quot;path/to/your/img.jpg&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load your exported model/s</span>
+<span class="n">reco_model</span> <span class="o">=</span> <span class="n">parseq</span><span class="p">(</span><span class="s2">&quot;path_to_custom_model.onnx&quot;</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="s2">&quot;ABC&quot;</span><span class="p">)</span>
+<span class="n">det_model</span> <span class="o">=</span> <span class="n">linknet_resnet18</span><span class="p">(</span><span class="s2">&quot;path_to_custom_model.onnx&quot;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">)</span>
+<span class="c1"># Or use any of the pre-trained models</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;parseq&quot;</span><span class="p">)</span>
+
+<span class="c1"># Get your results</span>
+<span class="n">res</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">single_img_doc</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
-<section id="using-your-onnx-exported-model-in-doctr">
-<h2>Using your ONNX exported model in docTR<a class="headerlink" href="#using-your-onnx-exported-model-in-doctr" title="Link to this heading">¶</a></h2>
-<p><strong>Coming soon</strong></p>
 </section>
 </section>
 
@@ -436,9 +461,9 @@ It defines a common format for representing models, including the network struct
 <li><a class="reference internal" href="#model-optimization">Model optimization</a><ul>
 <li><a class="reference internal" href="#half-precision">Half-precision</a></li>
 <li><a class="reference internal" href="#export-to-onnx">Export to ONNX</a></li>
+<li><a class="reference internal" href="#using-your-onnx-exported-model">Using your ONNX exported model</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#using-your-onnx-exported-model-in-doctr">Using your ONNX exported model in docTR</a></li>
 </ul>
 </li>
 </ul>
