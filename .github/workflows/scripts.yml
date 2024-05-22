@@ -156,7 +156,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          # MacOS issue ref.: https://github.com/actions/setup-python/issues/855 & https://github.com/actions/setup-python/issues/865
+          python-version: ${{ matrix.os == 'macos-latest' && '3.11' || matrix.python }}
           architecture: x64
       - name: Run environment collection script
         run: python scripts/collect_env.py

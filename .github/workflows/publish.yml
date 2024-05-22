@@ -63,7 +63,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install python-doctr[torch]
-          python -c "import doctr; print(doctr.__version__)"
+          python -c "from importlib.metadata import version; print(version('python-doctr'))"
 
   conda:
     if: "!github.event.release.prerelease"
@@ -110,4 +110,4 @@ jobs:
           conda config --set channel_priority strict
           conda install pytorch torchvision torchaudio cpuonly -c pytorch
           conda install -c techMindee -c pypdfium2-team -c bblanchon -c defaults -c conda-forge python-doctr
-          python -c "import doctr; print(doctr.__version__)"
+          python -c "from importlib.metadata import version; print(version('python-doctr'))"
