@@ -13,7 +13,7 @@ from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import rotate_image
+from doctr.utils.geometry import detach_scores, rotate_image
 
 from .base import _OCRPredictor
 
@@ -102,6 +102,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         ), "Detection Model in ocr_predictor should output only one class"
 
         loc_preds = [list(loc_pred.values())[0] for loc_pred in loc_preds]
+        # Detach objectness scores from loc_preds
+        loc_preds, objectness_scores = detach_scores(loc_preds)
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
@@ -140,6 +142,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         out = self.doc_builder(
             pages,  # type: ignore[arg-type]
             boxes,
+            objectness_scores,
             text_preds,
             origin_page_shapes,  # type: ignore[arg-type]
             crop_orientations,

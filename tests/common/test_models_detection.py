@@ -19,7 +19,7 @@ def test_dbpostprocessor():
     assert len(out) == 2
     assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
     assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
-    assert all(all(v.shape[1] == 4 and v.shape[2] == 2 for v in sample) for sample in r_out)
+    assert all(all(v.shape[1] == 5 and v.shape[2] == 2 for v in sample) for sample in r_out)
     # Relative coords
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in out)
     assert all(all(np.all(np.logical_and(v[:, :4] >= 0, v[:, :4] <= 1)) for v in sample) for sample in r_out)
@@ -75,7 +75,7 @@ def test_linknet_postprocessor():
     assert len(out) == 2
     assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
     assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
-    assert all(all(v.shape[1] == 4 and v.shape[2] == 2 for v in sample) for sample in r_out)
+    assert all(all(v.shape[1] == 5 and v.shape[2] == 2 for v in sample) for sample in r_out)
     # Relative coords
     assert all(all(np.all(np.logical_and(v[:4] >= 0, v[:4] <= 1)) for v in sample) for sample in out)
 
@@ -93,6 +93,6 @@ def test_fast_postprocessor():
     assert len(out) == 2
     assert all(isinstance(sample, list) and all(isinstance(v, np.ndarray) for v in sample) for sample in out)
     assert all(all(v.shape[1] == 5 for v in sample) for sample in out)
-    assert all(all(v.shape[1] == 4 and v.shape[2] == 2 for v in sample) for sample in r_out)
+    assert all(all(v.shape[1] == 5 and v.shape[2] == 2 for v in sample) for sample in r_out)
     # Relative coords
     assert all(all(np.all(np.logical_and(v[:4] >= 0, v[:4] <= 1)) for v in sample) for sample in out)

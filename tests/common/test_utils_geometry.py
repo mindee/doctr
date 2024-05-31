@@ -16,10 +16,31 @@ def test_polygon_to_bbox():
     assert geometry.polygon_to_bbox(((0, 0), (1, 0), (0, 1), (1, 1))) == ((0, 0), (1, 1))
 
 
+def test_detach_scores():
+    # box test
+    boxes = np.array([[0.1, 0.1, 0.2, 0.2, 0.9], [0.15, 0.15, 0.2, 0.2, 0.8]])
+    pred = geometry.detach_scores([boxes])
+    target1 = np.array([[0.1, 0.1, 0.2, 0.2], [0.15, 0.15, 0.2, 0.2]])
+    target2 = np.array([0.9, 0.8])
+    assert np.all(pred[0] == target1) and np.all(pred[1] == target2)
+    # polygon test
+    boxes = np.array([
+        [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15], [0.0, 0.9]],
+        [[0.15, 0.15], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15], [0.0, 0.8]],
+    ])
+    pred = geometry.detach_scores([boxes])
+    target1 = np.array([
+        [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
+        [[0.15, 0.15], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
+    ])
+    target2 = np.array([0.9, 0.8])
+    assert np.all(pred[0] == target1) and np.all(pred[1] == target2)
+
+
 def test_resolve_enclosing_bbox():
     assert geometry.resolve_enclosing_bbox([((0, 0.5), (1, 0)), ((0.5, 0), (1, 0.25))]) == ((0, 0), (1, 0.5))
-    pred = geometry.resolve_enclosing_bbox(np.array([[0.1, 0.1, 0.2, 0.2, 0.9], [0.15, 0.15, 0.2, 0.2, 0.8]]))
-    assert pred.all() == np.array([0.1, 0.1, 0.2, 0.2, 0.85]).all()
+    pred = geometry.resolve_enclosing_bbox(np.array([[0.1, 0.1, 0.2, 0.2], [0.15, 0.15, 0.2, 0.2]]))
+    assert pred.all() == np.array([0.1, 0.1, 0.2, 0.2]).all()
 
 
 def test_resolve_enclosing_rbbox():

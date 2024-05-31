@@ -138,10 +138,11 @@ class FASTPostProcessor(DetectionPostProcessor):
                 # compute relative box to get rid of img shape
                 _box[:, 0] /= width
                 _box[:, 1] /= height
-                boxes.append(_box)
+                # Add score to box as (0, score)
+                boxes.append(np.vstack([_box, np.array([0.0, score])]))
 
         if not self.assume_straight_pages:
-            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 4, 2), dtype=pred.dtype)
+            return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5, 2), dtype=pred.dtype)
         else:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5), dtype=pred.dtype)
 

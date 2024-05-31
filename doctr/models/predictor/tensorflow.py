@@ -12,7 +12,7 @@ from doctr.io.elements import Document
 from doctr.models._utils import estimate_orientation, get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import rotate_image
+from doctr.utils.geometry import detach_scores, rotate_image
 from doctr.utils.repr import NestedObject
 
 from .base import _OCRPredictor
@@ -101,6 +101,8 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             len(loc_pred) == 1 for loc_pred in loc_preds_dict
         ), "Detection Model in ocr_predictor should output only one class"
         loc_preds: List[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]  # type: ignore[union-attr]
+        # Detach objectness scores from loc_preds
+        loc_preds, objectness_scores = detach_scores(loc_preds)
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
@@ -134,6 +136,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         out = self.doc_builder(
             pages,
             boxes,
+            objectness_scores,
             text_preds,
             origin_page_shapes,  # type: ignore[arg-type]
             crop_orientations,

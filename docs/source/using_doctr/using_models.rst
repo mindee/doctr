@@ -378,18 +378,21 @@ For reference, here is the export for the same `Document` as above::
                                     'value': 'No.',
                                     'confidence': 0.914085328578949,
                                     'geometry': ((0.5478515625, 0.06640625), (0.5810546875, 0.0966796875)),
+                                    'objectness_score': 0.96,
                                     'crop_orientation': {'value': 0, 'confidence': None},
                                 },
                                 {
                                     'value': 'RECEIPT',
                                     'confidence': 0.9949972033500671,
                                     'geometry': ((0.1357421875, 0.0361328125), (0.51171875, 0.1630859375)),
+                                    'objectness_score': 0.99,
                                     'crop_orientation': {'value': 0, 'confidence': None},
                                 },
                                 {
                                     'value': 'DATE',
                                     'confidence': 0.9578408598899841,
                                     'geometry': ((0.1396484375, 0.3232421875), (0.185546875, 0.3515625)),
+                                    'objectness_score': 0.99,
                                     'crop_orientation': {'value': 0, 'confidence': None},
                                 }
                             ]

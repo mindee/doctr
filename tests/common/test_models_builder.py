@@ -23,11 +23,13 @@ def test_documentbuilder():
     pages = [np.zeros((100, 200, 3))] * num_pages
     boxes = np.random.rand(words_per_page, 6)  # array format
     boxes[:2] *= boxes[2:4]
+    objectness_scores = np.array([0.9] * words_per_page)
     # Arg consistency check
     with pytest.raises(ValueError):
         doc_builder(
             pages,
             [boxes, boxes],
+            [objectness_scores, objectness_scores],
             [("hello", 1.0)] * 3,
             [(100, 200), (100, 200)],
             [{"value": 0, "confidence": None}] * 3,
@@ -35,6 +37,7 @@ def test_documentbuilder():
     out = doc_builder(
         pages,
         [boxes, boxes],
+        [objectness_scores, objectness_scores],
         [[("hello", 1.0)] * words_per_page] * num_pages,
         [(100, 200), (100, 200)],
         [[{"value": 0, "confidence": None}] * words_per_page] * num_pages,
@@ -53,14 +56,18 @@ def test_documentbuilder():
     out = doc_builder(
         pages,
         [boxes, boxes],
+        [objectness_scores, objectness_scores],
         [[("hello", 1.0)] * words_per_page] * num_pages,
         [(100, 200), (100, 200)],
         [[{"value": 0, "confidence": None}] * words_per_page] * num_pages,
     )
 
     # No detection
-    boxes = np.zeros((0, 5))
-    out = doc_builder(pages, [boxes, boxes], [[], []], [(100, 200), (100, 200)], [[]])
+    boxes = np.zeros((0, 4))
+    objectness_scores = np.zeros([0])
+    out = doc_builder(
+        pages, [boxes, boxes], [objectness_scores, objectness_scores], [[], []], [(100, 200), (100, 200)], [[]]
+    )
     assert len(out.pages[0].blocks) == 0
 
     # Rotated boxes to export as straight boxes
@@ -68,15 +75,18 @@ def test_documentbuilder():
         [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
         [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
     ])
+    objectness_scores = np.array([0.99, 0.99])
     doc_builder_2 = builder.DocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
     out = doc_builder_2(
         [np.zeros((100, 100, 3))],
         [boxes],
+        [objectness_scores],
         [[("hello", 0.99), ("word", 0.99)]],
         [(100, 100)],
         [[{"value": 0, "confidence": None}] * 2],
     )
     assert out.pages[0].blocks[0].lines[0].words[-1].geometry == ((0.45, 0.5), (0.6, 0.65))
+    assert out.pages[0].blocks[0].lines[0].words[-1].objectness_score == 0.99
 
     # Repr
     assert (
@@ -93,11 +103,13 @@ def test_kiedocumentbuilder():
     pages = [np.zeros((100, 200, 3))] * num_pages
     predictions = {CLASS_NAME: np.random.rand(words_per_page, 6)}  # dict format
     predictions[CLASS_NAME][:2] *= predictions[CLASS_NAME][2:4]
+    objectness_scores = {CLASS_NAME: np.array([0.9] * words_per_page)}
     # Arg consistency check
     with pytest.raises(ValueError):
         doc_builder(
             pages,
             [predictions, predictions],
+            [objectness_scores, objectness_scores],
             [{CLASS_NAME: ("hello", 1.0)}] * 3,
             [(100, 200), (100, 200)],
             [{CLASS_NAME: [{"value": 0, "confidence": None}] * 3}],
@@ -105,6 +117,7 @@ def test_kiedocumentbuilder():
     out = doc_builder(
         pages,
         [predictions, predictions],
+        [objectness_scores, objectness_scores],
         [{CLASS_NAME: [("hello", 1.0)] * words_per_page}] * num_pages,
         [(100, 200), (100, 200)],
         [{CLASS_NAME: [{"value": 0, "confidence": None}] * words_per_page}] * num_pages,
@@ -123,16 +136,20 @@ def test_kiedocumentbuilder():
     out = doc_builder(
         pages,
         [predictions, predictions],
+        [objectness_scores, objectness_scores],
         [{CLASS_NAME: [("hello", 1.0)] * words_per_page}] * num_pages,
         [(100, 200), (100, 200)],
         [{CLASS_NAME: [{"value": 0, "confidence": None}] * words_per_page}] * num_pages,
     )
 
     # No detection
-    predictions = {CLASS_NAME: np.zeros((0, 5))}
+    predictions = {CLASS_NAME: np.zeros((0, 4))}
+    objectness_scores = {CLASS_NAME: np.zeros((1))}
+
     out = doc_builder(
         pages,
         [predictions, predictions],
+        [objectness_scores, objectness_scores],
         [{CLASS_NAME: []}, {CLASS_NAME: []}],
         [(100, 200), (100, 200)],
         [{CLASS_NAME: []}, {CLASS_NAME: []}],
@@ -146,16 +163,19 @@ def test_kiedocumentbuilder():
             [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
         ])
     }
+    objectness_scores = {CLASS_NAME: np.array([0.99, 0.99])}
     doc_builder_2 = builder.KIEDocumentBuilder(resolve_blocks=False, resolve_lines=False, export_as_straight_boxes=True)
     out = doc_builder_2(
         [np.zeros((100, 100, 3))],
         [predictions],
+        [objectness_scores],
         [{CLASS_NAME: [("hello", 0.99), ("word", 0.99)]}],
         [(100, 100)],
         [{CLASS_NAME: [{"value": 0, "confidence": None}] * 2}],
     )
     assert out.pages[0].predictions[CLASS_NAME][0].geometry == ((0.05, 0.1), (0.2, 0.25))
     assert out.pages[0].predictions[CLASS_NAME][1].geometry == ((0.45, 0.5), (0.6, 0.65))
+    assert out.pages[0].predictions[CLASS_NAME][1].objectness_score == 0.99
 
     # Repr
     assert (

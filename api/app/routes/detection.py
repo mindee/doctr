@@ -28,7 +28,8 @@ async def text_detection(request: DetectionIn = Depends(), files: List[UploadFil
         DetectionOut(
             name=filename,
             geometries=[
-                geom[:-1].tolist() if len(geom) == 5 else resolve_geometry(geom.tolist()) for geom in doc[CLASS_NAME]
+                geom[:-1].tolist() if geom.shape == (5,) else resolve_geometry(geom[:4].tolist())
+                for geom in doc[CLASS_NAME]
             ],
         )
         for doc, filename in zip(predictor(content), filenames)

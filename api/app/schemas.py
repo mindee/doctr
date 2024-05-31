@@ -58,18 +58,21 @@ class DetectionOut(BaseModel):
 class OCRWord(BaseModel):
     value: str = Field(..., examples=["example"])
     geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    objectness_score: float = Field(..., examples=[0.99])
     confidence: float = Field(..., examples=[0.99])
     crop_orientation: Dict[str, Any] = Field(..., examples=[{"value": 0, "confidence": None}])
 
 
 class OCRLine(BaseModel):
     geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    objectness_score: float = Field(..., examples=[0.99])
     words: List[OCRWord] = Field(
         ...,
         examples=[
             {
                 "value": "example",
                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                "objectness_score": 0.99,
                 "confidence": 0.99,
                 "crop_orientation": {"value": 0, "confidence": None},
             }
@@ -79,11 +82,13 @@ class OCRLine(BaseModel):
 
 class OCRBlock(BaseModel):
     geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    objectness_score: float = Field(..., examples=[0.99])
     lines: List[OCRLine] = Field(
         ...,
         examples=[
             {
                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                "objectness_score": 0.99,
                 "words": [
                     {
                         "value": "example",
@@ -103,13 +108,16 @@ class OCRPage(BaseModel):
         examples=[
             {
                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                "objectness_score": 0.99,
                 "lines": [
                     {
                         "geometry": [0.0, 0.0, 0.0, 0.0],
+                        "objectness_score": 0.99,
                         "words": [
                             {
                                 "value": "example",
                                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                                "objectness_score": 0.99,
                                 "confidence": 0.99,
                                 "crop_orientation": {"value": 0, "confidence": None},
                             }
@@ -131,13 +139,16 @@ class OCROut(BaseModel):
         examples=[
             {
                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                "objectness_score": 0.99,
                 "lines": [
                     {
                         "geometry": [0.0, 0.0, 0.0, 0.0],
+                        "objectness_score": 0.99,
                         "words": [
                             {
                                 "value": "example",
                                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                                "objectness_score": 0.99,
                                 "confidence": 0.99,
                                 "crop_orientation": {"value": 0, "confidence": None},
                             }
@@ -157,6 +168,7 @@ class KIEElement(BaseModel):
             {
                 "value": "example",
                 "geometry": [0.0, 0.0, 0.0, 0.0],
+                "objectness_score": 0.99,
                 "confidence": 0.99,
                 "crop_orientation": {"value": 0, "confidence": None},
             }
