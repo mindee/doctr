@@ -100,8 +100,6 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             loc_preds = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
 
         dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore
-        # Rectify crops if aspect ratio
-        dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:

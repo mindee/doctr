@@ -105,9 +105,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Check whether crop mode should be switched to channels first
         channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
-        # Rectify crops if aspect ratio
-        loc_preds = self._remove_padding(pages, loc_preds)  # type: ignore[arg-type]
-
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
             loc_preds = hook(loc_preds)
