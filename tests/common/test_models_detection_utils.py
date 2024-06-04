@@ -23,7 +23,7 @@ def test_remove_padding(pages, preserve_aspect_ratio, symmetric_pad, assume_stra
                     expected = [{"words": np.array([[0.7, 0.0, 0.7, 0.0]])}]
             else:
                 if h > w:
-                    expected = [{"words": np.array([[1.4, 0.1, 1.4, 0.2]])}]
+                    expected = [{"words": np.array([[1.0, 0.1, 1.0, 0.2]])}]
                 else:
                     expected = [{"words": np.array([[0.7, 0.2, 0.7, 0.4]])}]
     # non-straight pages test cases
@@ -39,7 +39,7 @@ def test_remove_padding(pages, preserve_aspect_ratio, symmetric_pad, assume_stra
                     expected = [{"words": np.array([[[0.9, 0.0], [0.9, 0.0], [0.8, 0.0], [0.8, 0.0]]])}]
             else:
                 if h > w:
-                    expected = [{"words": np.array([[[1.8, 0.1], [1.8, 0.2], [1.6, 0.2], [1.6, 0.2]]])}]
+                    expected = [{"words": np.array([[[1.0, 0.1], [1.0, 0.2], [1.0, 0.2], [1.0, 0.2]]])}]
                 else:
                     expected = [{"words": np.array([[[0.9, 0.2], [0.9, 0.4], [0.8, 0.4], [0.8, 0.4]]])}]
 

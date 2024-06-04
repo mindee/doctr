@@ -41,9 +41,9 @@ def _remove_padding(
                     # y unchanged, dilate x coord
                     if symmetric_pad:
                         if assume_straight_pages:
-                            loc_pred[:, [0, 2]] = np.clip((loc_pred[:, [0, 2]] - 0.5) * h / w + 0.5, 0, 1)
+                            loc_pred[:, [0, 2]] = (loc_pred[:, [0, 2]] - 0.5) * h / w + 0.5
                         else:
-                            loc_pred[:, :, 0] = np.clip((loc_pred[:, :, 0] - 0.5) * h / w + 0.5, 0, 1)
+                            loc_pred[:, :, 0] = (loc_pred[:, :, 0] - 0.5) * h / w + 0.5
                     else:
                         if assume_straight_pages:
                             loc_pred[:, [0, 2]] *= h / w
@@ -53,14 +53,14 @@ def _remove_padding(
                     # x unchanged, dilate y coord
                     if symmetric_pad:
                         if assume_straight_pages:
-                            loc_pred[:, [1, 3]] = np.clip((loc_pred[:, [1, 3]] - 0.5) * w / h + 0.5, 0, 1)
+                            loc_pred[:, [1, 3]] = (loc_pred[:, [1, 3]] - 0.5) * w / h + 0.5
                         else:
-                            loc_pred[:, :, 1] = np.clip((loc_pred[:, :, 1] - 0.5) * w / h + 0.5, 0, 1)
+                            loc_pred[:, :, 1] = (loc_pred[:, :, 1] - 0.5) * w / h + 0.5
                     else:
                         if assume_straight_pages:
                             loc_pred[:, [1, 3]] *= w / h
                         else:
                             loc_pred[:, :, 1] *= w / h
-                rectified_preds.append({k: loc_pred})
+                rectified_preds.append({k: np.clip(loc_pred, 0, 1)})
         return rectified_preds
     return loc_preds
