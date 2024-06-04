@@ -111,7 +111,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < 2):
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < 2):  # type: ignore[index]
                 continue
             # Compute objectness
             if self.assume_straight_pages:

@@ -112,7 +112,7 @@ class IMGUR5K(AbstractDataset):
                 if ann["word"] != "."
             ]
             # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-            box_targets = [cv2.boxPoints(((box[0], box[1]), (box[2], box[3]), box[4])) for box in _boxes]  # type: ignore[arg-type]
+            box_targets = [cv2.boxPoints(((box[0], box[1]), (box[2], box[3]), box[4])) for box in _boxes]
 
             if not use_polygons:
                 # xmin, ymin, xmax, ymax
