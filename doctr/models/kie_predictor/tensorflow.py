@@ -108,9 +108,6 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             dict_loc_preds[class_name] = _loc_preds
             objectness_scores[class_name] = _scores
 
-        # Rectify crops if aspect ratio
-        dict_loc_preds = {k: self._remove_padding(pages, loc_pred) for k, loc_pred in dict_loc_preds.items()}
-
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
             dict_loc_preds = hook(dict_loc_preds)
