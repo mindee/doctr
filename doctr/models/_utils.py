@@ -51,14 +51,14 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
     if max_value <= 255 and min_value >= 0 and img.shape[-1] == 3:
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_img = cv2.medianBlur(gray_img, 5)
-        thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]  # type: ignore[assignment]
+        thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
 
     # try to merge words in lines
     (h, w) = img.shape[:2]
     k_x = max(1, (floor(w / 100)))
     k_y = max(1, (floor(h / 100)))
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (k_x, k_y))
-    thresh = cv2.dilate(thresh, kernel, iterations=1)  # type: ignore[assignment]
+    thresh = cv2.dilate(thresh, kernel, iterations=1)
 
     # extract contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
@@ -68,7 +68,7 @@ def estimate_orientation(img: np.ndarray, n_ct: int = 50, ratio_threshold_for_li
 
     angles = []
     for contour in contours[:n_ct]:
-        _, (w, h), angle = cv2.minAreaRect(contour)
+        _, (w, h), angle = cv2.minAreaRect(contour)  # type: ignore[assignment]
         if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
             angles.append(angle)
         elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree

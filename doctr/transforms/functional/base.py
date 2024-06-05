@@ -200,4 +200,4 @@ def create_shadow_mask(
     mask: np.ndarray = np.zeros((*target_shape, 1), dtype=np.uint8)
     mask = cv2.fillPoly(mask, [final_contour], (255,), lineType=cv2.LINE_AA)[..., 0]
 
-    return (mask / 255).astype(np.float32).clip(0, 1) * intensity_mask.astype(np.float32)  # type: ignore[operator]
+    return (mask / 255).astype(np.float32).clip(0, 1) * intensity_mask.astype(np.float32)

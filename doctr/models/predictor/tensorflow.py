@@ -102,9 +102,6 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         ), "Detection Model in ocr_predictor should output only one class"
         loc_preds: List[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]  # type: ignore[union-attr]
 
-        # Rectify crops if aspect ratio
-        loc_preds = self._remove_padding(pages, loc_preds)
-
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
             loc_preds = hook(loc_preds)
