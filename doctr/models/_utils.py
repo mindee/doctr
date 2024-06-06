@@ -80,6 +80,9 @@ def estimate_orientation(
     # extract contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
+    # Filter contours
+    contours = [contour for contour in contours if cv2.contourArea(contour) > 100]
+
     # Sort contours
     contours = sorted(contours, key=get_max_width_length_ratio, reverse=True)
 
