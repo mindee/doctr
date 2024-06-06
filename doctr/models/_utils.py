@@ -62,13 +62,13 @@ def estimate_orientation(
         gray_img = cv2.medianBlur(gray_img, 5)
         thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     else:
-        thresh = img.astype(np.uint8)
+        thresh = img.astype(np.uint8)  # type: ignore[assignment]
 
     page_orientation, orientation_confidence = general_page_orientation or (None, 0.0)
     if page_orientation and orientation_confidence >= min_confidence:
         # We rotate the image to the general orientation which improves the detection
         # No expand needed bitmap is already padded
-        thresh = rotate_image(thresh, -page_orientation)
+        thresh = rotate_image(thresh, -page_orientation)  # type: ignore
     else:  # That's only required if we do not work on the detection models bin map
         # try to merge words in lines
         (h, w) = img.shape[:2]
