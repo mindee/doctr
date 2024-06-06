@@ -9,8 +9,6 @@ from typing import Callable, Optional
 import numpy as np
 import tensorflow as tf
 
-from doctr.utils.multithreading import multithread_exec
-
 __all__ = ["DataLoader"]
 
 
@@ -47,7 +45,6 @@ class DataLoader:
         shuffle: whether the samples should be shuffled before passing it to the iterator
         batch_size: number of elements in each batch
         drop_last: if `True`, drops the last batch if it isn't full
-        num_workers: number of workers to use for data loading
         collate_fn: function to merge samples into a batch
     """
 
@@ -57,7 +54,6 @@ class DataLoader:
         shuffle: bool = True,
         batch_size: int = 1,
         drop_last: bool = False,
-        num_workers: Optional[int] = None,
         collate_fn: Optional[Callable] = None,
     ) -> None:
         self.dataset = dataset
@@ -69,7 +65,6 @@ class DataLoader:
             self.collate_fn = self.dataset.collate_fn if hasattr(self.dataset, "collate_fn") else default_collate
         else:
             self.collate_fn = collate_fn
-        self.num_workers = num_workers
         self.reset()
 
     def __len__(self) -> int:
@@ -92,7 +87,7 @@ class DataLoader:
             idx = self._num_yielded * self.batch_size
             indices = self.indices[idx : min(len(self.dataset), idx + self.batch_size)]
 
-            samples = list(multithread_exec(self.dataset.__getitem__, indices, threads=self.num_workers))
+            samples = list(map(self.dataset.__getitem__, indices))
 
             batch_data = self.collate_fn(samples)
 

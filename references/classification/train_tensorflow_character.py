@@ -9,7 +9,6 @@ os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
-import multiprocessing as mp
 import time
 
 import numpy as np
@@ -133,9 +132,6 @@ def main(args):
     if args.push_to_hub:
         login_to_hub()
 
-    if not isinstance(args.workers, int):
-        args.workers = min(16, mp.cpu_count())
-
     vocab = VOCABS[args.vocab]
 
     fonts = args.font.split(",")
@@ -162,7 +158,6 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=False,
         drop_last=False,
-        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(
@@ -219,7 +214,6 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=True,
         drop_last=True,
-        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(
@@ -349,7 +343,6 @@ def parse_args():
     parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument(
         "--font", type=str, default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf", help="Font family to be used"

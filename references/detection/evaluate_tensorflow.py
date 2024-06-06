@@ -10,7 +10,6 @@ from doctr.file_utils import CLASS_NAME
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-import multiprocessing as mp
 import time
 from pathlib import Path
 
@@ -55,9 +54,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 
 def main(args):
     print(args)
-
-    if not isinstance(args.workers, int):
-        args.workers = min(16, mp.cpu_count())
 
     # AMP
     if args.amp:
@@ -104,7 +100,6 @@ def main(args):
         ds,
         batch_size=args.batch_size,
         drop_last=False,
-        num_workers=args.workers,
         shuffle=False,
     )
     print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
@@ -134,7 +129,6 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default="FUNSD", help="Dataset to evaluate on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for evaluation")
     parser.add_argument("--size", type=int, default=None, help="model input size, H = W")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="inference with rotated bbox")
     parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
