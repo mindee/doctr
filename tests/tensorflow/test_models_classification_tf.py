@@ -114,8 +114,6 @@ def test_crop_orientation_model(mock_text_box):
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
 
-# TODO: uncomment when model is available
-"""
 def test_page_orientation_model(mock_payslip):
     text_box_0 = cv2.imread(mock_payslip)
     # rotates counter-clockwise
@@ -127,7 +125,6 @@ def test_page_orientation_model(mock_payslip):
     # 270 degrees is equivalent to -90 degrees
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
-"""
 
 
 # temporarily fix to avoid killing the CI (tf2onnx v1.14 memory leak issue)
