@@ -9,7 +9,6 @@ os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
-import multiprocessing as mp
 import time
 
 import numpy as np
@@ -147,9 +146,6 @@ def main(args):
     if args.push_to_hub:
         login_to_hub()
 
-    if not isinstance(args.workers, int):
-        args.workers = min(16, mp.cpu_count())
-
     input_size = (512, 512) if args.type == "page" else (256, 256)
 
     # AMP
@@ -173,7 +169,6 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=False,
         drop_last=False,
-        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(
@@ -229,7 +224,6 @@ def main(args):
         batch_size=args.batch_size,
         shuffle=True,
         drop_last=True,
-        num_workers=args.workers,
         collate_fn=collate_fn,
     )
     print(
@@ -363,7 +357,6 @@ def parse_args():
     parser.add_argument("--device", default=None, type=int, help="device")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
     parser.add_argument(

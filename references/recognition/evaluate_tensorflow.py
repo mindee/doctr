@@ -8,7 +8,6 @@ import os
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-import multiprocessing as mp
 import time
 
 import tensorflow as tf
@@ -57,9 +56,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 def main(args):
     print(args)
 
-    if not isinstance(args.workers, int):
-        args.workers = min(16, mp.cpu_count())
-
     # AMP
     if args.amp:
         mixed_precision.set_global_policy("mixed_float16")
@@ -97,7 +93,6 @@ def main(args):
         ds,
         batch_size=args.batch_size,
         drop_last=False,
-        num_workers=args.workers,
         shuffle=False,
     )
     print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
@@ -126,7 +121,6 @@ def parse_args():
     parser.add_argument("--dataset", type=str, default="FUNSD", help="Dataset to evaluate on")
     parser.add_argument("-b", "--batch_size", type=int, default=1, help="batch size for evaluation")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument(
         "--only_regular", dest="regular", action="store_true", help="test set contains only regular text"
     )
