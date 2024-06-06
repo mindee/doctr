@@ -67,7 +67,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (512, 512, 3),
         "classes": [0, -90, 180, 90],
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small-aec9553e.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_page_orientation-aec9553e.zip&src=0",
     },
 }
 
