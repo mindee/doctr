@@ -10,6 +10,7 @@ import numpy as np
 import tensorflow as tf
 
 from doctr.transforms import Normalize, Resize
+from doctr.utils.multithreading import multithread_exec
 from doctr.utils.repr import NestedObject
 
 __all__ = ["PreProcessor"]
@@ -40,6 +41,7 @@ class PreProcessor(NestedObject):
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = Normalize(mean, std)
+        self._runs_on_cuda = tf.test.is_gpu_available()
 
     def batch_inputs(self, samples: List[tf.Tensor]) -> List[tf.Tensor]:
         """Gather samples into batches for inference purposes
@@ -112,13 +114,13 @@ class PreProcessor(NestedObject):
 
         elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, tf.Tensor)) for sample in x):
             # Sample transform (to tensor, resize)
-            samples = list(map(self.sample_transforms, x))
+            samples = list(multithread_exec(self.sample_transforms, x, threads=1 if self._runs_on_cuda else None))
             # Batching
             batches = self.batch_inputs(samples)
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
-        batches = list(map(self.normalize, batches))
+        batches = list(multithread_exec(self.normalize, batches, threads=1 if self._runs_on_cuda else None))
 
         return batches
