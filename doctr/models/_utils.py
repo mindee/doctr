@@ -37,6 +37,7 @@ def estimate_orientation(
     n_ct: int = 70,
     ratio_threshold_for_lines: float = 3,
     min_confidence: float = 0.5,
+    lower_area: int = 100,
 ) -> int:
     """Estimate the angle of the general document orientation based on the
      lines of the document and the assumption that they should be horizontal.
@@ -49,6 +50,7 @@ def estimate_orientation(
         n_ct: the number of contours used for the orientation estimation
         ratio_threshold_for_lines: this is the ratio w/h used to discriminates lines
         min_confidence: the minimum confidence to consider the general_page_orientation
+        lower_area: the minimum area of a contour to be considered
 
     Returns:
     -------
@@ -80,11 +82,12 @@ def estimate_orientation(
     # extract contours
     contours, _ = cv2.findContours(thresh, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    # Filter contours
-    contours = [contour for contour in contours if cv2.contourArea(contour) > 100]
-
-    # Sort contours
-    contours = sorted(contours, key=get_max_width_length_ratio, reverse=True)
+    # Filter & Sort contours
+    contours = sorted(
+        [contour for contour in contours if cv2.contourArea(contour) > lower_area],
+        key=get_max_width_length_ratio,
+        reverse=True,
+    )
 
     angles = []
     for contour in contours[:n_ct]:
