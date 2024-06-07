@@ -13,6 +13,7 @@ from doctr.io.elements import Document
 from doctr.models._utils import get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.utils.geometry import detach_scores
 
 from .base import _OCRPredictor
 
