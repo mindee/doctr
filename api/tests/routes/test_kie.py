@@ -22,6 +22,7 @@ def common_test(json_response, expected_response):
             assert isinstance(pred_item["value"], str) and pred_item["value"] == expected_pred_item["value"]
             assert isinstance(pred_item["confidence"], (int, float))
             np.testing.assert_allclose(pred_item["geometry"], expected_pred_item["geometry"], rtol=1e-2)
+            assert isinstance(pred_item["objectness_score"], (int, float))
             assert isinstance(pred_item["crop_orientation"], dict)
             assert isinstance(pred_item["crop_orientation"]["value"], int) and isinstance(
                 pred_item["crop_orientation"]["confidence"], (float, int, type(None))

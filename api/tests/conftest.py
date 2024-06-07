@@ -84,12 +84,14 @@ def mock_kie_response():
                         {
                             "value": "Hello",
                             "geometry": [0.7471996155154171, 0.1796875, 0.8272978149561669, 0.20703125],
+                            "objectness_score": 0.39,
                             "confidence": 1,
                             "crop_orientation": {"value": 0, "confidence": None},
                         },
                         {
                             "value": "world!",
                             "geometry": [0.8176307908857315, 0.1787109375, 0.9101580212741838, 0.2080078125],
+                            "objectness_score": 0.39,
                             "confidence": 1,
                             "crop_orientation": {"value": 0, "confidence": None},
                         },
@@ -118,6 +120,7 @@ def mock_kie_response():
                                 0.7470247745513916,
                                 0.20540954172611237,
                             ],
+                            "objectness_score": 0.5,
                             "confidence": 0.99,
                             "crop_orientation": {"value": 0, "confidence": 1},
                         },
@@ -133,6 +136,7 @@ def mock_kie_response():
                                 0.8173396587371826,
                                 0.20735852420330048,
                             ],
+                            "objectness_score": 0.5,
                             "confidence": 1,
                             "crop_orientation": {"value": 0, "confidence": 1},
                         },
@@ -156,13 +160,16 @@ def mock_ocr_response():
                     "blocks": [
                         {
                             "geometry": [0.7471996155154171, 0.1787109375, 0.9101580212741838, 0.2080078125],
+                            "objectness_score": 0.39,
                             "lines": [
                                 {
                                     "geometry": [0.7471996155154171, 0.1787109375, 0.9101580212741838, 0.2080078125],
+                                    "objectness_score": 0.39,
                                     "words": [
                                         {
                                             "value": "Hello",
                                             "geometry": [0.7471996155154171, 0.1796875, 0.8272978149561669, 0.20703125],
+                                            "objectness_score": 0.39,
                                             "confidence": 1,
                                             "crop_orientation": {"value": 0, "confidence": None},
                                         },
@@ -174,6 +181,7 @@ def mock_ocr_response():
                                                 0.9101580212741838,
                                                 0.2080078125,
                                             ],
+                                            "objectness_score": 0.39,
                                             "confidence": 1,
                                             "crop_orientation": {"value": 0, "confidence": None},
                                         },
@@ -204,6 +212,7 @@ def mock_ocr_response():
                                 0.7460724711418152,
                                 0.20930007100105286,
                             ],
+                            "objectness_score": 0.5,
                             "lines": [
                                 {
                                     "geometry": [
@@ -216,6 +225,7 @@ def mock_ocr_response():
                                         0.7460724711418152,
                                         0.20930007100105286,
                                     ],
+                                    "objectness_score": 0.5,
                                     "words": [
                                         {
                                             "value": "Hello",
@@ -229,6 +239,7 @@ def mock_ocr_response():
                                                 0.7470247745513916,
                                                 0.20540954172611237,
                                             ],
+                                            "objectness_score": 0.5,
                                             "confidence": 0.99,
                                             "crop_orientation": {"value": 0, "confidence": 1},
                                         },
@@ -244,6 +255,7 @@ def mock_ocr_response():
                                                 0.8173396587371826,
                                                 0.20735852420330048,
                                             ],
+                                            "objectness_score": 0.5,
                                             "confidence": 1,
                                             "crop_orientation": {"value": 0, "confidence": 1},
                                         },

@@ -37,13 +37,16 @@ async def perform_ocr(request: OCRIn = Depends(), files: List[UploadFile] = [Fil
                     blocks=[
                         OCRBlock(
                             geometry=resolve_geometry(block.geometry),
+                            objectness_score=round(block.objectness_score, 2),
                             lines=[
                                 OCRLine(
                                     geometry=resolve_geometry(line.geometry),
+                                    objectness_score=round(line.objectness_score, 2),
                                     words=[
                                         OCRWord(
                                             value=word.value,
                                             geometry=resolve_geometry(word.geometry),
+                                            objectness_score=round(word.objectness_score, 2),
                                             confidence=round(word.confidence, 2),
                                             crop_orientation=word.crop_orientation,
                                         )

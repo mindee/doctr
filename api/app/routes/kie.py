@@ -38,6 +38,7 @@ async def perform_kie(request: KIEIn = Depends(), files: List[UploadFile] = [Fil
                         dict(
                             value=prediction.value,
                             geometry=resolve_geometry(prediction.geometry),
+                            objectness_score=round(prediction.objectness_score, 2),
                             confidence=round(prediction.confidence, 2),
                             crop_orientation=prediction.crop_orientation,
                         )

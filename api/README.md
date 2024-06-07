@@ -147,6 +147,7 @@ should yield
               0.9101580212741838,
               0.2080078125
             ],
+            "objectness_score": 0.5,
             "lines": [
               {
                 "geometry": [
@@ -155,6 +156,7 @@ should yield
                   0.9101580212741838,
                   0.2080078125
                 ],
+                "objectness_score": 0.5,
                 "words": [
                   {
                     "value": "Hello",
@@ -164,6 +166,7 @@ should yield
                       0.8272978149561669,
                       0.20703125
                     ],
+                    "objectness_score": 0.5,
                     "confidence": 1.0,
                     "crop_orientation": {"value": 0, "confidence": null}
                   },
@@ -175,6 +178,7 @@ should yield
                       0.9101580212741838,
                       0.2080078125
                     ],
+                    "objectness_score": 0.5,
                     "confidence": 1.0,
                     "crop_orientation": {"value": 0, "confidence": null}
                   }

@@ -14,10 +14,13 @@ def common_test(json_response, expected_response):
     for item, expected_item in zip(first_pred["items"], expected_response["items"]):
         for block, expected_block in zip(item["blocks"], expected_item["blocks"]):
             np.testing.assert_allclose(block["geometry"], expected_block["geometry"], rtol=1e-2)
+            assert isinstance(block["objectness_score"], (int, float))
             for line, expected_line in zip(block["lines"], expected_block["lines"]):
                 np.testing.assert_allclose(line["geometry"], expected_line["geometry"], rtol=1e-2)
+                assert isinstance(line["objectness_score"], (int, float))
                 for word, expected_word in zip(line["words"], expected_line["words"]):
                     np.testing.assert_allclose(word["geometry"], expected_word["geometry"], rtol=1e-2)
+                    assert isinstance(word["objectness_score"], (int, float))
                     assert isinstance(word["value"], str) and word["value"] == expected_word["value"]
                     assert isinstance(word["confidence"], (int, float))
                     assert isinstance(word["crop_orientation"], dict)
