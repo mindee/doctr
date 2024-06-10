@@ -348,8 +348,11 @@
 <span class="sd">        the list of pages decoded as numpy ndarray of shape H x W x C</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Rasterise pages to numpy ndarrays with pypdfium2</span>
-    <span class="n">pdf</span> <span class="o">=</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">PdfDocument</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">autoclose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">rev_byteorder</span><span class="o">=</span><span class="n">rgb_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pdf</span><span class="p">]</span></div>
+    <span class="n">pdf</span> <span class="o">=</span> <span class="n">pdfium</span><span class="o">.</span><span class="n">PdfDocument</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">rev_byteorder</span><span class="o">=</span><span class="n">rgb_mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pdf</span><span class="p">]</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="n">pdf</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 </pre></div>
         </article>
