@@ -25,7 +25,7 @@ requirements:
     - pillow >=9.2.0
     - h5py >=3.1.0, <4.0.0
     - opencv >=4.5.0, <5.0.0
-    - pypdfium2-team::pypdfium2_helpers >=4.0.0, <5.0.0
+    - pypdfium2-team::pypdfium2_helpers >=4.11.0, <5.0.0
     - pyclipper >=1.2.0, <2.0.0
     - shapely >=1.6.0, <3.0.0
     - langdetect >=1.0.9, <2.0.0
