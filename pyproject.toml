@@ -142,10 +142,9 @@ zip-safe = true
 
 [tool.setuptools.packages.find]
 exclude = ["api*", "demo*", "docs*", "notebooks*", "references*", "scripts*", "tests*"]
-where = ["doctr"]
 
 [tool.setuptools.package-data]
-"doctr" = ["py.typed"]
+doctr = ["py.typed"]
 
 [tool.mypy]
 files = "doctr/"
