@@ -36,7 +36,7 @@ def estimate_orientation(
     general_page_orientation: Optional[Tuple[int, float]] = None,
     n_ct: int = 70,
     ratio_threshold_for_lines: float = 3,
-    min_confidence: float = 0.5,
+    min_confidence: float = 0.2,
     lower_area: int = 100,
 ) -> int:
     """Estimate the angle of the general document orientation based on the
