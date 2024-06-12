@@ -746,15 +746,18 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
+
 <span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models import mobilenet_v3_small_page_orientation</span>
 <span class="sd">    &gt;&gt;&gt; model = mobilenet_v3_small_page_orientation(pretrained=False)</span>
 <span class="sd">    &gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)</span>
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the MobileNetV3 architecture</span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">    -------</span>
 <span class="sd">        a keras.Model</span>

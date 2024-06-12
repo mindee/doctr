@@ -587,20 +587,23 @@ classification head.</p>
 <dt class="sig sig-object py" id="doctr.models.classification.mobilenet_v3_small_page_orientation">
 <span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">mobilenet_v3_small_page_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MobileNetV3</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/mobilenet/tensorflow.html#mobilenet_v3_small_page_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.mobilenet_v3_small_page_orientation" title="Link to this definition">¶</a></dt>
 <dd><p>MobileNetV3-Small architecture as described in
-<a class="reference external" href="https://arxiv.org/pdf/1905.02244.pdf">“Searching for MobileNetV3”,</a>.
-&gt;&gt;&gt; import tensorflow as tf
-&gt;&gt;&gt; from doctr.models import mobilenet_v3_small_page_orientation
-&gt;&gt;&gt; model = mobilenet_v3_small_page_orientation(pretrained=False)
-&gt;&gt;&gt; input_tensor = tf.random.uniform(shape=[1, 512, 512, 3], maxval=1, dtype=tf.float32)
-&gt;&gt;&gt; out = model(input_tensor)
-Args:
-—-</p>
+<a class="reference external" href="https://arxiv.org/pdf/1905.02244.pdf">“Searching for MobileNetV3”,</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">mobilenet_v3_small_page_orientation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id46">
+<h3>Args:<a class="headerlink" href="#id46" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id46"><span class="problematic" id="id47">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+<a href="#id47"><span class="problematic" id="id48">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
 </div></blockquote>
-<section id="id48">
-<h3>Returns:<a class="headerlink" href="#id48" title="Link to this heading">¶</a></h3>
+</section>
+<section id="id49">
+<h3>Returns:<a class="headerlink" href="#id49" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>a keras.Model</p>
 </div></blockquote>
@@ -619,15 +622,15 @@ Args:
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id49">
-<h3>Args:<a class="headerlink" href="#id49" title="Link to this heading">¶</a></h3>
+<section id="id50">
+<h3>Args:<a class="headerlink" href="#id50" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id50"><span class="problematic" id="id51">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
+<a href="#id51"><span class="problematic" id="id52">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id52">
-<h3>Returns:<a class="headerlink" href="#id52" title="Link to this heading">¶</a></h3>
+<section id="id53">
+<h3>Returns:<a class="headerlink" href="#id53" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>A feature extractor model</p>
 </div></blockquote>
@@ -647,15 +650,15 @@ Args:
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id53">
-<h3>Args:<a class="headerlink" href="#id53" title="Link to this heading">¶</a></h3>
+<section id="id54">
+<h3>Args:<a class="headerlink" href="#id54" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id54"><span class="problematic" id="id55">**</span></a>kwargs: keyword arguments of the VisionTransformer architecture</p>
+<a href="#id55"><span class="problematic" id="id56">**</span></a>kwargs: keyword arguments of the VisionTransformer architecture</p>
 </div></blockquote>
 </section>
-<section id="id56">
-<h3>Returns:<a class="headerlink" href="#id56" title="Link to this heading">¶</a></h3>
+<section id="id57">
+<h3>Returns:<a class="headerlink" href="#id57" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>A feature extractor model</p>
 </div></blockquote>
@@ -674,15 +677,15 @@ Args:
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id58">
-<h3>Args:<a class="headerlink" href="#id58" title="Link to this heading">¶</a></h3>
+<section id="id59">
+<h3>Args:<a class="headerlink" href="#id59" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id59"><span class="problematic" id="id60">**</span></a>kwargs: keyword arguments of the VisionTransformer architecture</p>
+<a href="#id60"><span class="problematic" id="id61">**</span></a>kwargs: keyword arguments of the VisionTransformer architecture</p>
 </div></blockquote>
 </section>
-<section id="id61">
-<h3>Returns:<a class="headerlink" href="#id61" title="Link to this heading">¶</a></h3>
+<section id="id62">
+<h3>Returns:<a class="headerlink" href="#id62" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>A feature extractor model</p>
 </div></blockquote>
@@ -702,15 +705,15 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id62">
-<h3>Args:<a class="headerlink" href="#id62" title="Link to this heading">¶</a></h3>
+<section id="id63">
+<h3>Args:<a class="headerlink" href="#id63" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id63"><span class="problematic" id="id64">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
+<a href="#id64"><span class="problematic" id="id65">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id65">
-<h3>Returns:<a class="headerlink" href="#id65" title="Link to this heading">¶</a></h3>
+<section id="id66">
+<h3>Returns:<a class="headerlink" href="#id66" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>A textnet tiny model</p>
 </div></blockquote>
@@ -730,15 +733,15 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id67">
-<h3>Args:<a class="headerlink" href="#id67" title="Link to this heading">¶</a></h3>
+<section id="id68">
+<h3>Args:<a class="headerlink" href="#id68" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id68"><span class="problematic" id="id69">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
+<a href="#id69"><span class="problematic" id="id70">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id70">
-<h3>Returns:<a class="headerlink" href="#id70" title="Link to this heading">¶</a></h3>
+<section id="id71">
+<h3>Returns:<a class="headerlink" href="#id71" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>A TextNet small model</p>
 </div></blockquote>
@@ -758,15 +761,15 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id72">
-<h3>Args:<a class="headerlink" href="#id72" title="Link to this heading">¶</a></h3>
+<section id="id73">
+<h3>Args:<a class="headerlink" href="#id73" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained: boolean, True if model is pretrained
-<a href="#id73"><span class="problematic" id="id74">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
+<a href="#id74"><span class="problematic" id="id75">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id75">
-<h3>Returns:<a class="headerlink" href="#id75" title="Link to this heading">¶</a></h3>
+<section id="id76">
+<h3>Returns:<a class="headerlink" href="#id76" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>A TextNet base model</p>
 </div></blockquote>
@@ -784,16 +787,16 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_crop</span><span class="p">])</span>
 </pre></div>
 </div>
-<section id="id76">
-<h3>Args:<a class="headerlink" href="#id76" title="Link to this heading">¶</a></h3>
+<section id="id77">
+<h3>Args:<a class="headerlink" href="#id77" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>arch: name of the architecture to use (e.g. ‘mobilenet_v3_small_crop_orientation’)
 pretrained: If True, returns a model pre-trained on our recognition crops dataset
-<a href="#id77"><span class="problematic" id="id78">**</span></a>kwargs: keyword arguments to be passed to the OrientationPredictor</p>
+<a href="#id78"><span class="problematic" id="id79">**</span></a>kwargs: keyword arguments to be passed to the OrientationPredictor</p>
 </div></blockquote>
 </section>
-<section id="id79">
-<h3>Returns:<a class="headerlink" href="#id79" title="Link to this heading">¶</a></h3>
+<section id="id80">
+<h3>Returns:<a class="headerlink" href="#id80" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>OrientationPredictor</p>
 </div></blockquote>
@@ -811,16 +814,16 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-<section id="id80">
-<h3>Args:<a class="headerlink" href="#id80" title="Link to this heading">¶</a></h3>
+<section id="id81">
+<h3>Args:<a class="headerlink" href="#id81" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>arch: name of the architecture to use (e.g. ‘mobilenet_v3_small_page_orientation’)
 pretrained: If True, returns a model pre-trained on our recognition crops dataset
-<a href="#id81"><span class="problematic" id="id82">**</span></a>kwargs: keyword arguments to be passed to the OrientationPredictor</p>
+<a href="#id82"><span class="problematic" id="id83">**</span></a>kwargs: keyword arguments to be passed to the OrientationPredictor</p>
 </div></blockquote>
 </section>
-<section id="id83">
-<h3>Returns:<a class="headerlink" href="#id83" title="Link to this heading">¶</a></h3>
+<section id="id84">
+<h3>Returns:<a class="headerlink" href="#id84" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>OrientationPredictor</p>
 </div></blockquote>
@@ -841,15 +844,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id84">
-<h3>Args:<a class="headerlink" href="#id84" title="Link to this heading">¶</a></h3>
+<section id="id85">
+<h3>Args:<a class="headerlink" href="#id85" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id85"><span class="problematic" id="id86">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
+<a href="#id86"><span class="problematic" id="id87">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id87">
-<h3>Returns:<a class="headerlink" href="#id87" title="Link to this heading">¶</a></h3>
+<section id="id88">
+<h3>Returns:<a class="headerlink" href="#id88" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -867,15 +870,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id89">
-<h3>Args:<a class="headerlink" href="#id89" title="Link to this heading">¶</a></h3>
+<section id="id90">
+<h3>Args:<a class="headerlink" href="#id90" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id90"><span class="problematic" id="id91">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
+<a href="#id91"><span class="problematic" id="id92">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id92">
-<h3>Returns:<a class="headerlink" href="#id92" title="Link to this heading">¶</a></h3>
+<section id="id93">
+<h3>Returns:<a class="headerlink" href="#id93" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -893,15 +896,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id94">
-<h3>Args:<a class="headerlink" href="#id94" title="Link to this heading">¶</a></h3>
+<section id="id95">
+<h3>Args:<a class="headerlink" href="#id95" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id95"><span class="problematic" id="id96">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
+<a href="#id96"><span class="problematic" id="id97">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id97">
-<h3>Returns:<a class="headerlink" href="#id97" title="Link to this heading">¶</a></h3>
+<section id="id98">
+<h3>Returns:<a class="headerlink" href="#id98" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -919,15 +922,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id98">
-<h3>Args:<a class="headerlink" href="#id98" title="Link to this heading">¶</a></h3>
+<section id="id99">
+<h3>Args:<a class="headerlink" href="#id99" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id99"><span class="problematic" id="id100">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+<a href="#id100"><span class="problematic" id="id101">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id101">
-<h3>Returns:<a class="headerlink" href="#id101" title="Link to this heading">¶</a></h3>
+<section id="id102">
+<h3>Returns:<a class="headerlink" href="#id102" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -945,15 +948,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id103">
-<h3>Args:<a class="headerlink" href="#id103" title="Link to this heading">¶</a></h3>
+<section id="id104">
+<h3>Args:<a class="headerlink" href="#id104" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id104"><span class="problematic" id="id105">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+<a href="#id105"><span class="problematic" id="id106">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id106">
-<h3>Returns:<a class="headerlink" href="#id106" title="Link to this heading">¶</a></h3>
+<section id="id107">
+<h3>Returns:<a class="headerlink" href="#id107" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -971,15 +974,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id108">
-<h3>Args:<a class="headerlink" href="#id108" title="Link to this heading">¶</a></h3>
+<section id="id109">
+<h3>Args:<a class="headerlink" href="#id109" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id109"><span class="problematic" id="id110">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+<a href="#id110"><span class="problematic" id="id111">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id111">
-<h3>Returns:<a class="headerlink" href="#id111" title="Link to this heading">¶</a></h3>
+<section id="id112">
+<h3>Returns:<a class="headerlink" href="#id112" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -997,15 +1000,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id113">
-<h3>Args:<a class="headerlink" href="#id113" title="Link to this heading">¶</a></h3>
+<section id="id114">
+<h3>Args:<a class="headerlink" href="#id114" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id114"><span class="problematic" id="id115">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+<a href="#id115"><span class="problematic" id="id116">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id116">
-<h3>Returns:<a class="headerlink" href="#id116" title="Link to this heading">¶</a></h3>
+<section id="id117">
+<h3>Returns:<a class="headerlink" href="#id117" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -1023,15 +1026,15 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id118">
-<h3>Args:<a class="headerlink" href="#id118" title="Link to this heading">¶</a></h3>
+<section id="id119">
+<h3>Args:<a class="headerlink" href="#id119" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
-<a href="#id119"><span class="problematic" id="id120">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+<a href="#id120"><span class="problematic" id="id121">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
 </div></blockquote>
 </section>
-<section id="id121">
-<h3>Returns:<a class="headerlink" href="#id121" title="Link to this heading">¶</a></h3>
+<section id="id122">
+<h3>Returns:<a class="headerlink" href="#id122" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text detection architecture</p>
 </div></blockquote>
@@ -1049,17 +1052,17 @@ pretrained: If True, returns a model pre-trained on our recognition crops datase
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-<section id="id122">
-<h3>Args:<a class="headerlink" href="#id122" title="Link to this heading">¶</a></h3>
+<section id="id123">
+<h3>Args:<a class="headerlink" href="#id123" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>arch: name of the architecture or model itself to use (e.g. ‘db_resnet50’)
 pretrained: If True, returns a model pre-trained on our text detection dataset
 assume_straight_pages: If True, fit straight boxes to the page
-<a href="#id123"><span class="problematic" id="id124">**</span></a>kwargs: optional keyword arguments passed to the architecture</p>
+<a href="#id124"><span class="problematic" id="id125">**</span></a>kwargs: optional keyword arguments passed to the architecture</p>
 </div></blockquote>
 </section>
-<section id="id125">
-<h3>Returns:<a class="headerlink" href="#id125" title="Link to this heading">¶</a></h3>
+<section id="id126">
+<h3>Returns:<a class="headerlink" href="#id126" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>Detection predictor</p>
 </div></blockquote>
@@ -1081,15 +1084,15 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id126">
-<h3>Args:<a class="headerlink" href="#id126" title="Link to this heading">¶</a></h3>
+<section id="id127">
+<h3>Args:<a class="headerlink" href="#id127" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id127"><span class="problematic" id="id128">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
+<a href="#id128"><span class="problematic" id="id129">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
 </div></blockquote>
 </section>
-<section id="id129">
-<h3>Returns:<a class="headerlink" href="#id129" title="Link to this heading">¶</a></h3>
+<section id="id130">
+<h3>Returns:<a class="headerlink" href="#id130" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1108,15 +1111,15 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id131">
-<h3>Args:<a class="headerlink" href="#id131" title="Link to this heading">¶</a></h3>
+<section id="id132">
+<h3>Args:<a class="headerlink" href="#id132" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id132"><span class="problematic" id="id133">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
+<a href="#id133"><span class="problematic" id="id134">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
 </div></blockquote>
 </section>
-<section id="id134">
-<h3>Returns:<a class="headerlink" href="#id134" title="Link to this heading">¶</a></h3>
+<section id="id135">
+<h3>Returns:<a class="headerlink" href="#id135" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1135,15 +1138,15 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id136">
-<h3>Args:<a class="headerlink" href="#id136" title="Link to this heading">¶</a></h3>
+<section id="id137">
+<h3>Args:<a class="headerlink" href="#id137" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id137"><span class="problematic" id="id138">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
+<a href="#id138"><span class="problematic" id="id139">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
 </div></blockquote>
 </section>
-<section id="id139">
-<h3>Returns:<a class="headerlink" href="#id139" title="Link to this heading">¶</a></h3>
+<section id="id140">
+<h3>Returns:<a class="headerlink" href="#id140" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1162,15 +1165,15 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id141">
-<h3>Args:<a class="headerlink" href="#id141" title="Link to this heading">¶</a></h3>
+<section id="id142">
+<h3>Args:<a class="headerlink" href="#id142" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id142"><span class="problematic" id="id143">**</span></a>kwargs: keyword arguments of the SAR architecture</p>
+<a href="#id143"><span class="problematic" id="id144">**</span></a>kwargs: keyword arguments of the SAR architecture</p>
 </div></blockquote>
 </section>
-<section id="id144">
-<h3>Returns:<a class="headerlink" href="#id144" title="Link to this heading">¶</a></h3>
+<section id="id145">
+<h3>Returns:<a class="headerlink" href="#id145" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1188,15 +1191,15 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id145">
-<h3>Args:<a class="headerlink" href="#id145" title="Link to this heading">¶</a></h3>
+<section id="id146">
+<h3>Args:<a class="headerlink" href="#id146" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id146"><span class="problematic" id="id147">**</span></a>kwargs: keywoard arguments passed to the MASTER architecture</p>
+<a href="#id147"><span class="problematic" id="id148">**</span></a>kwargs: keywoard arguments passed to the MASTER architecture</p>
 </div></blockquote>
 </section>
-<section id="id148">
-<h3>Returns:<a class="headerlink" href="#id148" title="Link to this heading">¶</a></h3>
+<section id="id149">
+<h3>Returns:<a class="headerlink" href="#id149" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1214,15 +1217,15 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id149">
-<h3>Args:<a class="headerlink" href="#id149" title="Link to this heading">¶</a></h3>
+<section id="id150">
+<h3>Args:<a class="headerlink" href="#id150" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id150"><span class="problematic" id="id151">**</span></a>kwargs: keyword arguments of the ViTSTR architecture</p>
+<a href="#id151"><span class="problematic" id="id152">**</span></a>kwargs: keyword arguments of the ViTSTR architecture</p>
 </div></blockquote>
 </section>
-<section id="id152">
-<h3>Returns:<a class="headerlink" href="#id152" title="Link to this heading">¶</a></h3>
+<section id="id153">
+<h3>Returns:<a class="headerlink" href="#id153" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1240,15 +1243,15 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id154">
-<h3>Args:<a class="headerlink" href="#id154" title="Link to this heading">¶</a></h3>
+<section id="id155">
+<h3>Args:<a class="headerlink" href="#id155" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id155"><span class="problematic" id="id156">**</span></a>kwargs: keyword arguments of the ViTSTR architecture</p>
+<a href="#id156"><span class="problematic" id="id157">**</span></a>kwargs: keyword arguments of the ViTSTR architecture</p>
 </div></blockquote>
 </section>
-<section id="id157">
-<h3>Returns:<a class="headerlink" href="#id157" title="Link to this heading">¶</a></h3>
+<section id="id158">
+<h3>Returns:<a class="headerlink" href="#id158" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1267,15 +1270,15 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id158">
-<h3>Args:<a class="headerlink" href="#id158" title="Link to this heading">¶</a></h3>
+<section id="id159">
+<h3>Args:<a class="headerlink" href="#id159" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-<a href="#id159"><span class="problematic" id="id160">**</span></a>kwargs: keyword arguments of the PARSeq architecture</p>
+<a href="#id160"><span class="problematic" id="id161">**</span></a>kwargs: keyword arguments of the PARSeq architecture</p>
 </div></blockquote>
 </section>
-<section id="id161">
-<h3>Returns:<a class="headerlink" href="#id161" title="Link to this heading">¶</a></h3>
+<section id="id162">
+<h3>Returns:<a class="headerlink" href="#id162" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>text recognition architecture</p>
 </div></blockquote>
@@ -1296,16 +1299,16 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </div>
 </dd>
 </dl>
-<section id="id162">
-<h3>Args:<a class="headerlink" href="#id162" title="Link to this heading">¶</a></h3>
+<section id="id163">
+<h3>Args:<a class="headerlink" href="#id163" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>arch: name of the architecture or model itself to use (e.g. ‘crnn_vgg16_bn’)
 pretrained: If True, returns a model pre-trained on our text recognition dataset
-<a href="#id163"><span class="problematic" id="id164">**</span></a>kwargs: optional parameters to be passed to the architecture</p>
+<a href="#id164"><span class="problematic" id="id165">**</span></a>kwargs: optional parameters to be passed to the architecture</p>
 </div></blockquote>
 </section>
-<section id="id165">
-<h3>Returns:<a class="headerlink" href="#id165" title="Link to this heading">¶</a></h3>
+<section id="id166">
+<h3>Returns:<a class="headerlink" href="#id166" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>Recognition predictor</p>
 </div></blockquote>
@@ -1326,8 +1329,8 @@ pretrained: If True, returns a model pre-trained on our text recognition dataset
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-<section id="id166">
-<h3>Args:<a class="headerlink" href="#id166" title="Link to this heading">¶</a></h3>
+<section id="id167">
+<h3>Args:<a class="headerlink" href="#id167" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>det_arch: name of the detection architecture or the model itself to use</dt><dd><p>(e.g. ‘db_resnet50’, ‘db_mobilenet_v3_large’)</p>
@@ -1363,8 +1366,8 @@ Doing so will improve performances for documents with page-uniform rotations.</p
 <p>kwargs: keyword args of <cite>OCRPredictor</cite></p>
 </div></blockquote>
 </section>
-<section id="id167">
-<h3>Returns:<a class="headerlink" href="#id167" title="Link to this heading">¶</a></h3>
+<section id="id168">
+<h3>Returns:<a class="headerlink" href="#id168" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>OCR predictor</p>
 </div></blockquote>
@@ -1382,8 +1385,8 @@ Doing so will improve performances for documents with page-uniform rotations.</p
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-<section id="id168">
-<h3>Args:<a class="headerlink" href="#id168" title="Link to this heading">¶</a></h3>
+<section id="id169">
+<h3>Args:<a class="headerlink" href="#id169" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><dl class="simple">
 <dt>det_arch: name of the detection architecture or the model itself to use</dt><dd><p>(e.g. ‘db_resnet50’, ‘db_mobilenet_v3_large’)</p>
@@ -1419,8 +1422,8 @@ Doing so will improve performances for documents with page-uniform rotations.</p
 <p>kwargs: keyword args of <cite>OCRPredictor</cite></p>
 </div></blockquote>
 </section>
-<section id="id169">
-<h3>Returns:<a class="headerlink" href="#id169" title="Link to this heading">¶</a></h3>
+<section id="id170">
+<h3>Returns:<a class="headerlink" href="#id170" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>KIE predictor</p>
 </div></blockquote>
@@ -1444,15 +1447,15 @@ Doing so will improve performances for documents with page-uniform rotations.</p
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s2">&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id170">
-<h3>Args:<a class="headerlink" href="#id170" title="Link to this heading">¶</a></h3>
+<section id="id171">
+<h3>Args:<a class="headerlink" href="#id171" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>repo_id: HuggingFace model hub repo
 kwargs: kwargs of <cite>hf_hub_download</cite> or <cite>snapshot_download</cite></p>
 </div></blockquote>
 </section>
-<section id="id171">
-<h3>Returns:<a class="headerlink" href="#id171" title="Link to this heading">¶</a></h3>
+<section id="id172">
+<h3>Returns:<a class="headerlink" href="#id172" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>Model loaded with the checkpoint</p>
 </div></blockquote>
@@ -1470,13 +1473,13 @@ kwargs: kwargs of <cite>hf_hub_download</cite> or <cite>snapshot_download</cite>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">push_to_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;my-model&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s1">&#39;crnn_mobilenet_v3_small&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<section id="id172">
-<h3>Args:<a class="headerlink" href="#id172" title="Link to this heading">¶</a></h3>
+<section id="id173">
+<h3>Args:<a class="headerlink" href="#id173" title="Link to this heading">¶</a></h3>
 <blockquote>
 <div><p>model: TF or PyTorch model to be saved
 model_name: name of the model which is also the repository name
 task: task name
-<a href="#id173"><span class="problematic" id="id174">**</span></a>kwargs: keyword arguments for push_to_hf_hub</p>
+<a href="#id174"><span class="problematic" id="id175">**</span></a>kwargs: keyword arguments for push_to_hf_hub</p>
 </div></blockquote>
 </section>
 </dd></dl>
