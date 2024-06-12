@@ -33,20 +33,20 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
 
     # test binarized image
     angle = estimate_orientation(mock_bitmap)
-    assert abs(angle - 30.0) < 1.0
+    assert abs(angle) - 30 < 1.0
 
     angle = estimate_orientation(mock_bitmap * 255)
-    assert abs(angle - 30.0) < 1.0
+    assert abs(angle) - 30.0 < 1.0
 
     angle = estimate_orientation(mock_image)
-    assert abs(angle - 30.0) < 1.0
+    assert abs(angle) - 30.0 < 1.0
 
-    rotated = geometry.rotate_image(mock_image, -angle)
+    rotated = geometry.rotate_image(mock_image, angle)
     angle_rotated = estimate_orientation(rotated)
-    assert abs(angle_rotated) < 1.0
+    assert abs(angle_rotated) == 0
 
     mock_tilted_payslip = reader.read_img_as_numpy(mock_tilted_payslip)
-    assert (estimate_orientation(mock_tilted_payslip) - 30.0) < 1.0
+    assert estimate_orientation(mock_tilted_payslip) == -30
 
     rotated = geometry.rotate_image(mock_tilted_payslip, -30, expand=True)
     angle_rotated = estimate_orientation(rotated)
@@ -54,6 +54,14 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
 
     with pytest.raises(AssertionError):
         estimate_orientation(np.ones((10, 10, 10)))
+
+    # test with general_page_orientation
+    assert estimate_orientation(mock_bitmap, (90, 0.9)) in range(140, 160)
+
+    rotated = geometry.rotate_image(mock_tilted_payslip, -30)
+    assert estimate_orientation(rotated, (0, 0.9)) in range(-10, 10)
+
+    assert estimate_orientation(mock_image, (0, 0.9)) - 30 < 1.0
 
 
 def test_get_lang():

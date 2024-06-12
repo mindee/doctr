@@ -61,8 +61,13 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
 
     if assume_straight_pages:
         assert predictor.crop_orientation_predictor is None
+        if predictor.detect_orientation or predictor.straighten_pages:
+            assert isinstance(predictor.page_orientation_predictor, NestedObject)
+        else:
+            assert predictor.page_orientation_predictor is None
     else:
         assert isinstance(predictor.crop_orientation_predictor, NestedObject)
+        assert isinstance(predictor.page_orientation_predictor, NestedObject)
 
     out = predictor(doc)
     assert isinstance(out, Document)
@@ -173,8 +178,13 @@ def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
 
     if assume_straight_pages:
         assert predictor.crop_orientation_predictor is None
+        if predictor.detect_orientation or predictor.straighten_pages:
+            assert isinstance(predictor.page_orientation_predictor, NestedObject)
+        else:
+            assert predictor.page_orientation_predictor is None
     else:
         assert isinstance(predictor.crop_orientation_predictor, NestedObject)
+        assert isinstance(predictor.page_orientation_predictor, NestedObject)
 
     out = predictor(doc)
     assert isinstance(out, KIEDocument)

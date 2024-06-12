@@ -10,10 +10,10 @@ import torch
 from torch import nn
 
 from doctr.io.elements import Document
-from doctr.models._utils import estimate_orientation, get_language
+from doctr.models._utils import get_language
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
-from doctr.utils.geometry import detach_scores, rotate_image
+from doctr.utils.geometry import detach_scores
 
 from .base import _OCRPredictor
 
@@ -55,7 +55,13 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
         self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
         _OCRPredictor.__init__(
-            self, assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, **kwargs
+            self,
+            assume_straight_pages,
+            straighten_pages,
+            preserve_aspect_ratio,
+            symmetric_pad,
+            detect_orientation,
+            **kwargs,
         )
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
@@ -81,19 +87,16 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             for out_map in out_maps
         ]
         if self.detect_orientation:
-            origin_page_orientations = [estimate_orientation(seq_map) for seq_map in seg_maps]
+            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)  # type: ignore[arg-type]
             orientations = [
-                {"value": orientation_page, "confidence": None} for orientation_page in origin_page_orientations
+                {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
             ]
         else:
             orientations = None
+            general_pages_orientations = None
+            origin_pages_orientations = None
         if self.straighten_pages:
-            origin_page_orientations = (
-                origin_page_orientations
-                if self.detect_orientation
-                else [estimate_orientation(seq_map) for seq_map in seg_maps]
-            )
-            pages = [rotate_image(page, -angle, expand=False) for page, angle in zip(pages, origin_page_orientations)]  # type: ignore[arg-type]
+            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)  # type: ignore
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 

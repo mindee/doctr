@@ -252,15 +252,18 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
     """MobileNetV3-Small architecture as described in
     `"Searching for MobileNetV3",
     <https://arxiv.org/pdf/1905.02244.pdf>`_.
+
     >>> import torch
     >>> from doctr.models import mobilenet_v3_small_page_orientation
     >>> model = mobilenet_v3_small_page_orientation(pretrained=False)
     >>> input_tensor = torch.rand((1, 3, 512, 512), dtype=torch.float32)
     >>> out = model(input_tensor)
+
     Args:
     ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
+
     Returns:
     -------
         a torch.nn.Module
