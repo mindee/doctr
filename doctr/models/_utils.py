@@ -106,10 +106,14 @@ def estimate_orientation(
     # combine with the general orientation and the estimated angle
     if page_orientation and orientation_confidence >= min_confidence:
         # special case where the estimated angle is mostly wrong:
-        # when estimated angle is + or - 90 degree, we should consider the general orientation
-        if abs(estimated_angle) == 90 and abs(page_orientation) in [0, 90]:
+        # case 1: - and + swapped
+        # case 2: estimated angle is completely wrong
+        # so in this case we prefer the general page orientation
+        if abs(estimated_angle) == abs(page_orientation):
             return page_orientation
         estimated_angle = estimated_angle if page_orientation == 0 else page_orientation + estimated_angle
+        if estimated_angle > 180:
+            estimated_angle -= 360
 
     return estimated_angle  # return the clockwise angle (negative - left side rotation, positive - right side rotation)
 
