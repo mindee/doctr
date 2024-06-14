@@ -31,7 +31,7 @@ class DocumentBuilder(NestedObject):
     def __init__(
         self,
         resolve_lines: bool = True,
-        resolve_blocks: bool = True,
+        resolve_blocks: bool = False,
         paragraph_break: float = 0.035,
         export_as_straight_boxes: bool = False,
     ) -> None:
