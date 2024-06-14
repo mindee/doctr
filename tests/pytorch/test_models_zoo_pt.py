@@ -182,6 +182,8 @@ def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         straighten_pages=straighten_pages,
         detect_orientation=True,
         detect_language=True,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
 
     if assume_straight_pages:
