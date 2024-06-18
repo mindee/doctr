@@ -20,8 +20,9 @@ VOCABS: Dict[str, str] = {
     "hindi_digits": "٠١٢٣٤٥٦٧٨٩",
     "arabic_diacritics": "ًٌٍَُِّْ",
     "arabic_punctuation": "؟؛«»—",
+    "hindi_punctuation_and_special_char": "।,?!:्ॐ॰॥॰",
 }
-
+VOCABS["hindi"] = "अआइईउऊऋॠऌॡएऐओऔअंअःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह" + VOCABS["hindi_punctuation_and_special"] + "०१२३४५६७८९" 
 VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
 VOCABS["english"] = VOCABS["latin"] + "°" + VOCABS["currency"]
 VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + VOCABS["currency"]
@@ -66,6 +67,7 @@ VOCABS["multilingual"] = "".join(
         + VOCABS["danish"]
         + VOCABS["finnish"]
         + VOCABS["swedish"]
+        + VOCABS["hindi"]
         + "§"
     )
 )
