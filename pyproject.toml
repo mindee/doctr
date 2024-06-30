@@ -54,7 +54,7 @@ dependencies = [
 tf = [
     # cf. https://github.com/mindee/doctr/pull/1182
     # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.11.0,<2.16.0",
+    "tensorflow>=2.16.2,<2.17.0",
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
 ]
 torch = [
@@ -99,7 +99,7 @@ dev = [
     # Tensorflow
     # cf. https://github.com/mindee/doctr/pull/1182
     # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.11.0,<2.16.0",
+    "tensorflow>=2.16.2,<2.17.0",
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
     "torch>=1.12.0,<3.0.0",
