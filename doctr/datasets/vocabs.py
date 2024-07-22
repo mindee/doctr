@@ -20,6 +20,8 @@ VOCABS: Dict[str, str] = {
     "hindi_digits": "٠١٢٣٤٥٦٧٨٩",
     "arabic_diacritics": "ًٌٍَُِّْ",
     "arabic_punctuation": "؟؛«»—",
+    "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
+    "bangla_digits": "০১২৩৪৫৬৭৮৯",
 }
 
 VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
@@ -52,6 +54,7 @@ VOCABS["vietnamese"] = (
     + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰIÍÌỈĨỊÝỲỶỸỴ"
 )
 VOCABS["hebrew"] = VOCABS["english"] + "אבגדהוזחטיכלמנסעפצקרשת" + "₪"
+VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
 VOCABS["multilingual"] = "".join(
     dict.fromkeys(
         VOCABS["french"]
@@ -66,6 +69,7 @@ VOCABS["multilingual"] = "".join(
         + VOCABS["danish"]
         + VOCABS["finnish"]
         + VOCABS["swedish"]
+        + VOCABS["bangla"]
         + "§"
     )
 )
