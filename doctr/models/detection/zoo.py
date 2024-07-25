@@ -61,6 +61,7 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
 
         _model = arch
         _model.assume_straight_pages = assume_straight_pages
+        _model.postprocessor.assume_straight_pages = assume_straight_pages
 
     kwargs.pop("pretrained_backbone", None)
 
