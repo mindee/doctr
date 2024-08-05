@@ -68,8 +68,9 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 2)
+    kwargs["compile"] = kwargs.get("compile", True)
 
-    if is_triton_available():
+    if is_triton_available() and kwargs["compile"]:
         import torch
         _model = torch.compile(_model, fullgraph=False)
 
