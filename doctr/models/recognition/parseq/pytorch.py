@@ -180,7 +180,7 @@ class PARSeq(_PARSeq, nn.Module):
         # Borrowed from https://github.com/baudm/parseq/blob/main/strhub/models/parseq/system.py
         # with small modifications
 
-        max_num_chars = int(seqlen.max().item())  # get longest sequence length in batch
+        max_num_chars = int(seqlen.max().numpy().item())  # get longest sequence length in batch
         perms = [torch.arange(max_num_chars, device=seqlen.device)]
 
         max_perms = math.factorial(max_num_chars) // 2
@@ -266,7 +266,8 @@ class PARSeq(_PARSeq, nn.Module):
         ).int()
 
         pos_logits = []
-        for i in range(max_length):
+        i = 0
+        while i < max_length:
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
                 ys[:, : i + 1],
@@ -283,8 +284,9 @@ class PARSeq(_PARSeq, nn.Module):
 
                 # Stop decoding if all sequences have reached the EOS token
                 # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
-                if not self.exportable and max_len is None and (ys == self.vocab_size).any(dim=-1).all():
-                    break
+                i += (not self.exportable and max_len is None and (ys == self.vocab_size).any(dim=-1).all())*max_length
+            
+            i += 1
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
 
@@ -322,7 +324,7 @@ class PARSeq(_PARSeq, nn.Module):
             # Build target tensor
             _gt, _seq_len = self.build_target(target)
             gt, seq_len = torch.from_numpy(_gt).to(dtype=torch.long).to(x.device), torch.tensor(_seq_len).to(x.device)
-            gt = gt[:, : int(seq_len.max().item()) + 2]  # slice up to the max length of the batch + 2 (SOS + EOS)
+            gt = gt[:, : int(seq_len.max().numpy().item()) + 2]  # slice up to the max length of the batch + 2 (SOS + EOS)
 
             if self.training:
                 # Generate permutations for the target sequences
@@ -338,7 +340,7 @@ class PARSeq(_PARSeq, nn.Module):
 
                 loss = torch.tensor(0.0, device=features.device)
                 loss_numel: Union[int, float] = 0
-                n = (gt_out != self.vocab_size + 2).sum().item()
+                n = (gt_out != self.vocab_size + 2).sum().numpy().item()
                 for i, perm in enumerate(tgt_perms):
                     _, target_mask = self.generate_permutations_attention_masks(perm)  # (seq_len, seq_len)
                     # combine both masks
@@ -351,7 +353,7 @@ class PARSeq(_PARSeq, nn.Module):
                     # remove the [EOS] tokens for the succeeding perms
                     if i == 1:
                         gt_out = torch.where(gt_out == self.vocab_size, self.vocab_size + 2, gt_out)
-                        n = (gt_out != self.vocab_size + 2).sum().item()
+                        n = (gt_out != self.vocab_size + 2).sum().numpy().item()
 
                 loss /= loss_numel
 
@@ -406,7 +408,7 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         ]
         # compute probabilties for each word up to the EOS token
         probs = [
-            preds_prob[i, : len(word)].clip(0, 1).mean().item() if word else 0.0 for i, word in enumerate(word_values)
+            preds_prob[i, : len(word)].clip(0, 1).mean().tolist() if word else 0.0 for i, word in enumerate(word_values)
         ]
 
         return list(zip(word_values, probs))
