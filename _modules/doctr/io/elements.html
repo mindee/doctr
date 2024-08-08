@@ -235,6 +235,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -242,6 +243,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
@@ -305,14 +307,19 @@
 <span class="kn">from</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">import</span> <span class="n">Element</span> <span class="k">as</span> <span class="n">ETElement</span>
 <span class="kn">from</span> <span class="nn">xml.etree.ElementTree</span> <span class="kn">import</span> <span class="n">SubElement</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">import</span> <span class="nn">doctr</span>
+<span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">requires_package</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">resolve_enclosing_bbox</span><span class="p">,</span> <span class="n">resolve_enclosing_rbbox</span>
+<span class="kn">from</span> <span class="nn">doctr.utils.reconstitution</span> <span class="kn">import</span> <span class="n">synthesize_kie_page</span><span class="p">,</span> <span class="n">synthesize_page</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
-<span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">synthesize_kie_page</span><span class="p">,</span> <span class="n">synthesize_page</span><span class="p">,</span> <span class="n">visualize_kie_page</span><span class="p">,</span> <span class="n">visualize_page</span>
+
+<span class="k">try</span><span class="p">:</span>  <span class="c1"># optional dependency for visualization</span>
+    <span class="kn">from</span> <span class="nn">doctr.utils.visualization</span> <span class="kn">import</span> <span class="n">visualize_kie_page</span><span class="p">,</span> <span class="n">visualize_page</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+    <span class="k">pass</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Element&quot;</span><span class="p">,</span> <span class="s2">&quot;Word&quot;</span><span class="p">,</span> <span class="s2">&quot;Artefact&quot;</span><span class="p">,</span> <span class="s2">&quot;Line&quot;</span><span class="p">,</span> <span class="s2">&quot;Prediction&quot;</span><span class="p">,</span> <span class="s2">&quot;Block&quot;</span><span class="p">,</span> <span class="s2">&quot;Page&quot;</span><span class="p">,</span> <span class="s2">&quot;KIEPage&quot;</span><span class="p">,</span> <span class="s2">&quot;Document&quot;</span><span class="p">]</span>
 
@@ -362,16 +369,27 @@
 <span class="sd">        confidence: the confidence associated with the text prediction</span>
 <span class="sd">        geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to</span>
 <span class="sd">        the page&#39;s size</span>
+<span class="sd">        objectness_score: the objectness score of the detection</span>
+<span class="sd">        crop_orientation: the general orientation of the crop in degrees and its confidence</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_exported_keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;confidence&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="s2">&quot;confidence&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;objectness_score&quot;</span><span class="p">,</span> <span class="s2">&quot;crop_orientation&quot;</span><span class="p">]</span>
     <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">geometry</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">objectness_score</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">crop_orientation</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectness_score</span> <span class="o">=</span> <span class="n">objectness_score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">crop_orientation</span> <span class="o">=</span> <span class="n">crop_orientation</span>
 
     <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Renders the full text of the element&quot;&quot;&quot;</span>
@@ -436,7 +454,7 @@
 <span class="sd">            all words in it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_exported_keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;objectness_score&quot;</span><span class="p">]</span>
     <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]</span>
     <span class="n">words</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Word</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -444,7 +462,11 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">words</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Word</span><span class="p">],</span>
         <span class="n">geometry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">objectness_score</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Compute the objectness score of the line</span>
+        <span class="k">if</span> <span class="n">objectness_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">objectness_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">objectness_score</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">words</span><span class="p">]))</span>
         <span class="c1"># Resolve the geometry using the smallest enclosing bounding box</span>
         <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Check whether this is a rotated or straight box</span>
@@ -453,6 +475,7 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">words</span><span class="o">=</span><span class="n">words</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectness_score</span> <span class="o">=</span> <span class="n">objectness_score</span>
 
     <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Renders the full text of the element&quot;&quot;&quot;</span>
@@ -493,7 +516,7 @@
 <span class="sd">            all lines and artefacts in it.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_exported_keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;objectness_score&quot;</span><span class="p">]</span>
     <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">,</span> <span class="s2">&quot;artefacts&quot;</span><span class="p">]</span>
     <span class="n">lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">artefacts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Artefact</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -503,7 +526,11 @@
         <span class="n">lines</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
         <span class="n">artefacts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Artefact</span><span class="p">]</span> <span class="o">=</span> <span class="p">[],</span>
         <span class="n">geometry</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">BoundingBox</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">objectness_score</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Compute the objectness score of the line</span>
+        <span class="k">if</span> <span class="n">objectness_score</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">objectness_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">w</span><span class="o">.</span><span class="n">objectness_score</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">words</span><span class="p">]))</span>
         <span class="c1"># Resolve the geometry using the smallest enclosing bounding box</span>
         <span class="k">if</span> <span class="n">geometry</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">line_boxes</span> <span class="o">=</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">geometry</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">words</span><span class="p">]</span>
@@ -515,6 +542,7 @@
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">lines</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span> <span class="n">artefacts</span><span class="o">=</span><span class="n">artefacts</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectness_score</span> <span class="o">=</span> <span class="n">objectness_score</span>
 
     <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">line_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Renders the full text of the element&quot;&quot;&quot;</span>
@@ -583,6 +611,10 @@
 <span class="sd">            preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 <span class="sd">            **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;mplcursors&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
         <span class="n">visualize_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -760,6 +792,10 @@
 <span class="sd">            preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 <span class="sd">            **kwargs: keyword arguments passed to the matplotlib.pyplot.show method</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;mplcursors&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
         <span class="n">visualize_kie_page</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span>
         <span class="p">)</span>
@@ -960,13 +996,13 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../../../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../../../_static/js/custom.js?v=2c10ae29"></script>
     <script src="../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

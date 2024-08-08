@@ -235,6 +235,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -242,6 +243,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
@@ -301,6 +303,7 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
+<span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">requires_package</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.common_types</span> <span class="kn">import</span> <span class="n">AbstractFile</span>
 
 <span class="kn">from</span> <span class="nn">.html</span> <span class="kn">import</span> <span class="n">read_html</span>
@@ -354,6 +357,11 @@
 <span class="sd">        -------</span>
 <span class="sd">            the list of pages decoded as numpy ndarray of shape H x W x 3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">requires_package</span><span class="p">(</span>
+            <span class="s2">&quot;weasyprint&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;`.from_url` requires weasyprint installed.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="s2">&quot;Installation instructions: https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#installation&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">pdf_stream</span> <span class="o">=</span> <span class="n">read_html</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">from_pdf</span><span class="p">(</span><span class="n">pdf_stream</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -414,13 +422,13 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../../../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../../../_static/js/custom.js?v=2c10ae29"></script>
     <script src="../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

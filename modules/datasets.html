@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="doctr.io" href="io.html" /><link rel="prev" title="AWS Lambda" href="../using_doctr/running_on_aws.html" />
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="doctr.io" href="io.html" /><link rel="prev" title="doctr.contrib" href="contrib.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>doctr.datasets - docTR documentation</title>
@@ -236,6 +236,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -243,6 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
@@ -758,7 +760,7 @@ use_polygons: whether polygons should be considered as rotated bounding box (ins
 <h2>Dataloader<a class="headerlink" href="#dataloader" title="Link to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.datasets.loader.DataLoader">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.loader.</span></span><span class="sig-name descname"><span class="pre">DataLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_last</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_workers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collate_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/loader.html#DataLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.loader.DataLoader" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.loader.</span></span><span class="sig-name descname"><span class="pre">DataLoader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shuffle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drop_last</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">collate_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Callable" title="(in Python v3.12)"><span class="pre">Callable</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/loader.html#DataLoader"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.loader.DataLoader" title="Link to this definition">¶</a></dt>
 <dd><p>Implements a dataset wrapper for fast data loading</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span><span class="p">,</span> <span class="n">DataLoader</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -774,7 +776,6 @@ use_polygons: whether polygons should be considered as rotated bounding box (ins
 shuffle: whether the samples should be shuffled before passing it to the iterator
 batch_size: number of elements in each batch
 drop_last: if <cite>True</cite>, drops the last batch if it isn’t full
-num_workers: number of workers to use for data loading
 collate_fn: function to merge samples into a batch</p>
 </div></blockquote>
 </section>
@@ -912,6 +913,14 @@ of vocabs.</p>
 <td><p>123</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿אבגדהוזחטיכלמנסעפצקרשת₪</p></td>
 </tr>
+<tr class="row-even"><td><p>hindi</p></td>
+<td><p>71</p></td>
+<td><p>अआइईउऊऋॠऌॡएऐओऔअंअःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह०१२३४५६७८९।,?!:्ॐ॰॥॰</p></td>
+</tr>
+<tr class="row-odd"><td><p>bangla</p></td>
+<td><p>70</p></td>
+<td><p>অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ০১২৩৪৫৬৭৮৯</p></td>
+</tr>
 <tr class="row-even"><td><p>multilingual</p></td>
 <td><p>195</p></td>
 <td><p>english &amp; french &amp; german &amp; italian &amp; spanish &amp; portuguese &amp; czech &amp; polish &amp; dutch &amp; norwegian &amp; danish &amp; finnish &amp; swedish &amp; §</p></td>
@@ -960,14 +969,14 @@ dynamic_seq_length: if <cite>target_size</cite> is specified, uses it as upper b
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="../using_doctr/running_on_aws.html">
+          <a class="prev-page" href="contrib.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">AWS Lambda</div>
+                <div class="title">doctr.contrib</div>
                 
               </div>
             </a>
@@ -1049,12 +1058,12 @@ dynamic_seq_length: if <cite>target_size</cite> is specified, uses it as upper b
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../_static/js/custom.js?v=2c10ae29"></script>
     </body>
 </html>

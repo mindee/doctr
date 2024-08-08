@@ -235,6 +235,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -242,6 +243,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/models.html">doctr.models</a></li>
@@ -297,7 +299,7 @@
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">random</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -323,6 +325,7 @@
     <span class="s2">&quot;GaussianNoise&quot;</span><span class="p">,</span>
     <span class="s2">&quot;RandomHorizontalFlip&quot;</span><span class="p">,</span>
     <span class="s2">&quot;RandomShadow&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;RandomResize&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -794,10 +797,7 @@
 <span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomHorizontalFlip</span>
 <span class="sd">    &gt;&gt;&gt; transfo = RandomHorizontalFlip(p=0.5)</span>
 <span class="sd">    &gt;&gt;&gt; image = tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1)</span>
-<span class="sd">    &gt;&gt;&gt; target = {</span>
-<span class="sd">    &gt;&gt;&gt; &quot;boxes&quot;: np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32),</span>
-<span class="sd">    &gt;&gt;&gt; &quot;labels&quot;: np.ones(1, dtype= np.int64)</span>
-<span class="sd">    &gt;&gt;&gt; }</span>
+<span class="sd">    &gt;&gt;&gt; target = np.array([[0.1, 0.1, 0.4, 0.5] ], dtype= np.float32)</span>
 <span class="sd">    &gt;&gt;&gt; out = transfo(image, target)</span>
 
 <span class="sd">    Args:</span>
@@ -809,12 +809,15 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">target</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
             <span class="n">_img</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">flip_left_right</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
             <span class="n">_target</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="c1"># Changing the relative bbox coordinates</span>
-            <span class="n">_target</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">][:,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">target</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">][:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+            <span class="k">if</span> <span class="n">target</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,):</span>
+                <span class="n">_target</span><span class="p">[:,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">target</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">_img</span><span class="p">,</span> <span class="n">_target</span>
         <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span></div>
 
@@ -856,6 +859,64 @@
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;opacity_range=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">opacity_range</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
+
+
+<div class="viewcode-block" id="RandomResize">
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomResize">[docs]</a>
+<span class="k">class</span> <span class="nc">RandomResize</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly resize the input image and align corresponding targets</span>
+
+<span class="sd">    &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.transforms import RandomResize</span>
+<span class="sd">    &gt;&gt;&gt; transfo = RandomResize((0.3, 0.9), preserve_aspect_ratio=True, symmetric_pad=True, p=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    ----</span>
+<span class="sd">        scale_range: range of the resizing factor for width and height (independently)</span>
+<span class="sd">        preserve_aspect_ratio: whether to preserve the aspect ratio of the image,</span>
+<span class="sd">            given a float value, the aspect ratio will be preserved with this probability</span>
+<span class="sd">        symmetric_pad: whether to symmetrically pad the image,</span>
+<span class="sd">            given a float value, the symmetric padding will be applied with this probability</span>
+<span class="sd">        p: probability to apply the transformation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">scale_range</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">),</span>
+        <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale_range</span> <span class="o">=</span> <span class="n">scale_range</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span> <span class="o">=</span> <span class="n">preserve_aspect_ratio</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span> <span class="o">=</span> <span class="n">symmetric_pad</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">=</span> <span class="n">p</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resize</span> <span class="o">=</span> <span class="n">Resize</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">:</span>
+            <span class="n">scale_h</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_range</span><span class="p">)</span>
+            <span class="n">scale_w</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_range</span><span class="p">)</span>
+            <span class="n">new_size</span> <span class="o">=</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">scale_h</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">scale_w</span><span class="p">))</span>
+
+            <span class="n">_img</span><span class="p">,</span> <span class="n">_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_resize</span><span class="p">(</span>
+                <span class="n">new_size</span><span class="p">,</span>
+                <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+                <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span><span class="p">),</span>
+                <span class="n">symmetric_pad</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+                <span class="k">else</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span><span class="p">),</span>
+            <span class="p">)(</span><span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">_img</span><span class="p">,</span> <span class="n">_target</span>
+        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
+
+    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;scale_range=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_range</span><span class="si">}</span><span class="s2">, preserve_aspect_ratio=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span><span class="si">}</span><span class="s2">, symmetric_pad=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span><span class="si">}</span><span class="s2">, p=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="si">}</span><span class="s2">&quot;</span>  <span class="c1"># noqa: E501</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -888,13 +949,13 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../../../../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../../../../_static/js/custom.js?v=2c10ae29"></script>
     <script src="../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

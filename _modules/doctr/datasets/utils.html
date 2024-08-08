@@ -235,6 +235,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -242,6 +243,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
@@ -482,7 +484,8 @@
 <span class="sd">    -------</span>
 <span class="sd">        a list of cropped images</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
+        <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">))</span>
     <span class="c1"># Polygon</span>
     <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">extract_rcrops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
@@ -542,13 +545,13 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../../../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../../../_static/js/custom.js?v=2c10ae29"></script>
     <script src="../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

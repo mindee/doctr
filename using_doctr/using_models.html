@@ -236,6 +236,7 @@
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
@@ -243,6 +244,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/models.html">doctr.models</a></li>
@@ -399,30 +401,30 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>fast_tiny</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>13.5 M (8.5M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.29</p></td>
+<td><p>85.34</p></td>
+<td><p>93.46</p></td>
+<td><p>75.99</p></td>
 <td><p>0.7 (0.4)</p></td>
 </tr>
 <tr class="row-odd"><td><p>TensorFlow</p></td>
 <td><p>fast_small</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>14.7 M (9.7M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.50</p></td>
+<td><p>86.89</p></td>
+<td><p>94.05</p></td>
+<td><p>78.33</p></td>
 <td><p>0.7 (0.5)</p></td>
 </tr>
 <tr class="row-even"><td><p>TensorFlow</p></td>
 <td><p>fast_base</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>16.3 M (10.6M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.22</p></td>
+<td><p>86.97</p></td>
+<td><p>94.18</p></td>
+<td><p>84.74</p></td>
 <td><p>0.8 (0.5)</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyTorch</p></td>
@@ -449,10 +451,10 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>db_mobilenet_v3_large</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>4.2 M</p></td>
-<td><p>83.41</p></td>
-<td><p>84.00</p></td>
-<td><p>86.70</p></td>
-<td><p>79.38</p></td>
+<td><p>82.69</p></td>
+<td><p>84.63</p></td>
+<td><p>94.51</p></td>
+<td><p>70.28</p></td>
 <td><p>0.5</p></td>
 </tr>
 <tr class="row-even"><td><p>PyTorch</p></td>
@@ -489,30 +491,30 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>fast_tiny</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>13.5 M (8.5M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>84.90</p></td>
+<td><p>85.04</p></td>
+<td><p>93.73</p></td>
+<td><p>76.26</p></td>
 <td><p>0.7 (0.4)</p></td>
 </tr>
 <tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>fast_small</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>14.7 M (9.7M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.36</p></td>
+<td><p>86.68</p></td>
+<td><p>94.09</p></td>
+<td><p>78.53</p></td>
 <td><p>0.7 (0.5)</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>fast_base</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>16.3 M (10.6M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>84.95</p></td>
+<td><p>86.73</p></td>
+<td><p>94.39</p></td>
+<td><p>85.36</p></td>
 <td><p>0.8 (0.5)</p></td>
 </tr>
 </tbody>
@@ -820,53 +822,67 @@ Explanations about the metric being used (exact match) are available in <a class
 <td><p>75.05</p></td>
 </tr>
 <tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>73.23</p></td>
+<td><p>74.51</p></td>
+<td><p>85.34</p></td>
+<td><p>76.03</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
 <td><p>db_resnet50 + vitstr_small</p></td>
 <td><p>68.57</p></td>
 <td><p>69.77</p></td>
 <td><p>78.24</p></td>
 <td><p>69.51</p></td>
 </tr>
-<tr class="row-even"><td><p>TensorFlow</p></td>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
 <td><p>db_resnet50 + vitstr_base</p></td>
 <td><p>70.96</p></td>
 <td><p>72.20</p></td>
 <td><p>82.10</p></td>
 <td><p>72.94</p></td>
 </tr>
-<tr class="row-odd"><td><p>TensorFlow</p></td>
+<tr class="row-even"><td><p>TensorFlow</p></td>
 <td><p>db_resnet50 + parseq</p></td>
 <td><p>68.85</p></td>
 <td><p>70.05</p></td>
 <td><p>72.38</p></td>
 <td><p>64.30</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + crnn_vgg16_bn</p></td>
 <td><p>72.43</p></td>
 <td><p>75.13</p></td>
 <td><p>85.05</p></td>
 <td><p>79.33</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
 <td><p>73.06</p></td>
 <td><p>75.79</p></td>
 <td><p>84.64</p></td>
 <td><p>78.94</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
 <td><p>73.17</p></td>
 <td><p>75.90</p></td>
 <td><p>84.96</p></td>
 <td><p>79.25</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + master</p></td>
 <td><p>73.90</p></td>
 <td><p>76.66</p></td>
 <td><p>85.84</p></td>
 <td><p>80.07</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>73.58</p></td>
+<td><p>76.33</p></td>
+<td><p>85.64</p></td>
+<td><p>79.88</p></td>
 </tr>
 <tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + vitstr_small</p></td>
@@ -949,10 +965,19 @@ Explanations about the metrics being used are available in <a class="reference i
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:</p>
+<ul class="simple">
+<li><p><cite>det_bs</cite>: batch size for the detection model (default: 2)</p></li>
+<li><p><cite>reco_bs</cite>: batch size for the recognition model (default: 128)</p></li>
+</ul>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
+</pre></div>
+</div>
 <p>To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying <cite>DocumentBuilder</cite>:</p>
 <ul class="simple">
 <li><p><cite>resolve_lines</cite>: whether words should be automatically grouped into lines (default: True)</p></li>
-<li><p><cite>resolve_blocks</cite>: whether lines should be automatically grouped into blocks (default: True)</p></li>
+<li><p><cite>resolve_blocks</cite>: whether lines should be automatically grouped into blocks (default: False)</p></li>
 <li><p><cite>paragraph_break</cite>: relative length of the minimum space separating paragraphs (default: 0.035)</p></li>
 </ul>
 <p>For example to disable the automatic grouping of lines into blocks:</p>
@@ -1013,17 +1038,23 @@ To get a better understanding of our document model, check our <a class="referen
                               <span class="p">{</span>
                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;No.&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">)),</span>
+                                  <span class="s1">&#39;objectness_score&#39;</span><span class="p">:</span> <span class="mf">0.96</span><span class="p">,</span>
+                                  <span class="s1">&#39;crop_orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
                               <span class="p">},</span>
                               <span class="p">{</span>
                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">)),</span>
+                                  <span class="s1">&#39;objectness_score&#39;</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span>
+                                  <span class="s1">&#39;crop_orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
                               <span class="p">},</span>
                               <span class="p">{</span>
                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">)),</span>
+                                  <span class="s1">&#39;objectness_score&#39;</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span>
+                                  <span class="s1">&#39;crop_orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
                               <span class="p">}</span>
                           <span class="p">]</span>
                       <span class="p">}</span>
@@ -1198,12 +1229,12 @@ To get a better understanding of our document model, check our <a class="referen
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../_static/js/custom.js?v=2c10ae29"></script>
     </body>
 </html>

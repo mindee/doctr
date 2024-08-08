@@ -235,6 +235,7 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
@@ -242,6 +243,7 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../modules/models.html">doctr.models</a></li>
@@ -470,23 +472,17 @@
             <span class="k">elif</span> <span class="n">t</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="c1"># step to init a &#39;blank&#39; sequence of length vocab_size + 1 filled with zeros</span>
                 <span class="c1"># (N, vocab_size + 1) --&gt; (N, embedding_units)</span>
-                <span class="n">prev_symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">prev_symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">features</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
                 <span class="n">prev_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">prev_symbol</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">gt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">gt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                     <span class="c1"># (N, embedding_units) -2 because of &lt;bos&gt; and &lt;eos&gt; (same)</span>
                     <span class="n">prev_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="n">gt_embedding</span><span class="p">[:,</span> <span class="n">t</span> <span class="o">-</span> <span class="mi">2</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="c1"># -1 to start at timestep where prev_symbol was initialized</span>
                     <span class="n">index</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits_list</span><span class="p">[</span><span class="n">t</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
                     <span class="c1"># update prev_symbol with ones at the index of the previous logit vector</span>
-                    <span class="c1"># (N, embedding_units)</span>
-                    <span class="n">index</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
-                    <span class="n">prev_symbol</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">scatter_nd</span><span class="p">(</span>
-                        <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-                        <span class="n">prev_symbol</span><span class="p">,</span>
-                        <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">([</span><span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
-                    <span class="p">)</span>
+                    <span class="n">prev_symbol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embed</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embed_tgt</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
             <span class="c1"># (N, C), (N, C)  take the last hidden state and cell state from current timestep</span>
             <span class="n">_</span><span class="p">,</span> <span class="n">states</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lstm_cells</span><span class="p">(</span><span class="n">prev_symbol</span><span class="p">,</span> <span class="n">states</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -753,13 +749,13 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=306f4ebe"></script>
     <script src="../../../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=0ae1dada"></script>
+    <script src="../../../../../_static/js/custom.js?v=2c10ae29"></script>
     <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>
