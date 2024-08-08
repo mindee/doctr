@@ -311,7 +311,7 @@ Additionally, you can change the batch size of the underlying detection and reco
 To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying `DocumentBuilder`:
 
 * `resolve_lines`: whether words should be automatically grouped into lines (default: True)
-* `resolve_blocks`: whether lines should be automatically grouped into blocks (default: True)
+* `resolve_blocks`: whether lines should be automatically grouped into blocks (default: False)
 * `paragraph_break`: relative length of the minimum space separating paragraphs (default: 0.035)
 
 For example to disable the automatic grouping of lines into blocks:
