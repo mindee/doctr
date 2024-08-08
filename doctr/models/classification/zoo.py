@@ -5,7 +5,7 @@
 
 from typing import Any, List
 
-from doctr.file_utils import is_tf_available
+from doctr.file_utils import is_tf_available, is_triton_available
 
 from .. import classification
 from ..preprocessor import PreProcessor
@@ -44,6 +44,11 @@ def _orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> Orient
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128 if "crop" in arch else 4)
     input_shape = _model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:]
+
+    if is_triton_available():
+        import torch
+        _model = torch.compile(_model, fullgraph=True, dynamic=False)
+
     predictor = OrientationPredictor(
         PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs), _model
     )
