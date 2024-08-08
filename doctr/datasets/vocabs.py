@@ -17,9 +17,14 @@ VOCABS: Dict[str, str] = {
     "ancient_greek": "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
     "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي",
     "persian_letters": "پچڢڤگ",
-    "hindi_digits": "٠١٢٣٤٥٦٧٨٩",
+    "arabic_digits": "٠١٢٣٤٥٦٧٨٩",
     "arabic_diacritics": "ًٌٍَُِّْ",
     "arabic_punctuation": "؟؛«»—",
+    "hindi_letters": "अआइईउऊऋॠऌॡएऐओऔअंअःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
+    "hindi_digits": "०१२३४५६७८९",
+    "hindi_punctuation": "।,?!:्ॐ॰॥॰",
+    "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
+    "bangla_digits": "০১২৩৪৫৬৭৮৯",
 }
 
 VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
@@ -32,7 +37,7 @@ VOCABS["italian"] = VOCABS["english"] + "àèéìíîòóùúÀÈÉÌÍÎÒÓÙ�
 VOCABS["german"] = VOCABS["english"] + "äöüßÄÖÜẞ"
 VOCABS["arabic"] = (
     VOCABS["digits"]
-    + VOCABS["hindi_digits"]
+    + VOCABS["arabic_digits"]
     + VOCABS["arabic_letters"]
     + VOCABS["persian_letters"]
     + VOCABS["arabic_diacritics"]
@@ -52,6 +57,8 @@ VOCABS["vietnamese"] = (
     + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰIÍÌỈĨỊÝỲỶỸỴ"
 )
 VOCABS["hebrew"] = VOCABS["english"] + "אבגדהוזחטיכלמנסעפצקרשת" + "₪"
+VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
+VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
 VOCABS["multilingual"] = "".join(
     dict.fromkeys(
         VOCABS["french"]
