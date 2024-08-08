@@ -60,6 +60,8 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         straighten_pages=straighten_pages,
         detect_orientation=True,
         detect_language=True,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
 
     if assume_straight_pages:
@@ -103,6 +105,8 @@ def test_trained_ocr_predictor(mock_payslip):
         assume_straight_pages=True,
         straighten_pages=True,
         preserve_aspect_ratio=False,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
 
     out = predictor(doc)
@@ -131,6 +135,8 @@ def test_trained_ocr_predictor(mock_payslip):
         straighten_pages=True,
         preserve_aspect_ratio=True,
         symmetric_pad=True,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
     # test hooks
     predictor.add_hook(_DummyCallback())
@@ -178,6 +184,8 @@ def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         straighten_pages=straighten_pages,
         detect_orientation=True,
         detect_language=True,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
 
     if assume_straight_pages:
@@ -221,6 +229,8 @@ def test_trained_kie_predictor(mock_payslip):
         assume_straight_pages=True,
         straighten_pages=True,
         preserve_aspect_ratio=False,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
     # test hooks
     predictor.add_hook(_DummyCallback())
@@ -252,6 +262,8 @@ def test_trained_kie_predictor(mock_payslip):
         straighten_pages=True,
         preserve_aspect_ratio=True,
         symmetric_pad=True,
+        resolve_blocks=True,
+        resolve_lines=True,
     )
 
     out = predictor(doc)
