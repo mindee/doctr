@@ -43,10 +43,9 @@ def _orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> Orient
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128 if "crop" in arch else 4)
-    kwargs["compile"] = kwargs.get("compile", True)
     input_shape = _model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:]
 
-    if is_triton_available() and kwargs["compile"]:
+    if is_triton_available():
         import torch
         _model = torch.compile(_model, fullgraph=True, dynamic=False)
 
