@@ -25,7 +25,7 @@ class KIEIn(BaseModel):
 
 class OCRIn(KIEIn, BaseModel):
     resolve_lines: bool = Field(default=True, examples=[True])
-    resolve_blocks: bool = Field(default=True, examples=[True])
+    resolve_blocks: bool = Field(default=False, examples=[False])
     paragraph_break: float = Field(default=0.0035, examples=[0.0035])
 
 
