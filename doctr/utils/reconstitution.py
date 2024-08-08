@@ -38,14 +38,18 @@ def synthesize_page(
     # Draw each word
     for block in page["blocks"]:
         for line in block["lines"]:
+            line_ymin = min(int(round(h * word["geometry"][0][1])) for word in line["words"])
+            line_ymax = max(int(round(h * word["geometry"][1][1])) for word in line["words"])
             for word in line["words"]:
                 # Get absolute word geometry
                 (xmin, ymin), (xmax, ymax) = word["geometry"]
                 xmin, xmax = int(round(w * xmin)), int(round(w * xmax))
                 ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
-
                 # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
-                font = get_font(font_family, int(0.75 * (ymax - ymin)))
+                ymin, ymax = line_ymin, line_ymax
+                calculate_font_size = int(0.75 * (ymax - ymin))
+                font_size = 0.009 if calculate_font_size <= 0.009 else calculate_font_size
+                font = get_font(font_family, font_size)
                 img = Image.new("RGB", (xmax - xmin, ymax - ymin), color=(255, 255, 255))
                 d = ImageDraw.Draw(img)
                 # Draw in black the value of the word
@@ -101,7 +105,9 @@ def synthesize_kie_page(
             ymin, ymax = int(round(h * ymin)), int(round(h * ymax))
 
             # White drawing context adapted to font size, 0.75 factor to convert pts --> pix
-            font = get_font(font_family, int(0.75 * (ymax - ymin)))
+            calculate_font_size = int(0.75 * (ymax - ymin))
+            font_size = 0.009 if calculate_font_size <= 0.009 else calculate_font_size
+            font = get_font(font_family, font_size)
             img = Image.new("RGB", (xmax - xmin, ymax - ymin), color=(255, 255, 255))
             d = ImageDraw.Draw(img)
             # Draw in black the value of the word
