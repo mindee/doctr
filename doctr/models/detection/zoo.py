@@ -5,7 +5,7 @@
 
 from typing import Any, List
 
-from doctr.file_utils import is_tf_available, is_torch_available, is_triton_available
+from doctr.file_utils import is_tf_available, is_torch_available, is_pytorch_backend_available
 
 from .. import detection
 from ..detection.fast import reparameterize
@@ -68,10 +68,15 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 2)
+    kwargs["compile"] = kwargs.get("compile", False)
+    kwargs["compile_kwargs"] = kwargs.get("compile_kwargs", {})
 
-    if is_triton_available():
+    if is_pytorch_backend_available() and kwargs["compile"]:
         import torch
-        _model = torch.compile(_model, fullgraph=False)
+        _model = torch.compile(_model, **kwargs["compile_kwargs"])
+    
+    del kwargs["compile"]
+    del kwargs["compile_kwargs"]
 
     predictor = DetectionPredictor(
         PreProcessor(_model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:], **kwargs),

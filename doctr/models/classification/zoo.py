@@ -5,7 +5,7 @@
 
 from typing import Any, List
 
-from doctr.file_utils import is_tf_available, is_triton_available
+from doctr.file_utils import is_tf_available, is_pytorch_backend_available
 
 from .. import classification
 from ..preprocessor import PreProcessor
@@ -43,11 +43,16 @@ def _orientation_predictor(arch: str, pretrained: bool, **kwargs: Any) -> Orient
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128 if "crop" in arch else 4)
+    kwargs["compile"] = kwargs.get("compile", False)
+    kwargs["compile_kwargs"] = kwargs.get("compile_kwargs", {'fullgraph': True, 'dynamic': False})
     input_shape = _model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:]
 
-    if is_triton_available():
+    if is_pytorch_backend_available() and kwargs["compile"]:
         import torch
-        _model = torch.compile(_model, fullgraph=True, dynamic=False)
+        _model = torch.compile(_model, **kwargs["compile_kwargs"])
+
+    del kwargs["compile"]
+    del kwargs["compile_kwargs"]
 
     predictor = OrientationPredictor(
         PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs), _model

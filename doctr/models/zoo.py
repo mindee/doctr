@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any
+from typing import Any, Dict
 
 from .detection.zoo import detection_predictor
 from .kie_predictor import KIEPredictor
@@ -26,6 +26,8 @@ def _predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    compile: bool = False,
+    compile_kwargs: Dict[str, Any] = {},
     **kwargs,
 ) -> OCRPredictor:
     # Detection
@@ -37,6 +39,8 @@ def _predictor(
         assume_straight_pages=assume_straight_pages,
         preserve_aspect_ratio=preserve_aspect_ratio,
         symmetric_pad=symmetric_pad,
+        compile=compile,
+        compile_kwargs=compile_kwargs,
     )
 
     # Recognition
@@ -45,6 +49,8 @@ def _predictor(
         pretrained=pretrained,
         pretrained_backbone=pretrained_backbone,
         batch_size=reco_bs,
+        compile=compile,
+        compile_kwargs=compile_kwargs,
     )
 
     return OCRPredictor(
@@ -72,6 +78,8 @@ def ocr_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    compile: bool = False,
+    compile_kwargs: Dict[str, Any] = {},
     **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -105,6 +113,9 @@ def ocr_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        compile: if True, the predictor will try to compile the model.
+            May cause slowdowns on first use. Only available for pytorch.
+        compile_kwargs: the arguments to be passed if compile is enabled.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -123,6 +134,8 @@ def ocr_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        compile=compile,
+        compile_kwargs=compile_kwargs,
         **kwargs,
     )
 
