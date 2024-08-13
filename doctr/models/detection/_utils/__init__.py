@@ -1,4 +1,4 @@
-from doctr.file_utils import is_tf_available, is_triton_available
+from doctr.file_utils import is_tf_available, is_pytorch_backend_available
 from .base import *
 
 if is_tf_available():
@@ -6,7 +6,7 @@ if is_tf_available():
     from .cv2_fallback import *
 else:
     from .pytorch import *
-    if is_triton_available():
+    if is_pytorch_backend_available():
         from .pytorch_compile import *
     else:
         from .cv2_fallback import *
