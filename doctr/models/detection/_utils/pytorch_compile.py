@@ -21,7 +21,7 @@ def _(src, op, kernel):
     return src
 
 def boundingRect(array: cv2.typing.MatLike) -> Sequence[int]:
-    return tuple(_boundingRect(Tensor(array)))
+    return tuple(_boundingRect(Tensor(array)).numpy().tolist())
 
 @torch.library.custom_op('cv2::boundingRect', mutates_args=())
 def _boundingRect(array: Tensor) -> Tensor:
