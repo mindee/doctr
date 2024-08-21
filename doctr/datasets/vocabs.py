@@ -13,7 +13,7 @@ VOCABS: Dict[str, str] = {
     "digits": string.digits,
     "ascii_letters": string.ascii_letters,
     "punctuation": string.punctuation,
-    "currency": "£€¥¢฿",
+    "currency": "£€¥¢฿₴",
     "ancient_greek": "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
     "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي",
     "persian_letters": "پچڢڤگ",
@@ -60,7 +60,7 @@ VOCABS["vietnamese"] = (
 VOCABS["hebrew"] = VOCABS["english"] + "אבגדהוזחטיכלמנסעפצקרשת" + "₪"
 VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
 VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
-VOCABS["ukrainian"] = VOCABS["generic_cyrillic_letters"] + "ґіїєҐІЇЄ"
+VOCABS["ukrainian"] = VOCABS["generic_cyrillic_letters"] + VOCABS["digits"] + VOCABS["punctuation"] + VOCABS["currency"] + "ґіїєҐІЇЄ"
 VOCABS["multilingual"] = "".join(
     dict.fromkeys(
         VOCABS["french"]
