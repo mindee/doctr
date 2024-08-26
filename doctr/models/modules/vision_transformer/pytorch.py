@@ -20,7 +20,7 @@ class PatchEmbedding(nn.Module):
         channels, height, width = input_shape
         self.patch_size = patch_size
         self.interpolate = True if patch_size[0] == patch_size[1] else False
-        self.grid_size = tuple([s // p for s, p in zip((height, width), self.patch_size)])
+        self.grid_size = tuple(s // p for s, p in zip((height, width), self.patch_size))
         self.num_patches = self.grid_size[0] * self.grid_size[1]
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))

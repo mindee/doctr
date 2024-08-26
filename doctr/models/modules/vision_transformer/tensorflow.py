@@ -22,7 +22,7 @@ class PatchEmbedding(layers.Layer, NestedObject):
         height, width, _ = input_shape
         self.patch_size = patch_size
         self.interpolate = True if patch_size[0] == patch_size[1] else False
-        self.grid_size = tuple([s // p for s, p in zip((height, width), self.patch_size)])
+        self.grid_size = tuple(s // p for s, p in zip((height, width), self.patch_size))
         self.num_patches = self.grid_size[0] * self.grid_size[1]
 
         self.cls_token = self.add_weight(shape=(1, 1, embed_dim), initializer="zeros", trainable=True, name="cls_token")

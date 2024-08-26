@@ -97,6 +97,9 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             origin_pages_orientations = None
         if self.straighten_pages:
             pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
+            # update page shapes after straightening
+            origin_page_shapes = [page.shape[:2] for page in pages]
+
             # forward again to get predictions on straight pages
             loc_preds_dict = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
 

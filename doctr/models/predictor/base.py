@@ -101,8 +101,8 @@ class _OCRPredictor:
             ]
         )
         return [
-            # We exapnd if the page is wider than tall and the angle is 90 or -90
-            rotate_image(page, angle, expand=page.shape[1] > page.shape[0] and abs(angle) == 90)
+            # expand if height and width are not equal
+            rotate_image(page, angle, expand=page.shape[0] != page.shape[1])
             for page, angle in zip(pages, origin_pages_orientations)
         ]
 
