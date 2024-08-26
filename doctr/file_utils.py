@@ -14,14 +14,13 @@ from typing import Optional
 CLASS_NAME: str = "words"
 
 
-__all__ = ["is_tf_available", "is_torch_available", "requires_package", "CLASS_NAME"]
+__all__ = ["is_tf_available", "is_torch_available", "does_torch_have_compile_capability", "is_pytorch_backend_available", "requires_package", "CLASS_NAME"]
 
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 ENV_VARS_TRUE_AND_AUTO_VALUES = ENV_VARS_TRUE_VALUES.union({"AUTO"})
 
 USE_TF = os.environ.get("USE_TF", "AUTO").upper()
 USE_TORCH = os.environ.get("USE_TORCH", "AUTO").upper()
-
 
 if USE_TORCH in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TF not in ENV_VARS_TRUE_VALUES:
     _torch_available = importlib.util.find_spec("torch") is not None
@@ -76,6 +75,18 @@ if not _torch_available and not _tf_available:  # pragma: no cover
         " is installed and that either USE_TF or USE_TORCH is enabled."
     )
 
+if _torch_available:
+    import torch
+    _torch_has_compile = hasattr(torch, "compile")
+    _torch_has_backend = False
+
+    if _torch_has_compile and hasattr(torch.library, 'custom_op'):
+        from torch.utils._triton import has_triton
+        _torch_has_backend = has_triton()
+else:
+    _torch_has_compile = False
+    _torch_has_backend = False
+
 
 def requires_package(name: str, extra_message: Optional[str] = None) -> None:  # pragma: no cover
     """
@@ -104,3 +115,11 @@ def is_torch_available():
 def is_tf_available():
     """Whether TensorFlow is installed."""
     return _tf_available
+
+def does_torch_have_compile_capability():
+    """Whether Pytorch has compile support."""
+    return _torch_has_compile
+
+def is_pytorch_backend_available():
+    """Whether Triton is installed."""
+    return _torch_has_backend

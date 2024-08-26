@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from doctr.utils.repr import NestedObject
+from ._utils import morphologyEx, fillPoly
 
 __all__ = ["DetectionPostProcessor"]
 
@@ -57,7 +58,7 @@ class DetectionPostProcessor(NestedObject):
 
         else:
             mask: np.ndarray = np.zeros((h, w), np.int32)
-            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+            fillPoly(mask, [points.astype(np.int32)], 1.0)  # type: ignore[call-overload]
             product = pred * mask
             return np.sum(product) / np.count_nonzero(product)
 
@@ -89,7 +90,7 @@ class DetectionPostProcessor(NestedObject):
         # Erosion + dilation on the binary map
         bin_map = [
             [
-                cv2.morphologyEx(bmap[..., idx], cv2.MORPH_OPEN, self._opening_kernel)
+                morphologyEx(bmap[..., idx], cv2.MORPH_OPEN, self._opening_kernel)
                 for idx in range(proba_map.shape[-1])
             ]
             for bmap in (proba_map >= self.bin_thresh).astype(np.uint8)
