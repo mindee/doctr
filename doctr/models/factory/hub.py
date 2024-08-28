@@ -33,7 +33,7 @@ __all__ = ["login_to_hub", "push_to_hf_hub", "from_hub", "_save_model_and_config
 
 
 AVAILABLE_ARCHS = {
-    "classification": models.classification.zoo.ARCHS,
+    "classification": models.classification.zoo.ARCHS + models.classification.zoo.ORIENTATION_ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
 }
@@ -174,7 +174,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     local_cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "hub", model_name)
     repo_url = HfApi().create_repo(model_name, token=get_token(), exist_ok=False)
-    repo = Repository(local_dir=local_cache_dir, clone_from=repo_url, use_auth_token=True)
+    repo = Repository(local_dir=local_cache_dir, clone_from=repo_url)
 
     with repo.commit(commit_message):
         _save_model_and_config_for_hf_hub(model, repo.local_dir, arch=arch, task=task)
