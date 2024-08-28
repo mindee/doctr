@@ -204,23 +204,23 @@ Load a model with customized Preprocessor:
 
             predictor = OCRPredictor(det_predictor, reco_predictor)
 
-Custom orientation detection models
------------------------------------
+Custom orientation classification models
+----------------------------------------
 
-If you work with rotated documents and make use of the orientation detection feature by passing one of the following arguments:
+If you work with rotated documents and make use of the orientation classification feature by passing one of the following arguments:
 
 * `assume_straight_pages=False`
 * `detect_orientation=True`
 * `straigten_pages=True`
 
-You can train your own orientation detection model using the docTR library. For details on the training process and the necessary data and data format, refer to the following link:
+You can train your own orientation classification model using the docTR library. For details on the training process and the necessary data and data format, refer to the following link:
 
 - `orientation <https://github.com/mindee/doctr/blob/main/references/classification/README.md#usage-orientation-classification>`_
 
-**NOTE**: Currently we support only `mobilenet_v3_small` models for crop and page orientation detection.
+**NOTE**: Currently we support only `mobilenet_v3_small` models for crop and page orientation classification.
 
-Loading your custom trained orientation detection model
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Loading your custom trained orientation classification model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. tabs::
 
