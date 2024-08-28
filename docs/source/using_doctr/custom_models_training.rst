@@ -217,7 +217,7 @@ You can train your own orientation detection model using the docTR library. For 
 
 - `orientation <https://github.com/mindee/doctr/blob/main/references/classification/README.md#usage-orientation-classification>`_
 
-**NOTE**: Currently we support only `mobilenet_v3_small` and `mobilenet_v3_large` models for crop and page orientation detection.
+**NOTE**: Currently we support only `mobilenet_v3_small` models for crop and page orientation detection.
 
 Loading your custom trained orientation detection model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

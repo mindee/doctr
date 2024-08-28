@@ -349,9 +349,7 @@ def parse_args():
 
     parser.add_argument("train_path", type=str, help="path to training data folder")
     parser.add_argument("val_path", type=str, help="path to validation data folder")
-    parser.add_argument(
-        "arch", type=str, choices=["mobilenet_v3_small", "mobilenet_v3_large"], help="classification model to train"
-    )
+    parser.add_argument("arch", type=str, choices=["mobilenet_v3_small"], help="classification model to train")
     parser.add_argument("type", type=str, choices=["page", "crop"], help="type of data to train on")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
