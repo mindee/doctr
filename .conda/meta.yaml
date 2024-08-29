@@ -20,7 +20,7 @@ requirements:
     - setuptools
 
   run:
-    - numpy >=1.16.0, <2.0.0
+    - numpy >=1.16.0, <3.0.0
     - scipy >=1.4.0, <2.0.0
     - pillow >=9.2.0
     - h5py >=3.1.0, <4.0.0
