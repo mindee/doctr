@@ -1,7 +1,7 @@
 Train your own model
 ====================
 
-If the pretrained models don't meet your specific needs, you have the option to train your own model using the doctr library.
+If the pretrained models don't meet your specific needs, you have the option to train your own model using the docTR library.
 For details on the training process and the necessary data and data format, refer to the following links:
 
 - `detection <https://github.com/mindee/doctr/tree/main/references/detection#readme>`_
@@ -203,3 +203,74 @@ Load a model with customized Preprocessor:
             )
 
             predictor = OCRPredictor(det_predictor, reco_predictor)
+
+Custom orientation classification models
+----------------------------------------
+
+If you work with rotated documents and make use of the orientation classification feature by passing one of the following arguments:
+
+* `assume_straight_pages=False`
+* `detect_orientation=True`
+* `straigten_pages=True`
+
+You can train your own orientation classification model using the docTR library. For details on the training process and the necessary data and data format, refer to the following link:
+
+- `orientation <https://github.com/mindee/doctr/blob/main/references/classification/README.md#usage-orientation-classification>`_
+
+**NOTE**: Currently we support only `mobilenet_v3_small` models for crop and page orientation classification.
+
+Loading your custom trained orientation classification model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. tabs::
+
+    .. tab:: TensorFlow
+
+        .. code:: python3
+
+            from doctr.io import DocumentFile
+            from doctr.models import ocr_predictor, mobilenet_v3_small_page_orientation, mobilenet_v3_small_crop_orientation
+            from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
+
+            custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=False)
+            custom_page_orientation_model.load_weights("<path_to_checkpoint>/weights")
+            custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
+            custom_crop_orientation_model.load_weights("<path_to_checkpoint>/weights")
+
+            predictor = ocr_predictor(
+                pretrained=True,
+                assume_straight_pages=False,
+                straighten_pages=True,
+                detect_orientation=True,
+            )
+
+            # Overwrite the default orientation models
+            predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+            predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+
+    .. tab:: PyTorch
+
+        .. code:: python3
+
+            import torch
+            from doctr.io import DocumentFile
+            from doctr.models import ocr_predictor, mobilenet_v3_small_page_orientation, mobilenet_v3_small_crop_orientation
+            from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
+
+            custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=False)
+            page_params = torch.load('<path_to_pt>', map_location="cpu")
+            custom_page_orientation_model.load_state_dict(page_params)
+            custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
+            crop_params = torch.load('<path_to_pt>', map_location="cpu")
+            custom_crop_orientation_model.load_state_dict(crop_params)
+
+            predictor = ocr_predictor(
+                pretrained=True,
+                assume_straight_pages=False,
+                straighten_pages=True,
+                detect_orientation=True,
+            )
+
+            # Overwrite the default orientation models
+            predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+            predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
