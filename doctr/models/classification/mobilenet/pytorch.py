@@ -9,12 +9,14 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional
 
 from torchvision.models import mobilenetv3
+from torchvision.models.mobilenetv3 import MobileNetV3
 
 from doctr.datasets import VOCABS
 
 from ...utils import load_pretrained_params
 
 __all__ = [
+    "MobileNetV3",
     "mobilenet_v3_small",
     "mobilenet_v3_small_r",
     "mobilenet_v3_large",

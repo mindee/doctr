@@ -113,6 +113,15 @@ def test_crop_orientation_model(mock_text_box):
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
+    # Test custom model loading
+    classifier = classification.crop_orientation_predictor(
+        classification.mobilenet_v3_small_crop_orientation(pretrained=True)
+    )
+    assert isinstance(classifier, OrientationPredictor)
+
+    with pytest.raises(ValueError):
+        _ = classification.crop_orientation_predictor(classification.textnet_tiny(pretrained=True))
+
 
 def test_page_orientation_model(mock_payslip):
     text_box_0 = cv2.imread(mock_payslip)
@@ -125,6 +134,15 @@ def test_page_orientation_model(mock_payslip):
     # 270 degrees is equivalent to -90 degrees
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
+
+    # Test custom model loading
+    classifier = classification.page_orientation_predictor(
+        classification.mobilenet_v3_small_page_orientation(pretrained=True)
+    )
+    assert isinstance(classifier, OrientationPredictor)
+
+    with pytest.raises(ValueError):
+        _ = classification.page_orientation_predictor(classification.textnet_tiny(pretrained=True))
 
 
 # temporarily fix to avoid killing the CI (tf2onnx v1.14 memory leak issue)

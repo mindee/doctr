@@ -7,6 +7,8 @@ from doctr.file_utils import CLASS_NAME
 from doctr.io import Document, DocumentFile
 from doctr.io.elements import KIEDocument
 from doctr.models import detection, recognition
+from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
+from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.detection.zoo import detection_predictor
 from doctr.models.kie_predictor import KIEPredictor
@@ -82,6 +84,24 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
         _ = predictor([input_page])
 
+    orientation = 0
+    assert out.pages[0].orientation["value"] == orientation
+
+    # Test with custom orientation models
+    custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=True)
+    custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=True)
+
+    if assume_straight_pages:
+        if predictor.detect_orientation or predictor.straighten_pages:
+            # Overwrite the default orientation models
+            predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+            predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+    else:
+        # Overwrite the default orientation models
+        predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+        predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+
+    out = predictor(doc)
     orientation = 0
     assert out.pages[0].orientation["value"] == orientation
 
@@ -206,6 +226,24 @@ def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         input_page = (255 * np.random.rand(1, 256, 512, 3)).astype(np.uint8)
         _ = predictor([input_page])
 
+    orientation = 0
+    assert out.pages[0].orientation["value"] == orientation
+
+    # Test with custom orientation models
+    custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=True)
+    custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=True)
+
+    if assume_straight_pages:
+        if predictor.detect_orientation or predictor.straighten_pages:
+            # Overwrite the default orientation models
+            predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+            predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+    else:
+        # Overwrite the default orientation models
+        predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+        predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+
+    out = predictor(doc)
     orientation = 0
     assert out.pages[0].orientation["value"] == orientation
 
