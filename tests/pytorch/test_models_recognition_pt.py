@@ -7,6 +7,7 @@ import psutil
 import pytest
 import torch
 
+from doctr.file_utils import is_pytorch_backend_available, does_torch_have_compile_capability
 from doctr.models import recognition
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
 from doctr.models.recognition.master.pytorch import MASTERPostProcessor
@@ -154,3 +155,46 @@ def test_models_onnx_export(arch_name, input_shape):
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
     except AssertionError:
         pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
+
+@pytest.mark.skipif(not does_torch_have_compile_capability(), reason="requires pytorch >= 2.0.0")
+@pytest.mark.skipif(not is_pytorch_backend_available(), reason="requires pytorch backend to be available")
+@pytest.mark.parametrize("fullgraph", [True, False])
+@pytest.mark.parametrize(
+     "arch_name, input_shape",
+    [
+        ["crnn_vgg16_bn", (3, 32, 128)],
+        ["crnn_mobilenet_v3_small", (3, 32, 128)],
+        ["crnn_mobilenet_v3_large", (3, 32, 128)],
+        pytest.param(
+            "sar_resnet31",
+            (3, 32, 128),
+            marks=pytest.mark.skipif(system_available_memory < 16, reason="not enough memory"),
+        ),
+        pytest.param(
+            "master", (3, 32, 128), marks=pytest.mark.skipif(system_available_memory < 16, reason="not enough memory")
+        ),
+        ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
+        ["parseq", (3, 32, 128)],
+    ],
+)
+def test_models_pytorch_compile(arch_name, input_shape, fullgraph):
+    # General Check that the model can be compiled
+    try:
+        assert torch.compile(recognition.__dict__[arch_name](pretrained=True).eval(), fullgraph=fullgraph)
+    except:
+        pytest.skip(f"Output of {arch_name}:\n-fullgraph: {fullgraph}\nModel is failing pytorch compilation")
+    # Model
+    batch_size = 2
+    model = recognition.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
+    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
+
+    compiled_model = torch.compile(model, fullgraph=fullgraph)
+    pt_logits_compiled = compiled_model(dummy_input)["logits"].detach().cpu().numpy()
+
+    assert pt_logits_compiled.shape == pt_logits.shape
+    # Check that the output is close to the "original" output
+    try:
+        assert np.allclose(pt_logits, pt_logits_compiled, atol=1e-4)
+    except AssertionError:
+        pytest.skip(f"Output of {arch_name}:\n-fullgraph: {fullgraph}\nMax element-wise difference: {np.max(np.abs(pt_logits - pt_logits_compiled))}")

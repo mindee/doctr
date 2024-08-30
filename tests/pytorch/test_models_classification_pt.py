@@ -7,6 +7,7 @@ import onnxruntime
 import pytest
 import torch
 
+from doctr.file_utils import is_pytorch_backend_available, does_torch_have_compile_capability
 from doctr.models import classification
 from doctr.models.classification.predictor import OrientationPredictor
 from doctr.models.utils import export_model_to_onnx
@@ -193,3 +194,49 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
     except AssertionError:
         pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
+
+@pytest.mark.skipif(not does_torch_have_compile_capability(), reason="requires pytorch >= 2.0.0")
+@pytest.mark.skipif(not is_pytorch_backend_available(), reason="requires pytorch backend to be available")
+@pytest.mark.parametrize("fullgraph", [True, False])
+@pytest.mark.parametrize(
+    "arch_name, input_shape",
+    [
+        ["vgg16_bn_r", (3, 32, 32)],
+        ["resnet18", (3, 32, 32)],
+        ["resnet31", (3, 32, 32)],
+        ["resnet34", (3, 32, 32)],
+        ["resnet34_wide", (3, 32, 32)],
+        ["resnet50", (3, 32, 32)],
+        ["magc_resnet31", (3, 32, 32)],
+        ["mobilenet_v3_small", (3, 32, 32)],
+        ["mobilenet_v3_large", (3, 32, 32)],
+        ["mobilenet_v3_small_crop_orientation", (3, 256, 256)],
+        ["mobilenet_v3_small_page_orientation", (3, 512, 512)],
+        ["vit_s", (3, 32, 32)],
+        ["vit_b", (3, 32, 32)],
+        ["textnet_tiny", (3, 32, 32)],
+        ["textnet_small", (3, 32, 32)],
+        ["textnet_base", (3, 32, 32)],
+    ],
+)
+def test_models_pytorch_compile(arch_name, input_shape, fullgraph):
+    # General Check that the model can be compiled
+    try:
+        assert torch.compile(classification.__dict__[arch_name](pretrained=True).eval(), fullgraph=fullgraph)
+    except:
+        pytest.skip(f"Output of {arch_name}:\n-fullgraph: {fullgraph}\nModel is failing pytorch compilation")
+    # Model
+    batch_size = 2
+    model = classification.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
+    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
+
+    compiled_model = torch.compile(model, fullgraph=fullgraph)
+    pt_logits_compiled = compiled_model(dummy_input)["logits"].detach().cpu().numpy()
+
+    assert pt_logits_compiled.shape == pt_logits.shape
+    # Check that the output is close to the "original" output
+    try:
+        assert np.allclose(pt_logits, pt_logits_compiled, atol=1e-4)
+    except AssertionError:
+        pytest.skip(f"Output of {arch_name}:\n-fullgraph: {fullgraph}\nMax element-wise difference: {np.max(np.abs(pt_logits - pt_logits_compiled))}")

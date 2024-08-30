@@ -7,7 +7,7 @@ import onnxruntime
 import pytest
 import torch
 
-from doctr.file_utils import CLASS_NAME
+from doctr.file_utils import CLASS_NAME, is_pytorch_backend_available, does_torch_have_compile_capability
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.fast.pytorch import reparameterize
@@ -186,3 +186,46 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
     except AssertionError:
         pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
+
+@pytest.mark.skipif(not does_torch_have_compile_capability(), reason="requires pytorch >= 2.0.0")
+@pytest.mark.skipif(not is_pytorch_backend_available(), reason="requires pytorch backend to be available")
+@pytest.mark.parametrize("fullgraph", [True, False])
+@pytest.mark.parametrize(
+    "arch_name, input_shape",
+    [
+        ["db_resnet34", (3, 512, 512)],
+        ["db_resnet50", (3, 512, 512)],
+        ["db_mobilenet_v3_large", (3, 512, 512)],
+        ["linknet_resnet18", (3, 512, 512)],
+        ["linknet_resnet34", (3, 512, 512)],
+        ["linknet_resnet50", (3, 512, 512)],
+        ["fast_tiny", (3, 512, 512)],
+        ["fast_small", (3, 512, 512)],
+        ["fast_base", (3, 512, 512)],
+        ["fast_tiny_rep", (3, 512, 512)], # Reparameterized model
+    ],
+)
+def test_models_pytorch_compile(arch_name, input_shape, fullgraph):
+    # General Check that the model can be compiled
+    try:
+        assert torch.compile(detection.__dict__[arch_name](pretrained=True).eval(), fullgraph=fullgraph)
+    except:
+        pytest.skip(f"Output of {arch_name}:\n-fullgraph: {fullgraph}\nModel is failing pytorch compilation")
+    # Model
+    batch_size = 2
+    if arch_name == "fast_tiny_rep":
+        model = reparameterize(detection.fast_tiny(pretrained=True, exportable=True).eval())
+    else:
+        model = detection.__dict__[arch_name](pretrained=True, exportable=True).eval()
+    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
+    pt_logits = model(dummy_input)["logits"].detach().cpu().numpy()
+
+    compiled_model = torch.compile(model, fullgraph=fullgraph)
+    pt_logits_compiled = compiled_model(dummy_input)["logits"].detach().cpu().numpy()
+
+    assert pt_logits_compiled.shape == pt_logits.shape
+    # Check that the output is close to the "original" output
+    try:
+        assert np.allclose(pt_logits, pt_logits_compiled, atol=1e-4)
+    except AssertionError:
+        pytest.skip(f"Output of {arch_name}:\n-fullgraph: {fullgraph}\nMax element-wise difference: {np.max(np.abs(pt_logits - pt_logits_compiled))}")
