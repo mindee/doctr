@@ -57,7 +57,6 @@ It defines a common format for representing models, including the network struct
         .. code:: python3
 
             import tensorflow as tf
-            tf.config.run_functions_eagerly(True)  # Required for some models
             from doctr.models import vitstr_small
             from doctr.models.utils import export_model_to_onnx
 
@@ -66,7 +65,6 @@ It defines a common format for representing models, including the network struct
             model = vitstr_small(pretrained=True, exportable=True)
             dummy_input = [tf.TensorSpec([batch_size, input_shape], tf.float32, name="input")]
             model_path, output = export_model_to_onnx(model, model_name="vitstr.onnx", dummy_input=dummy_input)
-            tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
 
 
     .. tab:: PyTorch

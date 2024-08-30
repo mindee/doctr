@@ -79,6 +79,10 @@ if not _torch_available and not _tf_available:  # pragma: no cover
 # Compatibility fix to make sure tf.keras stays at Keras 2
 if "TF_USE_LEGACY_KERAS" not in os.environ:
     os.environ["TF_USE_LEGACY_KERAS"] = "1"
+    import tensorflow as tf
+
+    # Enable eager execution - this is required for some models to work properly
+    tf.config.run_functions_eagerly(True)
 elif os.environ["TF_USE_LEGACY_KERAS"] != "1":
     raise ValueError(
         "docTR is only compatible with Keras 2, but you have explicitly set `TF_USE_LEGACY_KERAS` to `0`. "

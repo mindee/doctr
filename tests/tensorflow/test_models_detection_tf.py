@@ -257,7 +257,6 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
             model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input
         )
         assert os.path.exists(model_path)
-        tf.config.run_functions_eagerly(False)  # Revert after conversion back to default
 
         # Inference
         ort_session = onnxruntime.InferenceSession(
