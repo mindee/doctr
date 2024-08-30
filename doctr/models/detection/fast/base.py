@@ -15,7 +15,6 @@ from shapely.geometry import Polygon
 from doctr.models.core import BaseModel
 
 from ..core import DetectionPostProcessor
-from .._utils import boundingRect, minAreaRect, fillPoly
 
 __all__ = ["_FAST", "FASTPostProcessor"]
 
@@ -55,7 +54,7 @@ class FASTPostProcessor(DetectionPostProcessor):
         """
         if not self.assume_straight_pages:
             # Compute the rectangle polygon enclosing the raw polygon
-            rect = minAreaRect(points)
+            rect = cv2.minAreaRect(points)
             points = cv2.boxPoints(rect)
             # Add 1 pixel to correct cv2 approx
             area = (rect[1][0] + 1) * (1 + rect[1][1])
@@ -82,9 +81,9 @@ class FASTPostProcessor(DetectionPostProcessor):
         if len(expanded_points) < 1:
             return None  # type: ignore[return-value]
         return (
-            boundingRect(expanded_points)  # type: ignore[return-value]
+            cv2.boundingRect(expanded_points)  # type: ignore[return-value]
             if self.assume_straight_pages
-            else np.roll(cv2.boxPoints(minAreaRect(expanded_points)), -1, axis=0)
+            else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
         )
 
     def bitmap_to_boxes(
@@ -116,7 +115,7 @@ class FASTPostProcessor(DetectionPostProcessor):
                 continue
             # Compute objectness
             if self.assume_straight_pages:
-                x, y, w, h = boundingRect(contour)
+                x, y, w, h = cv2.boundingRect(contour)
                 points: np.ndarray = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
                 score = self.box_score(pred, points, assume_straight_pages=True)
             else:
@@ -245,9 +244,9 @@ class _FAST(BaseModel):
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    fillPoly(shrunken_kernel[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(shrunken_kernel[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
                     # draw the original polygon on the segmentation target
-                    fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)  # type: ignore[call-overload]
 
         # Don't forget to switch back to channel last if Tensorflow is used
         if channels_last:
