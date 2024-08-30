@@ -77,7 +77,7 @@ if not _torch_available and not _tf_available:  # pragma: no cover
     )
 
 # Compatibility fix to make sure tf.keras stays at Keras 2
-if "TF_USE_LEGACY_KERAS" not in os.environ:
+if "TF_USE_LEGACY_KERAS" not in os.environ and _tf_available:
     os.environ["TF_USE_LEGACY_KERAS"] = "1"
     import tensorflow as tf
 
