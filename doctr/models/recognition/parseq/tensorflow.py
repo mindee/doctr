@@ -218,7 +218,7 @@ class PARSeq(_PARSeq, Model):
         sz = permutation.shape[0]
         mask = tf.ones((sz, sz), dtype=tf.float32)
 
-        for i in range(sz - 1):
+        for i in tf.range(sz - 1):
             query_idx = int(permutation[i])
             masked_keys = permutation[i + 1 :].numpy().tolist()
             indices = tf.constant([[query_idx, j] for j in masked_keys], dtype=tf.int32)
@@ -264,7 +264,7 @@ class PARSeq(_PARSeq, Model):
         query_mask = tf.cast(tf.linalg.band_part(tf.ones((max_length, max_length)), -1, 0), dtype=tf.bool)
 
         pos_logits = []
-        for i in range(max_length):
+        for i in tf.range(max_length):
             # Decode one token at a time without providing information about the future tokens
             tgt_out = self.decode(
                 ys[:, : i + 1],
