@@ -4,9 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import logging
-import os
 from typing import Any, Callable, List, Optional, Tuple, Union
-from zipfile import ZipFile
 
 import tensorflow as tf
 import tf2onnx
@@ -40,8 +38,6 @@ def load_pretrained_params(
     model: Model,
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
-    overwrite: bool = False,
-    internal_name: str = "weights",
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
@@ -54,8 +50,6 @@ def load_pretrained_params(
         model: the keras model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
-        overwrite: should the zip extraction be enforced if the archive has already been extracted
-        internal_name: name of the ckpt files
         **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
     if url is None:
@@ -63,14 +57,8 @@ def load_pretrained_params(
     else:
         archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
 
-        # Unzip the archive
-        params_path = archive_path.parent.joinpath(archive_path.stem)
-        if not params_path.is_dir() or overwrite:
-            with ZipFile(archive_path, "r") as f:
-                f.extractall(path=params_path)
-
         # Load weights
-        model.load_weights(f"{params_path}{os.sep}{internal_name}")
+        model.load_weights(archive_path)
 
 
 def conv_sequence(
