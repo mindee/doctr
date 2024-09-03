@@ -120,16 +120,19 @@ class Resize(NestedObject):
                     offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
                 else:
                     offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+                # Pad image
                 img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+
+                if self.symmetric_pad:
+                    offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
 
         # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
         if target is not None:
+            target = np.clip(target, 0, 1)
             if self.preserve_aspect_ratio:
                 # Get absolute coords
                 if target.shape[1:] == (4,):
                     if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
-                        if np.max(target) <= 1:
-                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
                         target[:, [0, 2]] = offset[1] + target[:, [0, 2]] * raw_shape[1] / img.shape[1]
                         target[:, [1, 3]] = offset[0] + target[:, [1, 3]] * raw_shape[0] / img.shape[0]
                     else:
@@ -137,15 +140,13 @@ class Resize(NestedObject):
                         target[:, [1, 3]] *= raw_shape[0] / img.shape[0]
                 elif target.shape[1:] == (4, 2):
                     if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
-                        if np.max(target) <= 1:
-                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
                         target[..., 0] = offset[1] + target[..., 0] * raw_shape[1] / img.shape[1]
                         target[..., 1] = offset[0] + target[..., 1] * raw_shape[0] / img.shape[0]
                     else:
                         target[..., 0] *= raw_shape[1] / img.shape[1]
                         target[..., 1] *= raw_shape[0] / img.shape[0]
                 else:
-                    raise AssertionError
+                    raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
             return tf.cast(img, dtype=input_dtype), target
 
         return tf.cast(img, dtype=input_dtype)
