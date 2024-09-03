@@ -123,12 +123,13 @@ class Resize(NestedObject):
                 # Pad image
                 img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
 
-                if self.symmetric_pad:
-                    offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
-
         # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
         if target is not None:
             target = np.clip(target, 0, 1)
+
+            if self.symmetric_pad:
+                offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+
             if self.preserve_aspect_ratio:
                 # Get absolute coords
                 if target.shape[1:] == (4,):

@@ -77,12 +77,13 @@ class Resize(T.Resize):
                 # Pad image
                 img = pad(img, _pad)
 
-                if self.symmetric_pad:
-                    offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
-
             # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
             if target is not None:
                 target = np.clip(target, 0, 1)
+
+                if self.symmetric_pad:
+                    offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
+
                 if self.preserve_aspect_ratio:
                     # Get absolute coords
                     if target.shape[1:] == (4,):
