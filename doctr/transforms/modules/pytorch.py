@@ -264,7 +264,11 @@ class RandomResize(torch.nn.Module):
         self.p = p
         self._resize = Resize
 
-    def forward(self, img: torch.Tensor, target: np.ndarray) -> Tuple[torch.Tensor, np.ndarray]:
+    def forward(
+        self,
+        img: torch.Tensor,
+        target: Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]],
+    ) -> Tuple[torch.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]:
         if torch.rand(1) < self.p:
             scale_h = np.random.uniform(*self.scale_range)
             scale_w = np.random.uniform(*self.scale_range)

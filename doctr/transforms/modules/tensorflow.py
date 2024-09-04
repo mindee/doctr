@@ -107,6 +107,9 @@ class Resize(NestedObject):
         target: Optional[Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]] = None,
     ) -> Union[tf.Tensor, Tuple[tf.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]]:
         input_dtype = img.dtype
+        self.output_size = (
+            (self.output_size, self.output_size) if isinstance(self.output_size, int) else self.output_size
+        )
 
         img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio, self.antialias)
         # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
@@ -567,7 +570,11 @@ class RandomResize(NestedObject):
         self.p = p
         self._resize = Resize
 
-    def __call__(self, img: tf.Tensor, target: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
+    def __call__(
+        self,
+        img: tf.Tensor,
+        target: Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]],
+    ) -> Tuple[tf.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]:
         if np.random.rand(1) <= self.p:
             scale_h = random.uniform(*self.scale_range)
             scale_w = random.uniform(*self.scale_range)
