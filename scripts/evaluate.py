@@ -52,7 +52,9 @@ def main(args):
         testset = datasets.OCRDataset(
             img_folder=args.img_folder,
             label_file=args.label_file,
-            sample_transforms=T.Resize(input_shape, preserve_aspect_ratio=True, symmetric_pad=True),
+            sample_transforms=T.Resize(
+                input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
+            ),
         )
         sets = [testset]
     else:

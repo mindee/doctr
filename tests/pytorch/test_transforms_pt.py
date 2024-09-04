@@ -93,20 +93,7 @@ def test_resize():
     assert new_target["labels"] == target["labels"]
     assert np.all(new_target["boxes"] >= 0) and np.all(new_target["boxes"] <= 1)
 
-    # 3. KIE dataset: Dict[str, np.ndarray] (key-value np.ndarray pairs)
-    target_kie = {"class_1": np.array([[0.1, 0.1, 0.9, 0.9]]), "class_2": np.array([[0.2, 0.2, 0.8, 0.8]])}
-
-    transfo = Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
-    out, new_target_kie = transfo(input_t, target_kie)
-
-    assert out.shape[-2:] == output_size
-    assert "class_1" in new_target_kie
-    assert "class_2" in new_target_kie
-    assert new_target_kie["class_1"].shape == target_kie["class_1"].shape
-    assert new_target_kie["class_2"].shape == target_kie["class_2"].shape
-    assert np.all(new_target_kie["class_1"] >= 0) and np.all(new_target_kie["class_1"] <= 1)
-
-    # 4. No target (to ensure backward compatibility)
+    # 3. No target (to ensure backward compatibility)
     out = transfo(input_t)
     assert out.shape[-2:] == output_size
 

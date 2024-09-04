@@ -103,21 +103,13 @@ class Resize(T.Resize):
 
             # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
             if target is not None:
-                # Possible formats:
-                # KIE: Dict[str, np.ndarray]
-                # Built-in datasets: Dict[str, Union[np.ndarray, List[str]]]
-                # Custom datasets: np.ndarray
-
-                if isinstance(target, dict):
+                if isinstance(target, dict) and "boxes" in target.keys():
                     # Built-in datasets
-                    if "boxes" and "labels" in target.keys():
-                        target["boxes"] = _prepare_targets(target["boxes"])  # type: ignore[arg-type]
-                        return img, target
-                    # KIE
-                    else:
-                        return img, {k: _prepare_targets(v) for k, v in target.items()}  # type: ignore[arg-type]
+                    # NOTE: This is required for end-to-end evaluation
+                    target["boxes"] = _prepare_targets(target["boxes"])  # type: ignore[arg-type]
+                    return img, target
                 # Custom datasets
-                return img, _prepare_targets(target)
+                return img, _prepare_targets(target)  # type: ignore[arg-type]
 
             return img
 
