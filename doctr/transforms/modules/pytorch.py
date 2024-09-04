@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -38,8 +38,8 @@ class Resize(T.Resize):
     def forward(
         self,
         img: torch.Tensor,
-        target: Optional[np.ndarray] = None,
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, np.ndarray]]:
+        target: Optional[Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]] = None,
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]]:
         if isinstance(self.size, int):
             target_ratio = img.shape[-2] / img.shape[-1]
         else:
@@ -77,10 +77,7 @@ class Resize(T.Resize):
                 # Pad image
                 img = pad(img, _pad)
 
-            # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
-            if target is not None:
-                target = np.clip(target, 0, 1)
-
+            def _prepare_targets(target: np.ndarray) -> np.ndarray:
                 if self.symmetric_pad:
                     offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
 
@@ -102,7 +99,25 @@ class Resize(T.Resize):
                             target[..., 1] *= raw_shape[-2] / img.shape[-2]
                     else:
                         raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
-                return img, target
+                return np.clip(target, 0, 1)
+
+            # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+            if target is not None:
+                # Possible formats:
+                # KIE: Dict[str, np.ndarray]
+                # Built-in datasets: Dict[str, Union[np.ndarray, List[str]]]
+                # Custom datasets: np.ndarray
+
+                if isinstance(target, dict):
+                    # Built-in datasets
+                    if "boxes" and "labels" in target.keys():
+                        target["boxes"] = _prepare_targets(target["boxes"])  # type: ignore[arg-type]
+                        return img, target
+                    # KIE
+                    else:
+                        return img, {k: _prepare_targets(v) for k, v in target.items()}  # type: ignore[arg-type]
+                # Custom datasets
+                return img, _prepare_targets(target)
 
             return img
 

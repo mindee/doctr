@@ -48,6 +48,50 @@ def test_resize():
     out = transfo(input_t)
     assert out.dtype == tf.float16
 
+    # --- Test with target (bounding boxes) ---
+
+    # 1. Custom dataset (n_boxes, 4) format bounding boxes
+    target_boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]])
+    output_size = (64, 64)
+
+    transfo = T.Resize(output_size, preserve_aspect_ratio=True)
+    input_t = tf.cast(tf.fill([64, 32, 3], 1), dtype=tf.float32)
+    out, new_target = transfo(input_t, target_boxes)
+
+    assert out.shape[:2] == output_size
+    assert new_target.shape == target_boxes.shape
+    assert np.all(new_target >= 0) and np.all(new_target <= 1)
+
+    # 2. Built-in dataset: Dict with "boxes" and "labels"
+    target = {"boxes": np.array([[0.1, 0.1, 0.9, 0.9]]), "labels": ["text"]}
+
+    transfo = T.Resize(output_size, preserve_aspect_ratio=True)
+    out, new_target = transfo(input_t, target)
+
+    assert out.shape[:2] == output_size
+    assert "boxes" in new_target
+    assert "labels" in new_target
+    assert new_target["boxes"].shape == target["boxes"].shape
+    assert new_target["labels"] == target["labels"]
+    assert np.all(new_target["boxes"] >= 0) and np.all(new_target["boxes"] <= 1)
+
+    # 3. KIE dataset: Dict[str, np.ndarray] (key-value np.ndarray pairs)
+    target_kie = {"class_1": np.array([[0.1, 0.1, 0.9, 0.9]]), "class_2": np.array([[0.2, 0.2, 0.8, 0.8]])}
+
+    transfo = T.Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
+    out, new_target_kie = transfo(input_t, target_kie)
+
+    assert out.shape[:2] == output_size
+    assert "class_1" in new_target_kie
+    assert "class_2" in new_target_kie
+    assert new_target_kie["class_1"].shape == target_kie["class_1"].shape
+    assert new_target_kie["class_2"].shape == target_kie["class_2"].shape
+    assert np.all(new_target_kie["class_1"] >= 0) and np.all(new_target_kie["class_1"] <= 1)
+
+    # 4. No target (to ensure backward compatibility)
+    out = transfo(input_t)
+    assert out.shape[:2] == output_size
+
 
 def test_compose():
     output_size = (16, 16)

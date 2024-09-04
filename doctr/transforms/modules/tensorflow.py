@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -104,31 +104,28 @@ class Resize(NestedObject):
     def __call__(
         self,
         img: tf.Tensor,
-        target: Optional[np.ndarray] = None,
-    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
+        target: Optional[Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]] = None,
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]]:
         input_dtype = img.dtype
 
         img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio, self.antialias)
         # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
         raw_shape = img.shape[:2]
+        if self.symmetric_pad:
+            half_pad = (int((self.output_size[0] - img.shape[0]) / 2), 0)
         if self.preserve_aspect_ratio:
             if isinstance(self.output_size, (tuple, list)):
                 # In that case we need to pad because we want to enforce both width and height
                 if not self.symmetric_pad:
-                    offset = (0, 0)
+                    half_pad = (0, 0)
                 elif self.output_size[0] == img.shape[0]:
-                    offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
-                else:
-                    offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
+                    half_pad = (0, int((self.output_size[1] - img.shape[1]) / 2))
                 # Pad image
-                img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+                img = tf.image.pad_to_bounding_box(img, *half_pad, *self.output_size)
 
-        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
-        if target is not None:
-            target = np.clip(target, 0, 1)
-
+        def _prepare_targets(target: np.ndarray) -> np.ndarray:
             if self.symmetric_pad:
-                offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
+                offset = half_pad[0] / img.shape[0], half_pad[1] / img.shape[1]
 
             if self.preserve_aspect_ratio:
                 # Get absolute coords
@@ -148,7 +145,25 @@ class Resize(NestedObject):
                         target[..., 1] *= raw_shape[0] / img.shape[0]
                 else:
                     raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
-            return tf.cast(img, dtype=input_dtype), target
+            return np.clip(target, 0, 1)
+
+        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+        if target is not None:
+            # Possible formats:
+            # KIE: Dict[str, np.ndarray]
+            # Built-in datasets: Dict[str, Union[np.ndarray, List[str]]]
+            # Custom datasets: np.ndarray
+
+            if isinstance(target, dict):
+                # Built-in datasets
+                if "boxes" and "labels" in target.keys():
+                    target["boxes"] = _prepare_targets(target["boxes"])  # type: ignore[arg-type]
+                    return tf.cast(img, dtype=input_dtype), target
+                # KIE
+                else:
+                    return tf.cast(img, dtype=input_dtype), {k: _prepare_targets(v) for k, v in target.items()}  # type: ignore[arg-type]
+            # Custom datasets
+            return tf.cast(img, dtype=input_dtype), _prepare_targets(target)
 
         return tf.cast(img, dtype=input_dtype)
 

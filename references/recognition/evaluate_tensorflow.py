@@ -14,7 +14,7 @@ import tensorflow as tf
 from tensorflow.keras import mixed_precision
 from tqdm import tqdm
 
-gpu_devices = tf.config.experimental.list_physical_devices("GPU")
+gpu_devices = tf.config.list_physical_devices("GPU")
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 

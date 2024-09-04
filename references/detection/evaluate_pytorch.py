@@ -82,7 +82,9 @@ def main(args):
         train=True,
         download=True,
         use_polygons=args.rotation,
-        sample_transforms=T.Resize(input_shape),
+        sample_transforms=T.Resize(
+            input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
+        ),
     )
     # Monkeypatch
     subfolder = ds.root.split("/")[-2:]
@@ -92,7 +94,9 @@ def main(args):
         train=False,
         download=True,
         use_polygons=args.rotation,
-        sample_transforms=T.Resize(input_shape),
+        sample_transforms=T.Resize(
+            input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
+        ),
     )
     subfolder = _ds.root.split("/")[-2:]
     ds.data.extend([(os.path.join(*subfolder, name), target) for name, target in _ds.data])
@@ -155,6 +159,8 @@ def parse_args():
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for evaluation")
     parser.add_argument("--device", default=None, type=int, help="device")
     parser.add_argument("--size", type=int, default=None, help="model input size, H = W")
+    parser.add_argument("--keep_ratio", action="store_true", help="keep the aspect ratio of the input image")
+    parser.add_argument("--symmetric_pad", action="store_true", help="pad the image symmetrically")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="inference with rotated bbox")
     parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")

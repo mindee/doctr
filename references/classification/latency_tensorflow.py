@@ -20,7 +20,7 @@ from doctr.models import classification
 
 def main(args):
     if args.gpu:
-        gpu_devices = tf.config.experimental.list_physical_devices("GPU")
+        gpu_devices = tf.config.list_physical_devices("GPU")
         if any(gpu_devices):
             tf.config.experimental.set_memory_growth(gpu_devices[0], True)
         else:

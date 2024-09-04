@@ -18,7 +18,7 @@ from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
 
-gpu_devices = tf.config.experimental.list_physical_devices("GPU")
+gpu_devices = tf.config.list_physical_devices("GPU")
 if any(gpu_devices):
     tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
