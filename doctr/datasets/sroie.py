@@ -33,6 +33,7 @@ class SROIE(VisionDataset):
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -52,6 +53,7 @@ class SROIE(VisionDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         url, sha256, name = self.TRAIN if train else self.TEST
@@ -63,10 +65,16 @@ class SROIE(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "recognition_task and detection_task cannot be set to True simultaneously "
+                + "to get the whole dataset with boxes and labels leave both to False"
+            )
+
         self.train = train
 
         tmp_root = os.path.join(self.root, "images")
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
         np_dtype = np.float32
 
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking SROIE", total=len(os.listdir(tmp_root))):
@@ -94,6 +102,8 @@ class SROIE(VisionDataset):
                 for crop, label in zip(crops, labels):
                     if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
                         self.data.append((crop, label))
+            elif detection_task:
+                self.data.append((img_path, coords))
             else:
                 self.data.append((img_path, dict(boxes=coords, labels=labels)))
 

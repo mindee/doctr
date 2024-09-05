@@ -33,6 +33,7 @@ class FUNSD(VisionDataset):
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -45,6 +46,7 @@ class FUNSD(VisionDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -55,6 +57,12 @@ class FUNSD(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "recognition_task and detection_task cannot be set to True simultaneously "
+                + "to get the whole dataset with boxes and labels leave both to False"
+            )
+
         self.train = train
         np_dtype = np.float32
 
@@ -63,7 +71,7 @@ class FUNSD(VisionDataset):
 
         # # List images
         tmp_root = os.path.join(self.root, subfolder, "images")
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking FUNSD", total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
@@ -100,6 +108,8 @@ class FUNSD(VisionDataset):
                     # filter labels with unknown characters
                     if not any(char in label for char in ["☑", "☐", "\uf703", "\uf702"]):
                         self.data.append((crop, label))
+            elif detection_task:
+                self.data.append((img_path, np.asarray(box_targets, dtype=np_dtype)))
             else:
                 self.data.append((
                     img_path,

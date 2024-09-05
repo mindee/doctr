@@ -40,6 +40,7 @@ class WILDRECEIPT(AbstractDataset):
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -50,11 +51,19 @@ class WILDRECEIPT(AbstractDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
         )
+        # Task check
+        if recognition_task and detection_task:
+            raise ValueError(
+                "recognition_task and detection_task cannot be set to True simultaneously "
+                + "to get the whole dataset with boxes and labels leave both to False"
+            )
+
         # File existence check
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
@@ -62,7 +71,7 @@ class WILDRECEIPT(AbstractDataset):
         tmp_root = img_folder
         self.train = train
         np_dtype = np.float32
-        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
 
         with open(label_path, "r") as file:
             data = file.read()
@@ -100,6 +109,8 @@ class WILDRECEIPT(AbstractDataset):
                 for crop, label in zip(crops, list(text_targets)):
                     if label and " " not in label:
                         self.data.append((crop, label))
+            elif detection_task:
+                self.data.append((img_path, np.asarray(box_targets, dtype=int).clip(min=0)))
             else:
                 self.data.append((
                     img_path,
