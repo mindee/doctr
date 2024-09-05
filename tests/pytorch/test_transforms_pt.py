@@ -68,7 +68,6 @@ def test_resize():
 
     # --- Test with target (bounding boxes) ---
 
-    # 1. Custom dataset (n_boxes, 4) format bounding boxes
     target_boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]])
     output_size = (64, 64)
 
@@ -80,20 +79,6 @@ def test_resize():
     assert new_target.shape == target_boxes.shape
     assert np.all(new_target >= 0) and np.all(new_target <= 1)
 
-    # 2. Built-in dataset: Dict with "boxes" and "labels"
-    target = {"boxes": np.array([[0.1, 0.1, 0.9, 0.9]]), "labels": ["text"]}
-
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
-    out, new_target = transfo(input_t, target)
-
-    assert out.shape[-2:] == output_size
-    assert "boxes" in new_target
-    assert "labels" in new_target
-    assert new_target["boxes"].shape == target["boxes"].shape
-    assert new_target["labels"] == target["labels"]
-    assert np.all(new_target["boxes"] >= 0) and np.all(new_target["boxes"] <= 1)
-
-    # 3. No target (to ensure backward compatibility)
     out = transfo(input_t)
     assert out.shape[-2:] == output_size
 

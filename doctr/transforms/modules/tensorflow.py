@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -104,8 +104,8 @@ class Resize(NestedObject):
     def __call__(
         self,
         img: tf.Tensor,
-        target: Optional[Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]] = None,
-    ) -> Union[tf.Tensor, Tuple[tf.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]]:
+        target: Optional[np.ndarray] = None,
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
         input_dtype = img.dtype
         self.output_size = (
             (self.output_size, self.output_size) if isinstance(self.output_size, int) else self.output_size
@@ -126,7 +126,8 @@ class Resize(NestedObject):
                 # Pad image
                 img = tf.image.pad_to_bounding_box(img, *half_pad, *self.output_size)
 
-        def _prepare_targets(target: np.ndarray) -> np.ndarray:
+        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
+        if target is not None:
             if self.symmetric_pad:
                 offset = half_pad[0] / img.shape[0], half_pad[1] / img.shape[1]
 
@@ -148,18 +149,8 @@ class Resize(NestedObject):
                         target[..., 1] *= raw_shape[0] / img.shape[0]
                 else:
                     raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
-            return np.clip(target, 0, 1)
 
-        # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
-        if target is not None:
-            if isinstance(target, dict) and "boxes" in target.keys():
-                # Built-in datasets
-                # NOTE: This is required for end-to-end evaluation
-                target["boxes"] = _prepare_targets(target["boxes"])  # type: ignore[arg-type]
-                return tf.cast(img, dtype=input_dtype), target
-
-            # Custom datasets
-            return tf.cast(img, dtype=input_dtype), _prepare_targets(target)  # type: ignore[arg-type]
+            return tf.cast(img, dtype=input_dtype), np.clip(target, 0, 1)
 
         return tf.cast(img, dtype=input_dtype)
 
@@ -566,8 +557,8 @@ class RandomResize(NestedObject):
     def __call__(
         self,
         img: tf.Tensor,
-        target: Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]],
-    ) -> Tuple[tf.Tensor, Union[np.ndarray, Dict[str, Union[np.ndarray, List[str]]]]]:
+        target: Optional[np.ndarray],
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
         if np.random.rand(1) <= self.p:
             scale_h = random.uniform(*self.scale_range)
             scale_w = random.uniform(*self.scale_range)

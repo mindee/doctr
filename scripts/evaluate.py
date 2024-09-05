@@ -38,6 +38,15 @@ def main(args):
 
     input_shape = (args.size, args.size)
 
+    # We define a transformation function which does transform the annotation
+    # to the required format for the Resize transformation
+    def _transform(img, target):
+        boxes = target["boxes"]
+        transformed_img, transformed_boxes = T.Resize(
+            input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
+        )(img, boxes)
+        return transformed_img, {"boxes": transformed_boxes, "labels": target["labels"]}
+
     predictor = ocr_predictor(
         args.detection,
         args.recognition,
@@ -52,9 +61,7 @@ def main(args):
         testset = datasets.OCRDataset(
             img_folder=args.img_folder,
             label_file=args.label_file,
-            sample_transforms=T.Resize(
-                input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
-            ),
+            sample_transforms=_transform,
         )
         sets = [testset]
     else:
@@ -62,17 +69,13 @@ def main(args):
             train=True,
             download=True,
             use_polygons=not args.eval_straight,
-            sample_transforms=T.Resize(
-                input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
-            ),
+            sample_transforms=_transform,
         )
         val_set = datasets.__dict__[args.dataset](
             train=False,
             download=True,
             use_polygons=not args.eval_straight,
-            sample_transforms=T.Resize(
-                input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
-            ),
+            sample_transforms=_transform,
         )
         sets = [train_set, val_set]
 
