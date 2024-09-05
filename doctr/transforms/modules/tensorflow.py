@@ -554,11 +554,7 @@ class RandomResize(NestedObject):
         self.p = p
         self._resize = Resize
 
-    def __call__(
-        self,
-        img: tf.Tensor,
-        target: Optional[np.ndarray],
-    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
+    def __call__(self, img: tf.Tensor, target: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
         if np.random.rand(1) <= self.p:
             scale_h = random.uniform(*self.scale_range)
             scale_w = random.uniform(*self.scale_range)
