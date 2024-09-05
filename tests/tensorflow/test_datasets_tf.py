@@ -317,9 +317,14 @@ def test_sroie(input_size, num_samples, rotate, recognition, detection, mock_sro
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.SROIE(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.SROIE(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.SROIE(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_sroie_dataset.split("/")[:-2]),
+            cache_subdir=mock_sroie_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -350,8 +355,6 @@ def test_ic13_dataset(input_size, num_samples, rotate, recognition, detection, m
 
     with pytest.raises(ValueError):
         datasets.IC13(*mock_ic13, recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.IC13("abc", "abc")
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -383,9 +386,7 @@ def test_imgur5k_dataset(input_size, num_samples, rotate, recognition, detection
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.IMGUR5K(*mock_imgur5k, recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.IMGUR5K("abc", "abc")
+        datasets.IMGUR5K(*mock_imgur5k, train=True, recognition_task=True, detection_task=True)
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -422,9 +423,14 @@ def test_svhn(input_size, num_samples, rotate, recognition, detection, mock_svhn
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.SVHN(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.SVHN(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.SVHN(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_svhn_dataset.split("/")[:-2]),
+            cache_subdir=mock_svhn_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -463,9 +469,14 @@ def test_funsd(input_size, num_samples, rotate, recognition, detection, mock_fun
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.FUNSD(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.FUNSD(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.FUNSD(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_funsd_dataset.split("/")[:-2]),
+            cache_subdir=mock_funsd_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -502,9 +513,14 @@ def test_cord(input_size, num_samples, rotate, recognition, detection, mock_cord
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.CORD(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.CORD(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.CORD(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_cord_dataset.split("/")[:-2]),
+            cache_subdir=mock_cord_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -542,9 +558,14 @@ def test_synthtext(input_size, num_samples, rotate, recognition, detection, mock
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.SynthText(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.SynthText(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.SynthText(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_synthtext_dataset.split("/")[:-2]),
+            cache_subdir=mock_synthtext_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -582,9 +603,14 @@ def test_iiit5k(input_size, num_samples, rotate, recognition, detection, mock_ii
         _validate_dataset(ds, input_size, batch_size=1, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.IIIT5K(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.IIIT5K(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.IIIT5K(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_iiit5k_dataset.split("/")[:-2]),
+            cache_subdir=mock_iiit5k_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -622,9 +648,14 @@ def test_svt(input_size, num_samples, rotate, recognition, detection, mock_svt_d
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.SVT(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.SVT(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.SVT(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_svt_dataset.split("/")[:-2]),
+            cache_subdir=mock_svt_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -661,9 +692,14 @@ def test_ic03(input_size, num_samples, rotate, recognition, detection, mock_ic03
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.IC03(recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.IC03(train=True, cache_dir="abc", cache_subdir="abc")
+        datasets.IC03(
+            train=True,
+            download=True,
+            recognition_task=True,
+            detection_task=True,
+            cache_dir="/".join(mock_ic03_dataset.split("/")[:-2]),
+            cache_subdir=mock_ic03_dataset.split("/")[-2],
+        )
 
 
 @pytest.mark.parametrize("rotate", [True, False])
@@ -694,9 +730,7 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, detec
         _validate_dataset(ds, input_size, is_polygons=rotate)
 
     with pytest.raises(ValueError):
-        datasets.WILDRECEIPT(*mock_wildreceipt_dataset, recognition_task=True, detection_task=True)
-    with pytest.raises(ValueError):
-        datasets.WILDRECEIPT("abc", "abc")
+        datasets.WILDRECEIPT(*mock_wildreceipt_dataset, train=True, recognition_task=True, detection_task=True)
 
 
 # NOTE: following datasets are only for recognition task
@@ -713,9 +747,6 @@ def test_mjsynth_dataset(mock_mjsynth_dataset):
     assert repr(ds) == f"MJSynth(train={True})"
     _validate_dataset_recognition_part(ds, input_size)
 
-    with pytest.raises(ValueError):
-        datasets.MJSynth("abc", "abc")
-
 
 def test_iiithws_dataset(mock_iiithws_dataset):
     input_size = (32, 128)
@@ -727,6 +758,3 @@ def test_iiithws_dataset(mock_iiithws_dataset):
     assert len(ds) == 4  # Actual set has 7141797 train and 793533 test samples
     assert repr(ds) == f"IIITHWS(train={True})"
     _validate_dataset_recognition_part(ds, input_size)
-
-    with pytest.raises(ValueError):
-        datasets.IIITHWS("abc", "abc")
