@@ -34,6 +34,7 @@ class DocumentBuilder(NestedObject):
         resolve_blocks: bool = False,
         paragraph_break: float = 0.035,
         export_as_straight_boxes: bool = False,
+        **kwargs: Any,
     ) -> None:
         self.resolve_lines = resolve_lines
         self.resolve_blocks = resolve_blocks
