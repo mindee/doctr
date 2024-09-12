@@ -29,6 +29,8 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
+        assume_straight_text: if True, speeds up the inference by assuming you only pass straight text
+            without rotated textual elements.
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
@@ -46,6 +48,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
+        assume_straight_text: bool = False,
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
@@ -58,6 +61,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         _KIEPredictor.__init__(
             self,
             assume_straight_pages,
+            assume_straight_text,
             straighten_pages,
             preserve_aspect_ratio,
             symmetric_pad,
@@ -122,12 +126,16 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         crops = {}
         for class_name in dict_loc_preds.keys():
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages, dict_loc_preds[class_name], channels_last=True, assume_straight_pages=self.assume_straight_pages
+                pages,
+                dict_loc_preds[class_name],
+                channels_last=True,
+                assume_straight_pages=self.assume_straight_pages,
+                assume_straight_text=self.assume_straight_text,
             )
 
         # Rectify crop orientation
         crop_orientations: Any = {}
-        if not self.assume_straight_pages:
+        if not self.assume_straight_pages and not self.assume_straight_text:
             for class_name in dict_loc_preds.keys():
                 crops[class_name], dict_loc_preds[class_name], word_orientations = self._rectify_crops(
                     crops[class_name], dict_loc_preds[class_name]

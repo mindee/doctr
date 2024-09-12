@@ -458,6 +458,8 @@ def extract_rcrops(
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
+    src_img = img if channels_last else img.transpose(1, 2, 0)
+
     src_pts = _boxes[:, :3].astype(np.float32)
     # Preserve size
     d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
@@ -469,11 +471,93 @@ def extract_rcrops(
     # Use a warp transformation to extract the crop
     crops = [
         cv2.warpAffine(
-            img if channels_last else img.transpose(1, 2, 0),
+            src_img,
             # Transformation matrix
             cv2.getAffineTransform(src_pts[idx], dst_pts[idx]),
             (int(d1[idx]), int(d2[idx])),
         )
         for idx in range(_boxes.shape[0])
     ]
+    return crops  # type: ignore[return-value]
+
+
+def extract_dewarped_crops(
+    img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True
+) -> List[np.ndarray]:
+    """Created cropped images from list of skewed/warped bounding boxes,
+    but containing straight text
+
+    Args:
+    ----
+        img: input image
+        polys: bounding boxes of shape (N, 4, 2)
+        dtype: target data type of bounding boxes
+        channels_last: whether the channel dimensions is the last one instead of the last one
+
+    Returns:
+    -------
+        list of cropped images
+    """
+    if polys.shape[0] == 0:
+        return []
+    if polys.shape[1:] != (4, 2):
+        raise AssertionError("polys are expected to be quadrilateral, of shape (N, 4, 2)")
+
+    # Project relative coordinates
+    _boxes = polys.copy()
+    height, width = img.shape[:2] if channels_last else img.shape[-2:]
+    if not np.issubdtype(_boxes.dtype, np.integer):
+        _boxes[:, :, 0] *= width
+        _boxes[:, :, 1] *= height
+
+    src_img = img if channels_last else img.transpose(1, 2, 0)
+
+    crops = []
+
+    for box in _boxes:
+        # Sort the points according to the x-axis
+        box_points = box[np.argsort(box[:, 0])]
+
+        # Divide the points into left and right
+        left_points = box_points[:2]
+        right_points = box_points[2:]
+
+        # Sort the left points according to the y-axis
+        left_points = left_points[np.argsort(left_points[:, 1])]
+        # Sort the right points according to the y-axis
+        right_points = right_points[np.argsort(right_points[:, 1])]
+        box_points = np.concatenate([left_points, right_points])
+
+        # Get the width and height of the rectangle that will contain the warped quadrilateral
+        # Designate the width and height based on maximum side of the quadrilateral
+        width_upper = np.linalg.norm(box_points[0] - box_points[2])
+        width_lower = np.linalg.norm(box_points[1] - box_points[3])
+        height_left = np.linalg.norm(box_points[0] - box_points[1])
+        height_right = np.linalg.norm(box_points[2] - box_points[3])
+
+        # Get the maximum width and height
+        rect_width = int(max(width_upper, width_lower))
+        rect_height = int(max(height_left, height_right))
+
+        dst_pts = np.array(
+            [
+                [0, 0],  # top-left
+                # bottom-left
+                [0, rect_height - 1],
+                # top-right
+                [rect_width - 1, 0],
+                # bottom-right
+                [rect_width - 1, rect_height - 1],
+            ],
+            dtype=dtype,
+        )
+
+        # Get the perspective transform matrix using the box points
+        affine_mat = cv2.getPerspectiveTransform(box_points.astype(np.float32), dst_pts)
+
+        # Perform the perspective warp to get the rectified crop
+        crop = cv2.warpPerspective(src_img, affine_mat, (rect_width, rect_height))
+
+        # Add the crop to the list of crops
+        crops.append(crop)
     return crops  # type: ignore[return-value]

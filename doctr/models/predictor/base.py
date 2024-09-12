@@ -8,7 +8,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import extract_crops, extract_rcrops, rotate_image
+from doctr.utils.geometry import extract_crops, extract_dewarped_crops, extract_rcrops, rotate_image
 
 from .._utils import estimate_orientation, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
@@ -23,6 +23,8 @@ class _OCRPredictor:
     Args:
     ----
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
+            without rotated textual elements.
+        assume_straight_text: if True, speeds up the inference by assuming you only pass straight text
             without rotated textual elements.
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
@@ -40,6 +42,7 @@ class _OCRPredictor:
     def __init__(
         self,
         assume_straight_pages: bool = True,
+        assume_straight_text: bool = False,
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
@@ -47,8 +50,13 @@ class _OCRPredictor:
         **kwargs: Any,
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
+        self.assume_straight_text = assume_straight_text
         self.straighten_pages = straighten_pages
-        self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
+        self.crop_orientation_predictor = (
+            None
+            if assume_straight_pages or (not assume_straight_pages and assume_straight_text)
+            else crop_orientation_predictor(pretrained=True)
+        )
         self.page_orientation_predictor = (
             page_orientation_predictor(pretrained=True)
             if detect_orientation or straighten_pages or not assume_straight_pages
@@ -112,8 +120,15 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
+        assume_straight_text: bool = False,
     ) -> List[List[np.ndarray]]:
-        extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
+        if assume_straight_pages:
+            extraction_fn = extract_crops
+        else:
+            if assume_straight_text:
+                extraction_fn = extract_dewarped_crops
+            else:
+                extraction_fn = extract_rcrops
 
         crops = [
             extraction_fn(page, _boxes[:, :4], channels_last=channels_last)  # type: ignore[operator]
@@ -127,8 +142,11 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
+        assume_straight_text: bool = False,
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
-        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages)
+        crops = _OCRPredictor._generate_crops(
+            pages, loc_preds, channels_last, assume_straight_pages, assume_straight_text
+        )
 
         # Avoid sending zero-sized crops
         is_kept = [[all(s > 0 for s in crop.shape) for crop in page_crops] for page_crops in crops]

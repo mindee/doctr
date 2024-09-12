@@ -266,3 +266,37 @@ def test_extract_rcrops(mock_pdf):
 
     # No box
     assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2))) == []
+
+
+def test_extract_dewarped_crops(mock_pdf):
+    doc_img = DocumentFile.from_pdf(mock_pdf)[0]
+    num_crops = 2
+    rel_boxes = np.array(
+        [
+            [
+                [idx / num_crops, idx / num_crops],
+                [idx / num_crops + 0.1, idx / num_crops],
+                [idx / num_crops + 0.1, idx / num_crops + 0.1],
+                [idx / num_crops, idx / num_crops],
+            ]
+            for idx in range(num_crops)
+        ],
+        dtype=np.float32,
+    )
+    abs_boxes = deepcopy(rel_boxes)
+    abs_boxes[:, :, 0] *= doc_img.shape[1]
+    abs_boxes[:, :, 1] *= doc_img.shape[0]
+    abs_boxes = abs_boxes.astype(np.int64)
+
+    with pytest.raises(AssertionError):
+        geometry.extract_dewarped_crops(doc_img, np.zeros((1, 8)))
+    for boxes in (rel_boxes, abs_boxes):
+        croped_imgs = geometry.extract_dewarped_crops(doc_img, boxes)
+        # Number of crops
+        assert len(croped_imgs) == num_crops
+        # Data type and shape
+        assert all(isinstance(crop, np.ndarray) for crop in croped_imgs)
+        assert all(crop.ndim == 3 for crop in croped_imgs)
+
+    # No box
+    assert geometry.extract_dewarped_crops(doc_img, np.zeros((0, 4, 2))) == []

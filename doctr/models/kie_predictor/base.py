@@ -36,6 +36,7 @@ class _KIEPredictor(_OCRPredictor):
     def __init__(
         self,
         assume_straight_pages: bool = True,
+        assume_straight_text: bool = False,
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
@@ -43,7 +44,13 @@ class _KIEPredictor(_OCRPredictor):
         **kwargs: Any,
     ) -> None:
         super().__init__(
-            assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, detect_orientation, **kwargs
+            assume_straight_pages,
+            assume_straight_text,
+            straighten_pages,
+            preserve_aspect_ratio,
+            symmetric_pad,
+            detect_orientation,
+            **kwargs,
         )
 
         self.doc_builder: KIEDocumentBuilder = KIEDocumentBuilder(**kwargs)

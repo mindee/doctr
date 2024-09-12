@@ -29,6 +29,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
+        assume_straight_text: if True, speeds up the inference by assuming you only pass straight text
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
             Then, rotates page before passing it to the deep learning modules. The final predictions will be remapped
             accordingly. Doing so will improve performances for documents with page-uniform rotations.
@@ -46,6 +47,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         det_predictor: DetectionPredictor,
         reco_predictor: RecognitionPredictor,
         assume_straight_pages: bool = True,
+        assume_straight_text: bool = False,
         straighten_pages: bool = False,
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
