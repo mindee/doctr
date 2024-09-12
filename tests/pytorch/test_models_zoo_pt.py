@@ -153,7 +153,6 @@ def test_trained_ocr_predictor(mock_payslip):
         pretrained=True,
         batch_size=2,
         assume_straight_pages=True,
-        assume_straight_text=False,
         preserve_aspect_ratio=True,
         symmetric_pad=True,
     )
