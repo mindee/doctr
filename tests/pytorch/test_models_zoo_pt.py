@@ -122,7 +122,6 @@ def test_trained_ocr_predictor(mock_payslip):
         pretrained=True,
         batch_size=2,
         assume_straight_pages=True,
-        assume_straight_text=False,
         symmetric_pad=True,
         preserve_aspect_ratio=False,
     )
@@ -132,6 +131,7 @@ def test_trained_ocr_predictor(mock_payslip):
         det_predictor,
         reco_predictor,
         assume_straight_pages=True,
+        assume_straight_text=False,
         straighten_pages=True,
         preserve_aspect_ratio=False,
         resolve_blocks=True,
