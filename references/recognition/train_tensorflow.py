@@ -59,7 +59,7 @@ def record_lr(
 
         # Forward, Backward & update
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
 
         if amp:
@@ -91,7 +91,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
@@ -108,7 +108,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
-        out = model(images, targets, return_preds=True, training=False)
+        out = model(images, target=targets, return_preds=True, training=False)
         # Compute metric
         if len(out["preds"]):
             words, _ = zip(*out["preds"])
@@ -343,7 +343,7 @@ def main(args):
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights(f"./{exp_name}/weights")
+            model.save_weights(f"./{exp_name}.weights.h5")
             min_loss = val_loss
         print(
             f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "

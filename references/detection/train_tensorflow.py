@@ -58,7 +58,7 @@ def record_lr(
 
         # Forward, Backward & update
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
 
         if amp:
@@ -90,7 +90,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
@@ -107,7 +107,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
-        out = model(images, targets, training=False, return_preds=True)
+        out = model(images, target=targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
         for target, loc_pred in zip(targets, loc_preds):
@@ -351,11 +351,11 @@ def main(args):
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights(f"./{exp_name}/weights")
+            model.save_weights(f"./{exp_name}.weights.h5")
             min_loss = val_loss
         if args.save_interval_epoch:
             print(f"Saving state at epoch: {epoch + 1}")
-            model.save_weights(f"./{exp_name}_{epoch + 1}/weights")
+            model.save_weights(f"./{exp_name}_{epoch + 1}.weights.h5")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"

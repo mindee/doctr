@@ -238,7 +238,7 @@ class PARSeq(_PARSeq, Model):
     def decode(
         self,
         target: tf.Tensor,
-        memory: tf,
+        memory: tf.Tensor,
         target_mask: Optional[tf.Tensor] = None,
         target_query: Optional[tf.Tensor] = None,
         **kwargs: Any,

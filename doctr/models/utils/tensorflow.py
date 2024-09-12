@@ -57,6 +57,10 @@ def load_pretrained_params(
     else:
         archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
 
+        # Build the model
+        # NOTE: `model.build` is not an option because it doesn't runs in eager mode
+        _ = model(tf.ones((1, *model.cfg["input_shape"])), training=False)
+
         # Load weights
         model.load_weights(archive_path)
 
