@@ -7,8 +7,8 @@ from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
+from keras.utils import img_to_array
 from PIL import Image
-from tensorflow.keras.utils import img_to_array
 
 from doctr.utils.common_types import AbstractPath
 

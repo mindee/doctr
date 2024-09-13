@@ -6,8 +6,8 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import layers
+from keras.models import Sequential
 
 from doctr.datasets import VOCABS
 

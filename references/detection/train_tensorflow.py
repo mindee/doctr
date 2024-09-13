@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+from keras import Model, mixed_precision, optimizers
 from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
@@ -31,7 +31,7 @@ from utils import EarlyStopper, load_backbone, plot_recorder, plot_samples
 
 
 def record_lr(
-    model: tf.keras.Model,
+    model: Model,
     train_loader: DataLoader,
     batch_transforms,
     optimizer,
@@ -278,7 +278,7 @@ def main(args):
 
     # Scheduler
     if args.sched == "exponential":
-        scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+        scheduler = optimizers.schedules.ExponentialDecay(
             args.lr,
             decay_steps=args.epochs * len(train_loader),
             decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
@@ -286,7 +286,7 @@ def main(args):
             name="ExponentialDecay",
         )
     elif args.sched == "poly":
-        scheduler = tf.keras.optimizers.schedules.PolynomialDecay(
+        scheduler = optimizers.schedules.PolynomialDecay(
             args.lr,
             decay_steps=args.epochs * len(train_loader),
             end_learning_rate=1e-7,
@@ -295,7 +295,7 @@ def main(args):
             name="PolynomialDecay",
         )
     # Optimizer
-    optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
+    optimizer = optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
     # LR Finder

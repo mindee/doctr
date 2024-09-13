@@ -2,6 +2,7 @@ import os
 import tempfile
 
 import cv2
+import keras
 import numpy as np
 import onnxruntime
 import psutil
@@ -37,7 +38,7 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 def test_classification_architectures(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    tf.keras.backend.clear_session()
+    keras.backend.clear_session()
     model = classification.__dict__[arch_name](pretrained=True, include_top=True, input_shape=input_shape)
     # Forward
     out = model(tf.random.uniform(shape=[batch_size, *input_shape], maxval=1, dtype=tf.float32))
@@ -57,7 +58,7 @@ def test_classification_architectures(arch_name, input_shape, output_size):
 def test_classification_models(arch_name, input_shape):
     batch_size = 8
     reco_model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
-    assert isinstance(reco_model, tf.keras.Model)
+    assert isinstance(reco_model, keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
 
     out = reco_model(input_tensor)
@@ -226,7 +227,7 @@ def test_page_orientation_model(mock_payslip):
 def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    tf.keras.backend.clear_session()
+    keras.backend.clear_session()
     if "orientation" in arch_name:
         model = classification.__dict__[arch_name](pretrained=True, input_shape=input_shape)
     else:

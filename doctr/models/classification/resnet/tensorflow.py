@@ -7,9 +7,9 @@ from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.models import Sequential
+from keras import layers
+from keras.applications import ResNet50
+from keras.models import Sequential
 
 from doctr.datasets import VOCABS
 

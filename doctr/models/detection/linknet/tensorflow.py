@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import Model, Sequential, layers
+from keras import Model, Sequential, layers, losses
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
@@ -90,7 +89,7 @@ class LinkNetFPN(Model, NestedObject):
         return f"out_chans={self.out_chans}"
 
 
-class LinkNet(_LinkNet, keras.Model):
+class LinkNet(_LinkNet, Model):
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
@@ -187,7 +186,7 @@ class LinkNet(_LinkNet, keras.Model):
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.cast(seg_mask, tf.float32)
 
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
+        bce_loss = losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
         proba_map = tf.sigmoid(out_map)
 
         # Focal loss

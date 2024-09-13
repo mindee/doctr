@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
@@ -51,7 +51,7 @@ class MASTER(_MASTER, Model):
 
     def __init__(
         self,
-        feature_extractor: tf.keras.Model,
+        feature_extractor: Model,
         vocab: str,
         d_model: int = 512,
         dff: int = 2048,

@@ -7,8 +7,8 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Model, Sequential
+from keras import layers
+from keras.models import Model, Sequential
 
 from doctr.datasets import VOCABS
 
@@ -128,7 +128,7 @@ class CRNN(RecognitionModel, Model):
 
     def __init__(
         self,
-        feature_extractor: tf.keras.Model,
+        feature_extractor: Model,
         vocab: str,
         rnn_units: int = 128,
         exportable: bool = False,

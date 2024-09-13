@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
@@ -43,7 +43,7 @@ class CharEmbedding(layers.Layer):
 
     def __init__(self, vocab_size: int, d_model: int):
         super(CharEmbedding, self).__init__()
-        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
+        self.embedding = layers.Embedding(vocab_size, d_model)
         self.d_model = d_model
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:

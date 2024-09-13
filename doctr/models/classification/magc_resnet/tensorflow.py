@@ -9,8 +9,8 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import activations, layers
+from keras.models import Sequential
 
 from doctr.datasets import VOCABS
 
@@ -57,6 +57,7 @@ class MAGC(layers.Layer):
         self.headers = headers  # h
         self.inplanes = inplanes  # C
         self.attn_scale = attn_scale
+        self.ratio = ratio
         self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
@@ -97,7 +98,7 @@ class MAGC(layers.Layer):
         if self.attn_scale and self.headers > 1:
             context_mask = context_mask / math.sqrt(self.single_header_inplanes)
         # B*h, 1, H*W, 1
-        context_mask = tf.keras.activations.softmax(context_mask, axis=2)
+        context_mask = activations.softmax(context_mask, axis=2)
 
         # Compute context
         # B*h, 1, C/h, 1

@@ -7,7 +7,7 @@ from typing import Any, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import layers
+from keras import layers
 
 from doctr.utils.repr import NestedObject
 

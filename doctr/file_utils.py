@@ -63,10 +63,6 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         if int(_tf_version.split(".")[0]) < 2:  # type: ignore[union-attr]  # pragma: no cover
             logging.info(f"TensorFlow found but with version {_tf_version}. DocTR requires version 2 minimum.")
             _tf_available = False
-            import tensorflow as tf
-
-            # Enable eager execution - this is required for some models to work properly
-            tf.config.run_functions_eagerly(True)
         else:
             logging.info(f"TensorFlow version {_tf_version} available.")
 else:  # pragma: no cover

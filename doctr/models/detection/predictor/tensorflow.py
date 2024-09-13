@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
+from keras import Model
 
 from doctr.models.detection._utils import _remove_padding
 from doctr.models.preprocessor import PreProcessor
@@ -30,7 +30,7 @@ class DetectionPredictor(NestedObject):
     def __init__(
         self,
         pre_processor: PreProcessor,
-        model: keras.Model,
+        model: Model,
     ) -> None:
         self.pre_processor = pre_processor
         self.model = model

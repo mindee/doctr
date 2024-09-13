@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import Sequential, layers
+from keras import Model, Sequential, layers
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, load_pretrained_params
@@ -100,7 +99,7 @@ class FastHead(Sequential):
         super().__init__(_layers)
 
 
-class FAST(_FAST, keras.Model, NestedObject):
+class FAST(_FAST, Model, NestedObject):
     """FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"
     <https://arxiv.org/pdf/2111.02394.pdf>`_.
 

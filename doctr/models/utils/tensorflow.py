@@ -8,7 +8,7 @@ from typing import Any, Callable, List, Optional, Tuple, Union
 
 import tensorflow as tf
 import tf2onnx
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.utils.data import download_from_url
 
@@ -75,7 +75,7 @@ def conv_sequence(
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
-    >>> from tensorflow.keras import Sequential
+    >>> from keras import Sequential
     >>> from doctr.models import conv_sequence
     >>> module = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=[224, 224, 3]))
 
@@ -111,7 +111,7 @@ def conv_sequence(
 class IntermediateLayerGetter(Model):
     """Implements an intermediate layer getter
 
-    >>> from tensorflow.keras.applications import ResNet50
+    >>> from keras.applications import ResNet50
     >>> from doctr.models import IntermediateLayerGetter
     >>> target_layers = ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
     >>> feat_extractor = IntermediateLayerGetter(ResNet50(include_top=False, pooling=False), target_layers)
