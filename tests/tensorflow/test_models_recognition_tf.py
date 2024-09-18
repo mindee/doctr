@@ -38,9 +38,9 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["parseq", (32, 128, 3)],
     ],
 )
-def test_recognition_models(arch_name, input_shape, train_mode):
+def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
     batch_size = 4
-    reco_model = recognition.__dict__[arch_name](pretrained=True, input_shape=input_shape)
+    reco_model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=True, input_shape=input_shape)
     assert isinstance(reco_model, keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = ["i", "am", "a", "jedi"]

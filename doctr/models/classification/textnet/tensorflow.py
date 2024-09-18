@@ -113,7 +113,11 @@ def _textnet(
     model = TextNet(cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
+        )
 
     return model
 

@@ -38,18 +38,20 @@ def load_pretrained_params(
     model: Model,
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
+    skip_mismatch: bool = False,
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
 
     >>> from doctr.models import load_pretrained_params
-    >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
+    >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.weights.h5")
 
     Args:
     ----
         model: the keras model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
+        skip_mismatch: skip loading layers with mismatched shapes
         **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
     if url is None:
@@ -62,7 +64,7 @@ def load_pretrained_params(
         _ = model(tf.ones((1, *model.cfg["input_shape"])), training=False)
 
         # Load weights
-        model.load_weights(archive_path)
+        model.load_weights(archive_path, skip_mismatch=skip_mismatch)
 
 
 def conv_sequence(

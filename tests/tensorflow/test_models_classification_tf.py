@@ -46,6 +46,11 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     assert isinstance(out, tf.Tensor)
     assert out.dtype == tf.float32
     assert out.numpy().shape == (batch_size, *output_size)
+    # Check that you can load pretrained up to the classification layer with differing number of classes to fine-tune
+    keras.backend.clear_session()
+    assert classification.__dict__[arch_name](
+        pretrained=True, include_top=True, input_shape=input_shape, num_classes=10
+    )
 
 
 @pytest.mark.parametrize(

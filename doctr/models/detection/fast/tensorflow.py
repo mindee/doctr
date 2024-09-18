@@ -335,7 +335,12 @@ def _fast(
     model = FAST(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     # Build the model for reparameterization to access the layers
     _ = model(tf.random.uniform(shape=[1, *_cfg["input_shape"]], maxval=1, dtype=tf.float32), training=False)

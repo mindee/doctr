@@ -306,7 +306,12 @@ def _db_resnet(
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     return model
 
@@ -325,6 +330,10 @@ def _db_mobilenet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = default_cfgs[arch].get("class_names", [CLASS_NAME])
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
@@ -340,7 +349,12 @@ def _db_mobilenet(
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     return model
 
