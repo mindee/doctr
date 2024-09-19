@@ -283,13 +283,16 @@ Those architectures involve one stage of text detection, and one stage of text r
 
 You can pass specific boolean arguments to the predictor:
 
-* `assume_straight_pages`
-* `preserve_aspect_ratio`
-* `symmetric_pad`
+* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
 Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).
 
+Additional arguments which can be passed to the `ocr_predictor` are:
+
 * `export_as_straight_boxes`: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.
+* `straighten_pages`: If you want to straighten the pages before sending them to the detection model, set it to True.
 
 For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
 
@@ -298,7 +301,6 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
     from doctr.model import ocr_predictor
     model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
-# TODO: Describe and explain the new functionality !! :)
 
 Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
 
@@ -465,6 +467,30 @@ This is useful to detect (possible less) text regions more accurately with a hig
 
     input_page = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
     out = predictor([input_page])
+
+
+* Disable page orientation classification
+
+If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.
+
+This will only have an effect with `assume_straight_pages=False` and/or `straighten_pages=True` and/or `detect_orientation=True`.
+
+.. code:: python3
+
+    from doctr.model import ocr_predictor
+    model = ocr_predictor(pretrained=True, assume_straight_pages=False, disable_page_orientation=True)
+
+
+* Disable crop orientation classification
+
+If you deal with documents which contains only horizontal text, you can disable the crop orientation classification to speed up the inference.
+
+This will only have an effect with `assume_straight_pages=False` and/or `straighten_pages=True`.
+
+.. code:: python3
+
+    from doctr.model import ocr_predictor
+    model = ocr_predictor(pretrained=True, assume_straight_pages=False, disable_crop_orientation=True)
 
 
 * Add a hook to the `ocr_predictor` to manipulate the location predictions before the crops are passed to the recognition model.
