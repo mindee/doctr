@@ -72,6 +72,13 @@ def test_ocrpredictor(
         disable_crop_orientation=disable_crop_orientation,
     )
 
+    assert (
+        predictor._page_orientation_disabled if disable_page_orientation else not predictor._page_orientation_disabled
+    )
+    assert (
+        predictor._crop_orientation_disabled if disable_crop_orientation else not predictor._crop_orientation_disabled
+    )
+
     if assume_straight_pages:
         assert predictor.crop_orientation_predictor is None
         if predictor.detect_orientation or predictor.straighten_pages:
@@ -218,6 +225,13 @@ def test_kiepredictor(
         resolve_lines=True,
         disable_page_orientation=disable_page_orientation,
         disable_crop_orientation=disable_crop_orientation,
+    )
+
+    assert (
+        predictor._page_orientation_disabled if disable_page_orientation else not predictor._page_orientation_disabled
+    )
+    assert (
+        predictor._crop_orientation_disabled if disable_crop_orientation else not predictor._crop_orientation_disabled
     )
 
     if assume_straight_pages:
