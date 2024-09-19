@@ -113,6 +113,16 @@ def test_crop_orientation_model(mock_text_box):
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
+    # Test with disabled predictor
+    classifier = classification.crop_orientation_predictor(
+        "mobilenet_v3_small_crop_orientation", pretrained=False, disabled=True
+    )
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90]) == [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [1.0, 1.0, 1.0, 1.0],
+    ]
+
     # Test custom model loading
     classifier = classification.crop_orientation_predictor(
         classification.mobilenet_v3_small_crop_orientation(pretrained=True)

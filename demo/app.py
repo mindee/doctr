@@ -72,6 +72,12 @@ def main(det_archs, reco_archs):
     st.sidebar.title("Parameters")
     assume_straight_pages = st.sidebar.checkbox("Assume straight pages", value=True)
     st.sidebar.write("\n")
+    # Disable page orientation detection
+    disable_page_orientation = st.sidebar.checkbox("Disable page orientation detection", value=False)
+    st.sidebar.write("\n")
+    # Disable crop orientation detection
+    disable_crop_orientation = st.sidebar.checkbox("Disable crop orientation detection", value=False)
+    st.sidebar.write("\n")
     # Straighten pages
     straighten_pages = st.sidebar.checkbox("Straighten pages", value=False)
     st.sidebar.write("\n")
@@ -89,7 +95,15 @@ def main(det_archs, reco_archs):
         else:
             with st.spinner("Loading model..."):
                 predictor = load_predictor(
-                    det_arch, reco_arch, assume_straight_pages, straighten_pages, bin_thresh, box_thresh, forward_device
+                    det_arch,
+                    reco_arch,
+                    assume_straight_pages,
+                    straighten_pages,
+                    disable_page_orientation,
+                    disable_crop_orientation,
+                    bin_thresh,
+                    box_thresh,
+                    forward_device,
                 )
 
             with st.spinner("Analyzing..."):

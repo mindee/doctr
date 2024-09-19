@@ -298,6 +298,8 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
     from doctr.model import ocr_predictor
     model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
+# TODO: Describe and explain the new functionality !! :)
+
 Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
 
 * `det_bs`: batch size for the detection model (default: 2)

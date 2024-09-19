@@ -234,7 +234,8 @@ def test_extract_crops(mock_pdf):
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
 
 
-def test_extract_rcrops(mock_pdf):
+@pytest.mark.parametrize("assume_horizontal", [True, False])
+def test_extract_rcrops(mock_pdf, assume_horizontal):
     doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array(
@@ -255,9 +256,9 @@ def test_extract_rcrops(mock_pdf):
     abs_boxes = abs_boxes.astype(np.int64)
 
     with pytest.raises(AssertionError):
-        geometry.extract_rcrops(doc_img, np.zeros((1, 8)))
+        geometry.extract_rcrops(doc_img, np.zeros((1, 8)), assume_horizontal=assume_horizontal)
     for boxes in (rel_boxes, abs_boxes):
-        croped_imgs = geometry.extract_rcrops(doc_img, boxes)
+        croped_imgs = geometry.extract_rcrops(doc_img, boxes, assume_horizontal=assume_horizontal)
         # Number of crops
         assert len(croped_imgs) == num_crops
         # Data type and shape
@@ -265,4 +266,4 @@ def test_extract_rcrops(mock_pdf):
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # No box
-    assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2))) == []
+    assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2)), assume_horizontal=assume_horizontal) == []

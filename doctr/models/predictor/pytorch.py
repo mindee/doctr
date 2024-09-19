@@ -123,6 +123,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             loc_preds,
             channels_last=channels_last,
             assume_straight_pages=self.assume_straight_pages,
+            assume_horizontal=self._page_orientation_disabled,
         )
         # Rectify crop orientation and get crop orientation predictions
         crop_orientations: Any = []

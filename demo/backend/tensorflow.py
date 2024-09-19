@@ -36,6 +36,8 @@ def load_predictor(
     reco_arch: str,
     assume_straight_pages: bool,
     straighten_pages: bool,
+    disable_page_orientation: bool,
+    disable_crop_orientation: bool,
     bin_thresh: float,
     box_thresh: float,
     device: tf.device,
@@ -48,6 +50,8 @@ def load_predictor(
         reco_arch: recognition architecture
         assume_straight_pages: whether to assume straight pages or not
         straighten_pages: whether to straighten rotated pages or not
+        disable_page_orientation: whether to disable page orientation or not
+        disable_crop_orientation: whether to disable crop orientation or not
         bin_thresh: binarization threshold for the segmentation map
         box_thresh: threshold for the detection boxes
         device: tf.device, the device to load the predictor on
@@ -65,6 +69,8 @@ def load_predictor(
             straighten_pages=straighten_pages,
             export_as_straight_boxes=straighten_pages,
             detect_orientation=not assume_straight_pages,
+            disable_page_orientation=disable_page_orientation,
+            disable_crop_orientation=disable_crop_orientation,
         )
         predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
         predictor.det_predictor.model.postprocessor.box_thresh = box_thresh

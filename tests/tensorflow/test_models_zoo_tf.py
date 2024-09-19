@@ -25,14 +25,18 @@ class _DummyCallback:
 
 
 @pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages",
+    "assume_straight_pages, straighten_pages, disable_page_orientation, disable_crop_orientation",
     [
-        [True, False],
-        [False, False],
-        [True, True],
+        [True, False, False, False],
+        [False, False, True, True],
+        [True, True, False, False],
+        [False, True, True, True],
+        [True, False, True, False],
     ],
 )
-def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
+def test_ocrpredictor(
+    mock_pdf, mock_vocab, assume_straight_pages, straighten_pages, disable_page_orientation, disable_crop_orientation
+):
     det_bsize = 4
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
@@ -61,6 +65,8 @@ def test_ocrpredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         detect_language=True,
         resolve_blocks=True,
         resolve_lines=True,
+        disable_page_orientation=disable_page_orientation,
+        disable_crop_orientation=disable_crop_orientation,
     )
 
     if assume_straight_pages:
@@ -166,14 +172,18 @@ def test_trained_ocr_predictor(mock_payslip):
 
 
 @pytest.mark.parametrize(
-    "assume_straight_pages, straighten_pages",
+    "assume_straight_pages, straighten_pages, disable_page_orientation, disable_crop_orientation",
     [
-        [True, False],
-        [False, False],
-        [True, True],
+        [True, False, False, False],
+        [False, False, True, True],
+        [True, True, False, False],
+        [False, True, True, True],
+        [True, False, True, False],
     ],
 )
-def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pages):
+def test_kiepredictor(
+    mock_pdf, mock_vocab, assume_straight_pages, straighten_pages, disable_page_orientation, disable_crop_orientation
+):
     det_bsize = 4
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=det_bsize),
@@ -202,6 +212,8 @@ def test_kiepredictor(mock_pdf, mock_vocab, assume_straight_pages, straighten_pa
         detect_language=True,
         resolve_blocks=True,
         resolve_lines=True,
+        disable_page_orientation=disable_page_orientation,
+        disable_crop_orientation=disable_crop_orientation,
     )
 
     if assume_straight_pages:

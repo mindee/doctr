@@ -112,7 +112,6 @@ def test_classification_zoo(arch_name):
 
     with torch.no_grad():
         out = predictor(input_tensor)
-    out = predictor(input_tensor)
     class_idxs, classes, confs = out[0], out[1], out[2]
     assert isinstance(class_idxs, list) and len(class_idxs) == batch_size
     assert isinstance(classes, list) and len(classes) == batch_size
@@ -133,6 +132,16 @@ def test_crop_orientation_model(mock_text_box):
     # 270 degrees is equivalent to -90 degrees
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
+
+    # Test with disabled predictor
+    classifier = classification.crop_orientation_predictor(
+        "mobilenet_v3_small_crop_orientation", pretrained=False, disabled=True
+    )
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90]) == [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [1.0, 1.0, 1.0, 1.0],
+    ]
 
     # Test custom model loading
     classifier = classification.crop_orientation_predictor(

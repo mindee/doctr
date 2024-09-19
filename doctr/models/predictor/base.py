@@ -48,9 +48,15 @@ class _OCRPredictor:
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
-        self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
+        self._page_orientation_disabled = kwargs.pop("disable_page_orientation", False)
+        self._crop_orientation_disabled = kwargs.pop("disable_crop_orientation", False)
+        self.crop_orientation_predictor = (
+            None
+            if assume_straight_pages
+            else crop_orientation_predictor(pretrained=True, disabled=self._crop_orientation_disabled)
+        )
         self.page_orientation_predictor = (
-            page_orientation_predictor(pretrained=True)
+            page_orientation_predictor(pretrained=True, disabled=self._page_orientation_disabled)
             if detect_orientation or straighten_pages or not assume_straight_pages
             else None
         )
@@ -112,13 +118,18 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
+        assume_horizontal: bool = False,
     ) -> List[List[np.ndarray]]:
-        extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
-
-        crops = [
-            extraction_fn(page, _boxes[:, :4], channels_last=channels_last)  # type: ignore[operator]
-            for page, _boxes in zip(pages, loc_preds)
-        ]
+        if assume_straight_pages:
+            crops = [
+                extract_crops(page, _boxes[:, :4], channels_last=channels_last)  # type: ignore[operator]
+                for page, _boxes in zip(pages, loc_preds)
+            ]
+        else:
+            crops = [
+                extract_rcrops(page, _boxes[:, :4], channels_last=channels_last, assume_horizontal=assume_horizontal)  # type: ignore[operator]
+                for page, _boxes in zip(pages, loc_preds)
+            ]
         return crops
 
     @staticmethod
@@ -127,8 +138,9 @@ class _OCRPredictor:
         loc_preds: List[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
+        assume_horizontal: bool = False,
     ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
-        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages)
+        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages, assume_horizontal)
 
         # Avoid sending zero-sized crops
         is_kept = [[all(s > 0 for s in crop.shape) for crop in page_crops] for page_crops in crops]
