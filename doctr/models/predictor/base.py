@@ -122,12 +122,12 @@ class _OCRPredictor:
     ) -> List[List[np.ndarray]]:
         if assume_straight_pages:
             crops = [
-                extract_crops(page, _boxes[:, :4], channels_last=channels_last)  # type: ignore[operator]
+                extract_crops(page, _boxes[:, :4], channels_last=channels_last)
                 for page, _boxes in zip(pages, loc_preds)
             ]
         else:
             crops = [
-                extract_rcrops(page, _boxes[:, :4], channels_last=channels_last, assume_horizontal=assume_horizontal)  # type: ignore[operator]
+                extract_rcrops(page, _boxes[:, :4], channels_last=channels_last, assume_horizontal=assume_horizontal)
                 for page, _boxes in zip(pages, loc_preds)
             ]
         return crops

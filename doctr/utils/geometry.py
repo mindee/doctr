@@ -487,8 +487,8 @@ def extract_rcrops(
             height_right = np.linalg.norm(box_points[2] - box_points[3])
 
             # Get the maximum width and height
-            rect_width = int(max(width_upper, width_lower))
-            rect_height = int(max(height_left, height_right))
+            rect_width = max(int(width_upper), int(width_lower))
+            rect_height = max(int(height_left), int(height_right))
 
             dst_pts = np.array(
                 [
