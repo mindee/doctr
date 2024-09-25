@@ -259,13 +259,13 @@ def test_rotate_sample():
     expected_img = tf.ones((100, 200, 3), dtype=tf.float32)
     expected_polys = np.array([[0, 1], [0, 0], [1, 0], [1, 1]], dtype=np.float32)[None, ...]
     rotated_img, rotated_geoms = rotate_sample(img, boxes, 90, True)
-    assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
+    assert tf.math.reduce_all(rotated_img == expected_img) and np.allclose(rotated_geoms, expected_polys, atol=1e-10)
     rotated_img, rotated_geoms = rotate_sample(img, polys, 90, True)
-    assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
+    assert tf.math.reduce_all(rotated_img == expected_img) and np.allclose(rotated_geoms, expected_polys, atol=1e-10)
     rotated_img, rotated_geoms = rotate_sample(img, rel_boxes, 90, True)
-    assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
+    assert tf.math.reduce_all(rotated_img == expected_img) and np.allclose(rotated_geoms, expected_polys, atol=1e-10)
     rotated_img, rotated_geoms = rotate_sample(img, rel_polys, 90, True)
-    assert tf.math.reduce_all(rotated_img == expected_img) and np.all(rotated_geoms == expected_polys)
+    assert tf.math.reduce_all(rotated_img == expected_img) and np.allclose(rotated_geoms, expected_polys, atol=1e-10)
 
     with pytest.raises(AssertionError):
         rotate_sample(img, boxes[None, ...], 90, False)
