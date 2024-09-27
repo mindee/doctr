@@ -482,20 +482,15 @@ def extract_rcrops(
             top_right_pt = right_points[0]
             bottom_right_pt = right_points[-1]
             box_points = np.array(
-                [
-                    top_left_pt,
-                    bottom_left_pt,
-                    bottom_right_pt,
-                    top_right_pt,
-                ],
+                [top_left_pt, bottom_left_pt, top_right_pt, bottom_right_pt],
                 dtype=dtype,
             )
 
             # Get the width and height of the rectangle that will contain the warped quadrilateral
-            width_upper = np.linalg.norm(top_left_pt - top_right_pt)
-            width_lower = np.linalg.norm(bottom_left_pt - bottom_right_pt)
-            height_left = np.linalg.norm(top_left_pt - bottom_left_pt)
-            height_right = np.linalg.norm(top_right_pt - bottom_right_pt)
+            width_upper = np.linalg.norm(top_right_pt - top_left_pt)
+            width_lower = np.linalg.norm(bottom_right_pt - bottom_left_pt)
+            height_left = np.linalg.norm(bottom_left_pt - top_left_pt)
+            height_right = np.linalg.norm(bottom_right_pt - top_right_pt)
 
             # Get the maximum width and height
             rect_width = max(int(width_upper), int(width_lower))
@@ -518,7 +513,11 @@ def extract_rcrops(
             affine_mat = cv2.getPerspectiveTransform(box_points, dst_pts)
 
             # Perform the perspective warp to get the rectified crop
-            crop = cv2.warpPerspective(src_img, affine_mat, (rect_width, rect_height))
+            crop = cv2.warpPerspective(
+                src_img,
+                affine_mat,
+                (rect_width, rect_height),
+            )
 
             # Add the crop to the list of crops
             crops.append(crop)
