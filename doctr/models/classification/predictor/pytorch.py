@@ -52,7 +52,7 @@ class OrientationPredictor(nn.Module):
         self.model, processed_batches = set_device_and_dtype(
             self.model, processed_batches, _params.device, _params.dtype
         )
-        predicted_batches = [self.model(batch) for batch in processed_batches]
+        predicted_batches = [self.model(batch) for batch in processed_batches if self.model is not None]
         # confidence
         probs = [
             torch.max(torch.softmax(batch, dim=1), dim=1).values.cpu().detach().numpy() for batch in predicted_batches
@@ -61,7 +61,7 @@ class OrientationPredictor(nn.Module):
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]
 
         class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
-        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]
+        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs if self.model is not None]
         confs = [round(float(p), 2) for prob in probs for p in prob]
 
         return [class_idxs, classes, confs]
