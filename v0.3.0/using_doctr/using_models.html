@@ -952,13 +952,15 @@ Explanations about the metrics being used are available in <a class="reference i
 </div>
 <p>You can pass specific boolean arguments to the predictor:</p>
 <ul class="simple">
-<li><p><cite>assume_straight_pages</cite></p></li>
-<li><p><cite>preserve_aspect_ratio</cite></p></li>
-<li><p><cite>symmetric_pad</cite></p></li>
+<li><p><cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.</p></li>
+<li><p><cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.</p></li>
+<li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
 </ul>
 <p>Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).</p>
+<p>Additional arguments which can be passed to the <cite>ocr_predictor</cite> are:</p>
 <ul class="simple">
 <li><p><cite>export_as_straight_boxes</cite>: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.</p></li>
+<li><p><cite>straighten_pages</cite>: If you want to straighten the pages before sending them to the detection model, set it to True.</p></li>
 </ul>
 <p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
@@ -1117,6 +1119,24 @@ To get a better understanding of our document model, check our <a class="referen
 
 <span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Disable page orientation classification</p></li>
+</ul>
+<p>If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.</p>
+<p>This will only have an effect with <cite>assume_straight_pages=False</cite> and/or <cite>straighten_pages=True</cite> and/or <cite>detect_orientation=True</cite>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_page_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Disable crop orientation classification</p></li>
+</ul>
+<p>If you deal with documents which contains only horizontal text, you can disable the crop orientation classification to speed up the inference.</p>
+<p>This will only have an effect with <cite>assume_straight_pages=False</cite> and/or <cite>straighten_pages=True</cite>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_crop_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
