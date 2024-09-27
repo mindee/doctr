@@ -19,6 +19,8 @@ class KIEIn(BaseModel):
     straighten_pages: bool = Field(default=False, examples=[False])
     det_bs: int = Field(default=2, examples=[2])
     reco_bs: int = Field(default=128, examples=[128])
+    disable_page_orientation: bool = Field(default=False, examples=[False])
+    disable_crop_orientation: bool = Field(default=False, examples=[False])
     bin_thresh: float = Field(default=0.1, examples=[0.1])
     box_thresh: float = Field(default=0.1, examples=[0.1])
 

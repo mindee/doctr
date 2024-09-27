@@ -34,7 +34,13 @@ ARCHS: List[str] = [
 ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
 
 
-def _orientation_predictor(arch: Any, pretrained: bool, model_type: str, **kwargs: Any) -> OrientationPredictor:
+def _orientation_predictor(
+    arch: Any, pretrained: bool, model_type: str, disabled: bool = False, **kwargs: Any
+) -> OrientationPredictor:
+    if disabled:
+        # Case where the orientation predictor is disabled
+        return OrientationPredictor(None, None)
+
     if isinstance(arch, str):
         if arch not in ORIENTATION_ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")

@@ -116,7 +116,11 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
         # Crop images
         crops, loc_preds = self._prepare_crops(
-            pages, loc_preds, channels_last=True, assume_straight_pages=self.assume_straight_pages
+            pages,
+            loc_preds,
+            channels_last=True,
+            assume_straight_pages=self.assume_straight_pages,
+            assume_horizontal=self._page_orientation_disabled,
         )
         # Rectify crop orientation and get crop orientation predictions
         crop_orientations: Any = []

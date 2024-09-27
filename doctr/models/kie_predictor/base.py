@@ -46,4 +46,8 @@ class _KIEPredictor(_OCRPredictor):
             assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, detect_orientation, **kwargs
         )
 
+        # Remove the following arguments from kwargs after initialization of the parent class
+        kwargs.pop("disable_page_orientation", None)
+        kwargs.pop("disable_crop_orientation", None)
+
         self.doc_builder: KIEDocumentBuilder = KIEDocumentBuilder(**kwargs)
