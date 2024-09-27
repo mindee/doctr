@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List, Union
+from typing import List, Optional, Union
 
 import numpy as np
 import torch
@@ -27,12 +27,12 @@ class OrientationPredictor(nn.Module):
 
     def __init__(
         self,
-        pre_processor: PreProcessor,
-        model: nn.Module,
+        pre_processor: Optional[PreProcessor],
+        model: Optional[nn.Module],
     ) -> None:
         super().__init__()
-        self.pre_processor = pre_processor
-        self.model = model.eval()
+        self.pre_processor = pre_processor if isinstance(pre_processor, PreProcessor) else None
+        self.model = model.eval() if isinstance(model, nn.Module) else None
 
     @torch.inference_mode()
     def forward(
@@ -43,12 +43,16 @@ class OrientationPredictor(nn.Module):
         if any(input.ndim != 3 for input in inputs):
             raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")
 
+        if self.model is None or self.pre_processor is None:
+            # predictor is disabled
+            return [[0] * len(inputs), [0] * len(inputs), [1.0] * len(inputs)]
+
         processed_batches = self.pre_processor(inputs)
         _params = next(self.model.parameters())
         self.model, processed_batches = set_device_and_dtype(
             self.model, processed_batches, _params.device, _params.dtype
         )
-        predicted_batches = [self.model(batch) for batch in processed_batches]
+        predicted_batches = [self.model(batch) for batch in processed_batches]  # type: ignore[misc]
         # confidence
         probs = [
             torch.max(torch.softmax(batch, dim=1), dim=1).values.cpu().detach().numpy() for batch in predicted_batches
@@ -57,7 +61,7 @@ class OrientationPredictor(nn.Module):
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]
 
         class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
-        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]
+        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]  # type: ignore[union-attr]
         confs = [round(float(p), 2) for prob in probs for p in prob]
 
         return [class_idxs, classes, confs]

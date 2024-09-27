@@ -122,7 +122,11 @@ class KIEPredictor(NestedObject, _KIEPredictor):
         crops = {}
         for class_name in dict_loc_preds.keys():
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages, dict_loc_preds[class_name], channels_last=True, assume_straight_pages=self.assume_straight_pages
+                pages,
+                dict_loc_preds[class_name],
+                channels_last=True,
+                assume_straight_pages=self.assume_straight_pages,
+                assume_horizontal=self._page_orientation_disabled,
             )
 
         # Rectify crop orientation

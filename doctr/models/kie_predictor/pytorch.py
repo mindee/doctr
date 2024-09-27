@@ -129,6 +129,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                 dict_loc_preds[class_name],
                 channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
+                assume_horizontal=self._page_orientation_disabled,
             )
         # Rectify crop orientation
         crop_orientations: Any = {}

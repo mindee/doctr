@@ -431,7 +431,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
 
 
 def extract_rcrops(
-    img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True
+    img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True, assume_horizontal: bool = False
 ) -> List[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
@@ -441,6 +441,7 @@ def extract_rcrops(
         polys: bounding boxes of shape (N, 4, 2)
         dtype: target data type of bounding boxes
         channels_last: whether the channel dimensions is the last one instead of the last one
+        assume_horizontal: whether the boxes are assumed to be only horizontally oriented
 
     Returns:
     -------
@@ -458,22 +459,87 @@ def extract_rcrops(
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
-    src_pts = _boxes[:, :3].astype(np.float32)
-    # Preserve size
-    d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
-    d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)
-    # (N, 3, 2)
-    dst_pts = np.zeros((_boxes.shape[0], 3, 2), dtype=dtype)
-    dst_pts[:, 1, 0] = dst_pts[:, 2, 0] = d1 - 1
-    dst_pts[:, 2, 1] = d2 - 1
-    # Use a warp transformation to extract the crop
-    crops = [
-        cv2.warpAffine(
-            img if channels_last else img.transpose(1, 2, 0),
-            # Transformation matrix
-            cv2.getAffineTransform(src_pts[idx], dst_pts[idx]),
-            (int(d1[idx]), int(d2[idx])),
-        )
-        for idx in range(_boxes.shape[0])
-    ]
+    src_img = img if channels_last else img.transpose(1, 2, 0)
+
+    # Handle only horizontal oriented boxes
+    if assume_horizontal:
+        crops = []
+
+        for box in _boxes:
+            # Calculate the centroid of the quadrilateral
+            centroid = np.mean(box, axis=0)
+
+            # Divide the points into left and right
+            left_points = box[box[:, 0] < centroid[0]]
+            right_points = box[box[:, 0] >= centroid[0]]
+
+            # Sort the left points according to the y-axis
+            left_points = left_points[np.argsort(left_points[:, 1])]
+            top_left_pt = left_points[0]
+            bottom_left_pt = left_points[-1]
+            # Sort the right points according to the y-axis
+            right_points = right_points[np.argsort(right_points[:, 1])]
+            top_right_pt = right_points[0]
+            bottom_right_pt = right_points[-1]
+            box_points = np.array(
+                [top_left_pt, bottom_left_pt, top_right_pt, bottom_right_pt],
+                dtype=dtype,
+            )
+
+            # Get the width and height of the rectangle that will contain the warped quadrilateral
+            width_upper = np.linalg.norm(top_right_pt - top_left_pt)
+            width_lower = np.linalg.norm(bottom_right_pt - bottom_left_pt)
+            height_left = np.linalg.norm(bottom_left_pt - top_left_pt)
+            height_right = np.linalg.norm(bottom_right_pt - top_right_pt)
+
+            # Get the maximum width and height
+            rect_width = max(int(width_upper), int(width_lower))
+            rect_height = max(int(height_left), int(height_right))
+
+            dst_pts = np.array(
+                [
+                    [0, 0],  # top-left
+                    # bottom-left
+                    [0, rect_height - 1],
+                    # top-right
+                    [rect_width - 1, 0],
+                    # bottom-right
+                    [rect_width - 1, rect_height - 1],
+                ],
+                dtype=dtype,
+            )
+
+            # Get the perspective transform matrix using the box points
+            affine_mat = cv2.getPerspectiveTransform(box_points, dst_pts)
+
+            # Perform the perspective warp to get the rectified crop
+            crop = cv2.warpPerspective(
+                src_img,
+                affine_mat,
+                (rect_width, rect_height),
+            )
+
+            # Add the crop to the list of crops
+            crops.append(crop)
+
+    # Handle any oriented boxes
+    else:
+        src_pts = _boxes[:, :3].astype(np.float32)
+        # Preserve size
+        d1 = np.linalg.norm(src_pts[:, 0] - src_pts[:, 1], axis=-1)
+        d2 = np.linalg.norm(src_pts[:, 1] - src_pts[:, 2], axis=-1)
+        # (N, 3, 2)
+        dst_pts = np.zeros((_boxes.shape[0], 3, 2), dtype=dtype)
+        dst_pts[:, 1, 0] = dst_pts[:, 2, 0] = d1 - 1
+        dst_pts[:, 2, 1] = d2 - 1
+        # Use a warp transformation to extract the crop
+        crops = [
+            cv2.warpAffine(
+                src_img,
+                # Transformation matrix
+                cv2.getAffineTransform(src_pts[idx], dst_pts[idx]),
+                (int(d1[idx]), int(d2[idx])),
+            )
+            for idx in range(_boxes.shape[0])
+        ]
     return crops  # type: ignore[return-value]
