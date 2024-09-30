@@ -101,7 +101,7 @@ class _OCRPredictor:
             ]
         )
         return [
-            # expand if height and width are not equal, afterwards remove padding
+            # expand if height and width are not equal, then remove the padding
             remove_image_padding(rotate_image(page, angle, expand=page.shape[0] != page.shape[1]))
             for page, angle in zip(pages, origin_pages_orientations)
         ]
