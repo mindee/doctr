@@ -4,7 +4,6 @@ import tempfile
 from io import BytesIO
 
 import cv2
-import hdf5storage
 import numpy as np
 import pytest
 import requests
@@ -257,24 +256,34 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
 def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp("datasets")
     svhn_root = root.mkdir("svhn")
-    file = BytesIO(mock_image_stream)
-    # ascii image names
-    first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
-    second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
-    third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 3.png
-    # labels: label is also ascii
-    label = {
-        "height": [35, 35, 35, 35],
-        "label": [1, 1, 3, 7],
-        "left": [116, 128, 137, 151],
-        "top": [27, 29, 29, 26],
-        "width": [15, 10, 17, 17],
-    }
-
-    matcontent = {"digitStruct": {"name": [first, second, third], "bbox": [label, label, label]}}
-    # Mock train data
     train_root = svhn_root.mkdir("train")
-    hdf5storage.write(matcontent, filename=train_root.join("digitStruct.mat"))
+    file = BytesIO(mock_image_stream)
+
+    # NOTE: hdf5storage seems not to be maintained anymore, ref.: https://github.com/frejanordsiek/hdf5storage/pull/134
+    # Instead we download the mocked data which was generated using the following code:
+    # ascii image names
+    # first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
+    # second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
+    # third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 3.png
+    # labels: label is also ascii
+    # label = {
+    #     "height": [35, 35, 35, 35],
+    #     "label": [1, 1, 3, 7],
+    #     "left": [116, 128, 137, 151],
+    #     "top": [27, 29, 29, 26],
+    #     "width": [15, 10, 17, 17],
+    # }
+
+    # matcontent = {"digitStruct": {"name": [first, second, third], "bbox": [label, label, label]}}
+    # Mock train data
+    # hdf5storage.write(matcontent, filename=train_root.join("digitStruct.mat"))
+
+    # Downloading the mocked data
+    url = "https://github.com/mindee/doctr/releases/download/v0.9.0/digitStruct.mat"
+    response = requests.get(url)
+    with open(train_root.join("digitStruct.mat"), "wb") as f:
+        f.write(response.content)
+
     for i in range(3):
         fn = train_root.join(f"{i + 1}.png")
         with open(fn, "wb") as f:
