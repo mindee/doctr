@@ -56,8 +56,8 @@ class IC13(AbstractDataset):
         )
         if recognition_task and detection_task:
             raise ValueError(
-                "recognition_task and detection_task cannot be set to True simultaneously "
-                + "to get the whole dataset with boxes and labels leave both to False"
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
             )
 
         # File existence check

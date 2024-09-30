@@ -129,4 +129,6 @@ class _VisionDataset(_AbstractDataset):
             if not dataset_path.is_dir() or overwrite:
                 shutil.unpack_archive(archive_path, dataset_path)
 
+        print(kwargs)
+
         super().__init__(dataset_path if extract_archive else archive_path, **kwargs)
