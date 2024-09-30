@@ -142,6 +142,17 @@ def test_rotate_image():
     assert rotated[0, :, 0].sum() <= 1
 
 
+def test_remove_image_padding():
+    img = np.ones((32, 64, 3), dtype=np.float32)
+    padded = np.pad(img, ((10, 10), (20, 20), (0, 0)))
+    cropped = geometry.remove_image_padding(padded)
+    assert np.all(cropped == img)
+
+    # No padding
+    cropped = geometry.remove_image_padding(img)
+    assert np.all(cropped == img)
+
+
 @pytest.mark.parametrize(
     "abs_geoms, img_size, rel_geoms",
     [

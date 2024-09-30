@@ -20,6 +20,7 @@ __all__ = [
     "rotate_boxes",
     "compute_expanded_shape",
     "rotate_image",
+    "remove_image_padding",
     "estimate_page_angle",
     "convert_to_relative_coords",
     "rotate_abs_geoms",
@@ -349,6 +350,26 @@ def rotate_image(
             rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
 
     return rot_img
+
+
+def remove_image_padding(image: np.ndarray) -> np.ndarray:
+    """Remove black border padding from an image
+
+    Args:
+    ----
+        image: numpy tensor to remove padding from
+
+    Returns:
+    -------
+        Image with padding removed
+    """
+    # Find the bounding box of the non-black region
+    rows = np.any(image, axis=1)
+    cols = np.any(image, axis=0)
+    rmin, rmax = np.where(rows)[0][[0, -1]]
+    cmin, cmax = np.where(cols)[0][[0, -1]]
+
+    return image[rmin : rmax + 1, cmin : cmax + 1]
 
 
 def estimate_page_angle(polys: np.ndarray) -> float:
