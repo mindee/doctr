@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from keras import Model
+from tensorflow.keras import Model
 
 from doctr.models.detection._utils import _remove_padding
 from doctr.models.preprocessor import PreProcessor

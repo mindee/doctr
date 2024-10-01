@@ -18,7 +18,7 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from keras import Model, mixed_precision, optimizers
+from tensorflow.keras import Model, mixed_precision, optimizers
 from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub

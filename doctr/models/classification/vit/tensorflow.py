@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
-from keras import Sequential, layers
+from tensorflow.keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock

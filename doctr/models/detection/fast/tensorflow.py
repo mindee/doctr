@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from keras import Model, Sequential, layers
+from tensorflow.keras import Model, Sequential, layers
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, load_pretrained_params

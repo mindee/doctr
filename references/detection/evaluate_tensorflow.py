@@ -18,7 +18,7 @@ import time
 from pathlib import Path
 
 import tensorflow as tf
-from keras import mixed_precision
+from tensorflow.keras import mixed_precision
 from tqdm import tqdm
 
 gpu_devices = tf.config.experimental.list_physical_devices("GPU")

@@ -35,7 +35,7 @@ else:  # pragma: no cover
     logging.info("Disabling PyTorch because USE_TF is set")
     _torch_available = False
 
-# Compatibility fix to make sure tf.keras stays at Keras 2
+# Compatibility fix to make sure tensorflow.keras stays at Keras 2
 if "TF_USE_LEGACY_KERAS" not in os.environ:
     os.environ["TF_USE_LEGACY_KERAS"] = "1"
 

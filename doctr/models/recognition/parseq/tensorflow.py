@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from keras import Model, layers
+from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward

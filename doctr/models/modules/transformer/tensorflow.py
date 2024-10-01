@@ -7,7 +7,7 @@ import math
 from typing import Any, Callable, Optional, Tuple
 
 import tensorflow as tf
-from keras import layers
+from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 

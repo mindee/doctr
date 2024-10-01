@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from keras import Model, layers
+from tensorflow.keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
