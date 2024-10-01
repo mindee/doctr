@@ -194,7 +194,7 @@ def test_recognition_zoo_error():
 def test_models_onnx_export(arch_name, input_shape):
     # Model
     batch_size = 2
-    tf.backend.clear_session()
+    tf.keras.backend.clear_session()
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
     # SAR, MASTER, ViTSTR export currently only available with constant batch size
     if arch_name in ["sar_resnet31", "master", "vitstr_small", "parseq"]:
