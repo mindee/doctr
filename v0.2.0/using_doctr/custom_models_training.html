@@ -315,19 +315,19 @@ For details on the training process and the necessary data and data format, refe
 
 <span class="c1"># Load custom detection model</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load custom recognition model</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load custom detection and recognition model</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -363,7 +363,7 @@ For details on the training process and the necessary data and data format, refe
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;german&quot;</span><span class="p">])</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
@@ -385,7 +385,7 @@ For details on the training process and the necessary data and data format, refe
 <div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-2-2-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-2-2-0" name="2-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-2-2-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-2-2-1" name="2-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-2-2-0" class="sphinx-tabs-panel" id="panel-2-2-0" name="2-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">kie_predictor</span><span class="p">,</span> <span class="n">db_resnet50</span>
 
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">])</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">kie_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -408,9 +408,9 @@ For details on the training process and the necessary data and data format, refe
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">db_resnet50</span><span class="p">,</span> <span class="n">crnn_vgg16_bn</span>
 
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 
 <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
     <span class="n">PreProcessor</span><span class="p">(</span>
@@ -497,9 +497,9 @@ For details on the training process and the necessary data and data format, refe
 <span class="kn">from</span> <span class="nn">doctr.models.classification.zoo</span> <span class="kn">import</span> <span class="n">crop_orientation_predictor</span><span class="p">,</span> <span class="n">page_orientation_predictor</span>
 
 <span class="n">custom_page_orientation_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">custom_page_orientation_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">custom_page_orientation_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">custom_crop_orientation_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">custom_crop_orientation_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;/weights&quot;</span><span class="p">)</span>
+<span class="n">custom_crop_orientation_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>

@@ -305,9 +305,8 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">from</span> <span class="nn">tensorflow</span> <span class="kn">import</span> <span class="n">keras</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.applications</span> <span class="kn">import</span> <span class="n">ResNet50</span>
+<span class="kn">from</span> <span class="nn">keras</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">losses</span>
+<span class="kn">from</span> <span class="nn">keras.applications</span> <span class="kn">import</span> <span class="n">ResNet50</span>
 
 <span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">CLASS_NAME</span>
 <span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
@@ -324,13 +323,13 @@
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/db_resnet50-84171458.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.9.0/db_resnet50-649fa22b.weights.h5&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s2">&quot;db_mobilenet_v3_large&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/db_mobilenet_v3_large-da524564.zip&amp;src=0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.9.0/db_mobilenet_v3_large-ee2e1dbe.weights.h5&amp;src=0&quot;</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -376,7 +375,7 @@
         <span class="k">if</span> <span class="n">dilation_factor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">UpSampling2D</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">dilation_factor</span><span class="p">,</span> <span class="n">dilation_factor</span><span class="p">),</span> <span class="n">interpolation</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">))</span>
 
-        <span class="n">module</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
+        <span class="n">module</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">module</span>
 
@@ -399,7 +398,7 @@
         <span class="k">return</span> <span class="n">layers</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">DBNet</span><span class="p">(</span><span class="n">_DBNet</span><span class="p">,</span> <span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">DBNet</span><span class="p">(</span><span class="n">_DBNet</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;DBNet as described in `&quot;Real-time Scene Text Detection with Differentiable Binarization&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_.</span>
 
@@ -442,14 +441,14 @@
         <span class="n">_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">in_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span> <span class="k">for</span> <span class="n">in_shape</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="o">.</span><span class="n">output_shape</span><span class="p">]</span>
         <span class="n">output_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fpn</span><span class="p">(</span><span class="n">_inputs</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">probability_head</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
             <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="n">num_classes</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">),</span>
         <span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_head</span> <span class="o">=</span> <span class="n">keras</span><span class="o">.</span><span class="n">Sequential</span><span class="p">([</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_head</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
             <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">output_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">Conv2DTranspose</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">kernel_initializer</span><span class="o">=</span><span class="s2">&quot;he_normal&quot;</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">BatchNormalization</span><span class="p">(),</span>
@@ -501,7 +500,7 @@
 
         <span class="c1"># Focal loss</span>
         <span class="n">focal_scale</span> <span class="o">=</span> <span class="mf">10.0</span>
-        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">binary_crossentropy</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">out_map</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">losses</span><span class="o">.</span><span class="n">binary_crossentropy</span><span class="p">(</span><span class="n">seg_target</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">out_map</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="c1"># Convert logits to prob, compute gamma factor</span>
         <span class="n">p_t</span> <span class="o">=</span> <span class="p">(</span><span class="n">seg_target</span> <span class="o">*</span> <span class="n">prob_map</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prob_map</span><span class="p">))</span>
@@ -602,7 +601,12 @@
     <span class="n">model</span> <span class="o">=</span> <span class="n">DBNet</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
+        <span class="c1"># The given class_names differs from the pretrained model =&gt; skip the mismatching layers for fine tuning</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">],</span>
+            <span class="n">skip_mismatch</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">]),</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
@@ -621,6 +625,10 @@
     <span class="c1"># Patch the config</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
     <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_shape</span> <span class="ow">or</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">])</span>
 
     <span class="c1"># Feature extractor</span>
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
@@ -636,7 +644,12 @@
     <span class="n">model</span> <span class="o">=</span> <span class="n">DBNet</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">])</span>
+        <span class="c1"># The given class_names differs from the pretrained model =&gt; skip the mismatching layers for fine tuning</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span>
+            <span class="n">model</span><span class="p">,</span>
+            <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">],</span>
+            <span class="n">skip_mismatch</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">]),</span>
+        <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
