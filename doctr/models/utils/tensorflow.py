@@ -4,13 +4,11 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import logging
-import os
 from typing import Any, Callable, List, Optional, Tuple, Union
-from zipfile import ZipFile
 
 import tensorflow as tf
 import tf2onnx
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.utils.data import download_from_url
 
@@ -40,22 +38,20 @@ def load_pretrained_params(
     model: Model,
     url: Optional[str] = None,
     hash_prefix: Optional[str] = None,
-    overwrite: bool = False,
-    internal_name: str = "weights",
+    skip_mismatch: bool = False,
     **kwargs: Any,
 ) -> None:
     """Load a set of parameters onto a model
 
     >>> from doctr.models import load_pretrained_params
-    >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
+    >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.weights.h5")
 
     Args:
     ----
         model: the keras model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
-        overwrite: should the zip extraction be enforced if the archive has already been extracted
-        internal_name: name of the ckpt files
+        skip_mismatch: skip loading layers with mismatched shapes
         **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
     if url is None:
@@ -63,14 +59,12 @@ def load_pretrained_params(
     else:
         archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
 
-        # Unzip the archive
-        params_path = archive_path.parent.joinpath(archive_path.stem)
-        if not params_path.is_dir() or overwrite:
-            with ZipFile(archive_path, "r") as f:
-                f.extractall(path=params_path)
+        # Build the model
+        # NOTE: `model.build` is not an option because it doesn't runs in eager mode
+        _ = model(tf.ones((1, *model.cfg["input_shape"])), training=False)
 
         # Load weights
-        model.load_weights(f"{params_path}{os.sep}{internal_name}")
+        model.load_weights(archive_path, skip_mismatch=skip_mismatch)
 
 
 def conv_sequence(
@@ -83,7 +77,7 @@ def conv_sequence(
 ) -> List[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
-    >>> from tensorflow.keras import Sequential
+    >>> from keras import Sequential
     >>> from doctr.models import conv_sequence
     >>> module = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=[224, 224, 3]))
 
@@ -119,7 +113,7 @@ def conv_sequence(
 class IntermediateLayerGetter(Model):
     """Implements an intermediate layer getter
 
-    >>> from tensorflow.keras.applications import ResNet50
+    >>> from keras.applications import ResNet50
     >>> from doctr.models import IntermediateLayerGetter
     >>> target_layers = ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"]
     >>> feat_extractor = IntermediateLayerGetter(ResNet50(include_top=False, pooling=False), target_layers)

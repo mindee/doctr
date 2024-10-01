@@ -13,7 +13,7 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+from keras import Model, mixed_precision, optimizers
 from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
@@ -44,7 +44,7 @@ def rnd_rotate(img: tf.Tensor, target):
 
 
 def record_lr(
-    model: tf.keras.Model,
+    model: Model,
     train_loader: DataLoader,
     batch_transforms,
     optimizer,
@@ -187,6 +187,8 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
+        # Build the model first to load the weights
+        _ = model(tf.zeros((1, *input_size, 3)), training=False)
         model.load_weights(args.resume)
 
     batch_transforms = T.Compose([
@@ -237,14 +239,14 @@ def main(args):
         return
 
     # Optimizer
-    scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+    scheduler = optimizers.schedules.ExponentialDecay(
         args.lr,
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (1e3),  # final lr as a fraction of initial lr
         staircase=False,
         name="ExponentialDecay",
     )
-    optimizer = tf.keras.optimizers.Adam(
+    optimizer = optimizers.Adam(
         learning_rate=scheduler,
         beta_1=0.95,
         beta_2=0.99,
@@ -301,7 +303,7 @@ def main(args):
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights(f"./{exp_name}/weights")
+            model.save_weights(f"./{exp_name}.weights.h5")
             min_loss = val_loss
         print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B

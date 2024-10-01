@@ -9,8 +9,8 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import layers
+from keras.models import Sequential
 
 from ....datasets import VOCABS
 from ...utils import conv_sequence, load_pretrained_params
@@ -32,42 +32,42 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_large-47d25d7e.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_large-d857506e.weights.h5&src=0",
     },
     "mobilenet_v3_large_r": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_large_r-a108e192.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_large_r-eef2e3c6.weights.h5&src=0",
     },
     "mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small-8a32c32c.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_small-3fcebad7.weights.h5&src=0",
     },
     "mobilenet_v3_small_r": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small_r-3d61452e.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_small_r-dd50218d.weights.h5&src=0",
     },
     "mobilenet_v3_small_crop_orientation": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (128, 128, 3),
         "classes": [0, -90, 180, 90],
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/classif_mobilenet_v3_small-1ea8db03.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_small_crop_orientation-ef019b6b.weights.h5&src=0",
     },
     "mobilenet_v3_small_page_orientation": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (512, 512, 3),
         "classes": [0, -90, 180, 90],
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_page_orientation-aec9553e.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_small_page_orientation-0071d55d.weights.h5&src=0",
     },
 }
 
@@ -297,7 +297,11 @@ def _mobilenet_v3(arch: str, pretrained: bool, rect_strides: bool = False, **kwa
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
+        )
 
     return model
 

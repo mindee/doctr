@@ -54,7 +54,7 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     model = classification.__dict__[arch_name](pretrained=True).eval()
     _test_classification(model, input_shape, output_size)
     # Check that you can pretrained everything up until the last layer
-    classification.__dict__[arch_name](pretrained=True, num_classes=10)
+    assert classification.__dict__[arch_name](pretrained=True, num_classes=10)
 
 
 @pytest.mark.parametrize(

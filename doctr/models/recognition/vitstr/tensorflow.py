@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 
@@ -23,14 +23,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/vitstr_small-358fab2e.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/vitstr_small-d28b8d92.weights.h5&src=0",
     },
     "vitstr_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/vitstr_base-2889159a.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/vitstr_base-9ad6eb84.weights.h5&src=0",
     },
 }
 
@@ -218,7 +218,10 @@ def _vitstr(
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"]
+        )
 
     return model
 

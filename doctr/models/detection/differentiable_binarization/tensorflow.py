@@ -10,9 +10,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50
+from keras import Model, Sequential, layers, losses
+from keras.applications import ResNet50
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, conv_sequence, load_pretrained_params
@@ -29,13 +28,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/db_resnet50-84171458.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/db_resnet50-649fa22b.weights.h5&src=0",
     },
     "db_mobilenet_v3_large": {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/db_mobilenet_v3_large-da524564.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/db_mobilenet_v3_large-ee2e1dbe.weights.h5&src=0",
     },
 }
 
@@ -81,7 +80,7 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
         if dilation_factor > 1:
             _layers.append(layers.UpSampling2D(size=(dilation_factor, dilation_factor), interpolation="nearest"))
 
-        module = keras.Sequential(_layers)
+        module = Sequential(_layers)
 
         return module
 
@@ -104,7 +103,7 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
         return layers.concatenate(results)
 
 
-class DBNet(_DBNet, keras.Model, NestedObject):
+class DBNet(_DBNet, Model, NestedObject):
     """DBNet as described in `"Real-time Scene Text Detection with Differentiable Binarization"
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
@@ -147,14 +146,14 @@ class DBNet(_DBNet, keras.Model, NestedObject):
         _inputs = [layers.Input(shape=in_shape[1:]) for in_shape in self.feat_extractor.output_shape]
         output_shape = tuple(self.fpn(_inputs).shape)
 
-        self.probability_head = keras.Sequential([
+        self.probability_head = Sequential([
             *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
             layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
             layers.BatchNormalization(),
             layers.Activation("relu"),
             layers.Conv2DTranspose(num_classes, 2, strides=2, kernel_initializer="he_normal"),
         ])
-        self.threshold_head = keras.Sequential([
+        self.threshold_head = Sequential([
             *conv_sequence(64, "relu", True, kernel_size=3, input_shape=output_shape[1:]),
             layers.Conv2DTranspose(64, 2, strides=2, use_bias=False, kernel_initializer="he_normal"),
             layers.BatchNormalization(),
@@ -206,7 +205,7 @@ class DBNet(_DBNet, keras.Model, NestedObject):
 
         # Focal loss
         focal_scale = 10.0
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
+        bce_loss = losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
 
         # Convert logits to prob, compute gamma factor
         p_t = (seg_target * prob_map) + ((1 - seg_target) * (1 - prob_map))
@@ -307,7 +306,12 @@ def _db_resnet(
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     return model
 
@@ -326,6 +330,10 @@ def _db_mobilenet(
     # Patch the config
     _cfg = deepcopy(default_cfgs[arch])
     _cfg["input_shape"] = input_shape or _cfg["input_shape"]
+    if not kwargs.get("class_names", None):
+        kwargs["class_names"] = default_cfgs[arch].get("class_names", [CLASS_NAME])
+    else:
+        kwargs["class_names"] = sorted(kwargs["class_names"])
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
@@ -341,7 +349,12 @@ def _db_mobilenet(
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     return model
 

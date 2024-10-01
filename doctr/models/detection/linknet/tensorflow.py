@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import Model, Sequential, layers
+from keras import Model, Sequential, layers, losses
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
@@ -27,19 +26,19 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet18-b9ee56e6.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/linknet_resnet18-615a82c5.weights.h5&src=0",
     },
     "linknet_resnet34": {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet34-51909c56.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/linknet_resnet34-9d772be5.weights.h5&src=0",
     },
     "linknet_resnet50": {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet50-ac9f3829.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/linknet_resnet50-6bf6c8b5.weights.h5&src=0",
     },
 }
 
@@ -90,7 +89,7 @@ class LinkNetFPN(Model, NestedObject):
         return f"out_chans={self.out_chans}"
 
 
-class LinkNet(_LinkNet, keras.Model):
+class LinkNet(_LinkNet, Model):
     """LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
@@ -187,7 +186,7 @@ class LinkNet(_LinkNet, keras.Model):
         seg_mask = tf.convert_to_tensor(seg_mask, dtype=tf.bool)
         seg_mask = tf.cast(seg_mask, tf.float32)
 
-        bce_loss = tf.keras.losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
+        bce_loss = losses.binary_crossentropy(seg_target[..., None], out_map[..., None], from_logits=True)
         proba_map = tf.sigmoid(out_map)
 
         # Focal loss
@@ -277,7 +276,12 @@ def _linknet(
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     return model
 

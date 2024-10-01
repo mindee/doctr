@@ -7,8 +7,8 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Model, Sequential
+from keras import layers
+from keras.models import Model, Sequential
 
 from doctr.datasets import VOCABS
 
@@ -24,21 +24,21 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["legacy_french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.0/crnn_vgg16_bn-76b7f2c6.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/crnn_vgg16_bn-9c188f45.weights.h5&src=0",
     },
     "crnn_mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_mobilenet_v3_small-7f36edec.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/crnn_mobilenet_v3_small-54850265.weights.h5&src=0",
     },
     "crnn_mobilenet_v3_large": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/crnn_mobilenet_v3_large-cccc50b1.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/crnn_mobilenet_v3_large-c64045e5.weights.h5&src=0",
     },
 }
 
@@ -128,7 +128,7 @@ class CRNN(RecognitionModel, Model):
 
     def __init__(
         self,
-        feature_extractor: tf.keras.Model,
+        feature_extractor: Model,
         vocab: str,
         rnn_units: int = 128,
         exportable: bool = False,
@@ -247,7 +247,8 @@ def _crnn(
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(model, _cfg["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"])
 
     return model
 

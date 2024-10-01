@@ -14,7 +14,7 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+from keras import Model, mixed_precision, optimizers
 from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
@@ -31,7 +31,7 @@ from utils import EarlyStopper, load_backbone, plot_recorder, plot_samples
 
 
 def record_lr(
-    model: tf.keras.Model,
+    model: Model,
     train_loader: DataLoader,
     batch_transforms,
     optimizer,
@@ -58,7 +58,7 @@ def record_lr(
 
         # Forward, Backward & update
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
 
         if amp:
@@ -90,7 +90,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
@@ -107,7 +107,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
-        out = model(images, targets, training=False, return_preds=True)
+        out = model(images, target=targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
         for target, loc_pred in zip(targets, loc_preds):
@@ -184,6 +184,8 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
+        # Build the model first to load the weights
+        _ = model(tf.zeros((1, args.input_size, args.input_size, 3)), training=False)
         model.load_weights(args.resume)
 
     if isinstance(args.pretrained_backbone, str):
@@ -278,7 +280,7 @@ def main(args):
 
     # Scheduler
     if args.sched == "exponential":
-        scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+        scheduler = optimizers.schedules.ExponentialDecay(
             args.lr,
             decay_steps=args.epochs * len(train_loader),
             decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
@@ -286,7 +288,7 @@ def main(args):
             name="ExponentialDecay",
         )
     elif args.sched == "poly":
-        scheduler = tf.keras.optimizers.schedules.PolynomialDecay(
+        scheduler = optimizers.schedules.PolynomialDecay(
             args.lr,
             decay_steps=args.epochs * len(train_loader),
             end_learning_rate=1e-7,
@@ -295,7 +297,7 @@ def main(args):
             name="PolynomialDecay",
         )
     # Optimizer
-    optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
+    optimizer = optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
     # LR Finder
@@ -351,11 +353,11 @@ def main(args):
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights(f"./{exp_name}/weights")
+            model.save_weights(f"./{exp_name}.weights.h5")
             min_loss = val_loss
         if args.save_interval_epoch:
             print(f"Saving state at epoch: {epoch + 1}")
-            model.save_weights(f"./{exp_name}_{epoch + 1}/weights")
+            model.save_weights(f"./{exp_name}_{epoch + 1}.weights.h5")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"

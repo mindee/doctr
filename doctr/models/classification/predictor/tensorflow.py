@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
+from keras import Model
 
 from doctr.models.preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject
@@ -30,10 +30,10 @@ class OrientationPredictor(NestedObject):
     def __init__(
         self,
         pre_processor: Optional[PreProcessor],
-        model: Optional[keras.Model],
+        model: Optional[Model],
     ) -> None:
         self.pre_processor = pre_processor if isinstance(pre_processor, PreProcessor) else None
-        self.model = model if isinstance(model, keras.Model) else None
+        self.model = model if isinstance(model, Model) else None
 
     def __call__(
         self,

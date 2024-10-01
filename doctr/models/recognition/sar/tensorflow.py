@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential, layers
+from keras import Model, Sequential, layers
 
 from doctr.datasets import VOCABS
 from doctr.utils.repr import NestedObject
@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/sar_resnet31-c41e32a5.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/sar_resnet31-5a58806c.weights.h5&src=0",
     },
 }
 
@@ -394,7 +394,10 @@ def _sar(
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"]
+        )
 
     return model
 

@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Sequential, layers
+from keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
@@ -25,14 +25,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/vit_s-6300fcc9.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/vit_s-69bc459e.weights.h5&src=0",
     },
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/vit_b-57158446.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/vit_b-c64705bd.weights.h5&src=0",
     },
 }
 
@@ -123,7 +123,11 @@ def _vit(
     model = VisionTransformer(cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
+        )
 
     return model
 

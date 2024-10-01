@@ -9,8 +9,8 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import activations, layers
+from keras.models import Sequential
 
 from doctr.datasets import VOCABS
 
@@ -26,7 +26,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/magc_resnet31-addbb705.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/magc_resnet31-16aa7d71.weights.h5&src=0",
     },
 }
 
@@ -57,6 +57,7 @@ class MAGC(layers.Layer):
         self.headers = headers  # h
         self.inplanes = inplanes  # C
         self.attn_scale = attn_scale
+        self.ratio = ratio
         self.planes = int(inplanes * ratio)
 
         self.single_header_inplanes = int(inplanes / headers)  # C / h
@@ -97,7 +98,7 @@ class MAGC(layers.Layer):
         if self.attn_scale and self.headers > 1:
             context_mask = context_mask / math.sqrt(self.single_header_inplanes)
         # B*h, 1, H*W, 1
-        context_mask = tf.keras.activations.softmax(context_mask, axis=2)
+        context_mask = activations.softmax(context_mask, axis=2)
 
         # Compute context
         # B*h, 1, C/h, 1
@@ -153,7 +154,11 @@ def _magc_resnet(
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
+        )
 
     return model
 

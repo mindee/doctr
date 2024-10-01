@@ -11,7 +11,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import time
 
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+from keras import mixed_precision
 from tqdm import tqdm
 
 gpu_devices = tf.config.experimental.list_physical_devices("GPU")

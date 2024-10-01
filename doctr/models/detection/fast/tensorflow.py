@@ -10,8 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import Sequential, layers
+from keras import Model, Sequential, layers
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, load_pretrained_params
@@ -29,19 +28,19 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/fast_tiny-959daecb.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/fast_tiny-d7379d7b.weights.h5&src=0",
     },
     "fast_small": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/fast_small-f1617503.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/fast_small-44b27eb6.weights.h5&src=0",
     },
     "fast_base": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.8.1/fast_base-255e2ac3.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/fast_base-f2c6c736.weights.h5&src=0",
     },
 }
 
@@ -100,7 +99,7 @@ class FastHead(Sequential):
         super().__init__(_layers)
 
 
-class FAST(_FAST, keras.Model, NestedObject):
+class FAST(_FAST, Model, NestedObject):
     """FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"
     <https://arxiv.org/pdf/2111.02394.pdf>`_.
 
@@ -336,7 +335,12 @@ def _fast(
     model = FAST(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, _cfg["url"])
+        # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model,
+            _cfg["url"],
+            skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
+        )
 
     # Build the model for reparameterization to access the layers
     _ = model(tf.random.uniform(shape=[1, *_cfg["input_shape"]], maxval=1, dtype=tf.float32), training=False)

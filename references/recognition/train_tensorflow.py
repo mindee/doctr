@@ -15,7 +15,7 @@ from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import mixed_precision
+from keras import Model, mixed_precision, optimizers
 from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
@@ -32,7 +32,7 @@ from utils import EarlyStopper, plot_recorder, plot_samples
 
 
 def record_lr(
-    model: tf.keras.Model,
+    model: Model,
     train_loader: DataLoader,
     batch_transforms,
     optimizer,
@@ -59,7 +59,7 @@ def record_lr(
 
         # Forward, Backward & update
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
 
         if amp:
@@ -91,7 +91,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         images = batch_transforms(images)
 
         with tf.GradientTape() as tape:
-            train_loss = model(images, targets, training=True)["loss"]
+            train_loss = model(images, target=targets, training=True)["loss"]
         grads = tape.gradient(train_loss, model.trainable_weights)
         if amp:
             grads = optimizer.get_unscaled_gradients(grads)
@@ -108,7 +108,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     val_iter = iter(val_loader)
     for images, targets in tqdm(val_iter):
         images = batch_transforms(images)
-        out = model(images, targets, return_preds=True, training=False)
+        out = model(images, target=targets, return_preds=True, training=False)
         # Compute metric
         if len(out["preds"]):
             words, _ = zip(*out["preds"])
@@ -184,6 +184,8 @@ def main(args):
     )
     # Resume weights
     if isinstance(args.resume, str):
+        # Build the model first to load the weights
+        _ = model(tf.zeros((1, args.input_size, 4 * args.input_size, 3)), training=False)
         model.load_weights(args.resume)
 
     # Metrics
@@ -275,14 +277,14 @@ def main(args):
         return
 
     # Optimizer
-    scheduler = tf.keras.optimizers.schedules.ExponentialDecay(
+    scheduler = optimizers.schedules.ExponentialDecay(
         args.lr,
         decay_steps=args.epochs * len(train_loader),
         decay_rate=1 / (25e4),  # final lr as a fraction of initial lr
         staircase=False,
         name="ExponentialDecay",
     )
-    optimizer = tf.keras.optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
+    optimizer = optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
     # LR Finder
@@ -343,7 +345,7 @@ def main(args):
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            model.save_weights(f"./{exp_name}/weights")
+            model.save_weights(f"./{exp_name}.weights.h5")
             min_loss = val_loss
         print(
             f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "

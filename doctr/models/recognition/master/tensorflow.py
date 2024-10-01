@@ -7,7 +7,7 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/master-a8232e9f.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/master-d7fdaeff.weights.h5&src=0",
     },
 }
 
@@ -51,7 +51,7 @@ class MASTER(_MASTER, Model):
 
     def __init__(
         self,
-        feature_extractor: tf.keras.Model,
+        feature_extractor: Model,
         vocab: str,
         d_model: int = 512,
         dff: int = 2048,
@@ -292,7 +292,10 @@ def _master(arch: str, pretrained: bool, backbone_fn, pretrained_backbone: bool 
     )
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"]
+        )
 
     return model
 

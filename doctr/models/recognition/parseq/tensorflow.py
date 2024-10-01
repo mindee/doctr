@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
@@ -27,7 +27,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.6.0/parseq-24cf693e.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/parseq-4152a87e.weights.h5&src=0",
     },
 }
 
@@ -43,7 +43,7 @@ class CharEmbedding(layers.Layer):
 
     def __init__(self, vocab_size: int, d_model: int):
         super(CharEmbedding, self).__init__()
-        self.embedding = tf.keras.layers.Embedding(vocab_size, d_model)
+        self.embedding = layers.Embedding(vocab_size, d_model)
         self.d_model = d_model
 
     def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
@@ -238,7 +238,7 @@ class PARSeq(_PARSeq, Model):
     def decode(
         self,
         target: tf.Tensor,
-        memory: tf,
+        memory: tf.Tensor,
         target_mask: Optional[tf.Tensor] = None,
         target_query: Optional[tf.Tensor] = None,
         **kwargs: Any,
@@ -478,7 +478,10 @@ def _parseq(
     model = PARSeq(feat_extractor, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"]
+        )
 
     return model
 

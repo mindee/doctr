@@ -6,8 +6,8 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import layers
+from keras.models import Sequential
 
 from doctr.datasets import VOCABS
 
@@ -22,7 +22,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (1.0, 1.0, 1.0),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": "https://doctr-static.mindee.com/models?id=v0.4.1/vgg16_bn_r-c5836cea.zip&src=0",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/vgg16_bn_r-b4d69212.weights.h5&src=0",
     },
 }
 
@@ -83,7 +83,11 @@ def _vgg(
     model = VGG(num_blocks, planes, rect_pools, cfg=_cfg, **kwargs)
     # Load pretrained parameters
     if pretrained:
-        load_pretrained_params(model, default_cfgs[arch]["url"])
+        # The number of classes is not the same as the number of classes in the pretrained model =>
+        # skip the mismatching layers for fine tuning
+        load_pretrained_params(
+            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
+        )
 
     return model
 
