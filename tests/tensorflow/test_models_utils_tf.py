@@ -29,7 +29,7 @@ def test_bf16_to_float32():
 def test_load_pretrained_params(tmpdir_factory):
     model = mobilenet_v3_small(pretrained=False)
     # Retrieve this URL
-    url = "https://github.com/mindee/doctr/releases/download/v0.9.0/mobilenet_v3_small-3fcebad7.weights.h5"
+    url = "https://doctr-static.mindee.com/models?id=v0.9.0/mobilenet_v3_small-3fcebad7.weights.h5&src=0"
     # Temp cache dir
     cache_dir = tmpdir_factory.mktemp("cache")
     # Pass an incorrect hash

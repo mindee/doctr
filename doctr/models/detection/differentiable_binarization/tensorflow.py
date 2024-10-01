@@ -28,13 +28,13 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.9.0/db_resnet50-649fa22b.weights.h5",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/db_resnet50-649fa22b.weights.h5&src=0",
     },
     "db_mobilenet_v3_large": {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": "https://github.com/mindee/doctr/releases/download/v0.9.0/db_mobilenet_v3_large-ee2e1dbe.weights.h5",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/db_mobilenet_v3_large-ee2e1dbe.weights.h5&src=0",
     },
 }
 

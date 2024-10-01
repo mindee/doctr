@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://github.com/mindee/doctr/releases/download/v0.9.0/master-d7fdaeff.weights.h5",
+        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/master-d7fdaeff.weights.h5&src=0",
     },
 }
 
