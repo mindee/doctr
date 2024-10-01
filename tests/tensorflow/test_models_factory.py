@@ -50,7 +50,7 @@ def test_push_to_hf_hub():
 )
 def test_models_for_hub(arch_name, task_name, dummy_model_id, tmpdir):
     with tempfile.TemporaryDirectory() as tmp_dir:
-        tf.backend.clear_session()
+        tf.keras.backend.clear_session()
         model = models.__dict__[task_name].__dict__[arch_name](pretrained=True)
 
         _save_model_and_config_for_hf_hub(model, arch=arch_name, task=task_name, save_dir=tmp_dir)
