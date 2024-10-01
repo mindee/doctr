@@ -169,8 +169,13 @@ def encode_sequences(
     return encoded_data
 
 
-def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tuple[ImageTensor, Dict[str, Any]]:
-    target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))
+def convert_target_to_relative(
+    img: ImageTensor, target: Union[np.ndarray, Dict[str, Any]]
+) -> Tuple[ImageTensor, Union[Dict[str, Any], np.ndarray]]:
+    if isinstance(target, np.ndarray):
+        target = convert_to_relative_coords(target, get_img_shape(img))
+    else:
+        target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))
     return img, target
 
 

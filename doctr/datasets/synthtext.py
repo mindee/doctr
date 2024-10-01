@@ -35,6 +35,7 @@ class SynthText(VisionDataset):
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -46,6 +47,7 @@ class SynthText(VisionDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -56,8 +58,14 @@ class SynthText(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
+
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
         np_dtype = np.float32
 
         # Load mat data
@@ -111,6 +119,8 @@ class SynthText(VisionDataset):
                             tmp_img = Image.fromarray(crop)
                             tmp_img.save(os.path.join(reco_folder_path, f"{reco_images_counter}.png"))
                             reco_images_counter += 1
+            elif detection_task:
+                self.data.append((img_path[0], np.asarray(word_boxes, dtype=np_dtype)))
             else:
                 self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
 

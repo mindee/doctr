@@ -6,8 +6,8 @@ quality:
 
 # this target runs checks on all files and potentially modifies some of them
 style:
-	ruff check --fix .
 	ruff format .
+	ruff check --fix .
 
 # Run tests for the library
 test:

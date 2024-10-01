@@ -38,6 +38,7 @@ class IC13(AbstractDataset):
         label_folder: folder with all annotation files for the images
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -47,11 +48,17 @@ class IC13(AbstractDataset):
         label_folder: str,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):
@@ -59,7 +66,7 @@ class IC13(AbstractDataset):
                 f"unable to locate {label_folder if not os.path.exists(label_folder) else img_folder}"
             )
 
-        self.data: List[Tuple[Union[Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: List[Tuple[Union[Path, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
         np_dtype = np.float32
 
         img_names = os.listdir(img_folder)
@@ -95,5 +102,7 @@ class IC13(AbstractDataset):
                 crops = crop_bboxes_from_image(img_path=img_path, geoms=box_targets)
                 for crop, label in zip(crops, labels):
                     self.data.append((crop, label))
+            elif detection_task:
+                self.data.append((img_path, box_targets))
             else:
                 self.data.append((img_path, dict(boxes=box_targets, labels=labels)))
