@@ -48,6 +48,22 @@ def test_resize():
     out = transfo(input_t)
     assert out.dtype == tf.float16
 
+    # --- Test with target (bounding boxes) ---
+
+    target_boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]])
+    output_size = (64, 64)
+
+    transfo = T.Resize(output_size, preserve_aspect_ratio=True)
+    input_t = tf.cast(tf.fill([64, 32, 3], 1), dtype=tf.float32)
+    out, new_target = transfo(input_t, target_boxes)
+
+    assert out.shape[:2] == output_size
+    assert new_target.shape == target_boxes.shape
+    assert np.all(new_target >= 0) and np.all(new_target <= 1)
+
+    out = transfo(input_t)
+    assert out.shape[:2] == output_size
+
 
 def test_compose():
     output_size = (16, 16)

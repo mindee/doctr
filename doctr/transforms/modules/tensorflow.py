@@ -107,29 +107,34 @@ class Resize(NestedObject):
         target: Optional[np.ndarray] = None,
     ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
         input_dtype = img.dtype
+        self.output_size = (
+            (self.output_size, self.output_size) if isinstance(self.output_size, int) else self.output_size
+        )
 
         img = tf.image.resize(img, self.wanted_size, self.method, self.preserve_aspect_ratio, self.antialias)
         # It will produce an un-padded resized image, with a side shorter than wanted if we preserve aspect ratio
         raw_shape = img.shape[:2]
+        if self.symmetric_pad:
+            half_pad = (int((self.output_size[0] - img.shape[0]) / 2), 0)
         if self.preserve_aspect_ratio:
             if isinstance(self.output_size, (tuple, list)):
                 # In that case we need to pad because we want to enforce both width and height
                 if not self.symmetric_pad:
-                    offset = (0, 0)
+                    half_pad = (0, 0)
                 elif self.output_size[0] == img.shape[0]:
-                    offset = (0, int((self.output_size[1] - img.shape[1]) / 2))
-                else:
-                    offset = (int((self.output_size[0] - img.shape[0]) / 2), 0)
-                img = tf.image.pad_to_bounding_box(img, *offset, *self.output_size)
+                    half_pad = (0, int((self.output_size[1] - img.shape[1]) / 2))
+                # Pad image
+                img = tf.image.pad_to_bounding_box(img, *half_pad, *self.output_size)
 
         # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
         if target is not None:
+            if self.symmetric_pad:
+                offset = half_pad[0] / img.shape[0], half_pad[1] / img.shape[1]
+
             if self.preserve_aspect_ratio:
                 # Get absolute coords
                 if target.shape[1:] == (4,):
                     if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
-                        if np.max(target) <= 1:
-                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
                         target[:, [0, 2]] = offset[1] + target[:, [0, 2]] * raw_shape[1] / img.shape[1]
                         target[:, [1, 3]] = offset[0] + target[:, [1, 3]] * raw_shape[0] / img.shape[0]
                     else:
@@ -137,16 +142,15 @@ class Resize(NestedObject):
                         target[:, [1, 3]] *= raw_shape[0] / img.shape[0]
                 elif target.shape[1:] == (4, 2):
                     if isinstance(self.output_size, (tuple, list)) and self.symmetric_pad:
-                        if np.max(target) <= 1:
-                            offset = offset[0] / img.shape[0], offset[1] / img.shape[1]
                         target[..., 0] = offset[1] + target[..., 0] * raw_shape[1] / img.shape[1]
                         target[..., 1] = offset[0] + target[..., 1] * raw_shape[0] / img.shape[0]
                     else:
                         target[..., 0] *= raw_shape[1] / img.shape[1]
                         target[..., 1] *= raw_shape[0] / img.shape[0]
                 else:
-                    raise AssertionError
-            return tf.cast(img, dtype=input_dtype), target
+                    raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
+
+            return tf.cast(img, dtype=input_dtype), np.clip(target, 0, 1)
 
         return tf.cast(img, dtype=input_dtype)
 

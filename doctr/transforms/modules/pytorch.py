@@ -74,16 +74,18 @@ class Resize(T.Resize):
                 if self.symmetric_pad:
                     half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
                     _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
+                # Pad image
                 img = pad(img, _pad)
 
             # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
             if target is not None:
+                if self.symmetric_pad:
+                    offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
+
                 if self.preserve_aspect_ratio:
                     # Get absolute coords
                     if target.shape[1:] == (4,):
                         if isinstance(self.size, (tuple, list)) and self.symmetric_pad:
-                            if np.max(target) <= 1:
-                                offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
                             target[:, [0, 2]] = offset[0] + target[:, [0, 2]] * raw_shape[-1] / img.shape[-1]
                             target[:, [1, 3]] = offset[1] + target[:, [1, 3]] * raw_shape[-2] / img.shape[-2]
                         else:
@@ -91,16 +93,15 @@ class Resize(T.Resize):
                             target[:, [1, 3]] *= raw_shape[-2] / img.shape[-2]
                     elif target.shape[1:] == (4, 2):
                         if isinstance(self.size, (tuple, list)) and self.symmetric_pad:
-                            if np.max(target) <= 1:
-                                offset = half_pad[0] / img.shape[-1], half_pad[1] / img.shape[-2]
                             target[..., 0] = offset[0] + target[..., 0] * raw_shape[-1] / img.shape[-1]
                             target[..., 1] = offset[1] + target[..., 1] * raw_shape[-2] / img.shape[-2]
                         else:
                             target[..., 0] *= raw_shape[-1] / img.shape[-1]
                             target[..., 1] *= raw_shape[-2] / img.shape[-2]
                     else:
-                        raise AssertionError
-                return img, target
+                        raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
+
+                return img, np.clip(target, 0, 1)
 
             return img
 

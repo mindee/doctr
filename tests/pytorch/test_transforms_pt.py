@@ -66,6 +66,22 @@ def test_resize():
     out = transfo(input_t)
     assert out.dtype == torch.float16
 
+    # --- Test with target (bounding boxes) ---
+
+    target_boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]])
+    output_size = (64, 64)
+
+    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+    out, new_target = transfo(input_t, target_boxes)
+
+    assert out.shape[-2:] == output_size
+    assert new_target.shape == target_boxes.shape
+    assert np.all(new_target >= 0) and np.all(new_target <= 1)
+
+    out = transfo(input_t)
+    assert out.shape[-2:] == output_size
+
 
 @pytest.mark.parametrize(
     "rgb_min",

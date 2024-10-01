@@ -11,6 +11,7 @@ import numpy as np
 from tqdm import tqdm
 
 from doctr import datasets
+from doctr import transforms as T
 from doctr.file_utils import is_tf_available
 from doctr.models import ocr_predictor
 from doctr.utils.geometry import extract_crops, extract_rcrops
@@ -20,7 +21,7 @@ from doctr.utils.metrics import LocalizationConfusion, OCRMetric, TextMatch
 if is_tf_available():
     import tensorflow as tf
 
-    gpu_devices = tf.config.experimental.list_physical_devices("GPU")
+    gpu_devices = tf.config.list_physical_devices("GPU")
     if any(gpu_devices):
         tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 else:
@@ -35,12 +36,24 @@ def main(args):
     if not args.rotation:
         args.eval_straight = True
 
+    input_shape = (args.size, args.size)
+
+    # We define a transformation function which does transform the annotation
+    # to the required format for the Resize transformation
+    def _transform(img, target):
+        boxes = target["boxes"]
+        transformed_img, transformed_boxes = T.Resize(
+            input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
+        )(img, boxes)
+        return transformed_img, {"boxes": transformed_boxes, "labels": target["labels"]}
+
     predictor = ocr_predictor(
         args.detection,
         args.recognition,
         pretrained=True,
         reco_bs=args.batch_size,
-        preserve_aspect_ratio=False,
+        preserve_aspect_ratio=False,  # we handle the transformation directly in the dataset so this is set to False
+        symmetric_pad=False,  # we handle the transformation directly in the dataset so this is set to False
         assume_straight_pages=not args.rotation,
     )
 
@@ -48,11 +61,22 @@ def main(args):
         testset = datasets.OCRDataset(
             img_folder=args.img_folder,
             label_file=args.label_file,
+            sample_transforms=_transform,
         )
         sets = [testset]
     else:
-        train_set = datasets.__dict__[args.dataset](train=True, download=True, use_polygons=not args.eval_straight)
-        val_set = datasets.__dict__[args.dataset](train=False, download=True, use_polygons=not args.eval_straight)
+        train_set = datasets.__dict__[args.dataset](
+            train=True,
+            download=True,
+            use_polygons=not args.eval_straight,
+            sample_transforms=_transform,
+        )
+        val_set = datasets.__dict__[args.dataset](
+            train=False,
+            download=True,
+            use_polygons=not args.eval_straight,
+            sample_transforms=_transform,
+        )
         sets = [train_set, val_set]
 
     reco_metric = TextMatch()
@@ -190,6 +214,9 @@ def parse_args():
     parser.add_argument("--label_file", type=str, default=None, help="Only for local sets, path to labels")
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="run rotated OCR + postprocessing")
     parser.add_argument("-b", "--batch_size", type=int, default=32, help="batch size for recognition")
+    parser.add_argument("--size", type=int, default=1024, help="model input size, H = W")
+    parser.add_argument("--keep_ratio", action="store_true", help="keep the aspect ratio of the input image")
+    parser.add_argument("--symmetric_pad", action="store_true", help="pad the image symmetrically")
     parser.add_argument("--samples", type=int, default=None, help="evaluate only on the N first samples")
     parser.add_argument(
         "--eval-straight",

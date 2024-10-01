@@ -16,7 +16,7 @@ from doctr.models import ocr_predictor
 if is_tf_available():
     import tensorflow as tf
 
-    gpu_devices = tf.config.experimental.list_physical_devices("GPU")
+    gpu_devices = tf.config.list_physical_devices("GPU")
     if any(gpu_devices):
         tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
