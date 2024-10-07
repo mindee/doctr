@@ -1,10 +1,23 @@
 name: demo
 
 on:
-  push:
-    branches: main
+  # Run 'test-demo' on every pull request to the main branch
   pull_request:
-    branches: main
+    branches: [main]
+
+  # Run 'test-demo' on every push to the main branch or both jobs when a new version tag is pushed
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+
+  # Run 'sync-to-hub' on a scheduled cron job
+  schedule:
+    - cron: '0 2 10 * *'  # At 02:00 on day-of-month 10 (every month)
+
+  # Allow manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   test-demo:
@@ -69,3 +82,38 @@ jobs:
           screen -dm streamlit run demo/app.py
           sleep 10
           curl http://localhost:8501/docs
+
+  # This job only runs when a new version tag is pushed or during the cron job or when manually triggered
+  sync-to-hub:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v') || github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: test-demo
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.9"]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Install huggingface_hub
+        run: pip install huggingface-hub
+      - name: Upload folder to Hugging Face
+        # Only keep the requirements.txt file for the demo (PyTorch)
+        run: |
+          mv demo/pt-requirements.txt demo/requirements.txt
+          rm demo/tf-requirements.txt
+
+          python -c "
+          from huggingface_hub import HfApi
+          api = HfApi(token='${{ secrets.HF_TOKEN }}')
+          repo_id = 'mindee/doctr'
+          api.upload_folder(repo_id=repo_id, repo_type='space', folder_path='demo/')
+          api.restart_space(repo_id=repo_id, factory_reboot=True)
+          "
