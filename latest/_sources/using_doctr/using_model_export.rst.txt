@@ -31,7 +31,7 @@ Advantages:
         .. code:: python3
 
             import tensorflow as tf
-            from keras import mixed_precision
+            from tensorflow.keras import mixed_precision
             mixed_precision.set_global_policy('mixed_float16')
             predictor = ocr_predictor(reco_arch="crnn_mobilenet_v3_small", det_arch="linknet_resnet34", pretrained=True)
 

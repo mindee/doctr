@@ -225,26 +225,20 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
-<ul>
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="installing.html">Installation</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Using DocTR</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
 </ul>
 
 </div>
@@ -282,17 +276,17 @@
           
 <section class="genindex-section">
   <h1 id="index">Index</h1>
-  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#U"><strong>U</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a></div>
+  <div class="genindex-jumpbox"><a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#Q"><strong>Q</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a></div>
 </section>
 <section id="A" class="genindex-section">
   <h2>A</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.Artefact">Artefact (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.Artefact">Artefact (class in doctr.documents)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.PDF.as_images">as_images() (doctr.io.PDF method)</a>
+        <li><a href="documents.html#doctr.documents.PDF.as_images">as_images() (doctr.documents.PDF method)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -302,7 +296,7 @@
   <h2>B</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.Block">Block (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.Block">Block (class in doctr.documents)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -312,19 +306,17 @@
   <h2>C</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="datasets.html#doctr.datasets.CharacterGenerator">CharacterGenerator (class in doctr.datasets)</a>
-</li>
         <li><a href="transforms.html#doctr.transforms.ColorInversion">ColorInversion (class in doctr.transforms)</a>
 </li>
         <li><a href="transforms.html#doctr.transforms.Compose">Compose (class in doctr.transforms)</a>
 </li>
+        <li><a href="models.html#doctr.models.export.convert_to_fp16">convert_to_fp16() (in module doctr.models.export)</a>
+</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="models.html#doctr.models.export.convert_to_tflite">convert_to_tflite() (in module doctr.models.export)</a>
+</li>
         <li><a href="datasets.html#doctr.datasets.CORD">CORD (class in doctr.datasets)</a>
-</li>
-        <li><a href="models.html#doctr.models.recognition.crnn_mobilenet_v3_large">crnn_mobilenet_v3_large() (in module doctr.models.recognition)</a>
-</li>
-        <li><a href="models.html#doctr.models.recognition.crnn_mobilenet_v3_small">crnn_mobilenet_v3_small() (in module doctr.models.recognition)</a>
 </li>
         <li><a href="models.html#doctr.models.recognition.crnn_vgg16_bn">crnn_vgg16_bn() (in module doctr.models.recognition)</a>
 </li>
@@ -338,19 +330,15 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="datasets.html#doctr.datasets.loader.DataLoader">DataLoader (class in doctr.datasets.loader)</a>
 </li>
-        <li><a href="models.html#doctr.models.detection.db_mobilenet_v3_large">db_mobilenet_v3_large() (in module doctr.models.detection)</a>
-</li>
         <li><a href="models.html#doctr.models.detection.db_resnet50">db_resnet50() (in module doctr.models.detection)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.decode_img_as_tensor">decode_img_as_tensor() (in module doctr.io)</a>
-</li>
         <li><a href="models.html#doctr.models.detection.detection_predictor">detection_predictor() (in module doctr.models.detection)</a>
 </li>
-        <li><a href="io.html#doctr.io.Document">Document (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.Document">Document (class in doctr.documents)</a>
 </li>
-        <li><a href="io.html#doctr.io.DocumentFile">DocumentFile (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.DocumentFile">DocumentFile (class in doctr.documents)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -370,13 +358,13 @@
   <h2>F</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.DocumentFile.from_images">from_images() (doctr.io.DocumentFile class method)</a>
+        <li><a href="documents.html#doctr.documents.DocumentFile.from_images">from_images() (doctr.documents.DocumentFile class method)</a>
 </li>
-        <li><a href="io.html#doctr.io.DocumentFile.from_pdf">from_pdf() (doctr.io.DocumentFile class method)</a>
+        <li><a href="documents.html#doctr.documents.DocumentFile.from_pdf">from_pdf() (doctr.documents.DocumentFile class method)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.DocumentFile.from_url">from_url() (doctr.io.DocumentFile class method)</a>
+        <li><a href="documents.html#doctr.documents.DocumentFile.from_url">from_url() (doctr.documents.DocumentFile class method)</a>
 </li>
         <li><a href="datasets.html#doctr.datasets.FUNSD">FUNSD (class in doctr.datasets)</a>
 </li>
@@ -388,11 +376,11 @@
   <h2>G</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.PDF.get_artefacts">get_artefacts() (doctr.io.PDF method)</a>
+        <li><a href="documents.html#doctr.documents.PDF.get_artefacts">get_artefacts() (doctr.documents.PDF method)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.PDF.get_words">get_words() (doctr.io.PDF method)</a>
+        <li><a href="documents.html#doctr.documents.PDF.get_words">get_words() (doctr.documents.PDF method)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -404,7 +392,7 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="transforms.html#doctr.transforms.LambdaTransformation">LambdaTransformation (class in doctr.transforms)</a>
 </li>
-        <li><a href="io.html#doctr.io.Line">Line (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.Line">Line (class in doctr.documents)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
@@ -421,16 +409,6 @@
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="models.html#doctr.models.recognition.master">master() (in module doctr.models.recognition)</a>
-</li>
-        <li><a href="models.html#doctr.models.backbones.mobilenet_v3_large">mobilenet_v3_large() (in module doctr.models.backbones)</a>
-</li>
-    </ul></td>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="models.html#doctr.models.backbones.mobilenet_v3_large_r">mobilenet_v3_large_r() (in module doctr.models.backbones)</a>
-</li>
-        <li><a href="models.html#doctr.models.backbones.mobilenet_v3_small">mobilenet_v3_small() (in module doctr.models.backbones)</a>
-</li>
-        <li><a href="models.html#doctr.models.backbones.mobilenet_v3_small_r">mobilenet_v3_small_r() (in module doctr.models.backbones)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -450,7 +428,7 @@
   <h2>O</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="models.html#doctr.models.ocr_predictor">ocr_predictor() (in module doctr.models)</a>
+        <li><a href="models.html#doctr.models.zoo.ocr_predictor">ocr_predictor() (in module doctr.models.zoo)</a>
 </li>
         <li><a href="datasets.html#doctr.datasets.OCRDataset">OCRDataset (class in doctr.datasets)</a>
 </li>
@@ -468,11 +446,21 @@
   <h2>P</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.Page">Page (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.Page">Page (class in doctr.documents)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.PDF">PDF (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.PDF">PDF (class in doctr.documents)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="Q" class="genindex-section">
+  <h2>Q</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="models.html#doctr.models.export.quantize_model">quantize_model() (in module doctr.models.export)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -488,33 +476,25 @@
 </li>
         <li><a href="transforms.html#doctr.transforms.RandomContrast">RandomContrast (class in doctr.transforms)</a>
 </li>
-        <li><a href="transforms.html#doctr.transforms.RandomCrop">RandomCrop (class in doctr.transforms)</a>
-</li>
         <li><a href="transforms.html#doctr.transforms.RandomGamma">RandomGamma (class in doctr.transforms)</a>
 </li>
         <li><a href="transforms.html#doctr.transforms.RandomHue">RandomHue (class in doctr.transforms)</a>
 </li>
         <li><a href="transforms.html#doctr.transforms.RandomJpegQuality">RandomJpegQuality (class in doctr.transforms)</a>
 </li>
-        <li><a href="transforms.html#doctr.transforms.RandomRotate">RandomRotate (class in doctr.transforms)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="transforms.html#doctr.transforms.RandomSaturation">RandomSaturation (class in doctr.transforms)</a>
 </li>
-        <li><a href="io.html#doctr.io.read_html">read_html() (in module doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.read_html">read_html() (in module doctr.documents)</a>
 </li>
-        <li><a href="io.html#doctr.io.read_img_as_numpy">read_img_as_numpy() (in module doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.read_img">read_img() (in module doctr.documents)</a>
 </li>
-        <li><a href="io.html#doctr.io.read_img_as_tensor">read_img_as_tensor() (in module doctr.io)</a>
-</li>
-        <li><a href="io.html#doctr.io.read_pdf">read_pdf() (in module doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.read_pdf">read_pdf() (in module doctr.documents)</a>
 </li>
         <li><a href="models.html#doctr.models.recognition.recognition_predictor">recognition_predictor() (in module doctr.models.recognition)</a>
 </li>
         <li><a href="transforms.html#doctr.transforms.Resize">Resize (class in doctr.transforms)</a>
-</li>
-        <li><a href="models.html#doctr.models.backbones.resnet31">resnet31() (in module doctr.models.backbones)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -526,16 +506,18 @@
     <td style="width: 33%; vertical-align: top;"><ul>
         <li><a href="models.html#doctr.models.recognition.sar_resnet31">sar_resnet31() (in module doctr.models.recognition)</a>
 </li>
-        <li><a href="io.html#doctr.io.Document.show">show() (doctr.io.Document method)</a>
+        <li><a href="models.html#doctr.models.recognition.sar_vgg16_bn">sar_vgg16_bn() (in module doctr.models.recognition)</a>
+</li>
+        <li><a href="documents.html#doctr.documents.Document.show">show() (doctr.documents.Document method)</a>
 
         <ul>
-          <li><a href="io.html#doctr.io.Page.show">(doctr.io.Page method)</a>
+          <li><a href="documents.html#doctr.documents.Page.show">(doctr.documents.Page method)</a>
 </li>
         </ul></li>
-        <li><a href="datasets.html#doctr.datasets.SROIE">SROIE (class in doctr.datasets)</a>
-</li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="datasets.html#doctr.datasets.SROIE">SROIE (class in doctr.datasets)</a>
+</li>
         <li><a href="utils.html#doctr.utils.metrics.LocalizationConfusion.summary">summary() (doctr.utils.metrics.LocalizationConfusion method)</a>
 
         <ul>
@@ -544,8 +526,6 @@
           <li><a href="utils.html#doctr.utils.metrics.TextMatch.summary">(doctr.utils.metrics.TextMatch method)</a>
 </li>
         </ul></li>
-        <li><a href="utils.html#doctr.utils.visualization.synthesize_page">synthesize_page() (in module doctr.utils.visualization)</a>
-</li>
     </ul></td>
   </tr></table>
 </section>
@@ -564,27 +544,11 @@
   </tr></table>
 </section>
 
-<section id="U" class="genindex-section">
-  <h2>U</h2>
-  <table style="width: 100%" class="indextable genindextable"><tr>
-    <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="utils.html#doctr.utils.metrics.LocalizationConfusion.update">update() (doctr.utils.metrics.LocalizationConfusion method)</a>
-
-        <ul>
-          <li><a href="utils.html#doctr.utils.metrics.OCRMetric.update">(doctr.utils.metrics.OCRMetric method)</a>
-</li>
-          <li><a href="utils.html#doctr.utils.metrics.TextMatch.update">(doctr.utils.metrics.TextMatch method)</a>
-</li>
-        </ul></li>
-    </ul></td>
-  </tr></table>
-</section>
-
 <section id="V" class="genindex-section">
   <h2>V</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="models.html#doctr.models.backbones.vgg16_bn">vgg16_bn() (in module doctr.models.backbones)</a>
+        <li><a href="datasets.html#doctr.datasets.datasets.VisionDataset">VisionDataset (class in doctr.datasets.datasets)</a>
 </li>
     </ul></td>
     <td style="width: 33%; vertical-align: top;"><ul>
@@ -598,7 +562,7 @@
   <h2>W</h2>
   <table style="width: 100%" class="indextable genindextable"><tr>
     <td style="width: 33%; vertical-align: top;"><ul>
-        <li><a href="io.html#doctr.io.Word">Word (class in doctr.io)</a>
+        <li><a href="documents.html#doctr.documents.Word">Word (class in doctr.documents)</a>
 </li>
     </ul></td>
   </tr></table>
@@ -636,7 +600,7 @@
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=346710b6"></script>
+</div><script src="_static/documentation_options.js?v=9971435a"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>

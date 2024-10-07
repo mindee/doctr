@@ -226,26 +226,15 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
-<ul>
+  <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
 </ul>
-<p class="caption" role="heading"><span class="caption-text">Using DocTR</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_models.html">Choosing the right model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../using_model_export.html">Preparing your model for inference</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Notes</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
 </ul>
 
 </div>
@@ -287,7 +276,7 @@
 <span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
 
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">.predictor</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
+<span class="kn">from</span> <span class="nn">.core</span> <span class="kn">import</span> <span class="n">OCRPredictor</span>
 <span class="kn">from</span> <span class="nn">.detection.zoo</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
 <span class="kn">from</span> <span class="nn">.recognition.zoo</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
 
@@ -307,7 +296,7 @@
 
 
 <div class="viewcode-block" id="ocr_predictor">
-<a class="viewcode-back" href="../../../models.html#doctr.models.ocr_predictor">[docs]</a>
+<a class="viewcode-back" href="../../../models.html#doctr.models.zoo.ocr_predictor">[docs]</a>
 <span class="k">def</span> <span class="nf">ocr_predictor</span><span class="p">(</span>
     <span class="n">det_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span>
     <span class="n">reco_arch</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span>
@@ -319,7 +308,7 @@
 <span class="sd">    Example::</span>
 <span class="sd">        &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">        &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
-<span class="sd">        &gt;&gt;&gt; model = ocr_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
+<span class="sd">        &gt;&gt;&gt; model = ocr_predictor(pretrained=True)</span>
 <span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
@@ -365,7 +354,7 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=346710b6"></script>
+</div><script src="../../../_static/documentation_options.js?v=851c3931"></script>
     <script src="../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>

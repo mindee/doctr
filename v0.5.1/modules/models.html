@@ -235,10 +235,16 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">doctr.models</a></li>
@@ -309,14 +315,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>VGG feature extractor</p>
-</dd>
-</dl>
+<section id="args">
+<h3>Args:<a class="headerlink" href="#args" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on ImageNet
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: keyword arguments of the VGG architecture</p>
+</div></blockquote>
+</section>
+<section id="returns">
+<h3>Returns:<a class="headerlink" href="#returns" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>VGG feature extractor</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -330,14 +341,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A classification model</p>
-</dd>
-</dl>
+<section id="id3">
+<h3>Args:<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id4"><span class="problematic" id="id5">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id6">
+<h3>Returns:<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A classification model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -351,14 +367,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A classification model</p>
-</dd>
-</dl>
+<section id="id8">
+<h3>Args:<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id9"><span class="problematic" id="id10">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id11">
+<h3>Returns:<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A classification model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -372,14 +393,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A classification model</p>
-</dd>
-</dl>
+<section id="id13">
+<h3>Args:<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id14"><span class="problematic" id="id15">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id16">
+<h3>Returns:<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A classification model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -394,14 +420,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A classification model</p>
-</dd>
-</dl>
+<section id="id17">
+<h3>Args:<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id18"><span class="problematic" id="id19">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id20">
+<h3>Returns:<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A classification model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -416,14 +447,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a keras.Model</p>
-</dd>
-</dl>
+<section id="id21">
+<h3>Args:<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id22"><span class="problematic" id="id23">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+</div></blockquote>
+</section>
+<section id="id24">
+<h3>Returns:<a class="headerlink" href="#id24" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>a keras.Model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -438,14 +474,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a keras.Model</p>
-</dd>
-</dl>
+<section id="id26">
+<h3>Args:<a class="headerlink" href="#id26" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id27"><span class="problematic" id="id28">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+</div></blockquote>
+</section>
+<section id="id29">
+<h3>Returns:<a class="headerlink" href="#id29" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>a keras.Model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -460,14 +501,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a keras.Model</p>
-</dd>
-</dl>
+<section id="id31">
+<h3>Args:<a class="headerlink" href="#id31" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id32"><span class="problematic" id="id33">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+</div></blockquote>
+</section>
+<section id="id34">
+<h3>Returns:<a class="headerlink" href="#id34" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>a keras.Model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -482,36 +528,73 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a keras.Model</p>
-</dd>
-</dl>
+<section id="id36">
+<h3>Args:<a class="headerlink" href="#id36" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id37"><span class="problematic" id="id38">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+</div></blockquote>
+</section>
+<section id="id39">
+<h3>Returns:<a class="headerlink" href="#id39" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>a keras.Model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="doctr.models.classification.mobilenet_v3_small_orientation">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">mobilenet_v3_small_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MobileNetV3</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/mobilenet/tensorflow.html#mobilenet_v3_small_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.mobilenet_v3_small_orientation" title="Link to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="doctr.models.classification.mobilenet_v3_small_crop_orientation">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">mobilenet_v3_small_crop_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MobileNetV3</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/mobilenet/tensorflow.html#mobilenet_v3_small_crop_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.mobilenet_v3_small_crop_orientation" title="Link to this definition">¶</a></dt>
 <dd><p>MobileNetV3-Small architecture as described in
 <a class="reference external" href="https://arxiv.org/pdf/1905.02244.pdf">“Searching for MobileNetV3”,</a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">mobilenet_v3_small_orientation</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">mobilenet_v3_small_crop_orientation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>a keras.Model</p>
-</dd>
-</dl>
+<section id="id41">
+<h3>Args:<a class="headerlink" href="#id41" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id42"><span class="problematic" id="id43">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+</div></blockquote>
+</section>
+<section id="id44">
+<h3>Returns:<a class="headerlink" href="#id44" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>a keras.Model</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.mobilenet_v3_small_page_orientation">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">mobilenet_v3_small_page_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">MobileNetV3</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/mobilenet/tensorflow.html#mobilenet_v3_small_page_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.mobilenet_v3_small_page_orientation" title="Link to this definition">¶</a></dt>
+<dd><p>MobileNetV3-Small architecture as described in
+<a class="reference external" href="https://arxiv.org/pdf/1905.02244.pdf">“Searching for MobileNetV3”,</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">mobilenet_v3_small_page_orientation</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id46">
+<h3>Args:<a class="headerlink" href="#id46" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id47"><span class="problematic" id="id48">**</span></a>kwargs: keyword arguments of the MobileNetV3 architecture</p>
+</div></blockquote>
+</section>
+<section id="id49">
+<h3>Returns:<a class="headerlink" href="#id49" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>a keras.Model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -526,38 +609,212 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> – boolean, True if model is pretrained</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>A feature extractor model</p>
-</dd>
-</dl>
+<section id="id50">
+<h3>Args:<a class="headerlink" href="#id50" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id51"><span class="problematic" id="id52">**</span></a>kwargs: keyword arguments of the ResNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id53">
+<h3>Returns:<a class="headerlink" href="#id53" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A feature extractor model</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.vit_s">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">vit_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">VisionTransformer</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/vit/tensorflow.html#vit_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.vit_s" title="Link to this definition">¶</a></dt>
+<dd><p>VisionTransformer-S architecture
+<a class="reference external" href="https://arxiv.org/pdf/2010.11929.pdf">“An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale”,</a>. Patches: (H, W) -&gt; (H/8, W/8)</p>
+<p>NOTE: unofficial config used in ViTSTR and ParSeq</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">vit_s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">vit_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id54">
+<h3>Args:<a class="headerlink" href="#id54" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id55"><span class="problematic" id="id56">**</span></a>kwargs: keyword arguments of the VisionTransformer architecture</p>
+</div></blockquote>
+</section>
+<section id="id57">
+<h3>Returns:<a class="headerlink" href="#id57" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A feature extractor model</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.vit_b">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">vit_b</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">VisionTransformer</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/vit/tensorflow.html#vit_b"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.vit_b" title="Link to this definition">¶</a></dt>
+<dd><p>VisionTransformer-B architecture as described in
+<a class="reference external" href="https://arxiv.org/pdf/2010.11929.pdf">“An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale”,</a>. Patches: (H, W) -&gt; (H/8, W/8)</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">vit_b</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">vit_b</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id59">
+<h3>Args:<a class="headerlink" href="#id59" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id60"><span class="problematic" id="id61">**</span></a>kwargs: keyword arguments of the VisionTransformer architecture</p>
+</div></blockquote>
+</section>
+<section id="id62">
+<h3>Returns:<a class="headerlink" href="#id62" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A feature extractor model</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.textnet_tiny">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">textnet_tiny</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TextNet</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/textnet/tensorflow.html#textnet_tiny"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.textnet_tiny" title="Link to this definition">¶</a></dt>
+<dd><p>Implements TextNet architecture from <a class="reference external" href="https://arxiv.org/abs/2111.02394">“FAST: Faster Arbitrarily-Shaped Text Detector with
+Minimalist Kernel Representation”</a>.
+Implementation based on the official Pytorch implementation: &lt;<a class="reference external" href="https://github.com/czczup/FAST">https://github.com/czczup/FAST</a>&gt;`_.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">textnet_tiny</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">textnet_tiny</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id63">
+<h3>Args:<a class="headerlink" href="#id63" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id64"><span class="problematic" id="id65">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id66">
+<h3>Returns:<a class="headerlink" href="#id66" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A textnet tiny model</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.textnet_small">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">textnet_small</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TextNet</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/textnet/tensorflow.html#textnet_small"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.textnet_small" title="Link to this definition">¶</a></dt>
+<dd><p>Implements TextNet architecture from <a class="reference external" href="https://arxiv.org/abs/2111.02394">“FAST: Faster Arbitrarily-Shaped Text Detector with
+Minimalist Kernel Representation”</a>.
+Implementation based on the official Pytorch implementation: &lt;<a class="reference external" href="https://github.com/czczup/FAST">https://github.com/czczup/FAST</a>&gt;`_.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">textnet_small</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">textnet_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id68">
+<h3>Args:<a class="headerlink" href="#id68" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id69"><span class="problematic" id="id70">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id71">
+<h3>Returns:<a class="headerlink" href="#id71" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A TextNet small model</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.textnet_base">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">textnet_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TextNet</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/textnet/tensorflow.html#textnet_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.textnet_base" title="Link to this definition">¶</a></dt>
+<dd><p>Implements TextNet architecture from <a class="reference external" href="https://arxiv.org/abs/2111.02394">“FAST: Faster Arbitrarily-Shaped Text Detector with
+Minimalist Kernel Representation”</a>.
+Implementation based on the official Pytorch implementation: &lt;<a class="reference external" href="https://github.com/czczup/FAST">https://github.com/czczup/FAST</a>&gt;`_.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">textnet_base</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">textnet_base</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id73">
+<h3>Args:<a class="headerlink" href="#id73" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained: boolean, True if model is pretrained
+<a href="#id74"><span class="problematic" id="id75">**</span></a>kwargs: keyword arguments of the TextNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id76">
+<h3>Returns:<a class="headerlink" href="#id76" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>A TextNet base model</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.classification.crop_orientation_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">crop_orientation_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mobilenet_v3_small_orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CropOrientationPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/zoo.html#crop_orientation_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.crop_orientation_predictor" title="Link to this definition">¶</a></dt>
-<dd><p>Orientation classification architecture.</p>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">crop_orientation_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mobilenet_v3_small_crop_orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OrientationPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/zoo.html#crop_orientation_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.crop_orientation_predictor" title="Link to this definition">¶</a></dt>
+<dd><p>Crop orientation classification architecture.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">crop_orientation_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crop_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s1">&#39;classif_mobilenet_v3_small&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_crop</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crop_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s1">&#39;mobilenet_v3_small_crop_orientation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_crop</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_crop</span><span class="p">])</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>arch</strong> – name of the architecture to use (e.g. ‘mobilenet_v3_small’)</p></li>
-<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our recognition crops dataset</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>CropOrientationPredictor</p>
-</dd>
-</dl>
+<section id="id77">
+<h3>Args:<a class="headerlink" href="#id77" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>arch: name of the architecture to use (e.g. ‘mobilenet_v3_small_crop_orientation’)
+pretrained: If True, returns a model pre-trained on our recognition crops dataset
+<a href="#id78"><span class="problematic" id="id79">**</span></a>kwargs: keyword arguments to be passed to the OrientationPredictor</p>
+</div></blockquote>
+</section>
+<section id="id80">
+<h3>Returns:<a class="headerlink" href="#id80" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>OrientationPredictor</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.page_orientation_predictor">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">page_orientation_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mobilenet_v3_small_page_orientation'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OrientationPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/zoo.html#page_orientation_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.page_orientation_predictor" title="Link to this definition">¶</a></dt>
+<dd><p>Page orientation classification architecture.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">page_orientation_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">page_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s1">&#39;mobilenet_v3_small_page_orientation&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<section id="id81">
+<h3>Args:<a class="headerlink" href="#id81" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>arch: name of the architecture to use (e.g. ‘mobilenet_v3_small_page_orientation’)
+pretrained: If True, returns a model pre-trained on our recognition crops dataset
+<a href="#id82"><span class="problematic" id="id83">**</span></a>kwargs: keyword arguments to be passed to the OrientationPredictor</p>
+</div></blockquote>
+</section>
+<section id="id84">
+<h3>Returns:<a class="headerlink" href="#id84" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>OrientationPredictor</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 </section>
@@ -574,14 +831,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text detection architecture</p>
-</dd>
-</dl>
+<section id="id85">
+<h3>Args:<a class="headerlink" href="#id85" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id86"><span class="problematic" id="id87">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id88">
+<h3>Returns:<a class="headerlink" href="#id88" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -595,14 +857,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text detection architecture</p>
-</dd>
-</dl>
+<section id="id90">
+<h3>Args:<a class="headerlink" href="#id90" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id91"><span class="problematic" id="id92">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id93">
+<h3>Returns:<a class="headerlink" href="#id93" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -616,14 +883,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text detection architecture</p>
-</dd>
-</dl>
+<section id="id95">
+<h3>Args:<a class="headerlink" href="#id95" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id96"><span class="problematic" id="id97">**</span></a>kwargs: keyword arguments of the LinkNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id98">
+<h3>Returns:<a class="headerlink" href="#id98" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -637,14 +909,19 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text detection architecture</p>
-</dd>
-</dl>
+<section id="id99">
+<h3>Args:<a class="headerlink" href="#id99" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id100"><span class="problematic" id="id101">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id102">
+<h3>Returns:<a class="headerlink" href="#id102" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -658,19 +935,102 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text detection architecture</p>
-</dd>
-</dl>
+<section id="id104">
+<h3>Args:<a class="headerlink" href="#id104" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id105"><span class="problematic" id="id106">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id107">
+<h3>Returns:<a class="headerlink" href="#id107" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.detection.fast_tiny">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">fast_tiny</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FAST</span></span></span><a class="reference internal" href="../_modules/doctr/models/detection/fast/tensorflow.html#fast_tiny"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.fast_tiny" title="Link to this definition">¶</a></dt>
+<dd><p>FAST as described in <a class="reference external" href="https://arxiv.org/pdf/2111.02394.pdf">“FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation”</a>, using a tiny TextNet backbone.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">fast_tiny</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">fast_tiny</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id109">
+<h3>Args:<a class="headerlink" href="#id109" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id110"><span class="problematic" id="id111">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id112">
+<h3>Returns:<a class="headerlink" href="#id112" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.detection.fast_small">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">fast_small</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FAST</span></span></span><a class="reference internal" href="../_modules/doctr/models/detection/fast/tensorflow.html#fast_small"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.fast_small" title="Link to this definition">¶</a></dt>
+<dd><p>FAST as described in <a class="reference external" href="https://arxiv.org/pdf/2111.02394.pdf">“FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation”</a>, using a small TextNet backbone.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">fast_small</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">fast_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id114">
+<h3>Args:<a class="headerlink" href="#id114" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id115"><span class="problematic" id="id116">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id117">
+<h3>Returns:<a class="headerlink" href="#id117" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.detection.fast_base">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">fast_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">FAST</span></span></span><a class="reference internal" href="../_modules/doctr/models/detection/fast/tensorflow.html#fast_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.fast_base" title="Link to this definition">¶</a></dt>
+<dd><p>FAST as described in <a class="reference external" href="https://arxiv.org/pdf/2111.02394.pdf">“FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation”</a>, using a base TextNet backbone.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">fast_base</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">fast_base</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id119">
+<h3>Args:<a class="headerlink" href="#id119" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+<a href="#id120"><span class="problematic" id="id121">**</span></a>kwargs: keyword arguments of the DBNet architecture</p>
+</div></blockquote>
+</section>
+<section id="id122">
+<h3>Returns:<a class="headerlink" href="#id122" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text detection architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.detection.detection_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">detection_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'db_resnet50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DetectionPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/detection/zoo.html#detection_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.detection_predictor" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">detection_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DetectionPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/detection/zoo.html#detection_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.detection_predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Text detection architecture.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
@@ -679,18 +1039,21 @@ classification head.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>arch</strong> – name of the architecture to use (e.g. ‘db_resnet50’)</p></li>
-<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
-<li><p><strong>assume_straight_pages</strong> – If True, fit straight boxes to the page</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Detection predictor</p>
-</dd>
-</dl>
+<section id="id123">
+<h3>Args:<a class="headerlink" href="#id123" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>arch: name of the architecture or model itself to use (e.g. ‘db_resnet50’)
+pretrained: If True, returns a model pre-trained on our text detection dataset
+assume_straight_pages: If True, fit straight boxes to the page
+<a href="#id124"><span class="problematic" id="id125">**</span></a>kwargs: optional keyword arguments passed to the architecture</p>
+</div></blockquote>
+</section>
+<section id="id126">
+<h3>Returns:<a class="headerlink" href="#id126" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>Detection predictor</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 </section>
@@ -708,14 +1071,19 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
+<section id="id127">
+<h3>Args:<a class="headerlink" href="#id127" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id128"><span class="problematic" id="id129">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
+</div></blockquote>
+</section>
+<section id="id130">
+<h3>Returns:<a class="headerlink" href="#id130" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -730,14 +1098,19 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
+<section id="id132">
+<h3>Args:<a class="headerlink" href="#id132" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id133"><span class="problematic" id="id134">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
+</div></blockquote>
+</section>
+<section id="id135">
+<h3>Returns:<a class="headerlink" href="#id135" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -752,14 +1125,19 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
+<section id="id137">
+<h3>Args:<a class="headerlink" href="#id137" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id138"><span class="problematic" id="id139">**</span></a>kwargs: keyword arguments of the CRNN architecture</p>
+</div></blockquote>
+</section>
+<section id="id140">
+<h3>Returns:<a class="headerlink" href="#id140" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -774,14 +1152,19 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
+<section id="id142">
+<h3>Args:<a class="headerlink" href="#id142" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id143"><span class="problematic" id="id144">**</span></a>kwargs: keyword arguments of the SAR architecture</p>
+</div></blockquote>
+</section>
+<section id="id145">
+<h3>Returns:<a class="headerlink" href="#id145" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
@@ -791,23 +1174,107 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">master</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">master</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">160</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
+<section id="id146">
+<h3>Args:<a class="headerlink" href="#id146" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id147"><span class="problematic" id="id148">**</span></a>kwargs: keywoard arguments passed to the MASTER architecture</p>
+</div></blockquote>
+</section>
+<section id="id149">
+<h3>Returns:<a class="headerlink" href="#id149" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.recognition.vitstr_small">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">vitstr_small</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ViTSTR</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/vitstr/tensorflow.html#vitstr_small"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.vitstr_small" title="Link to this definition">¶</a></dt>
+<dd><p>ViTSTR-Small as described in <a class="reference external" href="https://arxiv.org/pdf/2105.08582.pdf">“Vision Transformer for Fast and Efficient Scene Text Recognition”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">vitstr_small</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id150">
+<h3>Args:<a class="headerlink" href="#id150" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id151"><span class="problematic" id="id152">**</span></a>kwargs: keyword arguments of the ViTSTR architecture</p>
+</div></blockquote>
+</section>
+<section id="id153">
+<h3>Returns:<a class="headerlink" href="#id153" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.recognition.vitstr_base">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">vitstr_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ViTSTR</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/vitstr/tensorflow.html#vitstr_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.vitstr_base" title="Link to this definition">¶</a></dt>
+<dd><p>ViTSTR-Base as described in <a class="reference external" href="https://arxiv.org/pdf/2105.08582.pdf">“Vision Transformer for Fast and Efficient Scene Text Recognition”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">vitstr_base</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_base</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id155">
+<h3>Args:<a class="headerlink" href="#id155" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id156"><span class="problematic" id="id157">**</span></a>kwargs: keyword arguments of the ViTSTR architecture</p>
+</div></blockquote>
+</section>
+<section id="id158">
+<h3>Returns:<a class="headerlink" href="#id158" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.recognition.parseq">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">parseq</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PARSeq</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/parseq/tensorflow.html#parseq"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.parseq" title="Link to this definition">¶</a></dt>
+<dd><p>PARSeq architecture from
+<a class="reference external" href="https://arxiv.org/pdf/2207.06966">“Scene Text Recognition with Permuted Autoregressive Sequence Models”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">parseq</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">parseq</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id159">
+<h3>Args:<a class="headerlink" href="#id159" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+<a href="#id160"><span class="problematic" id="id161">**</span></a>kwargs: keyword arguments of the PARSeq architecture</p>
+</div></blockquote>
+</section>
+<section id="id162">
+<h3>Returns:<a class="headerlink" href="#id162" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>text recognition architecture</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.recognition.recognition_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">recognition_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RecognitionPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/zoo.html#recognition_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.recognition_predictor" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">recognition_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RecognitionPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/zoo.html#recognition_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.recognition_predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Text recognition architecture.</p>
 <dl>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -819,17 +1286,20 @@ Baseline for Irregular Text Recognition”</a>.</p>
 </div>
 </dd>
 </dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>arch</strong> – name of the architecture to use (e.g. ‘crnn_vgg16_bn’)</p></li>
-<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Recognition predictor</p>
-</dd>
-</dl>
+<section id="id163">
+<h3>Args:<a class="headerlink" href="#id163" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>arch: name of the architecture or model itself to use (e.g. ‘crnn_vgg16_bn’)
+pretrained: If True, returns a model pre-trained on our text recognition dataset
+<a href="#id164"><span class="problematic" id="id165">**</span></a>kwargs: optional parameters to be passed to the architecture</p>
+</div></blockquote>
+</section>
+<section id="id166">
+<h3>Returns:<a class="headerlink" href="#id166" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>Recognition predictor</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 </section>
@@ -837,7 +1307,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <h2>doctr.models.zoo<a class="headerlink" href="#doctr-models-zoo" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.ocr_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">ocr_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'db_resnet50'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OCRPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#ocr_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.ocr_predictor" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">ocr_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">straighten_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OCRPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#ocr_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.ocr_predictor" title="Link to this definition">¶</a></dt>
 <dd><p>End-to-end OCR architecture using one model for localization, and another for text recognition.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
@@ -846,26 +1316,159 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>det_arch</strong> – name of the detection architecture to use (e.g. ‘db_resnet50’, ‘db_mobilenet_v3_large’)</p></li>
-<li><p><strong>reco_arch</strong> – name of the recognition architecture to use (e.g. ‘crnn_vgg16_bn’, ‘sar_resnet31’)</p></li>
-<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our OCR dataset</p></li>
-<li><p><strong>assume_straight_pages</strong> – if True, speeds up the inference by assuming you only pass straight pages
-without rotated textual elements.</p></li>
-<li><p><strong>preserve_aspect_ratio</strong> – If True, pad the input document image to preserve the aspect ratio before
-running the detection model on it.</p></li>
-<li><p><strong>symmetric_pad</strong> – if True, pad the image symmetrically instead of padding at the bottom-right.</p></li>
-<li><p><strong>export_as_straight_boxes</strong> – when assume_straight_pages is set to False, export final predictions
-(potentially rotated) as straight bounding boxes.</p></li>
-<li><p><strong>kwargs</strong> – keyword args of <cite>OCRPredictor</cite></p></li>
-</ul>
+<section id="id167">
+<h3>Args:<a class="headerlink" href="#id167" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>det_arch: name of the detection architecture or the model itself to use</dt><dd><p>(e.g. ‘db_resnet50’, ‘db_mobilenet_v3_large’)</p>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>OCR predictor</p>
+<dt>reco_arch: name of the recognition architecture or the model itself to use</dt><dd><p>(e.g. ‘crnn_vgg16_bn’, ‘sar_resnet31’)</p>
 </dd>
 </dl>
+<p>pretrained: If True, returns a model pre-trained on our OCR dataset
+pretrained_backbone: If True, returns a model with a pretrained backbone
+assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</p>
+<blockquote>
+<div><p>without rotated textual elements.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before</dt><dd><p>running the detection model on it.</p>
+</dd>
+</dl>
+<p>symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.
+export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</p>
+<blockquote>
+<div><p>(potentially rotated) as straight bounding boxes.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>detect_orientation: if True, the estimated general page orientation will be added to the predictions for each</dt><dd><p>page. Doing so will slightly deteriorate the overall latency.</p>
+</dd>
+<dt>straighten_pages: if True, estimates the page general orientation</dt><dd><p>based on the segmentation map median line orientation.
+Then, rotates page before passing it again to the deep learning detection module.
+Doing so will improve performances for documents with page-uniform rotations.</p>
+</dd>
+<dt>detect_language: if True, the language prediction will be added to the predictions for each</dt><dd><p>page. Doing so will slightly deteriorate the overall latency.</p>
+</dd>
+</dl>
+<p>kwargs: keyword args of <cite>OCRPredictor</cite></p>
+</div></blockquote>
+</section>
+<section id="id168">
+<h3>Returns:<a class="headerlink" href="#id168" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>OCR predictor</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.kie_predictor">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">kie_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">straighten_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">KIEPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#kie_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.kie_predictor" title="Link to this definition">¶</a></dt>
+<dd><p>End-to-end KIE architecture using one model for localization, and another for text recognition.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<section id="id169">
+<h3>Args:<a class="headerlink" href="#id169" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><dl class="simple">
+<dt>det_arch: name of the detection architecture or the model itself to use</dt><dd><p>(e.g. ‘db_resnet50’, ‘db_mobilenet_v3_large’)</p>
+</dd>
+<dt>reco_arch: name of the recognition architecture or the model itself to use</dt><dd><p>(e.g. ‘crnn_vgg16_bn’, ‘sar_resnet31’)</p>
+</dd>
+</dl>
+<p>pretrained: If True, returns a model pre-trained on our OCR dataset
+pretrained_backbone: If True, returns a model with a pretrained backbone
+assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages</p>
+<blockquote>
+<div><p>without rotated textual elements.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>preserve_aspect_ratio: If True, pad the input document image to preserve the aspect ratio before</dt><dd><p>running the detection model on it.</p>
+</dd>
+</dl>
+<p>symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right.
+export_as_straight_boxes: when assume_straight_pages is set to False, export final predictions</p>
+<blockquote>
+<div><p>(potentially rotated) as straight bounding boxes.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>detect_orientation: if True, the estimated general page orientation will be added to the predictions for each</dt><dd><p>page. Doing so will slightly deteriorate the overall latency.</p>
+</dd>
+<dt>straighten_pages: if True, estimates the page general orientation</dt><dd><p>based on the segmentation map median line orientation.
+Then, rotates page before passing it again to the deep learning detection module.
+Doing so will improve performances for documents with page-uniform rotations.</p>
+</dd>
+<dt>detect_language: if True, the language prediction will be added to the predictions for each</dt><dd><p>page. Doing so will slightly deteriorate the overall latency.</p>
+</dd>
+</dl>
+<p>kwargs: keyword args of <cite>OCRPredictor</cite></p>
+</div></blockquote>
+</section>
+<section id="id170">
+<h3>Returns:<a class="headerlink" href="#id170" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>KIE predictor</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+</section>
+<section id="doctr-models-factory">
+<h2>doctr.models.factory<a class="headerlink" href="#doctr-models-factory" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.factory.login_to_hub">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.factory.</span></span><span class="sig-name descname"><span class="pre">login_to_hub</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/models/factory/hub.html#login_to_hub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.factory.login_to_hub" title="Link to this definition">¶</a></dt>
+<dd><p>Login to huggingface hub</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.factory.from_hub">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.factory.</span></span><span class="sig-name descname"><span class="pre">from_hub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/factory/hub.html#from_hub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.factory.from_hub" title="Link to this definition">¶</a></dt>
+<dd><p>Instantiate &amp; load a pretrained model from HF hub.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">from_hub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s2">&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id171">
+<h3>Args:<a class="headerlink" href="#id171" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>repo_id: HuggingFace model hub repo
+kwargs: kwargs of <cite>hf_hub_download</cite> or <cite>snapshot_download</cite></p>
+</div></blockquote>
+</section>
+<section id="id172">
+<h3>Returns:<a class="headerlink" href="#id172" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>Model loaded with the checkpoint</p>
+</div></blockquote>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.factory.push_to_hf_hub">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.factory.</span></span><span class="sig-name descname"><span class="pre">push_to_hf_hub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/models/factory/hub.html#push_to_hf_hub"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.factory.push_to_hf_hub" title="Link to this definition">¶</a></dt>
+<dd><p>Save model and its configuration on HF hub</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">login_to_hub</span><span class="p">,</span> <span class="n">push_to_hf_hub</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models.recognition</span> <span class="kn">import</span> <span class="n">crnn_mobilenet_v3_small</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">login_to_hub</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crnn_mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">push_to_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s1">&#39;my-model&#39;</span><span class="p">,</span> <span class="s1">&#39;recognition&#39;</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s1">&#39;crnn_mobilenet_v3_small&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id173">
+<h3>Args:<a class="headerlink" href="#id173" title="Link to this heading">¶</a></h3>
+<blockquote>
+<div><p>model: TF or PyTorch model to be saved
+model_name: name of the model which is also the repository name
+task: task name
+<a href="#id174"><span class="problematic" id="id175">**</span></a>kwargs: keyword arguments for push_to_hf_hub</p>
+</div></blockquote>
+</section>
 </dd></dl>
 
 </section>
@@ -937,9 +1540,16 @@ running the detection model on it.</p></li>
 <li><a class="reference internal" href="#doctr.models.classification.mobilenet_v3_large"><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_large()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.mobilenet_v3_small_r"><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_small_r()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.mobilenet_v3_large_r"><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_large_r()</span></code></a></li>
-<li><a class="reference internal" href="#doctr.models.classification.mobilenet_v3_small_orientation"><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_small_orientation()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.mobilenet_v3_small_crop_orientation"><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_small_crop_orientation()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.mobilenet_v3_small_page_orientation"><code class="docutils literal notranslate"><span class="pre">mobilenet_v3_small_page_orientation()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.magc_resnet31"><code class="docutils literal notranslate"><span class="pre">magc_resnet31()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.vit_s"><code class="docutils literal notranslate"><span class="pre">vit_s()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.vit_b"><code class="docutils literal notranslate"><span class="pre">vit_b()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.textnet_tiny"><code class="docutils literal notranslate"><span class="pre">textnet_tiny()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.textnet_small"><code class="docutils literal notranslate"><span class="pre">textnet_small()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.textnet_base"><code class="docutils literal notranslate"><span class="pre">textnet_base()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.crop_orientation_predictor"><code class="docutils literal notranslate"><span class="pre">crop_orientation_predictor()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.page_orientation_predictor"><code class="docutils literal notranslate"><span class="pre">page_orientation_predictor()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#doctr-models-detection">doctr.models.detection</a><ul>
@@ -948,6 +1558,9 @@ running the detection model on it.</p></li>
 <li><a class="reference internal" href="#doctr.models.detection.linknet_resnet50"><code class="docutils literal notranslate"><span class="pre">linknet_resnet50()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.db_resnet50"><code class="docutils literal notranslate"><span class="pre">db_resnet50()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.db_mobilenet_v3_large"><code class="docutils literal notranslate"><span class="pre">db_mobilenet_v3_large()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.detection.fast_tiny"><code class="docutils literal notranslate"><span class="pre">fast_tiny()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.detection.fast_small"><code class="docutils literal notranslate"><span class="pre">fast_small()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.detection.fast_base"><code class="docutils literal notranslate"><span class="pre">fast_base()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.detection_predictor"><code class="docutils literal notranslate"><span class="pre">detection_predictor()</span></code></a></li>
 </ul>
 </li>
@@ -957,11 +1570,21 @@ running the detection model on it.</p></li>
 <li><a class="reference internal" href="#doctr.models.recognition.crnn_mobilenet_v3_large"><code class="docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_large()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.sar_resnet31"><code class="docutils literal notranslate"><span class="pre">sar_resnet31()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.master"><code class="docutils literal notranslate"><span class="pre">master()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.recognition.vitstr_small"><code class="docutils literal notranslate"><span class="pre">vitstr_small()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.recognition.vitstr_base"><code class="docutils literal notranslate"><span class="pre">vitstr_base()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.recognition.parseq"><code class="docutils literal notranslate"><span class="pre">parseq()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.recognition_predictor"><code class="docutils literal notranslate"><span class="pre">recognition_predictor()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#doctr-models-zoo">doctr.models.zoo</a><ul>
 <li><a class="reference internal" href="#doctr.models.ocr_predictor"><code class="docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.kie_predictor"><code class="docutils literal notranslate"><span class="pre">kie_predictor()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr-models-factory">doctr.models.factory</a><ul>
+<li><a class="reference internal" href="#doctr.models.factory.login_to_hub"><code class="docutils literal notranslate"><span class="pre">login_to_hub()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.factory.from_hub"><code class="docutils literal notranslate"><span class="pre">from_hub()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.factory.push_to_hf_hub"><code class="docutils literal notranslate"><span class="pre">push_to_hf_hub()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -975,7 +1598,7 @@ running the detection model on it.</p></li>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=d7e92ea3"></script>
+</div><script src="../_static/documentation_options.js?v=af2dda24"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>

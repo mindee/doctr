@@ -11,42 +11,22 @@ can be a significant save of time.
 
 Available Datasets
 ------------------
-Here are all datasets that are available through docTR:
+The datasets from DocTR inherit from an abstract class that handles verified downloading from a given URL.
+
+.. autoclass:: doctr.datasets.datasets.VisionDataset
 
 
-Public datasets
-^^^^^^^^^^^^^^^
+Here are all datasets that are available through DocTR:
 
 .. autoclass:: FUNSD
 .. autoclass:: SROIE
 .. autoclass:: CORD
-.. autoclass:: IIIT5K
-.. autoclass:: SVT
-.. autoclass:: SVHN
-.. autoclass:: SynthText
-.. autoclass:: IC03
-.. autoclass:: IC13
-
-docTR synthetic datasets
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-.. autoclass:: DocArtefacts
-.. autoclass:: CharacterGenerator
-.. autoclass:: WordGenerator
-
-docTR private datasets
-^^^^^^^^^^^^^^^^^^^^^^
-
-Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project. However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools all the same.
-
-.. autoclass:: DetectionDataset
-.. autoclass:: RecognitionDataset
 .. autoclass:: OCRDataset
 
 
 Data Loading
 ------------
-Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.
+Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in DocTR.
 
 .. autoclass:: doctr.datasets.loader.DataLoader
 
@@ -56,10 +36,10 @@ Each dataset has its specific way to load a sample, but handling batch aggregati
 Supported Vocabs
 ----------------
 
-Since textual content has to be encoded properly for models to interpret them efficiently, docTR supports multiple sets
+Since textual content has to be encoded properly for models to interpret them efficiently, DocTR supports multiple sets
 of vocabs.
 
-.. list-table:: docTR Vocabs
+.. list-table:: DocTR Vocabs
    :widths: 20 5 50
    :header-rows: 1
 
@@ -79,25 +59,10 @@ of vocabs.
      - 5
      - £€¥¢฿
    * - latin
-     - 94
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
-   * - english
-     - 100
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
-   * - legacy_french
-     - 123
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿
+     - 96
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~°
    * - french
-     - 126
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ
-   * - portuguese
-     - 131
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ¡¿
-   * - spanish
-     - 116
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ¡¿
-   * - german
-     - 108
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ
+     - 154
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿
 
 .. autofunction:: encode_sequences

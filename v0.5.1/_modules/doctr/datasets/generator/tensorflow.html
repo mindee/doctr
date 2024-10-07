@@ -234,10 +234,16 @@
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/models.html">doctr.models</a></li>
@@ -287,16 +293,16 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.datasets.generator.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2022, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_CharacterGenerator</span><span class="p">,</span> <span class="n">_WordGenerator</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CharacterGenerator&#39;</span><span class="p">,</span> <span class="s1">&#39;WordGenerator&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CharacterGenerator&quot;</span><span class="p">,</span> <span class="s2">&quot;WordGenerator&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="CharacterGenerator">
@@ -305,10 +311,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a character image generation dataset</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import CharacterGenerator</span>
-<span class="sd">    &gt;&gt;&gt; ds = CharacterGenerator(vocab=&#39;abdef&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ds = CharacterGenerator(vocab=&#39;abdef&#39;, num_samples=100)</span>
 <span class="sd">    &gt;&gt;&gt; img, target = ds[0]</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: vocabulary to take the character from</span>
 <span class="sd">        num_samples: number of samples that will be generated iterating over the dataset</span>
 <span class="sd">        cache_samples: whether generated images should be cached firsthand</span>
@@ -322,7 +329,6 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">collate_fn</span><span class="p">(</span><span class="n">samples</span><span class="p">):</span>
-
         <span class="n">images</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">samples</span><span class="p">)</span>
         <span class="n">images</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">images</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
@@ -336,10 +342,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a character image generation dataset</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import WordGenerator</span>
-<span class="sd">    &gt;&gt;&gt; ds = WordGenerator(vocab=&#39;abdef&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; ds = WordGenerator(vocab=&#39;abdef&#39;, min_chars=1, max_chars=32, num_samples=100)</span>
 <span class="sd">    &gt;&gt;&gt; img, target = ds[0]</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        vocab: vocabulary to take the character from</span>
 <span class="sd">        min_chars: minimum number of characters in a word</span>
 <span class="sd">        max_chars: maximum number of characters in a word</span>
@@ -384,7 +391,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=d7e92ea3"></script>
+</div><script src="../../../../_static/documentation_options.js?v=af2dda24"></script>
     <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>

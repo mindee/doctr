@@ -8,7 +8,7 @@ Data transformations are part of both training and inference procedure. Drawing 
 
 Supported transformations
 -------------------------
-Here are all transformations that are available through docTR:
+Here are all transformations that are available through DocTR:
 
 .. autoclass:: Resize
 .. autoclass:: Normalize
@@ -21,11 +21,6 @@ Here are all transformations that are available through docTR:
 .. autoclass:: RandomHue
 .. autoclass:: RandomGamma
 .. autoclass:: RandomJpegQuality
-.. autoclass:: RandomRotate
-.. autoclass:: RandomCrop
-.. autoclass:: GaussianBlur
-.. autoclass:: ChannelShuffle
-.. autoclass:: GaussianNoise
 
 
 Composing transformations

@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Preparing your model for inference" href="using_model_export.html" /><link rel="prev" title="Choose a ready to use dataset" href="using_datasets.html" />
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Preparing your model for inference" href="using_model_export.html" /><link rel="prev" title="Integrate contributions into your pipeline" href="using_contrib_modules.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>Share your model with the community - docTR documentation</title>
@@ -236,12 +236,15 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/models.html">doctr.models</a></li>
@@ -443,6 +446,16 @@ Feel free to open a pull request or issue to add your model to this list.</p>
 <td><p>french</p></td>
 <td><p>TensorFlow</p></td>
 </tr>
+<tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
+<td><p>tilman-rassy/doctr-crnn-vgg16-bn-fascan-v1</p></td>
+<td><p>french + german + §</p></td>
+<td><p>PyTorch</p></td>
+</tr>
+<tr class="row-odd"><td><p>parseq</p></td>
+<td><p>Felix92/doctr-torch-parseq-multilingual-v1</p></td>
+<td><p>multilingual</p></td>
+<td><p>PyTorch</p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -464,14 +477,14 @@ Feel free to open a pull request or issue to add your model to this list.</p>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="using_datasets.html">
+          <a class="prev-page" href="using_contrib_modules.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">Choose a ready to use dataset</div>
+                <div class="title">Integrate contributions into your pipeline</div>
                 
               </div>
             </a>
@@ -526,7 +539,7 @@ Feel free to open a pull request or issue to add your model to this list.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=cdfe45a8"></script>
+</div><script src="../_static/documentation_options.js?v=af2dda24"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>

@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.transforms" href="transforms.html" /><link rel="prev" title="doctr.io" href="io.html" />
+    <link rel="index" title="Index" href="genindex.html" /><link rel="search" title="Search" href="search.html" /><link rel="next" title="doctr.transforms" href="transforms.html" /><link rel="prev" title="doctr.documents" href="documents.html" />
 
     <link rel="shortcut icon" href="_static/favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
         <title>doctr.models - docTR documentation</title>
@@ -237,7 +237,7 @@
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="documents.html">doctr.documents</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">doctr.models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
@@ -366,30 +366,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dd></dl>
 
 <dl class="py function">
-<dt class="sig sig-object py" id="doctr.models.detection.db_mobilenet_v3_large">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">db_mobilenet_v3_large</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DBNet</span></span></span><a class="reference internal" href="_modules/doctr/models/detection/differentiable_binarization/tensorflow.html#db_mobilenet_v3_large"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.db_mobilenet_v3_large" title="Link to this definition">¶</a></dt>
-<dd><p>DBNet as described in <a class="reference external" href="https://arxiv.org/pdf/1911.08947.pdf">“Real-time Scene Text Detection with Differentiable Binarization”</a>, using a mobilenet v3 large backbone.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">db_mobilenet_v3_large</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">db_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text detection architecture</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.detection.linknet16">
 <span class="sig-prename descclassname"><span class="pre">doctr.models.detection.</span></span><span class="sig-name descname"><span class="pre">linknet16</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LinkNet</span></span></span><a class="reference internal" href="_modules/doctr/models/detection/linknet/tensorflow.html#linknet16"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.detection.linknet16" title="Link to this definition">¶</a></dt>
 <dd><p>LinkNet as described in <a class="reference external" href="https://arxiv.org/pdf/1707.03718.pdf">“LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation”</a>.</p>
@@ -449,9 +425,9 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <section id="text-recognition">
 <h2>Text Recognition<a class="headerlink" href="#text-recognition" title="Link to this heading">¶</a></h2>
 <p>Identifying strings in images</p>
-<div class="table-wrapper colwidths-given docutils container" id="id4">
-<table class="docutils align-default" id="id4">
-<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id4" title="Link to this table">¶</a></caption>
+<div class="table-wrapper colwidths-given docutils container" id="id2">
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Text recognition model zoo</span><a class="headerlink" href="#id2" title="Link to this table">¶</a></caption>
 <colgroup>
 <col style="width: 23.5%" />
 <col style="width: 23.5%" />
@@ -473,29 +449,22 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <tr class="row-even"><td><p>crnn_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>15.8M</p></td>
-<td><p>87.17</p></td>
-<td><p>92.93</p></td>
+<td><p>86.02</p></td>
+<td><p>91.3</p></td>
 <td><p>12.8</p></td>
 </tr>
-<tr class="row-odd"><td><p>master</p></td>
-<td><p>(32, 128, 3)</p></td>
-<td></td>
-<td><p>87.61</p></td>
-<td><p>93.28</p></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p>sar_vgg16_bn</p></td>
+<tr class="row-odd"><td><p>sar_vgg16_bn</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>21.5M</p></td>
 <td><p>86.2</p></td>
 <td><p>91.7</p></td>
 <td><p>3.3</p></td>
 </tr>
-<tr class="row-odd"><td><p>sar_resnet31</p></td>
+<tr class="row-even"><td><p>sar_resnet31</p></td>
 <td><p>(32, 128, 3)</p></td>
 <td><p>53.1M</p></td>
-<td><p><strong>87.67</strong></p></td>
-<td><p><strong>93.41</strong></p></td>
+<td><p><strong>86.3</strong></p></td>
+<td><p><strong>92.1</strong></p></td>
 <td><p>2.7</p></td>
 </tr>
 </tbody>
@@ -529,31 +498,6 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">crnn_vgg16_bn</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>text recognition architecture</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="doctr.models.recognition.crnn_mobilenet_v3_large">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">crnn_mobilenet_v3_large</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">CRNN</span></span></span><a class="reference internal" href="_modules/doctr/models/recognition/crnn/tensorflow.html#crnn_mobilenet_v3_large"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.crnn_mobilenet_v3_large" title="Link to this definition">¶</a></dt>
-<dd><p>CRNN with a MobileNet V3 Large backbone as described in <a class="reference external" href="https://arxiv.org/pdf/1507.05717.pdf">“An End-to-End Trainable Neural Network for Image-based
-Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">crnn_mobilenet_v3_large</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">crnn_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">maxval</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
 </pre></div>
@@ -694,22 +638,14 @@ Example:</p>
 <td><p><strong>FPS</strong></p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn</p></td>
-<td><p>71.25</p></td>
-<td><p>76.02</p></td>
+<td><p>70.08</p></td>
+<td><p>74.77</p></td>
 <td><p>0.85</p></td>
-<td><p>83.99</p></td>
-<td><p>81.42</p></td>
+<td><p>82.19</p></td>
+<td><p><strong>79.67</strong></p></td>
 <td><p>1.6</p></td>
 </tr>
-<tr class="row-even"><td><p>db_resnet50 + master</p></td>
-<td><p>71.26</p></td>
-<td><p>76.03</p></td>
-<td></td>
-<td><p>84.61</p></td>
-<td><p>82.02</p></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
+<tr class="row-even"><td><p>db_resnet50 + sar_vgg16_bn</p></td>
 <td><p>N/A</p></td>
 <td><p>N/A</p></td>
 <td><p>0.49</p></td>
@@ -717,15 +653,15 @@ Example:</p>
 <td><p>N/A</p></td>
 <td><p>1.0</p></td>
 </tr>
-<tr class="row-even"><td><p>db_resnet50 + sar_resnet31</p></td>
-<td><p>71.48</p></td>
-<td><p>76.26</p></td>
+<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>N/A</p></td>
+<td><p>N/A</p></td>
 <td><p>0.27</p></td>
-<td><p>84.66</p></td>
-<td><p><strong>82.07</strong></p></td>
+<td><p>N/A</p></td>
+<td><p>N/A</p></td>
 <td><p>0.83</p></td>
 </tr>
-<tr class="row-odd"><td><p>Gvision text detection</p></td>
+<tr class="row-even"><td><p>Gvision text detection</p></td>
 <td><p>59.50</p></td>
 <td><p>62.50</p></td>
 <td></td>
@@ -733,7 +669,7 @@ Example:</p>
 <td><p>70.00</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p>Gvision doc. text detection</p></td>
+<tr class="row-odd"><td><p>Gvision doc. text detection</p></td>
 <td><p>64.00</p></td>
 <td><p>53.30</p></td>
 <td></td>
@@ -741,7 +677,7 @@ Example:</p>
 <td><p>61.10</p></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p>AWS textract</p></td>
+<tr class="row-even"><td><p>AWS textract</p></td>
 <td><p><strong>78.10</strong></p></td>
 <td><p><strong>83.00</strong></p></td>
 <td></td>
@@ -766,7 +702,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <th class="head" colspan="2"><p>Receipts</p></th>
 <th class="head" colspan="2"><p>Invoices</p></th>
 <th class="head" colspan="2"><p>IDs</p></th>
-<th class="head" colspan="2"><p>US Tax Forms</p></th>
 </tr>
 </thead>
 <tbody>
@@ -777,38 +712,14 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p><strong>Precision</strong></p></td>
 <td><p><strong>Recall</strong></p></td>
 <td><p><strong>Precision</strong></p></td>
-<td><p><strong>Recall</strong></p></td>
-<td><p><strong>Precision</strong></p></td>
 </tr>
 <tr class="row-odd"><td><p>db_resnet50 + crnn_vgg16_bn (ours)</p></td>
-<td><p>78.56</p></td>
-<td><p>80.94</p></td>
-<td><p>65.79</p></td>
-<td><p>70.10</p></td>
-<td><p>49.35</p></td>
-<td><p>50.84</p></td>
-<td><p>78.99</p></td>
-<td><p>92.73</p></td>
-</tr>
-<tr class="row-even"><td><p>db_resnet50 + master (ours)</p></td>
-<td><p><strong>78.91</strong></p></td>
-<td><p><strong>81.31</strong></p></td>
-<td><p>65.57</p></td>
-<td><p>69.86</p></td>
-<td><p>50.65</p></td>
-<td><p>52.17</p></td>
-<td><p>78.86</p></td>
-<td><p>92.57</p></td>
-</tr>
-<tr class="row-odd"><td><p>db_resnet50 + sar_resnet31 (ours)</p></td>
-<td><p>78.84</p></td>
-<td><p>81.23</p></td>
-<td><p>65.90</p></td>
-<td><p><strong>70.21</strong></p></td>
-<td><p><strong>51.17</strong></p></td>
-<td><p><strong>52.72</strong></p></td>
-<td><p>79.17</p></td>
-<td><p>92.68</p></td>
+<td><p><strong>78.90</strong></p></td>
+<td><p><strong>81.01</strong></p></td>
+<td><p>65.68</p></td>
+<td><p><strong>69.86</strong></p></td>
+<td><p><strong>49.48</strong></p></td>
+<td><p><strong>50.46</strong></p></td>
 </tr>
 <tr class="row-even"><td><p>Gvision doc. text detection</p></td>
 <td><p>68.91</p></td>
@@ -817,8 +728,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>52.85</p></td>
 <td><p>43.70</p></td>
 <td><p>29.21</p></td>
-<td><p>69.79</p></td>
-<td><p>65.68</p></td>
 </tr>
 <tr class="row-odd"><td><p>AWS textract</p></td>
 <td><p>75.77</p></td>
@@ -827,8 +736,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 <td><p>69.13</p></td>
 <td><p>46.39</p></td>
 <td><p>43.32</p></td>
-<td><p><strong>84.31</strong></p></td>
-<td><p><strong>98.11</strong></p></td>
 </tr>
 </tbody>
 </table>
@@ -863,74 +770,6 @@ We used a c5.x12large from AWS instances (CPU Xeon Platinum 8275L) to perform ex
 </dl>
 </dd></dl>
 
-</section>
-<section id="export-model-output">
-<h3>Export model output<a class="headerlink" href="#export-model-output" title="Link to this heading">¶</a></h3>
-<p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
-To get a better understanding of our document model, check our <a class="reference internal" href="io.html#document-structure"><span class="std std-ref">Document structure</span></a> section</p>
-<p>Here is a typical <cite>Document</cite> layout:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">Document</span><span class="p">(</span>
-  <span class="p">(</span><span class="n">pages</span><span class="p">):</span> <span class="p">[</span><span class="n">Page</span><span class="p">(</span>
-    <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">)</span>
-    <span class="p">(</span><span class="n">blocks</span><span class="p">):</span> <span class="p">[</span><span class="n">Block</span><span class="p">(</span>
-      <span class="p">(</span><span class="n">lines</span><span class="p">):</span> <span class="p">[</span><span class="n">Line</span><span class="p">(</span>
-        <span class="p">(</span><span class="n">words</span><span class="p">):</span> <span class="p">[</span>
-          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;No.&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.91</span><span class="p">),</span>
-          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.99</span><span class="p">),</span>
-          <span class="n">Word</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s1">&#39;DATE&#39;</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.96</span><span class="p">),</span>
-        <span class="p">]</span>
-      <span class="p">)]</span>
-      <span class="p">(</span><span class="n">artefacts</span><span class="p">):</span> <span class="p">[]</span>
-    <span class="p">)]</span>
-  <span class="p">)]</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p>You can also export them as a nested dict, more appropriate for JSON format:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">json_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>For reference, here is the JSON export for the same <cite>Document</cite> as above:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s1">&#39;pages&#39;</span><span class="p">:</span> <span class="p">[</span>
-      <span class="p">{</span>
-          <span class="s1">&#39;page_idx&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-          <span class="s1">&#39;dimensions&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">340</span><span class="p">,</span> <span class="mi">600</span><span class="p">),</span>
-          <span class="s1">&#39;orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-          <span class="s1">&#39;language&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
-          <span class="s1">&#39;blocks&#39;</span><span class="p">:</span> <span class="p">[</span>
-              <span class="p">{</span>
-                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
-                  <span class="s1">&#39;lines&#39;</span><span class="p">:</span> <span class="p">[</span>
-                      <span class="p">{</span>
-                          <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.8564453125</span><span class="p">,</span> <span class="mf">0.8603515625</span><span class="p">)),</span>
-                          <span class="s1">&#39;words&#39;</span><span class="p">:</span> <span class="p">[</span>
-                              <span class="p">{</span>
-                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;No.&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
-                              <span class="p">},</span>
-                              <span class="p">{</span>
-                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
-                              <span class="p">},</span>
-                              <span class="p">{</span>
-                                  <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span>
-                                  <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
-                              <span class="p">}</span>
-                          <span class="p">]</span>
-                      <span class="p">}</span>
-                  <span class="p">],</span>
-                  <span class="s1">&#39;artefacts&#39;</span><span class="p">:</span> <span class="p">[]</span>
-              <span class="p">}</span>
-          <span class="p">]</span>
-      <span class="p">}</span>
-  <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
 </section>
 </section>
 <section id="model-export">
@@ -1055,14 +894,14 @@ To get a better understanding of our document model, check our <a class="referen
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
-          <a class="prev-page" href="io.html">
+          <a class="prev-page" href="documents.html">
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
               <div class="page-info">
                 <div class="context">
                   <span>Previous</span>
                 </div>
                 
-                <div class="title">doctr.io</div>
+                <div class="title">doctr.documents</div>
                 
               </div>
             </a>
@@ -1101,7 +940,6 @@ To get a better understanding of our document model, check our <a class="referen
 <li><a class="reference internal" href="#pre-processing-for-detection">Pre-processing for detection</a></li>
 <li><a class="reference internal" href="#detection-models">Detection models</a><ul>
 <li><a class="reference internal" href="#doctr.models.detection.db_resnet50"><code class="docutils literal notranslate"><span class="pre">db_resnet50()</span></code></a></li>
-<li><a class="reference internal" href="#doctr.models.detection.db_mobilenet_v3_large"><code class="docutils literal notranslate"><span class="pre">db_mobilenet_v3_large()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.linknet16"><code class="docutils literal notranslate"><span class="pre">linknet16()</span></code></a></li>
 </ul>
 </li>
@@ -1115,7 +953,6 @@ To get a better understanding of our document model, check our <a class="referen
 <li><a class="reference internal" href="#pre-processing-for-recognition">Pre-processing for recognition</a></li>
 <li><a class="reference internal" href="#recognition-models">Recognition models</a><ul>
 <li><a class="reference internal" href="#doctr.models.recognition.crnn_vgg16_bn"><code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn()</span></code></a></li>
-<li><a class="reference internal" href="#doctr.models.recognition.crnn_mobilenet_v3_large"><code class="docutils literal notranslate"><span class="pre">crnn_mobilenet_v3_large()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.sar_vgg16_bn"><code class="docutils literal notranslate"><span class="pre">sar_vgg16_bn()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.sar_resnet31"><code class="docutils literal notranslate"><span class="pre">sar_resnet31()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.recognition.master"><code class="docutils literal notranslate"><span class="pre">master()</span></code></a></li>
@@ -1132,7 +969,6 @@ To get a better understanding of our document model, check our <a class="referen
 <li><a class="reference internal" href="#doctr.models.zoo.ocr_predictor"><code class="docutils literal notranslate"><span class="pre">ocr_predictor()</span></code></a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#export-model-output">Export model output</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#model-export">Model export</a><ul>
@@ -1156,7 +992,7 @@ To get a better understanding of our document model, check our <a class="referen
       
     </aside>
   </div>
-</div><script src="_static/documentation_options.js?v=0633d7c0"></script>
+</div><script src="_static/documentation_options.js?v=9971435a"></script>
     <script src="_static/doctools.js?v=9a2dae69"></script>
     <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/scripts/furo.js?v=5fa4622c"></script>
