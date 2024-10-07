@@ -7,13 +7,11 @@ import math
 from typing import Any, Callable, Optional, Tuple
 
 import tensorflow as tf
-from keras import layers
+from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
 __all__ = ["Decoder", "PositionalEncoding", "EncoderBlock", "PositionwiseFeedForward", "MultiHeadAttention"]
-
-tf.config.run_functions_eagerly(True)
 
 
 class PositionalEncoding(layers.Layer, NestedObject):

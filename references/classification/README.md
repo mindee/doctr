@@ -60,12 +60,12 @@ Feel free to inspect the multiple script option to customize your training to yo
 
 Character classification:
 
-```python
+```shell
 python references/classification/train_tensorflow_character.py --help
 ```
 
 Orientation classification:
 
-```python
+```shell
 python references/classification/train_tensorflow_orientation.py --help
 ```

@@ -9,8 +9,8 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from keras import activations, layers
-from keras.models import Sequential
+from tensorflow.keras import activations, layers
+from tensorflow.keras.models import Sequential
 
 from doctr.datasets import VOCABS
 

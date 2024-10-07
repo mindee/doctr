@@ -10,8 +10,8 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from keras import Model, Sequential, layers, losses
-from keras.applications import ResNet50
+from tensorflow.keras import Model, Sequential, layers, losses
+from tensorflow.keras.applications import ResNet50
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, conv_sequence, load_pretrained_params

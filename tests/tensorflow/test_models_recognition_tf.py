@@ -2,7 +2,6 @@ import os
 import shutil
 import tempfile
 
-import keras
 import numpy as np
 import onnxruntime
 import psutil
@@ -41,7 +40,7 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
     batch_size = 4
     reco_model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained=True, input_shape=input_shape)
-    assert isinstance(reco_model, keras.Model)
+    assert isinstance(reco_model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = ["i", "am", "a", "jedi"]
 
@@ -195,7 +194,7 @@ def test_recognition_zoo_error():
 def test_models_onnx_export(arch_name, input_shape):
     # Model
     batch_size = 2
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     model = recognition.__dict__[arch_name](pretrained=True, exportable=True, input_shape=input_shape)
     # SAR, MASTER, ViTSTR export currently only available with constant batch size
     if arch_name in ["sar_resnet31", "master", "vitstr_small", "parseq"]:

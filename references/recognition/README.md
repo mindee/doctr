@@ -81,7 +81,7 @@ When typing your labels, be aware that the VOCAB doesn't handle spaces. Also mak
 
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
-```python
+```shell
 python references/recognition/train_pytorch.py --help
 ```
 

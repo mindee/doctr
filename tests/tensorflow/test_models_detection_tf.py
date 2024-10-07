@@ -2,7 +2,6 @@ import math
 import os
 import tempfile
 
-import keras
 import numpy as np
 import onnxruntime
 import psutil
@@ -38,13 +37,13 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 )
 def test_detection_models(arch_name, input_shape, output_size, out_prob, train_mode):
     batch_size = 2
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     if arch_name == "fast_tiny_rep":
         model = reparameterize(detection.fast_tiny(pretrained=True, input_shape=input_shape))
         train_mode = False  # Reparameterized model is not trainable
     else:
         model = detection.__dict__[arch_name](pretrained=True, input_shape=input_shape)
-    assert isinstance(model, keras.Model)
+    assert isinstance(model, tf.keras.Model)
     input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     target = [
         {CLASS_NAME: np.array([[0.5, 0.5, 1, 1], [0.5, 0.5, 0.8, 0.8]], dtype=np.float32)},
@@ -153,7 +152,7 @@ def test_rotated_detectionpredictor(mock_pdf):
 )
 def test_detection_zoo(arch_name):
     # Model
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     predictor = detection.zoo.detection_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, DetectionPredictor)
@@ -178,7 +177,7 @@ def test_fast_reparameterization():
     base_model_params = np.sum([np.prod(v.shape) for v in base_model.trainable_variables])
     assert math.isclose(base_model_params, 13535296)  # base model params
     base_out = base_model(dummy_input, training=False)["logits"]
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     rep_model = reparameterize(base_model)
     rep_model_params = np.sum([np.prod(v.shape) for v in base_model.trainable_variables])
     assert math.isclose(rep_model_params, 8520256)  # reparameterized model params
@@ -242,7 +241,7 @@ def test_dilate():
 def test_models_onnx_export(arch_name, input_shape, output_size):
     # Model
     batch_size = 2
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     if arch_name == "fast_tiny_rep":
         model = reparameterize(detection.fast_tiny(pretrained=True, exportable=True, input_shape=input_shape))
     else:
@@ -257,6 +256,7 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
             model, model_name=os.path.join(tmpdir, "model"), dummy_input=dummy_input
         )
         assert os.path.exists(model_path)
+
         # Inference
         ort_session = onnxruntime.InferenceSession(
             os.path.join(tmpdir, "model.onnx"), providers=["CPUExecutionProvider"]

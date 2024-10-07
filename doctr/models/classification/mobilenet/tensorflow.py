@@ -9,8 +9,8 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
-from keras import layers
-from keras.models import Sequential
+from tensorflow.keras import layers
+from tensorflow.keras.models import Sequential
 
 from ....datasets import VOCABS
 from ...utils import conv_sequence, load_pretrained_params

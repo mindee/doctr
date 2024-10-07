@@ -5,13 +5,17 @@
 
 import os
 
+from doctr.file_utils import ensure_keras_v2
+
+ensure_keras_v2()
+
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import time
 
 import tensorflow as tf
-from keras import mixed_precision
+from tensorflow.keras import mixed_precision
 from tqdm import tqdm
 
 gpu_devices = tf.config.list_physical_devices("GPU")

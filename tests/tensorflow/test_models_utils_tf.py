@@ -2,7 +2,7 @@ import os
 
 import pytest
 import tensorflow as tf
-from keras.applications import ResNet50
+from tensorflow.keras.applications import ResNet50
 
 from doctr.models.classification import mobilenet_v3_small
 from doctr.models.utils import (

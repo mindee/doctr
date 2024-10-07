@@ -399,7 +399,6 @@ class GaussianBlur(NestedObject):
     def extra_repr(self) -> str:
         return f"kernel_shape={self.kernel_shape}, std={self.std}"
 
-    @tf.function
     def __call__(self, img: tf.Tensor) -> tf.Tensor:
         return tf.squeeze(
             _gaussian_filter(
