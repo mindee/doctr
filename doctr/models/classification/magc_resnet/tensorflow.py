@@ -14,7 +14,7 @@ from tensorflow.keras.models import Sequential
 
 from doctr.datasets import VOCABS
 
-from ...utils import load_pretrained_params
+from ...utils import _build_model, load_pretrained_params
 from ..resnet.tensorflow import ResNet
 
 __all__ = ["magc_resnet31"]
@@ -152,6 +152,8 @@ def _magc_resnet(
         cfg=_cfg,
         **kwargs,
     )
+    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>

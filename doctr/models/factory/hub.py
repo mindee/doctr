@@ -28,7 +28,7 @@ from doctr.file_utils import is_tf_available, is_torch_available
 if is_torch_available():
     import torch
 elif is_tf_available():
-    import tensorflow as tf
+    pass
 
 __all__ = ["login_to_hub", "push_to_hf_hub", "from_hub", "_save_model_and_config_for_hf_hub"]
 
@@ -76,8 +76,6 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, arch: str, task
         torch.save(model.state_dict(), weights_path)
     elif is_tf_available():
         weights_path = save_directory / "tf_model.weights.h5"
-        # NOTE: `model.build` is not an option because it doesn't runs in eager mode
-        _ = model(tf.ones((1, *model.cfg["input_shape"])), training=False)
         model.save_weights(str(weights_path))
 
     config_path = save_directory / "config.json"
@@ -229,8 +227,6 @@ def from_hub(repo_id: str, **kwargs: Any):
         model.load_state_dict(state_dict)
     else:  # tf
         weights = hf_hub_download(repo_id, filename="tf_model.weights.h5", **kwargs)
-        # NOTE: `model.build` is not an option because it doesn't runs in eager mode
-        _ = model(tf.ones((1, *model.cfg["input_shape"])), training=False)
         model.load_weights(weights)
 
     return model

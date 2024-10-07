@@ -193,8 +193,6 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        # Build the model first to load the weights
-        _ = model(tf.zeros((1, args.input_size, args.input_size, 3)), training=False)
         model.load_weights(args.resume)
 
     if isinstance(args.pretrained_backbone, str):
