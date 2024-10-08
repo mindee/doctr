@@ -40,7 +40,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     for images, targets in tqdm(val_loader):
         images = batch_transforms(images)
         targets = [{CLASS_NAME: t} for t in targets]
-        out = model(images, targets, training=False, return_preds=True)
+        out = model(images, target=targets, training=False, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
         for target, loc_pred in zip(targets, loc_preds):

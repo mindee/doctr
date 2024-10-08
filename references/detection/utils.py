@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import pickle
 from typing import Dict, List
 
 import cv2
@@ -84,13 +83,6 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
     plt.ylim(vals[min_idx] - 0.1 * delta, max_val + 0.2 * delta)
     plt.grid(True, linestyle="--", axis="x")
     plt.show(**kwargs)
-
-
-def load_backbone(model, weights_path):
-    pretrained_backbone_weights = pickle.load(open(weights_path, "rb"))
-    model.feat_extractor.set_weights(pretrained_backbone_weights[0])
-    model.fpn.set_weights(pretrained_backbone_weights[1])
-    return model
 
 
 class EarlyStopper:

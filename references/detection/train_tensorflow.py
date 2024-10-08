@@ -31,7 +31,7 @@ from doctr import transforms as T
 from doctr.datasets import DataLoader, DetectionDataset
 from doctr.models import detection
 from doctr.utils.metrics import LocalizationConfusion
-from utils import EarlyStopper, load_backbone, plot_recorder, plot_samples
+from utils import EarlyStopper, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -194,11 +194,6 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
-
-    if isinstance(args.pretrained_backbone, str):
-        print("Loading backbone weights.")
-        model = load_backbone(model, args.pretrained_backbone)
-        print("Done.")
 
     # Metrics
     val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
@@ -409,7 +404,7 @@ def parse_args():
 
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
-    parser.add_argument("--val_path", type=str, help="path to validation data folder")
+    parser.add_argument("--val_path", type=str, required=True, help="path to validation data folder")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
@@ -419,7 +414,6 @@ def parse_args():
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
-    parser.add_argument("--pretrained-backbone", type=str, default=None, help="Path to your backbone weights")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
     parser.add_argument(
         "--freeze-backbone", dest="freeze_backbone", action="store_true", help="freeze model backbone for fine-tuning"

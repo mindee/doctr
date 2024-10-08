@@ -22,7 +22,7 @@ python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path pat
 or PyTorch:
 
 ```shell
-python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5 --device 0
+python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 ### Multi-GPU support (PyTorch only - Experimental)

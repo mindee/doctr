@@ -115,7 +115,7 @@ class MAGC(layers.Layer):
         # Context modeling: B, H, W, C  ->  B, 1, 1, C
         context = self.context_modeling(inputs)
         # Transform: B, 1, 1, C  ->  B, 1, 1, C
-        transformed = self.transform(context)
+        transformed = self.transform(context, **kwargs)
         return inputs + transformed
 
 

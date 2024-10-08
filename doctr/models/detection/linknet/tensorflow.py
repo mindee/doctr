@@ -85,10 +85,10 @@ class LinkNetFPN(Model, NestedObject):
             for in_chan, out_chan, s, in_shape in zip(i_chans, o_chans, strides, in_shapes[::-1])
         ]
 
-    def call(self, x: List[tf.Tensor]) -> tf.Tensor:
+    def call(self, x: List[tf.Tensor], **kwargs: Any) -> tf.Tensor:
         out = 0
         for decoder, fmap in zip(self.decoders, x[::-1]):
-            out = decoder(out + fmap)
+            out = decoder(out + fmap, **kwargs)
         return out
 
     def extra_repr(self) -> str:

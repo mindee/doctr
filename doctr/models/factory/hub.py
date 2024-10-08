@@ -27,8 +27,6 @@ from doctr.file_utils import is_tf_available, is_torch_available
 
 if is_torch_available():
     import torch
-elif is_tf_available():
-    pass
 
 __all__ = ["login_to_hub", "push_to_hf_hub", "from_hub", "_save_model_and_config_for_hf_hub"]
 
