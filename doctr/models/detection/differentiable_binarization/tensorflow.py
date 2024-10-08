@@ -355,7 +355,7 @@ def _db_mobilenet(
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
-    model(tf.zeros(shape=[1, *_cfg["input_shape"]], dtype=tf.float32), training=False)
+    _build_model(model)
     # Load pretrained parameters
     if pretrained:
         # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
