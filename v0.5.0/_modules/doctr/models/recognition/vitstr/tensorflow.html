@@ -19,7 +19,6 @@
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -307,7 +306,7 @@
 <span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">vit_b</span><span class="p">,</span> <span class="n">vit_s</span>
-<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">_ViTSTR</span><span class="p">,</span> <span class="n">_ViTSTRPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ViTSTR&quot;</span><span class="p">,</span> <span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span> <span class="s2">&quot;vitstr_base&quot;</span><span class="p">]</span>
@@ -511,6 +510,8 @@
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">ViTSTR</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">_build_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="c1"># The given vocab differs from the pretrained model =&gt; skip the mismatching layers for fine tuning</span>
@@ -622,6 +623,5 @@
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../../../_static/js/custom.js?v=2c10ae29"></script>
-    <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

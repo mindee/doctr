@@ -19,7 +19,6 @@
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
-    <link rel="stylesheet" type="text/css" href="../../../../../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -309,7 +308,13 @@
 
 <span class="kn">from</span> <span class="nn">doctr.file_utils</span> <span class="kn">import</span> <span class="n">CLASS_NAME</span>
 <span class="kn">from</span> <span class="nn">doctr.models.classification</span> <span class="kn">import</span> <span class="n">resnet18</span><span class="p">,</span> <span class="n">resnet34</span><span class="p">,</span> <span class="n">resnet50</span>
-<span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">IntermediateLayerGetter</span><span class="p">,</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">IntermediateLayerGetter</span><span class="p">,</span>
+    <span class="n">_bf16_to_float32</span><span class="p">,</span>
+    <span class="n">_build_model</span><span class="p">,</span>
+    <span class="n">conv_sequence</span><span class="p">,</span>
+    <span class="n">load_pretrained_params</span><span class="p">,</span>
+<span class="p">)</span>
 <span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
 
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">LinkNetPostProcessor</span><span class="p">,</span> <span class="n">_LinkNet</span>
@@ -374,10 +379,10 @@
             <span class="k">for</span> <span class="n">in_chan</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">in_shape</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">i_chans</span><span class="p">,</span> <span class="n">o_chans</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">in_shapes</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">decoder</span><span class="p">,</span> <span class="n">fmap</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">decoders</span><span class="p">,</span> <span class="n">x</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">decoder</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="n">fmap</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">decoder</span><span class="p">(</span><span class="n">out</span> <span class="o">+</span> <span class="n">fmap</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -569,6 +574,8 @@
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">LinkNet</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="n">_build_model</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+
     <span class="c1"># Load pretrained parameters</span>
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="c1"># The given class_names differs from the pretrained model =&gt; skip the mismatching layers for fine tuning</span>
@@ -711,6 +718,5 @@
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../../../_static/js/custom.js?v=2c10ae29"></script>
-    <script src="../../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

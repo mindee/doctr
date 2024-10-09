@@ -19,7 +19,6 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/css/mindee.css?v=75ddc721" />
-    <link rel="stylesheet" type="text/css" href="../../../../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -322,8 +321,6 @@
 
 <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
     <span class="kn">import</span> <span class="nn">torch</span>
-<span class="k">elif</span> <span class="n">is_tf_available</span><span class="p">():</span>
-    <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;login_to_hub&quot;</span><span class="p">,</span> <span class="s2">&quot;push_to_hf_hub&quot;</span><span class="p">,</span> <span class="s2">&quot;from_hub&quot;</span><span class="p">,</span> <span class="s2">&quot;_save_model_and_config_for_hf_hub&quot;</span><span class="p">]</span>
 
@@ -374,8 +371,6 @@
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">weights_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">is_tf_available</span><span class="p">():</span>
         <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;tf_model.weights.h5&quot;</span>
-        <span class="c1"># NOTE: `model.build` is not an option because it doesn&#39;t runs in eager mode</span>
-        <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">])),</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">weights_path</span><span class="p">))</span>
 
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;config.json&quot;</span>
@@ -532,8 +527,6 @@
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># tf</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;tf_model.weights.h5&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="c1"># NOTE: `model.build` is not an option because it doesn&#39;t runs in eager mode</span>
-        <span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="o">*</span><span class="n">model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">])),</span> <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span></div>
@@ -577,6 +570,5 @@
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
     <script src="../../../../_static/js/custom.js?v=2c10ae29"></script>
-    <script src="../../../../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>
