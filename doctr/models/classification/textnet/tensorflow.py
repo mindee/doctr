@@ -12,7 +12,7 @@ from tensorflow.keras import Sequential, layers
 from doctr.datasets import VOCABS
 
 from ...modules.layers.tensorflow import FASTConvLayer
-from ...utils import conv_sequence, load_pretrained_params
+from ...utils import _build_model, conv_sequence, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
@@ -111,6 +111,8 @@ def _textnet(
 
     # Build the model
     model = TextNet(cfg=_cfg, **kwargs)
+    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>

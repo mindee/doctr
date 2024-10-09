@@ -13,7 +13,7 @@ from tensorflow.keras.models import Model, Sequential
 from doctr.datasets import VOCABS
 
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
-from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
@@ -245,6 +245,7 @@ def _crnn(
 
     # Build the model
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
     # Load pretrained parameters
     if pretrained:
         # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning

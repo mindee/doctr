@@ -38,7 +38,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     for images, targets in tqdm(val_iter):
         try:
             images = batch_transforms(images)
-            out = model(images, targets, return_preds=True, training=False)
+            out = model(images, target=targets, return_preds=True, training=False)
             # Compute metric
             if len(out["preds"]):
                 words, _ = zip(*out["preds"])

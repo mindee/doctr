@@ -41,7 +41,7 @@ class PreProcessor(NestedObject):
         self.resize = Resize(output_size, **kwargs)
         # Perform the division by 255 at the same time
         self.normalize = Normalize(mean, std)
-        self._runs_on_cuda = tf.test.is_gpu_available()
+        self._runs_on_cuda = tf.config.list_physical_devices("GPU") != []
 
     def batch_inputs(self, samples: List[tf.Tensor]) -> List[tf.Tensor]:
         """Gather samples into batches for inference purposes

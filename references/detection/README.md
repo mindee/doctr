@@ -16,13 +16,13 @@ pip install -r references/requirements.txt
 You can start your training in TensorFlow:
 
 ```shell
-python references/detection/train_tensorflow.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
+python references/detection/train_tensorflow.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 or PyTorch:
 
 ```shell
-python references/detection/train_pytorch.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5 --device 0
+python references/detection/train_pytorch.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 ## Data format

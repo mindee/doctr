@@ -13,7 +13,7 @@ from doctr.datasets import VOCABS
 from doctr.utils.repr import NestedObject
 
 from ...classification import resnet31
-from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["SAR", "sar_resnet31"]
@@ -392,6 +392,7 @@ def _sar(
 
     # Build the model
     model = SAR(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
     # Load pretrained parameters
     if pretrained:
         # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning

@@ -13,7 +13,7 @@ from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
 from doctr.models.modules.transformer import Decoder, PositionalEncoding
 
-from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ["MASTER", "master"]
@@ -290,6 +290,8 @@ def _master(arch: str, pretrained: bool, backbone_fn, pretrained_backbone: bool 
         cfg=_cfg,
         **kwargs,
     )
+    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning

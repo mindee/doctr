@@ -14,7 +14,13 @@ from tensorflow.keras import Model, Sequential, layers, losses
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
-from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, conv_sequence, load_pretrained_params
+from doctr.models.utils import (
+    IntermediateLayerGetter,
+    _bf16_to_float32,
+    _build_model,
+    conv_sequence,
+    load_pretrained_params,
+)
 from doctr.utils.repr import NestedObject
 
 from .base import LinkNetPostProcessor, _LinkNet
@@ -79,10 +85,10 @@ class LinkNetFPN(Model, NestedObject):
             for in_chan, out_chan, s, in_shape in zip(i_chans, o_chans, strides, in_shapes[::-1])
         ]
 
-    def call(self, x: List[tf.Tensor]) -> tf.Tensor:
+    def call(self, x: List[tf.Tensor], **kwargs: Any) -> tf.Tensor:
         out = 0
         for decoder, fmap in zip(self.decoders, x[::-1]):
-            out = decoder(out + fmap)
+            out = decoder(out + fmap, **kwargs)
         return out
 
     def extra_repr(self) -> str:
@@ -274,6 +280,8 @@ def _linknet(
 
     # Build the model
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning

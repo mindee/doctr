@@ -196,8 +196,6 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        # Build the model first to load the weights
-        _ = model(tf.zeros((1, *input_size, 3)), training=False)
         model.load_weights(args.resume)
 
     batch_transforms = T.Compose([
@@ -340,7 +338,7 @@ def main(args):
 
     if args.export_onnx:
         print("Exporting model to ONNX...")
-        if args.arch == "vit_b":
+        if args.arch in ["vit_s", "vit_b"]:
             # fixed batch size for vit
             dummy_input = [tf.TensorSpec([1, *(input_size), 3], tf.float32, name="input")]
         else:
@@ -358,10 +356,10 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    parser.add_argument("train_path", type=str, help="path to training data folder")
-    parser.add_argument("val_path", type=str, help="path to validation data folder")
     parser.add_argument("arch", type=str, help="classification model to train")
-    parser.add_argument("type", type=str, choices=["page", "crop"], help="type of data to train on")
+    parser.add_argument("--type", type=str, required=True, choices=["page", "crop"], help="type of data to train on")
+    parser.add_argument("--train_path", type=str, help="path to training data folder")
+    parser.add_argument("--val_path", type=str, required=True, help="path to validation data folder")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")

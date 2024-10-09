@@ -13,7 +13,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
 
 from ....datasets import VOCABS
-from ...utils import conv_sequence, load_pretrained_params
+from ...utils import _build_model, conv_sequence, load_pretrained_params
 
 __all__ = [
     "MobileNetV3",
@@ -295,6 +295,8 @@ def _mobilenet_v3(arch: str, pretrained: bool, rect_strides: bool = False, **kwa
         cfg=_cfg,
         **kwargs,
     )
+    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>

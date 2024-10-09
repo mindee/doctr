@@ -30,13 +30,13 @@ python references/classification/train_pytorch_character.py mobilenet_v3_large -
 You can start your training in TensorFlow:
 
 ```shell
-python references/classification/train_tensorflow_orientation.py path/to/your/train_set path/to/your/val_set resnet18 page --epochs 5
+python references/classification/train_tensorflow_orientation.py resnet18 --type page --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 or PyTorch:
 
 ```shell
-python references/classification/train_pytorch_orientation.py path/to/your/train_set path/to/your/val_set resnet18 page --epochs 5
+python references/classification/train_pytorch_orientation.py resnet18 --type page --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 The type can be either `page` for document images or `crop` for word crops.
