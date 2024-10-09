@@ -35,20 +35,6 @@ else:  # pragma: no cover
     logging.info("Disabling PyTorch because USE_TF is set")
     _torch_available = False
 
-# Compatibility fix to make sure tensorflow.keras stays at Keras 2
-if "TF_USE_LEGACY_KERAS" not in os.environ:
-    os.environ["TF_USE_LEGACY_KERAS"] = "1"
-
-elif os.environ["TF_USE_LEGACY_KERAS"] != "1":
-    raise ValueError(
-        "docTR is only compatible with Keras 2, but you have explicitly set `TF_USE_LEGACY_KERAS` to `0`. "
-    )
-
-
-def ensure_keras_v2() -> None:  # pragma: no cover
-    if not os.environ.get("TF_USE_LEGACY_KERAS") == "1":
-        os.environ["TF_USE_LEGACY_KERAS"] = "1"
-
 
 if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VALUES:
     _tf_available = importlib.util.find_spec("tensorflow") is not None
@@ -79,7 +65,6 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             _tf_available = False
         else:
             logging.info(f"TensorFlow version {_tf_version} available.")
-            ensure_keras_v2()
             import tensorflow as tf
 
             # Enable eager execution - this is required for some models to work properly

@@ -23,22 +23,22 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
-        "vocab": VOCABS["legacy_french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/crnn_vgg16_bn-9c188f45.weights.h5&src=0",
+        "vocab": VOCABS["french"],
+        "url": None,
     },
     "crnn_mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/crnn_mobilenet_v3_small-54850265.weights.h5&src=0",
+        "url": None,
     },
     "crnn_mobilenet_v3_large": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/crnn_mobilenet_v3_large-c64045e5.weights.h5&src=0",
+        "url": None,
     },
 }
 

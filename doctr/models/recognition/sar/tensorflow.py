@@ -24,7 +24,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/sar_resnet31-5a58806c.weights.h5&src=0",
+        "url": None,
     },
 }
 
@@ -170,9 +170,7 @@ class SARDecoder(layers.Layer, NestedObject):
         for t in range(self.max_length + 1):  # 32
             if t == 0:
                 # step to init the first states of the LSTMCell
-                states = self.lstm_cells.get_initial_state(
-                    inputs=None, batch_size=features.shape[0], dtype=features.dtype
-                )
+                states = self.lstm_cells.get_initial_state(batch_size=features.shape[0])
                 prev_symbol = holistic
             elif t == 1:
                 # step to init a 'blank' sequence of length vocab_size + 1 filled with zeros

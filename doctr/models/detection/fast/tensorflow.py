@@ -28,19 +28,19 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/fast_tiny-d7379d7b.weights.h5&src=0",
+        "url": None,
     },
     "fast_small": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/fast_small-44b27eb6.weights.h5&src=0",
+        "url": None,
     },
     "fast_base": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.9.0/fast_base-f2c6c736.weights.h5&src=0",
+        "url": None,
     },
 }
 
