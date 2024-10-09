@@ -5,10 +5,6 @@
 
 import os
 
-from doctr.file_utils import ensure_keras_v2
-
-ensure_keras_v2()
-
 from doctr.file_utils import CLASS_NAME
 
 os.environ["USE_TF"] = "1"
