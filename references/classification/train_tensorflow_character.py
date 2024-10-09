@@ -5,10 +5,6 @@
 
 import os
 
-from doctr.file_utils import ensure_keras_v2
-
-ensure_keras_v2()
-
 os.environ["USE_TF"] = "1"
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
@@ -185,8 +181,6 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        # Build the model first to load the weights
-        _ = model(tf.zeros((1, args.input_size, args.input_size, 3)), training=False)
         model.load_weights(args.resume)
 
     batch_transforms = T.Compose([

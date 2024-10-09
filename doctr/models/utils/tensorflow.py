@@ -59,10 +59,6 @@ def load_pretrained_params(
     else:
         archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
 
-        # Build the model
-        # NOTE: `model.build` is not an option because it doesn't runs in eager mode
-        _ = model(tf.ones((1, *model.cfg["input_shape"])), training=False)
-
         # Load weights
         model.load_weights(archive_path, skip_mismatch=skip_mismatch)
 
@@ -125,7 +121,7 @@ class IntermediateLayerGetter(Model):
     """
 
     def __init__(self, model: Model, layer_names: List[str]) -> None:
-        intermediate_fmaps = [model.get_layer(layer_name).get_output_at(0) for layer_name in layer_names]
+        intermediate_fmaps = [model.get_layer(layer_name)._inbound_nodes[0].outputs[0] for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
 
     def __repr__(self) -> str:
