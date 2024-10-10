@@ -58,8 +58,8 @@ tf = [
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
 ]
 torch = [
-    "torch>=1.12.0,<3.0.0",
-    "torchvision>=0.13.0",
+    "torch>=2.0.0,<3.0.0",
+    "torchvision>=0.15.0",
     "onnx>=1.12.0,<3.0.0",
 ]
 html = [
@@ -101,8 +101,8 @@ dev = [
     "tf-keras>=2.15.0,<3.0.0",  # Keep keras 2 compatibility
     "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
-    "torch>=1.12.0,<3.0.0",
-    "torchvision>=0.13.0",
+    "torch>=2.0.0,<3.0.0",
+    "torchvision>=0.15.0",
     "onnx>=1.12.0,<3.0.0",
     # Extras
     "weasyprint>=55.0",
