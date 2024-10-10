@@ -21,8 +21,8 @@ def _synthesize(
     h: int,
     draw_proba: bool = False,
     font_family: Optional[str] = None,
-    smoothing_factor: float = 0.95,
-    min_font_size: int = 8,
+    smoothing_factor: float = 0.75,
+    min_font_size: int = 6,
     max_font_size: int = 50,
 ) -> Image.Image:
     if len(entry["geometry"]) == 2:
@@ -57,9 +57,9 @@ def _synthesize(
         font = get_font(font_family, min_font_size)
         text_width, text_height = font.getbbox(word_text)[2:4]
 
-    # Calculate centering offsets
-    x_offset = (word_width - text_width) // 2
-    y_offset = (word_height - text_height) // 2
+    # Position the text left side of the bounding box
+    x_offset = 0
+    y_offset = 0
 
     # Create a mask for the word
     mask = Image.new("L", (w, h), 0)
