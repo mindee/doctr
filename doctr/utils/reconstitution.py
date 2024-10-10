@@ -67,10 +67,6 @@ def _synthesize(
     except ValueError:
         font = get_font(font_family, min_font_size)
 
-    # Position the text left side of the bounding box
-    x_offset = 0
-    y_offset = 0
-
     # Create a mask for the word
     mask = Image.new("L", (w, h), 0)
     ImageDraw.Draw(mask).polygon([(int(round(w * x)), int(round(h * y))) for x, y in polygon], fill=255)
@@ -78,9 +74,9 @@ def _synthesize(
     # Draw the word text
     d = ImageDraw.Draw(response)
     try:
-        d.text((xmin + x_offset, ymin + y_offset), word_text, font=font, fill=(0, 0, 0), anchor="lt")
+        d.text((xmin, ymin), word_text, font=font, fill=(0, 0, 0), anchor="lt")
     except UnicodeEncodeError:
-        d.text((xmin + x_offset, ymin + y_offset), anyascii(word_text), font=font, fill=(0, 0, 0), anchor="lt")
+        d.text((xmin, ymin), anyascii(word_text), font=font, fill=(0, 0, 0), anchor="lt")
 
     if draw_proba:
         confidence = (
