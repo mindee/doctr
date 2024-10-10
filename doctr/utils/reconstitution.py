@@ -14,6 +14,13 @@ from .fonts import get_font
 __all__ = ["synthesize_page", "synthesize_kie_page"]
 
 
+def _warn_rotation(entry: Dict[str, Any], already_warned: bool) -> bool:
+    if len(entry["geometry"]) == 4 and not already_warned:
+        logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
+        return True
+    return already_warned
+
+
 def _synthesize(
     response: Image.Image,
     entry: Dict[str, Any],
@@ -42,7 +49,11 @@ def _synthesize(
     word_width = xmax - xmin
     word_height = ymax - ymin
 
-    word_text = entry["value"]
+    # If lines are provided instead of words, concatenate the word entries
+    if "words" in entry:
+        word_text = " ".join(word["value"] for word in entry["words"])
+    else:
+        word_text = entry["value"]
     # Find the optimal font size
     try:
         font_size = min(word_height, max_font_size)
@@ -55,7 +66,6 @@ def _synthesize(
             text_width, text_height = font.getbbox(word_text)[2:4]
     except ValueError:
         font = get_font(font_family, min_font_size)
-        text_width, text_height = font.getbbox(word_text)[2:4]
 
     # Position the text left side of the bounding box
     x_offset = 0
@@ -73,12 +83,17 @@ def _synthesize(
         d.text((xmin + x_offset, ymin + y_offset), anyascii(word_text), font=font, fill=(0, 0, 0), anchor="lt")
 
     if draw_proba:
-        p = int(255 * entry["confidence"])
+        confidence = (
+            entry["confidence"]
+            if "confidence" in entry
+            else sum(w["confidence"] for w in entry["words"]) / len(entry["words"])
+        )
+        p = int(255 * confidence)
         color = (255 - p, 0, p)  # Red to blue gradient based on probability
         d.rectangle([(xmin, ymin), (xmax, ymax)], outline=color, width=2)
 
         prob_font = get_font(font_family, 20)
-        prob_text = f"{entry['confidence']:.2f}"
+        prob_text = f"{confidence:.2f}"
         prob_text_width, prob_text_height = prob_font.getbbox(prob_text)[2:4]
 
         # Position the probability slightly above the bounding box
@@ -119,16 +134,14 @@ def synthesize_page(
     response = Image.new("RGB", (w, h), color=(255, 255, 255))
 
     _warned = False
-
     for block in page["blocks"]:
-        for line in block["lines"]:
-            for word in line["words"]:
-                if len(word["geometry"]) == 4 and not _warned:  # pragma: no cover
-                    logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
-                    _warned = True
+        # If lines are provided use these to get better rendering results
+        if len(block["lines"]) > 1:
+            for line in block["lines"]:
+                _warned = _warn_rotation(block, _warned)
                 response = _synthesize(
                     response=response,
-                    entry=word,
+                    entry=line,
                     w=w,
                     h=h,
                     draw_proba=draw_proba,
@@ -137,6 +150,23 @@ def synthesize_page(
                     min_font_size=min_font_size,
                     max_font_size=max_font_size,
                 )
+        # Otherwise, draw each word
+        else:
+            for line in block["lines"]:
+                _warned = _warn_rotation(block, _warned)
+                for word in line["words"]:
+                    response = _synthesize(
+                        response=response,
+                        entry=word,
+                        w=w,
+                        h=h,
+                        draw_proba=draw_proba,
+                        font_family=font_family,
+                        smoothing_factor=smoothing_factor,
+                        min_font_size=min_font_size,
+                        max_font_size=max_font_size,
+                    )
+
     return np.array(response, dtype=np.uint8)
 
 
@@ -165,13 +195,11 @@ def synthesize_kie_page(
     response = Image.new("RGB", (w, h), color=(255, 255, 255))
 
     _warned = False
-
     # Draw each word
     for predictions in page["predictions"].values():
         for prediction in predictions:
-            if len(prediction["geometry"]) == 4 and not _warned:  # pragma: no cover
-                logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
-                _warned = True
+            _warned = _warn_rotation(prediction, _warned)
+
             response = _synthesize(
                 response=response,
                 entry=prediction,

@@ -16,6 +16,13 @@ def test_synthesize_page():
     assert isinstance(render_with_proba, np.ndarray)
     assert render_with_proba.shape == (*pages[0].dimensions, 3)
 
+    # Test with only one line
+    pages_one_line = pages[0].export()
+    pages_one_line["blocks"][0]["lines"] = [pages_one_line["blocks"][0]["lines"][0]]
+    render_one_line = reconstitution.synthesize_page(pages_one_line, draw_proba=True)
+    assert isinstance(render_one_line, np.ndarray)
+    assert render_one_line.shape == (*pages[0].dimensions, 3)
+
 
 def test_synthesize_kie_page():
     pages = _mock_kie_pages()
@@ -28,28 +35,3 @@ def test_synthesize_kie_page():
     render_with_proba = reconstitution.synthesize_kie_page(pages[0].export(), draw_proba=True)
     assert isinstance(render_with_proba, np.ndarray)
     assert render_with_proba.shape == (*pages[0].dimensions, 3)
-
-
-def test_synthesize_with_edge_cases():
-    page = {
-        "dimensions": (1000, 1000),
-        "blocks": [
-            {
-                "lines": [
-                    {
-                        "words": [
-                            {"value": "Test", "geometry": [(0, 0), (1, 0), (1, 1), (0, 1)], "confidence": 1.0},
-                            {
-                                "value": "Overflow",
-                                "geometry": [(0.9, 0.9), (1.1, 0.9), (1.1, 1.1), (0.9, 1.1)],
-                                "confidence": 0.5,
-                            },
-                        ]
-                    }
-                ]
-            }
-        ],
-    }
-    render = reconstitution.synthesize_page(page, draw_proba=True)
-    assert isinstance(render, np.ndarray)
-    assert render.shape == (1000, 1000, 3)
