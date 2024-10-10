@@ -14,7 +14,7 @@ from .fonts import get_font
 __all__ = ["synthesize_page", "synthesize_kie_page"]
 
 
-def _warn_rotation(entry: Dict[str, Any], already_warned: bool) -> bool:
+def _warn_rotation(entry: Dict[str, Any], already_warned: bool) -> bool:  # pragma: no cover
     if len(entry["geometry"]) == 4 and not already_warned:
         logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
         return True
@@ -134,7 +134,7 @@ def synthesize_page(
         # If lines are provided use these to get better rendering results
         if len(block["lines"]) > 1:
             for line in block["lines"]:
-                _warned = _warn_rotation(block, _warned)
+                _warned = _warn_rotation(block, _warned)  # pragma: no cover
                 response = _synthesize(
                     response=response,
                     entry=line,
@@ -149,7 +149,7 @@ def synthesize_page(
         # Otherwise, draw each word
         else:
             for line in block["lines"]:
-                _warned = _warn_rotation(block, _warned)
+                _warned = _warn_rotation(block, _warned)  # pragma: no cover
                 for word in line["words"]:
                     response = _synthesize(
                         response=response,
@@ -194,7 +194,7 @@ def synthesize_kie_page(
     # Draw each word
     for predictions in page["predictions"].values():
         for prediction in predictions:
-            _warned = _warn_rotation(prediction, _warned)
+            _warned = _warn_rotation(prediction, _warned)  # pragma: no cover
 
             response = _synthesize(
                 response=response,
