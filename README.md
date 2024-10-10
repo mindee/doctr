@@ -161,7 +161,7 @@ pip install "python-doctr[torch,viz,html,contib]"
 For MacBooks with M1 chip, you will need some additional packages or specific versions:
 
 - TensorFlow 2: [metal plugin](https://developer.apple.com/metal/tensorflow-plugin/)
-- PyTorch: [version >= 1.12.0](https://pytorch.org/get-started/locally/#start-locally)
+- PyTorch: [version >= 2.0.0](https://pytorch.org/get-started/locally/#start-locally)
 
 ### Developer mode
 
