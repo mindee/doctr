@@ -123,7 +123,7 @@ def synthesize_page(
     for block in page["blocks"]:
         for line in block["lines"]:
             for word in line["words"]:
-                if len(word["geometry"]) == 4 and not _warned:
+                if len(word["geometry"]) == 4 and not _warned:  # pragma: no cover
                     logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
                     _warned = True
                 response = _synthesize(
@@ -169,7 +169,7 @@ def synthesize_kie_page(
     # Draw each word
     for predictions in page["predictions"].values():
         for prediction in predictions:
-            if len(prediction["geometry"]) == 4 and not _warned:
+            if len(prediction["geometry"]) == 4 and not _warned:  # pragma: no cover
                 logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
                 _warned = True
             response = _synthesize(
