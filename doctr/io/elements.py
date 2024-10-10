@@ -310,6 +310,10 @@ class Page(Element):
     def synthesize(self, **kwargs) -> np.ndarray:
         """Synthesize the page from the predictions
 
+        Args:
+        ----
+            **kwargs: keyword arguments passed to the `synthesize_page` method
+
         Returns
         -------
             synthesized page
@@ -493,7 +497,7 @@ class KIEPage(Element):
 
         Args:
         ----
-            **kwargs: keyword arguments passed to the matplotlib.pyplot.show method
+            **kwargs: keyword arguments passed to the `synthesize_kie_page` method
 
         Returns:
         -------
@@ -603,11 +607,15 @@ class Document(Element):
     def synthesize(self, **kwargs) -> List[np.ndarray]:
         """Synthesize all pages from their predictions
 
+        Args:
+        ----
+            **kwargs: keyword arguments passed to the `Page.synthesize` method
+
         Returns
         -------
             list of synthesized pages
         """
-        return [page.synthesize() for page in self.pages]
+        return [page.synthesize(**kwargs) for page in self.pages]
 
     def export_as_xml(self, **kwargs) -> List[Tuple[bytes, ET.ElementTree]]:
         """Export the document as XML (hOCR-format)
