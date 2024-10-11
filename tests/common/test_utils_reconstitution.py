@@ -23,6 +23,12 @@ def test_synthesize_page():
     assert isinstance(render_one_line, np.ndarray)
     assert render_one_line.shape == (*pages[0].dimensions, 3)
 
+    # test with a smiley which can't be rendered by unidecode
+    pages_one_line["blocks"][0]["lines"][0]["words"][0]["text"] = "🤯"
+    render_one_line = reconstitution.synthesize_page(pages_one_line, draw_proba=True)
+    assert isinstance(render_one_line, np.ndarray)
+    assert render_one_line.shape == (*pages[0].dimensions, 3)
+
 
 def test_synthesize_kie_page():
     pages = _mock_kie_pages()

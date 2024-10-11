@@ -14,11 +14,15 @@ from .fonts import get_font
 __all__ = ["synthesize_page", "synthesize_kie_page"]
 
 
-def _warn_rotation(entry: Dict[str, Any], already_warned: bool) -> bool:  # pragma: no cover
-    if len(entry["geometry"]) == 4 and not already_warned:
+# Global variable to avoid multiple warnings
+ROTATION_WARNING = False
+
+
+def _warn_rotation(entry: Dict[str, Any]) -> None:  # pragma: no cover
+    global ROTATION_WARNING
+    if not ROTATION_WARNING and len(entry["geometry"]) == 4:
         logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
-        return True
-    return already_warned
+        ROTATION_WARNING = True
 
 
 def _synthesize(
@@ -74,9 +78,13 @@ def _synthesize(
     # Draw the word text
     d = ImageDraw.Draw(response)
     try:
-        d.text((xmin, ymin), word_text, font=font, fill=(0, 0, 0), anchor="lt")
-    except UnicodeEncodeError:
-        d.text((xmin, ymin), anyascii(word_text), font=font, fill=(0, 0, 0), anchor="lt")
+        try:
+            d.text((xmin, ymin), word_text, font=font, fill=(0, 0, 0), anchor="lt")
+        except UnicodeEncodeError:
+            d.text((xmin, ymin), anyascii(word_text), font=font, fill=(0, 0, 0), anchor="lt")
+    # Catch generic exceptions to avoid crashing the whole rendering
+    except Exception:  # pragma: no cover
+        logging.warning(f"Could not render word: {word_text}")
 
     if draw_proba:
         confidence = (
@@ -129,12 +137,11 @@ def synthesize_page(
     h, w = page["dimensions"]
     response = Image.new("RGB", (w, h), color=(255, 255, 255))
 
-    _warned = False
     for block in page["blocks"]:
         # If lines are provided use these to get better rendering results
         if len(block["lines"]) > 1:
             for line in block["lines"]:
-                _warned = _warn_rotation(block, _warned)  # pragma: no cover
+                _warn_rotation(block)  # pragma: no cover
                 response = _synthesize(
                     response=response,
                     entry=line,
@@ -149,7 +156,7 @@ def synthesize_page(
         # Otherwise, draw each word
         else:
             for line in block["lines"]:
-                _warned = _warn_rotation(block, _warned)  # pragma: no cover
+                _warn_rotation(block)  # pragma: no cover
                 for word in line["words"]:
                     response = _synthesize(
                         response=response,
@@ -190,12 +197,10 @@ def synthesize_kie_page(
     h, w = page["dimensions"]
     response = Image.new("RGB", (w, h), color=(255, 255, 255))
 
-    _warned = False
     # Draw each word
     for predictions in page["predictions"].values():
         for prediction in predictions:
-            _warned = _warn_rotation(prediction, _warned)  # pragma: no cover
-
+            _warn_rotation(prediction)  # pragma: no cover
             response = _synthesize(
                 response=response,
                 entry=prediction,
