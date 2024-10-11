@@ -23,6 +23,13 @@ def test_synthesize_page():
     assert isinstance(render_one_line, np.ndarray)
     assert render_one_line.shape == (*pages[0].dimensions, 3)
 
+    # Test with polygons
+    pages_poly = pages[0].export()
+    pages_poly["blocks"][0]["lines"][0]["geometry"] = [(0, 0), (0, 1), (1, 1), (1, 0)]
+    render_poly = reconstitution.synthesize_page(pages_poly, draw_proba=True)
+    assert isinstance(render_poly, np.ndarray)
+    assert render_poly.shape == (*pages[0].dimensions, 3)
+
 
 def test_synthesize_kie_page():
     pages = _mock_kie_pages()
