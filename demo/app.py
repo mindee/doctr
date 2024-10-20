@@ -71,15 +71,14 @@ def main(det_archs, reco_archs):
     # Only straight pages or possible rotation
     st.sidebar.title("Parameters")
     assume_straight_pages = st.sidebar.checkbox("Assume straight pages", value=True)
-    st.sidebar.write("\n")
     # Disable page orientation detection
     disable_page_orientation = st.sidebar.checkbox("Disable page orientation detection", value=False)
-    st.sidebar.write("\n")
     # Disable crop orientation detection
     disable_crop_orientation = st.sidebar.checkbox("Disable crop orientation detection", value=False)
-    st.sidebar.write("\n")
     # Straighten pages
     straighten_pages = st.sidebar.checkbox("Straighten pages", value=False)
+    # Export as straight boxes
+    export_straight_boxes = st.sidebar.checkbox("Export as straight boxes", value=False)
     st.sidebar.write("\n")
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
@@ -95,15 +94,16 @@ def main(det_archs, reco_archs):
         else:
             with st.spinner("Loading model..."):
                 predictor = load_predictor(
-                    det_arch,
-                    reco_arch,
-                    assume_straight_pages,
-                    straighten_pages,
-                    disable_page_orientation,
-                    disable_crop_orientation,
-                    bin_thresh,
-                    box_thresh,
-                    forward_device,
+                    det_arch=det_arch,
+                    reco_arch=reco_arch,
+                    assume_straight_pages=assume_straight_pages,
+                    straighten_pages=straighten_pages,
+                    export_as_straight_boxes=export_straight_boxes,
+                    disable_page_orientation=disable_page_orientation,
+                    disable_crop_orientation=disable_crop_orientation,
+                    bin_thresh=bin_thresh,
+                    box_thresh=box_thresh,
+                    device=forward_device,
                 )
 
             with st.spinner("Analyzing..."):

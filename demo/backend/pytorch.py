@@ -37,6 +37,7 @@ def load_predictor(
     reco_arch: str,
     assume_straight_pages: bool,
     straighten_pages: bool,
+    export_as_straight_boxes: bool,
     disable_page_orientation: bool,
     disable_crop_orientation: bool,
     bin_thresh: float,
@@ -51,6 +52,7 @@ def load_predictor(
         reco_arch: recognition architecture
         assume_straight_pages: whether to assume straight pages or not
         straighten_pages: whether to straighten rotated pages or not
+        export_as_straight_boxes: whether to export boxes as straight or not
         disable_page_orientation: whether to disable page orientation or not
         disable_crop_orientation: whether to disable crop orientation or not
         bin_thresh: binarization threshold for the segmentation map
@@ -67,7 +69,7 @@ def load_predictor(
         pretrained=True,
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
-        export_as_straight_boxes=straighten_pages,
+        export_as_straight_boxes=export_as_straight_boxes,
         detect_orientation=not assume_straight_pages,
         disable_page_orientation=disable_page_orientation,
         disable_crop_orientation=disable_crop_orientation,
