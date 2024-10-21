@@ -379,9 +379,9 @@ can be a significant save of time.</p>
 </div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
 <span class="c1"># Load straight boxes</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detection_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># Load rotated boxes</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detection_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -472,6 +472,18 @@ can be a significant save of time.</p>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recognition_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># Crop rotated boxes (always regular)</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recognition_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="ocr">
+<h3>OCR<a class="headerlink" href="#ocr" title="Link to this heading">¶</a></h3>
+<p>The same dataset table as for detection, but with information about the bounding boxes and labels.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
+<span class="c1"># Load straight boxes</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Load rotated boxes</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -607,6 +619,7 @@ You can find further information about the format in references.</p>
 <li><a class="reference internal" href="#available-datasets">Available Datasets</a><ul>
 <li><a class="reference internal" href="#detection">Detection</a></li>
 <li><a class="reference internal" href="#recognition">Recognition</a></li>
+<li><a class="reference internal" href="#ocr">OCR</a></li>
 <li><a class="reference internal" href="#object-detection">Object Detection</a></li>
 <li><a class="reference internal" href="#synthetic-dataset-generator">Synthetic dataset generator</a></li>
 </ul>
@@ -624,12 +637,12 @@ You can find further information about the format in references.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
+</div><script src="../_static/documentation_options.js?v=41ddb9e0"></script>
     <script src="../_static/doctools.js?v=9a2dae69"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=2c10ae29"></script>
+    <script src="../_static/js/custom.js?v=ae3d3bd5"></script>
     </body>
 </html>
