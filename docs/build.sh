@@ -54,5 +54,6 @@ deploy_doc "dcbb21f" v0.6.0
 deploy_doc "75bddfc" v0.7.0
 deploy_doc "67d1087" v0.8.0
 deploy_doc "62d94ff" v0.8.1
-deploy_doc "894eafd" # v0.9.0 Latest stable release
+deploy_doc "894eafd" v0.9.0
+deploy_doc "d5dbc73" # v0.10.0 Latest stable release
 rm -rf _build _static _conf.py
