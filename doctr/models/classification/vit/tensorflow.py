@@ -7,14 +7,14 @@ from copy import deepcopy
 from typing import Any, Dict, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Sequential, layers
+from keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
 from doctr.models.modules.vision_transformer.tensorflow import PatchEmbedding
 from doctr.utils.repr import NestedObject
 
-from ...utils import _build_model, load_pretrained_params
+from ...utils import load_pretrained_params
 
 __all__ = ["vit_s", "vit_b"]
 
@@ -25,14 +25,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 32),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/vit_s-d68b3d5b.weights.h5",
     },
     "vit_b": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/vit_b-f01181f0.weights.h5",
     },
 }
 
@@ -121,7 +121,6 @@ def _vit(
 
     # Build the model
     model = VisionTransformer(cfg=_cfg, **kwargs)
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

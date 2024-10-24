@@ -10,14 +10,13 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential, layers, losses
+from keras import Model, Sequential, layers, losses
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import (
     IntermediateLayerGetter,
     _bf16_to_float32,
-    _build_model,
     conv_sequence,
     load_pretrained_params,
 )
@@ -44,7 +43,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/linknet_resnet50-fdea2b5f.weights.h5",
     },
 }
 
@@ -280,7 +279,6 @@ def _linknet(
 
     # Build the model
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

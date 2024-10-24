@@ -7,13 +7,13 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 from doctr.models.classification import magc_resnet31
 from doctr.models.modules.transformer import Decoder, PositionalEncoding
 
-from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from .base import _MASTER, _MASTERPostProcessor
 
 __all__ = ["MASTER", "master"]
@@ -25,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/master-bdcf6f40.weights.h5",
     },
 }
 
@@ -290,7 +290,6 @@ def _master(arch: str, pretrained: bool, backbone_fn, pretrained_backbone: bool 
         cfg=_cfg,
         **kwargs,
     )
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

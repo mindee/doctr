@@ -2,7 +2,7 @@ import os
 
 import pytest
 import tensorflow as tf
-from tensorflow.keras.applications import ResNet50
+from keras import applications
 
 from doctr.models.classification import mobilenet_v3_small
 from doctr.models.utils import (
@@ -49,7 +49,7 @@ def test_conv_sequence():
 
 
 def test_intermediate_layer_getter():
-    backbone = ResNet50(include_top=False, weights=None, pooling=None)
+    backbone = applications.ResNet50(include_top=False, weights=None, pooling=None)
     feat_extractor = IntermediateLayerGetter(backbone, ["conv2_block3_out", "conv3_block4_out"])
     # Check num of output features
     input_tensor = tf.random.uniform(shape=[1, 224, 224, 3], minval=0, maxval=1)

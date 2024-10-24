@@ -6,12 +6,11 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 
-from ...utils import _build_model, conv_sequence, load_pretrained_params
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["VGG", "vgg16_bn_r"]
 
@@ -22,7 +21,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (1.0, 1.0, 1.0),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/vgg16_bn_r-b4d69212.weights.h5",
     },
 }
 
@@ -81,7 +80,6 @@ def _vgg(
 
     # Build the model
     model = VGG(num_blocks, planes, rect_pools, cfg=_cfg, **kwargs)
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

@@ -9,12 +9,11 @@ from functools import partial
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import activations, layers
-from tensorflow.keras.models import Sequential
+from keras import Sequential, activations, layers
 
 from doctr.datasets import VOCABS
 
-from ...utils import _build_model, load_pretrained_params
+from ...utils import load_pretrained_params
 from ..resnet.tensorflow import ResNet
 
 __all__ = ["magc_resnet31"]
@@ -26,7 +25,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/magc_resnet31-6c266055.weights.h5",
     },
 }
 
@@ -152,7 +151,6 @@ def _magc_resnet(
         cfg=_cfg,
         **kwargs,
     )
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

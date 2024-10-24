@@ -7,13 +7,12 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Model, Sequential
+from keras import Model, Sequential, layers
 
 from doctr.datasets import VOCABS
 
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
-from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
@@ -24,21 +23,21 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/crnn_vgg16_bn-41bbe57b.weights.h5",
     },
     "crnn_mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/crnn_mobilenet_v3_small-b4bb2858.weights.h5",
     },
     "crnn_mobilenet_v3_large": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/crnn_mobilenet_v3_large-1eac49ae.weights.h5",
     },
 }
 
@@ -245,7 +244,7 @@ def _crnn(
 
     # Build the model
     model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
-    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning

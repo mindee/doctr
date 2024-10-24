@@ -7,7 +7,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model
+from keras import Model
 
 from doctr.models.preprocessor import PreProcessor
 from doctr.utils.repr import NestedObject

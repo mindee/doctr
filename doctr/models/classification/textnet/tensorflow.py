@@ -7,12 +7,12 @@
 from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
-from tensorflow.keras import Sequential, layers
+from keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 
 from ...modules.layers.tensorflow import FASTConvLayer
-from ...utils import _build_model, conv_sequence, load_pretrained_params
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
@@ -22,21 +22,21 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/textnet_tiny-99fb9158.weights.h5",
     },
     "textnet_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/textnet_small-44072f65.weights.h5",
     },
     "textnet_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/textnet_base-a92df1c0.weights.h5",
     },
 }
 
@@ -111,7 +111,6 @@ def _textnet(
 
     # Build the model
     model = TextNet(cfg=_cfg, **kwargs)
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

@@ -9,11 +9,10 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.models import Sequential
+from keras import Sequential, layers
 
 from ....datasets import VOCABS
-from ...utils import _build_model, conv_sequence, load_pretrained_params
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = [
     "MobileNetV3",
@@ -32,42 +31,42 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/mobilenet_v3_large-d857506e.weights.h5",
     },
     "mobilenet_v3_large_r": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/mobilenet_v3_large_r-eef2e3c6.weights.h5",
     },
     "mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/mobilenet_v3_small-3fcebad7.weights.h5",
     },
     "mobilenet_v3_small_r": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/mobilenet_v3_small_r-dd50218d.weights.h5",
     },
     "mobilenet_v3_small_crop_orientation": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (128, 128, 3),
         "classes": [0, -90, 180, 90],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/mobilenet_v3_small_crop_orientation-ef019b6b.weights.h5",
     },
     "mobilenet_v3_small_page_orientation": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (512, 512, 3),
         "classes": [0, -90, 180, 90],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/mobilenet_v3_small_page_orientation-0071d55d.weights.h5",
     },
 }
 
@@ -295,7 +294,6 @@ def _mobilenet_v3(arch: str, pretrained: bool, rect_strides: bool = False, **kwa
         cfg=_cfg,
         **kwargs,
     )
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

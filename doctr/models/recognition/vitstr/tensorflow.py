@@ -7,12 +7,12 @@ from copy import deepcopy
 from typing import Any, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import Model, layers
+from keras import Model, layers
 
 from doctr.datasets import VOCABS
 
 from ...classification import vit_b, vit_s
-from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
@@ -23,14 +23,14 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/vitstr_small-c692a250.weights.h5",
     },
     "vitstr_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 128, 3),
         "vocab": VOCABS["french"],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/vitstr_base-636fcfcf.weights.h5",
     },
 }
 
@@ -216,7 +216,6 @@ def _vitstr(
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

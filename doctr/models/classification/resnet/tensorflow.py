@@ -7,13 +7,11 @@ from copy import deepcopy
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.applications import ResNet50
-from tensorflow.keras.models import Sequential
+from keras import Sequential, applications, layers
 
 from doctr.datasets import VOCABS
 
-from ...utils import _build_model, conv_sequence, load_pretrained_params
+from ...utils import conv_sequence, load_pretrained_params
 
 __all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide"]
 
@@ -24,35 +22,35 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/resnet18-4138682e.weights.h5",
     },
     "resnet31": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/resnet31-61808f41.weights.h5",
     },
     "resnet34": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/resnet34-2288ee52.weights.h5",
     },
     "resnet50": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/resnet50-82358f34.weights.h5",
     },
     "resnet34_wide": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (32, 32, 3),
         "classes": list(VOCABS["french"]),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/resnet34_wide-4c788e90.weights.h5",
     },
 }
 
@@ -210,7 +208,6 @@ def _resnet(
     model = ResNet(
         num_blocks, output_channels, stage_downsample, stage_conv, stage_pooling, origin_stem, cfg=_cfg, **kwargs
     )
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:
@@ -350,7 +347,7 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
     _cfg["input_shape"] = kwargs["input_shape"]
     kwargs.pop("classes")
 
-    model = ResNet50(
+    model = applications.ResNet50(
         weights=None,
         include_top=True,
         pooling=True,
@@ -360,7 +357,6 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
     )
 
     model.cfg = _cfg
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

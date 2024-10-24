@@ -10,14 +10,12 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential, layers, losses
-from tensorflow.keras.applications import ResNet50
+from keras import Model, Sequential, applications, layers, losses
 
 from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import (
     IntermediateLayerGetter,
     _bf16_to_float32,
-    _build_model,
     conv_sequence,
     load_pretrained_params,
 )
@@ -34,7 +32,7 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
         "input_shape": (1024, 1024, 3),
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/db_resnet50-fe92475b.weights.h5",
     },
     "db_mobilenet_v3_large": {
         "mean": (0.798, 0.785, 0.772),
@@ -310,7 +308,6 @@ def _db_resnet(
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
-    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:
@@ -355,7 +352,7 @@ def _db_mobilenet(
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
-    _build_model(model)
+
     # Load pretrained parameters
     if pretrained:
         # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
@@ -390,7 +387,7 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     return _db_resnet(
         "db_resnet50",
         pretrained,
-        ResNet50,
+        applications.ResNet50,
         ["conv2_block3_out", "conv3_block4_out", "conv4_block6_out", "conv5_block3_out"],
         **kwargs,
     )
