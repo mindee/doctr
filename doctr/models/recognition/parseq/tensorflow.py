@@ -250,7 +250,6 @@ class PARSeq(_PARSeq, Model):
         target_query = self.dropout(target_query, **kwargs)
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
-    @tf.function
     def decode_autoregressive(self, features: tf.Tensor, max_len: Optional[int] = None, **kwargs) -> tf.Tensor:
         """Generate predictions for the given features."""
         max_length = max_len if max_len is not None else self.max_length

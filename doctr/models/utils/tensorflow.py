@@ -161,6 +161,10 @@ def export_model_to_onnx(
     -------
         the path to the exported model and a list with the output layer names
     """
+    # get the users eager mode
+    eager_mode = tf.executing_eagerly()
+    # set eager mode to false to avoid issues with tf2onnx
+    tf.config.run_functions_eagerly(False)
     large_model = kwargs.get("large_model", False)
     model_proto, _ = tf2onnx.convert.from_keras(
         model,
@@ -170,6 +174,9 @@ def export_model_to_onnx(
     )
     # Get the output layer names
     output = [n.name for n in model_proto.graph.output]
+
+    # reset the eager mode to the users mode
+    tf.config.run_functions_eagerly(eager_mode)
 
     # models which are too large (weights > 2GB while converting to ONNX) needs to be handled
     # about an external tensor storage where the graph and weights are seperatly stored in a archive
