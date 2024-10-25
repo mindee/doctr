@@ -163,8 +163,8 @@ def export_model_to_onnx(
     """
     # get the users eager mode
     eager_mode = tf.executing_eagerly()
-    # set eager mode to false to avoid issues with tf2onnx
-    tf.config.run_functions_eagerly(False)
+    # set eager mode to true to avoid issues with tf2onnx
+    tf.config.run_functions_eagerly(True)
     large_model = kwargs.get("large_model", False)
     model_proto, _ = tf2onnx.convert.from_keras(
         model,
