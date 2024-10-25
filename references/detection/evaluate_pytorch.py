@@ -112,7 +112,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=ds.collate_fn,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
+    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
     batch_transforms = Normalize(mean=mean, std=std)
 
@@ -143,8 +143,7 @@ def main(args):
     print("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)
     print(
-        f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
-        f"Mean IoU: {mean_iou:.2%})"
+        f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
     )
 
 

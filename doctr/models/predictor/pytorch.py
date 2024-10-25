@@ -103,9 +103,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
-        assert all(
-            len(loc_pred) == 1 for loc_pred in loc_preds
-        ), "Detection Model in ocr_predictor should output only one class"
+        assert all(len(loc_pred) == 1 for loc_pred in loc_preds), (
+            "Detection Model in ocr_predictor should output only one class"
+        )
 
         loc_preds = [list(loc_pred.values())[0] for loc_pred in loc_preds]
         # Detach objectness scores from loc_preds

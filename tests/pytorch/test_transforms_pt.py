@@ -40,8 +40,7 @@ def test_resize():
     # Symetric padding
     transfo = Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
     assert repr(transfo) == (
-        f"Resize(output_size={output_size}, interpolation='bilinear', "
-        f"preserve_aspect_ratio=True, symmetric_pad=True)"
+        f"Resize(output_size={output_size}, interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
     )
     out = transfo(input_t)
     assert out.shape[-2:] == output_size

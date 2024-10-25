@@ -162,9 +162,7 @@ def main(rank: int, world_size: int, args):
             pin_memory=torch.cuda.is_available(),
             collate_fn=val_set.collate_fn,
         )
-        print(
-            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)"
-        )
+        print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -266,7 +264,7 @@ def main(rank: int, world_size: int, args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in " f"{len(train_loader)} batches)")
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))

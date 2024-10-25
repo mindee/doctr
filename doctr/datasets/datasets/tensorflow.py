@@ -29,14 +29,14 @@ class AbstractDataset(_AbstractDataset):
             assert "labels" in target, "Target should contain 'labels' key"
         elif isinstance(target, tuple):
             assert len(target) == 2
-            assert isinstance(target[0], str) or isinstance(
-                target[0], np.ndarray
-            ), "first element of the tuple should be a string or a numpy array"
+            assert isinstance(target[0], str) or isinstance(target[0], np.ndarray), (
+                "first element of the tuple should be a string or a numpy array"
+            )
             assert isinstance(target[1], list), "second element of the tuple should be a list"
         else:
-            assert isinstance(target, str) or isinstance(
-                target, np.ndarray
-            ), "Target should be a string or a numpy array"
+            assert isinstance(target, str) or isinstance(target, np.ndarray), (
+                "Target should be a string or a numpy array"
+            )
 
         # Read image
         img = (

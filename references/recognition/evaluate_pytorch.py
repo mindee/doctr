@@ -106,7 +106,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=ds.collate_fn,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in " f"{len(test_loader)} batches)")
+    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
     mean, std = model.cfg["mean"], model.cfg["std"]
     batch_transforms = Normalize(mean=mean, std=std)

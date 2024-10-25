@@ -209,7 +209,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in " f"{len(val_loader)} batches)")
+    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
         val_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -316,7 +316,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in " f"{len(train_loader)} batches)")
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
 

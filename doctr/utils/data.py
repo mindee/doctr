@@ -112,7 +112,7 @@ def download_from_url(
     except (urllib.error.URLError, IOError) as e:
         if url[:5] == "https":
             url = url.replace("https:", "http:")
-            print("Failed download. Trying https -> http instead." f" Downloading {url} to {file_path}")
+            print(f"Failed download. Trying https -> http instead. Downloading {url} to {file_path}")
             _urlretrieve(url, file_path)
         else:
             raise e

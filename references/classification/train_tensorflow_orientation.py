@@ -181,8 +181,7 @@ def main(args):
         collate_fn=collate_fn,
     )
     print(
-        f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
-        f"{val_loader.num_batches} batches)"
+        f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {val_loader.num_batches} batches)"
     )
 
     # Load doctr model
@@ -236,8 +235,7 @@ def main(args):
         collate_fn=collate_fn,
     )
     print(
-        f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
-        f"{train_loader.num_batches} batches)"
+        f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {train_loader.num_batches} batches)"
     )
 
     if args.show_samples:

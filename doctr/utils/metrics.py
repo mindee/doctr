@@ -392,7 +392,7 @@ class OCRMetric:
         """
         if gt_boxes.shape[0] != len(gt_labels) or pred_boxes.shape[0] != len(pred_labels):
             raise AssertionError(
-                "there should be the same number of boxes and string both for the ground truth " "and the predictions"
+                "there should be the same number of boxes and string both for the ground truth and the predictions"
             )
 
         # Compute IoU
@@ -525,7 +525,7 @@ class DetectionMetric:
         """
         if gt_boxes.shape[0] != gt_labels.shape[0] or pred_boxes.shape[0] != pred_labels.shape[0]:
             raise AssertionError(
-                "there should be the same number of boxes and string both for the ground truth " "and the predictions"
+                "there should be the same number of boxes and string both for the ground truth and the predictions"
             )
 
         # Compute IoU
