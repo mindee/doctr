@@ -10,7 +10,7 @@ from keras import Sequential, layers
 
 from doctr.datasets import VOCABS
 
-from ...utils import conv_sequence, load_pretrained_params
+from ...utils import _build_model, conv_sequence, load_pretrained_params
 
 __all__ = ["VGG", "vgg16_bn_r"]
 
@@ -80,6 +80,7 @@ def _vgg(
 
     # Build the model
     model = VGG(num_blocks, planes, rect_pools, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

@@ -11,7 +11,7 @@ from keras import Sequential, applications, layers
 
 from doctr.datasets import VOCABS
 
-from ...utils import conv_sequence, load_pretrained_params
+from ...utils import _build_model, conv_sequence, load_pretrained_params
 
 __all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide"]
 
@@ -208,6 +208,7 @@ def _resnet(
     model = ResNet(
         num_blocks, output_channels, stage_downsample, stage_conv, stage_pooling, origin_stem, cfg=_cfg, **kwargs
     )
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:
@@ -357,6 +358,7 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
     )
 
     model.cfg = _cfg
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

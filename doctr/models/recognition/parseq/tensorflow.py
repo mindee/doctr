@@ -16,7 +16,7 @@ from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 from ...classification import vit_s
-from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
 from .base import _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
@@ -473,6 +473,7 @@ def _parseq(
 
     # Build the model
     model = PARSeq(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

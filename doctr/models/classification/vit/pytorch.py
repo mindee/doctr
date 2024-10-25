@@ -10,8 +10,7 @@ import torch
 from torch import nn
 
 from doctr.datasets import VOCABS
-from doctr.models.modules.transformer import EncoderBlock
-from doctr.models.modules.vision_transformer.pytorch import PatchEmbedding
+from doctr.models.modules import EncoderBlock, PatchEmbedding
 
 from ...utils.pytorch import load_pretrained_params
 

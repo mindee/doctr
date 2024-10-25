@@ -17,6 +17,7 @@ from doctr.models.classification import resnet18, resnet34, resnet50
 from doctr.models.utils import (
     IntermediateLayerGetter,
     _bf16_to_float32,
+    _build_model,
     conv_sequence,
     load_pretrained_params,
 )
@@ -279,6 +280,7 @@ def _linknet(
 
     # Build the model
     model = LinkNet(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

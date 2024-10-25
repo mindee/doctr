@@ -13,7 +13,7 @@ import tensorflow as tf
 from keras import Model, Sequential, layers
 
 from doctr.file_utils import CLASS_NAME
-from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, load_pretrained_params
+from doctr.models.utils import IntermediateLayerGetter, _bf16_to_float32, _build_model, load_pretrained_params
 from doctr.utils.repr import NestedObject
 
 from ...classification import textnet_base, textnet_small, textnet_tiny
@@ -333,6 +333,7 @@ def _fast(
 
     # Build the model
     model = FAST(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

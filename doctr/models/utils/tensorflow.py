@@ -17,6 +17,7 @@ logging.getLogger("tensorflow").setLevel(logging.DEBUG)
 
 __all__ = [
     "load_pretrained_params",
+    "_build_model",
     "conv_sequence",
     "IntermediateLayerGetter",
     "export_model_to_onnx",
@@ -32,6 +33,15 @@ def _copy_tensor(x: tf.Tensor) -> tf.Tensor:
 def _bf16_to_float32(x: tf.Tensor) -> tf.Tensor:
     # Convert bfloat16 to float32 for numpy compatibility
     return tf.cast(x, tf.float32) if x.dtype == tf.bfloat16 else x
+
+
+def _build_model(model: Model):
+    """Build a model by calling it once with dummy input
+    Args:
+    ----
+        model: the model to be built
+    """
+    model(tf.zeros((1, *model.cfg["input_shape"])), training=False)
 
 
 def load_pretrained_params(

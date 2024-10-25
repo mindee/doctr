@@ -12,7 +12,7 @@ from keras import Model, layers
 from doctr.datasets import VOCABS
 
 from ...classification import vit_b, vit_s
-from ...utils.tensorflow import _bf16_to_float32, load_pretrained_params
+from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
@@ -216,6 +216,7 @@ def _vitstr(
 
     # Build the model
     model = ViTSTR(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:

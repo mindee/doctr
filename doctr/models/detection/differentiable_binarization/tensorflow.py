@@ -16,6 +16,7 @@ from doctr.file_utils import CLASS_NAME
 from doctr.models.utils import (
     IntermediateLayerGetter,
     _bf16_to_float32,
+    _build_model,
     conv_sequence,
     load_pretrained_params,
 )
@@ -308,6 +309,7 @@ def _db_resnet(
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:
@@ -352,6 +354,7 @@ def _db_mobilenet(
 
     # Build the model
     model = DBNet(feat_extractor, cfg=_cfg, **kwargs)
+    _build_model(model)
 
     # Load pretrained parameters
     if pretrained:
