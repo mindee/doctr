@@ -30,7 +30,7 @@ def test_resize():
     # Symetric padding
     transfo = T.Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
     assert repr(transfo) == (
-        f"Resize(output_size={output_size}, method='bilinear', " f"preserve_aspect_ratio=True, symmetric_pad=True)"
+        f"Resize(output_size={output_size}, method='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
     )
     out = transfo(input_t)
     # Asymetric padding

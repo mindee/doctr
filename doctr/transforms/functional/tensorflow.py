@@ -140,7 +140,7 @@ def rotate_sample(
     rotated_geoms[..., 0] = rotated_geoms[..., 0] / rotated_img.shape[1]
     rotated_geoms[..., 1] = rotated_geoms[..., 1] / rotated_img.shape[0]
 
-    return rotated_img, np.clip(rotated_geoms, 0, 1)
+    return rotated_img, np.clip(np.around(rotated_geoms, decimals=15), 0, 1)
 
 
 def crop_detection(

@@ -173,8 +173,7 @@ def main(args):
         drop_last=False,
     )
     print(
-        f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in "
-        f"{val_loader.num_batches} batches)"
+        f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {val_loader.num_batches} batches)"
     )
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
         val_hash = hashlib.sha256(f.read()).hexdigest()
@@ -269,8 +268,7 @@ def main(args):
         drop_last=True,
     )
     print(
-        f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in "
-        f"{train_loader.num_batches} batches)"
+        f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {train_loader.num_batches} batches)"
     )
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
