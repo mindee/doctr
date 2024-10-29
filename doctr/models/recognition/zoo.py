@@ -52,7 +52,13 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     return predictor
 
 
-def recognition_predictor(arch: Any = "crnn_vgg16_bn", pretrained: bool = False, **kwargs: Any) -> RecognitionPredictor:
+def recognition_predictor(
+    arch: Any = "crnn_vgg16_bn",
+    pretrained: bool = False,
+    symmetric_pad: bool = False,
+    batch_size: int = 128,
+    **kwargs: Any,
+) -> RecognitionPredictor:
     """Text recognition architecture.
 
     Example::
@@ -66,10 +72,12 @@ def recognition_predictor(arch: Any = "crnn_vgg16_bn", pretrained: bool = False,
     ----
         arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')
         pretrained: If True, returns a model pre-trained on our text recognition dataset
+        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right
+        batch_size: number of samples the model processes in parallel
         **kwargs: optional parameters to be passed to the architecture
 
     Returns:
     -------
         Recognition predictor
     """
-    return _predictor(arch, pretrained, **kwargs)
+    return _predictor(arch=arch, pretrained=pretrained, symmetric_pad=symmetric_pad, batch_size=batch_size, **kwargs)

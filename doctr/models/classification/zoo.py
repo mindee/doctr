@@ -63,7 +63,7 @@ def _orientation_predictor(
 
 
 def crop_orientation_predictor(
-    arch: Any = "mobilenet_v3_small_crop_orientation", pretrained: bool = False, **kwargs: Any
+    arch: Any = "mobilenet_v3_small_crop_orientation", pretrained: bool = False, batch_size: int = 128, **kwargs: Any
 ) -> OrientationPredictor:
     """Crop orientation classification architecture.
 
@@ -77,17 +77,18 @@ def crop_orientation_predictor(
     ----
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small_crop_orientation')
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
+        batch_size: number of samples the model processes in parallel
         **kwargs: keyword arguments to be passed to the OrientationPredictor
 
     Returns:
     -------
         OrientationPredictor
     """
-    return _orientation_predictor(arch, pretrained, model_type="crop", **kwargs)
+    return _orientation_predictor(arch=arch, pretrained=pretrained, batch_size=batch_size, model_type="crop", **kwargs)
 
 
 def page_orientation_predictor(
-    arch: Any = "mobilenet_v3_small_page_orientation", pretrained: bool = False, **kwargs: Any
+    arch: Any = "mobilenet_v3_small_page_orientation", pretrained: bool = False, batch_size: int = 4, **kwargs: Any
 ) -> OrientationPredictor:
     """Page orientation classification architecture.
 
@@ -101,10 +102,11 @@ def page_orientation_predictor(
     ----
         arch: name of the architecture to use (e.g. 'mobilenet_v3_small_page_orientation')
         pretrained: If True, returns a model pre-trained on our recognition crops dataset
+        batch_size: number of samples the model processes in parallel
         **kwargs: keyword arguments to be passed to the OrientationPredictor
 
     Returns:
     -------
         OrientationPredictor
     """
-    return _orientation_predictor(arch, pretrained, model_type="page", **kwargs)
+    return _orientation_predictor(arch=arch, pretrained=pretrained, batch_size=batch_size, model_type="page", **kwargs)

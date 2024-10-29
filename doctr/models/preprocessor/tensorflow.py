@@ -25,6 +25,7 @@ class PreProcessor(NestedObject):
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
+        **kwargs: additional arguments for the resizing operation
     """
 
     _children_names: List[str] = ["resize", "normalize"]
