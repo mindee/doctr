@@ -80,10 +80,7 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
         else:
             logging.info(f"TensorFlow version {_tf_version} available.")
             ensure_keras_v2()
-            import tensorflow as tf
 
-            # Enable eager execution - this is required for some models to work properly
-            tf.config.run_functions_eagerly(True)
 else:  # pragma: no cover
     logging.info("Disabling Tensorflow because USE_TORCH is set")
     _tf_available = False
