@@ -4,10 +4,10 @@ Community resources
 This section contains some cool resources created by the docTR community.
 
 
-* |:book:| Fine-tuning detection and recognition models on custom datasets with docTR:
+* |:book:| Fine-tuning OCR works really well: the Statistical Abstracts of the United States:
     `Article <https://www.christianmoscardi.com/blog/2024/10/03/digitizing-us-statistical-abstracts.html>`_ created by: `Christian Moscardi <https://github.com/cmoscardi>`_.
 
-* |:video_camera:| Using docTR:
+* |:video_camera:| Mindee docTR - Probably the Best Open-Source OCR:
     `Video <https://youtu.be/3nYPIDCToes?si=P3xKIHIiv335x0Ct>`_ created by: `Andrej Baranovskij <https://github.com/abaranovskis-redsamurai>`_.
 
 * |:book:| Extract Text from images in Python with docTR:
