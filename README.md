@@ -258,7 +258,7 @@ Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to
 
 #### Using GPU with docTR Docker Images
 
-The docTR Docker images are GPU-ready and based on CUDA `11.8`.
+The docTR Docker images are GPU-ready and based on CUDA `12.3`.
 However, to use GPU support with these Docker images, please ensure that Docker is configured to use your GPU.
 
 To verify and configure GPU support for Docker, please follow the instructions provided in the [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).

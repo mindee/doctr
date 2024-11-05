@@ -16,22 +16,22 @@ RUN if [ "$SYSTEM" = "gpu" ]; then \
     wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb && \
     dpkg -i cuda-keyring_1.1-1_all.deb && \
     apt-get update && apt-get install -y --no-install-recommends \
-    cuda-command-line-tools-11-8 \
-    cuda-cudart-dev-11-8 \
-    cuda-nvcc-11-8 \
-    cuda-cupti-11-8 \
-    cuda-nvprune-11-8 \
-    cuda-libraries-11-8 \
-    cuda-nvrtc-11-8 \
-    libcufft-11-8 \
-    libcurand-11-8 \
-    libcusolver-11-8 \
-    libcusparse-11-8 \
-    libcublas-11-8 \
+    cuda-command-line-tools-12-3 \
+    cuda-cudart-dev-12-3 \
+    cuda-nvcc-12-3 \
+    cuda-cupti-12-3 \
+    cuda-nvprune-12-3 \
+    cuda-libraries-12-3 \
+    cuda-nvrtc-12-3 \
+    libcufft-12-3 \
+    libcurand-12-3 \
+    libcusolver-12-3 \
+    libcusparse-12-3 \
+    libcublas-12-3 \
     # - CuDNN: https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#ubuntu-network-installation
-    libcudnn8=8.6.0.163-1+cuda11.8 \
-    libnvinfer-plugin8=8.6.1.6-1+cuda11.8 \
-    libnvinfer8=8.6.1.6-1+cuda11.8; \
+    libcudnn8=8.9.6.50-1+cuda12.2 \
+    libnvinfer-plugin8=8.6.1.6-1+cuda12.0 \
+    libnvinfer8=8.6.1.6-1+cuda12.0; \
 fi
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
