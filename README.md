@@ -254,7 +254,7 @@ Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to
 
 ### Docker container
 
-[We offer Docker container support for easy testing and deployment](https://github.com/mindee/doctr/pkgs/container/doctr).
+We offer Docker container support for easy testing and deployment. [Here are the available docker tags.](https://github.com/mindee/doctr/pkgs/container/doctr).
 
 #### Using GPU with docTR Docker Images
 
@@ -274,17 +274,18 @@ docker run -it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-gpu-2023-09 bash
 The Docker images for docTR follow a specific tag nomenclature: `<framework>-py<python_version>-<system>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
 
 - `<framework>`: `tf` (TensorFlow) or `torch` (PyTorch).
-- `<python_version>`: `3.8.18`, `3.9.18`, or `3.10.13`.
+- `<python_version>`: `3.9.18`, `3.10.13` or `3.11.8`.
 - `<system>`: `cpu` or `gpu`
 - `<doctr_version>`: a tag >= `v0.7.1`
-- `<YYYY-MM>`: e.g. `2023-09`
+- `<YYYY-MM>`: e.g. `2014-10`
 
 Here are examples of different image tags:
 
 | Tag                        | Description                                       |
 |----------------------------|---------------------------------------------------|
 | `tf-py3.8.18-cpu-v0.7.1`       | TensorFlow version `3.8.18` with docTR `v0.7.1`. |
-| `torch-py3.9.18-gpu-2023-09`| PyTorch version `3.9.18` with GPU support and a monthly build from `2023-09`. |
+| `tf-py3.11.8-cpu-2024-10`       | TensorFlow version `3.11.8` with docTR from latest commit on `main` in `2024-10`. |
+| `torch-py3.11.8-gpu-2024-10`| PyTorch version `3.11.8` with GPU support from latest commit on `main` in `2024-10`. |
 
 #### Building Docker Images Locally
 
