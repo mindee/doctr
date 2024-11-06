@@ -126,7 +126,7 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024
     # Convert to absolute for minAreaRect
     cloud *= intermed_size
     rect = cv2.minAreaRect(cloud.astype(np.int32))
-    return cv2.boxPoints(rect) / intermed_size  # type: ignore[return-value]
+    return cv2.boxPoints(rect) / intermed_size
 
 
 def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:
@@ -323,7 +323,7 @@ def rotate_image(
     # Compute the expanded padding
     exp_img: np.ndarray
     if expand:
-        exp_shape = compute_expanded_shape(image.shape[:2], angle)  # type: ignore[arg-type]
+        exp_shape = compute_expanded_shape(image.shape[:2], angle)
         h_pad, w_pad = (
             int(max(0, ceil(exp_shape[0] - image.shape[0]))),
             int(max(0, ceil(exp_shape[1] - image.shape[1]))),
@@ -344,7 +344,7 @@ def rotate_image(
             # Pad height
             else:
                 h_pad, w_pad = int(rot_img.shape[1] * image.shape[0] / image.shape[1] - rot_img.shape[0]), 0
-            rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))  # type: ignore[assignment]
+            rot_img = np.pad(rot_img, ((h_pad // 2, h_pad - h_pad // 2), (w_pad // 2, w_pad - w_pad // 2), (0, 0)))
         if preserve_origin_shape:
             # rescale
             rot_img = cv2.resize(rot_img, image.shape[:-1][::-1], interpolation=cv2.INTER_LINEAR)
@@ -563,4 +563,4 @@ def extract_rcrops(
             )
             for idx in range(_boxes.shape[0])
         ]
-    return crops  # type: ignore[return-value]
+    return crops

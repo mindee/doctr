@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -131,7 +131,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -186,7 +186,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -230,7 +230,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -274,7 +274,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -329,7 +329,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -375,7 +375,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4

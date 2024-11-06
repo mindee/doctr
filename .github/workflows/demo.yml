@@ -26,7 +26,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
         framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
@@ -92,7 +92,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
     steps:
       - uses: actions/checkout@v4
         with:
