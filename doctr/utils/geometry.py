@@ -323,7 +323,7 @@ def rotate_image(
     # Compute the expanded padding
     exp_img: np.ndarray
     if expand:
-        exp_shape = compute_expanded_shape(image.shape[:2], angle)
+        exp_shape = compute_expanded_shape(image.shape[:2], angle)  # type: ignore[arg-type]
         h_pad, w_pad = (
             int(max(0, ceil(exp_shape[0] - image.shape[0]))),
             int(max(0, ceil(exp_shape[1] - image.shape[1]))),
