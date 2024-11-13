@@ -13,7 +13,7 @@ maintainers = [
     {name = "Felix Dittrich"},
 ]
 readme = "README.md"
-requires-python = ">=3.9.0,<4"
+requires-python = ">=3.10.0,<4"
 license = {file = "LICENSE"}
 keywords=["OCR", "deep learning", "computer vision", "tensorflow", "pytorch", "text detection", "text recognition"]
 classifiers=[
@@ -25,9 +25,9 @@ classifiers=[
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dynamic = ["version"]
@@ -183,7 +183,7 @@ ignore_missing_imports = true
 [tool.ruff]
 exclude = [".git", "venv*", "build", "**/__init__.py"]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 preview=true
 
 [tool.ruff.lint]

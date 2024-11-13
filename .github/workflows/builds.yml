@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python: ["3.9", "3.10"]
+        python: ["3.10", "3.11"]
         framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           # MacOS issue ref.: https://github.com/actions/setup-python/issues/855 & https://github.com/actions/setup-python/issues/865
-          python-version: ${{ matrix.os == 'macos-latest' && '3.11' || matrix.python }}
+          python-version: ${{ matrix.os == 'macos-latest' && matrix.python == '3.10' && '3.11' || matrix.python }}
           architecture: x64
       - if: matrix.framework == 'tensorflow'
         name: Cache python modules (TF)
@@ -58,7 +58,7 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
-          python-version: 3.9
+          python-version: "3.10"
           channels: pypdfium2-team,bblanchon,defaults,conda-forge
           channel-priority: strict
       - name: Install dependencies
