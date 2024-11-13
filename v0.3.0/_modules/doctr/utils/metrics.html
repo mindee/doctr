@@ -13,7 +13,7 @@
 </script>
     <link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" />
 
-    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 7.4.7 and Furo 2024.08.06 -->
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.utils.metrics - docTR documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
@@ -225,20 +225,42 @@
   <input type="hidden" name="area" value="default">
 </form>
 <div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
-  <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../installing.html">Installation</a></li>
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/contrib.html">doctr.contrib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/contributing.html">Contributing to docTR</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Notes</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../changelog.html">Changelog</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../datasets.html">doctr.datasets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../documents.html">doctr.documents</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models.html">doctr.models</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../transforms.html">doctr.transforms</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils.html">doctr.utils</a></li>
 </ul>
 
 </div>
@@ -274,78 +296,88 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.utils.metrics</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
 
-<span class="c1"># This program is licensed under the Apache License version 2.</span>
-<span class="c1"># See LICENSE or go to &lt;https://www.apache.org/licenses/LICENSE-2.0.txt&gt; for full license details.</span>
+<span class="c1"># This program is licensed under the Apache License 2.0.</span>
+<span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Optional</span>
-<span class="kn">from</span> <span class="nn">unidecode</span> <span class="kn">import</span> <span class="n">unidecode</span>
+<span class="kn">from</span> <span class="nn">anyascii</span> <span class="kn">import</span> <span class="n">anyascii</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">linear_sum_assignment</span>
-<span class="kn">from</span> <span class="nn">doctr.utils.geometry</span> <span class="kn">import</span> <span class="n">rbbox_to_polygon</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">Polygon</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TextMatch&#39;</span><span class="p">,</span> <span class="s1">&#39;box_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;box_ioa&#39;</span><span class="p">,</span> <span class="s1">&#39;mask_iou&#39;</span><span class="p">,</span> <span class="s1">&#39;rbox_to_mask&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;nms&#39;</span><span class="p">,</span> <span class="s1">&#39;LocalizationConfusion&#39;</span><span class="p">,</span> <span class="s1">&#39;OCRMetric&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;TextMatch&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;box_iou&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;polygon_iou&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nms&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LocalizationConfusion&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;OCRMetric&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DetectionMetric&quot;</span><span class="p">,</span>
+<span class="p">]</span>
 
 
 <span class="k">def</span> <span class="nf">string_match</span><span class="p">(</span><span class="n">word1</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">word2</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform string comparison with multiple levels of tolerance</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Performs string comparison with multiple levels of tolerance</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        word1: a string</span>
 <span class="sd">        word2: another string</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their</span>
-<span class="sd">            unidecode counterparts and their lower-case unidecode counterparts match</span>
+<span class="sd">            anyascii counterparts and their lower-case anyascii counterparts match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">raw_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span><span class="p">)</span>
-    <span class="n">caseless_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
-    <span class="n">unidecode_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">))</span>
+    <span class="n">raw_match</span> <span class="o">=</span> <span class="n">word1</span> <span class="o">==</span> <span class="n">word2</span>
+    <span class="n">caseless_match</span> <span class="o">=</span> <span class="n">word1</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">word2</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="n">anyascii_match</span> <span class="o">=</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span> <span class="o">==</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span>
 
     <span class="c1"># Warning: the order is important here otherwise the pair (&quot;EUR&quot;, &quot;€&quot;) cannot be matched</span>
-    <span class="n">unicase_match</span> <span class="o">=</span> <span class="p">(</span><span class="n">unidecode</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">unidecode</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+    <span class="n">unicase_match</span> <span class="o">=</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word1</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word2</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
-    <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">unidecode_match</span><span class="p">,</span> <span class="n">unicase_match</span>
+    <span class="k">return</span> <span class="n">raw_match</span><span class="p">,</span> <span class="n">caseless_match</span><span class="p">,</span> <span class="n">anyascii_match</span><span class="p">,</span> <span class="n">unicase_match</span>
 
 
 <div class="viewcode-block" id="TextMatch">
-<a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch">[docs]</a>
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch">[docs]</a>
 <span class="k">class</span> <span class="nc">TextMatch</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements text match metric (word-level accuracy) for recognition task.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements text match metric (word-level accuracy) for recognition task.</span>
 
 <span class="sd">    The raw aggregated metric is computed as follows:</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \\forall X, Y \\in \\mathcal{W}^N,</span>
-<span class="sd">        TextMatch(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N f_{Y_i}(X_i)</span>
+<span class="sd">        \forall X, Y \in \mathcal{W}^N,</span>
+<span class="sd">        TextMatch(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N f_{Y_i}(X_i)</span>
 
 <span class="sd">    with the indicator function :math:`f_{a}` defined as:</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \\forall a, x \\in \\mathcal{W},</span>
-<span class="sd">        f_a(x) = \\left\\{</span>
-<span class="sd">            \\begin{array}{ll}</span>
-<span class="sd">                1 &amp; \\mbox{if } x = a \\\\</span>
-<span class="sd">                0 &amp; \\mbox{otherwise.}</span>
-<span class="sd">            \\end{array}</span>
-<span class="sd">        \\right.</span>
+<span class="sd">        \forall a, x \in \mathcal{W},</span>
+<span class="sd">        f_a(x) = \left\{</span>
+<span class="sd">            \begin{array}{ll}</span>
+<span class="sd">                1 &amp; \mbox{if } x = a \\</span>
+<span class="sd">                0 &amp; \mbox{otherwise.}</span>
+<span class="sd">            \end{array}</span>
+<span class="sd">        \right.</span>
 
-<span class="sd">    where :math:`\\mathcal{W}` is the set of all possible character sequences,</span>
+<span class="sd">    where :math:`\mathcal{W}` is the set of all possible character sequences,</span>
 <span class="sd">    :math:`N` is a strictly positive integer.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import TextMatch</span>
-<span class="sd">        &gt;&gt;&gt; metric = TextMatch()</span>
-<span class="sd">        &gt;&gt;&gt; metric.update([&#39;Hello&#39;, &#39;world&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import TextMatch</span>
+<span class="sd">    &gt;&gt;&gt; metric = TextMatch()</span>
+<span class="sd">    &gt;&gt;&gt; metric.update([&#39;Hello&#39;, &#39;world&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
+<div class="viewcode-block" id="TextMatch.update">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gt</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
@@ -354,29 +386,32 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the state of the metric with new predictions</span>
 
 <span class="sd">        Args:</span>
+<span class="sd">        ----</span>
 <span class="sd">            gt: list of groung-truth character sequences</span>
-<span class="sd">            pred: list of predicted character sequences&quot;&quot;&quot;</span>
-
+<span class="sd">            pred: list of predicted character sequences</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;prediction size does not match with ground-truth labels size&quot;</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">pred</span><span class="p">):</span>
-            <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span><span class="p">)</span>
+            <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_anyascii</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_word</span><span class="p">,</span> <span class="n">pred_word</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_raw</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_caseless</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unidecode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">anyascii</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_anyascii</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unicase</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="TextMatch.summary">
-<a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TextMatch.summary">[docs]</a>
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its unidecode</span>
-<span class="sd">            counterpart and its lower-case unidecode counterpart</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its anyascii</span>
+<span class="sd">            counterpart and its lower-case anyascii counterpart</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;you need to update the metric before getting the summary&quot;</span><span class="p">)</span>
@@ -384,7 +419,7 @@
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
             <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
-            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
+            <span class="n">anyascii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anyascii</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
             <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">total</span><span class="p">,</span>
         <span class="p">)</span></div>
 
@@ -392,23 +427,25 @@
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caseless</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">unidecode</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anyascii</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unicase</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 
 
 <span class="k">def</span> <span class="nf">box_iou</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of bounding boxes</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of bounding boxes</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
+
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">iou_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">l1</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -419,107 +456,54 @@
         <span class="n">right</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">bot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
 
-        <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bot</span> <span class="o">-</span> <span class="n">top</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span><span class="p">)</span>
+        <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bot</span> <span class="o">-</span> <span class="n">top</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
         <span class="n">union</span> <span class="o">=</span> <span class="p">(</span><span class="n">r1</span> <span class="o">-</span> <span class="n">l1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">b1</span> <span class="o">-</span> <span class="n">t1</span><span class="p">)</span> <span class="o">+</span> <span class="p">((</span><span class="n">r2</span> <span class="o">-</span> <span class="n">l2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">b2</span> <span class="o">-</span> <span class="n">t2</span><span class="p">))</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">intersection</span>
         <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">intersection</span> <span class="o">/</span> <span class="n">union</span>
 
     <span class="k">return</span> <span class="n">iou_mat</span>
 
 
-<span class="k">def</span> <span class="nf">box_ioa</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">boxes_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the IoA (intersection over area) between two sets of bounding boxes:</span>
-<span class="sd">    ioa(i, j) = inter(i, j) / area(i)</span>
+<span class="k">def</span> <span class="nf">polygon_iou</span><span class="p">(</span><span class="n">polys_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">polys_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of rotated bounding boxes</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
-<span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        the IoA matrix of shape (N, M)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">ioa_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">l1</span><span class="p">,</span> <span class="n">t1</span><span class="p">,</span> <span class="n">r1</span><span class="p">,</span> <span class="n">b1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">boxes_1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">l2</span><span class="p">,</span> <span class="n">t2</span><span class="p">,</span> <span class="n">r2</span><span class="p">,</span> <span class="n">b2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">boxes_2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
-        <span class="n">left</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">top</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">t1</span><span class="p">,</span> <span class="n">t2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">right</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">r1</span><span class="p">,</span> <span class="n">r2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">bot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-
-        <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">bot</span> <span class="o">-</span> <span class="n">top</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">Inf</span><span class="p">)</span>
-        <span class="n">area</span> <span class="o">=</span> <span class="p">(</span><span class="n">r1</span> <span class="o">-</span> <span class="n">l1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">b1</span> <span class="o">-</span> <span class="n">t1</span><span class="p">)</span>
-        <span class="n">ioa_mat</span> <span class="o">=</span> <span class="n">intersection</span> <span class="o">/</span> <span class="n">area</span>
-
-    <span class="k">return</span> <span class="n">ioa_mat</span>
-
-
-<span class="k">def</span> <span class="nf">mask_iou</span><span class="p">(</span><span class="n">masks_1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">masks_2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the IoU between two sets of boolean masks</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        masks_1: boolean masks of shape (N, H, W)</span>
-<span class="sd">        masks_2: boolean masks of shape (M, H, W)</span>
+<span class="sd">    ----</span>
+<span class="sd">        polys_1: rotated bounding boxes of shape (N, 4, 2)</span>
+<span class="sd">        polys_2: rotated bounding boxes of shape (M, 4, 2)</span>
+<span class="sd">        mask_shape: spatial shape of the intermediate masks</span>
+<span class="sd">        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">polys_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;expects boxes to be in format (N, 4, 2)&quot;</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;both boolean masks should have the same spatial shape&quot;</span><span class="p">)</span>
+    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">polys_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">shapely_polys_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span> <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">polys_1</span><span class="p">]</span>
+    <span class="n">shapely_polys_2</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span> <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">polys_2</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">masks_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">intersection</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">masks_1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">masks_2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
-        <span class="n">union</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">masks_1</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">masks_2</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
-        <span class="n">axes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">masks_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">intersection</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span> <span class="o">/</span> <span class="n">union</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="n">axes</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">poly1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shapely_polys_1</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">poly2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shapely_polys_2</span><span class="p">):</span>
+            <span class="n">intersection_area</span> <span class="o">=</span> <span class="n">poly1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">poly2</span><span class="p">)</span><span class="o">.</span><span class="n">area</span>
+            <span class="n">union_area</span> <span class="o">=</span> <span class="n">poly1</span><span class="o">.</span><span class="n">area</span> <span class="o">+</span> <span class="n">poly2</span><span class="o">.</span><span class="n">area</span> <span class="o">-</span> <span class="n">intersection_area</span>
+            <span class="n">iou_mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection_area</span> <span class="o">/</span> <span class="n">union_area</span>
 
     <span class="k">return</span> <span class="n">iou_mat</span>
 
 
-<span class="k">def</span> <span class="nf">rbox_to_mask</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert boxes to masks</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        boxes: rotated bounding boxes of shape (N, 5) in format (x, y, w, h, alpha)</span>
-<span class="sd">        shape: spatial shapes of the output masks</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        the boolean masks of shape (N, H, W)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">masks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">*</span><span class="n">shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="c1"># Get absolute coordinates</span>
-        <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">:</span>
-            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">]]</span> <span class="o">*</span> <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="o">.</span><span class="n">round</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">abs_boxes</span> <span class="o">=</span> <span class="n">boxes</span>
-            <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">=</span> <span class="n">abs_boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">:]</span> <span class="o">+</span> <span class="mi">1</span>
-
-        <span class="c1"># TODO: optimize slicing to improve vectorization</span>
-        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">_box</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">abs_boxes</span><span class="p">):</span>
-            <span class="n">box</span> <span class="o">=</span> <span class="n">rbbox_to_polygon</span><span class="p">(</span><span class="n">_box</span><span class="p">)</span>
-            <span class="n">cv2</span><span class="o">.</span><span class="n">fillPoly</span><span class="p">(</span><span class="n">masks</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)],</span> <span class="mi">1</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">masks</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="k">def</span> <span class="nf">nms</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform non-max suppression, borrowed from &lt;https://github.com/rbgirshick/fast-rcnn&gt;`_.</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        boxes: np array of straight boxes: (*, 5), (xmin, ymin, xmax, ymax, score)</span>
 <span class="sd">        thresh: iou threshold to perform box suppression.</span>
 
 <span class="sd">    Returns:</span>
+<span class="sd">    -------</span>
 <span class="sd">        A list of box indexes to keep</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
@@ -551,66 +535,71 @@
 
 
 <div class="viewcode-block" id="LocalizationConfusion">
-<a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a>
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.LocalizationConfusion">[docs]</a>
 <span class="k">class</span> <span class="nc">LocalizationConfusion</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements common confusion metrics and mean IoU for localization evaluation.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \\forall Y \\in \\mathcal{B}^N, \\forall X \\in \\mathcal{B}^M, \\\\</span>
-<span class="sd">        Recall(X, Y) = \\frac{1}{N} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\</span>
-<span class="sd">        Precision(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^N g_{X}(Y_i) \\\\</span>
-<span class="sd">        meanIoU(X, Y) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(X_i, Y_j)</span>
+<span class="sd">        \forall Y \in \mathcal{B}^N, \forall X \in \mathcal{B}^M, \\</span>
+<span class="sd">        Recall(X, Y) = \frac{1}{N} \sum\limits_{i=1}^N g_{X}(Y_i) \\</span>
+<span class="sd">        Precision(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M g_{X}(Y_i) \\</span>
+<span class="sd">        meanIoU(X, Y) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(X_i, Y_j)</span>
 
 <span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
 <span class="sd">    :math:`y`, and the function :math:`g_{X}` defined as:</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \\forall y \\in \\mathcal{B},</span>
-<span class="sd">        g_X(y) = \\left\\{</span>
-<span class="sd">            \\begin{array}{ll}</span>
-<span class="sd">                1 &amp; \\mbox{if } y\\mbox{ has been assigned to any }(X_i)_i\\mbox{ with an }IoU \\geq 0.5 \\\\</span>
-<span class="sd">                0 &amp; \\mbox{otherwise.}</span>
-<span class="sd">            \\end{array}</span>
-<span class="sd">        \\right.</span>
+<span class="sd">        \forall y \in \mathcal{B},</span>
+<span class="sd">        g_X(y) = \left\{</span>
+<span class="sd">            \begin{array}{ll}</span>
+<span class="sd">                1 &amp; \mbox{if } y\mbox{ has been assigned to any }(X_i)_i\mbox{ with an }IoU \geq 0.5 \\</span>
+<span class="sd">                0 &amp; \mbox{otherwise.}</span>
+<span class="sd">            \end{array}</span>
+<span class="sd">        \right.</span>
 
-<span class="sd">    where :math:`\\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    where :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
-<span class="sd">        &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import LocalizationConfusion</span>
+<span class="sd">    &gt;&gt;&gt; metric = LocalizationConfusion(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have rotated format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span> <span class="o">=</span> <span class="n">mask_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span> <span class="o">=</span> <span class="n">use_polygons</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
+<div class="viewcode-block" id="LocalizationConfusion.update">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.LocalizationConfusion.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">preds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the metric</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">        ----</span>
+<span class="sd">            gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
+<span class="sd">            preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># Compute IoU</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span><span class="p">:</span>
-                <span class="n">mask_gts</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">mask_preds</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">mask_gts</span><span class="p">,</span> <span class="n">mask_preds</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gts</span><span class="p">,</span> <span class="n">preds</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 
             <span class="c1"># Assign pairs</span>
             <span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
@@ -618,17 +607,18 @@
 
         <span class="c1"># Update counts</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">preds</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
 
 <div class="viewcode-block" id="LocalizationConfusion.summary">
-<a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.LocalizationConfusion.summary">[docs]</a>
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns:</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
 <span class="sd">            a tuple with the recall, precision and meanIoU scores</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># Recall</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
@@ -636,7 +626,7 @@
         <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="c1"># mean IoU</span>
-        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
 
@@ -645,64 +635,65 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span></div>
 
 
 
 <div class="viewcode-block" id="OCRMetric">
-<a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric">[docs]</a>
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric">[docs]</a>
 <span class="k">class</span> <span class="nc">OCRMetric</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements end-to-end OCR metric.</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements an end-to-end OCR metric.</span>
 
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \\forall (B, L) \\in \\mathcal{B}^N \\times \\mathcal{L}^N,</span>
-<span class="sd">        \\forall (\\hat{B}, \\hat{L}) \\in \\mathcal{B}^M \\times \\mathcal{L}^M, \\\\</span>
-<span class="sd">        Recall(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{N} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\</span>
-<span class="sd">        Precision(B, \\hat{B}, L, \\hat{L}) = \\frac{1}{M} \\sum\\limits_{i=1}^N h_{B,L}(\\hat{B}_i, \\hat{L}_i) \\\\</span>
-<span class="sd">        meanIoU(B, \\hat{B}) = \\frac{1}{M} \\sum\\limits_{i=1}^M \\max\\limits_{j \\in [1, N]}  IoU(\\hat{B}_i, B_j)</span>
+<span class="sd">        \forall (B, L) \in \mathcal{B}^N \times \mathcal{L}^N,</span>
+<span class="sd">        \forall (\hat{B}, \hat{L}) \in \mathcal{B}^M \times \mathcal{L}^M, \\</span>
+<span class="sd">        Recall(B, \hat{B}, L, \hat{L}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,L}(\hat{B}_i, \hat{L}_i) \\</span>
+<span class="sd">        Precision(B, \hat{B}, L, \hat{L}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,L}(\hat{B}_i, \hat{L}_i) \\</span>
+<span class="sd">        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)</span>
 
 <span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
 <span class="sd">    :math:`y`, and the function :math:`h_{B, L}` defined as:</span>
 
 <span class="sd">    .. math::</span>
-<span class="sd">        \\forall (b, l) \\in \\mathcal{B} \\times \\mathcal{L},</span>
-<span class="sd">        h_{B,L}(b, l) = \\left\\{</span>
-<span class="sd">            \\begin{array}{ll}</span>
-<span class="sd">                1 &amp; \\mbox{if } b\\mbox{ has been assigned to a given }B_j\\mbox{ with an } \\\\</span>
-<span class="sd">                &amp; IoU \\geq 0.5 \\mbox{ and that for this assignment, } l = L_j\\\\</span>
-<span class="sd">                0 &amp; \\mbox{otherwise.}</span>
-<span class="sd">            \\end{array}</span>
-<span class="sd">        \\right.</span>
+<span class="sd">        \forall (b, l) \in \mathcal{B} \times \mathcal{L},</span>
+<span class="sd">        h_{B,L}(b, l) = \left\{</span>
+<span class="sd">            \begin{array}{ll}</span>
+<span class="sd">                1 &amp; \mbox{if } b\mbox{ has been assigned to a given }B_j\mbox{ with an } \\</span>
+<span class="sd">                &amp; IoU \geq 0.5 \mbox{ and that for this assignment, } l = L_j\\</span>
+<span class="sd">                0 &amp; \mbox{otherwise.}</span>
+<span class="sd">            \end{array}</span>
+<span class="sd">        \right.</span>
 
-<span class="sd">    where :math:`\\mathcal{B}` is the set of possible bounding boxes,</span>
-<span class="sd">    :math:`\\mathcal{L}` is the set of possible character sequences,</span>
+<span class="sd">    where :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    :math:`\mathcal{L}` is the set of possible character sequences,</span>
 <span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
-<span class="sd">        &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
-<span class="sd">        &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
-<span class="sd">        [&#39;hello&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
-<span class="sd">        &gt;&gt;&gt; metric.summary()</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import OCRMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = OCRMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">    &gt;&gt;&gt;               [&#39;hello&#39;], [&#39;hello&#39;, &#39;world&#39;])</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
+<span class="sd">    ----</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have rotated format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
-        <span class="n">rotated_bbox</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="n">mask_shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span> <span class="o">=</span> <span class="n">rotated_bbox</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span> <span class="o">=</span> <span class="n">mask_shape</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span> <span class="o">=</span> <span class="n">use_polygons</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
+<div class="viewcode-block" id="OCRMetric.update">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric.update">[docs]</a>
     <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">gt_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
@@ -710,50 +701,58 @@
         <span class="n">gt_labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
         <span class="n">pred_labels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the metric</span>
 
+<span class="sd">        Args:</span>
+<span class="sd">        ----</span>
+<span class="sd">            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
+<span class="sd">            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
+<span class="sd">            gt_labels: a list of N string labels</span>
+<span class="sd">            pred_labels: a list of M string labels</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">)</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pred_labels</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;there should be the same number of boxes and string both for the ground truth &quot;</span>
-                                 <span class="s2">&quot;and the predictions&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;there should be the same number of boxes and string both for the ground truth and the predictions&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Compute IoU</span>
         <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rotated_bbox</span><span class="p">:</span>
-                <span class="n">mask_gts</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">mask_preds</span> <span class="o">=</span> <span class="n">rbox_to_mask</span><span class="p">(</span><span class="n">pred_boxes</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mask_shape</span><span class="p">)</span>
-                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">mask_iou</span><span class="p">(</span><span class="n">mask_gts</span><span class="p">,</span> <span class="n">mask_preds</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
 
             <span class="c1"># Assign pairs</span>
             <span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
             <span class="n">is_kept</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span>
             <span class="c1"># String comparison</span>
             <span class="k">for</span> <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">],</span> <span class="n">pred_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]):</span>
-                <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_unidecode</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
+                <span class="n">_raw</span><span class="p">,</span> <span class="n">_caseless</span><span class="p">,</span> <span class="n">_anyascii</span><span class="p">,</span> <span class="n">_unicase</span> <span class="o">=</span> <span class="n">string_match</span><span class="p">(</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">],</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_idx</span><span class="p">])</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_raw</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_caseless</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unidecode</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_anyascii</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_unicase</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
 
 <div class="viewcode-block" id="OCRMetric.summary">
-<a class="viewcode-back" href="../../../utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric.summary">[docs]</a>
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns:</span>
-<span class="sd">            a tuple with the recall &amp; precision for each string comparison flexibility and the mean IoU</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            a tuple with the recall &amp; precision for each string comparison and the mean IoU</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="c1"># Recall</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">anyascii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
 
@@ -761,12 +760,12 @@
         <span class="n">precision</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
             <span class="n">raw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">caseless</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="n">unidecode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">anyascii</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">unicase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># mean IoU (overall detected boxes)</span>
-        <span class="n">mean_iou</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
 
         <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
 
@@ -774,11 +773,135 @@
     <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">raw_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caseless_matches</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">unidecode_matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anyascii_matches</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unicase_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="DetectionMetric">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.DetectionMetric">[docs]</a>
+<span class="k">class</span> <span class="nc">DetectionMetric</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements an object detection metric.</span>
+
+<span class="sd">    The aggregated metrics are computed as follows:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,</span>
+<span class="sd">        \forall (\hat{B}, \hat{C}) \in \mathcal{B}^M \times \mathcal{C}^M, \\</span>
+<span class="sd">        Recall(B, \hat{B}, C, \hat{C}) = \frac{1}{N} \sum\limits_{i=1}^N h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
+<span class="sd">        Precision(B, \hat{B}, C, \hat{C}) = \frac{1}{M} \sum\limits_{i=1}^M h_{B,C}(\hat{B}_i, \hat{C}_i) \\</span>
+<span class="sd">        meanIoU(B, \hat{B}) = \frac{1}{M} \sum\limits_{i=1}^M \max\limits_{j \in [1, N]}  IoU(\hat{B}_i, B_j)</span>
+
+<span class="sd">    with the function :math:`IoU(x, y)` being the Intersection over Union between bounding boxes :math:`x` and</span>
+<span class="sd">    :math:`y`, and the function :math:`h_{B, C}` defined as:</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        \forall (b, c) \in \mathcal{B} \times \mathcal{C},</span>
+<span class="sd">        h_{B,C}(b, c) = \left\{</span>
+<span class="sd">            \begin{array}{ll}</span>
+<span class="sd">                1 &amp; \mbox{if } b\mbox{ has been assigned to a given }B_j\mbox{ with an } \\</span>
+<span class="sd">                &amp; IoU \geq 0.5 \mbox{ and that for this assignment, } c = C_j\\</span>
+<span class="sd">                0 &amp; \mbox{otherwise.}</span>
+<span class="sd">            \end{array}</span>
+<span class="sd">        \right.</span>
+
+<span class="sd">    where :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    :math:`\mathcal{C}` is the set of possible class indices,</span>
+<span class="sd">    :math:`N` (number of ground truths) and :math:`M` (number of predictions) are strictly positive integers.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import DetectionMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = DetectionMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(np.asarray([[0, 0, 100, 100]]), np.asarray([[0, 0, 70, 70], [110, 95, 200, 150]]),</span>
+<span class="sd">    &gt;&gt;&gt;               np.zeros(1, dtype=np.int64), np.array([0, 1], dtype=np.int64))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">    ----</span>
+<span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
+<span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have rotated format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span> <span class="o">=</span> <span class="n">use_polygons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DetectionMetric.update">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.DetectionMetric.update">[docs]</a>
+    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gt_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gt_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the metric</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">        ----</span>
+<span class="sd">            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
+<span class="sd">            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
+<span class="sd">            gt_labels: an array of class indices of shape (N,)</span>
+<span class="sd">            pred_labels: an array of class indices of shape (M,)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span>
+                <span class="s2">&quot;there should be the same number of boxes and string both for the ground truth and the predictions&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Compute IoU</span>
+        <span class="k">if</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">+=</span> <span class="nb">float</span><span class="p">(</span><span class="n">iou_mat</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+            <span class="c1"># Assign pairs</span>
+            <span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
+            <span class="n">is_kept</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">,</span> <span class="n">pred_indices</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span>
+            <span class="c1"># Category comparison</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">((</span><span class="n">gt_labels</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]]</span> <span class="o">==</span> <span class="n">pred_labels</span><span class="p">[</span><span class="n">pred_indices</span><span class="p">[</span><span class="n">is_kept</span><span class="p">]])</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DetectionMetric.summary">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.DetectionMetric.summary">[docs]</a>
+    <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">            a tuple with the recall &amp; precision for each class prediction and the mean IoU</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Recall</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Precision</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># mean IoU (overall detected boxes)</span>
+        <span class="n">mean_iou</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">mean_iou</span></div>
+
+
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
 
 </pre></div>
         </article>
@@ -812,8 +935,8 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=9971435a"></script>
-    <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+</div><script src="../../../_static/documentation_options.js?v=de9f2d7a"></script>
+    <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
