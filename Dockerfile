@@ -1,38 +1,10 @@
-FROM ubuntu:22.04
+FROM nvidia/cuda:12.2.0-base-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LANG=C.UTF-8
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-ARG SYSTEM=gpu
-
-# Enroll NVIDIA GPG public key and install CUDA
-RUN if [ "$SYSTEM" = "gpu" ]; then \
-    apt-get update && \
-    apt-get install -y gnupg ca-certificates wget && \
-    # - Install Nvidia repo keys
-    # - See: https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#network-repo-installation-for-ubuntu
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb && \
-    dpkg -i cuda-keyring_1.1-1_all.deb && \
-    apt-get update && apt-get install -y --no-install-recommends \
-    cuda-command-line-tools-12-3 \
-    cuda-cudart-dev-12-3 \
-    cuda-nvcc-12-3 \
-    cuda-cupti-12-3 \
-    cuda-nvprune-12-3 \
-    cuda-libraries-12-3 \
-    cuda-nvrtc-12-3 \
-    libcufft-12-3 \
-    libcurand-12-3 \
-    libcusolver-12-3 \
-    libcusparse-12-3 \
-    libcublas-12-3 \
-    # - CuDNN: https://docs.nvidia.com/deeplearning/sdk/cudnn-install/index.html#ubuntu-network-installation
-    libcudnn8=8.9.6.50-1+cuda12.2 \
-    libnvinfer-plugin8=8.6.1.6-1+cuda12.0 \
-    libnvinfer8=8.6.1.6-1+cuda12.0; \
-fi
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # - Other packages
@@ -48,8 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     # - Packages for docTR
     libgl1-mesa-dev libsm6 libxext6 libxrender-dev libpangocairo-1.0-0 \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-fi
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Python
 ARG PYTHON_VERSION=3.10.13

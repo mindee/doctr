@@ -24,7 +24,6 @@ jobs:
         # Must match version at https://www.python.org/ftp/python/
         python: ["3.10.13", "3.11.8", "3.12.7"]
         framework: ["tf", "torch", "tf,viz,html,contrib", "torch,viz,html,contrib"]
-        system: ["cpu", "gpu"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -44,7 +43,7 @@ jobs:
 
       - name: Sanitize docker tag
         run:
-          PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-"
+          PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-"
           PREFIX_DOCKER_TAG=$(echo PREFIX_DOCKER_TAG|sed 's/,/-/g')
           echo PREFIX_DOCKER_TAG=${PREFIX_DOCKER_TAG} >> $GITHUB_ENV
 
@@ -67,7 +66,6 @@ jobs:
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
-            SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: false  # push only if `import doctr` works
@@ -85,7 +83,6 @@ jobs:
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
-            SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: true
