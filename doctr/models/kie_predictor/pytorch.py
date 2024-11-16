@@ -51,8 +51,8 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
-        self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
-        self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
+        self.det_predictor = det_predictor.eval()
+        self.reco_predictor = reco_predictor.eval()
         _KIEPredictor.__init__(
             self,
             assume_straight_pages,

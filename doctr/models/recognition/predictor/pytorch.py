@@ -66,7 +66,7 @@ class RecognitionPredictor(nn.Module):
                 crops = new_crops
 
         # Resize & batch them
-        processed_batches = self.pre_processor(crops)
+        processed_batches = self.pre_processor(crops)  # type: ignore[arg-type]
 
         # Forward it
         _params = next(self.model.parameters())

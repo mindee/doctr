@@ -100,12 +100,12 @@ class OCRPredictor(NestedObject, _OCRPredictor):
             origin_page_shapes = [page.shape[:2] for page in pages]
 
             # forward again to get predictions on straight pages
-            loc_preds_dict = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
+            loc_preds_dict = self.det_predictor(pages, **kwargs)
 
         assert all(len(loc_pred) == 1 for loc_pred in loc_preds_dict), (
             "Detection Model in ocr_predictor should output only one class"
         )
-        loc_preds: List[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]  # type: ignore[union-attr]
+        loc_preds: List[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]
         # Detach objectness scores from loc_preds
         loc_preds, objectness_scores = detach_scores(loc_preds)
 

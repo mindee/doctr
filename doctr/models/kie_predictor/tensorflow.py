@@ -102,7 +102,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             origin_page_shapes = [page.shape[:2] for page in pages]
 
             # Forward again to get predictions on straight pages
-            loc_preds = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
+            loc_preds = self.det_predictor(pages, **kwargs)
 
         dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore
 
