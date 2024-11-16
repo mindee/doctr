@@ -43,7 +43,6 @@ def load_pretrained_params(
     >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
-    ----
         model: the PyTorch model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
@@ -84,7 +83,6 @@ def conv_sequence_pt(
     >>> module = Sequential(conv_sequence(3, 32, True, True, kernel_size=3))
 
     Args:
-    ----
         in_channels: number of input channels
         out_channels: number of output channels
         relu: whether ReLU should be used
@@ -92,7 +90,6 @@ def conv_sequence_pt(
         **kwargs: additional arguments to be passed to the convolutional layer
 
     Returns:
-    -------
         list of layers
     """
     # No bias before Batch norm
@@ -122,14 +119,12 @@ def set_device_and_dtype(
     >>> model, batches = set_device_and_dtype(model, batches, device="cuda", dtype=torch.float16)
 
     Args:
-    ----
         model: the model to be set
         batches: the batches to be set
         device: the device to be used
         dtype: the dtype to be used
 
     Returns:
-    -------
         the model and batches set
     """
     return model.to(device=device, dtype=dtype), [batch.to(device=device, dtype=dtype) for batch in batches]
@@ -145,14 +140,12 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
     >>> export_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))
 
     Args:
-    ----
         model: the PyTorch model to be exported
         model_name: the name for the exported model
         dummy_input: the dummy input to the model
         kwargs: additional arguments to be passed to torch.onnx.export
 
     Returns:
-    -------
         the path to the exported model
     """
     torch.onnx.export(

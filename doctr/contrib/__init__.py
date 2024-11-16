@@ -1,0 +1,1 @@
+from .artefacts import ArtefactDetector

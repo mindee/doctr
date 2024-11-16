@@ -22,7 +22,6 @@ class PreProcessor(nn.Module):
     """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
 
     Args:
-    ----
         output_size: expected size of each page in format (H, W)
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
@@ -48,11 +47,9 @@ class PreProcessor(nn.Module):
         """Gather samples into batches for inference purposes
 
         Args:
-        ----
             samples: list of samples of shape (C, H, W)
 
         Returns:
-        -------
             list of batched samples (*, C, H, W)
         """
         num_batches = int(math.ceil(len(samples) / self.batch_size))
@@ -86,11 +83,9 @@ class PreProcessor(nn.Module):
         """Prepare document data for model forwarding
 
         Args:
-        ----
             x: list of images (np.array) or tensors (already resized and batched)
 
         Returns:
-        -------
             list of page batches
         """
         # Input type check

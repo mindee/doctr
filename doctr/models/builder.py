@@ -20,7 +20,6 @@ class DocumentBuilder(NestedObject):
     """Implements a document builder
 
     Args:
-    ----
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
@@ -45,11 +44,9 @@ class DocumentBuilder(NestedObject):
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) (in case of rotated bbox)
 
         Returns:
-        -------
             tuple: indices of ordered boxes of shape (N,), boxes
                 If straight boxes are passed tpo the function, boxes are unchanged
                 else: boxes returned are straight boxes fitted to the straightened rotated boxes
@@ -69,12 +66,10 @@ class DocumentBuilder(NestedObject):
         """Split a line in sub_lines
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4)
             word_idcs: list of indexes for the words of the line
 
         Returns:
-        -------
             A list of (sub-)lines computed from the original line (words)
         """
         lines = []
@@ -109,11 +104,9 @@ class DocumentBuilder(NestedObject):
         """Order boxes to group them in lines
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
 
         Returns:
-        -------
             nested list of box indices
         """
         # Sort boxes, and straighten the boxes if they are rotated
@@ -157,12 +150,10 @@ class DocumentBuilder(NestedObject):
         """Order lines to group them in blocks
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2)
             lines: list of lines, each line is a list of idx
 
         Returns:
-        -------
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
@@ -230,7 +221,6 @@ class DocumentBuilder(NestedObject):
         """Gather independent words in structured blocks
 
         Args:
-        ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 4) or (N, 4, 2)
             objectness_scores: objectness scores of all detected words of the page, of shape N
             word_preds: list of all detected words of the page, of shape N
@@ -238,7 +228,6 @@ class DocumentBuilder(NestedObject):
                 the general orientation (orientations + confidences) of the crops
 
         Returns:
-        -------
             list of block elements
         """
         if boxes.shape[0] != len(word_preds):
@@ -307,7 +296,6 @@ class DocumentBuilder(NestedObject):
         """Re-arrange detected words into structured blocks
 
         Args:
-        ----
             pages: list of N elements, where each element represents the page image
             boxes: list of N elements, where each element represents the localization predictions, of shape (*, 4)
                 or (*, 4, 2) for all words for a given page
@@ -322,7 +310,6 @@ class DocumentBuilder(NestedObject):
                 where each element is a dictionary containing the language (language + confidence)
 
         Returns:
-        -------
             document object
         """
         if len(boxes) != len(text_preds) != len(crop_orientations) != len(objectness_scores) or len(boxes) != len(
@@ -374,7 +361,6 @@ class KIEDocumentBuilder(DocumentBuilder):
     """Implements a KIE document builder
 
     Args:
-    ----
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
@@ -396,7 +382,6 @@ class KIEDocumentBuilder(DocumentBuilder):
         """Re-arrange detected words into structured predictions
 
         Args:
-        ----
             pages: list of N elements, where each element represents the page image
             boxes: list of N dictionaries, where each element represents the localization predictions for a class,
                 of shape (*, 5) or (*, 6) for all predictions
@@ -411,7 +396,6 @@ class KIEDocumentBuilder(DocumentBuilder):
                 where each element is a dictionary containing the language (language + confidence)
 
         Returns:
-        -------
             document object
         """
         if len(boxes) != len(text_preds) != len(crop_orientations) != len(objectness_scores) or len(boxes) != len(
@@ -477,14 +461,12 @@ class KIEDocumentBuilder(DocumentBuilder):
         """Gather independent words in structured blocks
 
         Args:
-        ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 4) or (N, 4, 2)
             objectness_scores: objectness scores of all detected words of the page
             word_preds: list of all detected words of the page, of shape N
             crop_orientations: list of orientations for each word crop
 
         Returns:
-        -------
             list of block elements
         """
         if boxes.shape[0] != len(word_preds):

@@ -22,7 +22,6 @@ class RecognitionDataset(AbstractDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         img_folder: path to the images folder
         labels_path: pathe to the json file containing all labels (character sequences)
         **kwargs: keyword arguments from `AbstractDataset`.

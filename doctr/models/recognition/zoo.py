@@ -69,7 +69,6 @@ def recognition_predictor(
         >>> out = model([input_page])
 
     Args:
-    ----
         arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')
         pretrained: If True, returns a model pre-trained on our text recognition dataset
         symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right
@@ -77,7 +76,6 @@ def recognition_predictor(
         **kwargs: optional parameters to be passed to the architecture
 
     Returns:
-    -------
         Recognition predictor
     """
     return _predictor(arch=arch, pretrained=pretrained, symmetric_pad=symmetric_pad, batch_size=batch_size, **kwargs)

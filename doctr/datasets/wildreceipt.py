@@ -17,9 +17,10 @@ __all__ = ["WILDRECEIPT"]
 
 
 class WILDRECEIPT(AbstractDataset):
-    """WildReceipt dataset from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction"
-        <https://arxiv.org/abs/2103.14470v1>`_ |
-    `repository <https://download.openmmlab.com/mmocr/data/wildreceipt.tar>`_.
+    """
+    WildReceipt dataset from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction"
+    <https://arxiv.org/abs/2103.14470v1>`_ |
+    `"repository" <https://download.openmmlab.com/mmocr/data/wildreceipt.tar>`_.
 
     .. image:: https://doctr-static.mindee.com/models?id=v0.7.0/wildreceipt-dataset.jpg&src=0
         :align: center
@@ -34,7 +35,6 @@ class WILDRECEIPT(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations file of the dataset
         train: whether the subset should be the training one

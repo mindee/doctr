@@ -96,7 +96,6 @@ class DBNet(_DBNet, nn.Module):
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
-    ----
         feature extractor: the backbone serving as feature extractor
         head_chans: the number of channels in the head
         deform_conv: whether to use deformable convolution
@@ -231,7 +230,6 @@ class DBNet(_DBNet, nn.Module):
         and a list of masks for each image. From there it computes the loss with the model output
 
         Args:
-        ----
             out_map: output feature map of the model of shape (N, C, H, W)
             thresh_map: threshold map of shape (N, C, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
@@ -240,7 +238,6 @@ class DBNet(_DBNet, nn.Module):
             eps: epsilon factor in dice loss
 
         Returns:
-        -------
             A loss tensor
         """
         if gamma < 0:
@@ -341,12 +338,10 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
-    -------
         text detection architecture
     """
     return _dbnet(
@@ -376,12 +371,10 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
-    -------
         text detection architecture
     """
     return _dbnet(
@@ -411,12 +404,10 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
-    -------
         text detection architecture
     """
     return _dbnet(

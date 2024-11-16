@@ -122,7 +122,6 @@ class GaussianNoise(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 224, 224)))
 
     Args:
-    ----
         mean : mean of the gaussian distribution
         std : std of the gaussian distribution
     """
@@ -183,7 +182,6 @@ class RandomShadow(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 64, 64)))
 
     Args:
-    ----
         opacity_range : minimum and maximum opacity of the shade
     """
 
@@ -225,12 +223,11 @@ class RandomResize(torch.nn.Module):
     >>> out = transfo(torch.rand((3, 64, 64)))
 
     Args:
-    ----
         scale_range: range of the resizing factor for width and height (independently)
         preserve_aspect_ratio: whether to preserve the aspect ratio of the image,
-            given a float value, the aspect ratio will be preserved with this probability
+        given a float value, the aspect ratio will be preserved with this probability
         symmetric_pad: whether to symmetrically pad the image,
-            given a float value, the symmetric padding will be applied with this probability
+        given a float value, the symmetric padding will be applied with this probability
         p: probability to apply the transformation
     """
 

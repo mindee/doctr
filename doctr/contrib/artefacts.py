@@ -34,7 +34,6 @@ class ArtefactDetector(_BasePredictor):
     >>> results = detector(doc)
 
     Args:
-    ----
         arch: the architecture to use
         batch_size: the batch size to use
         model_path: the path to the model to use
@@ -109,7 +108,6 @@ class ArtefactDetector(_BasePredictor):
         Display the results
 
         Args:
-        ----
             **kwargs: additional keyword arguments to be passed to `plt.show`
         """
         requires_package("matplotlib", "`.show()` requires matplotlib installed")

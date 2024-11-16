@@ -20,11 +20,9 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
     """Get the maximum shape ratio of a contour.
 
     Args:
-    ----
         contour: the contour from cv2.findContour
 
     Returns:
-    -------
         the maximum shape ratio
     """
     _, (w, h), _ = cv2.minAreaRect(contour)
@@ -43,7 +41,6 @@ def estimate_orientation(
      lines of the document and the assumption that they should be horizontal.
 
     Args:
-    ----
         img: the img or bitmap to analyze (H, W, C)
         general_page_orientation: the general orientation of the page (angle [0, 90, 180, 270 (-90)], confidence)
             estimated by a model
@@ -53,7 +50,6 @@ def estimate_orientation(
         lower_area: the minimum area of a contour to be considered
 
     Returns:
-    -------
         the estimated angle of the page (clockwise, negative for left side rotation, positive for right side rotation)
     """
     assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
@@ -162,11 +158,9 @@ def get_language(text: str) -> Tuple[str, float]:
     Get the language with the highest probability or no language if only a few words or a low probability
 
     Args:
-    ----
         text (str): text
 
     Returns:
-    -------
         The detected language in ISO 639 code and confidence score
     """
     try:
@@ -184,11 +178,9 @@ def invert_data_structure(
     """Invert a List of Dict of elements to a Dict of list of elements and the other way around
 
     Args:
-    ----
         x: a list of dictionaries with the same keys or a dictionary of lists of the same length
 
     Returns:
-    -------
         dictionary of list when x is a list of dictionaries or a list of dictionaries when x is dictionary of lists
     """
     if isinstance(x, dict):

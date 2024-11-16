@@ -83,7 +83,6 @@ def ocr_predictor(
     >>> out = model([input_page])
 
     Args:
-    ----
         det_arch: name of the detection architecture or the model itself to use
             (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
         reco_arch: name of the recognition architecture or the model itself to use
@@ -108,7 +107,6 @@ def ocr_predictor(
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
-    -------
         OCR predictor
     """
     return _predictor(
@@ -197,7 +195,6 @@ def kie_predictor(
     >>> out = model([input_page])
 
     Args:
-    ----
         det_arch: name of the detection architecture or the model itself to use
             (e.g. 'db_resnet50', 'db_mobilenet_v3_large')
         reco_arch: name of the recognition architecture or the model itself to use
@@ -222,7 +219,6 @@ def kie_predictor(
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
-    -------
         KIE predictor
     """
     return _kie_predictor(

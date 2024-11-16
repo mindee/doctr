@@ -22,7 +22,6 @@ class DBPostProcessor(DetectionPostProcessor):
     <https://github.com/xuannianz/DifferentiableBinarization>`_.
 
     Args:
-    ----
         unclip ratio: ratio used to unshrink polygons
         min_size_box: minimal length (pix) to keep a box
         max_candidates: maximum boxes to consider in a single page
@@ -47,11 +46,9 @@ class DBPostProcessor(DetectionPostProcessor):
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
-        ----
             points: The first parameter.
 
         Returns:
-        -------
             a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         if not self.assume_straight_pages:
@@ -96,14 +93,12 @@ class DBPostProcessor(DetectionPostProcessor):
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
-        ----
             pred: Pred map from differentiable binarization output
             bitmap: Bitmap map computed from pred (binarized)
             angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
-        -------
             np tensor boxes for the bitmap, each box is a 5-element list
                 containing x, y, w, h, score for the box
         """
@@ -164,7 +159,6 @@ class _DBNet:
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
-    ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
@@ -186,7 +180,6 @@ class _DBNet:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
 
         Args:
-        ----
             xs : map of x coordinates (height, width)
             ys : map of y coordinates (height, width)
             a: first point defining the [ab] segment
@@ -194,7 +187,6 @@ class _DBNet:
             eps: epsilon to avoid division by zero
 
         Returns:
-        -------
             The computed distance
 
         """
@@ -218,7 +210,6 @@ class _DBNet:
         """Draw a polygon treshold map on a canvas, as described in the DB paper
 
         Args:
-        ----
             polygon : array of coord., to draw the boundary of the polygon
             canvas : threshold map to fill with polygons
             mask : mask for training on threshold polygons

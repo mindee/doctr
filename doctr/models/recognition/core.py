@@ -27,11 +27,9 @@ class RecognitionModel(NestedObject):
         sequence lengths.
 
         Args:
-        ----
             gts: list of ground-truth labels
 
         Returns:
-        -------
             A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
         """
         encoded = encode_sequences(sequences=gts, vocab=self.vocab, target_size=self.max_length, eos=len(self.vocab))
@@ -43,7 +41,6 @@ class RecognitionPostProcessor(NestedObject):
     """Abstract class to postprocess the raw output of the model
 
     Args:
-    ----
         vocab: string containing the ordered sequence of supported characters
     """
 

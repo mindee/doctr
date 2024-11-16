@@ -33,11 +33,9 @@ class PositionalEncoding(nn.Module):
         """Forward pass
 
         Args:
-        ----
             x: embeddings (batch, max_len, d_model)
 
-        Returns
-        -------
+        Returns:
             positional embeddings (batch, max_len, d_model)
         """
         x = x + self.pe[:, : x.size(1)]

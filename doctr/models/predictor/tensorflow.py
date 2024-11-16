@@ -24,7 +24,6 @@ class OCRPredictor(NestedObject, _OCRPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages

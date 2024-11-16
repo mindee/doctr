@@ -34,11 +34,9 @@ def bbox_to_polygon(bbox: BoundingBox) -> Polygon4P:
     """Convert a bounding box to a polygon
 
     Args:
-    ----
         bbox: a bounding box
 
     Returns:
-    -------
         a polygon
     """
     return bbox[0], (bbox[1][0], bbox[0][1]), (bbox[0][0], bbox[1][1]), bbox[1]
@@ -48,11 +46,9 @@ def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
     """Convert a polygon to a bounding box
 
     Args:
-    ----
         polygon: a polygon
 
     Returns:
-    -------
         a bounding box
     """
     x, y = zip(*polygon)
@@ -63,11 +59,9 @@ def detach_scores(boxes: List[np.ndarray]) -> Tuple[List[np.ndarray], List[np.nd
     """Detach the objectness scores from box predictions
 
     Args:
-    ----
         boxes: list of arrays with boxes of shape (N, 5) or (N, 5, 2)
 
     Returns:
-    -------
         a tuple of two lists: the first one contains the boxes without the objectness scores,
         the second one contains the objectness scores
     """
@@ -85,7 +79,6 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
     """Compute enclosing bbox either from:
 
     Args:
-    ----
         bboxes: boxes in one of the following formats:
 
             - an array of boxes: (*, 4), where boxes have this shape:
@@ -94,7 +87,6 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
             - a list of BoundingBox
 
     Returns:
-    -------
         a (1, 4) array (enclosing boxarray), or a BoundingBox
     """
     if isinstance(bboxes, np.ndarray):
@@ -109,7 +101,6 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024
     """Compute enclosing rotated bbox either from:
 
     Args:
-    ----
         rbboxes: boxes in one of the following formats:
 
             - an array of boxes: (*, 4, 2), where boxes have this shape:
@@ -119,7 +110,6 @@ def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024
         intermed_size: size of the intermediate image
 
     Returns:
-    -------
         a (4, 2) array (enclosing rotated box)
     """
     cloud: np.ndarray = np.concatenate(rbboxes, axis=0)
@@ -133,12 +123,10 @@ def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:
     """Rotate points counter-clockwise.
 
     Args:
-    ----
         points: array of size (N, 2)
         angle: angle between -90 and +90 degrees
 
     Returns:
-    -------
         Rotated points
     """
     angle_rad = angle * np.pi / 180.0  # compute radian angle for np functions
@@ -152,12 +140,10 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
     """Compute the shape of an expanded rotated image
 
     Args:
-    ----
         img_shape: the height and width of the image
         angle: angle between -90 and +90 degrees
 
     Returns:
-    -------
         the height and width of the rotated image
     """
     points: np.ndarray = np.array([
@@ -181,14 +167,12 @@ def rotate_abs_geoms(
     image center.
 
     Args:
-    ----
         geoms: (N, 4) or (N, 4, 2) array of ABSOLUTE coordinate boxes
         angle: anti-clockwise rotation angle in degrees
         img_shape: the height and width of the image
         expand: whether the image should be padded to avoid information loss
 
     Returns:
-    -------
         A batch of rotated polygons (N, 4, 2)
     """
     # Switch to polygons
@@ -220,13 +204,11 @@ def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: 
     coordinates after a resizing of the image.
 
     Args:
-    ----
         loc_preds: (N, 4, 2) array of RELATIVE loc_preds
         orig_shape: shape of the origin image
         dest_shape: shape of the destination image
 
     Returns:
-    -------
         A batch of rotated loc_preds (N, 4, 2) expressed in the destination referencial
     """
     if len(dest_shape) != 2:
@@ -255,7 +237,6 @@ def rotate_boxes(
     is done to remove the padding that is created by rotate_page(expand=True)
 
     Args:
-    ----
         loc_preds: (N, 4) or (N, 4, 2) array of RELATIVE boxes
         angle: angle between -90 and +90 degrees
         orig_shape: shape of the origin image
@@ -263,7 +244,6 @@ def rotate_boxes(
         target_shape: shape of the destination image
 
     Returns:
-    -------
         A batch of rotated boxes (N, 4, 2): or a batch of straight bounding boxes
     """
     # Change format of the boxes to rotated boxes
@@ -310,14 +290,12 @@ def rotate_image(
     """Rotate an image counterclockwise by an given angle.
 
     Args:
-    ----
         image: numpy tensor to rotate
         angle: rotation angle in degrees, between -90 and +90
         expand: whether the image should be padded before the rotation
         preserve_origin_shape: if expand is set to True, resizes the final output to the original image size
 
     Returns:
-    -------
         Rotated array, padded by 0 by default.
     """
     # Compute the expanded padding
@@ -356,11 +334,9 @@ def remove_image_padding(image: np.ndarray) -> np.ndarray:
     """Remove black border padding from an image
 
     Args:
-    ----
         image: numpy tensor to remove padding from
 
     Returns:
-    -------
         Image with padding removed
     """
     # Find the bounding box of the non-black region
@@ -394,12 +370,10 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
     """Convert a geometry to relative coordinates
 
     Args:
-    ----
         geoms: a set of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
         img_shape: the height and width of the image
 
     Returns:
-    -------
         the updated geometry
     """
     # Polygon
@@ -421,14 +395,12 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
     """Created cropped images from list of bounding boxes
 
     Args:
-    ----
         img: input image
         boxes: bounding boxes of shape (N, 4) where N is the number of boxes, and the relative
             coordinates (xmin, ymin, xmax, ymax)
         channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
-    -------
         list of cropped images
     """
     if boxes.shape[0] == 0:
@@ -457,7 +429,6 @@ def extract_rcrops(
     """Created cropped images from list of rotated bounding boxes
 
     Args:
-    ----
         img: input image
         polys: bounding boxes of shape (N, 4, 2)
         dtype: target data type of bounding boxes
@@ -465,7 +436,6 @@ def extract_rcrops(
         assume_horizontal: whether the boxes are assumed to be only horizontally oriented
 
     Returns:
-    -------
         list of cropped images
     """
     if polys.shape[0] == 0:

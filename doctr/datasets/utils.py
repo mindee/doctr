@@ -19,7 +19,15 @@ from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extr
 
 from .vocabs import VOCABS
 
-__all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences", "pre_transform_multiclass"]
+__all__ = [
+    "translate",
+    "encode_string",
+    "decode_sequence",
+    "encode_sequences",
+    "pre_transform_multiclass",
+    "crop_bboxes_from_image",
+    "convert_target_to_relative",
+]
 
 ImageTensor = TypeVar("ImageTensor")
 
@@ -32,13 +40,11 @@ def translate(
     """Translate a string input in a given vocabulary
 
     Args:
-    ----
         input_string: input string to translate
         vocab_name: vocabulary to use (french, latin, ...)
         unknown_char: unknown character for non-translatable characters
 
     Returns:
-    -------
         A string translated in a given vocab
     """
     if VOCABS.get(vocab_name) is None:
@@ -67,12 +73,10 @@ def encode_string(
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
-    ----
         input_string: string to encode
         vocab: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-    -------
         A list encoding the input_string
     """
     try:
@@ -91,12 +95,10 @@ def decode_sequence(
     """Given a predefined mapping, decode the sequence of numbers to a string
 
     Args:
-    ----
         input_seq: array to decode
         mapping: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-    -------
         A string, decoded from input_seq
     """
     if not isinstance(input_seq, (Sequence, np.ndarray)):
@@ -119,7 +121,6 @@ def encode_sequences(
     """Encode character sequences using a given vocab as mapping
 
     Args:
-    ----
         sequences: the list of character sequences of size N
         vocab: the ordered vocab to use for encoding
         target_size: maximum length of the encoded data
@@ -129,7 +130,6 @@ def encode_sequences(
         dynamic_seq_length: if `target_size` is specified, uses it as upper bound and enables dynamic sequence size
 
     Returns:
-    -------
         the padded encoded data as a tensor
     """
     if 0 <= eos < len(vocab):
@@ -172,10 +172,19 @@ def encode_sequences(
 def convert_target_to_relative(
     img: ImageTensor, target: Union[np.ndarray, Dict[str, Any]]
 ) -> Tuple[ImageTensor, Union[Dict[str, Any], np.ndarray]]:
+    """Converts target to relative coordinates
+
+    Args:
+        img: tf.Tensor or torch.Tensor representing the image
+        target: target to convert to relative coordinates (boxes (N, 4) or polygons (N, 4, 2))
+
+    Returns:
+        The image and the target in relative coordinates
+    """
     if isinstance(target, np.ndarray):
-        target = convert_to_relative_coords(target, get_img_shape(img))
+        target = convert_to_relative_coords(target, get_img_shape(img))  # type: ignore[arg-type]
     else:
-        target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))
+        target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))  # type: ignore[arg-type]
     return img, target
 
 
@@ -183,12 +192,10 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     """Crop a set of bounding boxes from an image
 
     Args:
-    ----
         img_path: path to the image
         geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
 
     Returns:
-    -------
         a list of cropped images
     """
     with Image.open(img_path) as pil_img:
@@ -205,12 +212,10 @@ def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.n
     """Converts multiclass target to relative coordinates.
 
     Args:
-    ----
         img: Image
         target: tuple of target polygons and their classes names
 
     Returns:
-    -------
         Image and dictionary of boxes, with class names as keys
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))

@@ -123,12 +123,10 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -148,12 +146,10 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -177,12 +173,10 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -205,12 +199,10 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -234,12 +226,10 @@ def mobilenet_v3_small_crop_orientation(pretrained: bool = False, **kwargs: Any)
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -262,12 +252,10 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(

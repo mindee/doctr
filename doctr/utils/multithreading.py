@@ -22,17 +22,14 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
     >>> results = multithread_exec(lambda x: x ** 2, entries)
 
     Args:
-    ----
         func: function to be executed on each element of the iterable
         seq: iterable
         threads: number of workers to be used for multiprocessing
 
     Returns:
-    -------
         iterator of the function's results using the iterable as inputs
 
     Notes:
-    -----
         This function uses ThreadPool from multiprocessing package, which uses `/dev/shm` directory for shared memory.
         If you do not have write permissions for this directory (if you run `doctr` on AWS Lambda for instance),
         you might want to disable multiprocessing. To achieve that, set 'DOCTR_MULTIPROCESSING_DISABLE' to 'TRUE'.
