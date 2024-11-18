@@ -82,7 +82,6 @@ class _VisionDataset(_AbstractDataset):
     """Implements an abstract dataset
 
     Args:
-    ----
         url: URL of the dataset
         file_name: name of the file once downloaded
         file_hash: expected SHA256 of the file

@@ -47,7 +47,6 @@ class FastNeck(nn.Module):
     """Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layers.
 
     Args:
-    ----
         in_channels: number of input channels
         out_channels: number of output channels
     """
@@ -77,7 +76,6 @@ class FastHead(nn.Sequential):
     """Head of the FAST architecture
 
     Args:
-    ----
         in_channels: number of input channels
         num_classes: number of output classes
         out_channels: number of output channels
@@ -104,7 +102,6 @@ class FAST(_FAST, nn.Module):
     <https://arxiv.org/pdf/2111.02394.pdf>`_.
 
     Args:
-    ----
         feat extractor: the backbone serving as feature extractor
         bin_thresh: threshold for binarization
         box_thresh: minimal objectness score to consider a box
@@ -219,13 +216,11 @@ class FAST(_FAST, nn.Module):
         """Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.
 
         Args:
-        ----
             out_map: output feature map of the model of shape (N, num_classes, H, W)
             target: list of dictionary where each dict has a `boxes` and a `flags` entry
             eps: epsilon factor in dice loss
 
         Returns:
-        -------
             A loss tensor
         """
         targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
@@ -282,12 +277,10 @@ class FAST(_FAST, nn.Module):
 def reparameterize(model: Union[FAST, nn.Module]) -> FAST:
     """Fuse batchnorm and conv layers and reparameterize the model
 
-    args:
-    ----
+    Args:
         model: the FAST model to reparameterize
 
     Returns:
-    -------
         the reparameterized model
     """
     last_conv = None
@@ -366,12 +359,10 @@ def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
-    -------
         text detection architecture
     """
     return _fast(
@@ -395,12 +386,10 @@ def fast_small(pretrained: bool = False, **kwargs: Any) -> FAST:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
-    -------
         text detection architecture
     """
     return _fast(
@@ -424,12 +413,10 @@ def fast_base(pretrained: bool = False, **kwargs: Any) -> FAST:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
-    -------
         text detection architecture
     """
     return _fast(

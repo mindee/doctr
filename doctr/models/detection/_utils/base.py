@@ -20,7 +20,6 @@ def _remove_padding(
     """Remove padding from the localization predictions
 
     Args:
-    ----
         pages: list of pages
         loc_preds: list of localization predictions
         preserve_aspect_ratio: whether the aspect ratio was preserved during padding
@@ -28,7 +27,6 @@ def _remove_padding(
         assume_straight_pages: whether the pages are assumed to be straight
 
     Returns:
-    -------
         list of unpaded localization predictions
     """
     if preserve_aspect_ratio:

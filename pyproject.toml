@@ -192,7 +192,7 @@ select = [
     "E", "W", "F", "I", "N", "Q", "C4", "T10", "LOG",
     "D101", "D103", "D201","D202","D207","D208","D214","D215","D300","D301","D417", "D419", "D207"  # pydocstyle
 ]
-ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408"]
+ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408", "LOG015"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["doctr", "app", "utils"]

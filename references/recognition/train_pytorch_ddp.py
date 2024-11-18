@@ -106,8 +106,8 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False)
 
 
 def main(rank: int, world_size: int, args):
-    """Args:
-    ----
+    """
+    Args:
         rank (int): device id to put the model on
         world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI

@@ -28,7 +28,7 @@ master_doc = "index"
 project = "docTR"
 _copyright_str = f"-{datetime.now().year}" if datetime.now().year > 2021 else ""
 copyright = f"2021{_copyright_str}, Mindee"
-author = "François-Guillaume Fernandez, Charles Gaillard"
+author = "François-Guillaume Fernandez, Charles Gaillard, Olivier Dulcy, Felix Dittrich"
 
 # The full version, including alpha/beta/rc tags
 version = doctr.__version__

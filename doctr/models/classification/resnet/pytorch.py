@@ -84,7 +84,6 @@ class ResNet(nn.Sequential):
     Text Recognition" <https://arxiv.org/pdf/1811.00751.pdf>`_.
 
     Args:
-    ----
         num_blocks: number of resnet block in each stage
         output_channels: number of channels in each stage
         stage_conv: whether to add a conv_sequence after each stage
@@ -224,12 +223,10 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
-    -------
         A resnet18 model
     """
     return _tv_resnet(
@@ -253,12 +250,10 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
-    -------
         A resnet31 model
     """
     return _resnet(
@@ -287,12 +282,10 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
-    -------
         A resnet34 model
     """
     return _tv_resnet(
@@ -315,12 +308,10 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
-    -------
         A resnet34_wide model
     """
     return _resnet(
@@ -349,12 +340,10 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
-    -------
         A resnet50 model
     """
     return _tv_resnet(

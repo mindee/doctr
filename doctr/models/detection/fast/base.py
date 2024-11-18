@@ -23,7 +23,6 @@ class FASTPostProcessor(DetectionPostProcessor):
     """Implements a post processor for FAST model.
 
     Args:
-    ----
         bin_thresh: threshold used to binzarized p_map at inference time
         box_thresh: minimal objectness score to consider a box
         assume_straight_pages: whether the inputs were expected to have horizontal text elements
@@ -45,11 +44,9 @@ class FASTPostProcessor(DetectionPostProcessor):
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
-        ----
             points: The first parameter.
 
         Returns:
-        -------
             a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         if not self.assume_straight_pages:
@@ -94,14 +91,12 @@ class FASTPostProcessor(DetectionPostProcessor):
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
-        ----
             pred: Pred map from differentiable linknet output
             bitmap: Bitmap map computed from pred (binarized)
             angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
-        -------
             np tensor boxes for the bitmap, each box is a 6-element list
                 containing x, y, w, h, alpha, score for the box
         """
@@ -165,13 +160,11 @@ class _FAST(BaseModel):
         """Build the target, and it's mask to be used from loss computation.
 
         Args:
-        ----
             target: target coming from dataset
             output_shape: shape of the output of the model without batch_size
             channels_last: whether channels are last or not
 
         Returns:
-        -------
             the new formatted target, mask and shrunken text kernel
         """
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):

@@ -21,7 +21,6 @@ class RecognitionPredictor(NestedObject):
     """Implements an object able to identify character sequences in images
 
     Args:
-    ----
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
         split_wide_crops: wether to use crop splitting for high aspect ratio crops

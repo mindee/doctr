@@ -4,28 +4,34 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-import tensorflow as tf
-
-gpu_devices = tf.config.list_physical_devices("GPU")
-if any(gpu_devices):
-    tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-
 from typing import Callable, Union
+
+import torch
 
 from doctr.models import kie_predictor, ocr_predictor
 
 from .schemas import DetectionIn, KIEIn, OCRIn, RecognitionIn
 
 
+def _move_to_device(predictor: Callable) -> Callable:
+    """Move the predictor to the desired device
+
+    Args:
+        predictor: the predictor to move
+
+    Returns:
+        Callable: the predictor moved to the desired device
+    """
+    return predictor.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
+
+
 def init_predictor(request: Union[KIEIn, OCRIn, RecognitionIn, DetectionIn]) -> Callable:
     """Initialize the predictor based on the request
 
     Args:
-    ----
         request: input request
 
     Returns:
-    -------
         Callable: the predictor
     """
     params = request.model_dump()
@@ -36,12 +42,12 @@ def init_predictor(request: Union[KIEIn, OCRIn, RecognitionIn, DetectionIn]) -> 
         predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
         predictor.det_predictor.model.postprocessor.box_thresh = box_thresh
         if isinstance(request, DetectionIn):
-            return predictor.det_predictor
+            return _move_to_device(predictor.det_predictor)
         elif isinstance(request, RecognitionIn):
-            return predictor.reco_predictor
-        return predictor
+            return _move_to_device(predictor.reco_predictor)
+        return _move_to_device(predictor)
     elif isinstance(request, KIEIn):
         predictor = kie_predictor(pretrained=True, **params)
         predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
         predictor.det_predictor.model.postprocessor.box_thresh = box_thresh
-        return predictor
+        return _move_to_device(predictor)

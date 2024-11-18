@@ -52,11 +52,22 @@ Custom dataset loader
 
 .. autoclass:: OCRDataset
 
-Dataloader
----------------------
+Dataset utils
+-------------
 
-.. autoclass:: doctr.datasets.loader.DataLoader
+.. autofunction:: translate
 
+.. autofunction:: encode_string
+
+.. autofunction:: decode_sequence
+
+.. autofunction:: encode_sequences
+
+.. autofunction:: pre_transform_multiclass
+
+.. autofunction:: crop_bboxes_from_image
+
+.. autofunction:: convert_target_to_relative
 
 .. _vocabs:
 
@@ -172,5 +183,3 @@ of vocabs.
    * - multilingual
      - 195
      - english & french & german & italian & spanish & portuguese & czech & polish & dutch & norwegian & danish & finnish & swedish & §
-
-.. autofunction:: encode_sequences

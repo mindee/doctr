@@ -14,14 +14,12 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
     """Merges 2 character sequences in the best way to maximize the alignment of their overlapping characters.
 
     Args:
-    ----
         a: first char seq, suffix should be similar to b's prefix.
         b: second char seq, prefix should be similar to a's suffix.
         dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
             only used when the mother sequence is splitted on a character repetition
 
     Returns:
-    -------
         A merged character sequence.
 
     Example::
@@ -65,13 +63,11 @@ def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
     """Recursively merges consecutive string sequences with overlapping characters.
 
     Args:
-    ----
         seq_list: list of sequences to merge. Sequences need to be ordered from left to right.
         dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
             only used when the mother sequence is splitted on a character repetition
 
     Returns:
-    -------
         A merged character sequence
 
     Example::

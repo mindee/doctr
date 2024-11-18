@@ -21,16 +21,6 @@ class SampleCompose(NestedObject):
 
     .. tabs::
 
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import numpy as np
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
-                >>> transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
-                >>> out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
-
         .. tab:: PyTorch
 
             .. code:: python
@@ -41,8 +31,17 @@ class SampleCompose(NestedObject):
                 >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
                 >>> out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))
 
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import numpy as np
+                >>> import tensorflow as tf
+                >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
+                >>> transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
+                >>> out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
+
     Args:
-    ----
         transforms: list of transformation modules
     """
 
@@ -63,15 +62,6 @@ class ImageTransform(NestedObject):
 
     .. tabs::
 
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import ImageTransform, ColorInversion
-                >>> transfo = ImageTransform(ColorInversion((32, 32)))
-                >>> out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)
-
         .. tab:: PyTorch
 
             .. code:: python
@@ -81,8 +71,16 @@ class ImageTransform(NestedObject):
                 >>> transfo = ImageTransform(ColorInversion((32, 32)))
                 >>> out, _ = transfo(torch.rand(8, 64, 64, 3), None)
 
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.transforms import ImageTransform, ColorInversion
+                >>> transfo = ImageTransform(ColorInversion((32, 32)))
+                >>> out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)
+
     Args:
-    ----
         transform: the image transformation module to wrap
     """
 
@@ -102,15 +100,6 @@ class ColorInversion(NestedObject):
 
     .. tabs::
 
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import ColorInversion
-                >>> transfo = ColorInversion(min_val=0.6)
-                >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
-
         .. tab:: PyTorch
 
             .. code:: python
@@ -120,8 +109,16 @@ class ColorInversion(NestedObject):
                 >>> transfo = ColorInversion(min_val=0.6)
                 >>> out = transfo(torch.rand(8, 64, 64, 3))
 
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.transforms import ColorInversion
+                >>> transfo = ColorInversion(min_val=0.6)
+                >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+
     Args:
-    ----
         min_val: range [min_val, 1] to colorize RGB pixels
     """
 
@@ -140,15 +137,6 @@ class OneOf(NestedObject):
 
     .. tabs::
 
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import OneOf
-                >>> transfo = OneOf([JpegQuality(), Gamma()])
-                >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
-
         .. tab:: PyTorch
 
             .. code:: python
@@ -158,8 +146,16 @@ class OneOf(NestedObject):
                 >>> transfo = OneOf([JpegQuality(), Gamma()])
                 >>> out = transfo(torch.rand(1, 64, 64, 3))
 
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.transforms import OneOf
+                >>> transfo = OneOf([JpegQuality(), Gamma()])
+                >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
     Args:
-    ----
         transforms: list of transformations, one only will be picked
     """
 
@@ -180,15 +176,6 @@ class RandomApply(NestedObject):
 
     .. tabs::
 
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import RandomApply
-                >>> transfo = RandomApply(Gamma(), p=.5)
-                >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
-
         .. tab:: PyTorch
 
             .. code:: python
@@ -198,8 +185,16 @@ class RandomApply(NestedObject):
                 >>> transfo = RandomApply(Gamma(), p=.5)
                 >>> out = transfo(torch.rand(1, 64, 64, 3))
 
+        .. tab:: TensorFlow
+
+            .. code:: python
+
+                >>> import tensorflow as tf
+                >>> from doctr.transforms import RandomApply
+                >>> transfo = RandomApply(Gamma(), p=.5)
+                >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+
     Args:
-    ----
         transform: transformation to apply
         p: probability to apply
     """
@@ -224,9 +219,7 @@ class RandomRotate(NestedObject):
         :align: center
 
     Args:
-    ----
-        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in
-            [-max_angle, max_angle]
+        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in [-max_angle, max_angle]
         expand: whether the image should be padded before the rotation
     """
 
@@ -249,7 +242,6 @@ class RandomCrop(NestedObject):
     """Randomly crop a tensor image and its boxes
 
     Args:
-    ----
         scale: tuple of floats, relative (min_area, max_area) of the crop
         ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w
     """

@@ -21,12 +21,10 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
     """Invert the colors of an image
 
     Args:
-    ----
         img : torch.Tensor, the image to invert
         min_val : minimum value of the random shift
 
     Returns:
-    -------
         the inverted image
     """
     out = F.rgb_to_grayscale(img, num_output_channels=3)
@@ -52,14 +50,12 @@ def rotate_sample(
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
     Args:
-    ----
         img: image to rotate
         geoms: array of geometries of shape (N, 4) or (N, 4, 2)
         angle: angle in degrees. +: counter-clockwise, -: clockwise
         expand: whether the image should be padded before the rotation
 
     Returns:
-    -------
         A tuple of rotated img (tensor), rotated geometries of shape (N, 4, 2)
     """
     rotated_img = F.rotate(img, angle=angle, fill=0, expand=expand)  # Interpolation NEAREST by default
@@ -98,13 +94,11 @@ def crop_detection(
     """Crop and image and associated bboxes
 
     Args:
-    ----
         img: image to crop
         boxes: array of boxes to clip, absolute (int) or relative (float)
         crop_box: box (xmin, ymin, xmax, ymax) to crop the image. Relative coords.
 
     Returns:
-    -------
         A tuple of cropped image, cropped boxes, where the image is not resized.
     """
     if any(val < 0 or val > 1 for val in crop_box):
@@ -123,13 +117,11 @@ def random_shadow(img: torch.Tensor, opacity_range: Tuple[float, float], **kwarg
     """Crop and image and associated bboxes
 
     Args:
-    ----
         img: image to modify
         opacity_range: the minimum and maximum desired opacity of the shadow
         **kwargs: additional arguments to pass to `create_shadow_mask`
 
     Returns:
-    -------
         shaded image
     """
     shadow_mask = create_shadow_mask(img.shape[1:], **kwargs)  # type: ignore[arg-type]

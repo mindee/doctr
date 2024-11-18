@@ -39,7 +39,6 @@ def _build_model(model: Model):
     """Build a model by calling it once with dummy input
 
     Args:
-    ----
         model: the model to be built
     """
     model(tf.zeros((1, *model.cfg["input_shape"])), training=False)
@@ -58,7 +57,6 @@ def load_pretrained_params(
     >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.weights.h5")
 
     Args:
-    ----
         model: the keras model to be loaded
         url: URL of the zipped set of parameters
         hash_prefix: first characters of SHA256 expected hash
@@ -88,7 +86,6 @@ def conv_sequence(
     >>> module = Sequential(conv_sequence(32, 'relu', True, kernel_size=3, input_shape=[224, 224, 3]))
 
     Args:
-    ----
         out_channels: number of output channels
         activation: activation to be used (default: no activation)
         bn: should a batch normalization layer be added
@@ -97,7 +94,6 @@ def conv_sequence(
         **kwargs: additional arguments to be passed to the convolutional layer
 
     Returns:
-    -------
         list of layers
     """
     # No bias before Batch norm
@@ -125,7 +121,6 @@ class IntermediateLayerGetter(Model):
     >>> feat_extractor = IntermediateLayerGetter(ResNet50(include_top=False, pooling=False), target_layers)
 
     Args:
-    ----
         model: the model to extract feature maps from
         layer_names: the list of layers to retrieve the feature map from
     """
@@ -151,14 +146,12 @@ def export_model_to_onnx(
     >>> dummy_input=[tf.TensorSpec([None, 32, 32, 3], tf.float32, name="input")])
 
     Args:
-    ----
         model: the keras model to be exported
         model_name: the name for the exported model
         dummy_input: the dummy input to the model
         kwargs: additional arguments to be passed to tf2onnx
 
     Returns:
-    -------
         the path to the exported model and a list with the output layer names
     """
     # get the users eager mode

@@ -24,7 +24,6 @@ class KIEPredictor(NestedObject, _KIEPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
@@ -103,7 +102,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             origin_page_shapes = [page.shape[:2] for page in pages]
 
             # Forward again to get predictions on straight pages
-            loc_preds = self.det_predictor(pages, **kwargs)  # type: ignore[assignment]
+            loc_preds = self.det_predictor(pages, **kwargs)
 
         dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore
 

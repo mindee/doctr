@@ -24,7 +24,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
@@ -52,8 +51,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
-        self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
-        self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
+        self.det_predictor = det_predictor.eval()
+        self.reco_predictor = reco_predictor.eval()
         _OCRPredictor.__init__(
             self,
             assume_straight_pages,

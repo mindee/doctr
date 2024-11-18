@@ -98,7 +98,6 @@ def requires_package(name: str, extra_message: Optional[str] = None) -> None:  #
     package requirement helper
 
     Args:
-    ----
         name: name of the package
         extra_message: additional message to display if the package is not found
     """

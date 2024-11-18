@@ -25,13 +25,11 @@ def read_img_as_numpy(
     >>> page = read_img_as_numpy("path/to/your/doc.jpg")
 
     Args:
-    ----
         file: the path to the image file
         output_size: the expected output size of each page in format H x W
         rgb_output: whether the output ndarray channel order should be RGB instead of BGR.
 
     Returns:
-    -------
         the page decoded as numpy ndarray of shape H x W x 3
     """
     if isinstance(file, (str, Path)):

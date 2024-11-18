@@ -21,7 +21,6 @@ class RecognitionPredictor(nn.Module):
     """Implements an object able to identify character sequences in images
 
     Args:
-    ----
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
         split_wide_crops: wether to use crop splitting for high aspect ratio crops
@@ -67,7 +66,7 @@ class RecognitionPredictor(nn.Module):
                 crops = new_crops
 
         # Resize & batch them
-        processed_batches = self.pre_processor(crops)
+        processed_batches = self.pre_processor(crops)  # type: ignore[arg-type]
 
         # Forward it
         _params = next(self.model.parameters())

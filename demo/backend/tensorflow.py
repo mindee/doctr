@@ -46,7 +46,6 @@ def load_predictor(
     """Load a predictor from doctr.models
 
     Args:
-    ----
         det_arch: detection architecture
         reco_arch: recognition architecture
         assume_straight_pages: whether to assume straight pages or not
@@ -59,7 +58,6 @@ def load_predictor(
         device: tf.device, the device to load the predictor on
 
     Returns:
-    -------
         instance of OCRPredictor
     """
     with device:
@@ -83,13 +81,11 @@ def forward_image(predictor: OCRPredictor, image: np.ndarray, device: tf.device)
     """Forward an image through the predictor
 
     Args:
-    ----
         predictor: instance of OCRPredictor
         image: image to process as numpy array
         device: tf.device, the device to process the image on
 
     Returns:
-    -------
         segmentation map
     """
     with device:

@@ -22,7 +22,6 @@ def split_crops(
     """Chunk crops horizontally to match a given aspect ratio
 
     Args:
-    ----
         crops: list of numpy array of shape (H, W, 3) if channels_last or (3, H, W) otherwise
         max_ratio: the maximum aspect ratio that won't trigger the chunk
         target_ratio: when crops are chunked, they will be chunked to match this aspect ratio
@@ -30,7 +29,6 @@ def split_crops(
         channels_last: whether the numpy array has dimensions in channels last order
 
     Returns:
-    -------
         a tuple with the new crops, their mapping, and a boolean specifying whether any remap is required
     """
     _remap_required = False

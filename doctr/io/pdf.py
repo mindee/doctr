@@ -26,7 +26,6 @@ def read_pdf(
     >>> doc = read_pdf("path/to/your/doc.pdf")
 
     Args:
-    ----
         file: the path to the PDF file
         scale: rendering scale (1 corresponds to 72dpi)
         rgb_mode: if True, the output will be RGB, otherwise BGR
@@ -34,7 +33,6 @@ def read_pdf(
         **kwargs: additional parameters to :meth:`pypdfium2.PdfPage.render`
 
     Returns:
-    -------
         the list of pages decoded as numpy ndarray of shape H x W x C
     """
     # Rasterise pages to numpy ndarrays with pypdfium2

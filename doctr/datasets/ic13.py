@@ -33,7 +33,6 @@ class IC13(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_folder: folder with all annotation files for the images
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)

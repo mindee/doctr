@@ -47,7 +47,6 @@ class TextNet(Sequential):
     Implementation based on the official Pytorch implementation: <https://github.com/czczup/FAST>`_.
 
     Args:
-    ----
         stages (List[Dict[str, List[int]]]): List of dictionaries containing the parameters of each stage.
         include_top (bool, optional): Whether to include the classifier head. Defaults to True.
         num_classes (int, optional): Number of output classes. Defaults to 1000.
@@ -136,12 +135,10 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
-    -------
         A textnet tiny model
     """
     return _textnet(
@@ -184,12 +181,10 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
-    -------
         A TextNet small model
     """
     return _textnet(
@@ -232,12 +227,10 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
-    -------
         A TextNet base model
     """
     return _textnet(

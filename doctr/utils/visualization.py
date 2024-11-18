@@ -30,7 +30,6 @@ def rect_patch(
     """Create a matplotlib rectangular patch for the element
 
     Args:
-    ----
         geometry: bounding box of the element
         page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
@@ -41,7 +40,6 @@ def rect_patch(
         preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
-    -------
         a rectangular Patch
     """
     if len(geometry) != 2 or any(not isinstance(elt, tuple) or len(elt) != 2 for elt in geometry):
@@ -81,7 +79,6 @@ def polygon_patch(
     """Create a matplotlib polygon patch for the element
 
     Args:
-    ----
         geometry: bounding box of the element
         page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
@@ -92,7 +89,6 @@ def polygon_patch(
         preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
-    -------
         a polygon Patch
     """
     if not geometry.shape == (4, 2):
@@ -121,13 +117,11 @@ def create_obj_patch(
     """Create a matplotlib patch for the element
 
     Args:
-    ----
         geometry: bounding box (straight or rotated) of the element
         page_dimensions: dimensions of the page in format (height, width)
         **kwargs: keyword arguments for the patch
 
     Returns:
-    -------
         a matplotlib Patch
     """
     if isinstance(geometry, tuple):
@@ -144,11 +138,9 @@ def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
     """Generate num_colors color for matplotlib
 
     Args:
-    ----
         num_colors: number of colors to generate
 
     Returns:
-    -------
         colors: list of generated colors
     """
     colors = []
@@ -183,7 +175,6 @@ def visualize_page(
     >>> plt.show()
 
     Args:
-    ----
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
@@ -194,7 +185,6 @@ def visualize_page(
         **kwargs: keyword arguments for the polygon patch
 
     Returns:
-    -------
         the matplotlib figure
     """
     # Get proper scale and aspect ratio
@@ -309,7 +299,6 @@ def visualize_kie_page(
     >>> plt.show()
 
     Args:
-    ----
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
@@ -320,7 +309,6 @@ def visualize_kie_page(
         **kwargs: keyword arguments for the polygon patch
 
     Returns:
-    -------
         the matplotlib figure
     """
     # Get proper scale and aspect ratio
@@ -367,7 +355,6 @@ def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: Optional[Tuple[int, 
     """Draw an array of relative straight boxes on an image
 
     Args:
-    ----
         boxes: array of relative boxes, of shape (*, 4)
         image: np array, float32 or uint8
         color: color to use for bounding box edges

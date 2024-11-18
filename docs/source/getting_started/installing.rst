@@ -33,14 +33,6 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: bash
-
-            pip install "python-doctr[tf]"
-            # or with preinstalled packages for visualization & html & contrib module support
-            pip install "python-doctr[tf,viz,html,contib]"
-
     .. tab:: PyTorch
 
         .. code:: bash
@@ -49,8 +41,13 @@ We strive towards reducing framework-specific dependencies to a minimum, but som
             # or with preinstalled packages for visualization & html & contrib module support
             pip install "python-doctr[torch,viz,html,contrib]"
 
+    .. tab:: TensorFlow
 
+        .. code:: bash
 
+            pip install "python-doctr[tf]"
+            # or with preinstalled packages for visualization & html & contrib module support
+            pip install "python-doctr[tf,viz,html,contib]"
 
 Via Conda (Only for Linux)
 ==========================
@@ -70,16 +67,16 @@ Install the library in developer mode:
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: bash
-
-            git clone https://github.com/mindee/doctr.git
-            pip install -e doctr/.[tf]
-
     .. tab:: PyTorch
 
         .. code:: bash
 
             git clone https://github.com/mindee/doctr.git
             pip install -e doctr/.[torch]
+
+    .. tab:: TensorFlow
+
+        .. code:: bash
+
+            git clone https://github.com/mindee/doctr.git
+            pip install -e doctr/.[tf]

@@ -20,12 +20,10 @@ def crop_boxes(
     """Crop localization boxes
 
     Args:
-    ----
         boxes: ndarray of shape (N, 4) in relative or abs coordinates
         crop_box: box (xmin, ymin, xmax, ymax) to crop the image, in the same coord format that the boxes
 
     Returns:
-    -------
         the cropped boxes
     """
     is_box_rel = boxes.max() <= 1
@@ -54,12 +52,10 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float,
     the same direction until we meet one of the edges.
 
     Args:
-    ----
         line: array of shape (2, 2) of the point supposed to be on one edge, and the shadow tip.
         target_shape: the desired mask shape
 
     Returns:
-    -------
         2D coordinates of the first point once we extended the line (on one of the edges)
     """
     if any(coord == 0 or coord == size for coord, size in zip(line[0], target_shape[::-1])):
@@ -120,14 +116,12 @@ def create_shadow_mask(
     """Creates a random shadow mask
 
     Args:
-    ----
         target_shape: the target shape (H, W)
         min_base_width: the relative minimum shadow base width
         max_tip_width: the relative maximum shadow tip width
         max_tip_height: the relative maximum shadow tip height
 
     Returns:
-    -------
         a numpy ndarray of shape (H, W, 1) with values in the range [0, 1]
     """
     # Default base is top

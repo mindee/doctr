@@ -23,11 +23,9 @@ class _MASTER:
         sequence lengths.
 
         Args:
-        ----
             gts: list of ground-truth labels
 
         Returns:
-        -------
             A tuple of 2 tensors: Encoded labels and sequence lengths (for each entry of the batch)
         """
         encoded = encode_sequences(
@@ -46,7 +44,6 @@ class _MASTERPostProcessor(RecognitionPostProcessor):
     """Abstract class to postprocess the raw output of the model
 
     Args:
-    ----
         vocab: string containing the ordered sequence of supported characters
     """
 

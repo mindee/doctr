@@ -26,7 +26,6 @@ class DetectionDataset(AbstractDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations of each image
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
@@ -70,13 +69,11 @@ class DetectionDataset(AbstractDataset):
         """Format polygons into an array
 
         Args:
-        ----
             polygons: the bounding boxes
             use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
             np_dtype: dtype of array
 
         Returns:
-        -------
             geoms: bounding boxes as np array
             polygons_classes: list of classes for each bounding box
         """

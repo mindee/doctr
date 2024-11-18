@@ -21,7 +21,6 @@ class OrientationDataset(AbstractDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         **kwargs: keyword arguments from `AbstractDataset`.
     """

@@ -14,21 +14,6 @@ This section shows how you can easily load a pretrained model from the Huggingfa
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            from doctr.io import DocumentFile
-            from doctr.models import ocr_predictor, from_hub
-            image = DocumentFile.from_images(['data/example.jpg'])
-            # Load a custom detection model from huggingface hub
-            det_model = from_hub('Felix92/doctr-tf-db-resnet50')
-            # Load a custom recognition model from huggingface hub
-            reco_model = from_hub('Felix92/doctr-tf-crnn-vgg16-bn-french')
-            # You can easily plug in this models to the OCR predictor
-            predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
-            result = predictor(image)
-
     .. tab:: PyTorch
 
         .. code:: python3
@@ -40,6 +25,21 @@ This section shows how you can easily load a pretrained model from the Huggingfa
             det_model = from_hub('Felix92/doctr-torch-db-mobilenet-v3-large')
             # Load a custom recognition model from huggingface hub
             reco_model = from_hub('Felix92/doctr-torch-crnn-mobilenet-v3-large-french')
+            # You can easily plug in this models to the OCR predictor
+            predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
+            result = predictor(image)
+
+    .. tab:: TensorFlow
+
+        .. code:: python3
+
+            from doctr.io import DocumentFile
+            from doctr.models import ocr_predictor, from_hub
+            image = DocumentFile.from_images(['data/example.jpg'])
+            # Load a custom detection model from huggingface hub
+            det_model = from_hub('Felix92/doctr-tf-db-resnet50')
+            # Load a custom recognition model from huggingface hub
+            reco_model = from_hub('Felix92/doctr-tf-crnn-vgg16-bn-french')
             # You can easily plug in this models to the OCR predictor
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
             result = predictor(image)
@@ -67,17 +67,17 @@ It is also possible to push your model directly after training.
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: bash
-
-            python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
-
     .. tab:: PyTorch
 
         .. code:: bash
 
             python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+
+    .. tab:: TensorFlow
+
+        .. code:: bash
+
+            python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
 
 Pretrained community models

@@ -121,7 +121,6 @@ def synthesize_page(
     """Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
-    ----
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
         font_family: family of the font
@@ -130,7 +129,6 @@ def synthesize_page(
         max_font_size: maximum font size
 
     Returns:
-    -------
         the synthesized page
     """
     # Draw template
@@ -181,7 +179,6 @@ def synthesize_kie_page(
     """Draw a the content of the element page (OCR response) on a blank page.
 
     Args:
-    ----
         page: exported Page object to represent
         draw_proba: if True, draw words in colors to represent confidence. Blue: p=1, red: p=0
         font_family: family of the font
@@ -190,7 +187,6 @@ def synthesize_kie_page(
         max_font_size: maximum font size
 
     Returns:
-    -------
         the synthesized page
     """
     # Draw template

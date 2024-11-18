@@ -24,11 +24,9 @@ async def get_documents(files: List[UploadFile]) -> Tuple[List[np.ndarray], List
     """Convert a list of UploadFile objects to lists of numpy arrays and their corresponding filenames
 
     Args:
-    ----
         files: list of UploadFile objects
 
     Returns:
-    -------
         Tuple[List[np.ndarray], List[str]]: list of numpy arrays and their corresponding filenames
 
     """

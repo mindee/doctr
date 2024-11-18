@@ -43,12 +43,10 @@ class PositionalEncoding(layers.Layer, NestedObject):
         """Forward pass
 
         Args:
-        ----
             x: embeddings (batch, max_len, d_model)
             **kwargs: additional arguments
 
-        Returns
-        -------
+        Returns:
             positional embeddings (batch, max_len, d_model)
         """
         if x.dtype == tf.float16:  # amp fix: cast to half
