@@ -254,37 +254,37 @@ Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to
 
 ### Docker container
 
-[We offer Docker container support for easy testing and deployment](https://github.com/mindee/doctr/pkgs/container/doctr).
+We offer Docker container support for easy testing and deployment. [Here are the available docker tags.](https://github.com/mindee/doctr/pkgs/container/doctr).
 
 #### Using GPU with docTR Docker Images
 
-The docTR Docker images are GPU-ready and based on CUDA `11.8`.
-However, to use GPU support with these Docker images, please ensure that Docker is configured to use your GPU.
+The docTR Docker images are GPU-ready and based on CUDA `12.2`. Make sure your host is **at least `12.2`**, otherwise Torch or TensorFlow won't be able to initialize the GPU.
+Please ensure that Docker is configured to use your GPU.
 
 To verify and configure GPU support for Docker, please follow the instructions provided in the [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 
 Once Docker is configured to use GPUs, you can run docTR Docker containers with GPU support:
 
 ```shell
-docker run -it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-gpu-2023-09 bash
+docker run -it --gpus all ghcr.io/mindee/doctr:torch-py3.9.18-2024-10 bash
 ```
 
 #### Available Tags
 
-The Docker images for docTR follow a specific tag nomenclature: `<framework>-py<python_version>-<system>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
+The Docker images for docTR follow a specific tag nomenclature: `<deps>-py<python_version>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
 
-- `<framework>`: `tf` (TensorFlow) or `torch` (PyTorch).
-- `<python_version>`: `3.8.18`, `3.9.18`, or `3.10.13`.
-- `<system>`: `cpu` or `gpu`
-- `<doctr_version>`: a tag >= `v0.7.1`
-- `<YYYY-MM>`: e.g. `2023-09`
+- `<deps>`: `tf`, `torch`, `tf-viz-html-contrib` or `torch-viz-html-contrib`.
+- `<python_version>`: `3.9.18`, `3.10.13` or `3.11.8`.
+- `<doctr_version>`: a tag >= `v0.11.0`
+- `<YYYY-MM>`: e.g. `2014-10`
 
 Here are examples of different image tags:
 
 | Tag                        | Description                                       |
 |----------------------------|---------------------------------------------------|
-| `tf-py3.8.18-cpu-v0.7.1`       | TensorFlow version `3.8.18` with docTR `v0.7.1`. |
-| `torch-py3.9.18-gpu-2023-09`| PyTorch version `3.9.18` with GPU support and a monthly build from `2023-09`. |
+| `tf-py3.10.13-v0.11.0`       | TensorFlow version `3.10.13` with docTR `v0.11.0`. |
+| `torch-viz-html-contrib-py3.11.8-2024-10`       | Torch with extra dependencies version `3.11.8` from latest commit on `main` in `2024-10`. |
+| `torch-py3.11.8-2024-10`| PyTorch version `3.11.8` from latest commit on `main` in `2024-10`. |
 
 #### Building Docker Images Locally
 

@@ -24,7 +24,6 @@ jobs:
         # Must match version at https://www.python.org/ftp/python/
         python: ["3.10.13", "3.11.8", "3.12.7"]
         framework: ["tf", "torch", "tf,viz,html,contrib", "torch,viz,html,contrib"]
-        system: ["cpu", "gpu"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -42,6 +41,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sanitize docker tag
+        run:
+          PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-"
+          PREFIX_DOCKER_TAG=$(echo PREFIX_DOCKER_TAG|sed 's/,/-/g')
+          echo PREFIX_DOCKER_TAG=${PREFIX_DOCKER_TAG} >> $GITHUB_ENV
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
@@ -49,9 +54,9 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ github.repository }}
           tags: |
             # used only on schedule event
-            type=schedule,pattern={{date 'YYYY-MM'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
+            type=schedule,pattern={{date 'YYYY-MM'}},prefix=${{ env.PREFIX_DOCKER_TAG }}
             # used only if a tag following semver is published
-            type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
+            type=semver,pattern={{raw}},prefix=${{ env.PREFIX_DOCKER_TAG }}
 
       - name: Build Docker image
         id: build
@@ -61,7 +66,6 @@ jobs:
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
-            SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: false  # push only if `import doctr` works
@@ -72,14 +76,13 @@ jobs:
 
       - name: Push Docker image
         # Push only if the CI is not triggered by "PR on main"
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        if: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || (startsWith(github.ref, 'refs/tags') && github.event_name == 'push') }}
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
-            SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: true
