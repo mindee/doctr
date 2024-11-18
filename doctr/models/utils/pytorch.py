@@ -150,7 +150,7 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
     """
     torch.onnx.export(
         model,
-        dummy_input,  # type: ignore[arg-type]
+        dummy_input,
         f"{model_name}.onnx",
         input_names=["input"],
         output_names=["logits"],

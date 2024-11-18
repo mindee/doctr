@@ -38,7 +38,7 @@ class PositionalEncoding(nn.Module):
         Returns:
             positional embeddings (batch, max_len, d_model)
         """
-        x = x + self.pe[:, : x.size(1)]
+        x = x + self.pe[:, : x.size(1)]  # type: ignore[index]
         return self.dropout(x)
 
 
@@ -46,7 +46,7 @@ def scaled_dot_product_attention(
     query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: Optional[torch.Tensor] = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Scaled Dot-Product Attention"""
-    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
+    scores: torch.Tensor = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
         scores = scores.masked_fill(mask == 0, float("-inf"))
