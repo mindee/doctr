@@ -193,8 +193,8 @@ class RandomShadow(torch.nn.Module):
         # Reshape the distribution
         try:
             if x.dtype == torch.uint8:
-                return (  # type: ignore[attr-defined]
-                    (
+                return (
+                    (  # type: ignore[attr-defined]
                         255
                         * random_shadow(
                             x.to(dtype=torch.float32) / 255,

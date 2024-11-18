@@ -30,7 +30,7 @@ def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
     out = F.rgb_to_grayscale(img, num_output_channels=3)
     # Random RGB shift
     shift_shape = [img.shape[0], 3, 1, 1] if img.ndim == 4 else [3, 1, 1]
-    rgb_shift: torch.Tensor = min_val + (1 - min_val) * torch.rand(shift_shape)
+    rgb_shift = min_val + (1 - min_val) * torch.rand(shift_shape)  # type: ignore[assignment]
     # Inverse the color
     if out.dtype == torch.uint8:
         out = (out.to(dtype=rgb_shift.dtype) * rgb_shift).to(dtype=torch.uint8)
