@@ -1,4 +1,4 @@
-name: Clear GitHub CI Caches
+name: Clear GitHub runner caches
 
 on:
   workflow_dispatch:
