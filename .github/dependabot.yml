@@ -9,7 +9,6 @@ updates:
       interval: weekly
       day: sunday
     reviewers:
-      - "frgfm"
       - "charlesmindee"
       - "felixdittrich92"
       - "odulcy-mindee"
@@ -22,7 +21,6 @@ updates:
       interval: weekly
       day: sunday
     reviewers:
-      - "frgfm"
       - "charlesmindee"
       - "felixdittrich92"
       - "odulcy-mindee"
