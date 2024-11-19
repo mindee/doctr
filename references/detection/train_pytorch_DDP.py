@@ -9,10 +9,7 @@ os.environ["USE_TORCH"] = "1"
 
 import datetime
 import hashlib
-import logging
-import multiprocessing 
 import time
-
 import numpy as np
 import torch
 import wandb
@@ -20,7 +17,8 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCyc
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
 from tqdm.auto import tqdm
-# using this for DDP setup
+
+# The following import is required for DDP
 import torch.distributed as dist 
 import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -175,9 +173,13 @@ def evaluate(model, val_loader, batch_transforms, val_metric,args, amp=False):
 def main(rank:int, world_size:int, args):
     
     """
-        rank(int) : it is the unique identifier to each process and you can also say that it is your device id 
-        world_size(int) : total number of processes 
+        Args:
+        ----
+        rank (int): device id to put the model on
+        world_size (int): number of processes participating in the job
+        args: other arguments passed through the CLI
     """
+
     
     print(args)
 
@@ -190,7 +192,7 @@ def main(rank:int, world_size:int, args):
     torch.backends.cudnn.benchmark = True
 
     if rank == 0:
-        # validation dataset realted code
+        # validation dataset related code
         st = time.time()
         val_set = DetectionDataset(
             img_folder=os.path.join(args.val_path, "images"),
@@ -219,7 +221,6 @@ def main(rank:int, world_size:int, args):
             drop_last=False,
             num_workers=args.workers,
             sampler=SequentialSampler(val_set),
-            # sampler = DistributedSampler(val_set, num_replicas = world_size, rank = rank, shuffle = False, drop_last = True),
             pin_memory=torch.cuda.is_available(),
             collate_fn=val_set.collate_fn,
         )
@@ -233,7 +234,7 @@ def main(rank:int, world_size:int, args):
 
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
-    # loadign the doctr model
+    # Load DocTr model
     model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
         assume_straight_pages=not args.rotation,
@@ -246,32 +247,14 @@ def main(rank:int, world_size:int, args):
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
-    # # GPU
-    # if isinstance(args.device, int):
-    #     if not torch.cuda.is_available():
-    #         raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-    #     if args.device >= torch.cuda.device_count():
-    #         raise ValueError("Invalid device index")
-    # # Silent default switch to GPU if available
-    # elif torch.cuda.is_available():
-    #     args.device = 0
-    # else:
-    #     logging.warning("No accessible GPU, target device set to CPU.")
-    # if torch.cuda.is_available():
-    #     torch.cuda.set_device(args.device)
-    #     model = model.cuda()
-    
-    # creating the process group
-    
+    # create default process group
     device = torch.device('cuda', args.devices[rank])
     dist.init_process_group(args.backend, rank = rank, world_size = world_size)
-    print('1. init_process_group initialized')
-    
+    # create local model
     model = model.to(device)
-    
-    # wrapping the model around DDP 
+    # construct the DDP model  
     model = DDP(model, device_ids = [device])
-    print('2. wrapped the model around DDP')
+    
 
     if rank == 0:
         # Metrics
@@ -304,7 +287,6 @@ def main(rank:int, world_size:int, args):
         lambda x: x,  # Identity no transformation
     ])
     
-    print('3. completed img_transforms')
     # Image + target augmentations
     sample_transforms = T.SampleCompose(
         (
@@ -331,7 +313,6 @@ def main(rank:int, world_size:int, args):
         )
     )
     
-    print('4. completed sample transform')
 
     # Load both train and val data generators
     train_set = DetectionDataset(
@@ -420,7 +401,6 @@ def main(rank:int, world_size:int, args):
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
 
-    print('5. going inside training loop')
     
     # Training loop
     for epoch in range(args.epochs):
@@ -453,16 +433,14 @@ def main(rank:int, world_size:int, args):
             if args.early_stop and early_stopper.early_stop(val_loss):
                 print("Training halted early due to reaching patience limit.")
                 break
-    print('6. coming out of training loop')       
+         
     if rank == 0:
         if args.wb:
             run.finish()
 
         if args.push_to_hub:
             push_to_hf_hub(model, exp_name, task="detection", run_config=args)
-    print('7. initializing destroy_process_group ')    
-    dist.destroy_process_group()
-    print('8. done initializing of destroy_process_group')
+                
 
 
 def parse_args():
@@ -473,8 +451,8 @@ def parse_args():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
-    # args realted to DDP
-    parser.add_argument('--backend', default='nccl', type=str, help='backend to use for torch DDP specifically it is for nvidia GPUs')
+    # DDP related args
+    parser.add_argument('--backend', default='nccl', type=str, help='backend to use for torch DDP')
 
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
@@ -527,20 +505,18 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    
     if not torch.cuda.is_available():
         raise AssertionError('PyTorch cannot access your GPUs. please look into it bro !!!')
     
     if not isinstance(args.devices, list):
-        args.devices = list(range(torch.cuda.device_count()))
-        
+        args.devices = list(range(torch.cuda.device_count()))  
     # no of process per gpu
     nprocs = len(args.devices)
-    
-    # setting up environ variables for DDP
+    # Environment variables which need to be
+    # set when using c10d's default "env"
+    # initialization mode.
     os.environ['MASTER_ADDR'] = 'localhost'
     os.environ['MASTER_PORT'] = '29500'
-    
     mp.spawn(main, args=(nprocs, args), nprocs = nprocs, join=True)
     
   
