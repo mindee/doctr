@@ -1,0 +1,15 @@
+name: Clear GitHub runner caches
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'  # Runs once a day
+
+jobs:
+  clear:
+    name: Clear caches
+    runs-on: ubuntu-latest
+    steps:
+    - uses: MyAlbum/purge-cache@v2
+      with:
+        max-age: 172800 # Caches older than 2 days are deleted

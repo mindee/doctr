@@ -59,11 +59,11 @@ class DetectionPredictor(nn.Module):
         ]
         # Remove padding from loc predictions
         preds = _remove_padding(
-            pages,  # type: ignore[arg-type]
+            pages,
             [pred for batch in predicted_batches for pred in batch["preds"]],
             preserve_aspect_ratio=preserve_aspect_ratio,
             symmetric_pad=symmetric_pad,
-            assume_straight_pages=assume_straight_pages,
+            assume_straight_pages=assume_straight_pages,  # type: ignore[arg-type]
         )
 
         if return_maps:

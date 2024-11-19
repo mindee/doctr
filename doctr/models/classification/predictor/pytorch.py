@@ -60,7 +60,7 @@ class OrientationPredictor(nn.Module):
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]
 
         class_idxs = [int(pred) for batch in predicted_batches for pred in batch]
-        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]  # type: ignore[union-attr]
+        classes = [int(self.model.cfg["classes"][idx]) for idx in class_idxs]  # type: ignore
         confs = [round(float(p), 2) for prob in probs for p in prob]
 
         return [class_idxs, classes, confs]

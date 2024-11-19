@@ -88,7 +88,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             for out_map in out_maps
         ]
         if self.detect_orientation:
-            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)  # type: ignore[arg-type]
+            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
             orientations = [
                 {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
             ]
@@ -97,7 +97,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             general_pages_orientations = None
             origin_pages_orientations = None
         if self.straighten_pages:
-            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)  # type: ignore
+            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
             # update page shapes after straightening
             origin_page_shapes = [page.shape[:2] for page in pages]
 
@@ -124,7 +124,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         crops = {}
         for class_name in dict_loc_preds.keys():
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages,  # type: ignore[arg-type]
+                pages,
                 dict_loc_preds[class_name],
                 channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
@@ -169,7 +169,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             languages_dict = None
 
         out = self.doc_builder(
-            pages,  # type: ignore[arg-type]
+            pages,
             boxes_per_page,
             objectness_scores_per_page,
             text_preds_per_page,
