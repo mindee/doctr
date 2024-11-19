@@ -38,12 +38,12 @@ jobs:
         run: test -e docs/build/index.html || exit
 
       - name: Install SSH Client 🔑
-        uses: webfactory/ssh-agent@v0.4.1
+        uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}
 
       - name: Deploy to Github Pages
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@v4.6.9
         with:
           BRANCH: gh-pages
           FOLDER: 'docs/build'
