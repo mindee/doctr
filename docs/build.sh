@@ -5,8 +5,7 @@ function deploy_doc(){
     fi
     COMMIT=$(git rev-parse --short HEAD)
     echo "Creating doc at commit" $COMMIT "and pushing to folder $2"
-    # Hotfix:
-    # Some dependencies which was required before this commit and was dropped after
+    # Hotfix
     if [ "$1" \< "dcbb21f" ]
         then
             pip install -U ..
@@ -14,16 +13,6 @@ function deploy_doc(){
             pip install tensorflow-addons>=0.17.1
         else
             pip install -U ..
-        fi
-    # Hotfix:
-    # The documentation before this commit was built from the TensorFlow code base and after from the PyTorch code base
-    if [ "$1" \< "c56bf41" ]
-        then
-            export USE_TF=1
-            export USE_TORCH=0
-        else
-            export USE_TF=0
-            export USE_TORCH=1
         fi
     if [ ! -z "$2" ]
     then
