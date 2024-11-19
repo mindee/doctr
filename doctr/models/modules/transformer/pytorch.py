@@ -46,10 +46,10 @@ def scaled_dot_product_attention(
     query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: Optional[torch.Tensor] = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """Scaled Dot-Product Attention"""
-    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))  # type: ignore[assignment]
+    scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
     if mask is not None:
         # NOTE: to ensure the ONNX compatibility, masked_fill works only with int equal condition
-        scores = scores.masked_fill(mask == 0, float("-inf"))
+        scores = scores.masked_fill(mask == 0, float("-inf"))  # type: ignore[attr-defined]
     p_attn = torch.softmax(scores, dim=-1)
     return torch.matmul(p_attn, value), p_attn
 
