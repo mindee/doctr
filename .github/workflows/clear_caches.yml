@@ -12,4 +12,4 @@ jobs:
     steps:
     - uses: MyAlbum/purge-cache@v2
       with:
-        max-age: 172800 # Caches older then 2 days are delete
+        max-age: 172800 # Caches older than 2 days are deleted
