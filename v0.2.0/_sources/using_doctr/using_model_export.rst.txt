@@ -26,6 +26,14 @@ Advantages:
 
 .. tabs::
 
+    .. tab:: PyTorch
+
+        .. code:: python3
+
+            import torch
+            predictor = ocr_predictor(reco_arch="crnn_mobilenet_v3_small", det_arch="linknet_resnet34", pretrained=True).cuda().half()
+            res = predictor(doc)
+
     .. tab:: TensorFlow
 
         .. code:: python3
@@ -34,14 +42,6 @@ Advantages:
             from tensorflow.keras import mixed_precision
             mixed_precision.set_global_policy('mixed_float16')
             predictor = ocr_predictor(reco_arch="crnn_mobilenet_v3_small", det_arch="linknet_resnet34", pretrained=True)
-
-    .. tab:: PyTorch
-
-        .. code:: python3
-
-            import torch
-            predictor = ocr_predictor(reco_arch="crnn_mobilenet_v3_small", det_arch="linknet_resnet34", pretrained=True).cuda().half()
-            res = predictor(doc)
 
 
 Export to ONNX
@@ -52,21 +52,6 @@ It defines a common format for representing models, including the network struct
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            import tensorflow as tf
-            from doctr.models import vitstr_small
-            from doctr.models.utils import export_model_to_onnx
-
-            batch_size = 16
-            input_shape = (3, 32, 128)
-            model = vitstr_small(pretrained=True, exportable=True)
-            dummy_input = [tf.TensorSpec([batch_size, input_shape], tf.float32, name="input")]
-            model_path, output = export_model_to_onnx(model, model_name="vitstr.onnx", dummy_input=dummy_input)
-
-
     .. tab:: PyTorch
 
         .. code:: python3
@@ -76,10 +61,24 @@ It defines a common format for representing models, including the network struct
             from doctr.models.utils import export_model_to_onnx
 
             batch_size = 16
-            input_shape = (32, 128, 3)
+            input_shape = (3, 32, 128)
             model = vitstr_small(pretrained=True, exportable=True)
             dummy_input = torch.rand((batch_size, input_shape), dtype=torch.float32)
             model_path = export_model_to_onnx(model, model_name="vitstr.onnx, dummy_input=dummy_input)
+
+    .. tab:: TensorFlow
+
+        .. code:: python3
+
+            import tensorflow as tf
+            from doctr.models import vitstr_small
+            from doctr.models.utils import export_model_to_onnx
+
+            batch_size = 16
+            input_shape = (32, 128, 3)
+            model = vitstr_small(pretrained=True, exportable=True)
+            dummy_input = [tf.TensorSpec([batch_size, input_shape], tf.float32, name="input")]
+            model_path, output = export_model_to_onnx(model, model_name="vitstr.onnx", dummy_input=dummy_input)
 
 
 Using your ONNX exported model

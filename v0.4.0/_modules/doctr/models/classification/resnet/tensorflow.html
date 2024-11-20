@@ -359,7 +359,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a resnet31 block with shortcut</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        conv_shortcut: Use of shortcut</span>
 <span class="sd">        output_channels: number of channels to use in Conv2D</span>
 <span class="sd">        kernel_size: size of square kernels</span>
@@ -419,7 +418,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a ResNet architecture</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        num_blocks: number of resnet block in each stage</span>
 <span class="sd">        output_channels: number of channels in each stage</span>
 <span class="sd">        stage_downsample: whether the first residual block of a stage should downsample</span>
@@ -534,12 +532,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the ResNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A classification model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
@@ -570,12 +566,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the ResNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A classification model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
@@ -606,12 +600,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the ResNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A classification model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>
@@ -641,12 +633,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the ResNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A classification model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="s2">&quot;resnet50&quot;</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">]))</span>
@@ -696,12 +686,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the ResNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A classification model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_resnet</span><span class="p">(</span>

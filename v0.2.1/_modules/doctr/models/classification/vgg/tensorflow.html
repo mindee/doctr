@@ -330,7 +330,6 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        num_blocks: number of convolutional block in each stage</span>
 <span class="sd">        planes: number of output channels in each stage</span>
 <span class="sd">        rect_pools: whether pooling square kernels should be replace with rectangular ones</span>
@@ -406,12 +405,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
 <span class="sd">        **kwargs: keyword arguments of the VGG architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        VGG feature extractor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_vgg</span><span class="p">(</span>

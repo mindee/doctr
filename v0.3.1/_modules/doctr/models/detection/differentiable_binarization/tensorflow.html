@@ -348,7 +348,6 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1612.03144.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        channels: number of channel to output</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -370,12 +369,10 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Module which performs a 3x3 convolution followed by up-sampling</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            channels: number of output channels</span>
 <span class="sd">            dilation_factor (int): dilation factor to scale the convolution output before concatenation</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">        -------</span>
 <span class="sd">            a keras.layers.Layer object, wrapping these operations in a sequential module</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -412,7 +409,6 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1911.08947.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
 <span class="sd">        bin_thresh: threshold for binarization</span>
@@ -482,7 +478,6 @@
 <span class="sd">        and a list of masks for each image. From there it computes the loss with the model output</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            out_map: output feature map of the model of shape (N, H, W, C)</span>
 <span class="sd">            thresh_map: threshold map of shape (N, H, W, C)</span>
 <span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
@@ -491,7 +486,6 @@
 <span class="sd">            eps: epsilon factor in dice loss</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">        -------</span>
 <span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">gamma</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -679,12 +673,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_db_resnet</span><span class="p">(</span>
@@ -710,12 +702,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_db_mobilenet</span><span class="p">(</span>

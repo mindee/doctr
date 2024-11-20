@@ -328,7 +328,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib rectangular patch for the element</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        geometry: bounding box of the element</span>
 <span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
 <span class="sd">        label: label to display when hovered</span>
@@ -339,7 +338,6 @@
 <span class="sd">        preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        a rectangular Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">elt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">):</span>
@@ -379,7 +377,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib polygon patch for the element</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        geometry: bounding box of the element</span>
 <span class="sd">        page_dimensions: dimensions of the Page in format (height, width)</span>
 <span class="sd">        label: label to display when hovered</span>
@@ -390,7 +387,6 @@
 <span class="sd">        preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        a polygon Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
@@ -419,13 +415,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib patch for the element</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        geometry: bounding box (straight or rotated) of the element</span>
 <span class="sd">        page_dimensions: dimensions of the page in format (height, width)</span>
 <span class="sd">        **kwargs: keyword arguments for the patch</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        a matplotlib Patch</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
@@ -442,11 +436,9 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate num_colors color for matplotlib</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        num_colors: number of colors to generate</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        colors: list of generated colors</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
@@ -483,7 +475,6 @@
 <span class="sd">    &gt;&gt;&gt; plt.show()</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        page: the exported Page of a Document</span>
 <span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
@@ -494,7 +485,6 @@
 <span class="sd">        **kwargs: keyword arguments for the polygon patch</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        the matplotlib figure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
@@ -610,7 +600,6 @@
 <span class="sd">    &gt;&gt;&gt; plt.show()</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        page: the exported Page of a Document</span>
 <span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
@@ -621,7 +610,6 @@
 <span class="sd">        **kwargs: keyword arguments for the polygon patch</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        the matplotlib figure</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
@@ -668,7 +656,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw an array of relative straight boxes on an image</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        boxes: array of relative boxes, of shape (*, 4)</span>
 <span class="sd">        image: np array, float32 or uint8</span>
 <span class="sd">        color: color to use for bounding box edges</span>

@@ -362,7 +362,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        save_dir: directory to save model and config</span>
 <span class="sd">        arch: architecture name</span>
@@ -400,7 +399,6 @@
 <span class="sd">    &gt;&gt;&gt; push_to_hf_hub(model, &#39;my-model&#39;, &#39;recognition&#39;, arch=&#39;crnn_mobilenet_v3_small&#39;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        model_name: name of the model which is also the repository name</span>
 <span class="sd">        task: task name</span>
@@ -417,9 +415,9 @@
     <span class="c1"># default readme</span>
     <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    ---</span>
+
 <span class="s2">    language: en</span>
-<span class="s2">    ---</span>
+
 
 <span class="s2">    &lt;p align=&quot;center&quot;&gt;</span>
 <span class="s2">    &lt;img src=&quot;https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&amp;src=0&quot; width=&quot;60%&quot;&gt;</span>
@@ -496,12 +494,10 @@
 <span class="sd">    &gt;&gt;&gt; model = from_hub(&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        repo_id: HuggingFace model hub repo</span>
 <span class="sd">        kwargs: kwargs of `hf_hub_download` or `snapshot_download`</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        Model loaded with the checkpoint</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get the config</span>

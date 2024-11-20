@@ -374,14 +374,12 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_crop])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        arch: name of the architecture to use (e.g. &#39;mobilenet_v3_small_crop_orientation&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our recognition crops dataset</span>
 <span class="sd">        batch_size: number of samples the model processes in parallel</span>
 <span class="sd">        **kwargs: keyword arguments to be passed to the OrientationPredictor</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        OrientationPredictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;crop&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
@@ -402,14 +400,12 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        arch: name of the architecture to use (e.g. &#39;mobilenet_v3_small_page_orientation&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our recognition crops dataset</span>
 <span class="sd">        batch_size: number of samples the model processes in parallel</span>
 <span class="sd">        **kwargs: keyword arguments to be passed to the OrientationPredictor</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        OrientationPredictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_orientation_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">model_type</span><span class="o">=</span><span class="s2">&quot;page&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>

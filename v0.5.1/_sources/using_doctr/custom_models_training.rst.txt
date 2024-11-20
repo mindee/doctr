@@ -14,29 +14,6 @@ This section shows how you can easily load a custom trained model in docTR.
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            from doctr.models import ocr_predictor, db_resnet50, crnn_vgg16_bn
-
-            # Load custom detection model
-            det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_model.load_weights("<path_to_checkpoint>")
-            predictor = ocr_predictor(det_arch=det_model, reco_arch="vitstr_small", pretrained=True)
-
-            # Load custom recognition model
-            reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_model.load_weights("<path_to_checkpoint>")
-            predictor = ocr_predictor(det_arch="linknet_resnet18", reco_arch=reco_model, pretrained=True)
-
-            # Load custom detection and recognition model
-            det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_model.load_weights("<path_to_checkpoint>")
-            reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_model.load_weights("<path_to_checkpoint>")
-            predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model, pretrained=False)
-
     .. tab:: PyTorch
 
         .. code:: python3
@@ -63,24 +40,35 @@ This section shows how you can easily load a custom trained model in docTR.
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
             reco_params = torch.load('<path_to_pt>', map_location="cpu")
             reco_model.load_state_dict(reco_params)
+            predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model, pretrained=False)
+
+    .. tab:: TensorFlow
+
+        .. code:: python3
+
+            from doctr.models import ocr_predictor, db_resnet50, crnn_vgg16_bn
+
+            # Load custom detection model
+            det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
+            det_model.load_weights("<path_to_checkpoint>")
+            predictor = ocr_predictor(det_arch=det_model, reco_arch="vitstr_small", pretrained=True)
+
+            # Load custom recognition model
+            reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
+            reco_model.load_weights("<path_to_checkpoint>")
+            predictor = ocr_predictor(det_arch="linknet_resnet18", reco_arch=reco_model, pretrained=True)
+
+            # Load custom detection and recognition model
+            det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
+            det_model.load_weights("<path_to_checkpoint>")
+            reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
+            reco_model.load_weights("<path_to_checkpoint>")
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model, pretrained=False)
 
 Load a custom recognition model trained on another vocabulary as the default one (French):
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            from doctr.models import ocr_predictor, crnn_vgg16_bn
-            from doctr.datasets import VOCABS
-
-            reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=VOCABS["german"])
-            reco_model.load_weights("<path_to_checkpoint>")
-
-            predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
-
     .. tab:: PyTorch
 
         .. code:: python3
@@ -92,6 +80,18 @@ Load a custom recognition model trained on another vocabulary as the default one
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=VOCABS["german"])
             reco_params = torch.load('<path_to_pt>', map_location="cpu")
             reco_model.load_state_dict(reco_params)
+
+            predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
+
+    .. tab:: TensorFlow
+
+        .. code:: python3
+
+            from doctr.models import ocr_predictor, crnn_vgg16_bn
+            from doctr.datasets import VOCABS
+
+            reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=VOCABS["german"])
+            reco_model.load_weights("<path_to_checkpoint>")
 
             predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
 
@@ -99,16 +99,6 @@ Load a custom trained KIE detection model:
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            from doctr.models import kie_predictor, db_resnet50
-
-            det_model = db_resnet50(pretrained=False, pretrained_backbone=False, class_names=['total', 'date'])
-            det_model.load_weights("<path_to_checkpoint>")
-            kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
-
     .. tab:: PyTorch
 
         .. code:: python3
@@ -121,14 +111,25 @@ Load a custom trained KIE detection model:
             det_model.load_state_dict(det_params)
             kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
 
-Load a model with customized Preprocessor:
-
-.. tabs::
-
     .. tab:: TensorFlow
 
         .. code:: python3
 
+            from doctr.models import kie_predictor, db_resnet50
+
+            det_model = db_resnet50(pretrained=False, pretrained_backbone=False, class_names=['total', 'date'])
+            det_model.load_weights("<path_to_checkpoint>")
+            kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
+
+Load a model with customized Preprocessor:
+
+.. tabs::
+
+    .. tab:: PyTorch
+
+        .. code:: python3
+
+            import torch
             from doctr.models.predictor import OCRPredictor
             from doctr.models.detection.predictor import DetectionPredictor
             from doctr.models.recognition.predictor import RecognitionPredictor
@@ -136,9 +137,11 @@ Load a model with customized Preprocessor:
             from doctr.models import db_resnet50, crnn_vgg16_bn
 
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_model.load_weights("<path_to_checkpoint>")
+            det_params = torch.load('<path_to_pt>', map_location="cpu")
+            det_model.load_state_dict(det_params)
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_model.load_weights("<path_to_checkpoint>")
+            reco_params = torch.load(<path_to_pt>, map_location="cpu")
+            reco_model.load_state_dict(reco_params)
 
             det_predictor = DetectionPredictor(
                 PreProcessor(
@@ -163,11 +166,10 @@ Load a model with customized Preprocessor:
 
             predictor = OCRPredictor(det_predictor, reco_predictor)
 
-    .. tab:: PyTorch
+    .. tab:: TensorFlow
 
         .. code:: python3
 
-            import torch
             from doctr.models.predictor import OCRPredictor
             from doctr.models.detection.predictor import DetectionPredictor
             from doctr.models.recognition.predictor import RecognitionPredictor
@@ -175,11 +177,9 @@ Load a model with customized Preprocessor:
             from doctr.models import db_resnet50, crnn_vgg16_bn
 
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_params = torch.load('<path_to_pt>', map_location="cpu")
-            det_model.load_state_dict(det_params)
+            det_model.load_weights("<path_to_checkpoint>")
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_params = torch.load(<path_to_pt>, map_location="cpu")
-            reco_model.load_state_dict(reco_params)
+            reco_model.load_weights("<path_to_checkpoint>")
 
             det_predictor = DetectionPredictor(
                 PreProcessor(
@@ -224,30 +224,6 @@ Loading your custom trained orientation classification model
 
 .. tabs::
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            from doctr.io import DocumentFile
-            from doctr.models import ocr_predictor, mobilenet_v3_small_page_orientation, mobilenet_v3_small_crop_orientation
-            from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
-
-            custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=False)
-            custom_page_orientation_model.load_weights("<path_to_checkpoint>")
-            custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
-            custom_crop_orientation_model.load_weights("<path_to_checkpoint>")
-
-            predictor = ocr_predictor(
-                pretrained=True,
-                assume_straight_pages=False,
-                straighten_pages=True,
-                detect_orientation=True,
-            )
-
-            # Overwrite the default orientation models
-            predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
-            predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
-
     .. tab:: PyTorch
 
         .. code:: python3
@@ -263,6 +239,30 @@ Loading your custom trained orientation classification model
             custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
             crop_params = torch.load('<path_to_pt>', map_location="cpu")
             custom_crop_orientation_model.load_state_dict(crop_params)
+
+            predictor = ocr_predictor(
+                pretrained=True,
+                assume_straight_pages=False,
+                straighten_pages=True,
+                detect_orientation=True,
+            )
+
+            # Overwrite the default orientation models
+            predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
+            predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+
+    .. tab:: TensorFlow
+
+        .. code:: python3
+
+            from doctr.io import DocumentFile
+            from doctr.models import ocr_predictor, mobilenet_v3_small_page_orientation, mobilenet_v3_small_crop_orientation
+            from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
+
+            custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=False)
+            custom_page_orientation_model.load_weights("<path_to_checkpoint>")
+            custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
+            custom_crop_orientation_model.load_weights("<path_to_checkpoint>")
 
             predictor = ocr_predictor(
                 pretrained=True,

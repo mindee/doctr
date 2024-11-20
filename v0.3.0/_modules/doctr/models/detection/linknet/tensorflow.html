@@ -398,7 +398,6 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        fpn_channels: number of channels each extracted feature maps is mapped to</span>
 <span class="sd">        bin_thresh: threshold for binarization of the output feature map</span>
@@ -474,7 +473,6 @@
 <span class="sd">        &lt;https://github.com/tensorflow/addons/&gt;`_.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            out_map: output feature map of the model of shape N x H x W x 1</span>
 <span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
 <span class="sd">            gamma: modulating factor in the focal loss formula</span>
@@ -482,7 +480,6 @@
 <span class="sd">            eps: epsilon factor in dice loss</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">        -------</span>
 <span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">True</span><span class="p">)</span>
@@ -605,12 +602,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the LinkNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
@@ -636,12 +631,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the LinkNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
@@ -667,12 +660,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the LinkNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>

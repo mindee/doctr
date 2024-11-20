@@ -345,7 +345,6 @@
 <span class="sd">    Implementation based on the official Pytorch implementation: &lt;https://github.com/czczup/FAST&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        stages (List[Dict[str, List[int]]]): List of dictionaries containing the parameters of each stage.</span>
 <span class="sd">        include_top (bool, optional): Whether to include the classifier head. Defaults to True.</span>
 <span class="sd">        num_classes (int, optional): Number of output classes. Defaults to 1000.</span>
@@ -436,12 +435,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the TextNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A textnet tiny model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_textnet</span><span class="p">(</span>
@@ -487,12 +484,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the TextNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A TextNet small model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_textnet</span><span class="p">(</span>
@@ -538,12 +533,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained: boolean, True if model is pretrained</span>
 <span class="sd">        **kwargs: keyword arguments of the TextNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A TextNet base model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_textnet</span><span class="p">(</span>

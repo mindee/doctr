@@ -317,12 +317,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a PIL Image to a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pil_img: a PIL image</span>
 <span class="sd">        dtype: the output tensor data type</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        decoded image as tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">npy_img</span> <span class="o">=</span> <span class="n">img_to_array</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
@@ -336,12 +334,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        img_path: location of the image file</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        decoded image as a tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
@@ -364,12 +360,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a byte stream as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        img_content: bytes of a decoded image</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        decoded image as a tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
@@ -389,12 +383,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file as a TensorFlow tensor</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        npy_img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
 <span class="sd">        dtype: the desired data type of the output tensor. If it is float-related, values will be divided by 255.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        same image as a tensor of shape (H, W, C)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>

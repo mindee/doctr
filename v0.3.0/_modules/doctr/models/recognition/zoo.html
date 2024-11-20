@@ -369,7 +369,6 @@
 <span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        arch: name of the architecture or model itself to use (e.g. &#39;crnn_vgg16_bn&#39;)</span>
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text recognition dataset</span>
 <span class="sd">        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right</span>
@@ -377,7 +376,6 @@
 <span class="sd">        **kwargs: optional parameters to be passed to the architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        Recognition predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>

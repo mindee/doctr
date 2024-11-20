@@ -323,12 +323,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Performs string comparison with multiple levels of tolerance</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        word1: a string</span>
 <span class="sd">        word2: another string</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        a tuple with booleans specifying respectively whether the raw strings, their lower-case counterparts, their</span>
 <span class="sd">            anyascii counterparts and their lower-case anyascii counterparts match</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -386,7 +384,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the state of the metric with new predictions</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            gt: list of groung-truth character sequences</span>
 <span class="sd">            pred: list of predicted character sequences</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -408,8 +405,7 @@
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            a dictionary with the exact match score for the raw data, its lower-case counterpart, its anyascii</span>
 <span class="sd">            counterpart and its lower-case anyascii counterpart</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -437,12 +433,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of bounding boxes</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        boxes_1: bounding boxes of shape (N, 4) in format (xmin, ymin, xmax, ymax)</span>
 <span class="sd">        boxes_2: bounding boxes of shape (M, 4) in format (xmin, ymin, xmax, ymax)</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">iou_mat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">boxes_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">boxes_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -467,14 +461,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the IoU between two sets of rotated bounding boxes</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        polys_1: rotated bounding boxes of shape (N, 4, 2)</span>
 <span class="sd">        polys_2: rotated bounding boxes of shape (M, 4, 2)</span>
 <span class="sd">        mask_shape: spatial shape of the intermediate masks</span>
 <span class="sd">        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">polys_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
@@ -498,12 +490,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Perform non-max suppression, borrowed from &lt;https://github.com/rbgirshick/fast-rcnn&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        boxes: np array of straight boxes: (*, 5), (xmin, ymin, xmax, ymax, score)</span>
 <span class="sd">        thresh: iou threshold to perform box suppression.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        A list of box indexes to keep</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
@@ -569,7 +559,6 @@
 <span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
 <span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have rotated format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -589,7 +578,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the metric</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
 <span class="sd">            preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -615,8 +603,7 @@
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall, precision and meanIoU scores</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Recall</span>
@@ -678,7 +665,6 @@
 <span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
 <span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have rotated format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -704,7 +690,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the metric</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
 <span class="sd">            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
 <span class="sd">            gt_labels: a list of N string labels</span>
@@ -744,8 +729,7 @@
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall &amp; precision for each string comparison and the mean IoU</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Recall</span>
@@ -820,7 +804,6 @@
 <span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        iou_thresh: minimum IoU to consider a pair of prediction and ground truth as a match</span>
 <span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have rotated format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -846,7 +829,6 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the metric</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            gt_boxes: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones</span>
 <span class="sd">            pred_boxes: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones</span>
 <span class="sd">            gt_labels: an array of class indices of shape (N,)</span>
@@ -881,8 +863,7 @@
     <span class="k">def</span> <span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
 
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
+<span class="sd">        Returns:</span>
 <span class="sd">            a tuple with the recall &amp; precision for each class prediction and the mean IoU</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Recall</span>

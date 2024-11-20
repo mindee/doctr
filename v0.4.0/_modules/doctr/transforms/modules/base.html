@@ -314,20 +314,12 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SampleCompose&quot;</span><span class="p">,</span> <span class="s2">&quot;ImageTransform&quot;</span><span class="p">,</span> <span class="s2">&quot;ColorInversion&quot;</span><span class="p">,</span> <span class="s2">&quot;OneOf&quot;</span><span class="p">,</span> <span class="s2">&quot;RandomApply&quot;</span><span class="p">,</span> <span class="s2">&quot;RandomRotate&quot;</span><span class="p">,</span> <span class="s2">&quot;RandomCrop&quot;</span><span class="p">]</span>
 
 
+<div class="viewcode-block" id="SampleCompose">
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.SampleCompose">[docs]</a>
 <span class="k">class</span> <span class="nc">SampleCompose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a wrapper that will apply transformations sequentially on both image and target</span>
 
 <span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
-<span class="sd">                &gt;&gt;&gt; transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
-<span class="sd">                &gt;&gt;&gt; out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))</span>
 
 <span class="sd">        .. tab:: PyTorch</span>
 
@@ -339,8 +331,17 @@
 <span class="sd">                &gt;&gt;&gt; transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
 <span class="sd">                &gt;&gt;&gt; out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))</span>
 
+<span class="sd">        .. tab:: TensorFlow</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">                &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
+<span class="sd">                &gt;&gt;&gt; transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
+<span class="sd">                &gt;&gt;&gt; out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        transforms: list of transformation modules</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -353,22 +354,16 @@
         <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_transforms</span><span class="p">:</span>
             <span class="n">x</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">t</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">target</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">target</span></div>
 
 
+
+<div class="viewcode-block" id="ImageTransform">
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.ImageTransform">[docs]</a>
 <span class="k">class</span> <span class="nc">ImageTransform</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a transform wrapper to turn an image-only transformation into an image+target transform</span>
 
 <span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
-<span class="sd">                &gt;&gt;&gt; out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)</span>
 
 <span class="sd">        .. tab:: PyTorch</span>
 
@@ -379,8 +374,16 @@
 <span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
 <span class="sd">                &gt;&gt;&gt; out, _ = transfo(torch.rand(8, 64, 64, 3), None)</span>
 
+<span class="sd">        .. tab:: TensorFlow</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
+<span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
+<span class="sd">                &gt;&gt;&gt; out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        transform: the image transformation module to wrap</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -391,25 +394,17 @@
 
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
         <span class="n">img</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
+        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span></div>
+
 
 
 <div class="viewcode-block" id="ColorInversion">
-<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.ColorInversion">[docs]</a>
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.ColorInversion">[docs]</a>
 <span class="k">class</span> <span class="nc">ColorInversion</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
 <span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
 
 <span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">        .. tab:: PyTorch</span>
 
@@ -420,8 +415,16 @@
 <span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
 <span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(8, 64, 64, 3))</span>
 
+<span class="sd">        .. tab:: TensorFlow</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
+<span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
+<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        min_val: range [min_val, 1] to colorize RGB pixels</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -437,20 +440,11 @@
 
 
 <div class="viewcode-block" id="OneOf">
-<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.OneOf">[docs]</a>
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.OneOf">[docs]</a>
 <span class="k">class</span> <span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
 
 <span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import OneOf</span>
-<span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">        .. tab:: PyTorch</span>
 
@@ -461,8 +455,16 @@
 <span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
 <span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
 
+<span class="sd">        .. tab:: TensorFlow</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">                &gt;&gt;&gt; from doctr.transforms import OneOf</span>
+<span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
+<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        transforms: list of transformations, one only will be picked</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -480,20 +482,11 @@
 
 
 <div class="viewcode-block" id="RandomApply">
-<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomApply">[docs]</a>
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.RandomApply">[docs]</a>
 <span class="k">class</span> <span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
 
 <span class="sd">    .. tabs::</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
-<span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
 
 <span class="sd">        .. tab:: PyTorch</span>
 
@@ -504,8 +497,16 @@
 <span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
 <span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
 
+<span class="sd">        .. tab:: TensorFlow</span>
+
+<span class="sd">            .. code:: python</span>
+
+<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
+<span class="sd">                &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
+<span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
+<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        transform: transformation to apply</span>
 <span class="sd">        p: probability to apply</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -525,7 +526,7 @@
 
 
 <div class="viewcode-block" id="RandomRotate">
-<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomRotate">[docs]</a>
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.RandomRotate">[docs]</a>
 <span class="k">class</span> <span class="nc">RandomRotate</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly rotate a tensor image and its boxes</span>
 
@@ -533,9 +534,7 @@
 <span class="sd">        :align: center</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
-<span class="sd">        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in</span>
-<span class="sd">            [-max_angle, max_angle]</span>
+<span class="sd">        max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in [-max_angle, max_angle]</span>
 <span class="sd">        expand: whether the image should be padded before the rotation</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -556,12 +555,11 @@
 
 
 <div class="viewcode-block" id="RandomCrop">
-<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.RandomCrop">[docs]</a>
+<a class="viewcode-back" href="../../../../modules/transforms.html#doctr.transforms.modules.RandomCrop">[docs]</a>
 <span class="k">class</span> <span class="nc">RandomCrop</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly crop a tensor image and its boxes</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        scale: tuple of floats, relative (min_area, max_area) of the crop</span>
 <span class="sd">        ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w</span>
 <span class="sd">    &quot;&quot;&quot;</span>

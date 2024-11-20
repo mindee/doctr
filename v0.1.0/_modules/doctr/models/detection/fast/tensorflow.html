@@ -347,7 +347,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layer.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        in_channels: number of input channels</span>
 <span class="sd">        out_channels: number of output channels</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -375,7 +374,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Head of the FAST architecture</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        in_channels: number of input channels</span>
 <span class="sd">        num_classes: number of output classes</span>
 <span class="sd">        out_channels: number of output channels</span>
@@ -402,7 +400,6 @@
 <span class="sd">    &lt;https://arxiv.org/pdf/2111.02394.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        feature extractor: the backbone serving as feature extractor</span>
 <span class="sd">        bin_thresh: threshold for binarization</span>
 <span class="sd">        box_thresh: minimal objectness score to consider a box</span>
@@ -463,13 +460,11 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">        ----</span>
 <span class="sd">            out_map: output feature map of the model of shape (N, num_classes, H, W)</span>
 <span class="sd">            target: list of dictionary where each dict has a `boxes` and a `flags` entry</span>
 <span class="sd">            eps: epsilon factor in dice loss</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">        -------</span>
 <span class="sd">            A loss tensor</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">True</span><span class="p">)</span>
@@ -557,11 +552,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Fuse batchnorm and conv layers and reparameterize the model</span>
 
 <span class="sd">    args:</span>
-<span class="sd">    ----</span>
+
 <span class="sd">        model: the FAST model to reparameterize</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        the reparameterized model</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">last_conv</span> <span class="o">=</span> <span class="kc">None</span>
@@ -658,12 +652,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_fast</span><span class="p">(</span>
@@ -689,12 +681,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_fast</span><span class="p">(</span>
@@ -720,12 +710,10 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text detection dataset</span>
 <span class="sd">        **kwargs: keyword arguments of the DBNet architecture</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        text detection architecture</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_fast</span><span class="p">(</span>
