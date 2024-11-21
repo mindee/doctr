@@ -55,11 +55,11 @@ Advantages:
 Compiling your models (PyTorch only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-**NOTE:** This feature is only available for PyTorch models.
+**NOTE:**
 
-**NOTE:** The recognition `master` architecture is not supported for model compilation yet.
-
-- **What it does**:
+- This feature is only available for PyTorch models.
+- The recognition architecture `master` is not supported for model compilation yet.
+- We provide only official support for the default (`inductor`) backend, but you can try other backends, configurations depending on your hardware and requirements as well.
 
 Compiling your PyTorch models with `torch.compile` optimizes the model by converting it to a graph representation and applying backends that can improve performance.
 This process can make inference faster and reduce memory overhead during execution.
