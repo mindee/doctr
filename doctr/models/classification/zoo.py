@@ -50,6 +50,7 @@ def _orientation_predictor(
     else:
         allowed_archs = [classification.MobileNetV3]
         if is_torch_available():
+            # Adding the type for torch compiled models to the allowed architectures
             from doctr.models.utils import _CompiledModule
 
             allowed_archs.append(_CompiledModule)

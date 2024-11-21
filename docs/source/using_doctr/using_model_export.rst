@@ -57,7 +57,7 @@ Compiling your models (PyTorch only)
 
 **NOTE:**
 
-- This feature is only available for PyTorch models.
+- This feature is only available if you use PyTorch as backend.
 - The recognition architecture `master` is not supported for model compilation yet.
 - We provide only official support for the default (`inductor`) backend, but you can try other backends, configurations depending on your hardware and requirements as well.
 
@@ -125,7 +125,7 @@ It defines a common format for representing models, including the network struct
             dummy_input = torch.rand((batch_size, input_shape), dtype=torch.float32)
             model_path = export_model_to_onnx(
                 model,
-                model_name="vitstr.onnx,
+                model_name="vitstr.onnx",
                 dummy_input=dummy_input
             )
 

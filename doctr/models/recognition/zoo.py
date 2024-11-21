@@ -37,7 +37,7 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     else:
         allowed_archs = [recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR, recognition.PARSeq]
         if is_torch_available():
-            # The following is required for torch compiled models
+            # Adding the type for torch compiled models to the allowed architectures
             from doctr.models.utils import _CompiledModule
 
             allowed_archs.append(_CompiledModule)

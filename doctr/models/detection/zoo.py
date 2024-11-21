@@ -58,7 +58,7 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
     else:
         allowed_archs = [detection.DBNet, detection.LinkNet, detection.FAST]
         if is_torch_available():
-            # The following is required for torch compiled models
+            # Adding the type for torch compiled models to the allowed architectures
             from doctr.models.utils import _CompiledModule
 
             allowed_archs.append(_CompiledModule)
