@@ -50,9 +50,9 @@ def _orientation_predictor(
     else:
         allowed_archs = [classification.MobileNetV3]
         if is_torch_available():
-            from doctr.models.utils import _get_torch_compile_type
+            from doctr.models.utils import _CompiledModule
 
-            allowed_archs.append(_get_torch_compile_type())
+            allowed_archs.append(_CompiledModule)
 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
