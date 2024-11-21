@@ -59,9 +59,9 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         allowed_archs = [detection.DBNet, detection.LinkNet, detection.FAST]
         if is_torch_available():
             # The following is required for torch compiled models
-            import torch
+            from doctr.models.utils import _get_torch_compile_type
 
-            allowed_archs.append(torch._dynamo.eval_frame.OptimizedModule)
+            allowed_archs.append(_get_torch_compile_type())
 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")

@@ -50,10 +50,9 @@ def _orientation_predictor(
     else:
         allowed_archs = [classification.MobileNetV3]
         if is_torch_available():
-            # The following is required for torch compiled models
-            import torch
+            from doctr.models.utils import _get_torch_compile_type
 
-            allowed_archs.append(torch._dynamo.eval_frame.OptimizedModule)
+            allowed_archs.append(_get_torch_compile_type())
 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
