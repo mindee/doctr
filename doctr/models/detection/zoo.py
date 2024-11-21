@@ -56,12 +56,14 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         if isinstance(_model, detection.FAST):
             _model = reparameterize(_model)
     else:
-        allowed_archs = (detection.DBNet, detection.LinkNet, detection.FAST)
+        allowed_archs = [detection.DBNet, detection.LinkNet, detection.FAST]
         if is_torch_available():
+            # The following is required for torch compiled models
             import torch
 
-            allowed_archs += (torch._dynamo.eval_frame.OptimizedModule,)
-        if not isinstance(arch, allowed_archs):
+            allowed_archs.append(torch._dynamo.eval_frame.OptimizedModule)
+
+        if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
 
         _model = arch

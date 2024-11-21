@@ -263,7 +263,7 @@ class SAR(nn.Module, RecognitionModel):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable
+            @torch.compiler.disable  # type: ignore[attr-defined]
             def _postprocess(decoded_features: torch.Tensor) -> List[Tuple[str, float]]:
                 return self.postprocessor(decoded_features)
 

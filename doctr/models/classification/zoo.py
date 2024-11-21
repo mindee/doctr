@@ -48,13 +48,14 @@ def _orientation_predictor(
         # Load directly classifier from backbone
         _model = classification.__dict__[arch](pretrained=pretrained)
     else:
-        allowed_archs = (classification.MobileNetV3,)
+        allowed_archs = [classification.MobileNetV3]
         if is_torch_available():
+            # The following is required for torch compiled models
             import torch
 
-            allowed_archs += (torch._dynamo.eval_frame.OptimizedModule,)
+            allowed_archs.append(torch._dynamo.eval_frame.OptimizedModule)
 
-        if not isinstance(arch, allowed_archs):
+        if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 

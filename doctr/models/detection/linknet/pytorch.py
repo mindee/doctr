@@ -184,7 +184,7 @@ class LinkNet(nn.Module, _LinkNet):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable
+            @torch.compiler.disable  # type: ignore[attr-defined]
             def _postprocess(prob_map: torch.Tensor) -> List[Dict[str, Any]]:
                 return [
                     dict(zip(self.class_names, preds))

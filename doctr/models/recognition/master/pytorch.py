@@ -210,7 +210,7 @@ class MASTER(_MASTER, nn.Module):
 
         if return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable
+            @torch.compiler.disable  # type: ignore[attr-defined]
             def _postprocess(logits: torch.Tensor) -> List[Tuple[str, float]]:
                 return self.postprocessor(logits)
 
