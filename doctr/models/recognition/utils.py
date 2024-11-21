@@ -22,7 +22,7 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
         A merged character sequence.
 
     Example::
-        >>> from doctr.model.recognition.utils import merge_sequences
+        >>> from doctr.models.recognition.utils import merge_sequences
         >>> merge_sequences('abcd', 'cdefgh', 1.4)
         'abcdefgh'
         >>> merge_sequences('abcdi', 'cdefgh', 1.4)
@@ -70,7 +70,7 @@ def merge_multi_strings(seq_list: list[str], dil_factor: float) -> str:
         A merged character sequence
 
     Example::
-        >>> from doctr.model.recognition.utils import merge_multi_sequences
+        >>> from doctr.models.recognition.utils import merge_multi_sequences
         >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)
         'abcdefghijkl'
     """

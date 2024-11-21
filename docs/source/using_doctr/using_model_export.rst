@@ -31,7 +31,11 @@ Advantages:
         .. code:: python3
 
             import torch
-            predictor = ocr_predictor(reco_arch="crnn_mobilenet_v3_small", det_arch="linknet_resnet34", pretrained=True).cuda().half()
+            predictor = ocr_predictor(
+                reco_arch="crnn_mobilenet_v3_small",
+                det_arch="linknet_resnet34",
+                pretrained=True
+            ).cuda().half()
             res = predictor(doc)
 
     .. tab:: TensorFlow
@@ -41,8 +45,63 @@ Advantages:
             import tensorflow as tf
             from tensorflow.keras import mixed_precision
             mixed_precision.set_global_policy('mixed_float16')
-            predictor = ocr_predictor(reco_arch="crnn_mobilenet_v3_small", det_arch="linknet_resnet34", pretrained=True)
+            predictor = ocr_predictor(
+                reco_arch="crnn_mobilenet_v3_small",
+                det_arch="linknet_resnet34",
+                pretrained=True
+            )
 
+
+Compiling your models (PyTorch only)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+**NOTE:** This feature is only available for PyTorch models.
+
+**NOTE:** The recognition `master` architecture is not supported for model compilation yet.
+
+- **What it does**:
+
+Compiling your PyTorch models with `torch.compile` optimizes the model by converting it to a graph representation and applying backends that can improve performance.
+This process can make inference faster and reduce memory overhead during execution.
+
+Further information can be found in the `PyTorch documentation <https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html>`_.
+
+.. code::
+
+    import torch
+    from doctr.models import (
+        ocr_predictor,
+        vitstr_small,
+        fast_base,
+        mobilenet_v3_small_crop_orientation,
+        mobilenet_v3_small_page_orientation,
+        crop_orientation_predictor,
+        page_orientation_predictor
+    )
+
+    # Compile the models
+    detection_model = torch.compile(
+        fast_base(pretrained=True).eval()
+    )
+    recognition_model = torch.compile(
+        vitstr_small(pretrained=True).eval()
+    )
+    crop_orientation_model = torch.compile(
+        mobilenet_v3_small_crop_orientation(pretrained=True).eval()
+    )
+    page_orientation_model = torch.compile(
+        mobilenet_v3_small_page_orientation(pretrained=True).eval()
+    )
+
+    predictor = models.ocr_predictor(
+        detection_model, recognition_model, assume_straight_pages=False
+    )
+    # NOTE: Only required for non-straight pages (`assume_straight_pages=False`) and non-disabled orientation classification
+    # Set the orientation predictors
+    predictor.crop_orientation_predictor = crop_orientation_predictor(crop_orientation_model)
+    predictor.page_orientation_predictor = page_orientation_predictor(page_orientation_model)
+
+    compiled_out = predictor(doc)
 
 Export to ONNX
 ^^^^^^^^^^^^^^
@@ -64,7 +123,11 @@ It defines a common format for representing models, including the network struct
             input_shape = (3, 32, 128)
             model = vitstr_small(pretrained=True, exportable=True)
             dummy_input = torch.rand((batch_size, input_shape), dtype=torch.float32)
-            model_path = export_model_to_onnx(model, model_name="vitstr.onnx, dummy_input=dummy_input)
+            model_path = export_model_to_onnx(
+                model,
+                model_name="vitstr.onnx,
+                dummy_input=dummy_input
+            )
 
     .. tab:: TensorFlow
 
@@ -78,7 +141,11 @@ It defines a common format for representing models, including the network struct
             input_shape = (32, 128, 3)
             model = vitstr_small(pretrained=True, exportable=True)
             dummy_input = [tf.TensorSpec([batch_size, input_shape], tf.float32, name="input")]
-            model_path, output = export_model_to_onnx(model, model_name="vitstr.onnx", dummy_input=dummy_input)
+            model_path, output = export_model_to_onnx(
+                model,
+                model_name="vitstr.onnx",
+                dummy_input=dummy_input
+            )
 
 
 Using your ONNX exported model

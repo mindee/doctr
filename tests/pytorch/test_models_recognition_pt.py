@@ -7,6 +7,7 @@ import psutil
 import pytest
 import torch
 
+from doctr.io import DocumentFile
 from doctr.models import recognition
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
 from doctr.models.recognition.master.pytorch import MASTERPostProcessor
@@ -154,3 +155,33 @@ def test_models_onnx_export(arch_name, input_shape):
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
     except AssertionError:
         pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
+        "sar_resnet31",
+        # "master",  NOTE: MASTER model isn't compilable yet
+        "vitstr_small",
+        "vitstr_base",
+        "parseq",
+    ],
+)
+def test_torch_compiled_models(arch_name, mock_text_box):
+    doc = DocumentFile.from_images([mock_text_box])
+    predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=True)
+    assert isinstance(predictor, RecognitionPredictor)
+    out = predictor(doc)
+
+    # Compile the model
+    compiled_model = torch.compile(recognition.__dict__[arch_name](pretrained=True).eval())
+    assert isinstance(compiled_model, torch._dynamo.eval_frame.OptimizedModule)
+    compiled_predictor = recognition.zoo.recognition_predictor(compiled_model)
+    compiled_out = compiled_predictor(doc)
+
+    # Compare
+    assert out[0][0] == compiled_out[0][0]
+    assert np.allclose(out[0][1], compiled_out[0][1], atol=1e-4)
