@@ -24,9 +24,10 @@ or PyTorch:
 ```shell
 python references/detection/train_pytorch.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
+
 ### Multi-GPU support (PyTorch only)
 
-Multi-GPU support on Detection task with PyTorch has been added. 
+Multi-GPU support on Detection task with PyTorch has been added.
 Arguments are the same than the ones from single GPU, except:
 
 - `--devices`: **by default, if you do not pass `--devices`, it will use all GPUs on your computer**.
@@ -40,7 +41,6 @@ device_names = [torch.cuda.get_device_name(d) for d in devices]
 
 - `--backend`: you can specify another `backend` for `DistribuedDataParallel` if the default one is not available on
 your operating system. Fastest one is `nccl` according to [PyTorch Documentation](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html).
-
 
 ```shell
 python references/detection/train_pytorch_ddp.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5 --devices 0 1 --backend nccl
