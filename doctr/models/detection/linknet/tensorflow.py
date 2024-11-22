@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -27,7 +27,7 @@ from .base import LinkNetPostProcessor, _LinkNet
 
 __all__ = ["LinkNet", "linknet_resnet18", "linknet_resnet34", "linknet_resnet50"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "linknet_resnet18": {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
@@ -73,7 +73,7 @@ class LinkNetFPN(Model, NestedObject):
     def __init__(
         self,
         out_chans: int,
-        in_shapes: List[Tuple[int, ...]],
+        in_shapes: list[tuple[int, ...]],
     ) -> None:
         super().__init__()
         self.out_chans = out_chans
@@ -85,7 +85,7 @@ class LinkNetFPN(Model, NestedObject):
             for in_chan, out_chan, s, in_shape in zip(i_chans, o_chans, strides, in_shapes[::-1])
         ]
 
-    def call(self, x: List[tf.Tensor], **kwargs: Any) -> tf.Tensor:
+    def call(self, x: list[tf.Tensor], **kwargs: Any) -> tf.Tensor:
         out = 0
         for decoder, fmap in zip(self.decoders, x[::-1]):
             out = decoder(out + fmap, **kwargs)
@@ -110,7 +110,7 @@ class LinkNet(_LinkNet, Model):
         class_names: list of class names
     """
 
-    _children_names: List[str] = ["feat_extractor", "fpn", "classifier", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "fpn", "classifier", "postprocessor"]
 
     def __init__(
         self,
@@ -120,8 +120,8 @@ class LinkNet(_LinkNet, Model):
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = [CLASS_NAME],
+        cfg: dict[str, Any] | None = None,
+        class_names: list[str] = [CLASS_NAME],
     ) -> None:
         super().__init__(cfg=cfg)
 
@@ -166,7 +166,7 @@ class LinkNet(_LinkNet, Model):
     def compute_loss(
         self,
         out_map: tf.Tensor,
-        target: List[Dict[str, np.ndarray]],
+        target: list[dict[str, np.ndarray]],
         gamma: float = 2.0,
         alpha: float = 0.5,
         eps: float = 1e-8,
@@ -215,16 +215,16 @@ class LinkNet(_LinkNet, Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[Dict[str, np.ndarray]]] = None,
+        target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         feat_maps = self.feat_extractor(x, **kwargs)
         logits = self.fpn(feat_maps, **kwargs)
         logits = self.classifier(logits, **kwargs)
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -250,9 +250,9 @@ def _linknet(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    fpn_layers: List[str],
+    fpn_layers: list[str],
     pretrained_backbone: bool = True,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> LinkNet:
     pretrained_backbone = pretrained_backbone and not pretrained

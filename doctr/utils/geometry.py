@@ -5,7 +5,6 @@
 
 from copy import deepcopy
 from math import ceil
-from typing import List, Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -55,7 +54,7 @@ def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
     return (min(x), min(y)), (max(x), max(y))
 
 
-def detach_scores(boxes: List[np.ndarray]) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+def detach_scores(boxes: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:
     """Detach the objectness scores from box predictions
 
     Args:
@@ -66,7 +65,7 @@ def detach_scores(boxes: List[np.ndarray]) -> Tuple[List[np.ndarray], List[np.nd
         the second one contains the objectness scores
     """
 
-    def _detach(boxes: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _detach(boxes: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         if boxes.ndim == 2:
             return boxes[:, :-1], boxes[:, -1]
         return boxes[:, :-1], boxes[:, -1, -1]
@@ -75,7 +74,7 @@ def detach_scores(boxes: List[np.ndarray]) -> Tuple[List[np.ndarray], List[np.nd
     return list(loc_preds), list(obj_scores)
 
 
-def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Union[BoundingBox, np.ndarray]:
+def resolve_enclosing_bbox(bboxes: list[BoundingBox] | np.ndarray) -> BoundingBox | np.ndarray:
     """Compute enclosing bbox either from:
 
     Args:
@@ -97,7 +96,7 @@ def resolve_enclosing_bbox(bboxes: Union[List[BoundingBox], np.ndarray]) -> Unio
         return (min(x), min(y)), (max(x), max(y))
 
 
-def resolve_enclosing_rbbox(rbboxes: List[np.ndarray], intermed_size: int = 1024) -> np.ndarray:
+def resolve_enclosing_rbbox(rbboxes: list[np.ndarray], intermed_size: int = 1024) -> np.ndarray:
     """Compute enclosing rotated bbox either from:
 
     Args:
@@ -136,7 +135,7 @@ def rotate_abs_points(points: np.ndarray, angle: float = 0.0) -> np.ndarray:
     return np.matmul(points, rotation_mat.T)
 
 
-def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[int, int]:
+def compute_expanded_shape(img_shape: tuple[int, int], angle: float) -> tuple[int, int]:
     """Compute the shape of an expanded rotated image
 
     Args:
@@ -160,7 +159,7 @@ def compute_expanded_shape(img_shape: Tuple[int, int], angle: float) -> Tuple[in
 def rotate_abs_geoms(
     geoms: np.ndarray,
     angle: float,
-    img_shape: Tuple[int, int],
+    img_shape: tuple[int, int],
     expand: bool = True,
 ) -> np.ndarray:
     """Rotate a batch of bounding boxes or polygons by an angle around the
@@ -198,7 +197,7 @@ def rotate_abs_geoms(
     return rotated_polys
 
 
-def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: Tuple[int, int]) -> np.ndarray:
+def remap_boxes(loc_preds: np.ndarray, orig_shape: tuple[int, int], dest_shape: tuple[int, int]) -> np.ndarray:
     """Remaps a batch of rotated locpred (N, 4, 2) expressed for an origin_shape to a destination_shape.
     This does not impact the absolute shape of the boxes, but allow to calculate the new relative RotatedBbox
     coordinates after a resizing of the image.
@@ -227,9 +226,9 @@ def remap_boxes(loc_preds: np.ndarray, orig_shape: Tuple[int, int], dest_shape: 
 def rotate_boxes(
     loc_preds: np.ndarray,
     angle: float,
-    orig_shape: Tuple[int, int],
+    orig_shape: tuple[int, int],
     min_angle: float = 1.0,
-    target_shape: Optional[Tuple[int, int]] = None,
+    target_shape: tuple[int, int] | None = None,
 ) -> np.ndarray:
     """Rotate a batch of straight bounding boxes (xmin, ymin, xmax, ymax, c) or rotated bounding boxes
     (4, 2) of an angle, if angle > min_angle, around the center of the page.
@@ -366,7 +365,7 @@ def estimate_page_angle(polys: np.ndarray) -> float:
             return 0.0
 
 
-def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) -> np.ndarray:
+def convert_to_relative_coords(geoms: np.ndarray, img_shape: tuple[int, int]) -> np.ndarray:
     """Convert a geometry to relative coordinates
 
     Args:
@@ -391,7 +390,7 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: Tuple[int, int]) ->
     raise ValueError(f"invalid format for arg `geoms`: {geoms.shape}")
 
 
-def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> List[np.ndarray]:
+def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> list[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
@@ -425,7 +424,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
 
 def extract_rcrops(
     img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True, assume_horizontal: bool = False
-) -> List[np.ndarray]:
+) -> list[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
     Args:

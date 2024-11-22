@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from fastapi import UploadFile
@@ -14,20 +14,20 @@ from doctr.io import DocumentFile
 
 def resolve_geometry(
     geom: Any,
-) -> Union[Tuple[float, float, float, float], Tuple[float, float, float, float, float, float, float, float]]:
+) -> tuple[float, float, float, float] | tuple[float, float, float, float, float, float, float, float]:
     if len(geom) == 4:
         return (*geom[0], *geom[1], *geom[2], *geom[3])
     return (*geom[0], *geom[1])
 
 
-async def get_documents(files: List[UploadFile]) -> Tuple[List[np.ndarray], List[str]]:  # pragma: no cover
+async def get_documents(files: list[UploadFile]) -> tuple[list[np.ndarray], list[str]]:  # pragma: no cover
     """Convert a list of UploadFile objects to lists of numpy arrays and their corresponding filenames
 
     Args:
         files: list of UploadFile objects
 
     Returns:
-        Tuple[List[np.ndarray], List[str]]: list of numpy arrays and their corresponding filenames
+        tuple[list[np.ndarray], list[str]]: list of numpy arrays and their corresponding filenames
 
     """
     filenames = []

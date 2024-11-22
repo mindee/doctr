@@ -5,7 +5,7 @@
 
 import glob
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -64,7 +64,7 @@ class SynthText(VisionDataset):
             )
 
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         # Load mat data

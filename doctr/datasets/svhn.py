@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import h5py
 import numpy as np
@@ -71,7 +71,7 @@ class SVHN(VisionDataset):
             )
 
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         tmp_root = os.path.join(self.root, "train" if train else "test")

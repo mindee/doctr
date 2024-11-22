@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List
+from typing import Any
 
 from doctr.file_utils import is_tf_available
 from doctr.models.preprocessor import PreProcessor
@@ -14,7 +14,7 @@ from .predictor import RecognitionPredictor
 __all__ = ["recognition_predictor"]
 
 
-ARCHS: List[str] = [
+ARCHS: list[str] = [
     "crnn_vgg16_bn",
     "crnn_mobilenet_v3_small",
     "crnn_mobilenet_v3_large",

@@ -5,7 +5,6 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -101,7 +100,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
                 containing x, y, w, h, alpha, score for the box
         """
         height, width = bitmap.shape[:2]
-        boxes: List[Union[np.ndarray, List[float]]] = []
+        boxes: list[np.ndarray | list[float]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
@@ -156,10 +155,10 @@ class _LinkNet(BaseModel):
 
     def build_target(
         self,
-        target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int],
+        target: list[dict[str, np.ndarray]],
+        output_shape: tuple[int, int, int],
         channels_last: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
 
         Args:

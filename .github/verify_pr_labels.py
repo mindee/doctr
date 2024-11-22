@@ -11,7 +11,7 @@ Note: we ping the merger only, not the reviewers, as the reviewers can sometimes
 with no labeling responsibility, so we don't want to bother them.
 """
 
-from typing import Any, Set, Tuple
+from typing import Any
 
 import requests
 
@@ -54,7 +54,7 @@ def query_repo(cmd: str, *, accept) -> Any:
     return response.json()
 
 
-def get_pr_merger_and_labels(pr_number: int) -> Tuple[str, Set[str]]:
+def get_pr_merger_and_labels(pr_number: int) -> tuple[str, set[str]]:
     # See https://docs.github.com/en/rest/reference/pulls#get-a-pull-request
     data = query_repo(f"pulls/{pr_number}", accept="application/vnd.github.v3+json")
     merger = data.get("merged_by", {}).get("login")

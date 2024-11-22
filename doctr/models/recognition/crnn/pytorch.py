@@ -3,9 +3,10 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from copy import deepcopy
 from itertools import groupby
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import nn
@@ -19,7 +20,7 @@ from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "crnn_vgg16_bn": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -56,7 +57,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         logits: torch.Tensor,
         vocab: str = VOCABS["french"],
         blank: int = 0,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
 
@@ -79,7 +80,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(self, logits: torch.Tensor) -> List[Tuple[str, float]]:
+    def __call__(self, logits: torch.Tensor) -> list[tuple[str, float]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
 
@@ -106,16 +107,16 @@ class CRNN(RecognitionModel, nn.Module):
         cfg: configuration dictionary
     """
 
-    _children_names: List[str] = ["feat_extractor", "decoder", "linear", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "decoder", "linear", "postprocessor"]
 
     def __init__(
         self,
         feature_extractor: nn.Module,
         vocab: str,
         rnn_units: int = 128,
-        input_shape: Tuple[int, int, int] = (3, 32, 128),
+        input_shape: tuple[int, int, int] = (3, 32, 128),
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -157,7 +158,7 @@ class CRNN(RecognitionModel, nn.Module):
     def compute_loss(
         self,
         model_output: torch.Tensor,
-        target: List[str],
+        target: list[str],
     ) -> torch.Tensor:
         """Compute CTC loss for the model.
 
@@ -188,10 +189,10 @@ class CRNN(RecognitionModel, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -203,7 +204,7 @@ class CRNN(RecognitionModel, nn.Module):
         logits, _ = self.decoder(features_seq)
         logits = self.linear(logits)
 
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -226,7 +227,7 @@ def _crnn(
     pretrained: bool,
     backbone_fn: Callable[[Any], nn.Module],
     pretrained_backbone: bool = True,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> CRNN:
     pretrained_backbone = pretrained_backbone and not pretrained

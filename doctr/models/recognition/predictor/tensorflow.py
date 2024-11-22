@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -26,7 +26,7 @@ class RecognitionPredictor(NestedObject):
         split_wide_crops: wether to use crop splitting for high aspect ratio crops
     """
 
-    _children_names: List[str] = ["pre_processor", "model"]
+    _children_names: list[str] = ["pre_processor", "model"]
 
     def __init__(
         self,
@@ -44,9 +44,9 @@ class RecognitionPredictor(NestedObject):
 
     def __call__(
         self,
-        crops: List[Union[np.ndarray, tf.Tensor]],
+        crops: list[np.ndarray | tf.Tensor],
         **kwargs: Any,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         if len(crops) == 0:
             return []
         # Dimension check

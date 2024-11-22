@@ -7,7 +7,7 @@ import glob
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -72,7 +72,7 @@ class IMGUR5K(AbstractDataset):
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | Path | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         self.train = train
         np_dtype = np.float32
 

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import Model, layers
@@ -17,7 +17,7 @@ from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vitstr_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -50,7 +50,7 @@ class ViTSTR(_ViTSTR, Model):
         cfg: dictionary containing information about the model
     """
 
-    _children_names: List[str] = ["feat_extractor", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "postprocessor"]
 
     def __init__(
         self,
@@ -59,9 +59,9 @@ class ViTSTR(_ViTSTR, Model):
         embedding_units: int,
         max_length: int = 32,
         dropout_prob: float = 0.0,
-        input_shape: Tuple[int, int, int] = (32, 128, 3),  # different from paper
+        input_shape: tuple[int, int, int] = (32, 128, 3),  # different from paper
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -78,7 +78,7 @@ class ViTSTR(_ViTSTR, Model):
     def compute_loss(
         model_output: tf.Tensor,
         gt: tf.Tensor,
-        seq_len: List[int],
+        seq_len: list[int],
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -111,11 +111,11 @@ class ViTSTR(_ViTSTR, Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         features = self.feat_extractor(x, **kwargs)  # (batch_size, patches_seqlen, d_model)
 
         if target is not None:
@@ -133,7 +133,7 @@ class ViTSTR(_ViTSTR, Model):
         )  # (batch_size, max_length, vocab + 1)
         decoded_features = _bf16_to_float32(logits[:, 1:])  # remove cls_token
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = decoded_features
             return out
@@ -161,7 +161,7 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
     def __call__(
         self,
         logits: tf.Tensor,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         preds_prob = tf.math.reduce_max(tf.nn.softmax(logits, axis=-1), axis=-1)
@@ -187,7 +187,7 @@ def _vitstr(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> ViTSTR:
     # Patch the config

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Callable, Optional
+from collections.abc import Callable
 
 import numpy as np
 import tensorflow as tf
@@ -19,7 +19,7 @@ def default_collate(samples):
         samples: list of N tuples containing M elements
 
     Returns:
-        Tuple of M sequences contianing N elements each
+        tuple of M sequences contianing N elements each
     """
     batch_data = zip(*samples)
 
@@ -51,7 +51,7 @@ class DataLoader:
         shuffle: bool = True,
         batch_size: int = 1,
         drop_last: bool = False,
-        collate_fn: Optional[Callable] = None,
+        collate_fn: Callable | None = None,
     ) -> None:
         self.dataset = dataset
         self.shuffle = shuffle

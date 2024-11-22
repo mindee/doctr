@@ -3,7 +3,8 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
@@ -33,8 +34,8 @@ class _OCRPredictor:
         **kwargs: keyword args of `DocumentBuilder`
     """
 
-    crop_orientation_predictor: Optional[OrientationPredictor]
-    page_orientation_predictor: Optional[OrientationPredictor]
+    crop_orientation_predictor: OrientationPredictor | None
+    page_orientation_predictor: OrientationPredictor | None
 
     def __init__(
         self,
@@ -62,12 +63,12 @@ class _OCRPredictor:
         self.doc_builder = DocumentBuilder(**kwargs)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
-        self.hooks: List[Callable] = []
+        self.hooks: list[Callable] = []
 
     def _general_page_orientations(
         self,
-        pages: List[np.ndarray],
-    ) -> List[Tuple[int, float]]:
+        pages: list[np.ndarray],
+    ) -> list[tuple[int, float]]:
         _, classes, probs = zip(self.page_orientation_predictor(pages))  # type: ignore[misc]
         # Flatten to list of tuples with (value, confidence)
         page_orientations = [
@@ -78,8 +79,8 @@ class _OCRPredictor:
         return page_orientations
 
     def _get_orientations(
-        self, pages: List[np.ndarray], seg_maps: List[np.ndarray]
-    ) -> Tuple[List[Tuple[int, float]], List[int]]:
+        self, pages: list[np.ndarray], seg_maps: list[np.ndarray]
+    ) -> tuple[list[tuple[int, float]], list[int]]:
         general_pages_orientations = self._general_page_orientations(pages)
         origin_page_orientations = [
             estimate_orientation(seq_map, general_orientation)
@@ -89,11 +90,11 @@ class _OCRPredictor:
 
     def _straighten_pages(
         self,
-        pages: List[np.ndarray],
-        seg_maps: List[np.ndarray],
-        general_pages_orientations: Optional[List[Tuple[int, float]]] = None,
-        origin_pages_orientations: Optional[List[int]] = None,
-    ) -> List[np.ndarray]:
+        pages: list[np.ndarray],
+        seg_maps: list[np.ndarray],
+        general_pages_orientations: list[tuple[int, float]] | None = None,
+        origin_pages_orientations: list[int] | None = None,
+    ) -> list[np.ndarray]:
         general_pages_orientations = (
             general_pages_orientations if general_pages_orientations else self._general_page_orientations(pages)
         )
@@ -113,12 +114,12 @@ class _OCRPredictor:
 
     @staticmethod
     def _generate_crops(
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
+        pages: list[np.ndarray],
+        loc_preds: list[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
         assume_horizontal: bool = False,
-    ) -> List[List[np.ndarray]]:
+    ) -> list[list[np.ndarray]]:
         if assume_straight_pages:
             crops = [
                 extract_crops(page, _boxes[:, :4], channels_last=channels_last)
@@ -133,12 +134,12 @@ class _OCRPredictor:
 
     @staticmethod
     def _prepare_crops(
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
+        pages: list[np.ndarray],
+        loc_preds: list[np.ndarray],
         channels_last: bool,
         assume_straight_pages: bool = False,
         assume_horizontal: bool = False,
-    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
+    ) -> tuple[list[list[np.ndarray]], list[np.ndarray]]:
         crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages, assume_horizontal)
 
         # Avoid sending zero-sized crops
@@ -153,9 +154,9 @@ class _OCRPredictor:
 
     def _rectify_crops(
         self,
-        crops: List[List[np.ndarray]],
-        loc_preds: List[np.ndarray],
-    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray], List[Tuple[int, float]]]:
+        crops: list[list[np.ndarray]],
+        loc_preds: list[np.ndarray],
+    ) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[tuple[int, float]]]:
         # Work at a page level
         orientations, classes, probs = zip(*[self.crop_orientation_predictor(page_crops) for page_crops in crops])  # type: ignore[misc]
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
@@ -173,10 +174,10 @@ class _OCRPredictor:
 
     @staticmethod
     def _process_predictions(
-        loc_preds: List[np.ndarray],
-        word_preds: List[Tuple[str, float]],
-        crop_orientations: List[Dict[str, Any]],
-    ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]], List[List[Dict[str, Any]]]]:
+        loc_preds: list[np.ndarray],
+        word_preds: list[tuple[str, float]],
+        crop_orientations: list[dict[str, Any]],
+    ) -> tuple[list[np.ndarray], list[list[tuple[str, float]]], list[list[dict[str, Any]]]]:
         text_preds = []
         crop_orientation_preds = []
         if len(loc_preds) > 0:

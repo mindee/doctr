@@ -13,7 +13,6 @@ import urllib
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Optional, Union
 
 from tqdm.auto import tqdm
 
@@ -25,7 +24,7 @@ HASH_REGEX = re.compile(r"-([a-f0-9]*)\.")
 USER_AGENT = "mindee/doctr"
 
 
-def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -> None:
+def _urlretrieve(url: str, filename: Path | str, chunk_size: int = 1024) -> None:
     with open(filename, "wb") as fh:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT})) as response:
             with tqdm(total=response.length) as pbar:
@@ -36,7 +35,7 @@ def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -
                     fh.write(chunk)
 
 
-def _check_integrity(file_path: Union[str, Path], hash_prefix: str) -> bool:
+def _check_integrity(file_path: str | Path, hash_prefix: str) -> bool:
     with open(file_path, "rb") as f:
         sha_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -45,10 +44,10 @@ def _check_integrity(file_path: Union[str, Path], hash_prefix: str) -> bool:
 
 def download_from_url(
     url: str,
-    file_name: Optional[str] = None,
-    hash_prefix: Optional[str] = None,
-    cache_dir: Optional[str] = None,
-    cache_subdir: Optional[str] = None,
+    file_name: str | None = None,
+    hash_prefix: str | None = None,
+    cache_dir: str | None = None,
+    cache_subdir: str | None = None,
 ) -> Path:
     """Download a file using its URL
 

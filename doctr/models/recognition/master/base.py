@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List, Tuple
 
 import numpy as np
 
@@ -17,8 +16,8 @@ class _MASTER:
 
     def build_target(
         self,
-        gts: List[str],
-    ) -> Tuple[np.ndarray, List[int]]:
+        gts: list[str],
+    ) -> tuple[np.ndarray, list[int]]:
         """Encode a list of gts sequences into a np array and gives the corresponding*
         sequence lengths.
 

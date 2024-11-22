@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
@@ -15,8 +14,8 @@ from doctr.file_utils import CLASS_NAME
 router = APIRouter()
 
 
-@router.post("/", response_model=List[DetectionOut], status_code=status.HTTP_200_OK, summary="Perform text detection")
-async def text_detection(request: DetectionIn = Depends(), files: List[UploadFile] = [File(...)]):
+@router.post("/", response_model=list[DetectionOut], status_code=status.HTTP_200_OK, summary="Perform text detection")
+async def text_detection(request: DetectionIn = Depends(), files: list[UploadFile] = [File(...)]):
     """Runs docTR text detection model to analyze the input image"""
     try:
         predictor = init_predictor(request)

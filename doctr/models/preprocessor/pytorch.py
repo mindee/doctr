@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -31,10 +31,10 @@ class PreProcessor(nn.Module):
 
     def __init__(
         self,
-        output_size: Tuple[int, int],
+        output_size: tuple[int, int],
         batch_size: int,
-        mean: Tuple[float, float, float] = (0.5, 0.5, 0.5),
-        std: Tuple[float, float, float] = (1.0, 1.0, 1.0),
+        mean: tuple[float, float, float] = (0.5, 0.5, 0.5),
+        std: tuple[float, float, float] = (1.0, 1.0, 1.0),
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -43,7 +43,7 @@ class PreProcessor(nn.Module):
         # Perform the division by 255 at the same time
         self.normalize = T.Normalize(mean, std)
 
-    def batch_inputs(self, samples: List[torch.Tensor]) -> List[torch.Tensor]:
+    def batch_inputs(self, samples: list[torch.Tensor]) -> list[torch.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
@@ -60,7 +60,7 @@ class PreProcessor(nn.Module):
 
         return batches
 
-    def sample_transforms(self, x: Union[np.ndarray, torch.Tensor]) -> torch.Tensor:
+    def sample_transforms(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
@@ -79,7 +79,7 @@ class PreProcessor(nn.Module):
 
         return x  # type: ignore[return-value]
 
-    def __call__(self, x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]) -> List[torch.Tensor]:
+    def __call__(self, x: torch.Tensor | np.ndarray | list[torch.Tensor | np.ndarray]) -> list[torch.Tensor]:
         """Prepare document data for model forwarding
 
         Args:

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -17,7 +17,7 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(layers.Layer, NestedObject):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Tuple[int, int]) -> None:
+    def __init__(self, input_shape: tuple[int, int, int], embed_dim: int, patch_size: tuple[int, int]) -> None:
         super().__init__()
         height, width, _ = input_shape
         self.patch_size = patch_size

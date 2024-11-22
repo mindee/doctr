@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List
+from typing import Any
 
 from doctr.file_utils import is_tf_available
 
@@ -13,7 +13,7 @@ from .predictor import OrientationPredictor
 
 __all__ = ["crop_orientation_predictor", "page_orientation_predictor"]
 
-ARCHS: List[str] = [
+ARCHS: list[str] = [
     "magc_resnet31",
     "mobilenet_v3_small",
     "mobilenet_v3_small_r",
@@ -31,7 +31,7 @@ ARCHS: List[str] = [
     "vit_s",
     "vit_b",
 ]
-ORIENTATION_ARCHS: List[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
+ORIENTATION_ARCHS: list[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
 
 
 def _orientation_predictor(

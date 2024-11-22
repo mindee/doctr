@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from tensorflow.keras import layers
 from tensorflow.keras.models import Sequential
@@ -16,7 +16,7 @@ from ...utils import _build_model, conv_sequence, load_pretrained_params
 __all__ = ["VGG", "vgg16_bn_r"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vgg16_bn_r": {
         "mean": (0.5, 0.5, 0.5),
         "std": (1.0, 1.0, 1.0),
@@ -42,13 +42,13 @@ class VGG(Sequential):
 
     def __init__(
         self,
-        num_blocks: List[int],
-        planes: List[int],
-        rect_pools: List[bool],
+        num_blocks: list[int],
+        planes: list[int],
+        rect_pools: list[bool],
         include_top: bool = False,
         num_classes: int = 1000,
-        input_shape: Optional[Tuple[int, int, int]] = None,
-        cfg: Optional[Dict[str, Any]] = None,
+        input_shape: tuple[int, int, int] | None = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         _layers = []
         # Specify input_shape only for the first layer
@@ -66,7 +66,7 @@ class VGG(Sequential):
 
 
 def _vgg(
-    arch: str, pretrained: bool, num_blocks: List[int], planes: List[int], rect_pools: List[bool], **kwargs: Any
+    arch: str, pretrained: bool, num_blocks: list[int], planes: list[int], rect_pools: list[bool], **kwargs: Any
 ) -> VGG:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
     kwargs["input_shape"] = kwargs.get("input_shape", default_cfgs[arch]["input_shape"])

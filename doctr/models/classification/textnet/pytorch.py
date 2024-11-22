@@ -5,7 +5,7 @@
 
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from torch import nn
 
@@ -16,7 +16,7 @@ from ...utils import conv_sequence_pt, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "textnet_tiny": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -47,21 +47,21 @@ class TextNet(nn.Sequential):
     Implementation based on the official Pytorch implementation: <https://github.com/czczup/FAST>`_.
 
     Args:
-        stages (List[Dict[str, List[int]]]): List of dictionaries containing the parameters of each stage.
+        stages (list[dict[str, list[int]]]): list of dictionaries containing the parameters of each stage.
         include_top (bool, optional): Whether to include the classifier head. Defaults to True.
         num_classes (int, optional): Number of output classes. Defaults to 1000.
-        cfg (Optional[Dict[str, Any]], optional): Additional configuration. Defaults to None.
+        cfg (dict[str, Any], optional): Additional configuration. Defaults to None.
     """
 
     def __init__(
         self,
-        stages: List[Dict[str, List[int]]],
-        input_shape: Tuple[int, int, int] = (3, 32, 32),
+        stages: list[dict[str, list[int]]],
+        input_shape: tuple[int, int, int] = (3, 32, 32),
         num_classes: int = 1000,
         include_top: bool = True,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
-        _layers: List[nn.Module] = [
+        _layers: list[nn.Module] = [
             *conv_sequence_pt(
                 in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
             ),
@@ -97,7 +97,7 @@ class TextNet(nn.Sequential):
 def _textnet(
     arch: str,
     pretrained: bool,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> TextNet:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))

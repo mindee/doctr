@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
@@ -14,8 +13,8 @@ from app.vision import init_predictor
 router = APIRouter()
 
 
-@router.post("/", response_model=List[OCROut], status_code=status.HTTP_200_OK, summary="Perform OCR")
-async def perform_ocr(request: OCRIn = Depends(), files: List[UploadFile] = [File(...)]):
+@router.post("/", response_model=list[OCROut], status_code=status.HTTP_200_OK, summary="Perform OCR")
+async def perform_ocr(request: OCRIn = Depends(), files: list[UploadFile] = [File(...)]):
     """Runs docTR OCR model to analyze the input image"""
     try:
         # generator object to list

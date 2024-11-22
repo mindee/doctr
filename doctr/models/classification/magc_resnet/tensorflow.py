@@ -6,7 +6,7 @@
 import math
 from copy import deepcopy
 from functools import partial
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import activations, layers
@@ -20,7 +20,7 @@ from ..resnet.tensorflow import ResNet
 __all__ = ["magc_resnet31"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "magc_resnet31": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -121,11 +121,11 @@ class MAGC(layers.Layer):
 def _magc_resnet(
     arch: str,
     pretrained: bool,
-    num_blocks: List[int],
-    output_channels: List[int],
-    stage_downsample: List[bool],
-    stage_conv: List[bool],
-    stage_pooling: List[Optional[Tuple[int, int]]],
+    num_blocks: list[int],
+    output_channels: list[int],
+    stage_downsample: list[bool],
+    stage_conv: list[bool],
+    stage_pooling: list[tuple[int, int] | None],
     origin_stem: bool = True,
     **kwargs: Any,
 ) -> ResNet:

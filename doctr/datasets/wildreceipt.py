@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 
@@ -71,13 +71,13 @@ class WILDRECEIPT(AbstractDataset):
         tmp_root = img_folder
         self.train = train
         np_dtype = np.float32
-        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | Path | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
 
         with open(label_path, "r") as file:
             data = file.read()
         # Split the text file into separate JSON strings
         json_strings = data.strip().split("\n")
-        box: Union[List[float], np.ndarray]
+        box: list[float] | np.ndarray
         _targets = []
         for json_string in json_strings:
             json_data = json.loads(json_string)

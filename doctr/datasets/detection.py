@@ -5,7 +5,7 @@
 
 import json
 import os
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any, Type
 
 import numpy as np
 
@@ -46,13 +46,13 @@ class DetectionDataset(AbstractDataset):
         )
 
         # File existence check
-        self._class_names: List = []
+        self._class_names: list = []
         if not os.path.exists(label_path):
             raise FileNotFoundError(f"unable to locate {label_path}")
         with open(label_path, "rb") as f:
             labels = json.load(f)
 
-        self.data: List[Tuple[str, Tuple[np.ndarray, List[str]]]] = []
+        self.data: list[tuple[str, tuple[np.ndarray, list[str]]]] = []
         np_dtype = np.float32
         for img_name, label in labels.items():
             # File existence check
@@ -64,8 +64,8 @@ class DetectionDataset(AbstractDataset):
             self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
 
     def format_polygons(
-        self, polygons: Union[List, Dict], use_polygons: bool, np_dtype: Type
-    ) -> Tuple[np.ndarray, List[str]]:
+        self, polygons: list | dict, use_polygons: bool, np_dtype: Type
+    ) -> tuple[np.ndarray, list[str]]:
         """Format polygons into an array
 
         Args:

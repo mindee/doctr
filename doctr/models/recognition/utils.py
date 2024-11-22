@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List
 
 from rapidfuzz.distance import Levenshtein
 
@@ -59,7 +58,7 @@ def merge_strings(a: str, b: str, dil_factor: float) -> str:
     return a[:-1] + b[index - 1 :]
 
 
-def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
+def merge_multi_strings(seq_list: list[str], dil_factor: float) -> str:
     """Recursively merges consecutive string sequences with overlapping characters.
 
     Args:
@@ -76,7 +75,7 @@ def merge_multi_strings(seq_list: List[str], dil_factor: float) -> str:
         'abcdefghijkl'
     """
 
-    def _recursive_merge(a: str, seq_list: List[str], dil_factor: float) -> str:
+    def _recursive_merge(a: str, seq_list: list[str], dil_factor: float) -> str:
         # Recursive version of compute_overlap
         if len(seq_list) == 1:
             return merge_strings(a, seq_list[0], dil_factor)

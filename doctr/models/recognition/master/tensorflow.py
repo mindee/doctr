@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import Model, layers
@@ -19,7 +19,7 @@ from .base import _MASTER, _MASTERPostProcessor
 __all__ = ["MASTER", "master"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "master": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -58,9 +58,9 @@ class MASTER(_MASTER, Model):
         num_layers: int = 3,
         max_length: int = 50,
         dropout: float = 0.2,
-        input_shape: Tuple[int, int, int] = (32, 128, 3),  # different from the paper
+        input_shape: tuple[int, int, int] = (32, 128, 3),  # different from the paper
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
 
@@ -88,7 +88,7 @@ class MASTER(_MASTER, Model):
         self.postprocessor = MASTERPostProcessor(vocab=self.vocab)
 
     @tf.function
-    def make_source_and_target_mask(self, source: tf.Tensor, target: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def make_source_and_target_mask(self, source: tf.Tensor, target: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         # [1, 1, 1, ..., 0, 0, 0] -> 0 is masked
         # (N, 1, 1, max_length)
         target_pad_mask = tf.cast(tf.math.not_equal(target, self.vocab_size + 2), dtype=tf.uint8)
@@ -108,7 +108,7 @@ class MASTER(_MASTER, Model):
     def compute_loss(
         model_output: tf.Tensor,
         gt: tf.Tensor,
-        seq_len: List[int],
+        seq_len: list[int],
     ) -> tf.Tensor:
         """Compute categorical cross-entropy loss for the model.
         Sequences are masked after the EOS character.
@@ -141,11 +141,11 @@ class MASTER(_MASTER, Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Call function for training
 
         Args:
@@ -166,7 +166,7 @@ class MASTER(_MASTER, Model):
         # add positional encoding to features
         encoded = self.positional_encoding(feature, **kwargs)
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
 
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training")
@@ -208,7 +208,7 @@ class MASTER(_MASTER, Model):
             **kwargs: keyword arguments passed to the decoder
 
         Returns:
-            A Tuple of tf.Tensor: predictions, logits
+            A tuple of tf.Tensor: predictions, logits
         """
         b = encoded.shape[0]
 
@@ -246,7 +246,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
     def __call__(
         self,
         logits: tf.Tensor,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         # N x L

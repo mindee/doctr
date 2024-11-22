@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -15,7 +14,7 @@ __all__ = ["crop_boxes", "create_shadow_mask"]
 
 def crop_boxes(
     boxes: np.ndarray,
-    crop_box: Union[Tuple[int, int, int, int], Tuple[float, float, float, float]],
+    crop_box: tuple[int, int, int, int] | tuple[float, float, float, float],
 ) -> np.ndarray:
     """Crop localization boxes
 
@@ -47,7 +46,7 @@ def crop_boxes(
     return boxes[is_valid]
 
 
-def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float, float]:
+def expand_line(line: np.ndarray, target_shape: tuple[int, int]) -> tuple[float, float]:
     """Expands a 2-point line, so that the first is on the edge. In other terms, we extend the line in
     the same direction until we meet one of the edges.
 
@@ -108,7 +107,7 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float,
 
 
 def create_shadow_mask(
-    target_shape: Tuple[int, int],
+    target_shape: tuple[int, int],
     min_base_width=0.3,
     max_tip_width=0.5,
     max_tip_height=0.3,

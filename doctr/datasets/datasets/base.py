@@ -5,8 +5,9 @@
 
 import os
 import shutil
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 
@@ -19,15 +20,15 @@ __all__ = ["_AbstractDataset", "_VisionDataset"]
 
 
 class _AbstractDataset:
-    data: List[Any] = []
-    _pre_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None
+    data: list[Any] = []
+    _pre_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None
 
     def __init__(
         self,
-        root: Union[str, Path],
-        img_transforms: Optional[Callable[[Any], Any]] = None,
-        sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
-        pre_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
+        root: str | Path,
+        img_transforms: Callable[[Any], Any] | None = None,
+        sample_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
+        pre_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
     ) -> None:
         if not Path(root).is_dir():
             raise ValueError(f"expected a path to a reachable folder: {root}")
@@ -41,10 +42,10 @@ class _AbstractDataset:
     def __len__(self) -> int:
         return len(self.data)
 
-    def _read_sample(self, index: int) -> Tuple[Any, Any]:
+    def _read_sample(self, index: int) -> tuple[Any, Any]:
         raise NotImplementedError
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any]:
+    def __getitem__(self, index: int) -> tuple[Any, Any]:
         # Read image
         img, target = self._read_sample(index)
         # Pre-transforms (format conversion at run-time etc.)
@@ -95,13 +96,13 @@ class _VisionDataset(_AbstractDataset):
     def __init__(
         self,
         url: str,
-        file_name: Optional[str] = None,
-        file_hash: Optional[str] = None,
+        file_name: str | None = None,
+        file_hash: str | None = None,
         extract_archive: bool = False,
         download: bool = False,
         overwrite: bool = False,
-        cache_dir: Optional[str] = None,
-        cache_subdir: Optional[str] = None,
+        cache_dir: str | None = None,
+        cache_subdir: str | None = None,
         **kwargs: Any,
     ) -> None:
         cache_dir = (
@@ -114,7 +115,7 @@ class _VisionDataset(_AbstractDataset):
 
         file_name = file_name if isinstance(file_name, str) else os.path.basename(url)
         # Download the file if not present
-        archive_path: Union[str, Path] = os.path.join(cache_dir, cache_subdir, file_name)
+        archive_path: str | Path = os.path.join(cache_dir, cache_subdir, file_name)
 
         if not os.path.exists(archive_path) and not download:
             raise ValueError("the dataset needs to be downloaded first with download=True")

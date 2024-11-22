@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Optional
+from typing import Any
 
 from doctr.models.builder import KIEDocumentBuilder
 
@@ -29,8 +29,8 @@ class _KIEPredictor(_OCRPredictor):
         kwargs: keyword args of `DocumentBuilder`
     """
 
-    crop_orientation_predictor: Optional[OrientationPredictor]
-    page_orientation_predictor: Optional[OrientationPredictor]
+    crop_orientation_predictor: OrientationPredictor | None
+    page_orientation_predictor: OrientationPredictor | None
 
     def __init__(
         self,

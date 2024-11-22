@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Tuple, Union
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -21,7 +21,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size: Union[int, Tuple[int, int]],
+        kernel_size: int | tuple[int, int],
         stride: int = 1,
         dilation: int = 1,
         groups: int = 1,
@@ -103,9 +103,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
 
     # The following logic is used to reparametrize the layer
     # Adapted from: https://github.com/mindee/doctr/blob/main/doctr/models/modules/layers/pytorch.py
-    def _identity_to_conv(
-        self, identity: layers.BatchNormalization
-    ) -> Union[Tuple[tf.Tensor, tf.Tensor], Tuple[int, int]]:
+    def _identity_to_conv(self, identity: layers.BatchNormalization) -> tuple[tf.Tensor, tf.Tensor] | tuple[int, int]:
         if identity is None or not hasattr(identity, "moving_mean") or not hasattr(identity, "moving_variance"):
             return 0, 0
         if not hasattr(self, "id_tensor"):
@@ -120,7 +118,7 @@ class FASTConvLayer(layers.Layer, NestedObject):
         t = tf.reshape(identity.gamma / std, (1, 1, 1, -1))
         return kernel * t, identity.beta - identity.moving_mean * identity.gamma / std
 
-    def _fuse_bn_tensor(self, conv: layers.Conv2D, bn: layers.BatchNormalization) -> Tuple[tf.Tensor, tf.Tensor]:
+    def _fuse_bn_tensor(self, conv: layers.Conv2D, bn: layers.BatchNormalization) -> tuple[tf.Tensor, tf.Tensor]:
         kernel = conv.kernel
         kernel = self._pad_to_mxn_tensor(kernel)
         std = tf.sqrt(bn.moving_variance + bn.epsilon)

@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, List, Tuple
+from typing import Any
 
 from tqdm import tqdm
 
@@ -85,7 +85,7 @@ class MJSynth(AbstractDataset):
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[str, str]] = []
+        self.data: list[tuple[str, str]] = []
         self.train = train
 
         with open(label_path) as f:

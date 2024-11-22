@@ -5,7 +5,7 @@
 
 import json
 import os
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -50,7 +50,7 @@ class DocArtefacts(VisionDataset):
         tmp_root = os.path.join(self.root, "images")
         with open(os.path.join(self.root, "labels.json"), "rb") as f:
             labels = json.load(f)
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: list[tuple[str, dict[str, Any]]] = []
         img_list = os.listdir(tmp_root)
         if len(labels) != len(img_list):
             raise AssertionError("the number of images and labels do not match")

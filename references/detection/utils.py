@@ -3,14 +3,13 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Dict, List
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_samples(images, targets: List[Dict[str, np.ndarray]]) -> None:
+def plot_samples(images, targets: list[dict[str, np.ndarray]]) -> None:
     # Unnormalize image
     nb_samples = min(len(images), 4)
     _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))

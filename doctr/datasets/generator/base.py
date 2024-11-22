@@ -4,7 +4,8 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
-from typing import Any, Callable, List, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 
 from PIL import Image, ImageDraw
 
@@ -17,9 +18,9 @@ from ..datasets import AbstractDataset
 def synthesize_text_img(
     text: str,
     font_size: int = 32,
-    font_family: Optional[str] = None,
-    background_color: Optional[Tuple[int, int, int]] = None,
-    text_color: Optional[Tuple[int, int, int]] = None,
+    font_family: str | None = None,
+    background_color: tuple[int, int, int] | None = None,
+    text_color: tuple[int, int, int] | None = None,
 ) -> Image.Image:
     """Generate a synthetic text image
 
@@ -59,9 +60,9 @@ class _CharacterGenerator(AbstractDataset):
         vocab: str,
         num_samples: int,
         cache_samples: bool = False,
-        font_family: Optional[Union[str, List[str]]] = None,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
-        sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
+        font_family: str | list[str] | None = None,
+        img_transforms: Callable[[Any], Any] | None = None,
+        sample_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
     ) -> None:
         self.vocab = vocab
         self._num_samples = num_samples
@@ -76,7 +77,7 @@ class _CharacterGenerator(AbstractDataset):
         self.img_transforms = img_transforms
         self.sample_transforms = sample_transforms
 
-        self._data: List[Image.Image] = []
+        self._data: list[Image.Image] = []
         if cache_samples:
             self._data = [
                 (synthesize_text_img(char, font_family=font), idx)  # type: ignore[misc]
@@ -87,7 +88,7 @@ class _CharacterGenerator(AbstractDataset):
     def __len__(self) -> int:
         return self._num_samples
 
-    def _read_sample(self, index: int) -> Tuple[Any, int]:
+    def _read_sample(self, index: int) -> tuple[Any, int]:
         # Samples are already cached
         if len(self._data) > 0:
             idx = index % len(self._data)
@@ -108,9 +109,9 @@ class _WordGenerator(AbstractDataset):
         max_chars: int,
         num_samples: int,
         cache_samples: bool = False,
-        font_family: Optional[Union[str, List[str]]] = None,
-        img_transforms: Optional[Callable[[Any], Any]] = None,
-        sample_transforms: Optional[Callable[[Any, Any], Tuple[Any, Any]]] = None,
+        font_family: str | list[str] | None = None,
+        img_transforms: Callable[[Any], Any] | None = None,
+        sample_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
     ) -> None:
         self.vocab = vocab
         self.wordlen_range = (min_chars, max_chars)
@@ -126,7 +127,7 @@ class _WordGenerator(AbstractDataset):
         self.img_transforms = img_transforms
         self.sample_transforms = sample_transforms
 
-        self._data: List[Image.Image] = []
+        self._data: list[Image.Image] = []
         if cache_samples:
             _words = [self._generate_string(*self.wordlen_range) for _ in range(num_samples)]
             self._data = [
@@ -141,7 +142,7 @@ class _WordGenerator(AbstractDataset):
     def __len__(self) -> int:
         return self._num_samples
 
-    def _read_sample(self, index: int) -> Tuple[Any, str]:
+    def _read_sample(self, index: int) -> tuple[Any, str]:
         # Samples are already cached
         if len(self._data) > 0:
             pil_img, target = self._data[index]  # type: ignore[misc]

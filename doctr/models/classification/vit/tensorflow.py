@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import Sequential, layers
@@ -19,7 +19,7 @@ from ...utils import _build_model, load_pretrained_params
 __all__ = ["vit_s", "vit_b"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vit_s": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -77,12 +77,12 @@ class VisionTransformer(Sequential):
         num_layers: int,
         num_heads: int,
         ffd_ratio: int,
-        patch_size: Tuple[int, int] = (4, 4),
-        input_shape: Tuple[int, int, int] = (32, 32, 3),
+        patch_size: tuple[int, int] = (4, 4),
+        input_shape: tuple[int, int, int] = (32, 32, 3),
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         _layers = [
             PatchEmbedding(input_shape, d_model, patch_size),

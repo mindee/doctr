@@ -4,7 +4,8 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import random
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
+from collections.abc import Callable, Iterable
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -46,9 +47,9 @@ class Compose(NestedObject):
         transforms: list of transformation modules
     """
 
-    _children_names: List[str] = ["transforms"]
+    _children_names: list[str] = ["transforms"]
 
-    def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
+    def __init__(self, transforms: list[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
 
     def __call__(self, x: Any) -> Any:
@@ -75,7 +76,7 @@ class Resize(NestedObject):
 
     def __init__(
         self,
-        output_size: Union[int, Tuple[int, int]],
+        output_size: int | tuple[int, int],
         method: str = "bilinear",
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
@@ -102,8 +103,8 @@ class Resize(NestedObject):
     def __call__(
         self,
         img: tf.Tensor,
-        target: Optional[np.ndarray] = None,
-    ) -> Union[tf.Tensor, Tuple[tf.Tensor, np.ndarray]]:
+        target: np.ndarray | None = None,
+    ) -> tf.Tensor | tuple[tf.Tensor, np.ndarray]:
         input_dtype = img.dtype
         self.output_size = (
             (self.output_size, self.output_size) if isinstance(self.output_size, int) else self.output_size
@@ -166,7 +167,7 @@ class Normalize(NestedObject):
         std: standard deviation per channel
     """
 
-    def __init__(self, mean: Tuple[float, float, float], std: Tuple[float, float, float]) -> None:
+    def __init__(self, mean: tuple[float, float, float], std: tuple[float, float, float]) -> None:
         self.mean = tf.constant(mean)
         self.std = tf.constant(std)
 
@@ -381,7 +382,7 @@ class GaussianBlur(NestedObject):
         std: min and max value of the standard deviation
     """
 
-    def __init__(self, kernel_shape: Union[int, Iterable[int]], std: Tuple[float, float]) -> None:
+    def __init__(self, kernel_shape: int | Iterable[int], std: tuple[float, float]) -> None:
         self.kernel_shape = kernel_shape
         self.std = std
 
@@ -460,7 +461,7 @@ class RandomHorizontalFlip(NestedObject):
         super().__init__()
         self.p = p
 
-    def __call__(self, img: Union[tf.Tensor, np.ndarray], target: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
+    def __call__(self, img: tf.Tensor | np.ndarray, target: np.ndarray) -> tuple[tf.Tensor, np.ndarray]:
         if np.random.rand(1) <= self.p:
             _img = tf.image.flip_left_right(img)
             _target = target.copy()
@@ -485,7 +486,7 @@ class RandomShadow(NestedObject):
         opacity_range : minimum and maximum opacity of the shade
     """
 
-    def __init__(self, opacity_range: Optional[Tuple[float, float]] = None) -> None:
+    def __init__(self, opacity_range: tuple[float, float] | None = None) -> None:
         super().__init__()
         self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (0.2, 0.8)
 
@@ -526,9 +527,9 @@ class RandomResize(NestedObject):
 
     def __init__(
         self,
-        scale_range: Tuple[float, float] = (0.3, 0.9),
-        preserve_aspect_ratio: Union[bool, float] = False,
-        symmetric_pad: Union[bool, float] = False,
+        scale_range: tuple[float, float] = (0.3, 0.9),
+        preserve_aspect_ratio: bool | float = False,
+        symmetric_pad: bool | float = False,
         p: float = 0.5,
     ):
         super().__init__()
@@ -538,7 +539,7 @@ class RandomResize(NestedObject):
         self.p = p
         self._resize = Resize
 
-    def __call__(self, img: tf.Tensor, target: np.ndarray) -> Tuple[tf.Tensor, np.ndarray]:
+    def __call__(self, img: tf.Tensor, target: np.ndarray) -> tuple[tf.Tensor, np.ndarray]:
         if np.random.rand(1) <= self.p:
             scale_h = random.uniform(*self.scale_range)
             scale_w = random.uniform(*self.scale_range)

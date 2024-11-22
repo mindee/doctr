@@ -6,7 +6,8 @@
 # This module 'transformer.py' is inspired by https://github.com/wenwenyu/MASTER-pytorch and Decoder is borrowed
 
 import math
-from typing import Any, Callable, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 import torch
 from torch import nn
@@ -43,8 +44,8 @@ class PositionalEncoding(nn.Module):
 
 
 def scaled_dot_product_attention(
-    query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: Optional[torch.Tensor] = None
-) -> Tuple[torch.Tensor, torch.Tensor]:
+    query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, mask: torch.Tensor | None = None
+) -> tuple[torch.Tensor, torch.Tensor]:
     """Scaled Dot-Product Attention"""
     scores = torch.matmul(query, key.transpose(-2, -1)) / math.sqrt(query.size(-1))
     if mask is not None:
@@ -128,7 +129,7 @@ class EncoderBlock(nn.Module):
             PositionwiseFeedForward(d_model, dff, dropout, activation_fct) for _ in range(self.num_layers)
         ])
 
-    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, mask: torch.Tensor | None = None) -> torch.Tensor:
         output = x
 
         for i in range(self.num_layers):
@@ -181,8 +182,8 @@ class Decoder(nn.Module):
         self,
         tgt: torch.Tensor,
         memory: torch.Tensor,
-        source_mask: Optional[torch.Tensor] = None,
-        target_mask: Optional[torch.Tensor] = None,
+        source_mask: torch.Tensor | None = None,
+        target_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
         tgt = self.embed(tgt) * math.sqrt(self.d_model)
         pos_enc_tgt = self.positional_encoding(tgt)

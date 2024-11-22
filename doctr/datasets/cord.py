@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from tqdm import tqdm
@@ -71,9 +71,9 @@ class CORD(VisionDataset):
                 + "To get the whole dataset with boxes and labels leave both parameters to False."
             )
 
-        # List images
+        # list images
         tmp_root = os.path.join(self.root, "image")
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         self.train = train
         np_dtype = np.float32
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking CORD", total=len(os.listdir(tmp_root))):
@@ -90,7 +90,7 @@ class CORD(VisionDataset):
                         if len(word["text"]) > 0:
                             x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
                             y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
-                            box: Union[List[float], np.ndarray]
+                            box: list[float] | np.ndarray
                             if use_polygons:
                                 # (x, y) coordinates of top left, top right, bottom right, bottom left corners
                                 box = np.array(

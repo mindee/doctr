@@ -3,8 +3,9 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import nn
@@ -19,7 +20,7 @@ from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["SAR", "sar_resnet31"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "sar_resnet31": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -113,12 +114,12 @@ class SARDecoder(nn.Module):
         self,
         features: torch.Tensor,  # (N, C, H, W)
         holistic: torch.Tensor,  # (N, C)
-        gt: Optional[torch.Tensor] = None,  # (N, L)
+        gt: torch.Tensor | None = None,  # (N, L)
     ) -> torch.Tensor:
         if gt is not None:
             gt_embedding = self.embed_tgt(gt)
 
-        logits_list: List[torch.Tensor] = []
+        logits_list: list[torch.Tensor] = []
 
         for t in range(self.max_length + 1):  # 32
             if t == 0:
@@ -185,9 +186,9 @@ class SAR(nn.Module, RecognitionModel):
         attention_units: int = 512,
         max_length: int = 30,
         dropout_prob: float = 0.0,
-        input_shape: Tuple[int, int, int] = (3, 32, 128),
+        input_shape: tuple[int, int, int] = (3, 32, 128),
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -230,10 +231,10 @@ class SAR(nn.Module, RecognitionModel):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         features = self.feat_extractor(x)["features"]
         # NOTE: use max instead of functional max_pool2d which leads to ONNX incompatibility (kernel_size)
         # Vertical max pooling (N, C, H, W) --> (N, C, W)
@@ -252,7 +253,7 @@ class SAR(nn.Module, RecognitionModel):
 
         decoded_features = _bf16_to_float32(self.decoder(features, encoded, gt=None if target is None else gt))
 
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         if self.exportable:
             out["logits"] = decoded_features
             return out
@@ -310,7 +311,7 @@ class SARPostProcessor(RecognitionPostProcessor):
     def __call__(
         self,
         logits: torch.Tensor,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
@@ -333,7 +334,7 @@ def _sar(
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
     pretrained_backbone: bool = True,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> SAR:
     pretrained_backbone = pretrained_backbone and not pretrained

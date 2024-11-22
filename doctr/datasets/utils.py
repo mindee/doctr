@@ -6,10 +6,10 @@
 import string
 import unicodedata
 from collections.abc import Sequence
+from collections.abc import Sequence as SequenceType
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
-from typing import Sequence as SequenceType
+from typing import Any, TypeVar
 
 import numpy as np
 from PIL import Image
@@ -69,7 +69,7 @@ def translate(
 def encode_string(
     input_string: str,
     vocab: str,
-) -> List[int]:
+) -> list[int]:
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
@@ -89,7 +89,7 @@ def encode_string(
 
 
 def decode_sequence(
-    input_seq: Union[np.ndarray, SequenceType[int]],
+    input_seq: np.ndarray | SequenceType[int],
     mapping: str,
 ) -> str:
     """Given a predefined mapping, decode the sequence of numbers to a string
@@ -110,12 +110,12 @@ def decode_sequence(
 
 
 def encode_sequences(
-    sequences: List[str],
+    sequences: list[str],
     vocab: str,
-    target_size: Optional[int] = None,
+    target_size: int | None = None,
     eos: int = -1,
-    sos: Optional[int] = None,
-    pad: Optional[int] = None,
+    sos: int | None = None,
+    pad: int | None = None,
     dynamic_seq_length: bool = False,
 ) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
@@ -170,8 +170,8 @@ def encode_sequences(
 
 
 def convert_target_to_relative(
-    img: ImageTensor, target: Union[np.ndarray, Dict[str, Any]]
-) -> Tuple[ImageTensor, Union[Dict[str, Any], np.ndarray]]:
+    img: ImageTensor, target: np.ndarray | dict[str, Any]
+) -> tuple[ImageTensor, dict[str, Any] | np.ndarray]:
     """Converts target to relative coordinates
 
     Args:
@@ -188,7 +188,7 @@ def convert_target_to_relative(
     return img, target
 
 
-def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> List[np.ndarray]:
+def crop_bboxes_from_image(img_path: str | Path, geoms: np.ndarray) -> list[np.ndarray]:
     """Crop a set of bounding boxes from an image
 
     Args:
@@ -208,7 +208,7 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     raise ValueError("Invalid geometry format")
 
 
-def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.ndarray, Dict[str, List]]:
+def pre_transform_multiclass(img, target: tuple[np.ndarray, list]) -> tuple[np.ndarray, dict[str, list]]:
     """Converts multiclass target to relative coordinates.
 
     Args:
@@ -220,7 +220,7 @@ def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.n
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]
-    boxes_dict: Dict = {k: [] for k in sorted(set(boxes_classes))}
+    boxes_dict: dict = {k: [] for k in sorted(set(boxes_classes))}
     for k, poly in zip(boxes_classes, boxes):
         boxes_dict[k].append(poly)
     boxes_dict = {k: np.stack(v, axis=0) for k, v in boxes_dict.items()}

@@ -3,8 +3,9 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -18,7 +19,7 @@ from ...utils import _build_model, conv_sequence, load_pretrained_params
 __all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "resnet18": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -91,7 +92,7 @@ class ResnetBlock(layers.Layer):
         output_channels: int,
         kernel_size: int,
         strides: int = 1,
-    ) -> List[layers.Layer]:
+    ) -> list[layers.Layer]:
         return [
             *conv_sequence(output_channels, "relu", bn=True, strides=strides, kernel_size=kernel_size),
             *conv_sequence(output_channels, None, bn=True, kernel_size=kernel_size),
@@ -107,8 +108,8 @@ class ResnetBlock(layers.Layer):
 
 def resnet_stage(
     num_blocks: int, out_channels: int, shortcut: bool = False, downsample: bool = False
-) -> List[layers.Layer]:
-    _layers: List[layers.Layer] = [ResnetBlock(out_channels, conv_shortcut=shortcut, strides=2 if downsample else 1)]
+) -> list[layers.Layer]:
+    _layers: list[layers.Layer] = [ResnetBlock(out_channels, conv_shortcut=shortcut, strides=2 if downsample else 1)]
 
     for _ in range(1, num_blocks):
         _layers.append(ResnetBlock(out_channels, conv_shortcut=False))
@@ -135,18 +136,18 @@ class ResNet(Sequential):
 
     def __init__(
         self,
-        num_blocks: List[int],
-        output_channels: List[int],
-        stage_downsample: List[bool],
-        stage_conv: List[bool],
-        stage_pooling: List[Optional[Tuple[int, int]]],
+        num_blocks: list[int],
+        output_channels: list[int],
+        stage_downsample: list[bool],
+        stage_conv: list[bool],
+        stage_pooling: list[tuple[int, int] | None],
         origin_stem: bool = True,
         stem_channels: int = 64,
-        attn_module: Optional[Callable[[int], layers.Layer]] = None,
+        attn_module: Callable[[int], layers.Layer] | None = None,
         include_top: bool = True,
         num_classes: int = 1000,
-        cfg: Optional[Dict[str, Any]] = None,
-        input_shape: Optional[Tuple[int, int, int]] = None,
+        cfg: dict[str, Any] | None = None,
+        input_shape: tuple[int, int, int] | None = None,
     ) -> None:
         inplanes = stem_channels
         if origin_stem:
@@ -186,11 +187,11 @@ class ResNet(Sequential):
 def _resnet(
     arch: str,
     pretrained: bool,
-    num_blocks: List[int],
-    output_channels: List[int],
-    stage_downsample: List[bool],
-    stage_conv: List[bool],
-    stage_pooling: List[Optional[Tuple[int, int]]],
+    num_blocks: list[int],
+    output_channels: list[int],
+    stage_downsample: list[bool],
+    stage_conv: list[bool],
+    stage_pooling: list[tuple[int, int] | None],
     origin_stem: bool = True,
     **kwargs: Any,
 ) -> ResNet:
