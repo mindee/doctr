@@ -11,6 +11,7 @@ import datetime
 import hashlib
 import multiprocessing
 import time
+
 import numpy as np
 import torch
 
@@ -330,9 +331,7 @@ def main(rank: int, world_size: int, args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(
-        f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
-    )
+    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
@@ -446,7 +445,7 @@ def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="DocTR training script for text detection (PyTorch)",
+        description="DocTR DDP training script for text detection (PyTorch)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -505,7 +504,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     if not torch.cuda.is_available():
-        raise AssertionError("PyTorch cannot access your GPUs. please look into it bro !!!")
+        raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
 
     if not isinstance(args.devices, list):
         args.devices = list(range(torch.cuda.device_count()))
