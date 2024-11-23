@@ -5,7 +5,7 @@
 
 import json
 import os
-from typing import Any, Type
+from typing import Any
 
 import numpy as np
 
@@ -64,7 +64,7 @@ class DetectionDataset(AbstractDataset):
             self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
 
     def format_polygons(
-        self, polygons: list | dict, use_polygons: bool, np_dtype: Type
+        self, polygons: list | dict, use_polygons: bool, np_dtype: type
     ) -> tuple[np.ndarray, list[str]]:
         """Format polygons into an array
 
