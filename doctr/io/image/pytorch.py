@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from io import BytesIO
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -94,6 +93,6 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -
     return img
 
 
-def get_img_shape(img: torch.Tensor) -> Tuple[int, int]:
+def get_img_shape(img: torch.Tensor) -> tuple[int, int]:
     """Get the shape of an image"""
     return img.shape[-2:]

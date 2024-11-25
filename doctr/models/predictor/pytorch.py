@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -68,7 +68,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     @torch.inference_mode()
     def forward(
         self,
-        pages: List[Union[np.ndarray, torch.Tensor]],
+        pages: list[np.ndarray | torch.Tensor],
         **kwargs: Any,
     ) -> Document:
         # Dimension check

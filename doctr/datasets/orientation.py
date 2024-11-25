@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -36,4 +36,4 @@ class OrientationDataset(AbstractDataset):
         )
 
         # initialize dataset with 0 degree rotation targets
-        self.data: List[Tuple[str, np.ndarray]] = [(img_name, np.array([0])) for img_name in os.listdir(self.root)]
+        self.data: list[tuple[str, np.ndarray]] = [(img_name, np.array([0])) for img_name in os.listdir(self.root)]

@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List
 
 import cv2
 import numpy as np
@@ -68,7 +67,7 @@ class DetectionPostProcessor(NestedObject):
     def __call__(
         self,
         proba_map,
-    ) -> List[List[np.ndarray]]:
+    ) -> list[list[np.ndarray]]:
         """Performs postprocessing for a list of model outputs
 
         Args:

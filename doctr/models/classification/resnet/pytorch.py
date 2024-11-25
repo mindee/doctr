@@ -4,8 +4,9 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 from torch import nn
 from torchvision.models.resnet import BasicBlock
@@ -21,7 +22,7 @@ from ...utils import conv_sequence_pt, load_pretrained_params
 __all__ = ["ResNet", "resnet18", "resnet31", "resnet34", "resnet50", "resnet34_wide", "resnet_stage"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "resnet18": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -60,9 +61,9 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 }
 
 
-def resnet_stage(in_channels: int, out_channels: int, num_blocks: int, stride: int) -> List[nn.Module]:
+def resnet_stage(in_channels: int, out_channels: int, num_blocks: int, stride: int) -> list[nn.Module]:
     """Build a ResNet stage"""
-    _layers: List[nn.Module] = []
+    _layers: list[nn.Module] = []
 
     in_chan = in_channels
     s = stride
@@ -97,19 +98,19 @@ class ResNet(nn.Sequential):
 
     def __init__(
         self,
-        num_blocks: List[int],
-        output_channels: List[int],
-        stage_stride: List[int],
-        stage_conv: List[bool],
-        stage_pooling: List[Optional[Tuple[int, int]]],
+        num_blocks: list[int],
+        output_channels: list[int],
+        stage_stride: list[int],
+        stage_conv: list[bool],
+        stage_pooling: list[tuple[int, int] | None],
         origin_stem: bool = True,
         stem_channels: int = 64,
-        attn_module: Optional[Callable[[int], nn.Module]] = None,
+        attn_module: Callable[[int], nn.Module] | None = None,
         include_top: bool = True,
         num_classes: int = 1000,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
-        _layers: List[nn.Module]
+        _layers: list[nn.Module]
         if origin_stem:
             _layers = [
                 *conv_sequence_pt(3, stem_channels, True, True, kernel_size=7, padding=3, stride=2),
@@ -155,12 +156,12 @@ class ResNet(nn.Sequential):
 def _resnet(
     arch: str,
     pretrained: bool,
-    num_blocks: List[int],
-    output_channels: List[int],
-    stage_stride: List[int],
-    stage_conv: List[bool],
-    stage_pooling: List[Optional[Tuple[int, int]]],
-    ignore_keys: Optional[List[str]] = None,
+    num_blocks: list[int],
+    output_channels: list[int],
+    stage_stride: list[int],
+    stage_conv: list[bool],
+    stage_pooling: list[tuple[int, int] | None],
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> ResNet:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -187,7 +188,7 @@ def _tv_resnet(
     arch: str,
     pretrained: bool,
     arch_fn,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> TVResNet:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))

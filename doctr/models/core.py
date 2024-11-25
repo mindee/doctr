@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from doctr.utils.repr import NestedObject
 
@@ -14,6 +14,6 @@ __all__ = ["BaseModel"]
 class BaseModel(NestedObject):
     """Implements abstract DetectionModel class"""
 
-    def __init__(self, cfg: Optional[Dict[str, Any]] = None) -> None:
+    def __init__(self, cfg: dict[str, Any] | None = None) -> None:
         super().__init__()
         self.cfg = cfg

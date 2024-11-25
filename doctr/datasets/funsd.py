@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from tqdm import tqdm
@@ -68,9 +68,9 @@ class FUNSD(VisionDataset):
         # Use the subset
         subfolder = os.path.join("dataset", "training_data" if train else "testing_data")
 
-        # # List images
+        # # list images
         tmp_root = os.path.join(self.root, subfolder, "images")
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking FUNSD", total=len(os.listdir(tmp_root))):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):

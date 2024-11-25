@@ -5,8 +5,8 @@
 
 import math
 import random
+from collections.abc import Iterable
 from copy import deepcopy
-from typing import Iterable, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -99,7 +99,7 @@ def rotate_sample(
     geoms: np.ndarray,
     angle: float,
     expand: bool = False,
-) -> Tuple[tf.Tensor, np.ndarray]:
+) -> tuple[tf.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
     Args:
@@ -138,8 +138,8 @@ def rotate_sample(
 
 
 def crop_detection(
-    img: tf.Tensor, boxes: np.ndarray, crop_box: Tuple[float, float, float, float]
-) -> Tuple[tf.Tensor, np.ndarray]:
+    img: tf.Tensor, boxes: np.ndarray, crop_box: tuple[float, float, float, float]
+) -> tuple[tf.Tensor, np.ndarray]:
     """Crop and image and associated bboxes
 
     Args:
@@ -164,10 +164,10 @@ def crop_detection(
 
 def _gaussian_filter(
     img: tf.Tensor,
-    kernel_size: Union[int, Iterable[int]],
+    kernel_size: int | Iterable[int],
     sigma: float,
-    mode: Optional[str] = None,
-    pad_value: Optional[int] = 0,
+    mode: str | None = None,
+    pad_value: int = 0,
 ):
     """Apply Gaussian filter to image.
     Adapted from: https://github.com/tensorflow/addons/blob/master/tensorflow_addons/image/filters.py
@@ -225,7 +225,7 @@ def _gaussian_filter(
     return tf.nn.depthwise_conv2d(img, g, [1, 1, 1, 1], padding="VALID", data_format="NHWC")
 
 
-def random_shadow(img: tf.Tensor, opacity_range: Tuple[float, float], **kwargs) -> tf.Tensor:
+def random_shadow(img: tf.Tensor, opacity_range: tuple[float, float], **kwargs) -> tf.Tensor:
     """Apply a random shadow to a given image
 
     Args:

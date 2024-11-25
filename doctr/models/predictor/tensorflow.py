@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Union
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -68,7 +68,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
 
     def __call__(
         self,
-        pages: List[Union[np.ndarray, tf.Tensor]],
+        pages: list[np.ndarray | tf.Tensor],
         **kwargs: Any,
     ) -> Document:
         # Dimension check
@@ -105,7 +105,7 @@ class OCRPredictor(NestedObject, _OCRPredictor):
         assert all(len(loc_pred) == 1 for loc_pred in loc_preds_dict), (
             "Detection Model in ocr_predictor should output only one class"
         )
-        loc_preds: List[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]
+        loc_preds: list[np.ndarray] = [list(loc_pred.values())[0] for loc_pred in loc_preds_dict]
         # Detach objectness scores from loc_preds
         loc_preds, objectness_scores = detach_scores(loc_preds)
 

@@ -4,12 +4,11 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import string
-from typing import Dict
 
 __all__ = ["VOCABS"]
 
 
-VOCABS: Dict[str, str] = {
+VOCABS: dict[str, str] = {
     "digits": string.digits,
     "ascii_letters": string.ascii_letters,
     "punctuation": string.punctuation,

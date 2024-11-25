@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Optional
+from typing import Any
 
 import numpy as np
 import pypdfium2 as pdfium
@@ -15,11 +15,11 @@ __all__ = ["read_pdf"]
 
 def read_pdf(
     file: AbstractFile,
-    scale: float = 2,
+    scale: int = 2,
     rgb_mode: bool = True,
-    password: Optional[str] = None,
+    password: str | None = None,
     **kwargs: Any,
-) -> List[np.ndarray]:
+) -> list[np.ndarray]:
     """Read a PDF file and convert it into an image in numpy format
 
     >>> from doctr.io import read_pdf

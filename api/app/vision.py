@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import torch
 
@@ -25,7 +25,7 @@ def _move_to_device(predictor: Callable) -> Callable:
     return predictor.to(torch.device("cuda" if torch.cuda.is_available() else "cpu"))
 
 
-def init_predictor(request: Union[KIEIn, OCRIn, RecognitionIn, DetectionIn]) -> Callable:
+def init_predictor(request: KIEIn | OCRIn | RecognitionIn | DetectionIn) -> Callable:
     """Initialize the predictor based on the request
 
     Args:

@@ -3,8 +3,9 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import nn
@@ -19,7 +20,7 @@ from .base import _ViTSTR, _ViTSTRPostProcessor
 
 __all__ = ["ViTSTR", "vitstr_small", "vitstr_base"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vitstr_small": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -58,9 +59,9 @@ class ViTSTR(_ViTSTR, nn.Module):
         vocab: str,
         embedding_units: int,
         max_length: int = 32,  # different from paper
-        input_shape: Tuple[int, int, int] = (3, 32, 128),  # different from paper
+        input_shape: tuple[int, int, int] = (3, 32, 128),  # different from paper
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -76,10 +77,10 @@ class ViTSTR(_ViTSTR, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         features = self.feat_extractor(x)["features"]  # (batch_size, patches_seqlen, d_model)
 
         if target is not None:
@@ -97,7 +98,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         logits = self.head(features).view(B, N, len(self.vocab) + 1)  # (batch_size, max_length, vocab + 1)
         decoded_features = _bf16_to_float32(logits[:, 1:])  # remove cls_token
 
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         if self.exportable:
             out["logits"] = decoded_features
             return out
@@ -156,7 +157,7 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
     def __call__(
         self,
         logits: torch.Tensor,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         preds_prob = torch.softmax(logits, -1).max(dim=-1)[0]
@@ -179,7 +180,7 @@ def _vitstr(
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
     layer: str,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> ViTSTR:
     # Patch the config

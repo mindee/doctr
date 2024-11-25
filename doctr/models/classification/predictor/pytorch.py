@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List, Optional, Union
 
 import numpy as np
 import torch
@@ -26,8 +25,8 @@ class OrientationPredictor(nn.Module):
 
     def __init__(
         self,
-        pre_processor: Optional[PreProcessor],
-        model: Optional[nn.Module],
+        pre_processor: PreProcessor | None,
+        model: nn.Module | None,
     ) -> None:
         super().__init__()
         self.pre_processor = pre_processor if isinstance(pre_processor, PreProcessor) else None
@@ -36,8 +35,8 @@ class OrientationPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        inputs: List[Union[np.ndarray, torch.Tensor]],
-    ) -> List[Union[List[int], List[float]]]:
+        inputs: list[np.ndarray | torch.Tensor],
+    ) -> list[list[int] | list[float]]:
         # Dimension check
         if any(input.ndim != 3 for input in inputs):
             raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")

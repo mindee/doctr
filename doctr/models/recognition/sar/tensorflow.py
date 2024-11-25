@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import Model, Sequential, layers
@@ -18,7 +18,7 @@ from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["SAR", "sar_resnet31"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "sar_resnet31": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -156,13 +156,13 @@ class SARDecoder(layers.Layer, NestedObject):
         self,
         features: tf.Tensor,
         holistic: tf.Tensor,
-        gt: Optional[tf.Tensor] = None,
+        gt: tf.Tensor | None = None,
         **kwargs: Any,
     ) -> tf.Tensor:
         if gt is not None:
             gt_embedding = self.embed_tgt(gt, **kwargs)
 
-        logits_list: List[tf.Tensor] = []
+        logits_list: list[tf.Tensor] = []
 
         for t in range(self.max_length + 1):  # 32
             if t == 0:
@@ -219,7 +219,7 @@ class SAR(Model, RecognitionModel):
         cfg: dictionary containing information about the model
     """
 
-    _children_names: List[str] = ["feat_extractor", "encoder", "decoder", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "encoder", "decoder", "postprocessor"]
 
     def __init__(
         self,
@@ -232,7 +232,7 @@ class SAR(Model, RecognitionModel):
         num_decoder_cells: int = 2,
         dropout_prob: float = 0.0,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -290,11 +290,11 @@ class SAR(Model, RecognitionModel):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         features = self.feat_extractor(x, **kwargs)
         # vertical max pooling --> (N, C, W)
         pooled_features = tf.reduce_max(features, axis=1)
@@ -312,7 +312,7 @@ class SAR(Model, RecognitionModel):
             self.decoder(features, encoded, gt=None if target is None else gt, **kwargs)
         )
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = decoded_features
             return out
@@ -340,7 +340,7 @@ class SARPostProcessor(RecognitionPostProcessor):
     def __call__(
         self,
         logits: tf.Tensor,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         # N x L
@@ -364,7 +364,7 @@ def _sar(
     pretrained: bool,
     backbone_fn,
     pretrained_backbone: bool = True,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> SAR:
     pretrained_backbone = pretrained_backbone and not pretrained

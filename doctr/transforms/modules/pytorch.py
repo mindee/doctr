@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Optional, Tuple, Union
 
 import numpy as np
 import torch
@@ -23,7 +22,7 @@ class Resize(T.Resize):
 
     def __init__(
         self,
-        size: Union[int, Tuple[int, int]],
+        size: int | tuple[int, int],
         interpolation=F.InterpolationMode.BILINEAR,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
@@ -38,8 +37,8 @@ class Resize(T.Resize):
     def forward(
         self,
         img: torch.Tensor,
-        target: Optional[np.ndarray] = None,
-    ) -> Union[torch.Tensor, Tuple[torch.Tensor, np.ndarray]]:
+        target: np.ndarray | None = None,
+    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
         if isinstance(self.size, int):
             target_ratio = img.shape[-2] / img.shape[-1]
         else:
@@ -158,9 +157,7 @@ class ChannelShuffle(torch.nn.Module):
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
     """Randomly flip the input image horizontally"""
 
-    def forward(
-        self, img: Union[torch.Tensor, Image], target: np.ndarray
-    ) -> Tuple[Union[torch.Tensor, Image], np.ndarray]:
+    def forward(self, img: torch.Tensor | Image, target: np.ndarray) -> tuple[torch.Tensor | Image, np.ndarray]:
         if torch.rand(1) < self.p:
             _img = F.hflip(img)
             _target = target.copy()
@@ -185,7 +182,7 @@ class RandomShadow(torch.nn.Module):
         opacity_range : minimum and maximum opacity of the shade
     """
 
-    def __init__(self, opacity_range: Optional[Tuple[float, float]] = None) -> None:
+    def __init__(self, opacity_range: tuple[float, float] | None = None) -> None:
         super().__init__()
         self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (0.2, 0.8)
 
@@ -233,9 +230,9 @@ class RandomResize(torch.nn.Module):
 
     def __init__(
         self,
-        scale_range: Tuple[float, float] = (0.3, 0.9),
-        preserve_aspect_ratio: Union[bool, float] = False,
-        symmetric_pad: Union[bool, float] = False,
+        scale_range: tuple[float, float] = (0.3, 0.9),
+        preserve_aspect_ratio: bool | float = False,
+        symmetric_pad: bool | float = False,
         p: float = 0.5,
     ) -> None:
         super().__init__()
@@ -245,7 +242,7 @@ class RandomResize(torch.nn.Module):
         self.p = p
         self._resize = Resize
 
-    def forward(self, img: torch.Tensor, target: np.ndarray) -> Tuple[torch.Tensor, np.ndarray]:
+    def forward(self, img: torch.Tensor, target: np.ndarray) -> tuple[torch.Tensor, np.ndarray]:
         if torch.rand(1) < self.p:
             scale_h = np.random.uniform(*self.scale_range)
             scale_w = np.random.uniform(*self.scale_range)

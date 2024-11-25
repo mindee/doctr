@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List, Optional, Union
 
 import numpy as np
 import tensorflow as tf
@@ -24,20 +23,20 @@ class OrientationPredictor(NestedObject):
         model: core classification architecture (backbone + classification head)
     """
 
-    _children_names: List[str] = ["pre_processor", "model"]
+    _children_names: list[str] = ["pre_processor", "model"]
 
     def __init__(
         self,
-        pre_processor: Optional[PreProcessor],
-        model: Optional[Model],
+        pre_processor: PreProcessor | None,
+        model: Model | None,
     ) -> None:
         self.pre_processor = pre_processor if isinstance(pre_processor, PreProcessor) else None
         self.model = model if isinstance(model, Model) else None
 
     def __call__(
         self,
-        inputs: List[Union[np.ndarray, tf.Tensor]],
-    ) -> List[Union[List[int], List[float]]]:
+        inputs: list[np.ndarray | tf.Tensor],
+    ) -> list[list[int] | list[float]]:
         # Dimension check
         if any(input.ndim != 3 for input in inputs):
             raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")

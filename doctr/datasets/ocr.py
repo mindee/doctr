@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -40,7 +40,7 @@ class OCRDataset(AbstractDataset):
         super().__init__(img_folder, **kwargs)
 
         # List images
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: list[tuple[str, dict[str, Any]]] = []
         np_dtype = np.float32
         with open(label_file, "rb") as f:
             data = json.load(f)

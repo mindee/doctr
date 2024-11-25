@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -18,7 +18,7 @@ from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "crnn_vgg16_bn": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -57,7 +57,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         logits: tf.Tensor,
         beam_width: int = 1,
         top_paths: int = 1,
-    ) -> Union[List[Tuple[str, float]], List[Tuple[List[str], List[float]]]]:
+    ) -> list[tuple[str, float]] | list[tuple[list[str] | list[float]]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions
         with label_to_idx mapping dictionnary
 
@@ -120,7 +120,7 @@ class CRNN(RecognitionModel, Model):
         cfg: configuration dictionary
     """
 
-    _children_names: List[str] = ["feat_extractor", "decoder", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "decoder", "postprocessor"]
 
     def __init__(
         self,
@@ -130,7 +130,7 @@ class CRNN(RecognitionModel, Model):
         exportable: bool = False,
         beam_width: int = 1,
         top_paths: int = 1,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         # Initialize kernels
         h, w, c = feature_extractor.output_shape[1:]
@@ -157,7 +157,7 @@ class CRNN(RecognitionModel, Model):
     def compute_loss(
         self,
         model_output: tf.Tensor,
-        target: List[str],
+        target: list[str],
     ) -> tf.Tensor:
         """Compute CTC loss for the model.
 
@@ -179,13 +179,13 @@ class CRNN(RecognitionModel, Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         beam_width: int = 1,
         top_paths: int = 1,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if kwargs.get("training", False) and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -197,7 +197,7 @@ class CRNN(RecognitionModel, Model):
         features_seq = tf.reshape(transposed_feat, shape=(-1, w, h * c))
         logits = _bf16_to_float32(self.decoder(features_seq, **kwargs))
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -220,7 +220,7 @@ def _crnn(
     pretrained: bool,
     backbone_fn,
     pretrained_backbone: bool = True,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> CRNN:
     pretrained_backbone = pretrained_backbone and not pretrained

@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Tuple, Union
 
 import numpy as np
 import torch
@@ -19,7 +18,7 @@ class FASTConvLayer(nn.Module):
         self,
         in_channels: int,
         out_channels: int,
-        kernel_size: Union[int, Tuple[int, int]],
+        kernel_size: int | tuple[int, int],
         stride: int = 1,
         dilation: int = 1,
         groups: int = 1,
@@ -93,9 +92,7 @@ class FASTConvLayer(nn.Module):
 
     # The following logic is used to reparametrize the layer
     # Borrowed from: https://github.com/czczup/FAST/blob/main/models/utils/nas_utils.py
-    def _identity_to_conv(
-        self, identity: Union[nn.BatchNorm2d, None]
-    ) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[int, int]]:
+    def _identity_to_conv(self, identity: nn.BatchNorm2d | None) -> tuple[torch.Tensor, torch.Tensor] | tuple[int, int]:
         if identity is None or identity.running_var is None:
             return 0, 0
         if not hasattr(self, "id_tensor"):
@@ -110,14 +107,14 @@ class FASTConvLayer(nn.Module):
         t = (identity.weight / std).reshape(-1, 1, 1, 1)
         return kernel * t, identity.bias - identity.running_mean * identity.weight / std
 
-    def _fuse_bn_tensor(self, conv: nn.Conv2d, bn: nn.BatchNorm2d) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _fuse_bn_tensor(self, conv: nn.Conv2d, bn: nn.BatchNorm2d) -> tuple[torch.Tensor, torch.Tensor]:
         kernel = conv.weight
         kernel = self._pad_to_mxn_tensor(kernel)
         std = (bn.running_var + bn.eps).sqrt()  # type: ignore
         t = (bn.weight / std).reshape(-1, 1, 1, 1)
         return kernel * t, bn.bias - bn.running_mean * bn.weight / std
 
-    def _get_equivalent_kernel_bias(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _get_equivalent_kernel_bias(self) -> tuple[torch.Tensor, torch.Tensor]:
         kernel_mxn, bias_mxn = self._fuse_bn_tensor(self.conv, self.bn)
         if self.ver_conv is not None:
             kernel_mx1, bias_mx1 = self._fuse_bn_tensor(self.ver_conv, self.ver_bn)  # type: ignore[arg-type]

@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Tuple
 
 import numpy as np
 import torch
@@ -46,7 +45,7 @@ def rotate_sample(
     geoms: np.ndarray,
     angle: float,
     expand: bool = False,
-) -> Tuple[torch.Tensor, np.ndarray]:
+) -> tuple[torch.Tensor, np.ndarray]:
     """Rotate image around the center, interpolation=NEAREST, pad with 0 (black)
 
     Args:
@@ -89,8 +88,8 @@ def rotate_sample(
 
 
 def crop_detection(
-    img: torch.Tensor, boxes: np.ndarray, crop_box: Tuple[float, float, float, float]
-) -> Tuple[torch.Tensor, np.ndarray]:
+    img: torch.Tensor, boxes: np.ndarray, crop_box: tuple[float, float, float, float]
+) -> tuple[torch.Tensor, np.ndarray]:
     """Crop and image and associated bboxes
 
     Args:
@@ -113,7 +112,7 @@ def crop_detection(
     return cropped_img, boxes
 
 
-def random_shadow(img: torch.Tensor, opacity_range: Tuple[float, float], **kwargs) -> torch.Tensor:
+def random_shadow(img: torch.Tensor, opacity_range: tuple[float, float], **kwargs) -> torch.Tensor:
     """Crop and image and associated bboxes
 
     Args:

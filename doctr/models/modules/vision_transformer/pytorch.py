@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Tuple
 
 import torch
 from torch import nn
@@ -15,7 +14,7 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Tuple[int, int]) -> None:
+    def __init__(self, input_shape: tuple[int, int, int], embed_dim: int, patch_size: tuple[int, int]) -> None:
         super().__init__()
         channels, height, width = input_shape
         self.patch_size = patch_size

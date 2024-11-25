@@ -6,7 +6,7 @@
 import math
 from copy import deepcopy
 from itertools import permutations
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -21,7 +21,7 @@ from .base import _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "parseq": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -127,7 +127,7 @@ class PARSeq(_PARSeq, Model):
         cfg: dictionary containing information about the model
     """
 
-    _children_names: List[str] = ["feat_extractor", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "postprocessor"]
 
     def __init__(
         self,
@@ -139,9 +139,9 @@ class PARSeq(_PARSeq, Model):
         dec_num_heads: int = 12,
         dec_ff_dim: int = 384,  # we use it from the original implementation instead of 2048
         dec_ffd_ratio: int = 4,
-        input_shape: Tuple[int, int, int] = (32, 128, 3),
+        input_shape: tuple[int, int, int] = (32, 128, 3),
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -211,7 +211,7 @@ class PARSeq(_PARSeq, Model):
             )
         return combined
 
-    def generate_permutations_attention_masks(self, permutation: tf.Tensor) -> Tuple[tf.Tensor, tf.Tensor]:
+    def generate_permutations_attention_masks(self, permutation: tf.Tensor) -> tuple[tf.Tensor, tf.Tensor]:
         # Generate source and target mask for the decoder attention.
         sz = permutation.shape[0]
         mask = tf.ones((sz, sz), dtype=tf.float32)
@@ -234,8 +234,8 @@ class PARSeq(_PARSeq, Model):
         self,
         target: tf.Tensor,
         memory: tf.Tensor,
-        target_mask: Optional[tf.Tensor] = None,
-        target_query: Optional[tf.Tensor] = None,
+        target_mask: tf.Tensor | None = None,
+        target_query: tf.Tensor | None = None,
         **kwargs: Any,
     ) -> tf.Tensor:
         batch_size, sequence_length = target.shape
@@ -248,7 +248,7 @@ class PARSeq(_PARSeq, Model):
         target_query = self.dropout(target_query, **kwargs)
         return self.decoder(target_query, content, memory, target_mask, **kwargs)
 
-    def decode_autoregressive(self, features: tf.Tensor, max_len: Optional[int] = None, **kwargs) -> tf.Tensor:
+    def decode_autoregressive(self, features: tf.Tensor, max_len: int | None = None, **kwargs) -> tf.Tensor:
         """Generate predictions for the given features."""
         max_length = max_len if max_len is not None else self.max_length
         max_length = min(max_length, self.max_length) + 1
@@ -315,11 +315,11 @@ class PARSeq(_PARSeq, Model):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         features = self.feat_extractor(x, **kwargs)  # (batch_size, patches_seqlen, d_model)
         # remove cls token
         features = features[:, 1:, :]
@@ -390,7 +390,7 @@ class PARSeq(_PARSeq, Model):
 
         logits = _bf16_to_float32(logits)
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -418,7 +418,7 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
     def __call__(
         self,
         logits: tf.Tensor,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         preds_prob = tf.math.reduce_max(tf.nn.softmax(logits, axis=-1), axis=-1)
@@ -444,7 +444,7 @@ def _parseq(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> PARSeq:
     # Patch the config

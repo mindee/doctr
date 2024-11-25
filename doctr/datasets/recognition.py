@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any
 
 from .datasets import AbstractDataset
 
@@ -35,7 +35,7 @@ class RecognitionDataset(AbstractDataset):
     ) -> None:
         super().__init__(img_folder, **kwargs)
 
-        self.data: List[Tuple[str, str]] = []
+        self.data: list[tuple[str, str]] = []
         with open(labels_path, encoding="utf-8") as f:
             labels = json.load(f)
 

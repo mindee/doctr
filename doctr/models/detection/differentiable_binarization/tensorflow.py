@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -29,7 +29,7 @@ from .base import DBPostProcessor, _DBNet
 __all__ = ["DBNet", "db_resnet50", "db_mobilenet_v3_large"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "db_resnet50": {
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
@@ -92,7 +92,7 @@ class FeaturePyramidNetwork(layers.Layer, NestedObject):
 
     def call(
         self,
-        x: List[tf.Tensor],
+        x: list[tf.Tensor],
         **kwargs: Any,
     ) -> tf.Tensor:
         # Channel mapping
@@ -121,7 +121,7 @@ class DBNet(_DBNet, Model, NestedObject):
         class_names: list of class names
     """
 
-    _children_names: List[str] = ["feat_extractor", "fpn", "probability_head", "threshold_head", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "fpn", "probability_head", "threshold_head", "postprocessor"]
 
     def __init__(
         self,
@@ -131,8 +131,8 @@ class DBNet(_DBNet, Model, NestedObject):
         box_thresh: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
-        class_names: List[str] = [CLASS_NAME],
+        cfg: dict[str, Any] | None = None,
+        class_names: list[str] = [CLASS_NAME],
     ) -> None:
         super().__init__()
         self.class_names = class_names
@@ -171,7 +171,7 @@ class DBNet(_DBNet, Model, NestedObject):
         self,
         out_map: tf.Tensor,
         thresh_map: tf.Tensor,
-        target: List[Dict[str, np.ndarray]],
+        target: list[dict[str, np.ndarray]],
         gamma: float = 2.0,
         alpha: float = 0.5,
         eps: float = 1e-8,
@@ -240,16 +240,16 @@ class DBNet(_DBNet, Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[Dict[str, np.ndarray]]] = None,
+        target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         feat_maps = self.feat_extractor(x, **kwargs)
         feat_concat = self.fpn(feat_maps, **kwargs)
         logits = self.probability_head(feat_concat, **kwargs)
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -276,9 +276,9 @@ def _db_resnet(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    fpn_layers: List[str],
+    fpn_layers: list[str],
     pretrained_backbone: bool = True,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> DBNet:
     pretrained_backbone = pretrained_backbone and not pretrained
@@ -322,9 +322,9 @@ def _db_mobilenet(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    fpn_layers: List[str],
+    fpn_layers: list[str],
     pretrained_backbone: bool = True,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> DBNet:
     pretrained_backbone = pretrained_backbone and not pretrained

@@ -3,7 +3,8 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, Dict, List, Optional, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 import torch
@@ -21,7 +22,7 @@ from .base import _FAST, FASTPostProcessor
 __all__ = ["FAST", "fast_tiny", "fast_small", "fast_base", "reparameterize"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "fast_tiny": {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
@@ -89,7 +90,7 @@ class FastHead(nn.Sequential):
         out_channels: int = 128,
         dropout: float = 0.1,
     ) -> None:
-        _layers: List[nn.Module] = [
+        _layers: list[nn.Module] = [
             FASTConvLayer(in_channels, out_channels, kernel_size=3),
             nn.Dropout(dropout),
             nn.Conv2d(out_channels, num_classes, kernel_size=1, bias=False),
@@ -122,8 +123,8 @@ class FAST(_FAST, nn.Module):
         pooling_size: int = 4,  # different from paper performs better on close text-rich images
         assume_straight_pages: bool = True,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = {},
-        class_names: List[str] = [CLASS_NAME],
+        cfg: dict[str, Any] = {},
+        class_names: list[str] = [CLASS_NAME],
     ) -> None:
         super().__init__()
         self.class_names = class_names
@@ -172,10 +173,10 @@ class FAST(_FAST, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[np.ndarray]] = None,
+        target: list[np.ndarray] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, torch.Tensor]:
+    ) -> dict[str, torch.Tensor]:
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
         feats = [feats[str(idx)] for idx in range(len(feats))]
@@ -183,7 +184,7 @@ class FAST(_FAST, nn.Module):
         feat_concat = self.neck(feats)
         logits = F.interpolate(self.prob_head(feat_concat), size=x.shape[-2:], mode="bilinear")
 
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -210,7 +211,7 @@ class FAST(_FAST, nn.Module):
     def compute_loss(
         self,
         out_map: torch.Tensor,
-        target: List[np.ndarray],
+        target: list[np.ndarray],
         eps: float = 1e-6,
     ) -> torch.Tensor:
         """Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.
@@ -274,7 +275,7 @@ class FAST(_FAST, nn.Module):
         return text_loss + kernel_loss
 
 
-def reparameterize(model: Union[FAST, nn.Module]) -> FAST:
+def reparameterize(model: FAST | nn.Module) -> FAST:
     """Fuse batchnorm and conv layers and reparameterize the model
 
     Args:
@@ -317,9 +318,9 @@ def _fast(
     arch: str,
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
-    feat_layers: List[str],
+    feat_layers: list[str],
     pretrained_backbone: bool = True,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> FAST:
     pretrained_backbone = pretrained_backbone and not pretrained

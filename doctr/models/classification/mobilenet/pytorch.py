@@ -6,7 +6,7 @@
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from torchvision.models import mobilenetv3
 from torchvision.models.mobilenetv3 import MobileNetV3
@@ -25,7 +25,7 @@ __all__ = [
     "mobilenet_v3_small_page_orientation",
 ]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "mobilenet_v3_large": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -74,8 +74,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 def _mobilenet_v3(
     arch: str,
     pretrained: bool,
-    rect_strides: Optional[List[str]] = None,
-    ignore_keys: Optional[List[str]] = None,
+    rect_strides: list[str] | None = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> mobilenetv3.MobileNetV3:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))

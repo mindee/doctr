@@ -6,15 +6,16 @@
 
 import multiprocessing as mp
 import os
+from collections.abc import Callable, Iterable, Iterator
 from multiprocessing.pool import ThreadPool
-from typing import Any, Callable, Iterable, Iterator, Optional
+from typing import Any
 
 from doctr.file_utils import ENV_VARS_TRUE_VALUES
 
 __all__ = ["multithread_exec"]
 
 
-def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterator[Any]:
+def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: int | None = None) -> Iterator[Any]:
     """Execute a given function in parallel for each element of a given sequence
 
     >>> from doctr.utils.multithreading import multithread_exec

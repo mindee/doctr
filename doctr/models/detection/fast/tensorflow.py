@@ -6,7 +6,7 @@
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -23,7 +23,7 @@ from .base import _FAST, FASTPostProcessor
 __all__ = ["FAST", "fast_tiny", "fast_small", "fast_base", "reparameterize"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "fast_tiny": {
         "input_shape": (1024, 1024, 3),
         "mean": (0.798, 0.785, 0.772),
@@ -113,7 +113,7 @@ class FAST(_FAST, Model, NestedObject):
         class_names: list of class names
     """
 
-    _children_names: List[str] = ["feat_extractor", "neck", "head", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "neck", "head", "postprocessor"]
 
     def __init__(
         self,
@@ -124,8 +124,8 @@ class FAST(_FAST, Model, NestedObject):
         pooling_size: int = 4,  # different from paper performs better on close text-rich images
         assume_straight_pages: bool = True,
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = {},
-        class_names: List[str] = [CLASS_NAME],
+        cfg: dict[str, Any] = {},
+        class_names: list[str] = [CLASS_NAME],
     ) -> None:
         super().__init__()
         self.class_names = class_names
@@ -156,7 +156,7 @@ class FAST(_FAST, Model, NestedObject):
     def compute_loss(
         self,
         out_map: tf.Tensor,
-        target: List[Dict[str, np.ndarray]],
+        target: list[dict[str, np.ndarray]],
         eps: float = 1e-6,
     ) -> tf.Tensor:
         """Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.
@@ -217,18 +217,18 @@ class FAST(_FAST, Model, NestedObject):
     def call(
         self,
         x: tf.Tensor,
-        target: Optional[List[Dict[str, np.ndarray]]] = None,
+        target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         feat_maps = self.feat_extractor(x, **kwargs)
         # Pass through the Neck & Head & Upsample
         feat_concat = self.neck(feat_maps, **kwargs)
         logits: tf.Tensor = self.head(feat_concat, **kwargs)
         logits = layers.UpSampling2D(size=x.shape[-2] // logits.shape[-2], interpolation="bilinear")(logits, **kwargs)
 
-        out: Dict[str, tf.Tensor] = {}
+        out: dict[str, tf.Tensor] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -250,7 +250,7 @@ class FAST(_FAST, Model, NestedObject):
         return out
 
 
-def reparameterize(model: Union[FAST, layers.Layer]) -> FAST:
+def reparameterize(model: FAST | layers.Layer) -> FAST:
     """Fuse batchnorm and conv layers and reparameterize the model
 
     args:
@@ -300,9 +300,9 @@ def _fast(
     arch: str,
     pretrained: bool,
     backbone_fn,
-    feat_layers: List[str],
+    feat_layers: list[str],
     pretrained_backbone: bool = True,
-    input_shape: Optional[Tuple[int, int, int]] = None,
+    input_shape: tuple[int, int, int] | None = None,
     **kwargs: Any,
 ) -> FAST:
     pretrained_backbone = pretrained_backbone and not pretrained

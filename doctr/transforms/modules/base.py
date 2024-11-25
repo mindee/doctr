@@ -5,7 +5,8 @@
 
 import math
 import random
-from typing import Any, Callable, List, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
@@ -45,12 +46,12 @@ class SampleCompose(NestedObject):
         transforms: list of transformation modules
     """
 
-    _children_names: List[str] = ["sample_transforms"]
+    _children_names: list[str] = ["sample_transforms"]
 
-    def __init__(self, transforms: List[Callable[[Any, Any], Tuple[Any, Any]]]) -> None:
+    def __init__(self, transforms: list[Callable[[Any, Any], tuple[Any, Any]]]) -> None:
         self.sample_transforms = transforms
 
-    def __call__(self, x: Any, target: Any) -> Tuple[Any, Any]:
+    def __call__(self, x: Any, target: Any) -> tuple[Any, Any]:
         for t in self.sample_transforms:
             x, target = t(x, target)
 
@@ -84,12 +85,12 @@ class ImageTransform(NestedObject):
         transform: the image transformation module to wrap
     """
 
-    _children_names: List[str] = ["img_transform"]
+    _children_names: list[str] = ["img_transform"]
 
     def __init__(self, transform: Callable[[Any], Any]) -> None:
         self.img_transform = transform
 
-    def __call__(self, img: Any, target: Any) -> Tuple[Any, Any]:
+    def __call__(self, img: Any, target: Any) -> tuple[Any, Any]:
         img = self.img_transform(img)
         return img, target
 
@@ -159,12 +160,12 @@ class OneOf(NestedObject):
         transforms: list of transformations, one only will be picked
     """
 
-    _children_names: List[str] = ["transforms"]
+    _children_names: list[str] = ["transforms"]
 
-    def __init__(self, transforms: List[Callable[[Any], Any]]) -> None:
+    def __init__(self, transforms: list[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
 
-    def __call__(self, img: Any, target: Optional[np.ndarray] = None) -> Union[Any, Tuple[Any, np.ndarray]]:
+    def __call__(self, img: Any, target: np.ndarray | None = None) -> Any | tuple[Any, np.ndarray]:
         # Pick transformation
         transfo = self.transforms[int(random.random() * len(self.transforms))]
         # Apply
@@ -206,7 +207,7 @@ class RandomApply(NestedObject):
     def extra_repr(self) -> str:
         return f"transform={self.transform}, p={self.p}"
 
-    def __call__(self, img: Any, target: Optional[np.ndarray] = None) -> Union[Any, Tuple[Any, np.ndarray]]:
+    def __call__(self, img: Any, target: np.ndarray | None = None) -> Any | tuple[Any, np.ndarray]:
         if random.random() < self.p:
             return self.transform(img) if target is None else self.transform(img, target)  # type: ignore[call-arg]
         return img if target is None else (img, target)
@@ -230,7 +231,7 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
+    def __call__(self, img: Any, target: np.ndarray) -> tuple[Any, np.ndarray]:
         angle = random.uniform(-self.max_angle, self.max_angle)
         r_img, r_polys = F.rotate_sample(img, target, angle, self.expand)
         # Removes deleted boxes
@@ -246,14 +247,14 @@ class RandomCrop(NestedObject):
         ratio: tuple of float, relative (min_ratio, max_ratio) where ratio = h/w
     """
 
-    def __init__(self, scale: Tuple[float, float] = (0.08, 1.0), ratio: Tuple[float, float] = (0.75, 1.33)) -> None:
+    def __init__(self, scale: tuple[float, float] = (0.08, 1.0), ratio: tuple[float, float] = (0.75, 1.33)) -> None:
         self.scale = scale
         self.ratio = ratio
 
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> Tuple[Any, np.ndarray]:
+    def __call__(self, img: Any, target: np.ndarray) -> tuple[Any, np.ndarray]:
         scale = random.uniform(self.scale[0], self.scale[1])
         ratio = random.uniform(self.ratio[0], self.ratio[1])
 

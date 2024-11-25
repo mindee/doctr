@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -27,14 +27,14 @@ class PreProcessor(NestedObject):
         **kwargs: additional arguments for the resizing operation
     """
 
-    _children_names: List[str] = ["resize", "normalize"]
+    _children_names: list[str] = ["resize", "normalize"]
 
     def __init__(
         self,
-        output_size: Tuple[int, int],
+        output_size: tuple[int, int],
         batch_size: int,
-        mean: Tuple[float, float, float] = (0.5, 0.5, 0.5),
-        std: Tuple[float, float, float] = (1.0, 1.0, 1.0),
+        mean: tuple[float, float, float] = (0.5, 0.5, 0.5),
+        std: tuple[float, float, float] = (1.0, 1.0, 1.0),
         **kwargs: Any,
     ) -> None:
         self.batch_size = batch_size
@@ -43,7 +43,7 @@ class PreProcessor(NestedObject):
         self.normalize = Normalize(mean, std)
         self._runs_on_cuda = tf.config.list_physical_devices("GPU") != []
 
-    def batch_inputs(self, samples: List[tf.Tensor]) -> List[tf.Tensor]:
+    def batch_inputs(self, samples: list[tf.Tensor]) -> list[tf.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
@@ -60,7 +60,7 @@ class PreProcessor(NestedObject):
 
         return batches
 
-    def sample_transforms(self, x: Union[np.ndarray, tf.Tensor]) -> tf.Tensor:
+    def sample_transforms(self, x: np.ndarray | tf.Tensor) -> tf.Tensor:
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
@@ -77,7 +77,7 @@ class PreProcessor(NestedObject):
 
         return x
 
-    def __call__(self, x: Union[tf.Tensor, np.ndarray, List[Union[tf.Tensor, np.ndarray]]]) -> List[tf.Tensor]:
+    def __call__(self, x: tf.Tensor | np.ndarray | list[tf.Tensor | np.ndarray]) -> list[tf.Tensor]:
         """Prepare document data for model forwarding
 
         Args:

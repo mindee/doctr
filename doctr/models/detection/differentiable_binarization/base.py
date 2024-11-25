@@ -5,7 +5,6 @@
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -104,7 +103,7 @@ class DBPostProcessor(DetectionPostProcessor):
         """
         height, width = bitmap.shape[:2]
         min_size_box = 2
-        boxes: List[Union[np.ndarray, List[float]]] = []
+        boxes: list[np.ndarray | list[float]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
@@ -206,7 +205,7 @@ class _DBNet:
         polygon: np.ndarray,
         canvas: np.ndarray,
         mask: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Draw a polygon treshold map on a canvas, as described in the DB paper
 
         Args:
@@ -269,10 +268,10 @@ class _DBNet:
 
     def build_target(
         self,
-        target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int],
+        target: list[dict[str, np.ndarray]],
+        output_shape: tuple[int, int, int],
         channels_last: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):

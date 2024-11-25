@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
@@ -15,9 +14,9 @@ router = APIRouter()
 
 
 @router.post(
-    "/", response_model=List[RecognitionOut], status_code=status.HTTP_200_OK, summary="Perform text recognition"
+    "/", response_model=list[RecognitionOut], status_code=status.HTTP_200_OK, summary="Perform text recognition"
 )
-async def text_recognition(request: RecognitionIn = Depends(), files: List[UploadFile] = [File(...)]):
+async def text_recognition(request: RecognitionIn = Depends(), files: list[UploadFile] = [File(...)]):
     """Runs docTR text recognition model to analyze the input image"""
     try:
         predictor = init_predictor(request)

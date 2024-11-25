@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import scipy.io as sio
@@ -69,7 +69,7 @@ class IIIT5K(VisionDataset):
         mat_file = "trainCharBound" if self.train else "testCharBound"
         mat_data = sio.loadmat(os.path.join(tmp_root, f"{mat_file}.mat"))[mat_file][0]
 
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any], np.ndarray]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         for img_path, label, box_targets in tqdm(iterable=mat_data, desc="Unpacking IIIT5K", total=len(mat_data)):

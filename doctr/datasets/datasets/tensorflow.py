@@ -5,7 +5,7 @@
 
 import os
 from copy import deepcopy
-from typing import Any, List, Tuple
+from typing import Any
 
 import numpy as np
 import tensorflow as tf
@@ -20,7 +20,7 @@ __all__ = ["AbstractDataset", "VisionDataset"]
 class AbstractDataset(_AbstractDataset):
     """Abstract class for all datasets"""
 
-    def _read_sample(self, index: int) -> Tuple[tf.Tensor, Any]:
+    def _read_sample(self, index: int) -> tuple[tf.Tensor, Any]:
         img_name, target = self.data[index]
 
         # Check target
@@ -48,7 +48,7 @@ class AbstractDataset(_AbstractDataset):
         return img, deepcopy(target)
 
     @staticmethod
-    def collate_fn(samples: List[Tuple[tf.Tensor, Any]]) -> Tuple[tf.Tensor, List[Any]]:
+    def collate_fn(samples: list[tuple[tf.Tensor, Any]]) -> tuple[tf.Tensor, list[Any]]:
         images, targets = zip(*samples)
         images = tf.stack(images, axis=0)
 

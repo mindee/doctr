@@ -6,7 +6,7 @@
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import tensorflow as tf
 from tensorflow.keras import layers
@@ -26,7 +26,7 @@ __all__ = [
 ]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "mobilenet_v3_large": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -76,7 +76,7 @@ def hard_swish(x: tf.Tensor) -> tf.Tensor:
     return x * tf.nn.relu6(x + 3.0) / 6.0
 
 
-def _make_divisible(v: float, divisor: int, min_value: Optional[int] = None) -> int:
+def _make_divisible(v: float, divisor: int, min_value: int | None = None) -> int:
     if min_value is None:
         min_value = divisor
     new_v = max(min_value, int(v + divisor / 2) // divisor * divisor)
@@ -112,7 +112,7 @@ class InvertedResidualConfig:
         out_channels: int,
         use_se: bool,
         activation: str,
-        stride: Union[int, Tuple[int, int]],
+        stride: int | tuple[int, int],
         width_mult: float = 1,
     ) -> None:
         self.input_channels = self.adjust_channels(input_channels, width_mult)
@@ -200,12 +200,12 @@ class MobileNetV3(Sequential):
 
     def __init__(
         self,
-        layout: List[InvertedResidualConfig],
+        layout: list[InvertedResidualConfig],
         include_top: bool = True,
         head_chans: int = 1024,
         num_classes: int = 1000,
-        cfg: Optional[Dict[str, Any]] = None,
-        input_shape: Optional[Tuple[int, int, int]] = None,
+        cfg: dict[str, Any] | None = None,
+        input_shape: tuple[int, int, int] | None = None,
     ) -> None:
         _layers = [
             Sequential(

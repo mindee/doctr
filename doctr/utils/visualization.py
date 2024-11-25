@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 import colorsys
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import cv2
 import matplotlib.patches as patches
@@ -19,9 +19,9 @@ __all__ = ["visualize_page", "visualize_kie_page", "draw_boxes"]
 
 def rect_patch(
     geometry: BoundingBox,
-    page_dimensions: Tuple[int, int],
-    label: Optional[str] = None,
-    color: Tuple[float, float, float] = (0, 0, 0),
+    page_dimensions: tuple[int, int],
+    label: str | None = None,
+    color: tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
@@ -68,9 +68,9 @@ def rect_patch(
 
 def polygon_patch(
     geometry: np.ndarray,
-    page_dimensions: Tuple[int, int],
-    label: Optional[str] = None,
-    color: Tuple[float, float, float] = (0, 0, 0),
+    page_dimensions: tuple[int, int],
+    label: str | None = None,
+    color: tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
@@ -110,8 +110,8 @@ def polygon_patch(
 
 
 def create_obj_patch(
-    geometry: Union[BoundingBox, Polygon4P, np.ndarray],
-    page_dimensions: Tuple[int, int],
+    geometry: BoundingBox | Polygon4P | np.ndarray,
+    page_dimensions: tuple[int, int],
     **kwargs: Any,
 ) -> patches.Patch:
     """Create a matplotlib patch for the element
@@ -134,7 +134,7 @@ def create_obj_patch(
     raise ValueError("invalid geometry format")
 
 
-def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
+def get_colors(num_colors: int) -> list[tuple[float, float, float]]:
     """Generate num_colors color for matplotlib
 
     Args:
@@ -153,7 +153,7 @@ def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
 
 
 def visualize_page(
-    page: Dict[str, Any],
+    page: dict[str, Any],
     image: np.ndarray,
     words_only: bool = True,
     display_artefacts: bool = True,
@@ -197,7 +197,7 @@ def visualize_page(
     ax.axis("off")
 
     if interactive:
-        artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+        artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     for block in page["blocks"]:
         if not words_only:
@@ -277,7 +277,7 @@ def visualize_page(
 
 
 def visualize_kie_page(
-    page: Dict[str, Any],
+    page: dict[str, Any],
     image: np.ndarray,
     words_only: bool = False,
     display_artefacts: bool = True,
@@ -321,7 +321,7 @@ def visualize_kie_page(
     ax.axis("off")
 
     if interactive:
-        artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+        artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     colors = {k: color for color, k in zip(get_colors(len(page["predictions"])), page["predictions"])}
     for key, value in page["predictions"].items():
@@ -351,7 +351,7 @@ def visualize_kie_page(
     return fig
 
 
-def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: Optional[Tuple[int, int, int]] = None, **kwargs) -> None:
+def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: tuple[int, int, int] | None = None, **kwargs) -> None:
     """Draw an array of relative straight boxes on an image
 
     Args:

@@ -4,7 +4,8 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import logging
-from typing import Any, Callable, List, Optional, Tuple, Union
+from collections.abc import Callable
+from typing import Any
 
 import tensorflow as tf
 import tf2onnx
@@ -46,8 +47,8 @@ def _build_model(model: Model):
 
 def load_pretrained_params(
     model: Model,
-    url: Optional[str] = None,
-    hash_prefix: Optional[str] = None,
+    url: str | None = None,
+    hash_prefix: str | None = None,
     skip_mismatch: bool = False,
     **kwargs: Any,
 ) -> None:
@@ -73,12 +74,12 @@ def load_pretrained_params(
 
 def conv_sequence(
     out_channels: int,
-    activation: Optional[Union[str, Callable]] = None,
+    activation: str | Callable | None = None,
     bn: bool = False,
     padding: str = "same",
     kernel_initializer: str = "he_normal",
     **kwargs: Any,
-) -> List[layers.Layer]:
+) -> list[layers.Layer]:
     """Builds a convolutional-based layer sequence
 
     >>> from tensorflow.keras import Sequential
@@ -125,7 +126,7 @@ class IntermediateLayerGetter(Model):
         layer_names: the list of layers to retrieve the feature map from
     """
 
-    def __init__(self, model: Model, layer_names: List[str]) -> None:
+    def __init__(self, model: Model, layer_names: list[str]) -> None:
         intermediate_fmaps = [model.get_layer(layer_name).get_output_at(0) for layer_name in layer_names]
         super().__init__(model.input, outputs=intermediate_fmaps)
 
@@ -134,8 +135,8 @@ class IntermediateLayerGetter(Model):
 
 
 def export_model_to_onnx(
-    model: Model, model_name: str, dummy_input: List[tf.TensorSpec], **kwargs: Any
-) -> Tuple[str, List[str]]:
+    model: Model, model_name: str, dummy_input: list[tf.TensorSpec], **kwargs: Any
+) -> tuple[str, list[str]]:
     """Export model to ONNX format.
 
     >>> import tensorflow as tf

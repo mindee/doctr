@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 from anyascii import anyascii
@@ -21,7 +20,7 @@ __all__ = [
 ]
 
 
-def string_match(word1: str, word2: str) -> Tuple[bool, bool, bool, bool]:
+def string_match(word1: str, word2: str) -> tuple[bool, bool, bool, bool]:
     """Performs string comparison with multiple levels of tolerance
 
     Args:
@@ -76,8 +75,8 @@ class TextMatch:
 
     def update(
         self,
-        gt: List[str],
-        pred: List[str],
+        gt: list[str],
+        pred: list[str],
     ) -> None:
         """Update the state of the metric with new predictions
 
@@ -97,7 +96,7 @@ class TextMatch:
 
         self.total += len(gt)
 
-    def summary(self) -> Dict[str, float]:
+    def summary(self) -> dict[str, float]:
         """Computes the aggregated metrics
 
         Returns:
@@ -179,7 +178,7 @@ def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
     return iou_mat
 
 
-def nms(boxes: np.ndarray, thresh: float = 0.5) -> List[int]:
+def nms(boxes: np.ndarray, thresh: float = 0.5) -> list[int]:
     """Perform non-max suppression, borrowed from <https://github.com/rbgirshick/fast-rcnn>`_.
 
     Args:
@@ -286,7 +285,7 @@ class LocalizationConfusion:
         self.num_gts += gts.shape[0]
         self.num_preds += preds.shape[0]
 
-    def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    def summary(self) -> tuple[float | None, float | None, float | None]:
         """Computes the aggregated metrics
 
         Returns:
@@ -364,8 +363,8 @@ class OCRMetric:
         self,
         gt_boxes: np.ndarray,
         pred_boxes: np.ndarray,
-        gt_labels: List[str],
-        pred_labels: List[str],
+        gt_labels: list[str],
+        pred_labels: list[str],
     ) -> None:
         """Updates the metric
 
@@ -403,7 +402,7 @@ class OCRMetric:
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
-    def summary(self) -> Tuple[Dict[str, Optional[float]], Dict[str, Optional[float]], Optional[float]]:
+    def summary(self) -> tuple[dict[str, float | None], dict[str, float | None], float | None]:
         """Computes the aggregated metrics
 
         Returns:
@@ -528,7 +527,7 @@ class DetectionMetric:
         self.num_gts += gt_boxes.shape[0]
         self.num_preds += pred_boxes.shape[0]
 
-    def summary(self) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+    def summary(self) -> tuple[float | None, float | None, float | None]:
         """Computes the aggregated metrics
 
         Returns:

@@ -4,7 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from pathlib import Path
-from typing import Optional, Tuple
 
 import cv2
 import numpy as np
@@ -16,7 +15,7 @@ __all__ = ["read_img_as_numpy"]
 
 def read_img_as_numpy(
     file: AbstractFile,
-    output_size: Optional[Tuple[int, int]] = None,
+    output_size: tuple[int, int] | None = None,
     rgb_output: bool = True,
 ) -> np.ndarray:
     """Read an image file into numpy format

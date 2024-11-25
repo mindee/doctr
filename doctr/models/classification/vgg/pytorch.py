@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from torch import nn
 from torchvision.models import vgg as tv_vgg
@@ -16,7 +16,7 @@ from ...utils import load_pretrained_params
 __all__ = ["vgg16_bn_r"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vgg16_bn_r": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -32,7 +32,7 @@ def _vgg(
     pretrained: bool,
     tv_arch: str,
     num_rect_pools: int = 3,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> tv_vgg.VGG:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -45,7 +45,7 @@ def _vgg(
 
     # Build the model
     model = tv_vgg.__dict__[tv_arch](**kwargs, weights=None)
-    # List the MaxPool2d
+    # list the MaxPool2d
     pool_idcs = [idx for idx, m in enumerate(model.features) if isinstance(m, nn.MaxPool2d)]
     # Replace their kernel with rectangular ones
     for idx in pool_idcs[-num_rect_pools:]:

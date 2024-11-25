@@ -3,7 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 import numpy as np
 from anyascii import anyascii
@@ -18,7 +18,7 @@ __all__ = ["synthesize_page", "synthesize_kie_page"]
 ROTATION_WARNING = False
 
 
-def _warn_rotation(entry: Dict[str, Any]) -> None:  # pragma: no cover
+def _warn_rotation(entry: dict[str, Any]) -> None:  # pragma: no cover
     global ROTATION_WARNING
     if not ROTATION_WARNING and len(entry["geometry"]) == 4:
         logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
@@ -27,11 +27,11 @@ def _warn_rotation(entry: Dict[str, Any]) -> None:  # pragma: no cover
 
 def _synthesize(
     response: Image.Image,
-    entry: Dict[str, Any],
+    entry: dict[str, Any],
     w: int,
     h: int,
     draw_proba: bool = False,
-    font_family: Optional[str] = None,
+    font_family: str | None = None,
     smoothing_factor: float = 0.75,
     min_font_size: int = 6,
     max_font_size: int = 50,
@@ -111,9 +111,9 @@ def _synthesize(
 
 
 def synthesize_page(
-    page: Dict[str, Any],
+    page: dict[str, Any],
     draw_proba: bool = False,
-    font_family: Optional[str] = None,
+    font_family: str | None = None,
     smoothing_factor: float = 0.95,
     min_font_size: int = 8,
     max_font_size: int = 50,
@@ -172,9 +172,9 @@ def synthesize_page(
 
 
 def synthesize_kie_page(
-    page: Dict[str, Any],
+    page: dict[str, Any],
     draw_proba: bool = False,
-    font_family: Optional[str] = None,
+    font_family: str | None = None,
 ) -> np.ndarray:
     """Draw a the content of the element page (OCR response) on a blank page.
 

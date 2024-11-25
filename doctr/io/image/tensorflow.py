@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -97,6 +96,6 @@ def tensor_from_numpy(npy_img: np.ndarray, dtype: tf.dtypes.DType = tf.float32) 
     return img
 
 
-def get_img_shape(img: tf.Tensor) -> Tuple[int, int]:
+def get_img_shape(img: tf.Tensor) -> tuple[int, int]:
     """Get the shape of an image"""
     return img.shape[:2]

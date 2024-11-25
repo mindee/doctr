@@ -5,7 +5,7 @@
 
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from tensorflow.keras import Sequential, layers
 
@@ -16,7 +16,7 @@ from ...utils import _build_model, conv_sequence, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "textnet_tiny": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -47,19 +47,19 @@ class TextNet(Sequential):
     Implementation based on the official Pytorch implementation: <https://github.com/czczup/FAST>`_.
 
     Args:
-        stages (List[Dict[str, List[int]]]): List of dictionaries containing the parameters of each stage.
+        stages (list[dict[str, list[int]]]): list of dictionaries containing the parameters of each stage.
         include_top (bool, optional): Whether to include the classifier head. Defaults to True.
         num_classes (int, optional): Number of output classes. Defaults to 1000.
-        cfg (Optional[Dict[str, Any]], optional): Additional configuration. Defaults to None.
+        cfg (dict[str, Any], optional): Additional configuration. Defaults to None.
     """
 
     def __init__(
         self,
-        stages: List[Dict[str, List[int]]],
-        input_shape: Tuple[int, int, int] = (32, 32, 3),
+        stages: list[dict[str, list[int]]],
+        input_shape: tuple[int, int, int] = (32, 32, 3),
         num_classes: int = 1000,
         include_top: bool = True,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         _layers = [
             *conv_sequence(
