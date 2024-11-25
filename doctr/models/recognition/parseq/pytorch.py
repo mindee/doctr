@@ -374,7 +374,7 @@ class PARSeq(_PARSeq, nn.Module):
         if target is None or return_preds:
             # Disable for torch.compile compatibility
             @torch.compiler.disable  # type: ignore[attr-defined]
-            def _postprocess(logits: torch.Tensor) -> List[Tuple[str, float]]:
+            def _postprocess(logits: torch.Tensor) -> list[tuple[str, float]]:
                 return self.postprocessor(logits)
 
             # Post-process boxes

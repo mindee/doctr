@@ -109,7 +109,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         if target is None or return_preds:
             # Disable for torch.compile compatibility
             @torch.compiler.disable  # type: ignore[attr-defined]
-            def _postprocess(decoded_features: torch.Tensor) -> List[Tuple[str, float]]:
+            def _postprocess(decoded_features: torch.Tensor) -> list[tuple[str, float]]:
                 return self.postprocessor(decoded_features)
 
             # Post-process boxes
