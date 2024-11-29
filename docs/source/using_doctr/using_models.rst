@@ -92,12 +92,12 @@ Detection predictors
 
     import numpy as np
     from doctr.models import detection_predictor
-    predictor = detection_predictor('db_resnet50')
+    model = detection_predictor('db_resnet50')
     dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
     out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
-
+* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, this will load the corresponding weights to enhance the model's performance.
 * `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
 * `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
 * `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
@@ -198,7 +198,7 @@ Recognition predictors
 
     import numpy as np
     from doctr.models import recognition_predictor
-    predictor = recognition_predictor('crnn_vgg16_bn')
+    model = recognition_predictor('crnn_vgg16_bn')
     dummy_img = (255 * np.random.rand(50, 150, 3)).astype(np.uint8)
     out = model([dummy_img])
 
