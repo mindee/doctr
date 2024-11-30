@@ -97,7 +97,7 @@ Detection predictors
     out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
-* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, this will load the corresponding weights to enhance the model's performance.
+* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, setting `pretrained=True` this will load the corresponding weights. If `pretrained=False`, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
 * `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
 * `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
 * `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
