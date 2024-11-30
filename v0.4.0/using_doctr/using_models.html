@@ -533,17 +533,16 @@ Explanations about the metrics being used are available in <a class="reference i
 <p><a class="reference internal" href="../modules/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detection_predictor</span></code></a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
 <span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>You can pass specific boolean arguments to the predictor:</p>
-<ul class="simple">
-<li><p><cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.</p></li>
-<li><p><cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.</p></li>
-<li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
-</ul>
+<p>You can pass specific boolean arguments to the predictor:
+* <cite>pretrained</cite>: if you want to use a model that has been pretrained on a specific dataset, setting <cite>pretrained=True</cite> this will load the corresponding weights. If <cite>pretrained=False</cite>, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
+* <cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* <cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* <cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p>
 <p>For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">detection_predictor</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -767,7 +766,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">recognition_predictor</span></code></a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">recognition_predictor</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
 <span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
