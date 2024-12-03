@@ -44,7 +44,7 @@ jobs:
       - name: Sanitize docker tag
         run: |
           PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-"
-          PREFIX_DOCKER_TAG=$(echo PREFIX_DOCKER_TAG|sed 's/,/-/g')
+          PREFIX_DOCKER_TAG=$(echo ${PREFIX_DOCKER_TAG}|sed 's/,/-/g')
           echo PREFIX_DOCKER_TAG=${PREFIX_DOCKER_TAG} >> $GITHUB_ENV
           echo $PREFIX_DOCKER_TAG
 
