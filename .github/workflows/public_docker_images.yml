@@ -42,10 +42,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Sanitize docker tag
-        run:
+        run: |
           PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-"
-          PREFIX_DOCKER_TAG=$(echo PREFIX_DOCKER_TAG|sed 's/,/-/g')
+          PREFIX_DOCKER_TAG=$(echo ${PREFIX_DOCKER_TAG}|sed 's/,/-/g')
           echo PREFIX_DOCKER_TAG=${PREFIX_DOCKER_TAG} >> $GITHUB_ENV
+          echo $PREFIX_DOCKER_TAG
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
