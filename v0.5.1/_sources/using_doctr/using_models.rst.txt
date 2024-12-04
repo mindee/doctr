@@ -298,7 +298,7 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
 
 
@@ -309,7 +309,7 @@ Additionally, you can change the batch size of the underlying detection and reco
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, det_bs=4, reco_bs=1024)
 
 To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying `DocumentBuilder`:
@@ -322,7 +322,7 @@ For example to disable the automatic grouping of lines into blocks:
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, resolve_blocks=False)
 
 
@@ -477,7 +477,7 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, assume_straight_pages=False, disable_page_orientation=True)
 
 
@@ -489,7 +489,7 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, assume_straight_pages=False, disable_crop_orientation=True)
 
 
@@ -497,7 +497,7 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
 
     class CustomHook:
         def __call__(self, loc_preds):

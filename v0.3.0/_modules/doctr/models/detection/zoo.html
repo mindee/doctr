@@ -354,7 +354,14 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">_model</span><span class="p">,</span> <span class="n">detection</span><span class="o">.</span><span class="n">FAST</span><span class="p">):</span>
             <span class="n">_model</span> <span class="o">=</span> <span class="n">reparameterize</span><span class="p">(</span><span class="n">_model</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="p">(</span><span class="n">detection</span><span class="o">.</span><span class="n">DBNet</span><span class="p">,</span> <span class="n">detection</span><span class="o">.</span><span class="n">LinkNet</span><span class="p">,</span> <span class="n">detection</span><span class="o">.</span><span class="n">FAST</span><span class="p">)):</span>
+        <span class="n">allowed_archs</span> <span class="o">=</span> <span class="p">[</span><span class="n">detection</span><span class="o">.</span><span class="n">DBNet</span><span class="p">,</span> <span class="n">detection</span><span class="o">.</span><span class="n">LinkNet</span><span class="p">,</span> <span class="n">detection</span><span class="o">.</span><span class="n">FAST</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
+            <span class="c1"># Adding the type for torch compiled models to the allowed architectures</span>
+            <span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">_CompiledModule</span>
+
+            <span class="n">allowed_archs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_CompiledModule</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">allowed_archs</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unknown architecture: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arch</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>

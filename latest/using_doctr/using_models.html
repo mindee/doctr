@@ -965,7 +965,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><cite>straighten_pages</cite>: If you want to straighten the pages before sending them to the detection model, set it to True.</p></li>
 </ul>
 <p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -974,7 +974,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><cite>det_bs</cite>: batch size for the detection model (default: 2)</p></li>
 <li><p><cite>reco_bs</cite>: batch size for the recognition model (default: 128)</p></li>
 </ul>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -985,7 +985,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><cite>paragraph_break</cite>: relative length of the minimum space separating paragraphs (default: 0.035)</p></li>
 </ul>
 <p>For example to disable the automatic grouping of lines into blocks:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">resolve_blocks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1128,7 +1128,7 @@ To get a better understanding of our document model, check our <a class="referen
 </ul>
 <p>If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.</p>
 <p>This will only have an effect with <cite>assume_straight_pages=False</cite> and/or <cite>straighten_pages=True</cite> and/or <cite>detect_orientation=True</cite>.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_page_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1137,14 +1137,14 @@ To get a better understanding of our document model, check our <a class="referen
 </ul>
 <p>If you deal with documents which contains only horizontal text, you can disable the crop orientation classification to speed up the inference.</p>
 <p>This will only have an effect with <cite>assume_straight_pages=False</cite> and/or <cite>straighten_pages=True</cite>.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_crop_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 <ul class="simple">
 <li><p>Add a hook to the <cite>ocr_predictor</cite> to manipulate the location predictions before the crops are passed to the recognition model.</p></li>
 </ul>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.model</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">ocr_predictor</span>
 
 <span class="k">class</span> <span class="nc">CustomHook</span><span class="p">:</span>
     <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">):</span>
