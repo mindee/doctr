@@ -372,8 +372,13 @@ class PARSeq(_PARSeq, nn.Module):
             out["out_map"] = logits
 
         if target is None or return_preds:
+            # Disable for torch.compile compatibility
+            @torch.compiler.disable  # type: ignore[attr-defined]
+            def _postprocess(logits: torch.Tensor) -> list[tuple[str, float]]:
+                return self.postprocessor(logits)
+
             # Post-process boxes
-            out["preds"] = self.postprocessor(logits)
+            out["preds"] = _postprocess(logits)
 
         if target is not None:
             out["loss"] = loss

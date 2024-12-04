@@ -9,7 +9,7 @@ import torch
 
 from doctr.models import classification
 from doctr.models.classification.predictor import OrientationPredictor
-from doctr.models.utils import export_model_to_onnx
+from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
 
 def _test_classification(model, input_shape, output_size, batch_size=2):
@@ -152,6 +152,19 @@ def test_crop_orientation_model(mock_text_box):
     with pytest.raises(ValueError):
         _ = classification.crop_orientation_predictor(classification.textnet_tiny(pretrained=True))
 
+    # Test torch compilation
+    compiled_model = torch.compile(classification.mobilenet_v3_small_crop_orientation(pretrained=True))
+    compiled_classifier = classification.crop_orientation_predictor(compiled_model)
+
+    assert isinstance(compiled_model, _CompiledModule)
+    assert isinstance(compiled_classifier, OrientationPredictor)
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
+    assert all(
+        isinstance(pred, float)
+        for pred in compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2]
+    )
+
 
 def test_page_orientation_model(mock_payslip):
     text_box_0 = cv2.imread(mock_payslip)
@@ -183,6 +196,19 @@ def test_page_orientation_model(mock_payslip):
 
     with pytest.raises(ValueError):
         _ = classification.page_orientation_predictor(classification.textnet_tiny(pretrained=True))
+
+    # Test torch compilation
+    compiled_model = torch.compile(classification.mobilenet_v3_small_page_orientation(pretrained=True))
+    compiled_classifier = classification.page_orientation_predictor(compiled_model)
+
+    assert isinstance(compiled_model, _CompiledModule)
+    assert isinstance(compiled_classifier, OrientationPredictor)
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
+    assert all(
+        isinstance(pred, float)
+        for pred in compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2]
+    )
 
 
 @pytest.mark.parametrize(
