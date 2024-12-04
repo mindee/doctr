@@ -13,7 +13,7 @@ from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.fast.pytorch import reparameterize
 from doctr.models.detection.predictor import DetectionPredictor
-from doctr.models.utils import export_model_to_onnx
+from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
 
 @pytest.mark.parametrize("train_mode", [True, False])
@@ -211,7 +211,7 @@ def test_torch_compiled_models(arch_name, mock_payslip):
 
     # Compile the model
     compiled_model = torch.compile(detection.__dict__[arch_name](pretrained=True).eval())
-    assert isinstance(compiled_model, torch._dynamo.eval_frame.OptimizedModule)
+    assert isinstance(compiled_model, _CompiledModule)
     compiled_predictor = detection.zoo.detection_predictor(compiled_model)
     compiled_out, seg_maps = compiled_predictor(doc, return_maps=True)
 

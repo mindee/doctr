@@ -15,7 +15,7 @@ from doctr.models.recognition.parseq.pytorch import PARSeqPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.pytorch import SARPostProcessor
 from doctr.models.recognition.vitstr.pytorch import ViTSTRPostProcessor
-from doctr.models.utils import export_model_to_onnx
+from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
 system_available_memory = int(psutil.virtual_memory().available / 1024**3)
 
@@ -178,7 +178,7 @@ def test_torch_compiled_models(arch_name, mock_text_box):
 
     # Compile the model
     compiled_model = torch.compile(recognition.__dict__[arch_name](pretrained=True).eval())
-    assert isinstance(compiled_model, torch._dynamo.eval_frame.OptimizedModule)
+    assert isinstance(compiled_model, _CompiledModule)
     compiled_predictor = recognition.zoo.recognition_predictor(compiled_model)
     compiled_out = compiled_predictor(doc)
 
