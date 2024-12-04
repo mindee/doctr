@@ -164,7 +164,7 @@ def test_models_onnx_export(arch_name, input_shape):
         "crnn_mobilenet_v3_small",
         "crnn_mobilenet_v3_large",
         "sar_resnet31",
-        # "master",  NOTE: MASTER model isn't compilable yet
+        # "master",  NOTE: MASTER model isn't 100% safe compilable yet (pytorch v2.5.1) - sometimes it fails to compile.
         "vitstr_small",
         "vitstr_base",
         "parseq",
