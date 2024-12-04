@@ -56,7 +56,14 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         if isinstance(_model, detection.FAST):
             _model = reparameterize(_model)
     else:
-        if not isinstance(arch, (detection.DBNet, detection.LinkNet, detection.FAST)):
+        allowed_archs = [detection.DBNet, detection.LinkNet, detection.FAST]
+        if is_torch_available():
+            # Adding the type for torch compiled models to the allowed architectures
+            from doctr.models.utils import _CompiledModule
+
+            allowed_archs.append(_CompiledModule)
+
+        if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
 
         _model = arch

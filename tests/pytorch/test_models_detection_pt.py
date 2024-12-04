@@ -8,11 +8,12 @@ import pytest
 import torch
 
 from doctr.file_utils import CLASS_NAME
+from doctr.io import DocumentFile
 from doctr.models import detection
 from doctr.models.detection._utils import dilate, erode
 from doctr.models.detection.fast.pytorch import reparameterize
 from doctr.models.detection.predictor import DetectionPredictor
-from doctr.models.utils import export_model_to_onnx
+from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
 
 @pytest.mark.parametrize("train_mode", [True, False])
@@ -186,3 +187,39 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
         assert np.allclose(pt_logits, ort_outs[0], atol=1e-4)
     except AssertionError:
         pytest.skip(f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(pt_logits - ort_outs[0]))}")
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "db_resnet34",
+        "db_resnet50",
+        "db_mobilenet_v3_large",
+        "linknet_resnet18",
+        "linknet_resnet34",
+        "linknet_resnet50",
+        "fast_tiny",
+        "fast_small",
+        "fast_base",
+    ],
+)
+def test_torch_compiled_models(arch_name, mock_payslip):
+    doc = DocumentFile.from_images([mock_payslip])
+    predictor = detection.zoo.detection_predictor(arch_name, pretrained=True)
+    assert isinstance(predictor, DetectionPredictor)
+    out, seg_maps = predictor(doc, return_maps=True)
+
+    # Compile the model
+    compiled_model = torch.compile(detection.__dict__[arch_name](pretrained=True).eval())
+    assert isinstance(compiled_model, _CompiledModule)
+    compiled_predictor = detection.zoo.detection_predictor(compiled_model)
+    compiled_out, seg_maps = compiled_predictor(doc, return_maps=True)
+
+    # Compare
+    assert all(
+        np.allclose(out_boxes[CLASS_NAME], compiled_out_boxes[CLASS_NAME], atol=1e-4)
+        for out_boxes, compiled_out_boxes in zip(out, compiled_out)
+    )
+    assert all(
+        np.allclose(seg_map, compiled_seg_map, atol=1e-4) for seg_map, compiled_seg_map in zip(seg_maps, seg_maps)
+    )

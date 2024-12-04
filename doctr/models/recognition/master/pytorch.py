@@ -209,7 +209,13 @@ class MASTER(_MASTER, nn.Module):
             out["out_map"] = logits
 
         if return_preds:
-            out["preds"] = self.postprocessor(logits)
+            # Disable for torch.compile compatibility
+            @torch.compiler.disable  # type: ignore[attr-defined]
+            def _postprocess(logits: torch.Tensor) -> list[tuple[str, float]]:
+                return self.postprocessor(logits)
+
+            # Post-process boxes
+            out["preds"] = _postprocess(logits)
 
         return out
 

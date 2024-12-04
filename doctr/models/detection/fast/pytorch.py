@@ -196,11 +196,16 @@ class FAST(_FAST, nn.Module):
             out["out_map"] = prob_map
 
         if target is None or return_preds:
+            # Disable for torch.compile compatibility
+            @torch.compiler.disable  # type: ignore[attr-defined]
+            def _postprocess(prob_map: torch.Tensor) -> list[dict[str, Any]]:
+                return [
+                    dict(zip(self.class_names, preds))
+                    for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
+                ]
+
             # Post-process boxes (keep only text predictions)
-            out["preds"] = [
-                dict(zip(self.class_names, preds))
-                for preds in self.postprocessor(prob_map.detach().cpu().permute((0, 2, 3, 1)).numpy())
-            ]
+            out["preds"] = _postprocess(prob_map)
 
         if target is not None:
             loss = self.compute_loss(logits, target)

@@ -18,7 +18,11 @@ __all__ = [
     "export_model_to_onnx",
     "_copy_tensor",
     "_bf16_to_float32",
+    "_CompiledModule",
 ]
+
+# torch compiled model type
+_CompiledModule = torch._dynamo.eval_frame.OptimizedModule
 
 
 def _copy_tensor(x: torch.Tensor) -> torch.Tensor:

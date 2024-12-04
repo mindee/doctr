@@ -5,7 +5,7 @@
 
 from typing import Any
 
-from doctr.file_utils import is_tf_available
+from doctr.file_utils import is_tf_available, is_torch_available
 from doctr.models.preprocessor import PreProcessor
 
 from .. import recognition
@@ -35,9 +35,14 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             pretrained=pretrained, pretrained_backbone=kwargs.get("pretrained_backbone", True)
         )
     else:
-        if not isinstance(
-            arch, (recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR, recognition.PARSeq)
-        ):
+        allowed_archs = [recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR, recognition.PARSeq]
+        if is_torch_available():
+            # Adding the type for torch compiled models to the allowed architectures
+            from doctr.models.utils import _CompiledModule
+
+            allowed_archs.append(_CompiledModule)
+
+        if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 

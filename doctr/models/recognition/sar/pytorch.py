@@ -262,8 +262,13 @@ class SAR(nn.Module, RecognitionModel):
             out["out_map"] = decoded_features
 
         if target is None or return_preds:
+            # Disable for torch.compile compatibility
+            @torch.compiler.disable  # type: ignore[attr-defined]
+            def _postprocess(decoded_features: torch.Tensor) -> list[tuple[str, float]]:
+                return self.postprocessor(decoded_features)
+
             # Post-process boxes
-            out["preds"] = self.postprocessor(decoded_features)
+            out["preds"] = _postprocess(decoded_features)
 
         if target is not None:
             out["loss"] = self.compute_loss(decoded_features, gt, seq_len)

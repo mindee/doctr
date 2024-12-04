@@ -5,7 +5,7 @@
 
 from typing import Any
 
-from doctr.file_utils import is_tf_available
+from doctr.file_utils import is_tf_available, is_torch_available
 
 from .. import classification
 from ..preprocessor import PreProcessor
@@ -48,7 +48,14 @@ def _orientation_predictor(
         # Load directly classifier from backbone
         _model = classification.__dict__[arch](pretrained=pretrained)
     else:
-        if not isinstance(arch, classification.MobileNetV3):
+        allowed_archs = [classification.MobileNetV3]
+        if is_torch_available():
+            # Adding the type for torch compiled models to the allowed architectures
+            from doctr.models.utils import _CompiledModule
+
+            allowed_archs.append(_CompiledModule)
+
+        if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 
