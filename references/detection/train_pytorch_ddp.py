@@ -415,7 +415,7 @@ def main(rank: int, world_size: int, args):
                 min_loss = val_loss
             if args.save_interval_epoch:
                 print(f"Saving state at epoch: {epoch + 1}")
-                torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
+                torch.save(model.module.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             if any(val is None for val in (recall, precision, mean_iou)):
                 log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
