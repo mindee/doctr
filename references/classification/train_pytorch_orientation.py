@@ -11,6 +11,7 @@ import datetime
 import logging
 import multiprocessing as mp
 import time
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -341,7 +342,7 @@ def main(args):
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
         if val_loss < min_loss:
             print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            torch.save(model.state_dict(), f"./{exp_name}.pt")
+            torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
             min_loss = val_loss
         print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         # W&B
@@ -376,6 +377,7 @@ def parse_args():
     )
 
     parser.add_argument("arch", type=str, help="classification model to train")
+    parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
     parser.add_argument("--type", type=str, required=True, choices=["page", "crop"], help="type of data to train on")
     parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
     parser.add_argument("--val_path", type=str, required=True, help="path to validation data folder")

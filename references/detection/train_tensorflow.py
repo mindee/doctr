@@ -15,6 +15,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import datetime
 import hashlib
 import time
+from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
@@ -357,7 +358,7 @@ def main(args):
             min_loss = val_loss
         if args.save_interval_epoch:
             print(f"Saving state at epoch: {epoch + 1}")
-            model.save_weights(f"./{exp_name}_{epoch + 1}.weights.h5")
+            model.save_weights(Path(args.output_dir) / f"{exp_name}_{epoch + 1}.weights.h5")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
@@ -401,6 +402,7 @@ def parse_args():
     )
 
     parser.add_argument("arch", type=str, help="text-detection model to train")
+    parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
     parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
     parser.add_argument("--val_path", type=str, required=True, help="path to validation data folder")
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
