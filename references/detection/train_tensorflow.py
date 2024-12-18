@@ -213,13 +213,13 @@ def main(args):
     img_transforms = T.OneOf([
         T.Compose([
             T.RandomApply(T.ColorInversion(), 0.3),
-            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.1, 4)), 0.2),
+            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.5, 1.5)), 0.2),
         ]),
         T.Compose([
             T.RandomApply(T.RandomJpegQuality(60), 0.15),
             # T.RandomApply(T.RandomShadow(), 0.2), # Broken atm on GPU
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.1, 4)), 0.3),
+            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.5, 1.5)), 0.3),
             T.RandomApply(T.ToGray(num_output_channels=3), 0.15),
         ]),
         T.Compose([

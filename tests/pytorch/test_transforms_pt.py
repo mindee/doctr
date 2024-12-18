@@ -7,6 +7,7 @@ import torch
 from doctr.transforms import (
     ChannelShuffle,
     ColorInversion,
+    GaussianBlur,
     GaussianNoise,
     RandomCrop,
     RandomHorizontalFlip,
@@ -276,6 +277,38 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.0)
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_shape",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+    ],
+)
+def test_gaussian_blur(input_dtype, input_shape):
+    sigma_range = (0.0, 1.0)
+    transform = GaussianBlur(sigma=sigma_range)
+
+    input_t = torch.rand(input_shape, dtype=torch.float32)
+
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round().to(dtype=torch.uint8)
+
+    blurred = transform(input_t)
+
+    assert isinstance(blurred, torch.Tensor)
+    assert blurred.shape == input_shape
+    assert blurred.dtype == input_dtype
+
+    if input_dtype == torch.uint8:
+        assert torch.any(blurred != input_t)
+        assert torch.all(blurred <= 255)
+        assert torch.all(blurred >= 0)
+    else:
+        assert torch.any(blurred != input_t)
+        assert torch.all(blurred <= 1.0)
+        assert torch.all(blurred >= 0.0)
 
 
 @pytest.mark.parametrize(

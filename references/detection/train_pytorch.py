@@ -19,7 +19,7 @@ import torch
 import wandb
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
-from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
+from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
 from tqdm.auto import tqdm
 
 from doctr import transforms as T
@@ -262,12 +262,12 @@ def main(args):
     img_transforms = T.OneOf([
         Compose([
             T.RandomApply(T.ColorInversion(), 0.3),
-            T.RandomApply(GaussianBlur(kernel_size=5, sigma=(0.1, 4)), 0.2),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
         ]),
         Compose([
             T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(GaussianBlur(kernel_size=5, sigma=(0.1, 4)), 0.3),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
             RandomGrayscale(p=0.15),
         ]),
         RandomPhotometricDistort(p=0.3),

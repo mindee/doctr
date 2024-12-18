@@ -8,13 +8,22 @@ import math
 import numpy as np
 import torch
 from PIL.Image import Image
+from scipy.ndimage import gaussian_filter
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
 from ..functional.pytorch import random_shadow
 
-__all__ = ["Resize", "GaussianNoise", "ChannelShuffle", "RandomHorizontalFlip", "RandomShadow", "RandomResize"]
+__all__ = [
+    "Resize",
+    "GaussianNoise",
+    "ChannelShuffle",
+    "RandomHorizontalFlip",
+    "RandomShadow",
+    "RandomResize",
+    "GaussianBlur",
+]
 
 
 class Resize(T.Resize):
@@ -140,6 +149,39 @@ class GaussianNoise(torch.nn.Module):
 
     def extra_repr(self) -> str:
         return f"mean={self.mean}, std={self.std}"
+
+
+class GaussianBlur(torch.nn.Module):
+    """Apply Gaussian Blur to the input tensor
+
+    >>> import torch
+    >>> from doctr.transforms import GaussianBlur
+    >>> transfo = GaussianBlur(sigma=(0.0, 1.0))
+
+    Args:
+        sigma : standard deviation range for the gaussian kernel
+    """
+
+    def __init__(self, sigma: tuple[float, float]) -> None:
+        super().__init__()
+        self.sigma_range = sigma
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # Sample a random sigma value within the specified range
+        sigma = torch.empty(1).uniform_(*self.sigma_range).item()
+
+        # Apply Gaussian blur along spatial dimensions only
+        blurred = torch.tensor(
+            gaussian_filter(
+                x.numpy(),
+                sigma=sigma,
+                mode="reflect",
+                truncate=4.0,
+            ),
+            dtype=x.dtype,
+            device=x.device,
+        )
+        return blurred
 
 
 class ChannelShuffle(torch.nn.Module):
