@@ -7,6 +7,7 @@ from copy import deepcopy
 
 import numpy as np
 import torch
+from scipy.ndimage import gaussian_filter
 from torchvision.transforms import functional as F
 
 from doctr.utils.geometry import rotate_abs_geoms
@@ -113,24 +114,24 @@ def crop_detection(
 
 
 def random_shadow(img: torch.Tensor, opacity_range: tuple[float, float], **kwargs) -> torch.Tensor:
-    """Crop and image and associated bboxes
+    """Apply a random shadow effect to an image using NumPy for blurring.
 
     Args:
-        img: image to modify
-        opacity_range: the minimum and maximum desired opacity of the shadow
-        **kwargs: additional arguments to pass to `create_shadow_mask`
+        img: Image to modify (C, H, W) as a PyTorch tensor.
+        opacity_range: The minimum and maximum desired opacity of the shadow.
+        **kwargs: Additional arguments to pass to `create_shadow_mask`.
 
     Returns:
-        shaded image
+        Shadowed image as a PyTorch tensor (same shape as input).
     """
     shadow_mask = create_shadow_mask(img.shape[1:], **kwargs)
-
     opacity = np.random.uniform(*opacity_range)
-    shadow_tensor = 1 - torch.from_numpy(shadow_mask[None, ...])
 
-    # Add some blur to make it believable
-    k = 7 + 2 * int(4 * np.random.rand(1))
+    # Apply Gaussian blur to the shadow mask
     sigma = np.random.uniform(0.5, 5.0)
-    shadow_tensor = F.gaussian_blur(shadow_tensor, k, sigma=[sigma, sigma])
+    blurred_mask = gaussian_filter(shadow_mask, sigma=sigma)
+
+    shadow_tensor = 1 - torch.from_numpy(blurred_mask).float()
+    shadow_tensor = shadow_tensor.to(img.device).unsqueeze(0)  # Add channel dimension
 
     return opacity * shadow_tensor * img + (1 - opacity) * img
