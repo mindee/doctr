@@ -397,10 +397,10 @@ It defines a common format for representing models, including the network struct
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">vitstr_small</span>
 <span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">export_model_to_onnx</span>
 
-<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">dummy_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">model_path</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
     <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
@@ -412,10 +412,10 @@ It defines a common format for representing models, including the network struct
 <span class="kn">from</span> <span class="nn">doctr.models</span> <span class="kn">import</span> <span class="n">vitstr_small</span>
 <span class="kn">from</span> <span class="nn">doctr.models.utils</span> <span class="kn">import</span> <span class="n">export_model_to_onnx</span>
 
-<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)]</span>
+<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)]</span>
 <span class="n">model_path</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
     <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
