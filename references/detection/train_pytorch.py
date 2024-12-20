@@ -264,7 +264,7 @@ def main(args):
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
         ]),
         Compose([
-            T.RandomApply(T.RandomShadow(), 1.0),
+            T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
             RandomGrayscale(p=0.15),
