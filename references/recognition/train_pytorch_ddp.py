@@ -275,7 +275,7 @@ def main(rank: int, world_size: int, args):
         optimizer = torch.optim.Adam(
             [p for p in model.parameters() if p.requires_grad],
             args.lr,
-            betas=(0.95, 0.99),
+            betas=(0.95, 0.999),
             eps=1e-6,
             weight_decay=args.weight_decay,
         )
