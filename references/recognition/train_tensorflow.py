@@ -305,7 +305,7 @@ def main(args):
         optimizer = optimizers.Adam(
             learning_rate=scheduler,
             beta_1=0.95,
-            beta_2=0.99,
+            beta_2=0.999,
             epsilon=1e-6,
             clipnorm=5,
             weight_decay=None if args.weight_decay == 0 else args.weight_decay,
@@ -314,7 +314,7 @@ def main(args):
         optimizer = optimizers.AdamW(
             learning_rate=scheduler,
             beta_1=0.9,
-            beta_2=0.99,
+            beta_2=0.999,
             epsilon=1e-6,
             clipnorm=5,
             weight_decay=args.weight_decay or 1e-4,
