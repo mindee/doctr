@@ -297,10 +297,30 @@ def main(args):
             cycle=False,
             name="PolynomialDecay",
         )
+
     # Optimizer
-    optimizer = optimizers.Adam(learning_rate=scheduler, beta_1=0.95, beta_2=0.99, epsilon=1e-6, clipnorm=5)
+    if args.optim == "adam":
+        optimizer = optimizers.Adam(
+            learning_rate=scheduler,
+            beta_1=0.95,
+            beta_2=0.99,
+            epsilon=1e-6,
+            clipnorm=5,
+            weight_decay=None if args.weight_decay == 0 else args.weight_decay,
+        )
+    elif args.optim == "adamw":
+        optimizer = optimizers.AdamW(
+            learning_rate=scheduler,
+            beta_1=0.9,
+            beta_2=0.99,
+            epsilon=1e-6,
+            clipnorm=5,
+            weight_decay=args.weight_decay or 1e-4,
+        )
+
     if args.amp:
         optimizer = mixed_precision.LossScaleOptimizer(optimizer)
+
     # LR Finder
     if args.find_lr:
         lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
@@ -314,6 +334,7 @@ def main(args):
     config = {
         "learning_rate": args.lr,
         "epochs": args.epochs,
+        "weight_decay": args.weight_decay,
         "batch_size": args.batch_size,
         "architecture": args.arch,
         "input_size": args.input_size,
@@ -412,7 +433,8 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
+    parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
+    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
     parser.add_argument(
@@ -436,6 +458,7 @@ def parse_args():
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
+    parser.add_argument("--optim", type=str, default="adam", choices=["adam", "adamw"], help="optimizer to use")
     parser.add_argument("--sched", type=str, default="poly", choices=["exponential", "poly"], help="scheduler to use")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")

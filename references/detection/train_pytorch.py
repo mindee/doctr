@@ -16,7 +16,6 @@ from pathlib import Path
 
 import numpy as np
 import torch
-import wandb
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
@@ -265,7 +264,7 @@ def main(args):
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
         ]),
         Compose([
-            T.RandomApply(T.RandomShadow(), 0.3),
+            T.RandomApply(T.RandomShadow(), 1.0),
             T.RandomApply(T.GaussianNoise(), 0.1),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
             RandomGrayscale(p=0.15),
@@ -332,18 +331,29 @@ def main(args):
             p.requires_grad = False
 
     # Optimizer
-    optimizer = torch.optim.Adam(
-        [p for p in model.parameters() if p.requires_grad],
-        args.lr,
-        betas=(0.95, 0.99),
-        eps=1e-6,
-        weight_decay=args.weight_decay,
-    )
+    if args.optim == "adam":
+        optimizer = torch.optim.Adam(
+            [p for p in model.parameters() if p.requires_grad],
+            args.lr,
+            betas=(0.95, 0.99),
+            eps=1e-6,
+            weight_decay=args.weight_decay,
+        )
+    elif args.optim == "adamw":
+        optimizer = torch.optim.AdamW(
+            [p for p in model.parameters() if p.requires_grad],
+            args.lr,
+            betas=(0.9, 0.99),
+            eps=1e-6,
+            weight_decay=args.weight_decay or 1e-4,
+        )
+
     # LR Finder
     if args.find_lr:
         lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
         plot_recorder(lrs, losses)
         return
+
     # Scheduler
     if args.sched == "cosine":
         scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
@@ -358,6 +368,8 @@ def main(args):
 
     # W&B
     if args.wb:
+        import wandb
+
         run = wandb.init(
             name=exp_name,
             project="text-detection",
@@ -368,7 +380,7 @@ def main(args):
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
-                "optimizer": "adam",
+                "optimizer": args.optim,
                 "framework": "pytorch",
                 "scheduler": args.sched,
                 "train_hash": train_hash,
@@ -440,7 +452,7 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
+    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
@@ -465,6 +477,7 @@ def parse_args():
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
+    parser.add_argument("--optim", type=str, default="adam", choices=["adam", "adamw"], help="optimizer to use")
     parser.add_argument(
         "--sched", type=str, default="poly", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )
