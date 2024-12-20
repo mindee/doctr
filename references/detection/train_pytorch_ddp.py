@@ -24,7 +24,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
 from torch.utils.data import DataLoader, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
-from torchvision.transforms.v2 import Compose, GaussianBlur, Normalize, RandomGrayscale, RandomPhotometricDistort
+from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
 from tqdm.auto import tqdm
 
 from doctr import transforms as T
@@ -234,7 +234,7 @@ def main(rank: int, world_size: int, args):
 
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
-    # Load DocTr model
+    # Load docTR model
     model = detection.__dict__[args.arch](
         pretrained=args.pretrained,
         assume_straight_pages=not args.rotation,
@@ -276,18 +276,17 @@ def main(rank: int, world_size: int, args):
     img_transforms = T.OneOf([
         Compose([
             T.RandomApply(T.ColorInversion(), 0.3),
-            T.RandomApply(GaussianBlur(kernel_size=5, sigma=(0.1, 4)), 0.2),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
         ]),
         Compose([
             T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(GaussianBlur(kernel_size=5, sigma=(0.1, 4)), 0.3),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
             RandomGrayscale(p=0.15),
         ]),
         RandomPhotometricDistort(p=0.3),
         lambda x: x,  # Identity no transformation
     ])
-
     # Image + target augmentations
     sample_transforms = T.SampleCompose(
         (
@@ -348,18 +347,29 @@ def main(rank: int, world_size: int, args):
             p.requires_grad = False
 
     # Optimizer
-    optimizer = torch.optim.Adam(
-        [p for p in model.parameters() if p.requires_grad],
-        args.lr,
-        betas=(0.95, 0.99),
-        eps=1e-6,
-        weight_decay=args.weight_decay,
-    )
+    if args.optim == "adam":
+        optimizer = torch.optim.Adam(
+            [p for p in model.parameters() if p.requires_grad],
+            args.lr,
+            betas=(0.95, 0.999),
+            eps=1e-6,
+            weight_decay=args.weight_decay,
+        )
+    elif args.optim == "adamw":
+        optimizer = torch.optim.AdamW(
+            [p for p in model.parameters() if p.requires_grad],
+            args.lr,
+            betas=(0.9, 0.999),
+            eps=1e-6,
+            weight_decay=args.weight_decay or 1e-4,
+        )
+
     # LR Finder
     if args.find_lr:
         lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
         plot_recorder(lrs, losses)
         return
+
     # Scheduler
     if args.sched == "cosine":
         scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
@@ -384,7 +394,7 @@ def main(rank: int, world_size: int, args):
                 "batch_size": args.batch_size,
                 "architecture": args.arch,
                 "input_size": args.input_size,
-                "optimizer": "adam",
+                "optimizer": args.optim,
                 "framework": "pytorch",
                 "scheduler": args.sched,
                 "train_hash": train_hash,
@@ -465,7 +475,7 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam)")
+    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=0, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
@@ -490,6 +500,7 @@ def parse_args():
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
+    parser.add_argument("--optim", type=str, default="adam", choices=["adam", "adamw"], help="optimizer to use")
     parser.add_argument(
         "--sched", type=str, default="poly", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )

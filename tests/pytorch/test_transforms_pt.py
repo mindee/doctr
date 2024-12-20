@@ -287,7 +287,7 @@ def test_gaussian_noise(input_dtype, input_shape):
     ],
 )
 def test_gaussian_blur(input_dtype, input_shape):
-    sigma_range = (0.0, 1.0)
+    sigma_range = (0.5, 1.5)
     transform = GaussianBlur(sigma=sigma_range)
 
     input_t = torch.rand(input_shape, dtype=torch.float32)
