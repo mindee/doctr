@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -63,7 +63,7 @@ class IIITHWS(AbstractDataset):
         set_slice = slice(train_samples) if self.train else slice(train_samples, None)
 
         for annotation in tqdm(
-            iterable=annotations[set_slice], desc="Unpacking IIITHWS", total=len(annotations[set_slice])
+            iterable=annotations[set_slice], desc="Preparing and Loading IIITHWS", total=len(annotations[set_slice])
         ):
             img_path, label = annotation.split()[0:2]
             img_path = os.path.join(img_folder, img_path)
