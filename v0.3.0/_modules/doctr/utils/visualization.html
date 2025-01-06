@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.utils.visualization - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css?v=75ddc721" />
@@ -296,26 +296,26 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.utils.visualization</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
-<span class="kn">import</span> <span class="nn">colorsys</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">colorsys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">cv2</span>
-<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="kn">import</span> <span class="n">Figure</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">cv2</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">patches</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.figure</span><span class="w"> </span><span class="kn">import</span> <span class="n">Figure</span>
 
-<span class="kn">from</span> <span class="nn">.common_types</span> <span class="kn">import</span> <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">Polygon4P</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">Polygon4P</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;visualize_page&quot;</span><span class="p">,</span> <span class="s2">&quot;visualize_kie_page&quot;</span><span class="p">,</span> <span class="s2">&quot;draw_boxes&quot;</span><span class="p">]</span>
 
 
-<span class="k">def</span> <span class="nf">rect_patch</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rect_patch</span><span class="p">(</span>
     <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span><span class="p">,</span>
     <span class="n">page_dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -364,7 +364,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">polygon_patch</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">polygon_patch</span><span class="p">(</span>
     <span class="n">geometry</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">page_dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -407,7 +407,7 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">create_obj_patch</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_obj_patch</span><span class="p">(</span>
     <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">Polygon4P</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">page_dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -432,7 +432,7 @@
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">get_colors</span><span class="p">(</span><span class="n">num_colors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_colors</span><span class="p">(</span><span class="n">num_colors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate num_colors color for matplotlib</span>
 
 <span class="sd">    Args:</span>
@@ -452,7 +452,7 @@
 
 <div class="viewcode-block" id="visualize_page">
 <a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.visualization.visualize_page">[docs]</a>
-<span class="k">def</span> <span class="nf">visualize_page</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">visualize_page</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">words_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -567,7 +567,7 @@
                     <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">mplcursors</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">mplcursors</span>
 
         <span class="c1"># Create mlp Cursor to hover patches in artists</span>
         <span class="n">mplcursors</span><span class="o">.</span><span class="n">Cursor</span><span class="p">(</span><span class="n">artists</span><span class="p">,</span> <span class="n">hover</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sel</span><span class="p">:</span> <span class="n">sel</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">artist</span><span class="o">.</span><span class="n">get_label</span><span class="p">()))</span>
@@ -577,7 +577,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">visualize_kie_page</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">visualize_kie_page</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="n">words_only</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -643,7 +643,7 @@
                     <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
-        <span class="kn">import</span> <span class="nn">mplcursors</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">mplcursors</span>
 
         <span class="c1"># Create mlp Cursor to hover patches in artists</span>
         <span class="n">mplcursors</span><span class="o">.</span><span class="n">Cursor</span><span class="p">(</span><span class="n">artists</span><span class="p">,</span> <span class="n">hover</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sel</span><span class="p">:</span> <span class="n">sel</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">artist</span><span class="o">.</span><span class="n">get_label</span><span class="p">()))</span>
@@ -652,7 +652,7 @@
     <span class="k">return</span> <span class="n">fig</span>
 
 
-<span class="k">def</span> <span class="nf">draw_boxes</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">draw_boxes</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw an array of relative straight boxes on an image</span>
 
 <span class="sd">    Args:</span>
@@ -686,7 +686,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

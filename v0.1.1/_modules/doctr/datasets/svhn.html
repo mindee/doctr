@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.datasets.svhn - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css?v=75ddc721" />
@@ -296,27 +296,27 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.datasets.svhn</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">h5py</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">tqdm</span> <span class="kn">import</span> <span class="n">tqdm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
-<span class="kn">from</span> <span class="nn">.datasets</span> <span class="kn">import</span> <span class="n">VisionDataset</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="n">crop_bboxes_from_image</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisionDataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="n">crop_bboxes_from_image</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SVHN&quot;</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="SVHN">
 <a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.SVHN">[docs]</a>
-<span class="k">class</span> <span class="nc">SVHN</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SVHN</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SVHN dataset from `&quot;The Street View House Numbers (SVHN) Dataset&quot;</span>
 <span class="sd">    &lt;http://ufldl.stanford.edu/housenumbers/&gt;`_.</span>
 
@@ -347,7 +347,7 @@
         <span class="s2">&quot;svhn_test.tar&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">train</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -380,7 +380,9 @@
         <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="s2">&quot;digitStruct.mat&quot;</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">img_refs</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;digitStruct/name&quot;</span><span class="p">]</span>
             <span class="n">box_refs</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="s2">&quot;digitStruct/bbox&quot;</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">img_ref</span><span class="p">,</span> <span class="n">box_ref</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span><span class="n">iterable</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">img_refs</span><span class="p">,</span> <span class="n">box_refs</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Unpacking SVHN&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_refs</span><span class="p">)):</span>
+            <span class="k">for</span> <span class="n">img_ref</span><span class="p">,</span> <span class="n">box_ref</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+                <span class="n">iterable</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">img_refs</span><span class="p">,</span> <span class="n">box_refs</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Preparing and Loading SVHN&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_refs</span><span class="p">)</span>
+            <span class="p">):</span>
                 <span class="c1"># convert ascii matrix to string</span>
                 <span class="n">img_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">chr</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="n">img_ref</span><span class="p">[</span><span class="mi">0</span><span class="p">]][()]</span><span class="o">.</span><span class="n">flatten</span><span class="p">()))</span>
 
@@ -436,7 +438,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
-    <span class="k">def</span> <span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
 
 </pre></div>
@@ -451,7 +453,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

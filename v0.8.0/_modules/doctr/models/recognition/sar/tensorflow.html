@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.models.recognition.sar.tensorflow - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
@@ -295,18 +295,18 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">Model</span><span class="p">,</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span>
 
-<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
-<span class="kn">from</span> <span class="nn">doctr.utils.repr</span> <span class="kn">import</span> <span class="n">NestedObject</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.repr</span><span class="w"> </span><span class="kn">import</span> <span class="n">NestedObject</span>
 
-<span class="kn">from</span> <span class="nn">...classification</span> <span class="kn">import</span> <span class="n">resnet31</span>
-<span class="kn">from</span> <span class="nn">...utils.tensorflow</span> <span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
-<span class="kn">from</span> <span class="nn">..core</span> <span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">resnet31</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils.tensorflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">..core</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;SAR&quot;</span><span class="p">,</span> <span class="s2">&quot;sar_resnet31&quot;</span><span class="p">]</span>
 
@@ -321,7 +321,7 @@
 <span class="p">}</span>
 
 
-<span class="k">class</span> <span class="nc">SAREncoder</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SAREncoder</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements encoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
@@ -330,14 +330,14 @@
 <span class="sd">        dropout_prob: dropout probability</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dropout_prob</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recurrent_dropout</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">LSTM</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="n">rnn_units</span><span class="p">,</span> <span class="n">return_sequences</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">recurrent_dropout</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">),</span>
         <span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -346,7 +346,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">rnn</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">AttentionModule</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AttentionModule</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements attention module of the SAR model</span>
 
 <span class="sd">    Args:</span>
@@ -355,7 +355,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attention_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attention_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hidden_state_projector</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Conv2D</span><span class="p">(</span>
             <span class="n">attention_units</span><span class="p">,</span>
@@ -383,7 +383,7 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Flatten</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">features</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">hidden_state</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -408,7 +408,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">glimpse</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
 
-<span class="k">class</span> <span class="nc">SARDecoder</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SARDecoder</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">,</span> <span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements decoder module of the SAR model</span>
 
 <span class="sd">    Args:</span>
@@ -423,7 +423,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">rnn_units</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">max_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -447,7 +447,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">output_dense</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dropout</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Dropout</span><span class="p">(</span><span class="n">dropout_prob</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">features</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">holistic</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -503,7 +503,7 @@
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">logits_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:]),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 
 
-<span class="k">class</span> <span class="nc">SAR</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">RecognitionModel</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SAR</span><span class="p">(</span><span class="n">Model</span><span class="p">,</span> <span class="n">RecognitionModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a SAR architecture as described in `&quot;Show, Attend and Read:A Simple and Strong Baseline for</span>
 <span class="sd">    Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
@@ -523,7 +523,7 @@
 
     <span class="n">_children_names</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;feat_extractor&quot;</span><span class="p">,</span> <span class="s2">&quot;encoder&quot;</span><span class="p">,</span> <span class="s2">&quot;decoder&quot;</span><span class="p">,</span> <span class="s2">&quot;postprocessor&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">feature_extractor</span><span class="p">,</span>
         <span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -558,7 +558,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">SARPostProcessor</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="n">vocab</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">compute_loss</span><span class="p">(</span>
         <span class="n">model_output</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">gt</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">seq_len</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
@@ -591,7 +591,7 @@
         <span class="n">ce_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">masked_loss</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">seq_len</span><span class="p">,</span> <span class="n">model_output</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">ce_loss</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -634,7 +634,7 @@
         <span class="k">return</span> <span class="n">out</span>
 
 
-<span class="k">class</span> <span class="nc">SARPostProcessor</span><span class="p">(</span><span class="n">RecognitionPostProcessor</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SARPostProcessor</span><span class="p">(</span><span class="n">RecognitionPostProcessor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Post processor for SAR architectures</span>
 
 <span class="sd">    Args:</span>
@@ -642,7 +642,7 @@
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">logits</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
@@ -664,7 +664,7 @@
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
 
 
-<span class="k">def</span> <span class="nf">_sar</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sar</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">backbone_fn</span><span class="p">,</span>
@@ -699,7 +699,7 @@
 
 <div class="viewcode-block" id="sar_resnet31">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.sar_resnet31">[docs]</a>
-<span class="k">def</span> <span class="nf">sar_resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SAR</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">sar_resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SAR</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;SAR with a resnet-31 feature extractor as described in `&quot;Show, Attend and Read:A Simple and Strong</span>
 <span class="sd">    Baseline for Irregular Text Recognition&quot; &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_.</span>
 
@@ -732,7 +732,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

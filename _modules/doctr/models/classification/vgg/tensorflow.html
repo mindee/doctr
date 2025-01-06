@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.models.classification.vgg.tensorflow - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
@@ -297,15 +297,15 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">layers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequential</span>
 
-<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
 
-<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;VGG&quot;</span><span class="p">,</span> <span class="s2">&quot;vgg16_bn_r&quot;</span><span class="p">]</span>
 
@@ -321,7 +321,7 @@
 <span class="p">}</span>
 
 
-<span class="k">class</span> <span class="nc">VGG</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">VGG</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements the VGG architecture from `&quot;Very Deep Convolutional Networks for Large-Scale Image Recognition&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_.</span>
 
@@ -335,7 +335,7 @@
 <span class="sd">        input_shape: shapes of the input tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">planes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
@@ -360,7 +360,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
 
 
-<span class="k">def</span> <span class="nf">_vgg</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_vgg</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">num_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">planes</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">rect_pools</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">]))</span>
@@ -390,7 +390,7 @@
 
 <div class="viewcode-block" id="vgg16_bn_r">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.vgg16_bn_r">[docs]</a>
-<span class="k">def</span> <span class="nf">vgg16_bn_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">vgg16_bn_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VGG</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;VGG-16 architecture as described in `&quot;Very Deep Convolutional Networks for Large-Scale Image Recognition&quot;</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1409.1556.pdf&gt;`_, modified by adding batch normalization, rectangular pooling and a simpler</span>
 <span class="sd">    classification head.</span>
@@ -426,7 +426,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

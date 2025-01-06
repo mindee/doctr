@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.models.classification.resnet.tensorflow - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
@@ -297,17 +297,17 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span>
 
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.applications</span> <span class="kn">import</span> <span class="n">ResNet50</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">layers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.applications</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResNet50</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequential</span>
 
-<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
 
-<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ResNet&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet31&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet50&quot;</span><span class="p">,</span> <span class="s2">&quot;resnet34_wide&quot;</span><span class="p">]</span>
 
@@ -351,7 +351,7 @@
 <span class="p">}</span>
 
 
-<span class="k">class</span> <span class="nc">ResnetBlock</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResnetBlock</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a resnet31 block with shortcut</span>
 
 <span class="sd">    Args:</span>
@@ -362,7 +362,7 @@
 <span class="sd">        strides: strides to use in the first convolution of the block</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">conv_shortcut</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">([</span>
@@ -382,7 +382,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">act</span> <span class="o">=</span> <span class="n">layers</span><span class="o">.</span><span class="n">Activation</span><span class="p">(</span><span class="s2">&quot;relu&quot;</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">conv_resnetblock</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">conv_resnetblock</span><span class="p">(</span>
         <span class="n">output_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kernel_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">strides</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
@@ -392,7 +392,7 @@
             <span class="o">*</span><span class="n">conv_sequence</span><span class="p">(</span><span class="n">output_channels</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">bn</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">),</span>
         <span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">clone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">shortcut</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">conv_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_block</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act</span><span class="p">(</span><span class="n">clone</span> <span class="o">+</span> <span class="n">conv_out</span><span class="p">)</span>
@@ -400,7 +400,7 @@
         <span class="k">return</span> <span class="n">out</span>
 
 
-<span class="k">def</span> <span class="nf">resnet_stage</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resnet_stage</span><span class="p">(</span>
     <span class="n">num_blocks</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">shortcut</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">downsample</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]:</span>
     <span class="n">_layers</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ResnetBlock</span><span class="p">(</span><span class="n">out_channels</span><span class="p">,</span> <span class="n">conv_shortcut</span><span class="o">=</span><span class="n">shortcut</span><span class="p">,</span> <span class="n">strides</span><span class="o">=</span><span class="mi">2</span> <span class="k">if</span> <span class="n">downsample</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)]</span>
@@ -411,7 +411,7 @@
     <span class="k">return</span> <span class="n">_layers</span>
 
 
-<span class="k">class</span> <span class="nc">ResNet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ResNet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a ResNet architecture</span>
 
 <span class="sd">    Args:</span>
@@ -429,7 +429,7 @@
 <span class="sd">        input_shape: shape of inputs</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">num_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
         <span class="n">output_channels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
@@ -479,7 +479,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
 
 
-<span class="k">def</span> <span class="nf">_resnet</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_resnet</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="n">num_blocks</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span>
@@ -519,7 +519,7 @@
 
 <div class="viewcode-block" id="resnet18">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet18">[docs]</a>
-<span class="k">def</span> <span class="nf">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-18 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
@@ -554,7 +554,7 @@
 
 <div class="viewcode-block" id="resnet31">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet31">[docs]</a>
-<span class="k">def</span> <span class="nf">resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resnet31</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet31 architecture with rectangular pooling windows as described in</span>
 <span class="sd">    `&quot;Show, Attend and Read:A Simple and Strong Baseline for Irregular Text Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1811.00751.pdf&gt;`_. Downsizing: (H, W) --&gt; (H/8, W/4)</span>
@@ -591,7 +591,7 @@
 
 <div class="viewcode-block" id="resnet34">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet34">[docs]</a>
-<span class="k">def</span> <span class="nf">resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
@@ -626,7 +626,7 @@
 
 <div class="viewcode-block" id="resnet50">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.resnet50">[docs]</a>
-<span class="k">def</span> <span class="nf">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-50 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_.</span>
 
@@ -681,7 +681,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">resnet34_wide</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">resnet34_wide</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ResNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Resnet-34 architecture as described in `&quot;Deep Residual Learning for Image Recognition&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1512.03385.pdf&gt;`_ with twice as many output channels for each stage.</span>
 
@@ -724,7 +724,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

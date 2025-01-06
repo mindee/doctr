@@ -16,7 +16,7 @@
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Choose a ready to use dataset - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
@@ -375,7 +375,7 @@ can be a significant save of time.</p>
 </tbody>
 </table>
 </div>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORD</span>
 <span class="c1"># Load straight boxes</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># Load rotated boxes</span>
@@ -465,7 +465,7 @@ can be a significant save of time.</p>
 </tbody>
 </table>
 </div>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORD</span>
 <span class="c1"># Crop boxes as is (can contain irregular)</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">recognition_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># Crop rotated boxes (always regular)</span>
@@ -495,7 +495,7 @@ can be a significant save of time.</p>
 </tbody>
 </table>
 </div>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DocArtefacts</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocArtefacts</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">DocArtefacts</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
@@ -505,12 +505,12 @@ can be a significant save of time.</p>
 <h3>Synthetic dataset generator<a class="headerlink" href="#synthetic-dataset-generator" title="Link to this heading">¶</a></h3>
 <p>docTR provides also some generator objects, which can be used to generate synthetic datasets.
 Both are also integrated in the training scripts to train a classification or recognition model.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CharacterGenerator</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterGenerator</span>
 <span class="n">ds</span> <span class="o">=</span> <span class="n">CharacterGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">WordGenerator</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">WordGenerator</span>
 <span class="n">ds</span> <span class="o">=</span> <span class="n">WordGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">,</span> <span class="n">min_chars</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
@@ -522,7 +522,7 @@ Both are also integrated in the training scripts to train a classification or re
 <p>Since many documents include sensitive / personal information, we are not able to share all the data that has been used for this project.
 However, we provide some guidance on how to format your own dataset into the same format so that you can use all docTR tools more easily.
 You can find further information about the format in references.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">DetectionDataset</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DetectionDataset</span>
 <span class="c1"># Load a detection dataset</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">DetectionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
 <span class="c1"># Load a recognition Dataset</span>
@@ -536,7 +536,7 @@ You can find further information about the format in references.</p>
 <section id="data-loading">
 <h2>Data Loading<a class="headerlink" href="#data-loading" title="Link to this heading">¶</a></h2>
 <p>Each dataset has its specific way to load a sample, but handling batch aggregation and the underlying iterator is a task deferred to another object in docTR.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">CORD</span><span class="p">,</span> <span class="n">DataLoader</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORD</span><span class="p">,</span> <span class="n">DataLoader</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">train_loader</span> <span class="o">=</span> <span class="n">DataLoader</span><span class="p">(</span><span class="n">train_set</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">)</span>
 <span class="n">train_iter</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">train_loader</span><span class="p">)</span>
@@ -575,7 +575,7 @@ You can find further information about the format in references.</p>
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.models.classification.mobilenet.tensorflow - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
@@ -299,15 +299,15 @@
 
 <span class="c1"># Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py</span>
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">layers</span>
-<span class="kn">from</span> <span class="nn">tensorflow.keras.models</span> <span class="kn">import</span> <span class="n">Sequential</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">layers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequential</span>
 
-<span class="kn">from</span> <span class="nn">....datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
-<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">....datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;MobileNetV3&quot;</span><span class="p">,</span>
@@ -366,11 +366,11 @@
 <span class="p">}</span>
 
 
-<span class="k">def</span> <span class="nf">hard_swish</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">hard_swish</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu6</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mf">3.0</span><span class="p">)</span> <span class="o">/</span> <span class="mf">6.0</span>
 
 
-<span class="k">def</span> <span class="nf">_make_divisible</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">divisor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_make_divisible</span><span class="p">(</span><span class="n">v</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">divisor</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">min_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">min_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">min_value</span> <span class="o">=</span> <span class="n">divisor</span>
     <span class="n">new_v</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">min_value</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="n">divisor</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="n">divisor</span> <span class="o">*</span> <span class="n">divisor</span><span class="p">)</span>
@@ -380,10 +380,10 @@
     <span class="k">return</span> <span class="n">new_v</span>
 
 
-<span class="k">class</span> <span class="nc">SqueezeExcitation</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">SqueezeExcitation</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Squeeze and Excitation.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">squeeze_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">squeeze_factor</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">GlobalAveragePooling2D</span><span class="p">(),</span>
             <span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="n">chan</span> <span class="o">//</span> <span class="n">squeeze_factor</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">),</span>
@@ -391,14 +391,14 @@
             <span class="n">layers</span><span class="o">.</span><span class="n">Reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">chan</span><span class="p">)),</span>
         <span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">math</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span>
 
 
-<span class="k">class</span> <span class="nc">InvertedResidualConfig</span><span class="p">:</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">InvertedResidualConfig</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">input_channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">kernel</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -418,11 +418,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="n">stride</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">adjust_channels</span><span class="p">(</span><span class="n">channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width_mult</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">adjust_channels</span><span class="p">(</span><span class="n">channels</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">width_mult</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">_make_divisible</span><span class="p">(</span><span class="n">channels</span> <span class="o">*</span> <span class="n">width_mult</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">InvertedResidual</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">InvertedResidual</span><span class="p">(</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;InvertedResidual for mobilenet</span>
 
 <span class="sd">    Args:</span>
@@ -430,7 +430,7 @@
 <span class="sd">        conf: configuration object for inverted residual</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">conf</span><span class="p">:</span> <span class="n">InvertedResidualConfig</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -475,7 +475,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">block</span> <span class="o">=</span> <span class="n">Sequential</span><span class="p">(</span><span class="n">_layers</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">call</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">inputs</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -487,13 +487,13 @@
         <span class="k">return</span> <span class="n">out</span>
 
 
-<span class="k">class</span> <span class="nc">MobileNetV3</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">MobileNetV3</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements MobileNetV3, inspired from both:</span>
 <span class="sd">    &lt;https://github.com/xiaochus/MobileNetV3/tree/master/model&gt;`_.</span>
 <span class="sd">    and &lt;https://pytorch.org/vision/stable/_modules/torchvision/models/mobilenetv3.html&gt;`_.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">layout</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">InvertedResidualConfig</span><span class="p">],</span>
         <span class="n">include_top</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -532,7 +532,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
 
 
-<span class="k">def</span> <span class="nf">_mobilenet_v3</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">rect_strides</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_mobilenet_v3</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="n">rect_strides</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">]))</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_shape&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;input_shape&quot;</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span>
@@ -604,7 +604,7 @@
 
 <div class="viewcode-block" id="mobilenet_v3_small">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -630,7 +630,7 @@
 
 <div class="viewcode-block" id="mobilenet_v3_small_r">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_, with rectangular pooling.</span>
@@ -656,7 +656,7 @@
 
 <div class="viewcode-block" id="mobilenet_v3_large">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -682,7 +682,7 @@
 
 <div class="viewcode-block" id="mobilenet_v3_large_r">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -708,7 +708,7 @@
 
 <div class="viewcode-block" id="mobilenet_v3_small_crop_orientation">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_crop_orientation">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -734,7 +734,7 @@
 
 <div class="viewcode-block" id="mobilenet_v3_small_page_orientation">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_page_orientation">[docs]</a>
-<span class="k">def</span> <span class="nf">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">MobileNetV3</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
 <span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
@@ -768,7 +768,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.models.classification.textnet.tensorflow - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../../../_static/css/mindee.css?v=75ddc721" />
@@ -296,21 +296,21 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.models.classification.textnet.tensorflow</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">copy</span><span class="w"> </span><span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span> <span class="nn">tensorflow.keras</span> <span class="kn">import</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">Sequential</span><span class="p">,</span> <span class="n">layers</span>
 
-<span class="kn">from</span> <span class="nn">doctr.datasets</span> <span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
 
-<span class="kn">from</span> <span class="nn">...modules.layers.tensorflow</span> <span class="kn">import</span> <span class="n">FASTConvLayer</span>
-<span class="kn">from</span> <span class="nn">...utils</span> <span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...modules.layers.tensorflow</span><span class="w"> </span><span class="kn">import</span> <span class="n">FASTConvLayer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_build_model</span><span class="p">,</span> <span class="n">conv_sequence</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;textnet_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_small&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_base&quot;</span><span class="p">]</span>
 
@@ -339,7 +339,7 @@
 <span class="p">}</span>
 
 
-<span class="k">class</span> <span class="nc">TextNet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TextNet</span><span class="p">(</span><span class="n">Sequential</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements TextNet architecture from `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with</span>
 <span class="sd">    Minimalist Kernel Representation&quot; &lt;https://arxiv.org/abs/2111.02394&gt;`_.</span>
 <span class="sd">    Implementation based on the official Pytorch implementation: &lt;https://github.com/czczup/FAST&gt;`_.</span>
@@ -351,7 +351,7 @@
 <span class="sd">        cfg (dict[str, Any], optional): Additional configuration. Defaults to None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">stages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]],</span>
         <span class="n">input_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
@@ -391,7 +391,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
 
 
-<span class="k">def</span> <span class="nf">_textnet</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_textnet</span><span class="p">(</span>
     <span class="n">arch</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -423,7 +423,7 @@
 
 <div class="viewcode-block" id="textnet_tiny">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.textnet_tiny">[docs]</a>
-<span class="k">def</span> <span class="nf">textnet_tiny</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">textnet_tiny</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements TextNet architecture from `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with</span>
 <span class="sd">    Minimalist Kernel Representation&quot; &lt;https://arxiv.org/abs/2111.02394&gt;`_.</span>
 <span class="sd">    Implementation based on the official Pytorch implementation: &lt;https://github.com/czczup/FAST&gt;`_.</span>
@@ -472,7 +472,7 @@
 
 <div class="viewcode-block" id="textnet_small">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.textnet_small">[docs]</a>
-<span class="k">def</span> <span class="nf">textnet_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">textnet_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements TextNet architecture from `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with</span>
 <span class="sd">    Minimalist Kernel Representation&quot; &lt;https://arxiv.org/abs/2111.02394&gt;`_.</span>
 <span class="sd">    Implementation based on the official Pytorch implementation: &lt;https://github.com/czczup/FAST&gt;`_.</span>
@@ -521,7 +521,7 @@
 
 <div class="viewcode-block" id="textnet_base">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.textnet_base">[docs]</a>
-<span class="k">def</span> <span class="nf">textnet_base</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextNet</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">textnet_base</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TextNet</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements TextNet architecture from `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with</span>
 <span class="sd">    Minimalist Kernel Representation&quot; &lt;https://arxiv.org/abs/2111.02394&gt;`_.</span>
 <span class="sd">    Implementation based on the official Pytorch implementation: &lt;https://github.com/czczup/FAST&gt;`_.</span>
@@ -583,7 +583,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

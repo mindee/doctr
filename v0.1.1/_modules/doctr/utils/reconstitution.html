@@ -15,7 +15,7 @@
 
     <link rel="shortcut icon" href="../../../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>doctr.utils.reconstitution - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../../../_static/css/mindee.css?v=75ddc721" />
@@ -296,18 +296,18 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.utils.reconstitution</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">anyascii</span> <span class="kn">import</span> <span class="n">anyascii</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">anyascii</span><span class="w"> </span><span class="kn">import</span> <span class="n">anyascii</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageDraw</span>
 
-<span class="kn">from</span> <span class="nn">.fonts</span> <span class="kn">import</span> <span class="n">get_font</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.fonts</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_font</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;synthesize_page&quot;</span><span class="p">,</span> <span class="s2">&quot;synthesize_kie_page&quot;</span><span class="p">]</span>
 
@@ -316,14 +316,14 @@
 <span class="n">ROTATION_WARNING</span> <span class="o">=</span> <span class="kc">False</span>
 
 
-<span class="k">def</span> <span class="nf">_warn_rotation</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_warn_rotation</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">global</span> <span class="n">ROTATION_WARNING</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">ROTATION_WARNING</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Polygons with larger rotations will lead to inaccurate rendering&quot;</span><span class="p">)</span>
         <span class="n">ROTATION_WARNING</span> <span class="o">=</span> <span class="kc">True</span>
 
 
-<span class="k">def</span> <span class="nf">_synthesize</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_synthesize</span><span class="p">(</span>
     <span class="n">response</span><span class="p">:</span> <span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span>
     <span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">w</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -410,7 +410,7 @@
 
 <div class="viewcode-block" id="synthesize_page">
 <a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.reconstitution.synthesize_page">[docs]</a>
-<span class="k">def</span> <span class="nf">synthesize_page</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">synthesize_page</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">draw_proba</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">font_family</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -472,7 +472,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">synthesize_kie_page</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">synthesize_kie_page</span><span class="p">(</span>
     <span class="n">page</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
     <span class="n">draw_proba</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">font_family</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -519,7 +519,7 @@
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             

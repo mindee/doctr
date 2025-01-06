@@ -16,7 +16,7 @@
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Integrate contributions into your pipeline - docTR documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
@@ -315,8 +315,8 @@ pip<span class="w"> </span>install<span class="w"> </span>onnxruntime<span class
 <h3>ArtefactDetection<a class="headerlink" href="#artefactdetection" title="Link to this heading">¶</a></h3>
 <p>The ArtefactDetection module provides a set of functions to detect artefacts in the document images, such as logos, QR codes, bar codes, etc.
 It is based on the YOLOv8 architecture, which is a state-of-the-art object detection model.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.io</span> <span class="kn">import</span> <span class="n">DocumentFile</span>
-<span class="kn">from</span> <span class="nn">doctr.contrib.artefacts</span> <span class="kn">import</span> <span class="n">ArtefactDetection</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.contrib.artefacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtefactDetection</span>
 
 <span class="c1"># Load the document</span>
 <span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s2">&quot;path/to/your/image&quot;</span><span class="p">])</span>
@@ -330,7 +330,7 @@ It is based on the YOLOv8 architecture, which is a state-of-the-art object detec
 <p>You can also use your custom trained YOLOv8 model to detect artefacts or anything else you need.
 Reference: <a class="reference external" href="https://github.com/ultralytics/ultralytics">YOLOv8</a></p>
 <p><strong>NOTE:</strong> The YOLOv8 model (no Oriented Bounding Box (OBB) inference supported yet) needs to be provided as onnx exported model with a dynamic batch size.</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">doctr.contrib</span> <span class="kn">import</span> <span class="n">ArtefactDetection</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.contrib</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtefactDetection</span>
 
 <span class="n">detector</span> <span class="o">=</span> <span class="n">ArtefactDetection</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;path/to/your/model.onnx&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">])</span>
 </pre></div>
@@ -368,7 +368,7 @@ Reference: <a class="reference external" href="https://github.com/ultralytics/ul
         <div class="bottom-of-page">
           <div class="left-details">
             <div class="copyright">
-                Copyright &#169; 2021-2024, Mindee
+                Copyright &#169; 2021-2025, Mindee
             </div>
             Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
             
