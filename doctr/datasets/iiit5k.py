@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -72,7 +72,9 @@ class IIIT5K(VisionDataset):
         self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
-        for img_path, label, box_targets in tqdm(iterable=mat_data, desc="Unpacking IIIT5K", total=len(mat_data)):
+        for img_path, label, box_targets in tqdm(
+            iterable=mat_data, desc="Preparing and Loading IIIT5K", total=len(mat_data)
+        ):
             _raw_path = img_path[0]
             _raw_label = label[0]
 

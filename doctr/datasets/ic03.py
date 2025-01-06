@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -80,7 +80,7 @@ class IC03(VisionDataset):
         xml_tree = ET.parse(os.path.join(tmp_root, "words.xml"))
         xml_root = xml_tree.getroot()
 
-        for image in tqdm(iterable=xml_root, desc="Unpacking IC03", total=len(xml_root)):
+        for image in tqdm(iterable=xml_root, desc="Preparing and Loading IC03", total=len(xml_root)):
             name, _resolution, rectangles = image
 
             # File existence check

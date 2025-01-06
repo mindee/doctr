@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -70,7 +70,7 @@ class IC13(AbstractDataset):
 
         img_names = os.listdir(img_folder)
 
-        for img_name in tqdm(iterable=img_names, desc="Unpacking IC13", total=len(img_names)):
+        for img_name in tqdm(iterable=img_names, desc="Preparing and Loading IC13", total=len(img_names)):
             img_path = Path(img_folder, img_name)
             label_path = Path(label_folder, "gt_" + Path(img_name).stem + ".txt")
 

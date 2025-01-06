@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+from tqdm import tqdm
 
 from .datasets import AbstractDataset
 from .utils import convert_target_to_relative, crop_bboxes_from_image
@@ -79,7 +80,10 @@ class WILDRECEIPT(AbstractDataset):
         json_strings = data.strip().split("\n")
         box: list[float] | np.ndarray
         _targets = []
-        for json_string in json_strings:
+
+        for json_string in tqdm(
+            iterable=json_strings, desc="Preparing and Loading WILDRECEIPT", total=len(json_strings)
+        ):
             json_data = json.loads(json_string)
             img_path = json_data["file_name"]
             annotations = json_data["annotations"]

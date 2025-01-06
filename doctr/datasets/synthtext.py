@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -90,7 +90,7 @@ class SynthText(VisionDataset):
         del mat_data
 
         for img_path, word_boxes, txt in tqdm(
-            iterable=zip(paths, boxes, labels), desc="Unpacking SynthText", total=len(paths)
+            iterable=zip(paths, boxes, labels), desc="Preparing and Loading SynthText", total=len(paths)
         ):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
