@@ -107,6 +107,15 @@ labels.json
 }
 ```
 
+## Slack Logging with tqdm
+
+To enable Slack logging using `tqdm`, you need to set the following environment variables:
+
+- `TQDM_SLACK_TOKEN`: the Slack Bot Token
+- `TQDM_SLACK_CHANNEL`: you can retrieve it using `Right Click on Channel > Copy > Copy link`. You should get something like `https://xxxxxx.slack.com/archives/yyyyyyyy`. Keep only the `yyyyyyyy` part.
+
+You can follow this page on [how to create a Slack App](https://api.slack.com/quickstart).
+
 ## Advanced options
 
 Feel free to inspect the multiple script option to customize your training to your own needs!
