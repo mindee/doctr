@@ -14,7 +14,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
 import hashlib
-import os
 import time
 from pathlib import Path
 
