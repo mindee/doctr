@@ -14,13 +14,18 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import datetime
 import hashlib
+import os
 import time
 from pathlib import Path
 
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import Model, mixed_precision, optimizers
-from tqdm.auto import tqdm
+
+if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
+    from tqdm.contrib.slack import tqdm
+else:
+    from tqdm.auto import tqdm
 
 from doctr.models import login_to_hub, push_to_hf_hub
 
