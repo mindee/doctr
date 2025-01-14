@@ -25,7 +25,11 @@ from torchvision.transforms.v2 import (
     RandomPerspective,
     RandomPhotometricDistort,
 )
-from tqdm.auto import tqdm
+
+if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
+    from tqdm.contrib.slack import tqdm
+else:
+    from tqdm.auto import tqdm
 
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator

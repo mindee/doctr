@@ -19,7 +19,11 @@ from pathlib import Path
 
 import tensorflow as tf
 from tensorflow.keras import mixed_precision
-from tqdm import tqdm
+
+if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
+    from tqdm.contrib.slack import tqdm
+else:
+    from tqdm.auto import tqdm
 
 gpu_devices = tf.config.list_physical_devices("GPU")
 if any(gpu_devices):
