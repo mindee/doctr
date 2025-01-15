@@ -7,6 +7,10 @@ For details on the training process and the necessary data and data format, refe
 - `detection <https://github.com/mindee/doctr/tree/main/references/detection#readme>`_
 - `recognition <https://github.com/mindee/doctr/tree/main/references/recognition#readme>`_
 
+If you’re looking for a lightweight yet efficient tool to annotate small amounts of data, especially tailored for docTR,
+check out the `docTR Labeling Tool <https://github.com/text2knowledge/docTR-Labeler>`_.
+This tool makes it easy to create your own dataset for fine-tuning and optimizing your OCR models.
+
 Loading your custom trained model
 ---------------------------------
 
