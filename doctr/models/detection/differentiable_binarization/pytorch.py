@@ -28,7 +28,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
         "input_shape": (3, 1024, 1024),
         "mean": (0.798, 0.785, 0.772),
         "std": (0.264, 0.2749, 0.287),
-        "url": "https://doctr-static.mindee.com/models?id=v0.7.0/db_resnet50-79bd7d70.pt&src=0",
+        "url": "https://github.com/mindee/doctr/releases/download/v0.10.0/db_resnet50-a5b57aac.pt",
     },
     "db_resnet34": {
         "input_shape": (3, 1024, 1024),
