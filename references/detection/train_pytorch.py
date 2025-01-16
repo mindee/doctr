@@ -409,7 +409,15 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, grad_accumulation_steps=grad_steps, amp=args.amp)
+        fit_one_epoch(
+            model,
+            train_loader,
+            batch_transforms,
+            optimizer,
+            scheduler,
+            grad_accumulation_steps=grad_steps,
+            amp=args.amp,
+        )
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
