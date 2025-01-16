@@ -96,8 +96,13 @@ def apply_grads(optimizer, grads, model):
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, clearml_log=False):
     train_iter = iter(train_loader)
+    if clearml_log:
+        from clearml import Logger
+
+        logger = Logger.current_logger()
+
     # Iterate over the batches of the dataset
     pbar = tqdm(train_iter, position=1)
     for images, targets in pbar:
@@ -111,6 +116,12 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         apply_grads(optimizer, grads, model)
 
         pbar.set_description(f"Training loss: {train_loss.numpy().mean():.6}")
+        if clearml_log:
+            global iteration
+            logger.report_scalar(
+                title="Training Loss", series="train_loss", value=train_loss.numpy().mean(), iteration=iteration
+            )
+            iteration += 1
 
 
 def evaluate(model, val_loader, batch_transforms, val_metric):
@@ -369,6 +380,8 @@ def main(args):
 
         task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
+        global iteration
+        iteration = 0
 
     # Backbone freezing
     if args.freeze_backbone:
@@ -380,7 +393,7 @@ def main(args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp, args.clearml)
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric)
@@ -408,6 +421,7 @@ def main(args):
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
             logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
             logger.report_scalar(title="Partial Match", series="partial_match", value=partial_match, iteration=epoch)
+
         if args.early_stop and early_stopper.early_stop(val_loss):
             print("Training halted early due to reaching patience limit.")
             break

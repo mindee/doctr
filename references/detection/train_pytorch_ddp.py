@@ -109,11 +109,16 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, clearml_log=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
+    if clearml_log:
+        from clearml import Logger
+
+        logger = Logger.current_logger()
+
     # Iterate over the batches of the dataset
     pbar = tqdm(train_loader, position=1)
     for images, targets in pbar:
@@ -141,6 +146,12 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
         scheduler.step()
 
         pbar.set_description(f"Training loss: {train_loss.item():.6}")
+        if clearml_log:
+            global iteration
+            logger.report_scalar(
+                title="Training Loss", series="train_loss", value=train_loss.item(), iteration=iteration
+            )
+            iteration += 1
 
 
 @torch.no_grad()
@@ -386,28 +397,40 @@ def main(rank: int, world_size: int, args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
+    if rank == 0:
+        config = {
+            "learning_rate": args.lr,
+            "epochs": args.epochs,
+            "weight_decay": args.weight_decay,
+            "batch_size": args.batch_size,
+            "architecture": args.arch,
+            "input_size": args.input_size,
+            "optimizer": args.optim,
+            "framework": "pytorch",
+            "scheduler": args.sched,
+            "train_hash": train_hash,
+            "val_hash": val_hash,
+            "pretrained": args.pretrained,
+            "rotation": args.rotation,
+            "amp": args.amp,
+        }
+
     # W&B
     if rank == 0 and args.wb:
         run = wandb.init(
             name=exp_name,
             project="text-detection",
-            config={
-                "learning_rate": args.lr,
-                "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
-                "batch_size": args.batch_size,
-                "architecture": args.arch,
-                "input_size": args.input_size,
-                "optimizer": args.optim,
-                "framework": "pytorch",
-                "scheduler": args.sched,
-                "train_hash": train_hash,
-                "val_hash": val_hash,
-                "pretrained": args.pretrained,
-                "rotation": args.rotation,
-                "amp": args.amp,
-            },
+            config=config,
         )
+
+    # ClearML
+    if rank == 0 and args.clearml:
+        from clearml import Task
+
+        task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
+        task.upload_artifact("config", config)
+        global iteration
+        iteration = 0
 
     # Create loss queue
     min_loss = np.inf
@@ -416,7 +439,9 @@ def main(rank: int, world_size: int, args):
 
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
+        fit_one_epoch(
+            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, clearml_log=args.clearml
+        )
 
         if rank == 0:
             # Validation loop at the end of each epoch
@@ -444,6 +469,17 @@ def main(rank: int, world_size: int, args):
                     "precision": precision,
                     "mean_iou": mean_iou,
                 })
+
+            # ClearML
+            if args.clearml:
+                from clearml import Logger
+
+                logger = Logger.current_logger()
+                logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+                logger.report_scalar(title="Precision Recall", series="recall", value=recall, iteration=epoch)
+                logger.report_scalar(title="Precision Recall", series="precision", value=precision, iteration=epoch)
+                logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
+
             if args.early_stop and early_stopper.early_stop(val_loss):
                 print("Training halted early due to reaching patience limit.")
                 break
@@ -491,6 +527,7 @@ def parse_args():
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
     parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--clearml", dest="clearml", action="store_true", help="Log to ClearML")
     parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
     parser.add_argument(
         "--pretrained",

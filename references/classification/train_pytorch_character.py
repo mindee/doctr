@@ -110,11 +110,16 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, clearml_log=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
+    if clearml_log:
+        from clearml import Logger
+
+        logger = Logger.current_logger()
+
     # Iterate over the batches of the dataset
     pbar = tqdm(train_loader, position=1)
     for images, targets in pbar:
@@ -141,6 +146,12 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
         scheduler.step()
 
         pbar.set_description(f"Training loss: {train_loss.item():.6}")
+        if clearml_log:
+            global iteration
+            logger.report_scalar(
+                title="Training Loss", series="train_loss", value=train_loss.item(), iteration=iteration
+            )
+            iteration += 1
 
 
 @torch.no_grad()
@@ -318,6 +329,20 @@ def main(args):
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     exp_name = f"{args.arch}_{current_time}" if args.name is None else args.name
 
+    config = {
+        "learning_rate": args.lr,
+        "epochs": args.epochs,
+        "weight_decay": args.weight_decay,
+        "batch_size": args.batch_size,
+        "architecture": args.arch,
+        "input_size": args.input_size,
+        "optimizer": args.optim,
+        "framework": "pytorch",
+        "vocab": args.vocab,
+        "scheduler": args.sched,
+        "pretrained": args.pretrained,
+    }
+
     # W&B
     if args.wb:
         import wandb
@@ -325,20 +350,17 @@ def main(args):
         run = wandb.init(
             name=exp_name,
             project="character-classification",
-            config={
-                "learning_rate": args.lr,
-                "epochs": args.epochs,
-                "weight_decay": args.weight_decay,
-                "batch_size": args.batch_size,
-                "architecture": args.arch,
-                "input_size": args.input_size,
-                "optimizer": args.optim,
-                "framework": "pytorch",
-                "vocab": args.vocab,
-                "scheduler": args.sched,
-                "pretrained": args.pretrained,
-            },
+            config=config,
         )
+
+    # ClearML
+    if args.clearml:
+        from clearml import Task
+
+        task = Task.init(project_name="docTR/character-classification", task_name=exp_name, reuse_last_task_id=False)
+        task.upload_artifact("config", config)
+        global iteration
+        iteration = 0
 
     # Create loss queue
     min_loss = np.inf
@@ -346,7 +368,9 @@ def main(args):
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler)
+        fit_one_epoch(
+            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, clearml_log=args.clearml
+        )
 
         # Validation loop at the end of each epoch
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
@@ -361,6 +385,15 @@ def main(args):
                 "val_loss": val_loss,
                 "acc": acc,
             })
+
+        # ClearML
+        if args.clearml:
+            from clearml import Logger
+
+            logger = Logger.current_logger()
+            logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
+
         if args.early_stop and early_stopper.early_stop(val_loss):
             print("Training halted early due to reaching patience limit.")
             break
@@ -420,6 +453,7 @@ def parse_args():
         "--show-samples", dest="show_samples", action="store_true", help="Display unormalized training samples"
     )
     parser.add_argument("--wb", dest="wb", action="store_true", help="Log to Weights & Biases")
+    parser.add_argument("--clearml", dest="clearml", action="store_true", help="Log to ClearML")
     parser.add_argument("--push-to-hub", dest="push_to_hub", action="store_true", help="Push to Huggingface Hub")
     parser.add_argument(
         "--pretrained",

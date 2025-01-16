@@ -110,7 +110,12 @@ def apply_grads(optimizer, grads, model):
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, clearml_log=False):
+    if clearml_log:
+        from clearml import Logger
+
+        logger = Logger.current_logger()
+
     # Iterate over the batches of the dataset
     pbar = tqdm(train_loader, position=1)
     for images, targets in pbar:
@@ -125,6 +130,12 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         apply_grads(optimizer, grads, model)
 
         pbar.set_description(f"Training loss: {train_loss.numpy().mean():.6}")
+        if clearml_log:
+            global iteration
+            logger.report_scalar(
+                title="Training Loss", series="train_loss", value=train_loss.numpy().mean(), iteration=iteration
+            )
+            iteration += 1
 
 
 def evaluate(model, val_loader, batch_transforms):
@@ -324,6 +335,8 @@ def main(args):
 
         task = Task.init(project_name="docTR/orientation-classification", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
+        global iteration
+        iteration = 0
 
     # Create loss queue
     min_loss = np.inf
@@ -332,7 +345,7 @@ def main(args):
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
+        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp, args.clearml)
 
         # Validation loop at the end of each epoch
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
@@ -355,6 +368,7 @@ def main(args):
             logger = Logger.current_logger()
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
             logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
+
         if args.early_stop and early_stopper.early_stop(val_loss):
             print("Training halted early due to reaching patience limit.")
             break
