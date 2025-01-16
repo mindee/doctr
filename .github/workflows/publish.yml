@@ -31,13 +31,12 @@ jobs:
           pip install setuptools wheel twine --upgrade
       - name: Get release tag
         id: release_tag
-        run: |
-          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
       - name: Build and publish
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-          VERSION: ${{ steps.release_tag.outputs.VERSION }}
+          VERSION: ${{ env.VERSION }}
         run: |
           BUILD_VERSION=$VERSION python setup.py sdist bdist_wheel
           twine check dist/*
@@ -81,19 +80,19 @@ jobs:
         run: conda install -y conda-build conda-verify anaconda-client
       - name: Get release tag
         id: release_tag
-        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+        run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
       - name: Build and publish
         shell: bash -el {0}
         env:
           ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
-          VERSION: ${{ steps.release_tag.outputs.VERSION }}
+          VERSION: ${{ env.VERSION }}
         run: |
           echo "BUILD_VERSION=${VERSION}" >> $GITHUB_ENV
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ --output-folder conda-dist
-          conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115
-          anaconda upload conda-dist/linux-64/*tar.bz2
+          conda-verify conda-dist/linux-64/*conda --ignore=C1115
+          anaconda upload conda-dist/linux-64/*conda
 
   conda-check:
     if: "!github.event.release.prerelease"

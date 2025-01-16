@@ -70,4 +70,4 @@ jobs:
           python setup.py sdist
           mkdir conda-dist
           conda build .conda/ --output-folder conda-dist
-          conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115
+          conda-verify conda-dist/linux-64/*conda --ignore=C1115
