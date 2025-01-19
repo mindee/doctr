@@ -62,7 +62,7 @@ VOCABS["vietnamese"] = (
 )
 VOCABS["hebrew"] = VOCABS["english"] + "אבגדהוזחטיכלמנסעפצקרשת" + "₪"
 VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
-VOCABS["gujarati"] = VOCABS["gujarati_vowels"] + VOCABS["gujarati_consonants"] + VOCABS["gujarati_digits"] + VOCABS["gujarati_punctuation"]
+VOCABS["gujarati"] = VOCABS["gujarati_vowels"] + VOCABS["gujarati_consonants"] + VOCABS["gujarati_digits"] + VOCABS["gujarati_punctuation"] + VOCABS["punctuation"]
 VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
 VOCABS["ukrainian"] = (
     VOCABS["generic_cyrillic_letters"] + VOCABS["digits"] + VOCABS["punctuation"] + VOCABS["currency"] + "ґіїєҐІЇЄ₴"
