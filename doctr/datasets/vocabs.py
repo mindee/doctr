@@ -23,7 +23,7 @@ VOCABS: dict[str, str] = {
     "hindi_digits": "०१२३४५६७८९",
     "hindi_punctuation": "।,?!:्ॐ॰॥",
     "gujarati_vowels": "અઆઇઈઉઊઋએઐઓ",
-    "gujarati_consonants": "કખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશષસહળક્ષજ્ઞ",
+    "gujarati_consonants": "ખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ",
     "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
     "gujarati_punctuation": "૰ઽ◌ંઃ॥ૐ઼ઁ" + "૱",
     "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
