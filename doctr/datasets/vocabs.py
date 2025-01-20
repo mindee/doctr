@@ -22,6 +22,10 @@ VOCABS: dict[str, str] = {
     "hindi_letters": "अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
     "hindi_digits": "०१२३४५६७८९",
     "hindi_punctuation": "।,?!:्ॐ॰॥",
+    "gujarati_vowels": "અઆઇઈઉઊઋએઐઓ",
+    "gujarati_consonants": "ખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ",
+    "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
+    "gujarati_punctuation": "૰ઽ◌ંઃ॥ૐ઼ઁ" + "૱",
     "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
     "bangla_digits": "০১২৩৪৫৬৭৮৯",
     "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
@@ -58,6 +62,13 @@ VOCABS["vietnamese"] = (
 )
 VOCABS["hebrew"] = VOCABS["english"] + "אבגדהוזחטיכלמנסעפצקרשת" + "₪"
 VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
+VOCABS["gujarati"] = (
+    VOCABS["gujarati_vowels"]
+    + VOCABS["gujarati_consonants"]
+    + VOCABS["gujarati_digits"]
+    + VOCABS["gujarati_punctuation"]
+    + VOCABS["punctuation"]
+)
 VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
 VOCABS["ukrainian"] = (
     VOCABS["generic_cyrillic_letters"] + VOCABS["digits"] + VOCABS["punctuation"] + VOCABS["currency"] + "ґіїєҐІЇЄ₴"
