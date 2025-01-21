@@ -112,10 +112,11 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
             grads = optimizer.get_unscaled_gradients(grads)
         apply_grads(optimizer, grads, model)
 
-        last_lr = optimizer.learning_rate.numpy()
+        last_lr = optimizer.learning_rate.numpy().item()
+        train_loss = train_loss.numpy().mean()
 
-        pbar.set_description(f"Training loss: {train_loss.numpy():.6} | LR: {last_lr:.6}")
-        epoch_train_loss += train_loss.numpy()
+        pbar.set_description(f"Training loss: {train_loss:.6} | LR: {last_lr:.6}")
+        epoch_train_loss += train_loss
         batch_cnt += 1
 
     epoch_train_loss /= batch_cnt
