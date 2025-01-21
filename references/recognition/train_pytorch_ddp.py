@@ -42,17 +42,13 @@ from doctr.utils.metrics import TextMatch
 from utils import EarlyStopper, plot_samples
 
 
-def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False, clearml_log=False):
+def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    if clearml_log:
-        from clearml import Logger
-
-        logger = Logger.current_logger()
-
     # Iterate over the batches of the dataset
+    epoch_train_loss, batch_cnt = 0, 0
     pbar = tqdm(train_loader, position=1)
     for images, targets in pbar:
         images = images.to(device)
@@ -78,14 +74,14 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
             optimizer.step()
 
         scheduler.step()
+        last_lr = scheduler.get_last_lr()[0]
 
-        pbar.set_description(f"Training loss: {train_loss.item():.6}")
-        if clearml_log:
-            global iteration
-            logger.report_scalar(
-                title="Training Loss", series="train_loss", value=train_loss.item(), iteration=iteration
-            )
-            iteration += 1
+        pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
+        epoch_train_loss += train_loss.item()
+        batch_cnt += 1
+
+    epoch_train_loss /= batch_cnt
+    return epoch_train_loss, last_lr
 
 
 @torch.no_grad()
@@ -347,8 +343,6 @@ def main(rank: int, world_size: int, args):
 
         task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-        global iteration
-        iteration = 0
 
     # Create loss queue
     min_loss = np.inf
@@ -356,8 +350,8 @@ def main(rank: int, world_size: int, args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(
-            model, device, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, clearml_log=args.clearml
+        train_loss, actual_lr = fit_one_epoch(
+            model, device, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp
         )
 
         if rank == 0:
@@ -379,7 +373,9 @@ def main(rank: int, world_size: int, args):
             # W&B
             if args.wb:
                 wandb.log({
+                    "train_loss": train_loss,
                     "val_loss": val_loss,
+                    "learning_rate": actual_lr,
                     "exact_match": exact_match,
                     "partial_match": partial_match,
                 })
@@ -389,7 +385,9 @@ def main(rank: int, world_size: int, args):
                 from clearml import Logger
 
                 logger = Logger.current_logger()
+                logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
                 logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+                logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
                 logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
                 logger.report_scalar(
                     title="Partial Match", series="partial_match", value=partial_match, iteration=epoch

@@ -96,14 +96,10 @@ def apply_grads(optimizer, grads, model):
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, clearml_log=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    if clearml_log:
-        from clearml import Logger
-
-        logger = Logger.current_logger()
-
+    epoch_train_loss, batch_cnt = 0, 0
     pbar = tqdm(train_iter, position=1)
     for images, targets in pbar:
         images = batch_transforms(images)
@@ -115,13 +111,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, c
             grads = optimizer.get_unscaled_gradients(grads)
         apply_grads(optimizer, grads, model)
 
-        pbar.set_description(f"Training loss: {train_loss.numpy():.6}")
-        if clearml_log:
-            global iteration
-            logger.report_scalar(
-                title="Training Loss", series="train_loss", value=train_loss.numpy(), iteration=iteration
-            )
-            iteration += 1
+        last_lr = optimizer.learning_rate.numpy()
+
+        pbar.set_description(f"Training loss: {train_loss.numpy():.6} | LR: {last_lr:.6}")
+        epoch_train_loss += train_loss.numpy()
+        batch_cnt += 1
+
+    epoch_train_loss /= batch_cnt
+    return epoch_train_loss, last_lr
 
 
 def evaluate(model, val_loader, batch_transforms, val_metric):
@@ -374,8 +371,6 @@ def main(args):
 
         task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-        global iteration
-        iteration = 0
 
     if args.freeze_backbone:
         for layer in model.feat_extractor.layers:
@@ -387,7 +382,7 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp, args.clearml)
+        train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
@@ -406,7 +401,9 @@ def main(args):
         # W&B
         if args.wb:
             wandb.log({
+                "train_loss": train_loss,
                 "val_loss": val_loss,
+                "learning_rate": actual_lr,
                 "recall": recall,
                 "precision": precision,
                 "mean_iou": mean_iou,
@@ -417,9 +414,11 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
+            logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
-            logger.report_scalar(title="Precision Recall", series="recall", value=recall, iteration=epoch)
-            logger.report_scalar(title="Precision Recall", series="precision", value=precision, iteration=epoch)
+            logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
+            logger.report_scalar(title="Recall", series="recall", value=recall, iteration=epoch)
+            logger.report_scalar(title="Precision", series="precision", value=precision, iteration=epoch)
             logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
