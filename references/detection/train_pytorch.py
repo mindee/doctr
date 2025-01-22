@@ -110,7 +110,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     model.train()
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
-    pbar = tqdm(train_loader, position=1)
+    pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -152,7 +152,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in tqdm(val_loader):
+    pbar = tqdm(val_loader, dynamic_ncols=True)
+    for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -170,6 +171,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
                     boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
                 val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
+        pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
+
         val_loss += out["loss"].item()
         batch_cnt += 1
 
@@ -179,7 +182,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -220,7 +224,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
+    pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
         val_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -235,7 +239,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -258,9 +262,9 @@ def main(args):
     val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
-        print(
+        pbar.write(
             f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
             f"Mean IoU: {mean_iou:.2%})"
         )
@@ -327,7 +331,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
+    pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -418,21 +422,22 @@ def main(args):
     # Training loop
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
             min_loss = val_loss
         if args.save_interval_epoch:
-            print(f"Saving state at epoch: {epoch + 1}")
+            pbar.write(f"Saving state at epoch: {epoch + 1}")
             torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
-        print(log_msg)
+        pbar.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
@@ -457,8 +462,9 @@ def main(args):
             logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
+
     if args.wb:
         run.finish()
 

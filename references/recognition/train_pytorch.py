@@ -116,7 +116,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     model.train()
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
-    pbar = tqdm(train_loader, position=1)
+    pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -160,7 +160,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in tqdm(val_loader):
+    pbar = tqdm(val_loader, dynamic_ncols=True)
+    for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -176,6 +177,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
             words = []
         val_metric.update(targets, words)
 
+        pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
+
         val_loss += out["loss"].item()
         batch_cnt += 1
 
@@ -185,7 +188,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -234,7 +238,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
+    pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -243,7 +247,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -266,9 +270,9 @@ def main(args):
     val_metric = TextMatch()
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
-        print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         return
 
     st = time.time()
@@ -335,7 +339,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
+    pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -423,14 +427,15 @@ def main(args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         # Validation loop at the end of each epoch
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
             min_loss = val_loss
-        print(
+        pbar.write(
             f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
         )
@@ -456,8 +461,9 @@ def main(args):
             logger.report_scalar(title="Partial Match", series="partial_match", value=partial_match, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
+
     if args.wb:
         run.finish()
 

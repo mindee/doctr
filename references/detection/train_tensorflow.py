@@ -100,7 +100,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
-    pbar = tqdm(train_iter, position=1)
+    pbar = tqdm(train_iter, dynamic_ncols=True)
     for images, targets in pbar:
         images = batch_transforms(images)
 
@@ -128,7 +128,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     # Validation loop
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
-    for images, targets in tqdm(val_iter):
+    pbar = tqdm(val_iter, dynamic_ncols=True)
+    for images, targets in pbar:
         images = batch_transforms(images)
         out = model(images, target=targets, training=False, return_preds=True)
         # Compute metric
@@ -140,6 +141,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
                     boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
                 val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
+        pbar.set_description(f"Validation loss: {out['loss'].numpy():.6}")
+
         val_loss += out["loss"].numpy()
         batch_cnt += 1
 
@@ -149,7 +152,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -186,7 +190,7 @@ def main(args):
         shuffle=False,
         drop_last=False,
     )
-    print(
+    pbar.write(
         f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {val_loader.num_batches} batches)"
     )
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
@@ -212,9 +216,9 @@ def main(args):
     val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
-        print(
+        pbar.write(
             f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
             f"Mean IoU: {mean_iou:.2%})"
         )
@@ -281,7 +285,7 @@ def main(args):
         shuffle=True,
         drop_last=True,
     )
-    print(
+    pbar.write(
         f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {train_loader.num_batches} batches)"
     )
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
@@ -384,21 +388,23 @@ def main(args):
     # Training loop
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
+
         # Validation loop at the end of each epoch
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(Path(args.output_dir) / f"{exp_name}.weights.h5")
             min_loss = val_loss
         if args.save_interval_epoch:
-            print(f"Saving state at epoch: {epoch + 1}")
+            pbar.write(f"Saving state at epoch: {epoch + 1}")
             model.save_weights(Path(args.output_dir) / f"{exp_name}_{epoch + 1}.weights.h5")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
-        print(log_msg)
+        pbar.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
@@ -423,7 +429,7 @@ def main(args):
             logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
     if args.wb:
         run.finish()

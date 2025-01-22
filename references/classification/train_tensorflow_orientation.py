@@ -114,7 +114,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
-    pbar = tqdm(train_iter, position=1)
+    pbar = tqdm(train_iter, dynamic_ncols=True)
     for images, targets in pbar:
         images = batch_transforms(images)
 
@@ -141,12 +141,15 @@ def evaluate(model, val_loader, batch_transforms):
     # Validation loop
     val_loss, correct, samples, batch_cnt = 0.0, 0.0, 0.0, 0.0
     val_iter = iter(val_loader)
-    for images, targets in tqdm(val_iter):
+    pbar = tqdm(val_iter, dynamic_ncols=True)
+    for images, targets in pbar:
         images = batch_transforms(images)
         out = model(images, training=False)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
         # Compute metric
         correct += int((out.numpy().argmax(1) == targets.numpy()).sum())
+
+        pbar.set_description(f"Validation loss: {loss.numpy().mean():.6}")
 
         val_loss += loss.numpy().mean()
         batch_cnt += 1
@@ -165,7 +168,8 @@ def collate_fn(samples):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -195,7 +199,7 @@ def main(args):
         drop_last=False,
         collate_fn=collate_fn,
     )
-    print(
+    pbar.write(
         f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {val_loader.num_batches} batches)"
     )
 
@@ -217,9 +221,9 @@ def main(args):
     ])
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
-        print(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        pbar.write(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         return
 
     st = time.time()
@@ -249,7 +253,7 @@ def main(args):
         drop_last=True,
         collate_fn=collate_fn,
     )
-    print(
+    pbar.write(
         f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {train_loader.num_batches} batches)"
     )
 
@@ -343,14 +347,15 @@ def main(args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         # Validation loop at the end of each epoch
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(Path(args.output_dir) / f"{exp_name}.weights.h5")
             min_loss = val_loss
-        print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
 
         # W&B
         if args.wb:
@@ -372,7 +377,7 @@ def main(args):
             logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
 
     if args.wb:
@@ -382,7 +387,7 @@ def main(args):
         push_to_hf_hub(model, exp_name, task="classification", run_config=args)
 
     if args.export_onnx:
-        print("Exporting model to ONNX...")
+        pbar.write("Exporting model to ONNX...")
         if args.arch in ["vit_s", "vit_b"]:
             # fixed batch size for vit
             dummy_input = [tf.TensorSpec([1, *(input_size), 3], tf.float32, name="input")]
@@ -390,7 +395,7 @@ def main(args):
             # dynamic batch size
             dummy_input = [tf.TensorSpec([None, *(input_size), 3], tf.float32, name="input")]
         model_path, _ = export_model_to_onnx(model, exp_name, dummy_input)
-        print(f"Exported model saved in {model_path}")
+        pbar.write(f"Exported model saved in {model_path}")
 
 
 def parse_args():

@@ -117,7 +117,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     model.train()
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0.0, 0.0
-    pbar = tqdm(train_loader, position=1)
+    pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -157,7 +157,8 @@ def evaluate(model, val_loader, batch_transforms, amp=False):
     model.eval()
     # Validation loop
     val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
-    for images, targets in tqdm(val_loader):
+    pbar = tqdm(val_loader, dynamic_ncols=True)
+    for images, targets in pbar:
         images = batch_transforms(images)
 
         if torch.cuda.is_available():
@@ -174,6 +175,8 @@ def evaluate(model, val_loader, batch_transforms, amp=False):
         # Compute metric
         correct += (out.argmax(dim=1) == targets).sum().item()
 
+        pbar.set_description(f"Validation loss: {loss.item():.6}")
+
         val_loss += loss.item()
         batch_cnt += 1
         samples += images.shape[0]
@@ -184,7 +187,8 @@ def evaluate(model, val_loader, batch_transforms, amp=False):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -219,7 +223,7 @@ def main(args):
         sampler=SequentialSampler(val_set),
         pin_memory=torch.cuda.is_available(),
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
+    pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -228,7 +232,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -248,9 +252,9 @@ def main(args):
         model = model.cuda()
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
-        print(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        pbar.write(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         return
 
     st = time.time()
@@ -283,7 +287,7 @@ def main(args):
         sampler=RandomSampler(train_set),
         pin_memory=torch.cuda.is_available(),
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
+    pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -364,14 +368,15 @@ def main(args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         # Validation loop at the end of each epoch
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
             min_loss = val_loss
-        print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
 
         # W&B
         if args.wb:
@@ -393,7 +398,7 @@ def main(args):
             logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
 
     if args.wb:
@@ -403,11 +408,11 @@ def main(args):
         push_to_hf_hub(model, exp_name, task="classification", run_config=args)
 
     if args.export_onnx:
-        print("Exporting model to ONNX...")
+        pbar.write("Exporting model to ONNX...")
         dummy_batch = next(iter(val_loader))
         dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
         model_path = export_model_to_onnx(model, exp_name, dummy_input)
-        print(f"Exported model saved in {model_path}")
+        pbar.write(f"Exported model saved in {model_path}")
 
 
 def parse_args():
