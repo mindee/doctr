@@ -145,6 +145,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
 
         pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
         log(train_loss=train_loss.item(), lr=last_lr)
+
         epoch_train_loss += train_loss.item()
         batch_cnt += 1
 
