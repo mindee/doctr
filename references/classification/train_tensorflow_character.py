@@ -96,7 +96,7 @@ def apply_grads(optimizer, grads, model):
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, log=None):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
@@ -116,6 +116,8 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
         train_loss = train_loss.numpy().mean()
 
         pbar.set_description(f"Training loss: {train_loss:.6} | LR: {last_lr:.6}")
+        log(train_loss=train_loss, lr=last_lr)
+
         epoch_train_loss += train_loss
         batch_cnt += 1
 
@@ -123,7 +125,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False):
     return epoch_train_loss, last_lr
 
 
-def evaluate(model, val_loader, batch_transforms):
+def evaluate(model, val_loader, batch_transforms, log=None):
     # Validation loop
     val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
     val_iter = iter(val_loader)
@@ -136,6 +138,7 @@ def evaluate(model, val_loader, batch_transforms):
         correct += int((out.numpy().argmax(1) == targets.numpy()).sum())
 
         pbar.set_description(f"Validation loss: {loss.numpy().mean():.6}")
+        log(val_loss=loss.numpy().mean())
 
         val_loss += loss.numpy().mean()
         batch_cnt += 1
@@ -318,17 +321,60 @@ def main(args):
         "pretrained": args.pretrained,
     }
 
+    global global_step
+    global_step = 0  # Shared global step counter
+
     # W&B
     if args.wb:
         import wandb
 
         run = wandb.init(name=exp_name, project="character-classification", config=config)
+
+        def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
+            wandb.log({
+                **({"train_loss_step": train_loss} if train_loss is not None else {}),
+                **({"val_loss_step": val_loss} if val_loss is not None else {}),
+                **({"step_lr": lr} if lr is not None else {}),
+            })
+
     # ClearML
     if args.clearml:
-        from clearml import Task
+        from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/character-classification", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
+
+        def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
+            if train_loss is not None:
+                Logger.current_logger().report_scalar(
+                    title="Training Step Loss",
+                    series="train_loss_step",
+                    iteration=global_step,
+                    value=train_loss,
+                )
+            if val_loss is not None:
+                Logger.current_logger().report_scalar(
+                    title="Validation Step Loss",
+                    series="val_loss_step",
+                    iteration=global_step,
+                    value=val_loss,
+                )
+            if lr is not None:
+                Logger.current_logger().report_scalar(
+                    title="Step Learning Rate",
+                    series="step_lr",
+                    iteration=global_step,
+                    value=lr,
+                )
+
+    # Unified logger
+    def log_at_step(train_loss=None, val_loss=None, lr=None):
+        global global_step
+        if args.wb:
+            wandb_log_at_step(train_loss, val_loss, lr)
+        if args.clearml:
+            clearml_log_at_step(train_loss, val_loss, lr)
+        global_step += 1  # Increment the shared global step counter
 
     # Create loss queue
     min_loss = np.inf
@@ -337,11 +383,13 @@ def main(args):
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
-        train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp)
+        train_loss, actual_lr = fit_one_epoch(
+            model, train_loader, batch_transforms, optimizer, args.amp, log=log_at_step
+        )
         pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         # Validation loop at the end of each epoch
-        val_loss, acc = evaluate(model, val_loader, batch_transforms)
+        val_loss, acc = evaluate(model, val_loader, batch_transforms, log=log_at_step)
         if val_loss < min_loss:
             pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(Path(args.output_dir) / f"{exp_name}.weights.h5")
