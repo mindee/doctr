@@ -109,18 +109,14 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, clearml_log=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    if clearml_log:
-        from clearml import Logger
-
-        logger = Logger.current_logger()
-
     # Iterate over the batches of the dataset
-    pbar = tqdm(train_loader, position=1)
+    epoch_train_loss, batch_cnt = 0, 0
+    pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -146,25 +142,28 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
             optimizer.step()
 
         scheduler.step()
+        last_lr = scheduler.get_last_lr()[0]
 
-        pbar.set_description(f"Training loss: {train_loss.item():.6}")
-        if clearml_log:
-            global iteration
-            logger.report_scalar(
-                title="Training Loss", series="train_loss", value=train_loss.item(), iteration=iteration
-            )
-            iteration += 1
+        pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
+        log(train_loss=train_loss.item(), lr=last_lr)
+
+        epoch_train_loss += train_loss.item()
+        batch_cnt += 1
+
+    epoch_train_loss /= batch_cnt
+    return epoch_train_loss, last_lr
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
+def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=None):
     # Model in eval mode
     model.eval()
     # Reset val metric
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in tqdm(val_loader):
+    pbar = tqdm(val_loader, dynamic_ncols=True)
+    for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
@@ -180,6 +179,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
             words = []
         val_metric.update(targets, words)
 
+        pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
+        log(val_loss=out["loss"].item())
+
         val_loss += out["loss"].item()
         batch_cnt += 1
 
@@ -189,7 +191,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -238,7 +241,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )
-    print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
+    pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -247,7 +250,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -270,9 +273,9 @@ def main(args):
     val_metric = TextMatch()
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
-        print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         return
 
     st = time.time()
@@ -339,7 +342,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
+    pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -403,24 +406,61 @@ def main(args):
         "pretrained": args.pretrained,
     }
 
+    global global_step
+    global_step = 0  # Shared global step counter
+
     # W&B
     if args.wb:
         import wandb
 
-        run = wandb.init(
-            name=exp_name,
-            project="text-recognition",
-            config=config,
-        )
+        run = wandb.init(name=exp_name, project="text-recognition", config=config)
+
+        def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
+            wandb.log({
+                **({"train_loss_step": train_loss} if train_loss is not None else {}),
+                **({"val_loss_step": val_loss} if val_loss is not None else {}),
+                **({"step_lr": lr} if lr is not None else {}),
+            })
 
     # ClearML
     if args.clearml:
-        from clearml import Task
+        from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-        global iteration
-        iteration = 0
+
+        def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
+            logger = Logger.current_logger()
+            if train_loss is not None:
+                logger.report_scalar(
+                    title="Training Step Loss",
+                    series="train_loss_step",
+                    iteration=global_step,
+                    value=train_loss,
+                )
+            if val_loss is not None:
+                logger.report_scalar(
+                    title="Validation Step Loss",
+                    series="val_loss_step",
+                    iteration=global_step,
+                    value=val_loss,
+                )
+            if lr is not None:
+                logger.report_scalar(
+                    title="Step Learning Rate",
+                    series="step_lr",
+                    iteration=global_step,
+                    value=lr,
+                )
+
+    # Unified logger
+    def log_at_step(train_loss=None, val_loss=None, lr=None):
+        global global_step
+        if args.wb:
+            wandb_log_at_step(train_loss, val_loss, lr)
+        if args.clearml:
+            clearml_log_at_step(train_loss, val_loss, lr)
+        global_step += 1  # Increment the shared global step counter
 
     # Create loss queue
     min_loss = np.inf
@@ -428,24 +468,29 @@ def main(args):
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
-        fit_one_epoch(
-            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, clearml_log=args.clearml
+        train_loss, actual_lr = fit_one_epoch(
+            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step
         )
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         # Validation loop at the end of each epoch
-        val_loss, exact_match, partial_match = evaluate(model, val_loader, batch_transforms, val_metric, amp=args.amp)
+        val_loss, exact_match, partial_match = evaluate(
+            model, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
+        )
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             torch.save(model.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
             min_loss = val_loss
-        print(
+        pbar.write(
             f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
         )
         # W&B
         if args.wb:
             wandb.log({
+                "train_loss": train_loss,
                 "val_loss": val_loss,
+                "learning_rate": actual_lr,
                 "exact_match": exact_match,
                 "partial_match": partial_match,
             })
@@ -455,13 +500,16 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
+            logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
             logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
-            logger.report_scalar(title="Partial Match", series="partial_match", value=exact_match, iteration=epoch)
+            logger.report_scalar(title="Partial Match", series="partial_match", value=partial_match, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
+
     if args.wb:
         run.finish()
 

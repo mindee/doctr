@@ -61,7 +61,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     # AMP
     if args.amp:
@@ -78,7 +79,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         model.load_weights(args.resume).expect_partial()
 
     input_shape = model.cfg["input_shape"] if input_shape is None else input_shape
@@ -116,16 +117,16 @@ def main(args):
         drop_last=False,
         shuffle=False,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
+    pbar.write(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
     batch_transforms = T.Normalize(mean=mean, std=std)
 
     # Metrics
     metric = LocalizationConfusion(use_polygons=args.rotation)
 
-    print("Running evaluation")
+    pbar.write("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric)
-    print(
+    pbar.write(
         f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
     )
 

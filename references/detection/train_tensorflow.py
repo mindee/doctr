@@ -96,15 +96,11 @@ def apply_grads(optimizer, grads, model):
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, clearml_log=False):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, log=None):
     train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    if clearml_log:
-        from clearml import Logger
-
-        logger = Logger.current_logger()
-
-    pbar = tqdm(train_iter, position=1)
+    epoch_train_loss, batch_cnt = 0, 0
+    pbar = tqdm(train_iter, dynamic_ncols=True)
     for images, targets in pbar:
         images = batch_transforms(images)
 
@@ -115,22 +111,27 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, c
             grads = optimizer.get_unscaled_gradients(grads)
         apply_grads(optimizer, grads, model)
 
-        pbar.set_description(f"Training loss: {train_loss.numpy():.6}")
-        if clearml_log:
-            global iteration
-            logger.report_scalar(
-                title="Training Loss", series="train_loss", value=train_loss.numpy(), iteration=iteration
-            )
-            iteration += 1
+        last_lr = optimizer.learning_rate.numpy().item()
+        train_loss = train_loss.numpy().item()
+
+        pbar.set_description(f"Training loss: {train_loss:.6} | LR: {last_lr:.6}")
+        log(train_loss=train_loss, lr=last_lr)
+
+        epoch_train_loss += train_loss
+        batch_cnt += 1
+
+    epoch_train_loss /= batch_cnt
+    return epoch_train_loss, last_lr
 
 
-def evaluate(model, val_loader, batch_transforms, val_metric):
+def evaluate(model, val_loader, batch_transforms, val_metric, log=None):
     # Reset val metric
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
-    for images, targets in tqdm(val_iter):
+    pbar = tqdm(val_iter, dynamic_ncols=True)
+    for images, targets in pbar:
         images = batch_transforms(images)
         out = model(images, target=targets, training=False, return_preds=True)
         # Compute metric
@@ -142,6 +143,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
                     boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
                 val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
+        pbar.set_description(f"Validation loss: {out['loss'].numpy():.6}")
+        log(val_loss=out["loss"].numpy())
+
         val_loss += out["loss"].numpy()
         batch_cnt += 1
 
@@ -151,7 +155,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -188,7 +193,7 @@ def main(args):
         shuffle=False,
         drop_last=False,
     )
-    print(
+    pbar.write(
         f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {val_loader.num_batches} batches)"
     )
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
@@ -214,9 +219,9 @@ def main(args):
     val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
-        print(
+        pbar.write(
             f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
             f"Mean IoU: {mean_iou:.2%})"
         )
@@ -283,7 +288,7 @@ def main(args):
         shuffle=True,
         drop_last=True,
     )
-    print(
+    pbar.write(
         f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {train_loader.num_batches} batches)"
     )
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
@@ -362,20 +367,61 @@ def main(args):
         "rotation": args.rotation,
     }
 
+    global global_step
+    global_step = 0  # Shared global step counter
+
     # W&B
     if args.wb:
         import wandb
 
         run = wandb.init(name=exp_name, project="text-detection", config=config)
 
+        def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
+            wandb.log({
+                **({"train_loss_step": train_loss} if train_loss is not None else {}),
+                **({"val_loss_step": val_loss} if val_loss is not None else {}),
+                **({"step_lr": lr} if lr is not None else {}),
+            })
+
     # ClearML
     if args.clearml:
-        from clearml import Task
+        from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-        global iteration
-        iteration = 0
+
+        def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
+            logger = Logger.current_logger()
+            if train_loss is not None:
+                logger.report_scalar(
+                    title="Training Step Loss",
+                    series="train_loss_step",
+                    iteration=global_step,
+                    value=train_loss,
+                )
+            if val_loss is not None:
+                logger.report_scalar(
+                    title="Validation Step Loss",
+                    series="val_loss_step",
+                    iteration=global_step,
+                    value=val_loss,
+                )
+            if lr is not None:
+                logger.report_scalar(
+                    title="Step Learning Rate",
+                    series="step_lr",
+                    iteration=global_step,
+                    value=lr,
+                )
+
+    # Unified logger
+    def log_at_step(train_loss=None, val_loss=None, lr=None):
+        global global_step
+        if args.wb:
+            wandb_log_at_step(train_loss, val_loss, lr)
+        if args.clearml:
+            clearml_log_at_step(train_loss, val_loss, lr)
+        global_step += 1  # Increment the shared global step counter
 
     if args.freeze_backbone:
         for layer in model.feat_extractor.layers:
@@ -387,26 +433,34 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp, args.clearml)
+        train_loss, actual_lr = fit_one_epoch(
+            model, train_loader, batch_transforms, optimizer, args.amp, log=log_at_step
+        )
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
+
         # Validation loop at the end of each epoch
-        val_loss, recall, precision, mean_iou = evaluate(model, val_loader, batch_transforms, val_metric)
+        val_loss, recall, precision, mean_iou = evaluate(
+            model, val_loader, batch_transforms, val_metric, log=log_at_step
+        )
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(Path(args.output_dir) / f"{exp_name}.weights.h5")
             min_loss = val_loss
         if args.save_interval_epoch:
-            print(f"Saving state at epoch: {epoch + 1}")
+            pbar.write(f"Saving state at epoch: {epoch + 1}")
             model.save_weights(Path(args.output_dir) / f"{exp_name}_{epoch + 1}.weights.h5")
         log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
         if any(val is None for val in (recall, precision, mean_iou)):
             log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
         else:
             log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
-        print(log_msg)
+        pbar.write(log_msg)
         # W&B
         if args.wb:
             wandb.log({
+                "train_loss": train_loss,
                 "val_loss": val_loss,
+                "learning_rate": actual_lr,
                 "recall": recall,
                 "precision": precision,
                 "mean_iou": mean_iou,
@@ -417,13 +471,15 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
+            logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
-            logger.report_scalar(title="Precision Recall", series="recall", value=recall, iteration=epoch)
-            logger.report_scalar(title="Precision Recall", series="precision", value=precision, iteration=epoch)
+            logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
+            logger.report_scalar(title="Recall", series="recall", value=recall, iteration=epoch)
+            logger.report_scalar(title="Precision", series="precision", value=precision, iteration=epoch)
             logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
     if args.wb:
         run.finish()

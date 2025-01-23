@@ -42,18 +42,14 @@ from doctr.utils.metrics import TextMatch
 from utils import EarlyStopper, plot_samples
 
 
-def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False, clearml_log=False):
+def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
-    if clearml_log:
-        from clearml import Logger
-
-        logger = Logger.current_logger()
-
     # Iterate over the batches of the dataset
-    pbar = tqdm(train_loader, position=1)
+    epoch_train_loss, batch_cnt = 0, 0
+    pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         images = images.to(device)
         images = batch_transforms(images)
@@ -78,14 +74,14 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
             optimizer.step()
 
         scheduler.step()
+        last_lr = scheduler.get_last_lr()[0]
 
-        pbar.set_description(f"Training loss: {train_loss.item():.6}")
-        if clearml_log:
-            global iteration
-            logger.report_scalar(
-                title="Training Loss", series="train_loss", value=train_loss.item(), iteration=iteration
-            )
-            iteration += 1
+        pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
+        epoch_train_loss += train_loss.item()
+        batch_cnt += 1
+
+    epoch_train_loss /= batch_cnt
+    return epoch_train_loss, last_lr
 
 
 @torch.no_grad()
@@ -96,7 +92,8 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False)
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in tqdm(val_loader):
+    pbar = tqdm(val_loader, dynamic_ncols=True)
+    for images, targets in pbar:
         images = images.to(device)
         images = batch_transforms(images)
         if amp:
@@ -110,6 +107,8 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False)
         else:
             words = []
         val_metric.update(targets, words)
+
+        pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
 
         val_loss += out["loss"].item()
         batch_cnt += 1
@@ -126,7 +125,8 @@ def main(rank: int, world_size: int, args):
         world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI
     """
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if rank == 0 and args.push_to_hub:
         login_to_hub()
@@ -176,7 +176,9 @@ def main(rank: int, world_size: int, args):
             pin_memory=torch.cuda.is_available(),
             collate_fn=val_set.collate_fn,
         )
-        print(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
+        pbar.write(
+            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
+        )
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -185,7 +187,7 @@ def main(rank: int, world_size: int, args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -207,11 +209,11 @@ def main(rank: int, world_size: int, args):
         val_metric = TextMatch()
 
     if rank == 0 and args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(
             model, device, val_loader, batch_transforms, val_metric, amp=args.amp
         )
-        print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
         return
 
     st = time.time()
@@ -278,7 +280,7 @@ def main(rank: int, world_size: int, args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    print(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
+    pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
@@ -347,8 +349,6 @@ def main(rank: int, world_size: int, args):
 
         task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-        global iteration
-        iteration = 0
 
     # Create loss queue
     min_loss = np.inf
@@ -356,9 +356,10 @@ def main(rank: int, world_size: int, args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     # Training loop
     for epoch in range(args.epochs):
-        fit_one_epoch(
-            model, device, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, clearml_log=args.clearml
+        train_loss, actual_lr = fit_one_epoch(
+            model, device, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp
         )
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         if rank == 0:
             # Validation loop at the end of each epoch
@@ -369,17 +370,19 @@ def main(rank: int, world_size: int, args):
                 # All processes should see same parameters as they all start from same
                 # random parameters and gradients are synchronized in backward passes.
                 # Therefore, saving it in one process is sufficient.
-                print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+                pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
                 torch.save(model.module.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
             min_loss = val_loss
-            print(
+            pbar.write(
                 f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                 f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
             )
             # W&B
             if args.wb:
                 wandb.log({
+                    "train_loss": train_loss,
                     "val_loss": val_loss,
+                    "learning_rate": actual_lr,
                     "exact_match": exact_match,
                     "partial_match": partial_match,
                 })
@@ -389,15 +392,18 @@ def main(rank: int, world_size: int, args):
                 from clearml import Logger
 
                 logger = Logger.current_logger()
+                logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
                 logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+                logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
                 logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
                 logger.report_scalar(
                     title="Partial Match", series="partial_match", value=partial_match, iteration=epoch
                 )
 
             if args.early_stop and early_stopper.early_stop(val_loss):
-                print("Training halted early due to reaching patience limit.")
+                pbar.write("Training halted early due to reaching patience limit.")
                 break
+
     if rank == 0:
         if args.wb:
             run.finish()

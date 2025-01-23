@@ -96,14 +96,11 @@ def apply_grads(optimizer, grads, model):
     optimizer.apply_gradients(zip(grads, model.trainable_weights))
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, clearml_log=False):
-    if clearml_log:
-        from clearml import Logger
-
-        logger = Logger.current_logger()
-
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, log=None):
+    train_iter = iter(train_loader)
     # Iterate over the batches of the dataset
-    pbar = tqdm(train_loader, position=1)
+    epoch_train_loss, batch_cnt = 0, 0
+    pbar = tqdm(train_iter, dynamic_ncols=True)
     for images, targets in pbar:
         images = batch_transforms(images)
 
@@ -115,25 +112,33 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, amp=False, c
             grads = optimizer.get_unscaled_gradients(grads)
         apply_grads(optimizer, grads, model)
 
-        pbar.set_description(f"Training loss: {train_loss.numpy().mean():.6}")
-        if clearml_log:
-            global iteration
-            logger.report_scalar(
-                title="Training Loss", series="train_loss", value=train_loss.numpy().mean(), iteration=iteration
-            )
-            iteration += 1
+        last_lr = optimizer.learning_rate.numpy().item()
+        train_loss = train_loss.numpy().mean()
+
+        pbar.set_description(f"Training loss: {train_loss:.6} | LR: {last_lr:.6}")
+        log(train_loss=train_loss, lr=last_lr)
+
+        epoch_train_loss += train_loss
+        batch_cnt += 1
+
+    epoch_train_loss /= batch_cnt
+    return epoch_train_loss, last_lr
 
 
-def evaluate(model, val_loader, batch_transforms):
+def evaluate(model, val_loader, batch_transforms, log=None):
     # Validation loop
     val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
     val_iter = iter(val_loader)
-    for images, targets in tqdm(val_iter):
+    pbar = tqdm(val_iter, dynamic_ncols=True)
+    for images, targets in pbar:
         images = batch_transforms(images)
         out = model(images, training=False)
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(targets, out)
         # Compute metric
         correct += int((out.numpy().argmax(1) == targets.numpy()).sum())
+
+        pbar.set_description(f"Validation loss: {loss.numpy().mean():.6}")
+        log(val_loss=loss.numpy().mean())
 
         val_loss += loss.numpy().mean()
         batch_cnt += 1
@@ -152,7 +157,8 @@ def collate_fn(samples):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if args.push_to_hub:
         login_to_hub()
@@ -185,7 +191,7 @@ def main(args):
         drop_last=False,
         collate_fn=collate_fn,
     )
-    print(
+    pbar.write(
         f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {val_loader.num_batches} batches)"
     )
 
@@ -207,9 +213,9 @@ def main(args):
     ])
 
     if args.test_only:
-        print("Running evaluation")
+        pbar.write("Running evaluation")
         val_loss, acc = evaluate(model, val_loader, batch_transforms)
-        print(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        pbar.write(f"Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
         return
 
     st = time.time()
@@ -240,7 +246,7 @@ def main(args):
         drop_last=True,
         collate_fn=collate_fn,
     )
-    print(
+    pbar.write(
         f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {train_loader.num_batches} batches)"
     )
 
@@ -315,19 +321,61 @@ def main(args):
         "pretrained": args.pretrained,
     }
 
+    global global_step
+    global_step = 0  # Shared global step counter
+
     # W&B
     if args.wb:
         import wandb
 
         run = wandb.init(name=exp_name, project="character-classification", config=config)
+
+        def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
+            wandb.log({
+                **({"train_loss_step": train_loss} if train_loss is not None else {}),
+                **({"val_loss_step": val_loss} if val_loss is not None else {}),
+                **({"step_lr": lr} if lr is not None else {}),
+            })
+
     # ClearML
     if args.clearml:
-        from clearml import Task
+        from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/character-classification", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-        global iteration
-        iteration = 0
+
+        def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
+            logger = Logger.current_logger()
+            if train_loss is not None:
+                logger.report_scalar(
+                    title="Training Step Loss",
+                    series="train_loss_step",
+                    iteration=global_step,
+                    value=train_loss,
+                )
+            if val_loss is not None:
+                logger.report_scalar(
+                    title="Validation Step Loss",
+                    series="val_loss_step",
+                    iteration=global_step,
+                    value=val_loss,
+                )
+            if lr is not None:
+                logger.report_scalar(
+                    title="Step Learning Rate",
+                    series="step_lr",
+                    iteration=global_step,
+                    value=lr,
+                )
+
+    # Unified logger
+    def log_at_step(train_loss=None, val_loss=None, lr=None):
+        global global_step
+        if args.wb:
+            wandb_log_at_step(train_loss, val_loss, lr)
+        if args.clearml:
+            clearml_log_at_step(train_loss, val_loss, lr)
+        global_step += 1  # Increment the shared global step counter
 
     # Create loss queue
     min_loss = np.inf
@@ -336,19 +384,25 @@ def main(args):
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     for epoch in range(args.epochs):
-        fit_one_epoch(model, train_loader, batch_transforms, optimizer, args.amp, args.clearml)
+        train_loss, actual_lr = fit_one_epoch(
+            model, train_loader, batch_transforms, optimizer, args.amp, log=log_at_step
+        )
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
         # Validation loop at the end of each epoch
-        val_loss, acc = evaluate(model, val_loader, batch_transforms)
+        val_loss, acc = evaluate(model, val_loader, batch_transforms, log=log_at_step)
         if val_loss < min_loss:
-            print(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+            pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
             model.save_weights(Path(args.output_dir) / f"{exp_name}.weights.h5")
             min_loss = val_loss
-        print(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
+
         # W&B
         if args.wb:
             wandb.log({
+                "train_loss": train_loss,
                 "val_loss": val_loss,
+                "learning_rate": actual_lr,
                 "acc": acc,
             })
 
@@ -357,12 +411,15 @@ def main(args):
             from clearml import Logger
 
             logger = Logger.current_logger()
+            logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
             logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
+            logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
             logger.report_scalar(title="Accuracy", series="acc", value=acc, iteration=epoch)
 
         if args.early_stop and early_stopper.early_stop(val_loss):
-            print("Training halted early due to reaching patience limit.")
+            pbar.write("Training halted early due to reaching patience limit.")
             break
+
     if args.wb:
         run.finish()
 
@@ -370,7 +427,7 @@ def main(args):
         push_to_hf_hub(model, exp_name, task="classification", run_config=args)
 
     if args.export_onnx:
-        print("Exporting model to ONNX...")
+        pbar.write("Exporting model to ONNX...")
         if args.arch == "vit_b":
             # fixed batch size for vit
             dummy_input = [tf.TensorSpec([1, args.input_size, args.input_size, 3], tf.float32, name="input")]
@@ -378,7 +435,7 @@ def main(args):
             # dynamic batch size
             dummy_input = [tf.TensorSpec([None, args.input_size, args.input_size, 3], tf.float32, name="input")]
         model_path, _ = export_model_to_onnx(model, exp_name, dummy_input)
-        print(f"Exported model saved in {model_path}")
+        pbar.write(f"Exported model saved in {model_path}")
 
 
 def parse_args():
