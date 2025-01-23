@@ -13,7 +13,11 @@ import time
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision.transforms import Normalize
-from tqdm import tqdm
+
+if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
+    from tqdm.contrib.slack import tqdm
+else:
+    from tqdm.auto import tqdm
 
 from doctr import datasets
 from doctr import transforms as T
@@ -30,7 +34,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    for images, targets in tqdm(val_loader):
+    pbar = tqdm(val_loader)
+    for images, targets in pbar:
         try:
             if torch.cuda.is_available():
                 images = images.cuda()
@@ -50,7 +55,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
             val_loss += out["loss"].item()
             batch_cnt += 1
         except ValueError:
-            print(f"unexpected symbol/s in targets:\n{targets} \n--> skip batch")
+            pbar.write(f"unexpected symbol/s in targets:\n{targets} \n--> skip batch")
             continue
 
     val_loss /= batch_cnt
@@ -59,7 +64,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     torch.backends.cudnn.benchmark = True
 
@@ -75,7 +81,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -106,7 +112,7 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=ds.collate_fn,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
+    pbar.write(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
     mean, std = model.cfg["mean"], model.cfg["std"]
     batch_transforms = Normalize(mean=mean, std=std)
@@ -124,14 +130,14 @@ def main(args):
     elif torch.cuda.is_available():
         args.device = 0
     else:
-        print("No accessible GPU, targe device set to CPU.")
+        pbar.write("No accessible GPU, target device set to CPU.")
     if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
 
-    print("Running evaluation")
+    pbar.write("Running evaluation")
     val_loss, exact_match, partial_match = evaluate(model, test_loader, batch_transforms, val_metric, amp=args.amp)
-    print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+    pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
 
 
 def parse_args():

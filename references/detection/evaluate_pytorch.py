@@ -9,7 +9,6 @@ from doctr.file_utils import CLASS_NAME
 
 os.environ["USE_TORCH"] = "1"
 
-import logging
 import multiprocessing as mp
 import time
 from pathlib import Path
@@ -63,7 +62,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
@@ -116,13 +116,13 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=ds.collate_fn,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
+    pbar.write(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
     batch_transforms = Normalize(mean=mean, std=std)
 
     # Resume weights
     if isinstance(args.resume, str):
-        print(f"Resuming {args.resume}")
+        pbar.write(f"Resuming {args.resume}")
         checkpoint = torch.load(args.resume, map_location="cpu")
         model.load_state_dict(checkpoint)
 
@@ -136,7 +136,7 @@ def main(args):
     elif torch.cuda.is_available():
         args.device = 0
     else:
-        logging.warning("No accessible GPU, targe device set to CPU.")
+        pbar.write("No accessible GPU, target device set to CPU.")
     if torch.cuda.is_available():
         torch.cuda.set_device(args.device)
         model = model.cuda()
@@ -144,9 +144,9 @@ def main(args):
     # Metrics
     metric = LocalizationConfusion(use_polygons=args.rotation)
 
-    print("Running evaluation")
+    pbar.write("Running evaluation")
     val_loss, recall, precision, mean_iou = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)
-    print(
+    pbar.write(
         f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
     )
 

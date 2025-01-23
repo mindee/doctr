@@ -16,7 +16,11 @@ import time
 
 import tensorflow as tf
 from tensorflow.keras import mixed_precision
-from tqdm import tqdm
+
+if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
+    from tqdm.contrib.slack import tqdm
+else:
+    from tqdm.auto import tqdm
 
 gpu_devices = tf.config.list_physical_devices("GPU")
 if any(gpu_devices):
@@ -35,7 +39,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
     # Validation loop
     val_loss, batch_cnt = 0, 0
     val_iter = iter(val_loader)
-    for images, targets in tqdm(val_iter):
+    pbar = tqdm(val_iter)
+    for images, targets in pbar:
         try:
             images = batch_transforms(images)
             out = model(images, target=targets, return_preds=True, training=False)
@@ -49,7 +54,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
             val_loss += out["loss"].numpy().mean()
             batch_cnt += 1
         except ValueError:
-            print(f"unexpected symbol/s in targets:\n{targets} \n--> skip batch")
+            pbar.write(f"unexpected symbol/s in targets:\n{targets} \n--> skip batch")
             continue
 
     val_loss /= batch_cnt
@@ -58,7 +63,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric):
 
 
 def main(args):
-    print(args)
+    pbar = tqdm(disable=True)
+    pbar.write(str(args))
 
     # AMP
     if args.amp:
@@ -99,7 +105,7 @@ def main(args):
         drop_last=False,
         shuffle=False,
     )
-    print(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
+    pbar.write(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
     mean, std = model.cfg["mean"], model.cfg["std"]
     batch_transforms = T.Normalize(mean=mean, std=std)
@@ -107,9 +113,9 @@ def main(args):
     # Metrics
     val_metric = TextMatch()
 
-    print("Running evaluation")
+    pbar.write("Running evaluation")
     val_loss, exact_match, partial_match = evaluate(model, test_loader, batch_transforms, val_metric)
-    print(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+    pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
 
 
 def parse_args():

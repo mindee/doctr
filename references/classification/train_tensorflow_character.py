@@ -345,22 +345,23 @@ def main(args):
         task.upload_artifact("config", config)
 
         def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
+            logger = Logger.current_logger()
             if train_loss is not None:
-                Logger.current_logger().report_scalar(
+                logger.report_scalar(
                     title="Training Step Loss",
                     series="train_loss_step",
                     iteration=global_step,
                     value=train_loss,
                 )
             if val_loss is not None:
-                Logger.current_logger().report_scalar(
+                logger.report_scalar(
                     title="Validation Step Loss",
                     series="val_loss_step",
                     iteration=global_step,
                     value=val_loss,
                 )
             if lr is not None:
-                Logger.current_logger().report_scalar(
+                logger.report_scalar(
                     title="Step Learning Rate",
                     series="step_lr",
                     iteration=global_step,
