@@ -125,7 +125,13 @@ def main(rank: int, world_size: int, args):
         world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI
     """
-    pbar = tqdm(disable=True)
+    slack_token = os.getenv("TQDM_SLACK_TOKEN")
+    slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
+
+    pbar = tqdm(disable=False if slack_token and slack_channel else True)
+    if slack_token and slack_channel:
+        # Monkey patch tqdm write method to send messages directly to Slack
+        pbar.write = lambda msg: pbar.sio.client.chat_postMessage(channel=slack_channel, text=msg)
     pbar.write(str(args))
 
     if rank == 0 and args.push_to_hub:
