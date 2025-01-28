@@ -171,7 +171,13 @@ def collate_fn(samples):
 
 
 def main(args):
-    pbar = tqdm(disable=True)
+    slack_token = os.getenv("TQDM_SLACK_TOKEN")
+    slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
+
+    pbar = tqdm(disable=False if slack_token and slack_channel else True)
+    if slack_token and slack_channel:
+        # Monkey patch tqdm write method to send messages directly to Slack
+        pbar.write = lambda msg: pbar.sio.client.chat_postMessage(channel=slack_channel, text=msg)
     pbar.write(str(args))
 
     if args.push_to_hub:
