@@ -79,11 +79,11 @@ class WILDRECEIPT(AbstractDataset):
         # Split the text file into separate JSON strings
         json_strings = data.strip().split("\n")
         box: list[float] | np.ndarray
-        _targets = []
 
         for json_string in tqdm(
             iterable=json_strings, desc="Preparing and Loading WILDRECEIPT", total=len(json_strings)
         ):
+            _targets = []
             json_data = json.loads(json_string)
             img_path = json_data["file_name"]
             annotations = json_data["annotations"]
