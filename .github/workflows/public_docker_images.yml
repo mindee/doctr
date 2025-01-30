@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: main
   schedule:
-    - cron: '0 2 29 * *'  # At 02:00 on day-of-month 29
+    - cron: '0 2 1 */3 *'  # At 02:00 on the 1st day of every 3rd month
 
 env:
   REGISTRY: ghcr.io
