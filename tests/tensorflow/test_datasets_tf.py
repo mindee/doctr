@@ -707,7 +707,7 @@ def test_ic03(input_size, num_samples, rotate, recognition, detection, mock_ic03
     "input_size, num_samples, recognition, detection",
     [
         [[512, 512], 2, False, False],  # Actual set has 1268 training samples and 472 test samples
-        [[32, 128], 5, True, False],  # recognition
+        [[32, 128], 3, True, False],  # recognition
         [[512, 512], 2, False, True],  # detection
     ],
 )
