@@ -48,9 +48,9 @@ This datasets contains the information to train or validate a text detection mod
 
     from doctr.datasets import CORD
     # Load straight boxes
-    train_set = CORD(train=True, download=True)
+    train_set = CORD(train=True, download=True, detection_task=True)
     # Load rotated boxes
-    train_set = CORD(train=True, download=True, use_polygons=True)
+    train_set = CORD(train=True, download=True, use_polygons=True, detection_task=True)
     img, target = train_set[0]
 
 
@@ -96,6 +96,21 @@ This datasets contains the information to train or validate a text recognition m
     train_set = CORD(train=True, download=True, recognition_task=True)
     # Crop rotated boxes (always regular)
     train_set = CORD(train=True, download=True, use_polygons=True, recognition_task=True)
+    img, target = train_set[0]
+
+
+OCR
+^^^
+
+The same dataset table as for detection, but with information about the bounding boxes and labels.
+
+.. code:: python3
+
+    from doctr.datasets import CORD
+    # Load straight boxes
+    train_set = CORD(train=True, download=True)
+    # Load rotated boxes
+    train_set = CORD(train=True, download=True, use_polygons=True)
     img, target = train_set[0]
 
 

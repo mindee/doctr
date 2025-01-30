@@ -235,13 +235,19 @@
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Choosing the right model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/models.html">doctr.models</a></li>
@@ -398,30 +404,30 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>fast_tiny</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>13.5 M (8.5M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.29</p></td>
+<td><p>85.34</p></td>
+<td><p>93.46</p></td>
+<td><p>75.99</p></td>
 <td><p>0.7 (0.4)</p></td>
 </tr>
 <tr class="row-odd"><td><p>TensorFlow</p></td>
 <td><p>fast_small</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>14.7 M (9.7M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.50</p></td>
+<td><p>86.89</p></td>
+<td><p>94.05</p></td>
+<td><p>78.33</p></td>
 <td><p>0.7 (0.5)</p></td>
 </tr>
 <tr class="row-even"><td><p>TensorFlow</p></td>
 <td><p>fast_base</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>16.3 M (10.6M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.22</p></td>
+<td><p>86.97</p></td>
+<td><p>94.18</p></td>
+<td><p>84.74</p></td>
 <td><p>0.8 (0.5)</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyTorch</p></td>
@@ -448,10 +454,10 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>db_mobilenet_v3_large</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>4.2 M</p></td>
-<td><p>83.41</p></td>
-<td><p>84.00</p></td>
-<td><p>86.70</p></td>
-<td><p>79.38</p></td>
+<td><p>82.69</p></td>
+<td><p>84.63</p></td>
+<td><p>94.51</p></td>
+<td><p>70.28</p></td>
 <td><p>0.5</p></td>
 </tr>
 <tr class="row-even"><td><p>PyTorch</p></td>
@@ -488,30 +494,30 @@ Our latest detection models works with rotated and skewed documents!</p>
 <td><p>fast_tiny</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>13.5 M (8.5M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>84.90</p></td>
+<td><p>85.04</p></td>
+<td><p>93.73</p></td>
+<td><p>76.26</p></td>
 <td><p>0.7 (0.4)</p></td>
 </tr>
 <tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>fast_small</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>14.7 M (9.7M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>85.36</p></td>
+<td><p>86.68</p></td>
+<td><p>94.09</p></td>
+<td><p>78.53</p></td>
 <td><p>0.7 (0.5)</p></td>
 </tr>
 <tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>fast_base</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>16.3 M (10.6M)</p></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>84.95</p></td>
+<td><p>86.73</p></td>
+<td><p>94.39</p></td>
+<td><p>85.36</p></td>
 <td><p>0.8 (0.5)</p></td>
 </tr>
 </tbody>
@@ -527,17 +533,16 @@ Explanations about the metrics being used are available in <a class="reference i
 <p><a class="reference internal" href="../modules/models.html#doctr.models.detection.detection_predictor" title="doctr.models.detection.detection_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">detection_predictor</span></code></a> wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">detection_predictor</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">)</span>
 <span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>You can pass specific boolean arguments to the predictor:</p>
-<ul class="simple">
-<li><p><cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.</p></li>
-<li><p><cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.</p></li>
-<li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
-</ul>
+<p>You can pass specific boolean arguments to the predictor:
+* <cite>pretrained</cite>: if you want to use a model that has been pretrained on a specific dataset, setting <cite>pretrained=True</cite> this will load the corresponding weights. If <cite>pretrained=False</cite>, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
+* <cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* <cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* <cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p>
 <p>For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">detection_predictor</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span><span class="s1">&#39;db_resnet50&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -761,7 +766,7 @@ Explanations about the metric being used (exact match) are available in <a class
 <p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.recognition_predictor" title="doctr.models.recognition.recognition_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">recognition_predictor</span></code></a> wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">recognition_predictor</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">)</span>
 <span class="n">dummy_img</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">dummy_img</span><span class="p">])</span>
 </pre></div>
@@ -819,53 +824,67 @@ Explanations about the metric being used (exact match) are available in <a class
 <td><p>75.05</p></td>
 </tr>
 <tr class="row-odd"><td><p>TensorFlow</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>73.23</p></td>
+<td><p>74.51</p></td>
+<td><p>85.34</p></td>
+<td><p>76.03</p></td>
+</tr>
+<tr class="row-even"><td><p>TensorFlow</p></td>
 <td><p>db_resnet50 + vitstr_small</p></td>
 <td><p>68.57</p></td>
 <td><p>69.77</p></td>
 <td><p>78.24</p></td>
 <td><p>69.51</p></td>
 </tr>
-<tr class="row-even"><td><p>TensorFlow</p></td>
+<tr class="row-odd"><td><p>TensorFlow</p></td>
 <td><p>db_resnet50 + vitstr_base</p></td>
 <td><p>70.96</p></td>
 <td><p>72.20</p></td>
 <td><p>82.10</p></td>
 <td><p>72.94</p></td>
 </tr>
-<tr class="row-odd"><td><p>TensorFlow</p></td>
+<tr class="row-even"><td><p>TensorFlow</p></td>
 <td><p>db_resnet50 + parseq</p></td>
 <td><p>68.85</p></td>
 <td><p>70.05</p></td>
 <td><p>72.38</p></td>
 <td><p>64.30</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + crnn_vgg16_bn</p></td>
 <td><p>72.43</p></td>
 <td><p>75.13</p></td>
 <td><p>85.05</p></td>
 <td><p>79.33</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + crnn_mobilenet_v3_small</p></td>
 <td><p>73.06</p></td>
 <td><p>75.79</p></td>
 <td><p>84.64</p></td>
 <td><p>78.94</p></td>
 </tr>
-<tr class="row-even"><td><p>PyTorch</p></td>
+<tr class="row-odd"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + crnn_mobilenet_v3_large</p></td>
 <td><p>73.17</p></td>
 <td><p>75.90</p></td>
 <td><p>84.96</p></td>
 <td><p>79.25</p></td>
 </tr>
-<tr class="row-odd"><td><p>PyTorch</p></td>
+<tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + master</p></td>
 <td><p>73.90</p></td>
 <td><p>76.66</p></td>
 <td><p>85.84</p></td>
 <td><p>80.07</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>db_resnet50 + sar_resnet31</p></td>
+<td><p>73.58</p></td>
+<td><p>76.33</p></td>
+<td><p>85.64</p></td>
+<td><p>79.88</p></td>
 </tr>
 <tr class="row-even"><td><p>PyTorch</p></td>
 <td><p>db_resnet50 + vitstr_small</p></td>
@@ -935,27 +954,38 @@ Explanations about the metrics being used are available in <a class="reference i
 </div>
 <p>You can pass specific boolean arguments to the predictor:</p>
 <ul class="simple">
-<li><p><cite>assume_straight_pages</cite></p></li>
-<li><p><cite>preserve_aspect_ratio</cite></p></li>
-<li><p><cite>symmetric_pad</cite></p></li>
+<li><p><cite>assume_straight_pages</cite>: if you work with straight documents only, it will fit straight bounding boxes to the text areas.</p></li>
+<li><p><cite>preserve_aspect_ratio</cite>: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.</p></li>
+<li><p><cite>symmetric_pad</cite>: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.</p></li>
 </ul>
 <p>Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).</p>
+<p>Additional arguments which can be passed to the <cite>ocr_predictor</cite> are:</p>
 <ul class="simple">
 <li><p><cite>export_as_straight_boxes</cite>: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.</p></li>
+<li><p><cite>straighten_pages</cite>: If you want to straighten the pages before sending them to the detection model, set it to True.</p></li>
 </ul>
 <p>For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:</p>
+<ul class="simple">
+<li><p><cite>det_bs</cite>: batch size for the detection model (default: 2)</p></li>
+<li><p><cite>reco_bs</cite>: batch size for the recognition model (default: 128)</p></li>
+</ul>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">det_bs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">reco_bs</span><span class="o">=</span><span class="mi">1024</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying <cite>DocumentBuilder</cite>:</p>
 <ul class="simple">
 <li><p><cite>resolve_lines</cite>: whether words should be automatically grouped into lines (default: True)</p></li>
-<li><p><cite>resolve_blocks</cite>: whether lines should be automatically grouped into blocks (default: True)</p></li>
+<li><p><cite>resolve_blocks</cite>: whether lines should be automatically grouped into blocks (default: False)</p></li>
 <li><p><cite>paragraph_break</cite>: relative length of the minimum space separating paragraphs (default: 0.035)</p></li>
 </ul>
 <p>For example to disable the automatic grouping of lines into blocks:</p>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">resolve_blocks</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -1012,17 +1042,23 @@ To get a better understanding of our document model, check our <a class="referen
                               <span class="p">{</span>
                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;No.&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.914085328578949</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">))</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.5478515625</span><span class="p">,</span> <span class="mf">0.06640625</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.5810546875</span><span class="p">,</span> <span class="mf">0.0966796875</span><span class="p">)),</span>
+                                  <span class="s1">&#39;objectness_score&#39;</span><span class="p">:</span> <span class="mf">0.96</span><span class="p">,</span>
+                                  <span class="s1">&#39;crop_orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
                               <span class="p">},</span>
                               <span class="p">{</span>
                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;RECEIPT&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9949972033500671</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">))</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1357421875</span><span class="p">,</span> <span class="mf">0.0361328125</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.51171875</span><span class="p">,</span> <span class="mf">0.1630859375</span><span class="p">)),</span>
+                                  <span class="s1">&#39;objectness_score&#39;</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span>
+                                  <span class="s1">&#39;crop_orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
                               <span class="p">},</span>
                               <span class="p">{</span>
                                   <span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="s1">&#39;DATE&#39;</span><span class="p">,</span>
                                   <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="mf">0.9578408598899841</span><span class="p">,</span>
-                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">))</span>
+                                  <span class="s1">&#39;geometry&#39;</span><span class="p">:</span> <span class="p">((</span><span class="mf">0.1396484375</span><span class="p">,</span> <span class="mf">0.3232421875</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.185546875</span><span class="p">,</span> <span class="mf">0.3515625</span><span class="p">)),</span>
+                                  <span class="s1">&#39;objectness_score&#39;</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">,</span>
+                                  <span class="s1">&#39;crop_orientation&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;value&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;confidence&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">},</span>
                               <span class="p">}</span>
                           <span class="p">]</span>
                       <span class="p">}</span>
@@ -1088,9 +1124,27 @@ To get a better understanding of our document model, check our <a class="referen
 </pre></div>
 </div>
 <ul class="simple">
+<li><p>Disable page orientation classification</p></li>
+</ul>
+<p>If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.</p>
+<p>This will only have an effect with <cite>assume_straight_pages=False</cite> and/or <cite>straighten_pages=True</cite> and/or <cite>detect_orientation=True</cite>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_page_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>Disable crop orientation classification</p></li>
+</ul>
+<p>If you deal with documents which contains only horizontal text, you can disable the crop orientation classification to speed up the inference.</p>
+<p>This will only have an effect with <cite>assume_straight_pages=False</cite> and/or <cite>straighten_pages=True</cite>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">disable_crop_orientation</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
 <li><p>Add a hook to the <cite>ocr_predictor</cite> to manipulate the location predictions before the crops are passed to the recognition model.</p></li>
 </ul>
-<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.model</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
 
 <span class="k">class</span><span class="w"> </span><span class="nc">CustomHook</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">):</span>
@@ -1197,12 +1251,12 @@ To get a better understanding of our document model, check our <a class="referen
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../_static/documentation_options.js?v=a25387f5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../_static/js/custom.js?v=af03451e"></script>
     </body>
 </html>

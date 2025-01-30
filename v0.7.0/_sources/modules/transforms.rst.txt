@@ -10,30 +10,24 @@ Supported transformations
 -------------------------
 Here are all transformations that are available through docTR:
 
+.. currentmodule:: doctr.transforms.modules
+
 .. autoclass:: Resize
-.. autoclass:: Normalize
-.. autoclass:: LambdaTransformation
-.. autoclass:: ToGray
-.. autoclass:: ColorInversion
-.. autoclass:: RandomBrightness
-.. autoclass:: RandomContrast
-.. autoclass:: RandomSaturation
-.. autoclass:: RandomHue
-.. autoclass:: RandomGamma
-.. autoclass:: RandomJpegQuality
-.. autoclass:: RandomRotate
-.. autoclass:: RandomCrop
-.. autoclass:: GaussianBlur
-.. autoclass:: ChannelShuffle
 .. autoclass:: GaussianNoise
+.. autoclass:: ChannelShuffle
 .. autoclass:: RandomHorizontalFlip
 .. autoclass:: RandomShadow
+.. autoclass:: RandomResize
 
 
 Composing transformations
 ---------------------------------------------
 It is common to require several transformations to be performed consecutively.
 
-.. autoclass:: Compose
+.. autoclass:: SampleCompose
+.. autoclass:: ImageTransform
+.. autoclass:: ColorInversion
 .. autoclass:: OneOf
 .. autoclass:: RandomApply
+.. autoclass:: RandomRotate
+.. autoclass:: RandomCrop

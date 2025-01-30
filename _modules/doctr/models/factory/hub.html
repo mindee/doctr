@@ -240,6 +240,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/contrib.html">doctr.contrib</a></li>
@@ -292,7 +296,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.models.factory.hub</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -358,7 +362,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        save_dir: directory to save model and config</span>
 <span class="sd">        arch: architecture name</span>
@@ -396,7 +399,6 @@
 <span class="sd">    &gt;&gt;&gt; push_to_hf_hub(model, &#39;my-model&#39;, &#39;recognition&#39;, arch=&#39;crnn_mobilenet_v3_small&#39;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        model_name: name of the model which is also the repository name</span>
 <span class="sd">        task: task name</span>
@@ -413,9 +415,9 @@
     <span class="c1"># default readme</span>
     <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    ---</span>
+
 <span class="s2">    language: en</span>
-<span class="s2">    ---</span>
+
 
 <span class="s2">    &lt;p align=&quot;center&quot;&gt;</span>
 <span class="s2">    &lt;img src=&quot;https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&amp;src=0&quot; width=&quot;60%&quot;&gt;</span>
@@ -492,12 +494,10 @@
 <span class="sd">    &gt;&gt;&gt; model = from_hub(&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        repo_id: HuggingFace model hub repo</span>
 <span class="sd">        kwargs: kwargs of `hf_hub_download` or `snapshot_download`</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        Model loaded with the checkpoint</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get the config</span>
@@ -563,12 +563,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=41ddb9e0"></script>
+</div><script src="../../../../_static/documentation_options.js?v=3d11136f"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../../../../_static/js/custom.js?v=af03451e"></script>
     </body>
 </html>

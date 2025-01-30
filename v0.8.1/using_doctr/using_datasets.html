@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Share your model with the community" href="sharing_models.html" /><link rel="prev" title="Choosing the right model" href="using_models.html" />
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="Integrate contributions into your pipeline" href="using_contrib_modules.html" /><link rel="prev" title="Choosing the right model" href="using_models.html" />
 
     <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
         <title>Choose a ready to use dataset - docTR documentation</title>
@@ -235,13 +235,19 @@
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/datasets.html">doctr.datasets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/io.html">doctr.io</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../modules/models.html">doctr.models</a></li>
@@ -377,9 +383,9 @@ can be a significant save of time.</p>
 </div>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORD</span>
 <span class="c1"># Load straight boxes</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detection_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="c1"># Load rotated boxes</span>
-<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detection_task</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -474,6 +480,18 @@ can be a significant save of time.</p>
 </pre></div>
 </div>
 </section>
+<section id="ocr">
+<h3>OCR<a class="headerlink" href="#ocr" title="Link to this heading">¶</a></h3>
+<p>The same dataset table as for detection, but with information about the bounding boxes and labels.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORD</span>
+<span class="c1"># Load straight boxes</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Load rotated boxes</span>
+<span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_polygons</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
 <section id="object-detection">
 <h3>Object Detection<a class="headerlink" href="#object-detection" title="Link to this heading">¶</a></h3>
 <p>This datasets contains the information to train or validate a object detection model.</p>
@@ -551,12 +569,12 @@ You can find further information about the format in references.</p>
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="sharing_models.html">
+          <a class="next-page" href="using_contrib_modules.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">Share your model with the community</div>
+                <div class="title">Integrate contributions into your pipeline</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -605,6 +623,7 @@ You can find further information about the format in references.</p>
 <li><a class="reference internal" href="#available-datasets">Available Datasets</a><ul>
 <li><a class="reference internal" href="#detection">Detection</a></li>
 <li><a class="reference internal" href="#recognition">Recognition</a></li>
+<li><a class="reference internal" href="#ocr">OCR</a></li>
 <li><a class="reference internal" href="#object-detection">Object Detection</a></li>
 <li><a class="reference internal" href="#synthetic-dataset-generator">Synthetic dataset generator</a></li>
 </ul>
@@ -622,12 +641,12 @@ You can find further information about the format in references.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=d3e170ab"></script>
+</div><script src="../_static/documentation_options.js?v=a25387f5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../_static/js/custom.js?v=af03451e"></script>
     </body>
 </html>

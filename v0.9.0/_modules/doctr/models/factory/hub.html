@@ -240,6 +240,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../modules/contrib.html">doctr.contrib</a></li>
@@ -292,7 +296,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.models.factory.hub</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -314,7 +318,6 @@
     <span class="n">get_token_permission</span><span class="p">,</span>
     <span class="n">hf_hub_download</span><span class="p">,</span>
     <span class="n">login</span><span class="p">,</span>
-    <span class="n">snapshot_download</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
@@ -327,7 +330,7 @@
 
 
 <span class="n">AVAILABLE_ARCHS</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;classification&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
+    <span class="s2">&quot;classification&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span> <span class="o">+</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ORIENTATION_ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;detection&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;recognition&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
 <span class="p">}</span>
@@ -359,7 +362,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        save_dir: directory to save model and config</span>
 <span class="sd">        arch: architecture name</span>
@@ -371,7 +373,7 @@
         <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;pytorch_model.bin&quot;</span>
         <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">weights_path</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">is_tf_available</span><span class="p">():</span>
-        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;tf_model&quot;</span> <span class="o">/</span> <span class="s2">&quot;weights&quot;</span>
+        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;tf_model.weights.h5&quot;</span>
         <span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">weights_path</span><span class="p">))</span>
 
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;config.json&quot;</span>
@@ -397,7 +399,6 @@
 <span class="sd">    &gt;&gt;&gt; push_to_hf_hub(model, &#39;my-model&#39;, &#39;recognition&#39;, arch=&#39;crnn_mobilenet_v3_small&#39;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        model: TF or PyTorch model to be saved</span>
 <span class="sd">        model_name: name of the model which is also the repository name</span>
 <span class="sd">        task: task name</span>
@@ -414,9 +415,9 @@
     <span class="c1"># default readme</span>
     <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
         <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">    ---</span>
+
 <span class="s2">    language: en</span>
-<span class="s2">    ---</span>
+
 
 <span class="s2">    &lt;p align=&quot;center&quot;&gt;</span>
 <span class="s2">    &lt;img src=&quot;https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&amp;src=0&quot; width=&quot;60%&quot;&gt;</span>
@@ -473,7 +474,7 @@
 
     <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="s2">&quot;.cache&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">,</span> <span class="s2">&quot;hub&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
     <span class="n">repo_url</span> <span class="o">=</span> <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">create_repo</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span><span class="n">local_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">clone_from</span><span class="o">=</span><span class="n">repo_url</span><span class="p">,</span> <span class="n">use_auth_token</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span><span class="n">local_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">clone_from</span><span class="o">=</span><span class="n">repo_url</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">repo</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">commit_message</span><span class="p">):</span>
         <span class="n">_save_model_and_config_for_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">repo</span><span class="o">.</span><span class="n">local_dir</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
@@ -493,12 +494,10 @@
 <span class="sd">    &gt;&gt;&gt; model = from_hub(&quot;mindee/fasterrcnn_mobilenet_v3_large_fpn&quot;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        repo_id: HuggingFace model hub repo</span>
 <span class="sd">        kwargs: kwargs of `hf_hub_download` or `snapshot_download`</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        Model loaded with the checkpoint</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get the config</span>
@@ -527,8 +526,8 @@
         <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
         <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># tf</span>
-        <span class="n">repo_path</span> <span class="o">=</span> <span class="n">snapshot_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">repo_path</span><span class="p">,</span> <span class="s2">&quot;tf_model&quot;</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">))</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;tf_model.weights.h5&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span></div>
 
@@ -564,12 +563,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=306f4ebe"></script>
+</div><script src="../../../../_static/documentation_options.js?v=a25387f5"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../../../../_static/js/custom.js?v=af03451e"></script>
     </body>
 </html>

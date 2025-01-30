@@ -240,6 +240,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/contrib.html">doctr.contrib</a></li>
@@ -292,7 +296,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.datasets.wildreceipt</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -300,9 +304,10 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractDataset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="n">crop_bboxes_from_image</span>
@@ -313,9 +318,10 @@
 <div class="viewcode-block" id="WILDRECEIPT">
 <a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.WILDRECEIPT">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">WILDRECEIPT</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;WildReceipt dataset from `&quot;Spatial Dual-Modality Graph Reasoning for Key Information Extraction&quot;</span>
-<span class="sd">        &lt;https://arxiv.org/abs/2103.14470v1&gt;`_ |</span>
-<span class="sd">    `repository &lt;https://download.openmmlab.com/mmocr/data/wildreceipt.tar&gt;`_.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WildReceipt dataset from `&quot;Spatial Dual-Modality Graph Reasoning for Key Information Extraction&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/abs/2103.14470v1&gt;`_ |</span>
+<span class="sd">    `&quot;repository&quot; &lt;https://download.openmmlab.com/mmocr/data/wildreceipt.tar&gt;`_.</span>
 
 <span class="sd">    .. image:: https://doctr-static.mindee.com/models?id=v0.7.0/wildreceipt-dataset.jpg&amp;src=0</span>
 <span class="sd">        :align: center</span>
@@ -330,7 +336,6 @@
 <span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>
 <span class="sd">        label_path: path to the annotations file of the dataset</span>
 <span class="sd">        train: whether the subset should be the training one</span>
@@ -367,15 +372,18 @@
         <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">img_folder</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">Path</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="c1"># Split the text file into separate JSON strings</span>
         <span class="n">json_strings</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">box</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
-        <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">json_string</span> <span class="ow">in</span> <span class="n">json_strings</span><span class="p">:</span>
+        <span class="n">box</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+
+        <span class="k">for</span> <span class="n">json_string</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
+            <span class="n">iterable</span><span class="o">=</span><span class="n">json_strings</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Preparing and Loading WILDRECEIPT&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">json_strings</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
             <span class="n">img_path</span> <span class="o">=</span> <span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;file_name&quot;</span><span class="p">]</span>
             <span class="n">annotations</span> <span class="o">=</span> <span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;annotations&quot;</span><span class="p">]</span>
@@ -449,12 +457,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=41ddb9e0"></script>
+</div><script src="../../../_static/documentation_options.js?v=3d11136f"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../../../_static/js/custom.js?v=af03451e"></script>
     </body>
 </html>

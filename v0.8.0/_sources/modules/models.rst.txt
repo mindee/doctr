@@ -25,7 +25,9 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.mobilenet_v3_large_r
 
-.. autofunction:: doctr.models.classification.mobilenet_v3_small_orientation
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_crop_orientation
+
+.. autofunction:: doctr.models.classification.mobilenet_v3_small_page_orientation
 
 .. autofunction:: doctr.models.classification.magc_resnet31
 
@@ -41,6 +43,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
+.. autofunction:: doctr.models.classification.page_orientation_predictor
+
 
 doctr.models.detection
 ----------------------
@@ -54,6 +58,12 @@ doctr.models.detection
 .. autofunction:: doctr.models.detection.db_resnet50
 
 .. autofunction:: doctr.models.detection.db_mobilenet_v3_large
+
+.. autofunction:: doctr.models.detection.fast_tiny
+
+.. autofunction:: doctr.models.detection.fast_small
+
+.. autofunction:: doctr.models.detection.fast_base
 
 .. autofunction:: doctr.models.detection.detection_predictor
 

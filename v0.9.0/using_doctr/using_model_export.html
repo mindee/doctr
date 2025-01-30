@@ -242,6 +242,10 @@
 <li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
@@ -315,44 +319,108 @@
 <li><p>Less memory usage</p></li>
 </ul>
 <div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">mixed_precision</span>
-<span class="n">mixed_precision</span><span class="o">.</span><span class="n">set_global_policy</span><span class="p">(</span><span class="s1">&#39;mixed_float16&#39;</span><span class="p">)</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span><span class="o">.</span><span class="n">half</span><span class="p">()</span>
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
+    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span><span class="o">.</span><span class="n">half</span><span class="p">()</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
 </pre></div>
 </div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">mixed_precision</span>
+<span class="n">mixed_precision</span><span class="o">.</span><span class="n">set_global_policy</span><span class="p">(</span><span class="s1">&#39;mixed_float16&#39;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
+    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+</pre></div>
+</div>
 </div></div>
+</section>
+<section id="compiling-your-models-pytorch-only">
+<h3>Compiling your models (PyTorch only)<a class="headerlink" href="#compiling-your-models-pytorch-only" title="Link to this heading">¶</a></h3>
+<p><strong>NOTE:</strong></p>
+<ul class="simple">
+<li><p>This feature is only available if you use PyTorch as backend.</p></li>
+<li><p>The recognition architecture <cite>master</cite> is not supported for model compilation yet.</p></li>
+<li><p>We provide only official support for the default (<cite>inductor</cite>) backend, but you can try other backends, configurations depending on your hardware and requirements as well.</p></li>
+</ul>
+<p>Compiling your PyTorch models with <cite>torch.compile</cite> optimizes the model by converting it to a graph representation and applying backends that can improve performance.
+This process can make inference faster and reduce memory overhead during execution.</p>
+<p>Further information can be found in the <a class="reference external" href="https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html">PyTorch documentation</a>.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ocr_predictor</span><span class="p">,</span>
+    <span class="n">vitstr_small</span><span class="p">,</span>
+    <span class="n">fast_base</span><span class="p">,</span>
+    <span class="n">mobilenet_v3_small_crop_orientation</span><span class="p">,</span>
+    <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">,</span>
+    <span class="n">crop_orientation_predictor</span><span class="p">,</span>
+    <span class="n">page_orientation_predictor</span>
+<span class="p">)</span>
+
+<span class="c1"># Compile the models</span>
+<span class="n">detection_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="n">fast_base</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">recognition_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">crop_orientation_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="n">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">page_orientation_model</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ocr_predictor</span><span class="p">(</span>
+    <span class="n">detection_model</span><span class="p">,</span> <span class="n">recognition_model</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">)</span>
+<span class="c1"># NOTE: Only required for non-straight pages (`assume_straight_pages=False`) and non-disabled orientation classification</span>
+<span class="c1"># Set the orientation predictors</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">crop_orientation_predictor</span> <span class="o">=</span> <span class="n">crop_orientation_predictor</span><span class="p">(</span><span class="n">crop_orientation_model</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">page_orientation_predictor</span> <span class="o">=</span> <span class="n">page_orientation_predictor</span><span class="p">(</span><span class="n">page_orientation_model</span><span class="p">)</span>
+
+<span class="n">compiled_out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="export-to-onnx">
 <h3>Export to ONNX<a class="headerlink" href="#export-to-onnx" title="Link to this heading">¶</a></h3>
 <p>ONNX (Open Neural Network Exchange) is an open and interoperable format for representing and exchanging machine learning models.
 It defines a common format for representing models, including the network structure, layer types, parameters, and metadata.</p>
 <div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vitstr_small</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_model_to_onnx</span>
 
-<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)]</span>
-<span class="n">model_path</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span> <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span><span class="p">)</span>
+<span class="n">dummy_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">model_path</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
+    <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span>
+<span class="p">)</span>
 </pre></div>
 </div>
-</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vitstr_small</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_model_to_onnx</span>
 
-<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">16</span>
+<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">input_shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-<span class="n">model_path</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx, dummy_input=dummy_input)</span>
+<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)]</span>
+<span class="n">model_path</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
+    <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span>
+<span class="p">)</span>
 </pre></div>
 </div>
 </div></div>
@@ -447,6 +515,7 @@ It is simple and easy-to-use (with the same interface you know already from docT
 <li><a class="reference internal" href="#">Preparing your model for inference</a><ul>
 <li><a class="reference internal" href="#model-optimization">Model optimization</a><ul>
 <li><a class="reference internal" href="#half-precision">Half-precision</a></li>
+<li><a class="reference internal" href="#compiling-your-models-pytorch-only">Compiling your models (PyTorch only)</a></li>
 <li><a class="reference internal" href="#export-to-onnx">Export to ONNX</a></li>
 <li><a class="reference internal" href="#using-your-onnx-exported-model">Using your ONNX exported model</a></li>
 </ul>
@@ -462,13 +531,13 @@ It is simple and easy-to-use (with the same interface you know already from docT
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
+</div><script src="../_static/documentation_options.js?v=a25387f5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../_static/js/custom.js?v=af03451e"></script>
     <script src="../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

@@ -240,6 +240,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../modules/contrib.html">doctr.contrib</a></li>
@@ -292,7 +296,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <h1>Source code for doctr.models.zoo</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (C) 2021-2024, Mindee.</span>
+<span></span><span class="c1"># Copyright (C) 2021-2025, Mindee.</span>
 
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
@@ -379,7 +383,6 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        det_arch: name of the detection architecture or the model itself to use</span>
 <span class="sd">            (e.g. &#39;db_resnet50&#39;, &#39;db_mobilenet_v3_large&#39;)</span>
 <span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
@@ -404,7 +407,6 @@
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        OCR predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span>
@@ -496,7 +498,6 @@
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">    ----</span>
 <span class="sd">        det_arch: name of the detection architecture or the model itself to use</span>
 <span class="sd">            (e.g. &#39;db_resnet50&#39;, &#39;db_mobilenet_v3_large&#39;)</span>
 <span class="sd">        reco_arch: name of the recognition architecture or the model itself to use</span>
@@ -521,7 +522,6 @@
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">    -------</span>
 <span class="sd">        KIE predictor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_kie_predictor</span><span class="p">(</span>
@@ -571,12 +571,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=41ddb9e0"></script>
+</div><script src="../../../_static/documentation_options.js?v=3d11136f"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../../../_static/js/custom.js?v=af03451e"></script>
     </body>
 </html>

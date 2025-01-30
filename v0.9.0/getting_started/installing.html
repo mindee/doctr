@@ -242,6 +242,10 @@
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/running_on_aws.html">AWS Lambda</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
@@ -301,7 +305,7 @@
         <article role="main" id="furo-main-content">
           <section id="installation">
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h1>
-<p>This library requires <a class="reference external" href="https://www.python.org/downloads/">Python</a> 3.9 or higher.</p>
+<p>This library requires <a class="reference external" href="https://www.python.org/downloads/">Python</a> 3.10 or higher.</p>
 <section id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Link to this heading">¶</a></h2>
 <p>Whichever OS you are running, you will need to install at least TensorFlow or PyTorch. You can refer to their corresponding installation pages to do so:</p>
@@ -312,7 +316,7 @@
 <p>For MacBooks with M1 chip, you will need some additional packages or specific versions:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://developer.apple.com/metal/tensorflow-plugin/">TensorFlow 2 Metal Plugin</a></p></li>
-<li><p><a class="reference external" href="https://pytorch.org/get-started/locally/#start-locally">PyTorch &gt;= 1.12.0</a></p></li>
+<li><p><a class="reference external" href="https://pytorch.org/get-started/locally/#start-locally">PyTorch &gt;= 2.0.0</a></p></li>
 </ul>
 </section>
 <section id="via-python-package">
@@ -323,14 +327,14 @@
 </div>
 <p>We strive towards reducing framework-specific dependencies to a minimum, but some necessary features are developed by third-parties for specific frameworks. To avoid missing some dependencies for a specific framework, you can install specific builds as follows:</p>
 <div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[tf]&quot;</span>
-<span class="c1"># or with preinstalled packages for visualization &amp; html &amp; contrib module support</span>
-pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[tf,viz,html,contib]&quot;</span>
-</pre></div>
-</div>
-</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[torch]&quot;</span>
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[torch]&quot;</span>
 <span class="c1"># or with preinstalled packages for visualization &amp; html &amp; contrib module support</span>
 pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[torch,viz,html,contrib]&quot;</span>
+</pre></div>
+</div>
+</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[tf]&quot;</span>
+<span class="c1"># or with preinstalled packages for visualization &amp; html &amp; contrib module support</span>
+pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[tf,viz,html,contib]&quot;</span>
 </pre></div>
 </div>
 </div></div>
@@ -347,12 +351,12 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
 <h2>Via Git<a class="headerlink" href="#via-git" title="Link to this heading">¶</a></h2>
 <p>Install the library in developer mode:</p>
 <div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">TensorFlow</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">PyTorch</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mindee/doctr.git
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>doctr/.<span class="o">[</span>tf<span class="o">]</span>
+<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mindee/doctr.git
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>doctr/.<span class="o">[</span>torch<span class="o">]</span>
 </pre></div>
 </div>
 </div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mindee/doctr.git
-pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>doctr/.<span class="o">[</span>torch<span class="o">]</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>doctr/.<span class="o">[</span>tf<span class="o">]</span>
 </pre></div>
 </div>
 </div></div>
@@ -430,13 +434,13 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=306f4ebe"></script>
+</div><script src="../_static/documentation_options.js?v=a25387f5"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=ae3d3bd5"></script>
+    <script src="../_static/js/custom.js?v=af03451e"></script>
     <script src="../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

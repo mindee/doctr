@@ -42,6 +42,7 @@ Text detection models
 """""""""""""""""""""
 * DBNet from `"Real-time Scene Text Detection with Differentiable Binarization" <https://arxiv.org/pdf/1911.08947.pdf>`_
 * LinkNet from `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation" <https://arxiv.org/pdf/1707.03718.pdf>`_
+* FAST from `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation" <https://arxiv.org/pdf/2111.02394.pdf>`_
 
 Text recognition models
 """""""""""""""""""""""
@@ -66,6 +67,7 @@ Supported datasets
 * IMGUR5K from `"TextStyleBrush: Transfer of Text Aesthetics from a Single Example" <https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset>`_.
 * MJSynth from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition" <https://www.robots.ox.ac.uk/~vgg/data/text/>`_.
 * IIITHWS from `"Generating Synthetic Data for Text Recognition" <https://github.com/kris314/hwnet>`_.
+* WILDRECEIPT from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction" <https://arxiv.org/pdf/2103.14470v1.pdf>`_.
 
 
 .. toctree::
@@ -75,6 +77,7 @@ Supported datasets
 
    using_doctr/using_models
    using_doctr/using_datasets
+   using_doctr/using_contrib_modules
    using_doctr/sharing_models
    using_doctr/using_model_export
    using_doctr/custom_models_training
@@ -83,9 +86,18 @@ Supported datasets
 
 .. toctree::
    :maxdepth: 2
+   :caption: Community
+   :hidden:
+
+   community/resources
+
+
+.. toctree::
+   :maxdepth: 2
    :caption: Package Reference
    :hidden:
 
+   modules/contrib
    modules/datasets
    modules/io
    modules/models

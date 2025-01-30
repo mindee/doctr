@@ -86,6 +86,14 @@ Supported datasets
 
 .. toctree::
    :maxdepth: 2
+   :caption: Community
+   :hidden:
+
+   community/resources
+
+
+.. toctree::
+   :maxdepth: 2
    :caption: Package Reference
    :hidden:
 
