@@ -379,11 +379,11 @@
         <span class="c1"># Split the text file into separate JSON strings</span>
         <span class="n">json_strings</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">box</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
-        <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">json_string</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
             <span class="n">iterable</span><span class="o">=</span><span class="n">json_strings</span><span class="p">,</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Preparing and Loading WILDRECEIPT&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">json_strings</span><span class="p">)</span>
         <span class="p">):</span>
+            <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">json_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_string</span><span class="p">)</span>
             <span class="n">img_path</span> <span class="o">=</span> <span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;file_name&quot;</span><span class="p">]</span>
             <span class="n">annotations</span> <span class="o">=</span> <span class="n">json_data</span><span class="p">[</span><span class="s2">&quot;annotations&quot;</span><span class="p">]</span>
