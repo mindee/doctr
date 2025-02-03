@@ -54,8 +54,6 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
         images = images.to(device)
         images = batch_transforms(images)
 
-        train_loss = model(images, targets)["loss"]
-
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
