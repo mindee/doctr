@@ -218,10 +218,8 @@ def main(args):
     )
 
     # Target building params
-    if args.min_size_box is not None:
-        model.min_size_box = args.min_size_box
-    if args.shrink_ratio is not None:
-        model.shrink_ratio = args.shrink_ratio
+    model.min_size_box = args.min_size_box
+    model.shrink_ratio = args.shrink_ratio
 
     # Resume weights
     if isinstance(args.resume, str):
