@@ -9,7 +9,6 @@ os.environ["USE_TORCH"] = "1"
 
 import datetime
 import hashlib
-import logging
 import multiprocessing
 import time
 from pathlib import Path
@@ -19,9 +18,11 @@ import torch
 
 # The following import is required for DDP
 import torch.distributed as dist
+import torch.multiprocessing as mp
+import wandb
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
-from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import DataLoader, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
 
@@ -108,14 +109,14 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
     model.train()
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
-    pbar = tqdm(train_loader, dynamic_ncols=True, disable=(rank != 0))
+    pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -142,9 +143,6 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
         last_lr = scheduler.get_last_lr()[0]
 
         pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
-        if log:
-            log(train_loss=train_loss.item(), lr=last_lr)
-
         epoch_train_loss += train_loss.item()
         batch_cnt += 1
 
@@ -153,7 +151,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, log=None):
+def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -180,8 +178,6 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
                 val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
-        if log:
-            log(val_loss=out["loss"].item())
 
         val_loss += out["loss"].item()
         batch_cnt += 1
@@ -191,39 +187,17 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
     return val_loss, recall, precision, mean_iou
 
 
-def main(args):
-    # Detect distributed setup
-    # variable is set by torchrun
-    world_size = int(os.environ.get("WORLD_SIZE", 1))
-    distributed = world_size > 1
-
-    # GPU setup
-    if distributed:
-        rank = int(os.environ.get("LOCAL_RANK", 0))
-        dist.init_process_group(backend=args.backend)
-        device = torch.device("cuda", rank)
-        torch.cuda.set_device(device)
-
-    else:
-        # single process
-        rank = 0
-        if isinstance(args.device, int):
-            if not torch.cuda.is_available():
-                raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-            if args.device >= torch.cuda.device_count():
-                raise ValueError("Invalid device index")
-            device = torch.device("cuda", args.device)
-        # Silent default switch to GPU if available
-        elif torch.cuda.is_available():
-            device = torch.device("cuda", 0)
-        else:
-            logging.warning("No accessible GPU, target device set to CPU.")
-            device = torch.device("cpu")
-
+def main(rank: int, world_size: int, args):
+    """
+    Args:
+        rank (int): device id to put the model on
+        world_size (int): number of processes participating in the job
+        args: other arguments passed through the CLI
+    """
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
-    pbar = tqdm(disable=False if (slack_token and slack_channel) and (rank == 0) else True)
+    pbar = tqdm(disable=False if slack_token and slack_channel else True)
     if slack_token and slack_channel:
         # Monkey patch tqdm write method to send messages directly to Slack
         pbar.write = lambda msg: pbar.sio.client.chat_postMessage(channel=slack_channel, text=msg)
@@ -236,8 +210,7 @@ def main(args):
         args.workers = min(16, multiprocessing.cpu_count())
 
     torch.backends.cudnn.benchmark = True
-    # placeholder for class names
-    cls_container = [None]
+
     if rank == 0:
         # validation dataset related code
         st = time.time()
@@ -277,12 +250,9 @@ def main(args):
         with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
             val_hash = hashlib.sha256(f.read()).hexdigest()
 
-        cls_container[0] = val_set.class_names
-    if distributed:
-        # broadcast class names to all ranks
-        dist.broadcast_object_list(cls_container, src=0)
-    # unpack class names on all ranks
-    class_names = cls_container[0]
+        class_names = val_set.class_names
+    else:
+        class_names = None
 
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
@@ -300,7 +270,16 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
-        model.from_pretrained(args.resume)
+        checkpoint = torch.load(args.resume, map_location="cpu")
+        model.load_state_dict(checkpoint)
+
+    # create default process group
+    device = torch.device("cuda", args.devices[rank])
+    dist.init_process_group(args.backend, rank=rank, world_size=world_size)
+    # create local model
+    model = model.to(device)
+    # construct the DDP model
+    model = DDP(model, device_ids=[device])
 
     if rank == 0:
         # Metrics
@@ -369,24 +348,16 @@ def main(args):
         use_polygons=args.rotation,
     )
 
-    if distributed:
-        sampler = DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True)
-    else:
-        sampler = RandomSampler(train_set)
-
     train_loader = DataLoader(
         train_set,
         batch_size=args.batch_size,
         drop_last=True,
         num_workers=args.workers,
-        sampler=sampler,
+        sampler=DistributedSampler(train_set, num_replicas=world_size, rank=rank, shuffle=False, drop_last=True),
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
-    if rank == 0:
-        pbar.write(
-            f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
-        )
+    pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
@@ -394,20 +365,13 @@ def main(args):
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
         plot_samples(x, target)
-        return
+        # return
 
     # Backbone freezing
     if args.freeze_backbone:
         for p in model.feat_extractor.parameters():
             p.requires_grad = False
 
-    if torch.cuda.is_available():
-        torch.cuda.set_device(device)
-        model = model.to(device)
-
-    if distributed:
-        # construct DDP model
-        model = DDP(model, device_ids=[rank])
     # Optimizer
     if args.optim == "adam":
         optimizer = torch.optim.Adam(
@@ -427,7 +391,7 @@ def main(args):
         )
 
     # LR Finder
-    if rank == 0 and args.find_lr:
+    if args.find_lr:
         lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
         plot_recorder(lrs, losses)
         return
@@ -462,61 +426,20 @@ def main(args):
             "amp": args.amp,
         }
 
-    global global_step
-    global_step = 0  # Shared global step counter
-
     # W&B
-    if args.wb:
-        import wandb
-
-        run = wandb.init(name=exp_name, project="text-detection", config=config)
-
-        def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
-            wandb.log({
-                **({"train_loss_step": train_loss} if train_loss is not None else {}),
-                **({"val_loss_step": val_loss} if val_loss is not None else {}),
-                **({"step_lr": lr} if lr is not None else {}),
-            })
+    if rank == 0 and args.wb:
+        run = wandb.init(
+            name=exp_name,
+            project="text-detection",
+            config=config,
+        )
 
     # ClearML
-    if args.clearml:
-        from clearml import Logger, Task
+    if rank == 0 and args.clearml:
+        from clearml import Task
 
         task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
-
-        def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
-            logger = Logger.current_logger()
-            if train_loss is not None:
-                logger.report_scalar(
-                    title="Training Step Loss",
-                    series="train_loss_step",
-                    iteration=global_step,
-                    value=train_loss,
-                )
-            if val_loss is not None:
-                logger.report_scalar(
-                    title="Validation Step Loss",
-                    series="val_loss_step",
-                    iteration=global_step,
-                    value=val_loss,
-                )
-            if lr is not None:
-                logger.report_scalar(
-                    title="Step Learning Rate",
-                    series="step_lr",
-                    iteration=global_step,
-                    value=lr,
-                )
-
-    # Unified logger
-    def log_at_step(train_loss=None, val_loss=None, lr=None):
-        global global_step
-        if args.wb:
-            wandb_log_at_step(train_loss, val_loss, lr)
-        if args.clearml:
-            clearml_log_at_step(train_loss, val_loss, lr)
-        global_step += 1  # Increment the shared global step counter
 
     # Create loss queue
     min_loss = np.inf
@@ -525,25 +448,21 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
-        train_loss, actual_lr = fit_one_epoch(
-            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
-        )
-        if rank == 0:
-            pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
+        train_loss, actual_lr = fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp)
+        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
+        if rank == 0:
             # Validation loop at the end of each epoch
             val_loss, recall, precision, mean_iou = evaluate(
-                model, val_loader, batch_transforms, val_metric, args, amp=args.amp, log=log_at_step
+                model, val_loader, batch_transforms, val_metric, args, amp=args.amp
             )
-            params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
+                torch.save(model.module.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
                 min_loss = val_loss
             if args.save_interval_epoch:
                 pbar.write(f"Saving state at epoch: {epoch + 1}")
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
-
+                torch.save(model.module.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             if any(val is None for val in (recall, precision, mean_iou)):
                 log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
@@ -589,18 +508,13 @@ def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="DocTR training script for text detection (PyTorch)",
+        description="DocTR DDP training script for text detection (PyTorch)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # DDP related args
-    parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for torch.distributed")
-    parser.add_argument(
-        "--device",
-        default=None,
-        type=int,
-        help="Specify gpu device for single-gpu training. In destributed setting, this parameter is ignored",
-    )
+    parser.add_argument("--backend", default="nccl", type=str, help="backend to use for torch DDP")
+
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
     parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
@@ -608,6 +522,7 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
+    parser.add_argument("--devices", default=None, nargs="+", type=int, help="GPU devices to use for training")
     parser.add_argument(
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
@@ -624,7 +539,7 @@ def parse_args():
     )
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
-    parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
+    parser.add_argument("-j", "--workers", type=int, default=0, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
     parser.add_argument(
@@ -664,4 +579,16 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    main(args)
+    if not torch.cuda.is_available():
+        raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
+
+    if not isinstance(args.devices, list):
+        args.devices = list(range(torch.cuda.device_count()))
+    # no of process per gpu
+    nprocs = len(args.devices)
+    # Environment variables which need to be
+    # set when using c10d's default "env"
+    # initialization mode.
+    os.environ["MASTER_ADDR"] = "localhost"
+    os.environ["MASTER_PORT"] = "29500"
+    mp.spawn(main, args=(nprocs, args), nprocs=nprocs, join=True)
