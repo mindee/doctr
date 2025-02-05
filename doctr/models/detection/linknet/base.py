@@ -34,7 +34,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         assume_straight_pages: bool = True,
     ) -> None:
         super().__init__(box_thresh, bin_thresh, assume_straight_pages)
-        self.unclip_ratio = 1.5
+        self.unclip_ratio = 1.0
 
     def polygon_to_box(
         self,
@@ -148,9 +148,9 @@ class _LinkNet(BaseModel):
         out_chan: number of channels for the output
     """
 
-    min_size_box: int = 3
+    min_size_box: int = 2
     assume_straight_pages: bool = True
-    shrink_ratio = 0.5
+    shrink_ratio = 0.4
 
     def build_target(
         self,
