@@ -8,7 +8,29 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-__all__ = ["FASTConvLayer"]
+__all__ = ["FASTConvLayer", "DropPath"]
+
+
+class DropPath(nn.Module):
+    """
+    DropPath (Drop Connect) layer. This is a stochastic version of the identity layer.
+    """
+
+    # Borrowed from https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py
+    def __init__(self, drop_prob: float = 0.0, scale_by_keep: bool = True):
+        super(DropPath, self).__init__()
+        self.drop_prob = drop_prob
+        self.scale_by_keep = scale_by_keep
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.drop_prob == 0.0 or not self.training:
+            return x
+        keep_prob = 1 - self.drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with different dimensions
+        random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
+        if keep_prob > 0.0 and self.scale_by_keep:
+            random_tensor.div_(keep_prob)
+        return x * random_tensor
 
 
 class FASTConvLayer(nn.Module):
