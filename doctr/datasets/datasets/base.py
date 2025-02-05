@@ -5,6 +5,7 @@
 
 import os
 import shutil
+import traceback
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any
@@ -47,28 +48,37 @@ class _AbstractDataset:
 
     def __getitem__(self, index: int) -> tuple[Any, Any]:
         # Read image
-        img, target = self._read_sample(index)
-        # Pre-transforms (format conversion at run-time etc.)
-        if self._pre_transforms is not None:
-            img, target = self._pre_transforms(img, target)
+        try:
+            img, target = self._read_sample(index)
+            # Pre-transforms (format conversion at run-time etc.)
+            if self._pre_transforms is not None:
+                img, target = self._pre_transforms(img, target)
 
-        if self.img_transforms is not None:
-            # typing issue cf. https://github.com/python/mypy/issues/5485
-            img = self.img_transforms(img)
+            if self.img_transforms is not None:
+                # typing issue cf. https://github.com/python/mypy/issues/5485
+                img = self.img_transforms(img)
 
-        if self.sample_transforms is not None:
-            # Conditions to assess it is detection model with multiple classes and avoid confusion with other tasks.
-            if (
-                isinstance(target, dict)
-                and all(isinstance(item, np.ndarray) for item in target.values())
-                and set(target.keys()) != {"boxes", "labels"}  # avoid confusion with obj detection target
-            ):
-                img_transformed = _copy_tensor(img)
-                for class_name, bboxes in target.items():
-                    img_transformed, target[class_name] = self.sample_transforms(img, bboxes)
-                img = img_transformed
-            else:
-                img, target = self.sample_transforms(img, target)
+            if self.sample_transforms is not None:
+                # Conditions to assess it is detection model with multiple classes and avoid confusion with other tasks.
+                if (
+                    isinstance(target, dict)
+                    and all(isinstance(item, np.ndarray) for item in target.values())
+                    and set(target.keys()) != {"boxes", "labels"}  # avoid confusion with obj detection target
+                ):
+                    img_transformed = _copy_tensor(img)
+                    for class_name, bboxes in target.items():
+                        img_transformed, target[class_name] = self.sample_transforms(img, bboxes)
+                    img = img_transformed
+                else:
+                    img, target = self.sample_transforms(img, target)
+        except Exception:
+            img_name = self.data[index][0]
+            # Write
+            print()
+            print(f"!!!ERROR in Dataset on filename {img_name}")
+            traceback.print_exc()
+            print()
+            return self.__getitem__(0)  # should exists ^^
 
         return img, target
 
