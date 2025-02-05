@@ -217,6 +217,12 @@ def main(args):
         class_names=val_set.class_names,
     )
 
+    # Target building params
+    if args.min_size_box is not None:
+        model.min_size_box = args.min_size_box
+    if args.shrink_ratio is not None:
+        model.shrink_ratio = args.shrink_ratio
+
     # Resume weights
     if isinstance(args.resume, str):
         model.from_pretrained(args.resume)
@@ -275,7 +281,7 @@ def main(args):
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True),
-                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.65),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
         )
@@ -319,7 +325,7 @@ def main(args):
             args.lr,
             decay_steps=args.epochs * len(train_loader),
             end_learning_rate=1e-7,
-            power=1.0,
+            power=2.0,
             cycle=False,
             name="PolynomialDecay",
         )
@@ -513,6 +519,16 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
+    parser.add_argument(
+        "--min-size-box", type=int, default=2, help="minimum size of a box to be considered", dest="min_size_box"
+    )
+    parser.add_argument(
+        "--shrink-ratio",
+        type=float,
+        default=0.4,
+        help="shrink ratio for the polygons range [0.1, 0.9]",
+        dest="shrink_ratio",
+    )
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")

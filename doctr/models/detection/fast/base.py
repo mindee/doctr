@@ -145,7 +145,7 @@ class _FAST(BaseModel):
     <https://arxiv.org/pdf/2111.02394.pdf>`_.
     """
 
-    min_size_box: int = 3
+    min_size_box: int = 2
     assume_straight_pages: bool = True
     shrink_ratio = 0.4
 
