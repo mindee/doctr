@@ -26,31 +26,6 @@ class DWConv2d(nn.Module):
         return x
 
 
-class ConvBNLayer(nn.Module):
-    def __init__(
-        self, in_channels, out_channels, kernel_size=3, stride=1, padding=0, bias_attr=False, groups=1, act=nn.GELU
-    ):
-        super().__init__()
-
-        self.conv = nn.Conv2d(
-            in_channels=in_channels,
-            out_channels=out_channels,
-            kernel_size=kernel_size,
-            stride=stride,
-            padding=padding,
-            groups=groups,
-            bias=bias_attr,
-        )
-        self.norm = nn.BatchNorm2d(out_channels)
-        self.act = act()
-
-    def forward(self, inputs):
-        out = self.conv(inputs)
-        out = self.norm(out)
-        out = self.act(out)
-        return out
-
-
 class FeedForward(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_chans=None, act_layer=nn.GELU, dropout=0.0):
         super().__init__()
@@ -475,16 +450,12 @@ class BasicLayer(nn.Module):
         norm_layer=nn.LayerNorm,
         chunkwise_recurrent=False,
         downsample: PatchMerging = None,
-        use_checkpoint=False,
         mixer_type="Global",
-        layerscale=False,
-        layer_init_values=1e-5,
     ):
         super().__init__()
         self.embed_dim = embed_dim
         self.out_dim = out_dim
         self.depth = depth
-        self.use_checkpoint = use_checkpoint
         self.chunkwise_recurrent = chunkwise_recurrent
         self.mixer_type = mixer_type
         if mixer_type == "Local1":
@@ -572,7 +543,6 @@ class BasicLayer(nn.Module):
 
     def forward(self, x, size):
         b, h, w, d = x.size()
-        # print(x.size())
         if self.mixer_type == "Local1":
             for blk in self.blocks:
                 x = x.flatten(1).reshape(b, -1, d)
@@ -586,9 +556,6 @@ class BasicLayer(nn.Module):
                 x = x.reshape(b, h, w, -1)
 
         elif self.mixer_type == "LG1":
-            # print(self.mixer_type)
-            # print(x.shape)
-            # rel_pos = self.Relpos((h, w), chunkwise_recurrent=self.chunkwise_recurrent)
             for lblk, gblk in zip(self.local_unit, self.global_unit):
                 x = x.flatten(1).reshape(b, -1, d)
                 x1, x2 = torch.chunk(x, chunks=2, dim=2)
@@ -600,29 +567,6 @@ class BasicLayer(nn.Module):
                 x = x.permute(0, 2, 3, 1).contiguous()
                 x = x.reshape(b, h, w, -1)
 
-                # x = x.flatten(1).reshape(b, -1, d)
-                # x1, x2 = torch.chunk(x, chunks=2, dim=2)
-                # x1 = lblk(x1, size)
-                # x2 = gblk(x2, size)
-                # x = torch.cat([x1, x2], dim=2)
-                # x = x.transpose(1, 2).contiguous().reshape(b, -1, h, w)
-                # x = self.proj(x) + x
-                # x = x.permute(0, 2, 3, 1).contiguous()
-                # x = x.reshape(b, h, w, -1)
-
-                # x1, x2 = torch.chunk(x, chunks=2, dim=3)
-                # x1 = x1.flatten(1).reshape(b, -1, d//2)
-                # x1 = lblk(x1, size)
-                # x2 = gblk(x2, incremental_state=None, chunkwise_recurrent=self.chunkwise_recurrent,
-                #           retention_rel_pos=rel_pos)
-                # x2 = x2.flatten(1).reshape(b, -1, d//2)
-                # # print(x2.shape)
-                # x = torch.cat([x1, x2], dim=2)
-                # x = x.transpose(1, 2).contiguous().reshape(b, -1, h, w)
-                # x = self.proj(x) + x
-                # x = x.permute(0, 2, 3, 1).contiguous()
-
-        # print(x.shape)
         if self.downsample is not None:
             x = self.downsample(x)
         return x
@@ -634,24 +578,14 @@ class PatchEmbed(nn.Module):
 
         self.embed_dim = embed_dim
         self.proj = nn.Sequential(
-            ConvBNLayer(
-                in_channels=in_chans,
-                out_channels=embed_dim // 2,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                act=nn.GELU,
-                bias_attr=False,
+            *conv_sequence_pt(
+                in_chans, embed_dim // 2, kernel_size=3, stride=2, padding=1, bias=False, bn=True, relu=False
             ),
-            ConvBNLayer(
-                in_channels=embed_dim // 2,
-                out_channels=embed_dim,
-                kernel_size=3,
-                stride=2,
-                padding=1,
-                act=nn.GELU,
-                bias_attr=False,
+            nn.GELU(),
+            *conv_sequence_pt(
+                embed_dim // 2, embed_dim, kernel_size=3, stride=2, padding=1, bias=False, bn=True, relu=False
             ),
+            nn.GELU(),
         )
 
     def forward(self, x):
@@ -675,10 +609,8 @@ class VIPTRNet(nn.Module):
         drop_path_rate=0.1,
         norm_layer=nn.LayerNorm,
         patch_norm=True,
-        use_checkpoints=[False, False, False, False],
         mixer_types=["Local1", "LG1", "Global2"],
         chunkwise_recurrents=[True, True, False, False],
-        layerscales=[False, False, False, False],
         layer_init_values=1e-6,
     ):
         super().__init__()
@@ -721,10 +653,7 @@ class VIPTRNet(nn.Module):
                 downsample=PatchMerging
                 if (i_layer in [0, 1])
                 else None,  # PatchMerging if (i_layer < self.num_layers - 1) else None,
-                use_checkpoint=use_checkpoints[i_layer],
                 mixer_type=mixer_types[i_layer],
-                layerscale=layerscales[i_layer],
-                layer_init_values=layer_init_values,
             )
             self.layers.append(layer)
 
@@ -790,7 +719,6 @@ def VIPTRv2():
         sr_ratios=[4, 2, 2],  # [8, 4, 2]
         drop_path_rate=0.1,
         chunkwise_recurrents=[True, False, False],
-        layerscales=[False, False, False],
     )
     return model
 
@@ -808,7 +736,6 @@ def VIPTRv2B():
         sr_ratios=[4, 2, 2],  # [8, 4, 2]
         drop_path_rate=0.1,
         chunkwise_recurrents=[True, False, False],
-        layerscales=[False, False, False],
     )
     return model
 
