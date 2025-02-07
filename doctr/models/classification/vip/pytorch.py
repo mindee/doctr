@@ -6,51 +6,39 @@ import torch.nn.functional as F
 from torch.nn.init import trunc_normal_
 
 from doctr.models.modules.layers import DropPath
+from doctr.models.modules.transformer import PositionwiseFeedForward
+from doctr.models.modules.transformer.pytorch import PositionwiseFeedForward
 from doctr.models.utils import conv_sequence_pt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-class DWConv2d(nn.Module):
-    def __init__(self, dim, kernel_size, stride, padding):
-        super().__init__()
-        self.conv = nn.Conv2d(dim, dim, kernel_size, stride, padding, groups=dim)
-
-    def forward(self, x: torch.Tensor):
-        """
-        x: (b h w c)
-        """
-        x = x.permute(0, 3, 1, 2)  # (b c h w)
-        x = self.conv(x)  # (b c h w)
-        x = x.permute(0, 2, 3, 1)  # (b h w c)
-        return x
-
-
-class FeedForward(nn.Module):
-    def __init__(self, in_dim, hidden_dim, out_chans=None, act_layer=nn.GELU, dropout=0.0):
+class PatchEmbed(nn.Module):
+    def __init__(self, in_channels: int = 3, embed_dim: int = 128):
         super().__init__()
 
-        out_chans = out_chans or in_dim
-        hidden_dim = hidden_dim or in_dim
-
-        self.net = nn.Sequential(
-            nn.Linear(in_dim, hidden_dim),
-            act_layer(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, out_chans),
-            nn.Dropout(dropout),
+        self.embed_dim = embed_dim
+        self.proj = nn.Sequential(
+            *conv_sequence_pt(
+                in_channels, embed_dim // 2, kernel_size=3, stride=2, padding=1, bias=False, bn=True, relu=False
+            ),
+            nn.GELU(),
+            *conv_sequence_pt(
+                embed_dim // 2, embed_dim, kernel_size=3, stride=2, padding=1, bias=False, bn=True, relu=False
+            ),
+            nn.GELU(),
         )
 
-    def forward(self, x):
-        return self.net(x)
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.proj(x).permute(0, 2, 3, 1)
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False, qk_scale=None, attn_drop=0.0, proj_drop=0.0):
+    def __init__(self, dim, num_heads=8, qkv_bias=False, attn_drop=0.0, proj_drop=0.0):
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
-        self.scale = qk_scale or head_dim**-0.5
+        self.scale = head_dim**-0.5
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop)
@@ -72,42 +60,28 @@ class Attention(nn.Module):
         return x
 
 
-class MHSA_Block(nn.Module):
+class MultiHeadSelfAttention(nn.Module):
     def __init__(
         self,
         dim,
         num_heads,
         mlp_ratio=4.0,
         qkv_bias=False,
-        qk_scale=None,
-        drop=0.0,
-        attn_drop=0.0,
         drop_path_rate=0.0,
-        act_layer=nn.GELU,
-        norm_layer="nn.LayerNorm",
-        epsilon=1e-6,
-        prenorm=False,
     ):
         super().__init__()
-        if isinstance(norm_layer, str):
-            self.norm1 = eval(norm_layer)(dim, eps=epsilon)
-        else:
-            self.norm1 = norm_layer(dim)
+        self.norm1 = nn.LayerNorm(dim)
 
         self.mixer = Attention(
-            dim, num_heads=num_heads, qkv_bias=qkv_bias, qk_scale=qk_scale, attn_drop=attn_drop, proj_drop=drop
+            dim,
+            num_heads=num_heads,
+            qkv_bias=qkv_bias,
         )
 
-        # self.drop_path = DropPath(local_rank,drop_path) if drop_path > 0. else Identity()
         self.drop_path = DropPath(drop_path_rate) if drop_path_rate > 0.0 else nn.Identity()
-        if isinstance(norm_layer, str):
-            self.norm2 = eval(norm_layer)(dim, eps=epsilon)
-        else:
-            self.norm2 = norm_layer(dim)
+        self.norm2 = nn.LayerNorm(dim)
         mlp_hidden_dim = int(dim * mlp_ratio)
-        self.mlp_ratio = mlp_ratio
-        self.mlp = FeedForward(in_dim=dim, hidden_dim=mlp_hidden_dim, act_layer=act_layer, dropout=drop)
-        self.prenorm = prenorm
+        self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
 
     def forward(self, x, size=None):
         x = x + self.drop_path(self.mixer(self.norm1(x)))
@@ -115,7 +89,7 @@ class MHSA_Block(nn.Module):
         return x
 
 
-class OSRA_Attention(nn.Module):  # OSRA
+class OverlappingShiftedRelativeAttention(nn.Module):
     def __init__(
         self,
         dim,
@@ -188,64 +162,48 @@ class OSRA_Block(nn.Module):
         sr_ratio=1,
         num_heads=1,
         mlp_ratio=4,
-        norm_cfg=nn.LayerNorm,  # dict(type='GN', num_groups=1),
-        act_cfg=nn.GELU,  # dict(type='GELU'),
-        drop=0,
         drop_path=0,
-        layer_scale_init_value=1e-5,
-        grad_checkpoint=False,
     ):
         super().__init__()
-        self.grad_checkpoint = grad_checkpoint
         mlp_hidden_dim = int(dim * mlp_ratio)
 
-        # self.pos_embed = DWConv2d(dim, 3, 1, 1)
-        # self.pos_embed = nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1, groups=dim)
-        self.norm1 = norm_cfg(dim)
-        self.token_mixer = OSRA_Attention(dim, num_heads=num_heads, sr_ratio=sr_ratio)
-        self.norm2 = norm_cfg(dim)
+        self.norm1 = nn.LayerNorm(dim)
+        self.token_mixer = OverlappingShiftedRelativeAttention(dim, num_heads=num_heads, sr_ratio=sr_ratio)
+        self.norm2 = nn.LayerNorm(dim)
 
-        self.mlp = FeedForward(in_dim=dim, hidden_dim=mlp_hidden_dim, act_layer=act_cfg, dropout=drop)
+        self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
     def forward(self, x, relative_pos_enc=None):
-        # print(x.shape)
-        # x = x + self.pos_embed(x)
         x = x + self.drop_path(self.token_mixer(self.norm1(x), relative_pos_enc))
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
 
 class PatchMerging(nn.Module):
-    r"""Patch Merging Layer.
-    Args:
-        input_resolution (tuple[int]): Resolution of input feature.
-        dim (int): Number of input channels.
-        norm_layer (nn.Module, optional): Normalization layer.  Default: nn.LayerNorm
-    """
+    """Patch Merging Layer"""
 
-    def __init__(self, dim, out_dim, norm_layer=nn.LayerNorm):
+    def __init__(self, dim, out_dim):
         super().__init__()
         self.dim = dim
         self.reduction = nn.Conv2d(dim, out_dim, 3, (2, 1), 1)
-        # self.norm = nn.BatchNorm2d(out_dim)
         self.norm = nn.LayerNorm(out_dim)
 
-    def forward(self, x):
-        """
-        x: B H W C
-        """
-        x = x.permute(0, 3, 1, 2).contiguous()  # (b c h w)
-        x = self.reduction(x)  # (b oc oh ow)
-        x = x.permute(0, 2, 3, 1).contiguous()  # (b oh ow oc)
-        x = self.norm(x)
-
-        return x
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        # (B, C, H, W) -> (B, H // 2, W, C)
+        return self.norm(self.reduction(x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
 
 
 class LePEAttention(nn.Module):
     def __init__(
-        self, dim, resolution, idx, split_size=7, dim_out=None, num_heads=8, attn_drop=0.0, proj_drop=0.0, qk_scale=None
+        self,
+        dim,
+        resolution,
+        idx,
+        split_size=7,
+        dim_out=None,
+        num_heads=8,
+        attn_drop=0.0,
     ):
         super().__init__()
         self.dim = dim
@@ -256,11 +214,27 @@ class LePEAttention(nn.Module):
         self.idx = idx
         head_dim = dim // num_heads
         # NOTE scale factor can set manually to be compat with prev weights
-        self.scale = qk_scale or head_dim**-0.5
+        self.scale = head_dim**-0.5
 
         self.get_v = nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1, groups=dim)
 
         self.attn_drop = nn.Dropout(attn_drop)
+
+    def img2windows(self, img: torch.Tensor, H_sp: int, W_sp: int) -> torch.Tensor:
+        B, C, H, W = img.shape
+        img_reshape = img.view(B, C, H // H_sp, H_sp, W // W_sp, W_sp)
+        img_perm = img_reshape.permute(0, 2, 4, 3, 5, 1).contiguous().reshape(-1, H_sp * W_sp, C)
+        return img_perm
+
+    def windows2img(self, img_splits_hw, H_sp, W_sp, H, W):
+        """
+        img_splits_hw: B' H W C
+        """
+        B = int(img_splits_hw.shape[0] / (H * W / H_sp / W_sp))
+
+        img = img_splits_hw.view(B, H // H_sp, W // W_sp, H_sp, W_sp, -1)
+        img = img.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1)
+        return img
 
     def im2cswin(self, x, size):
         B, N, C = x.shape
@@ -273,7 +247,7 @@ class LePEAttention(nn.Module):
         elif self.idx == 1:
             W_sp, H_sp = W, self.split_size
 
-        x = img2windows(x, H_sp, W_sp)
+        x = self.img2windows(x, H_sp, W_sp)
         x = x.reshape(-1, H_sp * W_sp, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3).contiguous()
         return x
 
@@ -297,10 +271,7 @@ class LePEAttention(nn.Module):
         x = x.reshape(-1, self.num_heads, C // self.num_heads, H_sp * W_sp).permute(0, 1, 3, 2).contiguous()
         return x, lepe
 
-    def forward(self, qkv, size):
-        """
-        x: B L C
-        """
+    def forward(self, qkv: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
         q, k, v = qkv[0], qkv[1], qkv[2]
 
         # Img2Window
@@ -327,7 +298,7 @@ class LePEAttention(nn.Module):
         x = (attn @ v) + lepe
         x = x.transpose(1, 2).reshape(-1, H_sp * W_sp, C)  # B head N N @ B head N C
         # Window2Img
-        x = windows2img(x, H_sp, W_sp, H, W).view(B, -1, C)  # B H' W' C
+        x = self.windows2img(x, H_sp, W_sp, H, W).view(B, -1, C)  # B H' W' C
         return x
 
 
@@ -340,13 +311,7 @@ class CSWinBlock(nn.Module):
         split_size=7,
         mlp_ratio=4.0,
         qkv_bias=False,
-        qk_scale=None,
-        drop=0.0,
-        attn_drop=0.0,
         drop_path=0.0,
-        act_layer=nn.GELU,
-        norm_layer=nn.LayerNorm,
-        last_stage=False,
     ):
         super().__init__()
         self.dim = dim
@@ -355,15 +320,8 @@ class CSWinBlock(nn.Module):
         self.split_size = split_size
         self.mlp_ratio = mlp_ratio
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
-        self.norm1 = norm_layer(dim)
-
-        last_stage = False
-        if last_stage:
-            self.branch_num = 1
-        else:
-            self.branch_num = 2
+        self.norm1 = nn.LayerNorm(dim)
         self.proj = nn.Linear(dim, dim)
-        self.proj_drop = nn.Dropout(drop)
 
         self.attns = nn.ModuleList([
             LePEAttention(
@@ -373,18 +331,15 @@ class CSWinBlock(nn.Module):
                 split_size=split_size,
                 num_heads=num_heads // 2,
                 dim_out=dim // 2,
-                qk_scale=qk_scale,
-                attn_drop=attn_drop,
-                proj_drop=drop,
             )
-            for i in range(self.branch_num)
+            for i in range(2)
         ])
 
         mlp_hidden_dim = int(dim * mlp_ratio)
 
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
-        self.mlp = FeedForward(in_dim=dim, hidden_dim=mlp_hidden_dim, act_layer=act_layer, dropout=drop)
-        self.norm2 = norm_layer(dim)
+        self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
+        self.norm2 = nn.LayerNorm(dim)
 
     def forward(self, x, size):
         """
@@ -396,38 +351,14 @@ class CSWinBlock(nn.Module):
         img = self.norm1(x)
         qkv = self.qkv(img).reshape(B, -1, 3, C).permute(2, 0, 1, 3)
 
-        if self.branch_num == 2:
-            x1 = self.attns[0](qkv[:, :, :, : C // 2], size)
-            x2 = self.attns[1](qkv[:, :, :, C // 2 :], size)
-            attened_x = torch.cat([x1, x2], dim=2)
-        else:
-            attened_x = self.attns[0](qkv, size)
+        x1 = self.attns[0](qkv[:, :, :, : C // 2], size)
+        x2 = self.attns[1](qkv[:, :, :, C // 2 :], size)
+        attened_x = torch.cat([x1, x2], dim=2)
         attened_x = self.proj(attened_x)
         x = x + self.drop_path(attened_x)
         x = x + self.drop_path(self.mlp(self.norm2(x)))
 
         return x
-
-
-def img2windows(img, H_sp, W_sp):
-    """
-    img: B C H W
-    """
-    B, C, H, W = img.shape
-    img_reshape = img.view(B, C, H // H_sp, H_sp, W // W_sp, W_sp)
-    img_perm = img_reshape.permute(0, 2, 4, 3, 5, 1).contiguous().reshape(-1, H_sp * W_sp, C)
-    return img_perm
-
-
-def windows2img(img_splits_hw, H_sp, W_sp, H, W):
-    """
-    img_splits_hw: B' H W C
-    """
-    B = int(img_splits_hw.shape[0] / (H * W / H_sp / W_sp))
-
-    img = img_splits_hw.view(B, H // H_sp, W // W_sp, H_sp, W_sp, -1)
-    img = img.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1)
-    return img
 
 
 class BasicLayer(nn.Module):
@@ -437,18 +368,11 @@ class BasicLayer(nn.Module):
         out_dim,
         depth,
         num_heads,
-        init_value: float,
-        heads_range: float,
         mlp_ratio=4.0,
         split_size=1,
         sr_ratio=1,
         qkv_bias=True,
-        qk_scale=None,
-        drop_rate=0.0,
-        attn_drop=0.0,
         drop_path=0.0,
-        norm_layer=nn.LayerNorm,
-        chunkwise_recurrent=False,
         downsample: PatchMerging = None,
         mixer_type="Global",
     ):
@@ -456,7 +380,6 @@ class BasicLayer(nn.Module):
         self.embed_dim = embed_dim
         self.out_dim = out_dim
         self.depth = depth
-        self.chunkwise_recurrent = chunkwise_recurrent
         self.mixer_type = mixer_type
         if mixer_type == "Local1":
             self.blocks = nn.ModuleList([
@@ -466,29 +389,20 @@ class BasicLayer(nn.Module):
                     reso=25,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
                     split_size=split_size,
-                    drop=drop_rate,
-                    attn_drop=attn_drop,
                     drop_path=drop_path[i],
-                    norm_layer=norm_layer,
                 )
                 for i in range(depth)
             ])
 
         elif mixer_type == "Global2":
             self.blocks = nn.ModuleList([
-                MHSA_Block(
+                MultiHeadSelfAttention(
                     dim=embed_dim,
                     num_heads=num_heads,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
-                    drop=drop_rate,
-                    attn_drop=attn_drop,
                     drop_path_rate=drop_path[i],
-                    act_layer=nn.GELU,
-                    norm_layer=norm_layer,
                 )
                 for i in range(depth)
             ])
@@ -512,12 +426,8 @@ class BasicLayer(nn.Module):
                     reso=25,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
-                    qk_scale=qk_scale,
                     split_size=split_size,
-                    drop=drop_rate,
-                    attn_drop=attn_drop,
                     drop_path=drop_path[i],
-                    norm_layer=norm_layer,
                 )
                 for i in range(depth)
             ])
@@ -527,17 +437,14 @@ class BasicLayer(nn.Module):
                     sr_ratio=sr_ratio,
                     num_heads=num_heads // 2,
                     mlp_ratio=mlp_ratio,
-                    norm_cfg=norm_layer,
-                    drop=drop_rate,
                     drop_path=drop_path[i],
-                    act_cfg=nn.GELU,
                 )
                 for i in range(depth)
             ])
 
         # patch merging layer
         if downsample is not None:
-            self.downsample = downsample(dim=embed_dim, out_dim=out_dim, norm_layer=norm_layer)
+            self.downsample = downsample(dim=embed_dim, out_dim=out_dim)
         else:
             self.downsample = None
 
@@ -572,27 +479,6 @@ class BasicLayer(nn.Module):
         return x
 
 
-class PatchEmbed(nn.Module):
-    def __init__(self, in_chans=3, embed_dim=96, norm_layer=None):
-        super().__init__()
-
-        self.embed_dim = embed_dim
-        self.proj = nn.Sequential(
-            *conv_sequence_pt(
-                in_chans, embed_dim // 2, kernel_size=3, stride=2, padding=1, bias=False, bn=True, relu=False
-            ),
-            nn.GELU(),
-            *conv_sequence_pt(
-                embed_dim // 2, embed_dim, kernel_size=3, stride=2, padding=1, bias=False, bn=True, relu=False
-            ),
-            nn.GELU(),
-        )
-
-    def forward(self, x):
-        x = self.proj(x).permute(0, 2, 3, 1).contiguous()
-        return x
-
-
 class VIPTRNet(nn.Module):
     def __init__(
         self,
@@ -601,34 +487,27 @@ class VIPTRNet(nn.Module):
         embed_dims=[96, 192, 384, 768],
         depths=[2, 2, 6, 2],
         num_heads=[3, 6, 12, 24],
-        init_values=[1, 1, 1, 1],
-        heads_ranges=[3, 3, 3, 3],
         mlp_ratios=[3, 3, 3, 3],
         split_sizes=[1, 2, 2, 4],
         sr_ratios=[8, 4, 2, 1],
-        drop_path_rate=0.1,
-        norm_layer=nn.LayerNorm,
-        patch_norm=True,
         mixer_types=["Local1", "LG1", "Global2"],
-        chunkwise_recurrents=[True, True, False, False],
-        layer_init_values=1e-6,
     ):
         super().__init__()
 
         self.out_dim = out_dim
         self.num_layers = len(depths)
         self.embed_dim = embed_dims[0]
-        self.patch_norm = patch_norm
         self.num_features = embed_dims[-1]
         self.mlp_ratios = mlp_ratios
 
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
-            in_chans=in_chans, embed_dim=embed_dims[0], norm_layer=norm_layer if self.patch_norm else None
+            in_channels=in_chans,
+            embed_dim=embed_dims[0],
         )
 
         # stochastic depth
-        dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(depths))]  # stochastic depth decay rule
+        dpr = [x.item() for x in torch.linspace(0, 0.1, sum(depths))]  # stochastic depth decay rule
 
         # build layers
         self.layers = nn.ModuleList()
@@ -638,30 +517,23 @@ class VIPTRNet(nn.Module):
                 out_dim=embed_dims[i_layer + 1] if (i_layer < self.num_layers - 1) else None,
                 depth=depths[i_layer],
                 num_heads=num_heads[i_layer],
-                init_value=init_values[i_layer],
-                heads_range=heads_ranges[i_layer],
                 mlp_ratio=mlp_ratios[i_layer],
                 split_size=split_sizes[i_layer],
                 sr_ratio=sr_ratios[i_layer],
                 qkv_bias=True,
-                qk_scale=None,
-                drop_rate=0.0,
-                attn_drop=0.0,
                 drop_path=dpr[sum(depths[:i_layer]) : sum(depths[: i_layer + 1])],
-                # norm_layer=norm_layer,
-                chunkwise_recurrent=chunkwise_recurrents[i_layer],
-                downsample=PatchMerging
-                if (i_layer in [0, 1])
-                else None,  # PatchMerging if (i_layer < self.num_layers - 1) else None,
+                downsample=PatchMerging if (i_layer in [0, 1]) else None,
                 mixer_type=mixer_types[i_layer],
             )
             self.layers.append(layer)
 
         self.pooling = nn.AdaptiveAvgPool2d((embed_dims[self.num_layers - 1], 1))
         self.mlp_head = nn.Sequential(
-            nn.Linear(embed_dims[self.num_layers - 1], out_dim, bias=False), nn.Hardswish(), nn.Dropout(p=0.1)
+            nn.Linear(embed_dims[self.num_layers - 1], out_dim, bias=False),
+            nn.Hardswish(),
+            nn.Dropout(p=0.1),
         )
-        self.norm = nn.LayerNorm(embed_dims[-1], eps=layer_init_values)
+        self.norm = nn.LayerNorm(embed_dims[-1], eps=1e-6)
         self.apply(self._init_weights)
 
     def _init_weights(self, m):
@@ -676,7 +548,7 @@ class VIPTRNet(nn.Module):
             except:
                 pass
 
-    def forward_features(self, x):
+    def forward(self, x):
         x = self.patch_embed(x)
         _, H, W, _ = x.shape
         for layer in self.layers:
@@ -689,10 +561,6 @@ class VIPTRNet(nn.Module):
         x = x.squeeze(3)  # .reshape(b, W, -1)
         x = self.mlp_head(x)
 
-        return x
-
-    def forward(self, x):
-        x = self.forward_features(x)
         return x
 
 
@@ -712,13 +580,9 @@ def VIPTRv2():
         embed_dims=[64, 128, 256],
         depths=[3, 3, 3],
         num_heads=[2, 4, 8],
-        init_values=[2, 2, 2],
-        heads_ranges=[4, 4, 6],
         mlp_ratios=[3, 4, 4],  # 4 4 4
         split_sizes=[1, 2, 4],
         sr_ratios=[4, 2, 2],  # [8, 4, 2]
-        drop_path_rate=0.1,
-        chunkwise_recurrents=[True, False, False],
     )
     return model
 
@@ -729,13 +593,9 @@ def VIPTRv2B():
         embed_dims=[128, 256, 384],
         depths=[3, 6, 9],
         num_heads=[4, 8, 12],
-        init_values=[2, 2, 2],
-        heads_ranges=[6, 6, 6],
         mlp_ratios=[4, 4, 4],  # 4 4 4
         split_sizes=[1, 2, 4],
         sr_ratios=[4, 2, 2],  # [8, 4, 2]
-        drop_path_rate=0.1,
-        chunkwise_recurrents=[True, False, False],
     )
     return model
 
@@ -743,7 +603,6 @@ def VIPTRv2B():
 if __name__ == "__main__":
     model = VIPTRv2B().to(device)
     a = torch.randn(1, 3, 32, 128).to(device)
-    print(model(a).shape)
     # b = torch.randn(1, 3, 32, 320).to(device)
     # print(model(b).shape)
     model.eval()
@@ -752,7 +611,6 @@ if __name__ == "__main__":
         for i in range(5):
             a = torch.randn(1, 3, 32, 128).to(device)
             y = model(a)
-            print(y.shape)
         infer_time = time.time() - start
     print(infer_time / 5)
     print("Base model Parameter numbers: {}".format(sum(p.numel() for p in model.parameters())))
@@ -767,7 +625,6 @@ if __name__ == "__main__":
 
     model = VIPTRv2().to(device)
     a = torch.randn(1, 3, 32, 128).to(device)
-    print(model(a).shape)
     # b = torch.randn(1, 3, 32, 320).to(device)
     # print(model(b).shape)
     model.eval()
@@ -776,13 +633,11 @@ if __name__ == "__main__":
         for i in range(5):
             a = torch.randn(1, 3, 32, 128).to(device)
             y = model(a)
-            print(y.shape)
         infer_time = time.time() - start
     print(infer_time / 5)
     print("Tiny model Parameter numbers: {}".format(sum(p.numel() for p in model.parameters())))
 
     # test with HEAD
-    model = VIPTRv2().to(device)
     a = torch.randn(1, 3, 32, 128).to(device)
     print(model(a).shape)
     head = VIPTRRecHead(384, 128).to(device)
