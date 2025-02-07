@@ -1,5 +1,3 @@
-import time
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,8 +7,6 @@ from doctr.models.modules.layers import DropPath
 from doctr.models.modules.transformer import PositionwiseFeedForward
 from doctr.models.modules.transformer.pytorch import PositionwiseFeedForward
 from doctr.models.utils import conv_sequence_pt
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class PatchEmbed(nn.Module):
@@ -155,7 +151,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
         return x  # .reshape(B, C, H, W)
 
 
-class OSRA_Block(nn.Module):
+class OSRABlock(nn.Module):
     def __init__(
         self,
         dim=64,
@@ -302,11 +298,11 @@ class LePEAttention(nn.Module):
         return x
 
 
-class CSWinBlock(nn.Module):
+class CrossShapedWindowAttention(nn.Module):
     def __init__(
         self,
         dim,
-        reso,
+        patches_resolution,
         num_heads,
         split_size=7,
         mlp_ratio=4.0,
@@ -314,11 +310,6 @@ class CSWinBlock(nn.Module):
         drop_path=0.0,
     ):
         super().__init__()
-        self.dim = dim
-        self.num_heads = num_heads
-        self.patches_resolution = reso
-        self.split_size = split_size
-        self.mlp_ratio = mlp_ratio
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.norm1 = nn.LayerNorm(dim)
         self.proj = nn.Linear(dim, dim)
@@ -326,7 +317,7 @@ class CSWinBlock(nn.Module):
         self.attns = nn.ModuleList([
             LePEAttention(
                 dim // 2,
-                resolution=self.patches_resolution,
+                resolution=patches_resolution,
                 idx=i,
                 split_size=split_size,
                 num_heads=num_heads // 2,
@@ -373,7 +364,7 @@ class BasicLayer(nn.Module):
         sr_ratio=1,
         qkv_bias=True,
         drop_path=0.0,
-        downsample: PatchMerging = None,
+        downsample=False,
         mixer_type="Global",
     ):
         super().__init__()
@@ -383,10 +374,10 @@ class BasicLayer(nn.Module):
         self.mixer_type = mixer_type
         if mixer_type == "Local1":
             self.blocks = nn.ModuleList([
-                CSWinBlock(
+                CrossShapedWindowAttention(
                     dim=embed_dim,
                     num_heads=num_heads,
-                    reso=25,
+                    patches_resolution=25,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
                     split_size=split_size,
@@ -420,10 +411,10 @@ class BasicLayer(nn.Module):
             )
 
             self.local_unit = nn.ModuleList([
-                CSWinBlock(
+                CrossShapedWindowAttention(
                     dim=embed_dim // 2,
                     num_heads=num_heads,
-                    reso=25,
+                    patches_resolution=25,
                     mlp_ratio=mlp_ratio,
                     qkv_bias=qkv_bias,
                     split_size=split_size,
@@ -432,7 +423,7 @@ class BasicLayer(nn.Module):
                 for i in range(depth)
             ])
             self.global_unit = nn.ModuleList([
-                OSRA_Block(
+                OSRABlock(
                     dim=embed_dim // 2,
                     sr_ratio=sr_ratio,
                     num_heads=num_heads // 2,
@@ -442,21 +433,11 @@ class BasicLayer(nn.Module):
                 for i in range(depth)
             ])
 
-        # patch merging layer
-        if downsample is not None:
-            self.downsample = downsample(dim=embed_dim, out_dim=out_dim)
-        else:
-            self.downsample = None
+        self.downsample = PatchMerging(dim=embed_dim, out_dim=out_dim) if downsample else None
 
     def forward(self, x, size):
         b, h, w, d = x.size()
-        if self.mixer_type == "Local1":
-            for blk in self.blocks:
-                x = x.flatten(1).reshape(b, -1, d)
-                x = blk(x, size)
-                x = x.reshape(b, h, w, -1)
-
-        elif self.mixer_type == "Global2":
+        if self.mixer_type == "Local1" or self.mixer_type == "Global2":
             for blk in self.blocks:
                 x = x.flatten(1).reshape(b, -1, d)
                 x = blk(x, size)
@@ -474,7 +455,7 @@ class BasicLayer(nn.Module):
                 x = x.permute(0, 2, 3, 1).contiguous()
                 x = x.reshape(b, h, w, -1)
 
-        if self.downsample is not None:
+        if self.downsample:
             x = self.downsample(x)
         return x
 
@@ -522,7 +503,7 @@ class VIPTRNet(nn.Module):
                 sr_ratio=sr_ratios[i_layer],
                 qkv_bias=True,
                 drop_path=dpr[sum(depths[:i_layer]) : sum(depths[: i_layer + 1])],
-                downsample=PatchMerging if (i_layer in [0, 1]) else None,
+                downsample=True if (i_layer in [0, 1]) else None,
                 mixer_type=mixer_types[i_layer],
             )
             self.layers.append(layer)
@@ -601,6 +582,9 @@ def VIPTRv2B():
 
 
 if __name__ == "__main__":
+    import time
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = VIPTRv2B().to(device)
     a = torch.randn(1, 3, 32, 128).to(device)
     # b = torch.randn(1, 3, 32, 320).to(device)
