@@ -328,33 +328,33 @@ def main(args):
         Compose([
             T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
             RandomGrayscale(p=0.15),
         ]),
-        RandomPhotometricDistort(p=0.3),
+        RandomPhotometricDistort(p=0.2),
         lambda x: x,  # Identity no transformation
     ])
     # Image + target augmentations
     sample_transforms = T.SampleCompose(
         (
             [
-                T.RandomHorizontalFlip(0.15),
+                T.RandomHorizontalFlip(0.1),
                 T.OneOf([
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
             if not args.rotation
             else [
-                T.RandomHorizontalFlip(0.15),
+                T.RandomHorizontalFlip(0.1),
                 T.OneOf([
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True),
-                T.RandomApply(T.RandomRotate(90, expand=True), 0.65),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.75),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
         )
@@ -438,7 +438,7 @@ def main(args):
     elif args.sched == "onecycle":
         scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(train_loader))
     elif args.sched == "poly":
-        scheduler = PolynomialLR(optimizer, args.epochs * len(train_loader), power=2.0)
+        scheduler = PolynomialLR(optimizer, args.epochs * len(train_loader), power=1.0)
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
