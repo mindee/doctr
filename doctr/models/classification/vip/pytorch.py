@@ -585,7 +585,8 @@ if __name__ == "__main__":
     import time
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = VIPTRv2B().to(device)
+
+    model = VIPTRv2B().to(device)  # num of params correct !! 20.2M see paper table 3 !
     a = torch.randn(1, 3, 32, 128).to(device)
     # b = torch.randn(1, 3, 32, 320).to(device)
     # print(model(b).shape)
@@ -607,7 +608,7 @@ if __name__ == "__main__":
     y = model(a)
     print(head(y).shape)
 
-    model = VIPTRv2().to(device)
+    model = VIPTRv2().to(device)  # num of params correct !! 3.2M see paper table 3 !
     a = torch.randn(1, 3, 32, 128).to(device)
     # b = torch.randn(1, 3, 32, 320).to(device)
     # print(model(b).shape)
