@@ -249,13 +249,13 @@ def main(args):
             T.RandomApply(T.RandomJpegQuality(60), 0.15),
             # T.RandomApply(T.RandomShadow(), 0.2), # Broken atm on GPU
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.5, 1.5)), 0.3),
+            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.5, 1.5)), 0.2),
             T.RandomApply(T.ToGray(num_output_channels=3), 0.15),
         ]),
         T.Compose([
-            T.RandomApply(T.RandomSaturation(0.3), 0.3),
-            T.RandomApply(T.RandomContrast(0.3), 0.3),
-            T.RandomApply(T.RandomBrightness(0.3), 0.3),
+            T.RandomApply(T.RandomSaturation(0.3), 0.2),
+            T.RandomApply(T.RandomContrast(0.3), 0.2),
+            T.RandomApply(T.RandomBrightness(0.3), 0.2),
         ]),
         lambda x: x,  # Identity no transformation
     ])
@@ -263,23 +263,23 @@ def main(args):
     sample_transforms = T.SampleCompose(
         (
             [
-                T.RandomHorizontalFlip(0.15),
+                T.RandomHorizontalFlip(0.1),
                 T.OneOf([
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
             if not args.rotation
             else [
-                T.RandomHorizontalFlip(0.15),
+                T.RandomHorizontalFlip(0.1),
                 T.OneOf([
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True),
-                T.RandomApply(T.RandomRotate(90, expand=True), 0.65),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.75),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
         )
@@ -323,7 +323,7 @@ def main(args):
             args.lr,
             decay_steps=args.epochs * len(train_loader),
             end_learning_rate=1e-7,
-            power=2.0,
+            power=1.0,
             cycle=False,
             name="PolynomialDecay",
         )
