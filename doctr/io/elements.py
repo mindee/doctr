@@ -347,7 +347,7 @@ class Page(Element):
         )
         # Create the body
         body = SubElement(page_hocr, "body")
-        SubElement(
+        page_div = SubElement(
             body,
             "div",
             attrib={
@@ -362,7 +362,7 @@ class Page(Element):
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
             (xmin, ymin), (xmax, ymax) = block.geometry
             block_div = SubElement(
-                body,
+                page_div,
                 "div",
                 attrib={
                     "class": "ocr_carea",
@@ -550,7 +550,41 @@ class KIEPage(Element):
                         {int(round(xmax * width))} {int(round(ymax * height))}",
                     },
                 )
-                prediction_div.text = prediction.value
+                # NOTE: ocr_par, ocr_line and ocrx_word are the same because the KIE predictions contain only words
+                # This is a workaround to make it PDF/A compatible
+                par_div = SubElement(
+                    prediction_div,
+                    "p",
+                    attrib={
+                        "class": "ocr_par",
+                        "id": f"{class_name}_par_{prediction_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}",
+                    },
+                )
+                line_span = SubElement(
+                    par_div,
+                    "span",
+                    attrib={
+                        "class": "ocr_line",
+                        "id": f"{class_name}_line_{prediction_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}; \
+                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                    },
+                )
+                word_div = SubElement(
+                    line_span,
+                    "span",
+                    attrib={
+                        "class": "ocrx_word",
+                        "id": f"{class_name}_word_{prediction_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}; \
+                        x_wconf {int(round(prediction.confidence * 100))}",
+                    },
+                )
+                word_div.text = prediction.value
                 prediction_count += 1
 
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
