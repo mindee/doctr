@@ -8,7 +8,6 @@ from typing import Any
 
 import torch
 import torch.nn as nn
-from torch.nn.init import trunc_normal_
 
 from doctr.datasets import VOCABS
 
