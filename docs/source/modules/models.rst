@@ -41,6 +41,10 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.textnet_base
 
+.. autofunction:: doctr.models.classification.vip_tiny
+
+.. autofunction:: doctr.models.classification.vip_base
+
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 .. autofunction:: doctr.models.classification.page_orientation_predictor
