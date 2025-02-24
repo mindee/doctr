@@ -23,6 +23,9 @@ __all__ = [
 ]
 
 
+# TODO: Add type hints + cleanup  -> test always with train
+
+
 class PatchEmbed(nn.Module):
     def __init__(self, in_channels: int = 3, embed_dim: int = 128):
         super().__init__()

@@ -36,52 +36,51 @@ default_cfgs: dict[str, dict[str, Any]] = {
 
 
 # TODO: Refactor and cleanup !
-class BasicLayer(nn.Module):
+class VIPBlock(nn.Module):
     def __init__(
         self,
-        embed_dim,
+        embed_dim: int,
         out_dim,
-        depth,
-        num_heads,
-        mlp_ratio=4.0,
-        split_size=1,
-        sr_ratio=1,
-        qkv_bias=True,
-        drop_path=0.0,
-        downsample=False,
-        mixer_type="Global",
+        depth: int,
+        num_heads: int,
+        mixer_type: str,
+        mlp_ratio: float = 4.0,
+        split_size: int = 1,
+        sr_ratio: int = 1,
+        drop_path: float = 0.0,
+        downsample: bool = False,
     ):
         super().__init__()
         self.embed_dim = embed_dim
         self.out_dim = out_dim
         self.depth = depth
         self.mixer_type = mixer_type
-        if mixer_type == "Local1":
+        if mixer_type == "Local":
             self.blocks = nn.ModuleList([
                 CrossShapedWindowAttention(
                     dim=embed_dim,
                     num_heads=num_heads,
                     patches_resolution=25,
                     mlp_ratio=mlp_ratio,
-                    qkv_bias=qkv_bias,
+                    qkv_bias=True,
                     split_size=split_size,
                     drop_path=drop_path[i],
                 )
                 for i in range(depth)
             ])
 
-        elif mixer_type == "Global2":
+        elif mixer_type == "Global":
             self.blocks = nn.ModuleList([
                 MultiHeadSelfAttention(
                     dim=embed_dim,
                     num_heads=num_heads,
                     mlp_ratio=mlp_ratio,
-                    qkv_bias=qkv_bias,
+                    qkv_bias=True,
                     drop_path_rate=drop_path[i],
                 )
                 for i in range(depth)
             ])
-        elif mixer_type == "LG1":
+        elif mixer_type == "Mixed":
             inner_dim = max(16, embed_dim // 8)
             self.proj = nn.Sequential(
                 nn.Conv2d(embed_dim, embed_dim, kernel_size=3, padding=1, groups=embed_dim),
@@ -100,7 +99,7 @@ class BasicLayer(nn.Module):
                     num_heads=num_heads,
                     patches_resolution=25,
                     mlp_ratio=mlp_ratio,
-                    qkv_bias=qkv_bias,
+                    qkv_bias=True,
                     split_size=split_size,
                     drop_path=drop_path[i],
                 )
@@ -121,13 +120,13 @@ class BasicLayer(nn.Module):
 
     def forward(self, x, size):
         b, h, w, d = x.size()
-        if self.mixer_type == "Local1" or self.mixer_type == "Global2":
+        if self.mixer_type == "Local" or self.mixer_type == "Global":
             for blk in self.blocks:
                 x = x.flatten(1).reshape(b, -1, d)
                 x = blk(x, size)
                 x = x.reshape(b, h, w, -1)
 
-        elif self.mixer_type == "LG1":
+        elif self.mixer_type == "Mixed":
             for lblk, gblk in zip(self.local_unit, self.global_unit):
                 x = x.flatten(1).reshape(b, -1, d)
                 x1, x2 = torch.chunk(x, chunks=2, dim=2)
@@ -146,9 +145,9 @@ class BasicLayer(nn.Module):
 
 class VIPNet(nn.Sequential):
     # TODO
-    """VisionTransformer architecture as described in
-    `"An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale",
-    <https://arxiv.org/pdf/2010.11929.pdf>`_.
+    """VIP (Vision Permutable) encoder architecture as described in
+    `"SVIPTR: Fast and Efficient Scene Text Recognition with Vision Permutable Extractor",
+    <https://arxiv.org/pdf/2401.10110>`_.
 
     Args:
         d_model: dimension of the transformer layers
@@ -165,15 +164,15 @@ class VIPNet(nn.Sequential):
     # TODO: This should be a Sequential model
     def __init__(
         self,
-        in_chans=3,
-        out_dim=192,
-        embed_dims=[96, 192, 384, 768],
-        depths=[2, 2, 6, 2],
-        num_heads=[3, 6, 12, 24],
-        mlp_ratios=[3, 3, 3, 3],
-        split_sizes=[1, 2, 2, 4],
-        sr_ratios=[8, 4, 2, 1],
-        mixer_types=["Local1", "LG1", "Global2"],
+        in_channels: int = 3,
+        out_dim: int = 384,
+        embed_dims: list[int] = [64, 128, 256],
+        depths: list[int] = [3, 3, 3],
+        num_heads: list[int] = [2, 4, 8],
+        mlp_ratios: list[int] = [3, 4, 4],
+        split_sizes: list[int] = [1, 2, 4],
+        sr_ratios: list[int] = [4, 2, 2],
+        mixer_types=["Local", "Mixed", "Global"],
         input_shape: tuple[int, int, int] = (3, 32, 32),
         num_classes: int = 1000,
         include_top: bool = True,
@@ -192,7 +191,7 @@ class VIPNet(nn.Sequential):
 
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
-            in_channels=in_chans,
+            in_channels=in_channels,
             embed_dim=embed_dims[0],
         )
 
@@ -202,7 +201,7 @@ class VIPNet(nn.Sequential):
         # build layers
         self.layers = nn.ModuleList()
         for i_layer in range(self.num_layers):
-            layer = BasicLayer(
+            block = VIPBlock(
                 embed_dim=embed_dims[i_layer],
                 out_dim=embed_dims[i_layer + 1] if (i_layer < self.num_layers - 1) else None,
                 depth=depths[i_layer],
@@ -210,12 +209,11 @@ class VIPNet(nn.Sequential):
                 mlp_ratio=mlp_ratios[i_layer],
                 split_size=split_sizes[i_layer],
                 sr_ratio=sr_ratios[i_layer],
-                qkv_bias=True,
                 drop_path=dpr[sum(depths[:i_layer]) : sum(depths[: i_layer + 1])],
-                downsample=True if (i_layer in [0, 1]) else None,
+                downsample=True if i_layer < 2 else None,
                 mixer_type=mixer_types[i_layer],
             )
-            self.layers.append(layer)
+            self.layers.append(block)
 
         self.pooling = nn.AdaptiveAvgPool2d((embed_dims[self.num_layers - 1], 1))
         self.mlp_head = nn.Sequential(
@@ -311,7 +309,7 @@ def vip_tiny(pretrained: bool = False, **kwargs: Any) -> VIPNet:
         mlp_ratios=[3, 4, 4],
         split_sizes=[1, 2, 4],
         sr_ratios=[4, 2, 2],
-        ignore_keys=["2.head.weight", "2.head.bias"],  # TODO
+        ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )
 
@@ -344,6 +342,6 @@ def vip_base(pretrained: bool = False, **kwargs: Any) -> VIPNet:
         mlp_ratios=[4, 4, 4],
         split_sizes=[1, 2, 4],
         sr_ratios=[4, 2, 2],
-        ignore_keys=["2.head.weight", "2.head.bias"],  # TODO
+        ignore_keys=["head.weight", "head.bias"],
         **kwargs,
     )
