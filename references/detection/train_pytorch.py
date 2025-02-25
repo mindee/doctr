@@ -322,17 +322,17 @@ def main(args):
     # Image augmentations
     img_transforms = T.OneOf([
         Compose([
-            T.RandomApply(T.ColorInversion(), 0.3),
-            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
+            T.RandomApply(T.ColorInversion(), 0.4),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.2)), 0.2),
         ]),
         Compose([
-            T.RandomApply(T.RandomShadow(), 0.3),
+            T.RandomApply(T.RandomShadow(), 0.5),
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
-            RandomGrayscale(p=0.15),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.2)), 0.2),
         ]),
-        RandomPhotometricDistort(p=0.2),
-        lambda x: x,  # Identity no transformation
+        RandomGrayscale(p=0.15),
+        RandomPhotometricDistort(p=0.25),
+        #        lambda x: x,  # Identity no transformation
     ])
     # Image + target augmentations
     sample_transforms = T.SampleCompose(
@@ -340,8 +340,8 @@ def main(args):
             [
                 T.RandomHorizontalFlip(0.1),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.15),
+                    T.RandomResize(scale_range=(0.4, 0.5), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.5),
                 ]),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
@@ -349,8 +349,22 @@ def main(args):
             else [
                 T.RandomHorizontalFlip(0.1),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.15),
+                    # T.RandomResize(scale_range=(0.2, 0.25), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.5),
+                    T.RandomApply(
+                        T.Resize(
+                            (args.input_size // 2, args.input_size // 2),
+                            preserve_aspect_ratio=False,
+                            symmetric_pad=False,
+                        ),
+                        0.5,
+                    ),
+                    T.RandomApply(
+                        T.Resize(
+                            (args.input_size // 2, args.input_size // 2), preserve_aspect_ratio=True, symmetric_pad=True
+                        ),
+                        0.5,
+                    ),
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True),
