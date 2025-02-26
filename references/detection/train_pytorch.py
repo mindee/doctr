@@ -309,7 +309,7 @@ def main(args):
     if rank == 0 and args.test_only:
         pbar.write("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(
-            model, val_loader, batch_transforms, val_metric, args, amp=args.amp
+            model, val_loader, batch_transforms, val_metric, amp=args.amp, log=lambda **kwargs: None
         )
         pbar.write(
             f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
