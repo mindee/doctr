@@ -421,7 +421,24 @@ def test_document():
     assert doc.export() == {"pages": [p.export() for p in pages]}
 
     # Export XML
-    assert isinstance(doc.export_as_xml(), list) and len(doc.export_as_xml()) == len(pages)
+    xml_output = doc.export_as_xml()
+    assert isinstance(xml_output, list) and len(xml_output) == len(pages)
+    # Check that the XML is well-formed in hOCR format
+    for xml_bytes, xml_tree in xml_output:
+        assert isinstance(xml_bytes, bytes)
+        assert isinstance(xml_tree, ElementTree)
+        root = xml_tree.getroot()
+        assert root.tag == "html"
+        assert root[0].tag == "head"
+        assert root[1].tag == "body"
+        assert root[1][0].tag == "div" and root[1][0].attrib["class"] == "ocr_page"
+        for block in root[1][0]:
+            assert block.tag == "div" and block.attrib["class"] == "ocr_carea"
+            assert block[0].tag == "p" and block[0].attrib["class"] == "ocr_par"
+            for line in block[0]:
+                assert line.tag == "span" and line.attrib["class"] == "ocr_line"
+                for word in line:
+                    assert word.tag == "span" and word.attrib["class"] == "ocrx_word"
 
     # Show
     doc.show(block=False)
@@ -447,7 +464,24 @@ def test_kie_document():
     assert doc.export() == {"pages": [p.export() for p in pages]}
 
     # Export XML
-    assert isinstance(doc.export_as_xml(), list) and len(doc.export_as_xml()) == len(pages)
+    xml_output = doc.export_as_xml()
+    assert isinstance(xml_output, list) and len(xml_output) == len(pages)
+    # Check that the XML is well-formed in hOCR format
+    for xml_bytes, xml_tree in xml_output:
+        assert isinstance(xml_bytes, bytes)
+        assert isinstance(xml_tree, ElementTree)
+        root = xml_tree.getroot()
+        assert root.tag == "html"
+        assert root[0].tag == "head"
+        assert root[1].tag == "body"
+        assert root[1][0].tag == "div" and root[1][0].attrib["class"] == "ocr_page"
+        for block in root[1][0]:
+            assert block.tag == "div" and block.attrib["class"] == "ocr_carea"
+            assert block[0].tag == "p" and block[0].attrib["class"] == "ocr_par"
+            for line in block[0]:
+                assert line.tag == "span" and line.attrib["class"] == "ocr_line"
+                for word in line:
+                    assert word.tag == "span" and word.attrib["class"] == "ocrx_word"
 
     # Show
     doc.show(block=False)
