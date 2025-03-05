@@ -165,7 +165,7 @@ You can find further information about the format in references.
     train_set = DetectionDataset(img_folder="/path/to/images", label_path="/path/to/labels.json")
     # Load a recognition Dataset
     train_set = RecognitionDataset(img_folder="/path/to/images", labels_path="/path/to/labels.json")
-    # Load a OCR dataset which contains anotations for the boxes and labels
+    # Load a OCR dataset which contains annotations for the boxes and labels
     train_set = OCRDataset(img_folder="/path/to/images", label_file="/path/to/labels.json")
     img, target = train_set[0]
 
