@@ -545,7 +545,7 @@ You can find further information about the format in references.</p>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">DetectionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
 <span class="c1"># Load a recognition Dataset</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">RecognitionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">labels_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
-<span class="c1"># Load a OCR dataset which contains anotations for the boxes and labels</span>
+<span class="c1"># Load a OCR dataset which contains annotations for the boxes and labels</span>
 <span class="n">train_set</span> <span class="o">=</span> <span class="n">OCRDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span> <span class="n">label_file</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
 <span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 </pre></div>

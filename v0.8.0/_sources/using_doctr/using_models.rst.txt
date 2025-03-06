@@ -409,7 +409,7 @@ For reference, here is the export for the same `Document` as above::
     ]
   }
 
-To export the outpout as XML (hocr-format) you can use the `export_as_xml` method:
+To export the output as XML (hocr-format) you can use the `export_as_xml` method:
 
 .. code-block:: python
 
@@ -502,7 +502,7 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
     class CustomHook:
         def __call__(self, loc_preds):
             # Manipulate the location predictions here
-            # 1. The outpout structure needs to be the same as the input location predictions
+            # 1. The output structure needs to be the same as the input location predictions
             # 2. Be aware that the coordinates are relative and needs to be between 0 and 1
             return loc_preds
 

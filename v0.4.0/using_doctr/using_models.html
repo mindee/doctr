@@ -1071,7 +1071,7 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
+<p>To export the output as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
     <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1149,7 +1149,7 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="k">class</span><span class="w"> </span><span class="nc">CustomHook</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">):</span>
         <span class="c1"># Manipulate the location predictions here</span>
-        <span class="c1"># 1. The outpout structure needs to be the same as the input location predictions</span>
+        <span class="c1"># 1. The output structure needs to be the same as the input location predictions</span>
         <span class="c1"># 2. Be aware that the coordinates are relative and needs to be between 0 and 1</span>
         <span class="k">return</span> <span class="n">loc_preds</span>
 
