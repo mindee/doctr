@@ -169,6 +169,9 @@ class OverlappingShiftedRelativeAttention(nn.Module):
 
 
 class OSRABlock(nn.Module):
+    """Global token mixing, captures global dependencies by using overlapping shifted relative attention,
+    aggregating context from a wider area."""
+
     def __init__(
         self,
         dim=64,
@@ -194,7 +197,9 @@ class OSRABlock(nn.Module):
 
 
 class PatchMerging(nn.Module):
-    """Patch Merging Layer"""
+    """Patch Merging Layer
+    Reduces the height dimension of input in half: if x.shape = (B, H, W, C) then output
+    shape is (B, H // 2, W, out_dim)"""
 
     def __init__(self, dim, out_dim):
         super().__init__()
@@ -204,6 +209,7 @@ class PatchMerging(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # (B, C, H, W) -> (B, H // 2, W, C)
+
         return self.norm(self.reduction(x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
 
 
@@ -310,6 +316,8 @@ class LePEAttention(nn.Module):
 
 
 class CrossShapedWindowAttention(nn.Module):
+    """Local Mixing module, performs attention within cross-shaped windows, capturing local patterns and fine details."""
+
     def __init__(
         self,
         dim,
