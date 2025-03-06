@@ -48,7 +48,7 @@ def translate(
         A string translated in a given vocab
     """
     if VOCABS.get(vocab_name) is None:
-        raise KeyError("output vocabulary must be in vocabs dictionnary")
+        raise KeyError("output vocabulary must be in vocabs dictionary")
 
     translated = ""
     for char in input_string:
