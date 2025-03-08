@@ -36,6 +36,8 @@ doctr.datasets
 
 .. autoclass:: WILDRECEIPT
 
+.. autoclass:: COCOTEXT
+
 Synthetic dataset generator
 ---------------------------
 
