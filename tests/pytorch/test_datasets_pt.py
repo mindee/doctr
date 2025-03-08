@@ -760,6 +760,37 @@ def test_wildreceipt_dataset(input_size, num_samples, rotate, recognition, detec
         datasets.WILDRECEIPT(*mock_wildreceipt_dataset, train=True, recognition_task=True, detection_task=True)
 
 
+@pytest.mark.parametrize("rotate", [True, False])
+@pytest.mark.parametrize(
+    "input_size, num_samples, recognition, detection",
+    [
+        [[512, 512], 3, False, False],  # Actual set has 13880 training samples and 3261 test samples
+        [[32, 128], 3, True, False],  # recognition
+        [[512, 512], 3, False, True],  # detection
+    ],
+)
+def test_cocotext_dataset(input_size, num_samples, rotate, recognition, detection, mock_cocotext_dataset):
+    ds = datasets.COCOTEXT(
+        *mock_cocotext_dataset,
+        train=True,
+        img_transforms=Resize(input_size),
+        use_polygons=rotate,
+        recognition_task=recognition,
+        detection_task=detection,
+    )
+    assert len(ds) == num_samples
+    assert repr(ds) == f"COCOTEXT(train={True})"
+    if recognition:
+        _validate_dataset_recognition_part(ds, input_size)
+    elif detection:
+        _validate_dataset_detection_part(ds, input_size, is_polygons=rotate)
+    else:
+        _validate_dataset(ds, input_size, is_polygons=rotate)
+
+    with pytest.raises(ValueError):
+        datasets.COCOTEXT(*mock_cocotext_dataset, train=True, recognition_task=True, detection_task=True)
+
+
 # NOTE: following datasets are only for recognition task
 
 
