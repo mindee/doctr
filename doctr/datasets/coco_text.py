@@ -76,6 +76,7 @@ class COCOTEXT(AbstractDataset):
 
         # Filter images based on the set
         img_items = [img for img in data["imgs"].items() if (img[1]["set"] == "train") == train]
+        box: list[float] | np.ndarray
 
         for img_id, img_info in tqdm(img_items, desc="Preparing and Loading COCOTEXT", total=len(img_items)):
             img_path = os.path.join(img_folder, img_info["file_name"])
