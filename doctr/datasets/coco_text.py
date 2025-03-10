@@ -22,7 +22,7 @@ class COCOTEXT(AbstractDataset):
     COCO-Text dataset from `"COCO-Text: Dataset and Benchmark for Text Detection and Recognition in Natural Images"
     <https://arxiv.org/pdf/1601.07140v2>`_ |
     `"homepage" <https://bgshih.github.io/cocotext/>`_.
-    
+
     >>> # NOTE: You need to download the dataset first.
     >>> from doctr.datasets import COCOTEXT
     >>> train_set = COCOTEXT(train=True, img_folder="/path/to/coco_text/train2014/",
@@ -31,7 +31,7 @@ class COCOTEXT(AbstractDataset):
     >>> test_set = COCOTEXT(train=False, img_folder="/path/to/coco_text/train2014/",
     >>> label_path = "/path/to/coco_text/cocotext.v2.json")
     >>> img, target = test_set[0]
-    
+
     Args:
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations file of the dataset
@@ -55,7 +55,7 @@ class COCOTEXT(AbstractDataset):
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
         )
-        # Task check 
+        # Task check
         if recognition_task and detection_task:
             raise ValueError(
                 " 'recognition' and 'detection task' cannot be set to True simultaneously. "
@@ -73,14 +73,16 @@ class COCOTEXT(AbstractDataset):
 
         with open(label_path, "r") as file:
             data = json.load(file)
-            
+
         # Filter images based on the set
         img_items = [img for img in data["imgs"].items() if (img[1]["set"] == "train") == train]
+        box: list[float] | np.ndarray
 
         for img_id, img_info in tqdm(img_items, desc="Preparing and Loading COCOTEXT", total=len(img_items)):
             img_path = os.path.join(img_folder, img_info["file_name"])
 
-            if not os.path.exists(img_path):
+            # File existence check
+            if not os.path.exists(img_path):  # pragma: no cover
                 raise FileNotFoundError(f"Unable to locate {img_path}")
 
             # Get annotations for the current image (only legible text)
@@ -90,11 +92,12 @@ class COCOTEXT(AbstractDataset):
                 if ann["image_id"] == int(img_id) and ann["legibility"] == "legible"
             ]
 
-            if not annotations:  # Some images have no annotations with readable text
+            # Some images have no annotations with readable text
+            if not annotations:  # pragma: no cover
                 continue
 
             _targets = []
-            
+
             for annotation in annotations:
                 x, y, w, h = annotation["bbox"]
                 if use_polygons:
