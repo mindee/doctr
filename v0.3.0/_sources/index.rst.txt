@@ -68,7 +68,7 @@ Supported datasets
 * MJSynth from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition" <https://www.robots.ox.ac.uk/~vgg/data/text/>`_.
 * IIITHWS from `"Generating Synthetic Data for Text Recognition" <https://github.com/kris314/hwnet>`_.
 * WILDRECEIPT from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction" <https://arxiv.org/pdf/2103.14470v1.pdf>`_.
-
+* COCO-Text dataset from `"COCO-Text: Dataset and Benchmark for Text Detection and Recognition in Natural Images" <https://arxiv.org/pdf/1601.07140v2>`_.   
 
 .. toctree::
    :maxdepth: 2

@@ -666,6 +666,36 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.COCOTEXT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">COCOTEXT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/coco_text.html#COCOTEXT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.COCOTEXT" title="Link to this definition">¶</a></dt>
+<dd><p>COCO-Text dataset from <a class="reference external" href="https://arxiv.org/pdf/1601.07140v2">“COCO-Text: Dataset and Benchmark for Text Detection and Recognition in Natural Images”</a> |
+<a class="reference external" href="https://bgshih.github.io/cocotext/">“homepage”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset first.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">COCOTEXT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">COCOTEXT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/coco_text/train2014/&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/coco_text/cocotext.v2.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">COCOTEXT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/coco_text/train2014/&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_path</span> <span class="o">=</span> <span class="s2">&quot;/path/to/coco_text/cocotext.v2.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the annotations file of the dataset</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="synthetic-dataset-generator">
 <h2>Synthetic dataset generator<a class="headerlink" href="#synthetic-dataset-generator" title="Link to this heading">¶</a></h2>
@@ -1146,6 +1176,7 @@ of vocabs.</p>
 <li><a class="reference internal" href="#doctr.datasets.IIITHWS"><code class="docutils literal notranslate"><span class="pre">IIITHWS</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.DocArtefacts"><code class="docutils literal notranslate"><span class="pre">DocArtefacts</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.WILDRECEIPT"><code class="docutils literal notranslate"><span class="pre">WILDRECEIPT</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.COCOTEXT"><code class="docutils literal notranslate"><span class="pre">COCOTEXT</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#synthetic-dataset-generator">Synthetic dataset generator</a><ul>
