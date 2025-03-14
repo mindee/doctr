@@ -23,6 +23,8 @@ ARCHS: list[str] = [
     "vitstr_small",
     "vitstr_base",
     "parseq",
+    "vip_base",
+    "vip_tiny",
 ]
 
 
