@@ -13,11 +13,7 @@ from ...classification.vip import default_cfgs  # Explicit import instead of '*'
 from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
 from .base import _VIPTR, _VIPTRPostProcessor
 
-__all__ = ["viptr_base", "viptr_tiny"]
-
-
-# NOTE: replaced star imports with explicit references
-# from ...classification.vip import *
+__all__ = ["VIPTRPostProcessor", "VIPTR", "viptr_base", "viptr_tiny"]
 
 
 class VIPTRPostProcessor(_VIPTRPostProcessor):
@@ -221,9 +217,12 @@ def _viptr(
     kwargs["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
     _cfg["vocab"] = vocab
     _cfg["input_shape"] = kwargs["input_shape"]
-
+    include_top = kwargs.get("include_top", False)
+    # out_dim = kwargs.get("out_dim", 384)
+    # num_classes = kwargs.get("num_classes", len(vocab) + 1)
+    # input_shape = kwargs.get("input_shape", (3, 32, 32))
     # Feature extractor
-    feat_extractor = backbone_fn(pretrained=pretrained, **kwargs)
+    feat_extractor = backbone_fn(include_top=include_top)
     model = VIPTR(feat_extractor, cfg=_cfg, **kwargs)
 
     # Load pretrained parameters
@@ -248,7 +247,7 @@ def viptr_base(pretrained: bool = False, **kwargs: Any) -> VIPTR:
         VIPTR: a VIPTR model instance
     """
     return _viptr(
-        "viptr_base",
+        "vip_base",
         pretrained,
         vip_base,
         ignore_keys=["head.weight", "head.bias"],
@@ -268,7 +267,7 @@ def viptr_tiny(pretrained: bool = False, **kwargs: Any) -> VIPTR:
         VIPTR: a VIPTR model instance
     """
     return _viptr(
-        "viptr_tiny",
+        "vip_tiny",
         pretrained,
         vip_tiny,
         ignore_keys=["head.weight", "head.bias"],

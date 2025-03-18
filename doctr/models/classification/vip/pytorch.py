@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 import torch.nn as nn
@@ -9,9 +9,9 @@ import torch.nn as nn
 from doctr.datasets import VOCABS
 
 from ...utils import load_pretrained_params
-from .layers import PatchEmbed, PatchMerging
+from .layers import CrossShapedWindowAttention, MultiHeadSelfAttention, OSRABlock, PatchEmbed, PatchMerging
 
-__all__ = ["vip_tiny", "vip_base"]
+__all__ = ["vip_tiny", "vip_base", "default_cfgs"]
 
 default_cfgs: Dict[str, Dict[str, Any]] = {
     "vip_tiny": {
@@ -301,53 +301,184 @@ def _vip(
     return model
 
 
-# Stubs or references for your local mixers, omitted for brevity:
+############################################
+# _vip_local_mixer
+############################################
 def _vip_local_mixer(
     embed_dim: int,
     depth: int,
     num_heads: int,
-    mlp_ratio: int,
-    split_size: int,
-    sr_ratio: int,
+    mlp_ratio: float,
     drop_path: List[float],
     size: Tuple[int, int],
+    split_size: int = 1,
+    sr_ratio: int = 1,
     downsample: bool = False,
-    out_dim: int = None,
-) -> VIPBlock:
-    # ...
-    pass
+    out_dim: Optional[int] = None,
+) -> nn.Module:
+    """Builds a VIPBlock performing local (cross-shaped) window attention.
+
+    Args:
+        embed_dim: embedding dimension.
+        depth: number of attention blocks in this stage.
+        num_heads: number of attention heads.
+        mlp_ratio: ratio used to expand the hidden dimension in MLP.
+        split_size: size of the local window splits.
+        sr_ratio: parameter needed for cross-compatibility between different mixers
+        drop_path: list of per-block drop path rates.
+        size: the (H, W) dimensions of the input feature map at this stage.
+        downsample: whether to apply PatchMerging at the end.
+        out_dim: output embedding dimension if downsampling.
+
+    Returns:
+        A VIPBlock (local attention) for one stage of the VIP network.
+    """
+    blocks = nn.ModuleList([
+        CrossShapedWindowAttention(
+            dim=embed_dim,
+            num_heads=num_heads,
+            patches_resolution=25,
+            mlp_ratio=mlp_ratio,
+            qkv_bias=True,
+            split_size=split_size,
+            drop_path=drop_path[i],
+        )
+        for i in range(depth)
+    ])
+    return VIPBlock(embed_dim, local_unit=blocks, size=size, downsample=downsample, out_dim=out_dim)
 
 
-def _vip_mixed_mixer(
-    embed_dim: int,
-    depth: int,
-    num_heads: int,
-    mlp_ratio: int,
-    split_size: int,
-    sr_ratio: int,
-    drop_path: List[float],
-    size: Tuple[int, int],
-    downsample: bool = False,
-    out_dim: int = None,
-) -> VIPBlock:
-    # ...
-    pass
-
-
+############################################
+# _vip_global_mha_mixer
+############################################
 def _vip_global_mha_mixer(
     embed_dim: int,
     depth: int,
     num_heads: int,
-    mlp_ratio: int,
-    split_size: int,
-    sr_ratio: int,
+    mlp_ratio: float,
     drop_path: List[float],
     size: Tuple[int, int],
+    split_size: int = 1,
+    sr_ratio: int = 1,
     downsample: bool = False,
-    out_dim: int = None,
-) -> VIPBlock:
-    # ...
-    pass
+    out_dim: Optional[int] = None,
+) -> nn.Module:
+    """Builds a VIPBlock performing global multi-head self-attention.
+
+    Args:
+        embed_dim: embedding dimension.
+        depth: number of attention blocks in this stage.
+        num_heads: number of attention heads.
+        mlp_ratio: ratio used to expand the hidden dimension in MLP.
+        drop_path: list of per-block drop path rates.
+        split_size: parameter needed for cross-compatibility between different mixers
+        sr_ratio:parameter needed for cross-compatibility between different mixers
+        size: the (H, W) dimensions of the input feature map at this stage.
+        downsample: whether to apply PatchMerging at the end.
+        out_dim: output embedding dimension if downsampling.
+
+    Returns:
+        A VIPBlock (global MHA) for one stage of the VIP network.
+    """
+    blocks = nn.ModuleList([
+        MultiHeadSelfAttention(
+            dim=embed_dim,
+            num_heads=num_heads,
+            mlp_ratio=mlp_ratio,
+            qkv_bias=True,
+            drop_path_rate=drop_path[i],
+        )
+        for i in range(depth)
+    ])
+    return VIPBlock(
+        embed_dim,
+        local_unit=blocks,  # In this context, they are "global" blocks but stored in local_unit
+        size=size,
+        downsample=downsample,
+        out_dim=out_dim,
+    )
+
+
+############################################
+# _vip_mixed_mixer
+############################################
+def _vip_mixed_mixer(
+    embed_dim: int,
+    depth: int,
+    num_heads: int,
+    mlp_ratio: float,
+    drop_path: List[float],
+    size: Tuple[int, int],
+    split_size: int = 1,
+    sr_ratio: int = 1,
+    downsample: bool = False,
+    out_dim: Optional[int] = None,
+) -> nn.Module:
+    """Builds a VIPBlock performing mixed local+global attention.
+
+    Args:
+        embed_dim: embedding dimension.
+        depth: number of attention blocks in this stage.
+        num_heads: total number of attention heads.
+        mlp_ratio: ratio used to expand the hidden dimension in MLP.
+        drop_path: list of per-block drop path rates.
+        size: the (H, W) dimensions of the input feature map at this stage.
+        split_size: size of the local window splits (for the local half).
+        sr_ratio: reduce spatial resolution in the global half (OSRA).
+        downsample: whether to apply PatchMerging at the end.
+        out_dim: output embedding dimension if downsampling.
+
+    Returns:
+        A VIPBlock (mixed local+global) for one stage of the VIP network.
+    """
+    # an inner dimension for the conv-projection
+    inner_dim = max(16, embed_dim // 8)
+    proj = nn.Sequential(
+        nn.Conv2d(embed_dim, embed_dim, kernel_size=3, padding=1, groups=embed_dim),
+        nn.GELU(),
+        nn.BatchNorm2d(embed_dim),
+        nn.Conv2d(embed_dim, inner_dim, kernel_size=1),
+        nn.GELU(),
+        nn.BatchNorm2d(inner_dim),
+        nn.Conv2d(inner_dim, embed_dim, kernel_size=1),
+        nn.BatchNorm2d(embed_dim),
+    )
+
+    # local half blocks
+    local_unit = nn.ModuleList([
+        CrossShapedWindowAttention(
+            dim=embed_dim // 2,
+            num_heads=num_heads,
+            patches_resolution=25,
+            mlp_ratio=mlp_ratio,
+            qkv_bias=True,
+            split_size=split_size,
+            drop_path=drop_path[i],
+        )
+        for i in range(depth)
+    ])
+
+    # global half blocks
+    global_unit = nn.ModuleList([
+        OSRABlock(
+            dim=embed_dim // 2,
+            sr_ratio=sr_ratio,
+            num_heads=num_heads // 2,
+            mlp_ratio=mlp_ratio,
+            drop_path=drop_path[i],
+        )
+        for i in range(depth)
+    ])
+
+    return VIPBlock(
+        embed_dim,
+        local_unit=local_unit,
+        size=size,
+        global_unit=global_unit,
+        proj=proj,
+        downsample=downsample,
+        out_dim=out_dim,
+    )
 
 
 class PermuteLayer(nn.Module):

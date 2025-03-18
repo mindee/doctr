@@ -7,6 +7,8 @@ import numpy as np
 
 from ..core import RecognitionPostProcessor
 
+__all__ = ["_VIPTR", "_VIPTRPostProcessor"]
+
 
 class _VIPTR:
     vocab: str
@@ -29,18 +31,8 @@ class _VIPTR:
         seq_len = [len(word) for word in gts]
         encoded = np.zeros((len(gts), self.max_length))
         for i, seq in enumerate(gts):
-            encoded[i][: len(seq)] = list(map(self.vocab.index, seq))
+            encoded[i][: len(seq)] = [self.vocab.index(x) + 1 for x in seq]  # 0 is reserved
         return encoded, seq_len
-        # official code doesn't append sos and eos in ctcLabelConverter
-        # encoded = encode_sequences(
-        #     sequences=gts,
-        #     vocab=self.vocab,
-        #     target_size=self.max_length,
-        #     eos=len(self.vocab),
-        #     sos=len(self.vocab) + 1,
-        #     pad=len(self.vocab) + 2,
-        # )
-        # return encoded, seq_len
 
 
 class _VIPTRPostProcessor(RecognitionPostProcessor):
@@ -55,5 +47,5 @@ class _VIPTRPostProcessor(RecognitionPostProcessor):
         vocab: str,
     ) -> None:
         # https://github.com/cxfyxl/VIPTR/blob/main/utils.py
-        vocab = ["<sos>"] + vocab
+
         super().__init__(vocab)
