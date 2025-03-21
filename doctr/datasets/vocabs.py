@@ -29,6 +29,8 @@ VOCABS: dict[str, str] = {
     "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
     "bangla_digits": "০১২৩৪৫৬৭৮৯",
     "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
+    "russian_cyrillic_letters": "ёыэЁЫЭ",
+    "russian_signs": "ъЪ",
 }
 
 VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
@@ -68,6 +70,14 @@ VOCABS["gujarati"] = (
     + VOCABS["gujarati_digits"]
     + VOCABS["gujarati_punctuation"]
     + VOCABS["punctuation"]
+)
+VOCABS["russian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + "₽"
 )
 VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
 VOCABS["ukrainian"] = (
