@@ -269,4 +269,4 @@ def test_models_onnx_export(arch_name, input_shape, output_size):
                 f"Output of {arch_name}:\nMax element-wise difference: {np.max(np.abs(tf_logits - ort_outs[0]))}"
             )
     except Exception as e:
-        pytest.xfail(f"Test failed for {arch_name} due to: {str(e)}")
+        pytest.xfail(f"Test failed for {arch_name} due to: {e}")
