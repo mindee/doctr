@@ -171,7 +171,7 @@ class KIEPredictor(NestedObject, _KIEPredictor):
             boxes_per_page,
             objectness_scores_per_page,
             text_preds_per_page,
-            origin_page_shapes,  # type: ignore[arg-type]
+            origin_page_shapes,
             crop_orientations_per_page,
             orientations,
             languages_dict,

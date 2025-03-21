@@ -150,7 +150,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             boxes,
             objectness_scores,
             text_preds,
-            origin_page_shapes,  # type: ignore[arg-type]
+            origin_page_shapes,
             crop_orientations,
             orientations,
             languages_dict,

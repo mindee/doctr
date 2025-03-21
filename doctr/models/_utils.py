@@ -87,7 +87,7 @@ def estimate_orientation(
 
     angles = []
     for contour in contours[:n_ct]:
-        _, (w, h), angle = cv2.minAreaRect(contour)  # type: ignore[assignment]
+        _, (w, h), angle = cv2.minAreaRect(contour)
         if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
             angles.append(angle)
         elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
