@@ -187,7 +187,6 @@ class VIPTR(_VIPTR, nn.Module):
             gt,
             input_length,
             torch.tensor(seq_len, dtype=torch.int, device=gt.device),
-            blank=len(gt[0]) if gt.numel() > 0 else 0,
             zero_infinity=True,
         )
         return ctc_loss
