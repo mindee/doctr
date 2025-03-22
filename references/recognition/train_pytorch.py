@@ -38,12 +38,6 @@ from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
 from utils import EarlyStopper, plot_recorder, plot_samples
 
-# dataset_map = {
-#     "SVHN":SVHN,
-#     "CORD":CORD,
-#     "FUNSD": FUNSD
-# }
-
 
 def record_lr(
     model: torch.nn.Module,
