@@ -31,11 +31,18 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from doctr import datasets
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
 from utils import EarlyStopper, plot_recorder, plot_samples
+
+# dataset_map = {
+#     "SVHN":SVHN,
+#     "CORD":CORD,
+#     "FUNSD": FUNSD
+# }
 
 
 def record_lr(
@@ -220,8 +227,32 @@ def main(args):
             labels_path=os.path.join(args.val_path, "labels.json"),
             img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
         )
+    elif args.val_datasets:
+        val_datasets = args.val_datasets
+
+        val_set = datasets.__dict__[val_datasets[0]](
+            train=False,
+            download=True,
+            recognition_task=True,
+            use_polygons=True,
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.1),
+            ]),
+        )
+        if len(val_datasets) > 1:
+            for dataset_name in val_datasets[1:]:
+                _ds = datasets.__dict__[dataset_name](
+                    train=False,
+                    download=True,
+                    recognition_task=True,
+                    use_polygons=True,
+                )
+
+                val_set.data.extend((np_img, target) for np_img, target in _ds.data)
+
     else:
-        val_hash = None
         # Load synthetic data generator
         val_set = WordGenerator(
             vocab=vocab,
@@ -235,6 +266,7 @@ def main(args):
                 T.RandomApply(T.ColorInversion(), 0.9),
             ]),
         )
+    val_hash = None
 
     val_loader = DataLoader(
         val_set,
@@ -315,8 +347,32 @@ def main(args):
                 train_set.merge_dataset(
                     RecognitionDataset(subfolder.joinpath("images"), subfolder.joinpath("labels.json"))
                 )
+
+    elif args.train_datasets:
+        train_datasets = args.train_datasets
+
+        train_set = datasets.__dict__[train_datasets[0]](
+            train=True,
+            download=True,
+            recognition_task=True,
+            use_polygons=True,
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.1),
+            ]),
+        )
+        if len(train_datasets) > 1:
+            for dataset_name in train_datasets[1:]:
+                _ds = datasets.__dict__[dataset_name](
+                    train=True,
+                    download=True,
+                    recognition_task=True,
+                    use_polygons=True,
+                )
+                train_set.data.extend((np_img, target) for np_img, target in _ds.data)
+
     else:
-        train_hash = None
         # Load synthetic data generator
         train_set = WordGenerator(
             vocab=vocab,
@@ -347,6 +403,8 @@ def main(args):
         collate_fn=train_set.collate_fn,
     )
     pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
+
+    train_hash = None
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -544,6 +602,50 @@ def parse_args():
         type=int,
         default=20,
         help="Multiplied by the vocab length gets you the number of synthetic validation samples that will be used.",
+    )
+    (
+        parser.add_argument(
+            "--train_datasets",
+            type=str,
+            nargs="+",
+            choices=[
+                "COCOTEXT",
+                "CORD",
+                "FUNSD",
+                "IC03",
+                "IC13",
+                "IIIT5K",
+                "IMGUR5K",
+                "SROIE",
+                "SVHN",
+                "SVT",
+                "WILDRECEIPT",
+            ],
+            default=None,
+            help="Builtin dataset names (choose from: COCOTEXT, CORD, FUNSD, IC03, IC13, IIIT5K, IMGUR5K, SROIE, SVHN, SVT, WILDRECEIPT)",
+        ),
+    )
+    (
+        parser.add_argument(
+            "--val_datasets",
+            type=str,
+            nargs="+",
+            choices=[
+                "COCOTEXT",
+                "CORD",
+                "FUNSD",
+                "IC03",
+                "IC13",
+                "IIIT5K",
+                "IMGUR5K",
+                "SROIE",
+                "SVHN",
+                "SVT",
+                "WILDRECEIPT",
+            ],
+            default=None,
+            help="Builtin dataset names (choose from: COCOTEXT, CORD, FUNSD, IC03, IC13, IIIT5K, IMGUR5K, SROIE, SVHN, SVT, WILDRECEIPT)",
+        ),
     )
     parser.add_argument(
         "--font", type=str, default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf", help="Font family to be used"
