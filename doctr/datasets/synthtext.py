@@ -46,7 +46,7 @@ class SynthText(VisionDataset):
         "67/fruits_129_",
         "194/window_19_",
     )
-    
+
     def __init__(
         self,
         train: bool = True,
@@ -105,7 +105,7 @@ class SynthText(VisionDataset):
             # Skip corrupted images
             if img_path[0].startswith(self.BLACKLIST):
                 continue
-            
+
             labels = [elt for word in txt.tolist() for elt in word.split()]
             # (x, y) coordinates of top left, top right, bottom right, bottom left corners
             word_boxes = (
@@ -121,7 +121,13 @@ class SynthText(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
                 for crop, label in zip(crops, labels):
-                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and len(label) < 30 and " " not in label:
+                    if (
+                        crop.shape[0] > 0
+                        and crop.shape[1] > 0
+                        and len(label) > 0
+                        and len(label) < 30
+                        and " " not in label
+                    ):
                         # write data to disk
                         with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
                             f.write(label)

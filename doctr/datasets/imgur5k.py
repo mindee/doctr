@@ -133,7 +133,13 @@ class IMGUR5K(AbstractDataset):
                         img_path=os.path.join(self.root, img_name), geoms=np.asarray(box_targets, dtype=np_dtype)
                     )
                     for crop, label in zip(crops, labels):
-                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and len(label) < 30 and " " not in label:
+                        if (
+                            crop.shape[0] > 0
+                            and crop.shape[1] > 0
+                            and len(label) > 0
+                            and len(label) < 30
+                            and " " not in label
+                        ):
                             # write data to disk
                             with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
                                 f.write(label)

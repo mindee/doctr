@@ -85,7 +85,7 @@ def encode_string(
         missing_chars = [char for char in input_string if char not in vocab]
         raise ValueError(
             f"Some characters cannot be found in 'vocab': {set(missing_chars)}.\n"
-                        f"Please check the input string `{input_string}` and the vocabulary `{vocab}`"
+            f"Please check the input string `{input_string}` and the vocabulary `{vocab}`"
         ) from e
 
 
