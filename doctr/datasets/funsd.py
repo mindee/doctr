@@ -107,8 +107,8 @@ class FUNSD(VisionDataset):
                 )
                 for crop, label in zip(crops, list(text_targets)):
                     # filter labels with unknown characters
-                    if not any(char in label for char in ["☑", "☐", "\uf703", "\uf702"]):
-                        self.data.append((crop, label))
+                    if not any(char in label for char in ["☑", "☐", "\u03bf", "\uf703", "\uf702", " "]):
+                        self.data.append((crop, label.replace("–", "-")))
             elif detection_task:
                 self.data.append((img_path, np.asarray(box_targets, dtype=np_dtype)))
             else:

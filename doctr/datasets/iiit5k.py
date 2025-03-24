@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 import scipy.io as sio
+from PIL import Image
 from tqdm import tqdm
 
 from .datasets import VisionDataset
@@ -98,7 +99,9 @@ class IIIT5K(VisionDataset):
                 box_targets = [[box[0], box[1], box[0] + box[2], box[1] + box[3]] for box in box_targets]
 
             if recognition_task:
-                self.data.append((_raw_path, _raw_label))
+                if " " not in _raw_label:
+                    with Image.open(os.path.join(tmp_root, _raw_path)) as pil_img:
+                        self.data.append((np.array(pil_img.convert("RGB")), _raw_label))
             elif detection_task:
                 self.data.append((_raw_path, np.asarray(box_targets, dtype=np_dtype)))
             else:

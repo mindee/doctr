@@ -243,10 +243,9 @@ def main(args):
                     recognition_task=True,
                     use_polygons=True,
                 )
-
                 val_set.data.extend((np_img, target) for np_img, target in _ds.data)
-
     else:
+        val_hash = None
         # Load synthetic data generator
         val_set = WordGenerator(
             vocab=vocab,
@@ -341,8 +340,8 @@ def main(args):
                 train_set.merge_dataset(
                     RecognitionDataset(subfolder.joinpath("images"), subfolder.joinpath("labels.json"))
                 )
-
     elif args.train_datasets:
+        train_hash = None
         train_datasets = args.train_datasets
 
         train_set = datasets.__dict__[train_datasets[0]](
@@ -365,8 +364,8 @@ def main(args):
                     use_polygons=True,
                 )
                 train_set.data.extend((np_img, target) for np_img, target in _ds.data)
-
     else:
+        train_hash = None
         # Load synthetic data generator
         train_set = WordGenerator(
             vocab=vocab,
@@ -602,21 +601,9 @@ def parse_args():
             "--train_datasets",
             type=str,
             nargs="+",
-            choices=[
-                "COCOTEXT",
-                "CORD",
-                "FUNSD",
-                "IC03",
-                "IC13",
-                "IIIT5K",
-                "IMGUR5K",
-                "SROIE",
-                "SVHN",
-                "SVT",
-                "WILDRECEIPT",
-            ],
+            choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
             default=None,
-            help="Builtin dataset names (choose from: COCOTEXT, CORD, FUNSD, IC03, IC13, IIIT5K, IMGUR5K, SROIE, SVHN, SVT, WILDRECEIPT)",
+            help="Built-in datasets to use for training",
         ),
     )
     (
@@ -624,21 +611,9 @@ def parse_args():
             "--val_datasets",
             type=str,
             nargs="+",
-            choices=[
-                "COCOTEXT",
-                "CORD",
-                "FUNSD",
-                "IC03",
-                "IC13",
-                "IIIT5K",
-                "IMGUR5K",
-                "SROIE",
-                "SVHN",
-                "SVT",
-                "WILDRECEIPT",
-            ],
+            choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
             default=None,
-            help="Builtin dataset names (choose from: COCOTEXT, CORD, FUNSD, IC03, IC13, IIIT5K, IMGUR5K, SROIE, SVHN, SVT, WILDRECEIPT)",
+            help="Built-in datasets to use for validation",
         ),
     )
     parser.add_argument(
