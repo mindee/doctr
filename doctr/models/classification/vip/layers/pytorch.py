@@ -3,16 +3,15 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from typing import Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Optional, Tuple
-
 
 from doctr.models.modules.layers import DropPath
 from doctr.models.modules.transformer import PositionwiseFeedForward
 from doctr.models.utils import conv_sequence_pt
-
 
 __all__ = [
     "PatchEmbed",
@@ -24,9 +23,6 @@ __all__ = [
     "LePEAttention",
     "CrossShapedWindowAttention",
 ]
-
-
-
 
 
 class PatchEmbed(nn.Module):
@@ -235,10 +231,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
         self.local_conv = nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim)
 
     def forward(
-        self,
-        x: torch.Tensor,
-        size: Tuple[int, int],
-        relative_pos_enc: Optional[torch.Tensor] = None
+        self, x: torch.Tensor, size: Tuple[int, int], relative_pos_enc: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
         Forward pass for OverlappingShiftedRelativeAttention.

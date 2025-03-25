@@ -48,7 +48,7 @@ def test_push_to_hf_hub():
         ["master", "recognition", "Felix92/doctr-dummy-torch-master"],
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
-        #TODO add weights
+        # TODO add weights
         ["viptr_base", "recognition", None],
         ["viptr_tiny", "recognition", None],
     ],
