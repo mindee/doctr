@@ -37,7 +37,14 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             pretrained=pretrained, pretrained_backbone=kwargs.get("pretrained_backbone", True)
         )
     else:
-        allowed_archs = [recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR, recognition.PARSeq]
+        allowed_archs = [
+            recognition.CRNN,
+            recognition.SAR,
+            recognition.MASTER,
+            recognition.ViTSTR,
+            recognition.PARSeq,
+            recognition.VIPTR,
+        ]
         if is_torch_available():
             # Adding the type for torch compiled models to the allowed architectures
             from doctr.models.utils import _CompiledModule

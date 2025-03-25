@@ -38,9 +38,9 @@ class VIPTRPostProcessor(_VIPTRPostProcessor):
         """
         # Compute a "confidence" for each sequence
         probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
-
         # Collapse best path (itertools.groupby), map indices->chars, join to string
         preds_indices = torch.argmax(logits, dim=-1)
+        print(preds_indices.max())
         words = [decode_sequence([k for k, _ in groupby(seq.tolist()) if k != blank], vocab) for seq in preds_indices]
 
         return list(zip(words, probs.tolist()))
@@ -95,6 +95,18 @@ class VIPTR(_VIPTR, nn.Module):
         self.feat_extractor = feature_extractor
         self.postprocessor = VIPTRPostProcessor(vocab=self.vocab)
         self.head = nn.Linear(embedding_units, len(self.vocab) + 1)  # +1 for PAD
+        self.ctc_loss = nn.CTCLoss(zero_infinity=True)
+        for n, m in self.named_modules():
+            # Don't override the initialization of the backbone
+            if n.startswith("feat_extractor."):
+                continue
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight.data, mode="fan_out", nonlinearity="relu")
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1.0)
+                m.bias.data.zero_()
 
     def forward(
         self,
@@ -115,13 +127,15 @@ class VIPTR(_VIPTR, nn.Module):
         Returns:
             Dictionary containing model outputs, potential loss, etc.
         """
-        features = self.feat_extractor(x).contiguous()  # e.g. (B, seq, embed)
+        features = self.feat_extractor(x).contiguous()  # (B, max_len, embed_dim)
+        # print ("Features: \n", features.size())
         if features.size(-1) != (len(self.vocab) + 1):
             # If the final classification head wasn't done by the extractor
             features = features[:, : self.max_length]
             B, N, E = features.size()
-            features = features.reshape(B * N, E)
+            # features = features.reshape(B * N, E)
             logits = self.head(features).view(B, N, len(self.vocab) + 1)
+            # print ("logits: \n", logits.size())
         else:
             # classification layer was applied inside the feature extractor
             logits = features
@@ -134,6 +148,7 @@ class VIPTR(_VIPTR, nn.Module):
         if target is not None:
             # Build target tensor
             _gt, _seq_len = self.build_target(target)
+
             gt = torch.from_numpy(_gt).to(dtype=torch.long, device=x.device)
             seq_len = torch.tensor(_seq_len, device=x.device)
             gt = gt[:, : (int(seq_len.max().item()) + 1)]
@@ -159,8 +174,8 @@ class VIPTR(_VIPTR, nn.Module):
 
         return out
 
-    @staticmethod
     def compute_loss(
+        self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,
@@ -178,18 +193,9 @@ class VIPTR(_VIPTR, nn.Module):
         """
         batch_len = model_output.shape[0]
         input_length = model_output.shape[1] * torch.ones(size=(batch_len,), dtype=torch.int32)
-        # (N, T, C) -> (T, N, C)
-        logits = model_output.permute(1, 0, 2)
-        probs = F.log_softmax(logits, dim=-1)
-
-        ctc_loss = F.ctc_loss(
-            probs,
-            gt,
-            input_length,
-            torch.tensor(seq_len, dtype=torch.int, device=gt.device),
-            zero_infinity=True,
-        )
-        return ctc_loss
+        # https://github.com/cxfyxl/VIPTR/blob/main/train_benchmark.py
+        preds = model_output.log_softmax(2).permute(1, 0, 2)
+        return self.ctc_loss(preds, gt, input_length, torch.tensor(seq_len, dtype=torch.int, device=gt.device))
 
 
 def _viptr(

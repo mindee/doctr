@@ -140,8 +140,10 @@ class VIPNet(nn.Sequential):
         """
         self.cfg = cfg
         self.include_top = include_top
-        dpr = [x.item() for x in torch.linspace(0, 0.1, sum(depths))]
 
+        dpr = [x.item() for x in torch.linspace(0, 0.1, sum(depths))]
+        drop_paths = [dpr[sum(depths[:i]) : sum(depths[: i + 1])] for i in range(len(depths))]
+        # print (drop_paths)
         layers = [PatchEmbed(in_channels=in_channels, embed_dim=embed_dims[0])]
 
         # Construct mixers
@@ -153,13 +155,6 @@ class VIPNet(nn.Sequential):
         ]
 
         H, W = input_shape[1], input_shape[2]
-
-        dpr_splits = []
-        idx = 0
-        for d in depths:
-            dpr_splits.append(dpr[idx : idx + d])
-            idx += d
-
         for i, mixer_fn in enumerate(mixer_functions):
             embed_dim = embed_dims[i]
             depth_i = depths[i]
@@ -167,7 +162,8 @@ class VIPNet(nn.Sequential):
             mlp_ratio = mlp_ratios[i]
             sp_size = split_sizes[i]
             sr_ratio = sr_ratios[i]
-            drop_path = dpr_splits[i]
+            drop_path = drop_paths[i]
+
             next_dim = embed_dims[i + 1] if i < len(embed_dims) - 1 else None
 
             block = mixer_fn(

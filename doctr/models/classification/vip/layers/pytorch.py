@@ -6,10 +6,13 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from typing import Optional, Tuple
+
 
 from doctr.models.modules.layers import DropPath
 from doctr.models.modules.transformer import PositionwiseFeedForward
 from doctr.models.utils import conv_sequence_pt
+
 
 __all__ = [
     "PatchEmbed",
@@ -23,13 +26,23 @@ __all__ = [
 ]
 
 
-# TODO: Add type hints + cleanup  -> test always with train
+
 
 
 class PatchEmbed(nn.Module):
-    def __init__(self, in_channels: int = 3, embed_dim: int = 128):
-        super().__init__()
+    """
+    Patch embedding layer for Vision Permutable Extractor.
 
+    This layer reduces the spatial resolution of the input tensor by a factor of 4 in total
+    (two consecutive strides of 2). It then permutes the output into `(b, h, w, c)` form.
+
+    Args:
+        in_channels: Number of channels in the input images.
+        embed_dim: Dimensionality of the embedding (i.e., output channels).
+    """
+
+    def __init__(self, in_channels: int = 3, embed_dim: int = 128) -> None:
+        super().__init__()
         self.embed_dim = embed_dim
         self.proj = nn.Sequential(
             *conv_sequence_pt(
@@ -43,11 +56,40 @@ class PatchEmbed(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass for PatchEmbed.
+
+        Args:
+            x: A float tensor of shape (b, c, h, w).
+
+        Returns:
+            A float tensor of shape (b, h/4, w/4, embed_dim).
+        """
         return self.proj(x).permute(0, 2, 3, 1)
 
 
 class Attention(nn.Module):
-    def __init__(self, dim, num_heads=8, qkv_bias=False, attn_drop=0.0, proj_drop=0.0):
+    """
+    Standard multi-head attention module.
+
+    This module applies self-attention across the input sequence using 'num_heads' heads.
+
+    Args:
+        dim: Dimensionality of the input embeddings.
+        num_heads: Number of attention heads.
+        qkv_bias: If True, adds a learnable bias to the query, key, value projections.
+        attn_drop: Dropout rate applied to the attention map.
+        proj_drop: Dropout rate applied to the final output projection.
+    """
+
+    def __init__(
+        self,
+        dim: int,
+        num_heads: int = 8,
+        qkv_bias: bool = False,
+        attn_drop: float = 0.0,
+        proj_drop: float = 0.0,
+    ) -> None:
         super().__init__()
         self.num_heads = num_heads
         head_dim = dim // num_heads
@@ -58,30 +100,54 @@ class Attention(nn.Module):
         self.proj = nn.Linear(dim, dim)
         self.proj_drop = nn.Dropout(proj_drop)
 
-    def forward(self, x):
-        _, N, C = x.shape
-        qkv = self.qkv(x).reshape((-1, N, 3, self.num_heads, C // self.num_heads)).permute((2, 0, 3, 1, 4))
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Forward pass for Attention.
+
+        Args:
+            x: A float tensor of shape (b, n, c), where n is the sequence length and c is
+                the embedding dimension.
+
+        Returns:
+            A float tensor of shape (b, n, c) with attended information.
+        """
+        _, n, c = x.shape
+        qkv = self.qkv(x).reshape((-1, n, 3, self.num_heads, c // self.num_heads)).permute((2, 0, 3, 1, 4))
         q, k, v = qkv[0] * self.scale, qkv[1], qkv[2]
 
         attn = q.matmul(k.permute((0, 1, 3, 2)))
-        attn = nn.functional.softmax(attn, -1)
+        attn = nn.functional.softmax(attn, dim=-1)
         attn = self.attn_drop(attn)
 
-        x = (attn.matmul(v)).permute((0, 2, 1, 3)).contiguous().reshape((-1, N, C))
+        x = attn.matmul(v).permute((0, 2, 1, 3)).contiguous().reshape((-1, n, c))
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
 
 
 class MultiHeadSelfAttention(nn.Module):
+    """
+    Multi-head Self Attention block with an MLP for feed-forward processing.
+
+    This block normalizes the input, applies attention mixing, adds a residual connection,
+    then applies an MLP with another residual connection.
+
+    Args:
+        dim: Dimensionality of input embeddings.
+        num_heads: Number of attention heads.
+        mlp_ratio: Expansion factor for the internal dimension of the MLP.
+        qkv_bias: If True, adds a learnable bias to the query, key, value projections.
+        drop_path_rate: Drop path rate. If > 0, applies stochastic depth.
+    """
+
     def __init__(
         self,
-        dim,
-        num_heads,
-        mlp_ratio=4.0,
-        qkv_bias=False,
-        drop_path_rate=0.0,
-    ):
+        dim: int,
+        num_heads: int,
+        mlp_ratio: float = 4.0,
+        qkv_bias: bool = False,
+        drop_path_rate: float = 0.0,
+    ) -> None:
         super().__init__()
         self.norm1 = nn.LayerNorm(dim)
 
@@ -96,23 +162,48 @@ class MultiHeadSelfAttention(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
 
-    def forward(self, x, size=None):
+    def forward(self, x: torch.Tensor, size: Optional[Tuple[int, int]] = None) -> torch.Tensor:
+        """
+        Forward pass for MultiHeadSelfAttention.
+
+        Args:
+            x: A float tensor of shape (b, n, c).
+            size: An optional tuple (h, w) if needed by some modules (unused here).
+
+        Returns:
+            A float tensor of shape (b, n, c) after self-attention and MLP.
+        """
         x = x + self.drop_path(self.mixer(self.norm1(x)))
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
 
 class OverlappingShiftedRelativeAttention(nn.Module):
+    """
+    Overlapping Shifted Relative Attention (OSRA).
+
+    This attention mechanism downsamples the input according to 'sr_ratio' (spatial reduction ratio),
+    applies a local convolution for feature enhancement, and computes attention with an
+    optional relative positional encoding. It captures dependencies in an overlapping manner.
+
+    Args:
+        dim: The embedding dimension of the tokens.
+        num_heads: Number of attention heads.
+        qk_scale: Optional override of q-k scaling factor. Defaults to head_dim^-0.5 if None.
+        attn_drop: Dropout rate for attention weights.
+        sr_ratio: Spatial reduction ratio. If > 1, a depthwise conv-based downsampling is applied.
+    """
+
     def __init__(
         self,
-        dim,
-        num_heads=1,
-        qk_scale=None,
-        attn_drop=0,
-        sr_ratio=1,
-    ):
+        dim: int,
+        num_heads: int = 1,
+        qk_scale: Optional[float] = None,
+        attn_drop: float = 0.0,
+        sr_ratio: int = 1,
+    ) -> None:
         super().__init__()
-        assert dim % num_heads == 0, f"dim {dim} should be divided by num_heads {num_heads}."
+        assert dim % num_heads == 0, f"dim {dim} should be divisible by num_heads {num_heads}."
         self.dim = dim
         self.num_heads = num_heads
         head_dim = dim // num_heads
@@ -121,6 +212,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
         self.q = nn.Conv2d(dim, dim, kernel_size=1)
         self.kv = nn.Conv2d(dim, dim * 2, kernel_size=1)
         self.attn_drop = nn.Dropout(attn_drop)
+
         if sr_ratio > 1:
             self.sr = nn.Sequential(
                 *conv_sequence_pt(
@@ -134,25 +226,43 @@ class OverlappingShiftedRelativeAttention(nn.Module):
                     bn=True,
                     relu=False,
                 ),
-                # GELU now
                 nn.GELU(),
                 *conv_sequence_pt(dim, dim, kernel_size=1, groups=dim, bias=False, bn=True, relu=False),
             )
         else:
             self.sr = nn.Identity()
+
         self.local_conv = nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim)
 
-    def forward(self, x, size, relative_pos_enc=None):
-        # B, C, H, W = x.shape
-        B, N, C = x.shape
-        H, W = size
-        x = x.permute(0, 2, 1).contiguous().reshape(B, -1, H, W)
-        q = self.q(x).reshape(B, self.num_heads, C // self.num_heads, -1).transpose(-1, -2)
+    def forward(
+        self,
+        x: torch.Tensor,
+        size: Tuple[int, int],
+        relative_pos_enc: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """
+        Forward pass for OverlappingShiftedRelativeAttention.
+
+        Args:
+            x: A float tensor of shape (b, n, c) where n = h * w.
+            size: A tuple (h, w) giving the height and width of the original feature map.
+            relative_pos_enc: An optional relative positional encoding tensor to be
+                added to the attention logits.
+
+        Returns:
+            A float tensor of shape (b, n, c) with updated representations.
+        """
+        b, n, c = x.shape
+        h, w = size
+        x = x.permute(0, 2, 1).contiguous().reshape(b, -1, h, w)
+
+        q = self.q(x).reshape(b, self.num_heads, c // self.num_heads, -1).transpose(-1, -2)
         kv = self.sr(x)
         kv = self.local_conv(kv) + kv
         k, v = torch.chunk(self.kv(kv), chunks=2, dim=1)
-        k = k.reshape(B, self.num_heads, C // self.num_heads, -1)
-        v = v.reshape(B, self.num_heads, C // self.num_heads, -1).transpose(-1, -2)
+        k = k.reshape(b, self.num_heads, c // self.num_heads, -1)
+        v = v.reshape(b, self.num_heads, c // self.num_heads, -1).transpose(-1, -2)
+
         attn = (q @ k) * self.scale
         if relative_pos_enc is not None:
             if attn.shape[2:] != relative_pos_enc.shape[2:]:
@@ -160,26 +270,37 @@ class OverlappingShiftedRelativeAttention(nn.Module):
                     relative_pos_enc, size=attn.shape[2:], mode="bicubic", align_corners=False
                 )
             attn = attn + relative_pos_enc
+
         attn = torch.softmax(attn, dim=-1)
         attn = self.attn_drop(attn)
-        x = (attn @ v).transpose(-1, -2).contiguous().reshape(B, C, -1)
-
+        x = (attn @ v).transpose(-1, -2).contiguous().reshape(b, c, -1)
         x = x.permute(0, 2, 1).contiguous()
-        return x  # .reshape(B, C, H, W)
+        return x
 
 
 class OSRABlock(nn.Module):
-    """Global token mixing, captures global dependencies by using overlapping shifted relative attention,
-    aggregating context from a wider area."""
+    """
+    Global token mixing block using Overlapping Shifted Relative Attention (OSRA).
+
+    Captures global dependencies by aggregating context from a wider spatial area,
+    followed by a position-wise feed-forward layer.
+
+    Args:
+        dim: Embedding dimension of tokens.
+        sr_ratio: Spatial reduction ratio for OSRA.
+        num_heads: Number of attention heads.
+        mlp_ratio: Expansion factor for the MLP hidden dimension.
+        drop_path: Drop path rate. If > 0, applies stochastic depth.
+    """
 
     def __init__(
         self,
-        dim=64,
-        sr_ratio=1,
-        num_heads=1,
-        mlp_ratio=4,
-        drop_path=0,
-    ):
+        dim: int = 64,
+        sr_ratio: int = 1,
+        num_heads: int = 1,
+        mlp_ratio: float = 4.0,
+        drop_path: float = 0.0,
+    ) -> None:
         super().__init__()
         mlp_hidden_dim = int(dim * mlp_ratio)
 
@@ -190,40 +311,85 @@ class OSRABlock(nn.Module):
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
-    def forward(self, x, relative_pos_enc=None):
-        x = x + self.drop_path(self.token_mixer(self.norm1(x), relative_pos_enc))
+    def forward(self, x: torch.Tensor, relative_pos_enc: Optional[torch.Tensor] = None) -> torch.Tensor:
+        """
+        Forward pass for OSRABlock.
+
+        Args:
+            x: A float tensor of shape (b, n, c).
+            relative_pos_enc: Optional relative positional encoding to be used in attention.
+
+        Returns:
+            A float tensor of shape (b, n, c) with globally mixed features.
+        """
+        x = x + self.drop_path(self.token_mixer(self.norm1(x), relative_pos_enc=relative_pos_enc))
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 
 
 class PatchMerging(nn.Module):
-    """Patch Merging Layer
-    Reduces the height dimension of input in half: if x.shape = (B, H, W, C) then output
-    shape is (B, H // 2, W, out_dim)"""
+    """
+    Patch Merging Layer.
 
-    def __init__(self, dim, out_dim):
+    Reduces the spatial dimension by half along the height. If the input has shape
+    (b, h, w, c), the output shape becomes (b, h//2, w, out_dim).
+
+    Args:
+        dim: Number of input channels.
+        out_dim: Number of output channels after merging.
+    """
+
+    def __init__(self, dim: int, out_dim: int) -> None:
         super().__init__()
         self.dim = dim
         self.reduction = nn.Conv2d(dim, out_dim, 3, (2, 1), 1)
         self.norm = nn.LayerNorm(out_dim)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # (B, C, H, W) -> (B, H // 2, W, C)
+        """
+        Forward pass for PatchMerging.
 
-        return self.norm(self.reduction(x.permute(0, 3, 1, 2)).permute(0, 2, 3, 1))
+        Args:
+            x: A float tensor of shape (b, h, w, c).
+
+        Returns:
+            A float tensor of shape (b, h//2, w, out_dim).
+        """
+        x = x.permute(0, 3, 1, 2)
+        x = self.reduction(x).permute(0, 2, 3, 1)
+        return self.norm(x)
 
 
 class LePEAttention(nn.Module):
+    """
+    Local Enhancement Positional Encoding (LePE) Attention.
+
+    This is used for computing attention in cross-shaped windows (part of CrossShapedWindowAttention),
+    and includes a learnable position encoding via depthwise convolution.
+
+    Args:
+        dim: Embedding dimension.
+        resolution: The overall resolution (h, w) of the feature map.
+        idx: Index used to determine the direction/split dimension for cross-shaped windows:
+            - idx == -1: no splitting (attend to all).
+            - idx == 0: vertical split.
+            - idx == 1: horizontal split.
+        split_size: Size of the split window.
+        dim_out: Output dimension; if None, defaults to `dim`.
+        num_heads: Number of attention heads.
+        attn_drop: Dropout rate for attention weights.
+    """
+
     def __init__(
         self,
-        dim,
-        resolution,
-        idx,
-        split_size=7,
-        dim_out=None,
-        num_heads=8,
-        attn_drop=0.0,
-    ):
+        dim: int,
+        resolution: Tuple[int, int],
+        idx: int,
+        split_size: int = 7,
+        dim_out: Optional[int] = None,
+        num_heads: int = 8,
+        attn_drop: float = 0.0,
+    ) -> None:
         super().__init__()
         self.dim = dim
         self.dim_out = dim_out or dim
@@ -232,102 +398,177 @@ class LePEAttention(nn.Module):
         self.num_heads = num_heads
         self.idx = idx
         head_dim = dim // num_heads
-        # NOTE scale factor can set manually to be compat with prev weights
         self.scale = head_dim**-0.5
 
         self.get_v = nn.Conv2d(dim, dim, kernel_size=3, stride=1, padding=1, groups=dim)
-
         self.attn_drop = nn.Dropout(attn_drop)
 
-    def img2windows(self, img: torch.Tensor, H_sp: int, W_sp: int) -> torch.Tensor:
-        B, C, H, W = img.shape
-        img_reshape = img.view(B, C, H // H_sp, H_sp, W // W_sp, W_sp)
-        img_perm = img_reshape.permute(0, 2, 4, 3, 5, 1).contiguous().reshape(-1, H_sp * W_sp, C)
+    def img2windows(self, img: torch.Tensor, h_sp: int, w_sp: int) -> torch.Tensor:
+        """
+        Slice an image into windows of shape (h_sp, w_sp).
+
+        Args:
+            img: A float tensor of shape (b, c, h, w).
+            h_sp: The window's height.
+            w_sp: The window's width.
+
+        Returns:
+            A float tensor of shape (b', h_sp*w_sp, c), where b' = b * (h//h_sp) * (w//w_sp).
+        """
+        b, c, h, w = img.shape
+        img_reshape = img.view(b, c, h // h_sp, h_sp, w // w_sp, w_sp)
+        img_perm = img_reshape.permute(0, 2, 4, 3, 5, 1).contiguous().reshape(-1, h_sp * w_sp, c)
         return img_perm
 
-    def windows2img(self, img_splits_hw, H_sp, W_sp, H, W):
+    def windows2img(self, img_splits_hw: torch.Tensor, h_sp: int, w_sp: int, h: int, w: int) -> torch.Tensor:
         """
-        img_splits_hw: B' H W C
-        """
-        B = int(img_splits_hw.shape[0] / (H * W / H_sp / W_sp))
+        Merge windowed images back to the original spatial shape.
 
-        img = img_splits_hw.view(B, H // H_sp, W // W_sp, H_sp, W_sp, -1)
-        img = img.permute(0, 1, 3, 2, 4, 5).contiguous().view(B, H, W, -1)
+        Args:
+            img_splits_hw: A float tensor of shape (b', h_sp*w_sp, c).
+            h_sp: Window height.
+            w_sp: Window width.
+            h: Original height.
+            w: Original width.
+
+        Returns:
+            A float tensor of shape (b, h, w, c).
+        """
+        b_merged = int(img_splits_hw.shape[0] / (h * w / h_sp / w_sp))
+        img = img_splits_hw.view(b_merged, h // h_sp, w // w_sp, h_sp, w_sp, -1)
+        img = img.permute(0, 1, 3, 2, 4, 5).contiguous().view(b_merged, h, w, -1)
         return img
 
-    def _get_split(self, size: tuple[int, int]) -> tuple[int, int]:
-        H, W = size
+    def _get_split(self, size: Tuple[int, int]) -> Tuple[int, int]:
+        """
+        Determine how to split the height/width for the cross-shaped windows.
+
+        Args:
+            size: A tuple (h, w).
+
+        Returns:
+            A tuple (h_sp, w_sp) indicating split window dimensions.
+        """
+        h, w = size
         if self.idx == -1:
-            return H, W
+            return h, w
         elif self.idx == 0:
-            return H, self.split_size
+            return h, self.split_size
         elif self.idx == 1:
-            return self.split_size, W
+            return self.split_size, w
+        else:
+            raise ValueError("idx must be -1, 0, or 1")
 
-    def im2cswin(self, x, size):
-        B, N, C = x.shape
-        H, W = size
-        x = x.transpose(-2, -1).contiguous().view(B, C, H, W)
-        H_sp, W_sp = self._get_split(size)
+    def im2cswin(self, x: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+        """
+        Re-arrange features into cross-shaped windows for Q/K.
 
-        x = self.img2windows(x, H_sp, W_sp)
-        x = x.reshape(-1, H_sp * W_sp, self.num_heads, C // self.num_heads).permute(0, 2, 1, 3).contiguous()
+        Args:
+            x: A float tensor of shape (b, n, c).
+            size: A tuple (h, w).
+
+        Returns:
+            A float tensor of shape (b', num_heads, h_sp*w_sp, c//num_heads).
+        """
+        b, n, c = x.shape
+        h, w = size
+        x = x.transpose(-2, -1).contiguous().view(b, c, h, w)
+        h_sp, w_sp = self._get_split(size)
+
+        x = self.img2windows(x, h_sp, w_sp)
+        x = x.reshape(-1, h_sp * w_sp, self.num_heads, c // self.num_heads).permute(0, 2, 1, 3).contiguous()
         return x
 
-    def get_lepe(self, x, size):
-        B, N, C = x.shape
-        H, W = size
-        x = x.transpose(-2, -1).contiguous().view(B, C, H, W)
-        H_sp, W_sp = self._get_split(size)
+    def get_lepe(self, x: torch.Tensor, size: Tuple[int, int]) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Compute the learnable position encoding via depthwise convolution.
 
-        x = x.view(B, C, H // H_sp, H_sp, W // W_sp, W_sp)
-        x = x.permute(0, 2, 4, 1, 3, 5).contiguous().reshape(-1, C, H_sp, W_sp)  # B', C, H', W'
+        Args:
+            x: A float tensor of shape (b, n, c).
+            size: A tuple (h, w).
+
+        Returns:
+            x: A float tensor rearranged for V in shape (b', num_heads, n_window, c//num_heads).
+            lepe: A position encoding tensor of the same shape as x.
+        """
+        b, n, c = x.shape
+        h, w = size
+        x = x.transpose(-2, -1).contiguous().view(b, c, h, w)
+        h_sp, w_sp = self._get_split(size)
+
+        x = x.view(b, c, h // h_sp, h_sp, w // w_sp, w_sp)
+        x = x.permute(0, 2, 4, 1, 3, 5).contiguous().reshape(-1, c, h_sp, w_sp)  # b', c, h_sp, w_sp
 
         lepe = self.get_v(x)
-        lepe = lepe.reshape(-1, self.num_heads, C // self.num_heads, H_sp * W_sp).permute(0, 1, 3, 2).contiguous()
+        lepe = lepe.reshape(-1, self.num_heads, c // self.num_heads, h_sp * w_sp).permute(0, 1, 3, 2).contiguous()
 
-        x = x.reshape(-1, self.num_heads, C // self.num_heads, H_sp * W_sp).permute(0, 1, 3, 2)
+        x = x.reshape(-1, self.num_heads, c // self.num_heads, h_sp * w_sp).permute(0, 1, 3, 2)
         return x, lepe
 
-    def forward(self, qkv: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
+    def forward(self, qkv: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+        """
+        Forward pass for LePEAttention.
+
+        Splits Q/K/V according to cross-shaped windows, computes attention,
+        and returns the combined features.
+
+        Args:
+            qkv: A tensor of shape (3, b, n, c) containing Q, K, and V.
+            size: A tuple (h, w) giving the height and width of the image/feature map.
+
+        Returns:
+            A float tensor of shape (b, n, c) after cross-shaped window attention with LePE.
+        """
         q, k, v = qkv[0], qkv[1], qkv[2]
 
-        # Img2Window
-        H, W = size
-        B, L, C = q.shape
-        # assert L == H * W, "flatten img_tokens has wrong size"
+        h, w = size
+        b, n, c = q.shape
 
-        H_sp, W_sp = self._get_split(size)
-
+        h_sp, w_sp = self._get_split(size)
         q = self.im2cswin(q, size)
         k = self.im2cswin(k, size)
         v, lepe = self.get_lepe(v, size)
 
         q = q * self.scale
-        attn = q @ k.transpose(-2, -1)  # B head N C @ B head C N --> B head N N
-        attn = nn.functional.softmax(attn, dim=-1, dtype=attn.dtype)
+        attn = q @ k.transpose(-2, -1)  # (b', head, n_window, n_window)
+        attn = nn.functional.softmax(attn, dim=-1)
         attn = self.attn_drop(attn)
 
         x = (attn @ v) + lepe
-        x = x.transpose(1, 2).reshape(-1, H_sp * W_sp, C)  # B head N N @ B head N C
+        x = x.transpose(1, 2).reshape(-1, h_sp * w_sp, c)
         # Window2Img
-        x = self.windows2img(x, H_sp, W_sp, H, W).view(B, -1, C)  # B H' W' C
+        x = self.windows2img(x, h_sp, w_sp, h, w).view(b, -1, c)
         return x
 
 
 class CrossShapedWindowAttention(nn.Module):
-    """Local Mixing module, performs attention within cross-shaped windows, capturing local patterns and fine details."""
+    """
+    Local mixing module, performing attention within cross-shaped windows.
+
+    This captures local patterns by splitting the feature map into two cross-shaped windows:
+    vertical and horizontal slices. Each slice is passed to a LePEAttention. Outputs are
+    concatenated and projected, followed by an MLP for mixing.
+
+    Args:
+        dim: Embedding dimension.
+        patches_resolution: A tuple (h, w) indicating height and width of the feature map.
+        num_heads: Number of attention heads.
+        split_size: Window size for splitting.
+        mlp_ratio: Expansion factor for MLP hidden dimension.
+        qkv_bias: If True, adds a bias term to Q/K/V projections.
+        drop_path: Drop path rate. If > 0, applies stochastic depth.
+    """
 
     def __init__(
         self,
-        dim,
-        patches_resolution,
-        num_heads,
-        split_size=7,
-        mlp_ratio=4.0,
-        qkv_bias=False,
-        drop_path=0.0,
-    ):
+        dim: int,
+        patches_resolution: Tuple[int, int],
+        num_heads: int,
+        split_size: int = 7,
+        mlp_ratio: float = 4.0,
+        qkv_bias: bool = False,
+        drop_path: float = 0.0,
+    ) -> None:
         super().__init__()
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.norm1 = nn.LayerNorm(dim)
@@ -346,17 +587,31 @@ class CrossShapedWindowAttention(nn.Module):
         ])
 
         mlp_hidden_dim = int(dim * mlp_ratio)
-
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
         self.norm2 = nn.LayerNorm(dim)
 
-    def forward(self, x: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
-        B, _, C = x.shape
-        qkv = self.qkv(self.norm1(x)).reshape(B, -1, 3, C).permute(2, 0, 1, 3)
+    def forward(self, x: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+        """
+        Forward pass for CrossShapedWindowAttention.
 
-        x1 = self.attns[0](qkv[:, :, :, : C // 2], size)
-        x2 = self.attns[1](qkv[:, :, :, C // 2 :], size)
+        Args:
+            x: A float tensor of shape (b, n, c), where n = h * w.
+            size: A tuple (h, w) for the height and width of the feature map.
+
+        Returns:
+            A float tensor of shape (b, n, c) after cross-shaped window attention.
+        """
+        b, _, c = x.shape
+        qkv = self.qkv(self.norm1(x)).reshape(b, -1, 3, c).permute(2, 0, 1, 3)
+
+        # Split QKV for each half, then apply cross-shaped window attention
+        x1 = self.attns[0](qkv[:, :, :, : c // 2], size)
+        x2 = self.attns[1](qkv[:, :, :, c // 2 :], size)
+
+        # Project and merge
         merged = self.proj(torch.cat([x1, x2], dim=2))
         x = x + self.drop_path(merged)
+
+        # MLP
         return x + self.drop_path(self.mlp(self.norm2(x)))
