@@ -102,10 +102,6 @@ class SynthText(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path[0])}")
 
-            # Skip corrupted images
-            if img_path[0].startswith(self.BLACKLIST):
-                continue
-
             labels = [elt for word in txt.tolist() for elt in word.split()]
             # (x, y) coordinates of top left, top right, bottom right, bottom left corners
             word_boxes = (

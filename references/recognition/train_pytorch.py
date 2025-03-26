@@ -222,6 +222,7 @@ def main(args):
             img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
         )
     elif args.val_datasets:
+        val_hash = None
         val_datasets = args.val_datasets
 
         val_set = datasets.__dict__[val_datasets[0]](
@@ -259,7 +260,6 @@ def main(args):
                 T.RandomApply(T.ColorInversion(), 0.9),
             ]),
         )
-    val_hash = None
 
     val_loader = DataLoader(
         val_set,
@@ -396,8 +396,6 @@ def main(args):
         collate_fn=train_set.collate_fn,
     )
     pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
-
-    train_hash = None
 
     if args.show_samples:
         x, target = next(iter(train_loader))
@@ -596,25 +594,21 @@ def parse_args():
         default=20,
         help="Multiplied by the vocab length gets you the number of synthetic validation samples that will be used.",
     )
-    (
-        parser.add_argument(
-            "--train_datasets",
-            type=str,
-            nargs="+",
-            choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
-            default=None,
-            help="Built-in datasets to use for training",
-        ),
+    parser.add_argument(
+        "--train_datasets",
+        type=str,
+        nargs="+",
+        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
+        default=None,
+        help="Built-in datasets to use for training",
     )
-    (
-        parser.add_argument(
-            "--val_datasets",
-            type=str,
-            nargs="+",
-            choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
-            default=None,
-            help="Built-in datasets to use for validation",
-        ),
+    parser.add_argument(
+        "--val_datasets",
+        type=str,
+        nargs="+",
+        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
+        default=None,
+        help="Built-in datasets to use for validation",
     )
     parser.add_argument(
         "--font", type=str, default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf", help="Font family to be used"
