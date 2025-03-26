@@ -62,7 +62,7 @@ VOCABS["vietnamese"] = (
     + "áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵ"
     + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ"
 )
-VOCABS["hebrew"] = VOCABS["english"] + "אבגדהוזחטיךכלםמןנסעףפץצקרשתׯװױ�־ֿ׀ׁׂ׃ׅׄ׆ׇ׳״"
+VOCABS["hebrew"] = VOCABS["english"] + "₪" + "אבגדהוזחטיךכלםמןנסעףפץצקרשתׯװױ�־ֿ׀ׁׂ׃ׅׄ׆ׇ׳״"
 VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
 VOCABS["gujarati"] = (
     VOCABS["gujarati_vowels"]
