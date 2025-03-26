@@ -35,6 +35,7 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from doctr import datasets
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
@@ -155,6 +156,30 @@ def main(rank: int, world_size: int, args):
                 labels_path=os.path.join(args.val_path, "labels.json"),
                 img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
             )
+        elif args.val_datasets:
+            val_hash = None
+            val_datasets = args.val_datasets
+
+            val_set = datasets.__dict__[val_datasets[0]](
+                train=False,
+                download=True,
+                recognition_task=True,
+                use_polygons=True,
+                img_transforms=Compose([
+                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                    # Augmentations
+                    T.RandomApply(T.ColorInversion(), 0.1),
+                ]),
+            )
+            if len(val_datasets) > 1:
+                for dataset_name in val_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=False,
+                        download=True,
+                        recognition_task=True,
+                        use_polygons=True,
+                    )
+                    val_set.data.extend((np_img, target) for np_img, target in _ds.data)
         else:
             val_hash = None
             # Load synthetic data generator
@@ -253,6 +278,30 @@ def main(rank: int, world_size: int, args):
                 train_set.merge_dataset(
                     RecognitionDataset(subfolder.joinpath("images"), subfolder.joinpath("labels.json"))
                 )
+    elif args.train_datasets:
+        train_hash = None
+        train_datasets = args.train_datasets
+
+        train_set = datasets.__dict__[train_datasets[0]](
+            train=True,
+            download=True,
+            recognition_task=True,
+            use_polygons=True,
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.1),
+            ]),
+        )
+        if len(train_datasets) > 1:
+            for dataset_name in train_datasets[1:]:
+                _ds = datasets.__dict__[dataset_name](
+                    train=True,
+                    download=True,
+                    recognition_task=True,
+                    use_polygons=True,
+                )
+                train_set.data.extend((np_img, target) for np_img, target in _ds.data)
     else:
         train_hash = None
         # Load synthetic data generator
@@ -431,6 +480,22 @@ def parse_args():
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
     parser.add_argument("--train_path", type=str, default=None, help="path to train data folder(s)")
     parser.add_argument("--val_path", type=str, default=None, help="path to val data folder")
+    parser.add_argument(
+        "--train_datasets",
+        type=str,
+        nargs="+",
+        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
+        default=None,
+        help="Built-in datasets to use for training",
+    )
+    parser.add_argument(
+        "--val_datasets",
+        type=str,
+        nargs="+",
+        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
+        default=None,
+        help="Built-in datasets to use for validation",
+    )
     parser.add_argument(
         "--train-samples",
         type=int,

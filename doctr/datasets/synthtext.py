@@ -41,6 +41,12 @@ class SynthText(VisionDataset):
     URL = "https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip"
     SHA256 = "28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1"
 
+    # filter corrupted or missing images
+    BLACKLIST = (
+        "67/fruits_129_",
+        "194/window_19_",
+    )
+
     def __init__(
         self,
         train: bool = True,
@@ -111,7 +117,13 @@ class SynthText(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
                 for crop, label in zip(crops, labels):
-                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                    if (
+                        crop.shape[0] > 0
+                        and crop.shape[1] > 0
+                        and len(label) > 0
+                        and len(label) < 30
+                        and " " not in label
+                    ):
                         # write data to disk
                         with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
                             f.write(label)
@@ -132,6 +144,7 @@ class SynthText(VisionDataset):
         return f"train={self.train}"
 
     def _read_from_folder(self, path: str) -> None:
-        for img_path in glob.glob(os.path.join(path, "*.png")):
+        img_paths = glob.glob(os.path.join(path, "*.png"))
+        for img_path in tqdm(iterable=img_paths, desc="Preparing and Loading SynthText", total=len(img_paths)):
             with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
                 self.data.append((img_path, f.read()))
