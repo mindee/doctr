@@ -116,7 +116,8 @@ class CORD(VisionDataset):
                     img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
                 )
                 for crop, label in zip(crops, list(text_targets)):
-                    self.data.append((crop, label))
+                    if " " not in label:
+                        self.data.append((crop, label))
             elif detection_task:
                 self.data.append((img_path, np.asarray(box_targets, dtype=int).clip(min=0)))
             else:

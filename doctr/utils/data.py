@@ -92,7 +92,7 @@ def download_from_url(
         # Create folder hierarchy
         folder_path.mkdir(parents=True, exist_ok=True)
     except OSError:
-        error_message = f"Failed creating cache direcotry at {folder_path}"
+        error_message = f"Failed creating cache directory at {folder_path}"
         if os.environ.get("DOCTR_CACHE_DIR", ""):
             error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
         else:

@@ -122,7 +122,7 @@ class IC03(VisionDataset):
                 if recognition_task:
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                     for crop, label in zip(crops, labels):
-                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and " " not in label:
                             self.data.append((crop, label))
                 elif detection_task:
                     self.data.append((name.text, boxes))

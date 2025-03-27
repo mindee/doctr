@@ -36,6 +36,8 @@ doctr.datasets
 
 .. autoclass:: WILDRECEIPT
 
+.. autoclass:: COCOTEXT
+
 Synthetic dataset generator
 ---------------------------
 
@@ -172,8 +174,8 @@ of vocabs.
      - 234
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ
    * - hebrew
-     - 123
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿אבגדהוזחטיכלמנסעפצקרשת₪
+     - 235
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿אבגדהוזחטיךכלםמןנסעףפץצקרשתְֱֲֳִֵֶַָׇֹֺֻֽ־ֿ׀ׁׂ׃ׅׄ׆׳״֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ₪
    * - hindi
      - 68
      - अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह०१२३४५६७८९।,?!:्ॐ॰॥
@@ -183,6 +185,9 @@ of vocabs.
    * - gujarati
      - 98
      - અઆઇઈઉઊઋએઐઓઔખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ૦૧૨૩૪૫૬૭૮૯!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~૰ઽ◌ંઃ॥ૐ઼ ઁ૱
+   * - russian
+     - 109
+     - абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~₽
    * - multilingual
      - 195
      - english & french & german & italian & spanish & portuguese & czech & polish & dutch & norwegian & danish & finnish & swedish & §

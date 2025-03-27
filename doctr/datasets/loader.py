@@ -19,7 +19,7 @@ def default_collate(samples):
         samples: list of N tuples containing M elements
 
     Returns:
-        tuple of M sequences contianing N elements each
+        tuple of M sequences containing N elements each
     """
     batch_data = zip(*samples)
 

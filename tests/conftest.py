@@ -711,3 +711,73 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
         with open(fn_i, "wb") as f:
             f.write(file.getbuffer())
     return str(image_folder), str(annotation_file)
+
+
+@pytest.fixture(scope="session")
+def mock_cocotext_dataset(tmpdir_factory, mock_image_stream):
+    file = BytesIO(mock_image_stream)
+    root = tmpdir_factory.mktemp("datasets")
+    cocotext_root = root.mkdir("cocotext")
+    annotations_folder = cocotext_root
+    image_folder = cocotext_root.mkdir("train2014")
+
+    filenames = [
+        "COCO_train2014_000000353709.jpg",
+        "COCO_train2014_000000077346.jpg",
+        "COCO_train2014_000000437996.jpg",
+    ]
+    labels = {
+        "cats": {},
+        "anns": {
+            "1": {
+                "mask": [286.1, 215.5, 285.2, 221.5, 304.6, 222.0, 304.6, 216.9],
+                "class": "machine printed",
+                "bbox": [285.2, 215.5, 19.4, 6.5],
+                "image_id": 367969,
+                "id": 108418,
+                "language": "english",
+                "area": 105.6,
+                "utf8_string": "GATO",
+                "legibility": "legible",
+            },
+            "2": {
+                "mask": [310.4, 304.6, 319.4, 302.1, 323.2, 318.1, 307.2, 318.1],
+                "class": "machine printed",
+                "bbox": [307.2, 302.1, 16.0, 16.0],
+                "image_id": 77346,
+                "id": 196817,
+                "language": "english",
+                "area": 184.75,
+                "utf8_string": "6",
+                "legibility": "legible",
+            },
+            "3": {
+                "mask": [212.6, 245.8, 210.1, 248.6, 212.0, 262.8, 221.9, 260.9, 227.4, 244.6],
+                "class": "machine printed",
+                "bbox": [210.1, 244.6, 17.3, 18.2],
+                "image_id": 437996,
+                "id": 134765,
+                "language": "english",
+                "area": 221.31,
+                "utf8_string": "17",
+                "legibility": "legible",
+            },
+        },
+        "imgs": {
+            "367969": {"id": 367969, "set": "train", "width": 640, "file_name": f"{filenames[0]}", "height": 427},
+            "77346": {"id": 77346, "set": "train", "width": 640, "file_name": f"{filenames[1]}", "height": 427},
+            "437996": {"id": 437996, "set": "train", "width": 640, "file_name": f"{filenames[2]}", "height": 427},
+        },
+        "imgToAnns": {},
+        "info": {},
+    }
+
+    annotation_file = annotations_folder.join("cocotext.v2.json")
+    with open(annotation_file, "w") as f:
+        json.dump(labels, f)
+    file = BytesIO(mock_image_stream)
+    for img_name in filenames:
+        fn = image_folder.join(f"{img_name}")
+        with open(fn, "wb") as f:
+            f.write(file.getbuffer())
+    return str(image_folder), str(annotation_file)

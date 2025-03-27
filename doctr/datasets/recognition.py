@@ -23,7 +23,7 @@ class RecognitionDataset(AbstractDataset):
 
     Args:
         img_folder: path to the images folder
-        labels_path: pathe to the json file containing all labels (character sequences)
+        labels_path: path to the json file containing all labels (character sequences)
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 

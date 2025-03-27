@@ -35,7 +35,7 @@ class SVT(VisionDataset):
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = "http://vision.ucsd.edu/~kai/svt/svt.zip"
+    URL = "http://www.iapr-tc11.org/dataset/SVT/svt.zip"
     SHA256 = "63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf"
 
     def __init__(
@@ -113,7 +113,7 @@ class SVT(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                 for crop, label in zip(crops, labels):
-                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and " " not in label:
                         self.data.append((crop, label))
             elif detection_task:
                 self.data.append((name.text, boxes))

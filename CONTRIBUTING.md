@@ -16,7 +16,7 @@ Everything you need to know to contribute efficiently to the project.
 
 This project uses the following integrations to ensure proper codebase maintenance:
 
-- [Github Worklow](https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow) - run jobs for package build and coverage
+- [Github Workflow](https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow) - run jobs for package build and coverage
 - [Codecov](https://codecov.io/) - reports back coverage results
 
 As a contributor, you will only have to ensure coverage of your code by adding appropriate unit testing of your code.

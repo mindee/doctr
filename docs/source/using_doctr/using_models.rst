@@ -409,7 +409,7 @@ For reference, here is the export for the same `Document` as above::
     ]
   }
 
-To export the outpout as XML (hocr-format) you can use the `export_as_xml` method:
+To export the output as XML (hocr-format) you can use the `export_as_xml` method:
 
 .. code-block:: python
 
@@ -427,20 +427,20 @@ For reference, here is a sample XML byte string output:
     <head>
       <title>docTR - hOCR</title>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="ocr-system" content="doctr 0.5.0" />
+      <meta name="ocr-system" content="doctr 0.11.0" />
       <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />
     </head>
     <body>
       <div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0" />
-      <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
-        <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
-          <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
-            <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
-            <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
-            <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
-          </span>
-        </p>
-      </div>
+        <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
+          <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
+            <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
+              <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
+              <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
+              <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
+            </span>
+          </p>
+        </div>
     </body>
   </html>
 
@@ -502,7 +502,7 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
     class CustomHook:
         def __call__(self, loc_preds):
             # Manipulate the location predictions here
-            # 1. The outpout structure needs to be the same as the input location predictions
+            # 1. The output structure needs to be the same as the input location predictions
             # 2. Be aware that the coordinates are relative and needs to be between 0 and 1
             return loc_preds
 

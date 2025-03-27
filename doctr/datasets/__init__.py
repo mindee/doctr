@@ -1,6 +1,7 @@
 from doctr.file_utils import is_tf_available
 
 from .generator import *
+from .coco_text import *
 from .cord import *
 from .detection import *
 from .doc_artefacts import *

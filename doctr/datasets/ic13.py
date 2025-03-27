@@ -100,7 +100,8 @@ class IC13(AbstractDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=img_path, geoms=box_targets)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, label))
+                    if " " not in label:
+                        self.data.append((crop, label))
             elif detection_task:
                 self.data.append((img_path, box_targets))
             else:
