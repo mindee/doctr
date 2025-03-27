@@ -1,3 +1,8 @@
+# Copyright (C) 2021-2025, Mindee.
+
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+
 from copy import deepcopy
 from itertools import groupby
 from typing import Any, Callable, Dict, List, Optional, Tuple
