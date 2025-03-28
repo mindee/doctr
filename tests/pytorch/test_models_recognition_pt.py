@@ -63,7 +63,7 @@ def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
         model.train()
         model(input_tensor, None)
     # Check from pretrained is a class method
-    assert hasattr(recognition.__dict__[arch_name](pretrained=False), "from_pretrained")
+    assert hasattr(model, "from_pretrained")
 
 
 @pytest.mark.parametrize(
