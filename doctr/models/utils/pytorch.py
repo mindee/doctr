@@ -70,7 +70,8 @@ def load_pretrained_params(
     # Remove weights from the state_dict
     if ignore_keys is not None and len(ignore_keys) > 0:
         for key in ignore_keys:
-            state_dict.pop(key)
+            if key in state_dict:
+                state_dict.pop(key)
         missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
         if any(k not in ignore_keys for k in missing_keys + unexpected_keys):
             raise ValueError(
