@@ -63,6 +63,8 @@ def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
     # test model in train mode needs targets
     with pytest.raises(ValueError):
         reco_model(input_tensor, None, training=True)
+    # Check from pretrained is a class method
+    assert hasattr(recognition.__dict__[arch_name](pretrained=False), "from_pretrained")
 
 
 @pytest.mark.parametrize(
