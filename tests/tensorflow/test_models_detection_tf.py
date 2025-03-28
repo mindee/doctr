@@ -98,10 +98,7 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob, train_m
     loss = model(input_tensor, target, training=True)["loss"]
     assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 1
     # Check from pretrained is a class method
-    if arch_name == "fast_tiny_rep":
-        assert hasattr(reparameterize(detection.fast_tiny(pretrained=False).eval()), "from_pretrained")
-    else:
-        assert hasattr(detection.__dict__[arch_name](pretrained=False), "from_pretrained")
+    assert hasattr(model, "from_pretrained")
 
 
 @pytest.fixture(scope="session")
