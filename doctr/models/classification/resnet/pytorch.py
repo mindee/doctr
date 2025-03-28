@@ -211,35 +211,6 @@ def _tv_resnet(
 
     # Build the model
     model = arch_fn(**kwargs, weights=None)
-    # Load pretrained parameters
-    if pretrained:
-        # The number of classes is not the same as the number of classes in the pretrained model =>
-        # remove the last layer weights
-        _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
-
-    model.cfg = _cfg
-
-    return model
-
-
-def _tv_resnet(
-    arch: str,
-    pretrained: bool,
-    arch_fn,
-    ignore_keys: list[str] | None = None,
-    **kwargs: Any,
-) -> TVResNet:
-    kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
-    kwargs["classes"] = kwargs.get("classes", default_cfgs[arch]["classes"])
-
-    _cfg = deepcopy(default_cfgs[arch])
-    _cfg["num_classes"] = kwargs["num_classes"]
-    _cfg["classes"] = kwargs["classes"]
-    kwargs.pop("classes")
-
-    # Build the model
-    model = arch_fn(**kwargs, weights=None)
 
     # monkeypatch the model to allow for loading pretrained parameters
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:  # noqa: D417
