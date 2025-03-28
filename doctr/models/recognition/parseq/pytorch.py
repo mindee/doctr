@@ -76,8 +76,6 @@ class PARSeqDecoder(nn.Module):
         self.cross_attention = MultiHeadAttention(num_heads, d_model, dropout=dropout)
         self.position_feed_forward = PositionwiseFeedForward(d_model, ffd * ffd_ratio, dropout, nn.GELU())
 
-        self.attention_norm = nn.LayerNorm(d_model, eps=1e-5)
-        self.cross_attention_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.query_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.content_norm = nn.LayerNorm(d_model, eps=1e-5)
         self.feed_forward_norm = nn.LayerNorm(d_model, eps=1e-5)
@@ -172,6 +170,26 @@ class PARSeq(_PARSeq, nn.Module):
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
+
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        # NOTE: This is required to make the model backward compatible with already trained models docTR version <0.11.1
+        # ref.: https://github.com/mindee/doctr/issues/1911
+        if kwargs.get("ignore_keys") is None:
+            kwargs["ignore_keys"] = []
+
+        kwargs["ignore_keys"].extend([
+            "decoder.attention_norm.weight",
+            "decoder.attention_norm.bias",
+            "decoder.cross_attention_norm.weight",
+            "decoder.cross_attention_norm.bias",
+        ])
+        load_pretrained_params(self, path_or_url, **kwargs)
 
     def generate_permutations(self, seqlen: torch.Tensor) -> torch.Tensor:
         # Generates permutations of the target sequence.
@@ -448,7 +466,7 @@ def _parseq(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 

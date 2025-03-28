@@ -86,7 +86,7 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
-        model.load_weights(args.resume).expect_partial()
+        model.from_pretrained(args.resume)
 
     input_shape = model.cfg["input_shape"] if input_shape is None else input_shape
     mean, std = model.cfg["mean"], model.cfg["std"]

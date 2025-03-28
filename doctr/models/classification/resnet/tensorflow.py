@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import types
 from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
@@ -183,6 +184,15 @@ class ResNet(Sequential):
         super().__init__(_layers)
         self.cfg = cfg
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
 
 def _resnet(
     arch: str,
@@ -215,8 +225,8 @@ def _resnet(
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # skip the mismatching layers for fine tuning
-        load_pretrained_params(
-            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
+        model.from_pretrained(
+            default_cfgs[arch]["url"], skip_mismatch=kwargs["num_classes"] != len(default_cfgs[arch]["classes"])
         )
 
     return model
@@ -350,6 +360,18 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
         classifier_activation=None,
     )
 
+    # monkeypatch the model to allow for loading pretrained parameters
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:  # noqa: D417
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
+    model.from_pretrained = types.MethodType(from_pretrained, model)  # Bind method to the instance
+
     model.cfg = _cfg
     _build_model(model)
 
@@ -357,8 +379,7 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> ResNet:
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # skip the mismatching layers for fine tuning
-        load_pretrained_params(
-            model,
+        model.from_pretrained(
             default_cfgs["resnet50"]["url"],
             skip_mismatch=kwargs["num_classes"] != len(default_cfgs["resnet50"]["classes"]),
         )

@@ -76,8 +76,6 @@ class PARSeqDecoder(layers.Layer):
             d_model, ffd * ffd_ratio, dropout, layers.Activation(tf.nn.gelu)
         )
 
-        self.attention_norm = layers.LayerNormalization(epsilon=1e-5)
-        self.cross_attention_norm = layers.LayerNormalization(epsilon=1e-5)
         self.query_norm = layers.LayerNormalization(epsilon=1e-5)
         self.content_norm = layers.LayerNormalization(epsilon=1e-5)
         self.feed_forward_norm = layers.LayerNormalization(epsilon=1e-5)
@@ -164,6 +162,18 @@ class PARSeq(_PARSeq, Model):
         self.dropout = layers.Dropout(dropout_prob)
 
         self.postprocessor = PARSeqPostProcessor(vocab=self.vocab)
+
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        # NOTE: This is required to make the model backward compatible with already trained models docTR version <0.11.1
+        # ref.: https://github.com/mindee/doctr/issues/1911
+        kwargs["skip_mismatch"] = True
+        load_pretrained_params(self, path_or_url, **kwargs)
 
     def generate_permutations(self, seqlen: tf.Tensor) -> tf.Tensor:
         # Generates permutations of the target sequence.
@@ -474,9 +484,7 @@ def _parseq(
     # Load pretrained parameters
     if pretrained:
         # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
-        load_pretrained_params(
-            model, default_cfgs[arch]["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"]
-        )
+        model.from_pretrained(default_cfgs[arch]["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"])
 
     return model
 
