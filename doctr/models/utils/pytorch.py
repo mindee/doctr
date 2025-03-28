@@ -7,6 +7,7 @@ import logging
 from typing import Any
 
 import torch
+import validators
 from torch import nn
 
 from doctr.utils.data import download_from_url
@@ -36,7 +37,7 @@ def _bf16_to_float32(x: torch.Tensor) -> torch.Tensor:
 
 def load_pretrained_params(
     model: nn.Module,
-    url: str | None = None,
+    path_or_url: str | None = None,
     hash_prefix: str | None = None,
     ignore_keys: list[str] | None = None,
     **kwargs: Any,
@@ -44,33 +45,41 @@ def load_pretrained_params(
     """Load a set of parameters onto a model
 
     >>> from doctr.models import load_pretrained_params
-    >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.zip")
+    >>> load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.pt")
 
     Args:
         model: the PyTorch model to be loaded
-        url: URL of the zipped set of parameters
+        path_or_url: the path or URL to the model parameters (checkpoint)
         hash_prefix: first characters of SHA256 expected hash
         ignore_keys: list of weights to be ignored from the state_dict
         **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
-    if url is None:
-        logging.warning("Invalid model URL, using default initialization.")
+    if path_or_url is None:
+        logging.warning("No model URL or Path provided, using default initialization.")
+        return
+
+    archive_path = (
+        download_from_url(path_or_url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
+        if validators.url(path_or_url)
+        else path_or_url
+    )
+
+    # Read state_dict
+    state_dict = torch.load(archive_path, map_location="cpu")
+
+    # Remove weights from the state_dict
+    if ignore_keys is not None and len(ignore_keys) > 0:
+        for key in ignore_keys:
+            state_dict.pop(key)
+        missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
+        if any(k not in ignore_keys for k in missing_keys + unexpected_keys):
+            raise ValueError(
+                "Unable to load state_dict, due to non-matching keys.\n"
+                + f"Unexpected keys: {unexpected_keys}\nMissing keys: {missing_keys}"
+            )
     else:
-        archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
-
-        # Read state_dict
-        state_dict = torch.load(archive_path, map_location="cpu")
-
-        # Remove weights from the state_dict
-        if ignore_keys is not None and len(ignore_keys) > 0:
-            for key in ignore_keys:
-                state_dict.pop(key)
-            missing_keys, unexpected_keys = model.load_state_dict(state_dict, strict=False)
-            if set(missing_keys) != set(ignore_keys) or len(unexpected_keys) > 0:
-                raise ValueError("unable to load state_dict, due to non-matching keys.")
-        else:
-            # Load weights
-            model.load_state_dict(state_dict)
+        # Load weights
+        model.load_state_dict(state_dict)
 
 
 def conv_sequence_pt(

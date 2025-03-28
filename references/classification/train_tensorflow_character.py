@@ -212,7 +212,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        model.load_weights(args.resume)
+        model.from_pretrained(args.resume)
 
     batch_transforms = T.Compose([
         T.Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301)),
