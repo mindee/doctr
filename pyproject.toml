@@ -47,7 +47,7 @@ dependencies = [
     "Pillow>=9.2.0",
     "defusedxml>=0.7.0",
     "anyascii>=0.3.2",
-    "validators>=0.30.0",
+    "validators>=0.18.0",
     "tqdm>=4.30.0",
 ]
 
