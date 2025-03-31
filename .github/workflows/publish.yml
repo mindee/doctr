@@ -74,7 +74,7 @@ jobs:
           auto-update-conda: true
           python-version: "3.10"
           channels: pypdfium2-team,bblanchon,defaults,conda-forge
-          channel-priority: strict
+          channel-priority: flexible
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
@@ -106,7 +106,7 @@ jobs:
       - name: Install package
         shell: bash -el {0}
         run: |
-          conda config --set channel_priority strict
+          conda config --set channel_priority flexible
           conda install pytorch torchvision torchaudio cpuonly -c pytorch
           conda install -c techMindee -c pypdfium2-team -c bblanchon -c defaults -c conda-forge python-doctr
           python -c "from importlib.metadata import version; print(version('python-doctr'))"
