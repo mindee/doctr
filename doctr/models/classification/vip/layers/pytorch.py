@@ -3,8 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Optional, Tuple
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -158,13 +156,13 @@ class MultiHeadSelfAttention(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
 
-    def forward(self, x: torch.Tensor, size: Optional[Tuple[int, int]] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, size: tuple[int, int] | None = None) -> torch.Tensor:
         """
         Forward pass for MultiHeadSelfAttention.
 
         Args:
             x: A float tensor of shape (b, n, c).
-            size: An optional tuple (h, w) if needed by some modules (unused here).
+            size: An optional (h, w) if needed by some modules (unused here).
 
         Returns:
             A float tensor of shape (b, n, c) after self-attention and MLP.
@@ -185,7 +183,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
     Args:
         dim: The embedding dimension of the tokens.
         num_heads: Number of attention heads.
-        qk_scale: Optional override of q-k scaling factor. Defaults to head_dim^-0.5 if None.
+        qk_scale: Optionally override q-k scaling. Defaults to head_dim^-0.5 if None.
         attn_drop: Dropout rate for attention weights.
         sr_ratio: Spatial reduction ratio. If > 1, a depthwise conv-based downsampling is applied.
     """
@@ -194,7 +192,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
         self,
         dim: int,
         num_heads: int = 1,
-        qk_scale: Optional[float] = None,
+        qk_scale: float | None = None,
         attn_drop: float = 0.0,
         sr_ratio: int = 1,
     ) -> None:
@@ -231,7 +229,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
         self.local_conv = nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim)
 
     def forward(
-        self, x: torch.Tensor, size: Tuple[int, int], relative_pos_enc: Optional[torch.Tensor] = None
+        self, x: torch.Tensor, size: tuple[int, int], relative_pos_enc: torch.Tensor | None = None
     ) -> torch.Tensor:
         """
         Forward pass for OverlappingShiftedRelativeAttention.
@@ -304,7 +302,7 @@ class OSRABlock(nn.Module):
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
         self.drop_path = DropPath(drop_path) if drop_path > 0.0 else nn.Identity()
 
-    def forward(self, x: torch.Tensor, relative_pos_enc: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, relative_pos_enc: torch.Tensor | None = None) -> torch.Tensor:
         """
         Forward pass for OSRABlock.
 
@@ -376,10 +374,10 @@ class LePEAttention(nn.Module):
     def __init__(
         self,
         dim: int,
-        resolution: Tuple[int, int],
+        resolution: tuple[int, int],
         idx: int,
         split_size: int = 7,
-        dim_out: Optional[int] = None,
+        dim_out: int | None = None,
         num_heads: int = 8,
         attn_drop: float = 0.0,
     ) -> None:
@@ -432,7 +430,7 @@ class LePEAttention(nn.Module):
         img = img.permute(0, 1, 3, 2, 4, 5).contiguous().view(b_merged, h, w, -1)
         return img
 
-    def _get_split(self, size: Tuple[int, int]) -> Tuple[int, int]:
+    def _get_split(self, size: tuple[int, int]) -> tuple[int, int]:
         """
         Determine how to split the height/width for the cross-shaped windows.
 
@@ -452,7 +450,7 @@ class LePEAttention(nn.Module):
         else:
             raise ValueError("idx must be -1, 0, or 1")
 
-    def im2cswin(self, x: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+    def im2cswin(self, x: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
         """
         Re-arrange features into cross-shaped windows for Q/K.
 
@@ -472,7 +470,7 @@ class LePEAttention(nn.Module):
         x = x.reshape(-1, h_sp * w_sp, self.num_heads, c // self.num_heads).permute(0, 2, 1, 3).contiguous()
         return x
 
-    def get_lepe(self, x: torch.Tensor, size: Tuple[int, int]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def get_lepe(self, x: torch.Tensor, size: tuple[int, int]) -> tuple[torch.Tensor, torch.Tensor]:
         """
         Compute the learnable position encoding via depthwise convolution.
 
@@ -498,7 +496,7 @@ class LePEAttention(nn.Module):
         x = x.reshape(-1, self.num_heads, c // self.num_heads, h_sp * w_sp).permute(0, 1, 3, 2)
         return x, lepe
 
-    def forward(self, qkv: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+    def forward(self, qkv: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
         """
         Forward pass for LePEAttention.
 
@@ -555,7 +553,7 @@ class CrossShapedWindowAttention(nn.Module):
     def __init__(
         self,
         dim: int,
-        patches_resolution: Tuple[int, int],
+        patches_resolution: tuple[int, int],
         num_heads: int,
         split_size: int = 7,
         mlp_ratio: float = 4.0,
@@ -584,7 +582,7 @@ class CrossShapedWindowAttention(nn.Module):
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
         self.norm2 = nn.LayerNorm(dim)
 
-    def forward(self, x: torch.Tensor, size: Tuple[int, int]) -> torch.Tensor:
+    def forward(self, x: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
         """
         Forward pass for CrossShapedWindowAttention.
 

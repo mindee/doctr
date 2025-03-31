@@ -3,9 +3,10 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from copy import deepcopy
 from itertools import groupby
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -14,11 +15,28 @@ import torch.nn.functional as F
 from doctr.datasets import VOCABS, decode_sequence
 
 from ...classification import vip_base, vip_tiny
-from ...classification.vip import default_cfgs  # Explicit import instead of '*'
 from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
 from .base import _VIPTR, _VIPTRPostProcessor
 
 __all__ = ["VIPTRPostProcessor", "VIPTR", "viptr_base", "viptr_tiny"]
+
+
+default_cfgs: dict[str, dict[str, Any]] = {
+    "viptr_tiny": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 128),
+        "vocab": VOCABS["french"],
+        "url": None,
+    },
+    "viptr_base": {
+        "mean": (0.694, 0.695, 0.693),
+        "std": (0.299, 0.296, 0.301),
+        "input_shape": (3, 32, 128),
+        "vocab": VOCABS["french"],
+        "url": None,
+    },
+}
 
 
 class VIPTRPostProcessor(_VIPTRPostProcessor):
@@ -29,7 +47,7 @@ class VIPTRPostProcessor(_VIPTRPostProcessor):
         logits: torch.Tensor,
         vocab: str,
         blank: int = 0,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         """
         Implements best path decoding as shown by Graves (Dissertation, p63).
 
@@ -50,7 +68,7 @@ class VIPTRPostProcessor(_VIPTRPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(self, logits: torch.Tensor) -> List[Tuple[str, float]]:
+    def __call__(self, logits: torch.Tensor) -> list[tuple[str, float]]:
         """
         Decodes CTC logits into strings plus confidence.
 
@@ -73,9 +91,9 @@ class VIPTR(_VIPTR, nn.Module):
         feature_extractor: nn.Module,
         vocab: str,
         embedding_units: int = 384,
-        input_shape: Tuple[int, int, int] = (3, 32, 128),
+        input_shape: tuple[int, int, int] = (3, 32, 128),
         output_channel: int = 192,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
         exportable: bool = False,
         max_length: int = 32,
     ):
@@ -100,7 +118,6 @@ class VIPTR(_VIPTR, nn.Module):
         self.feat_extractor = feature_extractor
         self.postprocessor = VIPTRPostProcessor(vocab=self.vocab)
         self.head = nn.Linear(embedding_units, len(self.vocab) + 1)  # +1 for PAD
-        self.ctc_loss = nn.CTCLoss(zero_infinity=True)
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
@@ -116,10 +133,10 @@ class VIPTR(_VIPTR, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Forward pass of the VIPTR model.
 
@@ -133,32 +150,16 @@ class VIPTR(_VIPTR, nn.Module):
             Dictionary containing model outputs, potential loss, etc.
         """
         features = self.feat_extractor(x).contiguous()  # (B, max_len, embed_dim)
-        # print ("Features: \n", features.size())
-        if features.size(-1) != (len(self.vocab) + 1):
-            # If the final classification head wasn't done by the extractor
-            features = features[:, : self.max_length]
-            B, N, E = features.size()
-            # features = features.reshape(B * N, E)
-            logits = self.head(features).view(B, N, len(self.vocab) + 1)
-            # print ("logits: \n", logits.size())
-        else:
-            # classification layer was applied inside the feature extractor
-            logits = features
+        features = features[:, : self.max_length]
+        B, N, E = features.size()
+        logits = self.head(features).view(B, N, len(self.vocab) + 1)
 
         decoded_features = _bf16_to_float32(logits)
 
         if self.training and target is None:
             raise ValueError("Need to provide labels during training.")
 
-        if target is not None:
-            # Build target tensor
-            _gt, _seq_len = self.build_target(target)
-
-            gt = torch.from_numpy(_gt).to(dtype=torch.long, device=x.device)
-            seq_len = torch.tensor(_seq_len, device=x.device)
-            gt = gt[:, : (int(seq_len.max().item()) + 1)]
-
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         if self.exportable:
             out["logits"] = decoded_features
             return out
@@ -169,18 +170,24 @@ class VIPTR(_VIPTR, nn.Module):
         if target is None or return_preds:
             # disable for torch.compile compatibility
             @torch.compiler.disable  # type: ignore[attr-defined]
-            def _postprocess(decoded: torch.Tensor) -> List[Tuple[str, float]]:
+            def _postprocess(decoded: torch.Tensor) -> list[tuple[str, float]]:
                 return self.postprocessor(decoded)
 
             out["preds"] = _postprocess(decoded_features)
 
         if target is not None:
+            # Build target tensor
+            _gt, _seq_len = self.build_target(target)
+
+            gt = torch.from_numpy(_gt).to(dtype=torch.long, device=x.device)
+            seq_len = torch.tensor(_seq_len, device=x.device)
+            gt = gt[:, : (int(seq_len.max().item()) + 1)]
             out["loss"] = self.compute_loss(decoded_features, gt, seq_len)
 
         return out
 
+    @staticmethod
     def compute_loss(
-        self,
         model_output: torch.Tensor,
         gt: torch.Tensor,
         seq_len: torch.Tensor,
@@ -200,14 +207,17 @@ class VIPTR(_VIPTR, nn.Module):
         input_length = model_output.shape[1] * torch.ones(size=(batch_len,), dtype=torch.int32)
         # https://github.com/cxfyxl/VIPTR/blob/main/train_benchmark.py
         preds = model_output.log_softmax(2).permute(1, 0, 2)
-        return self.ctc_loss(preds, gt, input_length, torch.tensor(seq_len, dtype=torch.int, device=gt.device))
+        ctc_loss = F.ctc_loss(
+            preds, gt, input_length, torch.tensor(seq_len, dtype=torch.int, device=gt.device), zero_infinity=True
+        )
+        return ctc_loss
 
 
 def _viptr(
     arch: str,
     pretrained: bool,
     backbone_fn: Callable[[bool], nn.Module],
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> VIPTR:
     """
@@ -227,12 +237,9 @@ def _viptr(
     kwargs["input_shape"] = kwargs.get("input_shape", _cfg["input_shape"])
     _cfg["vocab"] = vocab
     _cfg["input_shape"] = kwargs["input_shape"]
-    include_top = kwargs.get("include_top", False)
-    # out_dim = kwargs.get("out_dim", 384)
-    # num_classes = kwargs.get("num_classes", len(vocab) + 1)
-    # input_shape = kwargs.get("input_shape", (3, 32, 32))
+
     # Feature extractor
-    feat_extractor = backbone_fn(include_top=include_top)
+    feat_extractor = backbone_fn()
     model = VIPTR(feat_extractor, cfg=_cfg, **kwargs)
 
     # Load pretrained parameters

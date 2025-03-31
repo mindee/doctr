@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 import torch.nn as nn
@@ -18,7 +18,7 @@ from .layers import CrossShapedWindowAttention, MultiHeadSelfAttention, OSRABloc
 
 __all__ = ["vip_tiny", "vip_base", "default_cfgs"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vip_tiny": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -43,11 +43,11 @@ class VIPBlock(nn.Module):
         self,
         embed_dim: int,
         local_unit: nn.ModuleList,
-        size: Tuple[int, int],
-        global_unit: nn.ModuleList = None,
-        proj: nn.Module = None,
+        size: tuple[int, int],
+        global_unit: nn.ModuleList | None = None,
+        proj: nn.Module | None = None,
         downsample: bool = False,
-        out_dim: int = None,
+        out_dim: int | None = None,
     ):
         """
         Args:
@@ -117,16 +117,15 @@ class VIPNet(nn.Sequential):
         self,
         in_channels: int = 3,
         out_dim: int = 384,
-        embed_dims: List[int] = [64, 128, 256],
-        depths: List[int] = [3, 3, 3],
-        num_heads: List[int] = [2, 4, 8],
-        mlp_ratios: List[int] = [3, 4, 4],
-        split_sizes: List[int] = [1, 2, 4],
-        sr_ratios: List[int] = [4, 2, 2],
-        input_shape: Tuple[int, int, int] = (3, 32, 32),
+        embed_dims: list[int] = [64, 128, 256],
+        depths: list[int] = [3, 3, 3],
+        num_heads: list[int] = [2, 4, 8],
+        mlp_ratios: list[int] = [3, 4, 4],
+        split_sizes: list[int] = [1, 2, 4],
+        sr_ratios: list[int] = [4, 2, 2],
+        input_shape: tuple[int, int, int] = (3, 32, 32),
         num_classes: int = 1000,
-        include_top: bool = False,
-        cfg: Dict[str, Any] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         """
         Args:
@@ -140,11 +139,9 @@ class VIPNet(nn.Sequential):
             sr_ratios: used for some global block adjustments
             input_shape: (C, H, W)
             num_classes: number of output classes
-            include_top: if True, append a classification head
             cfg: optional config dictionary
         """
         self.cfg = cfg
-        self.include_top = include_top
 
         dpr = [x.item() for x in torch.linspace(0, 0.1, sum(depths))]
         drop_paths = [dpr[sum(depths[:i]) : sum(depths[: i + 1])] for i in range(len(depths))]
@@ -201,9 +198,6 @@ class VIPNet(nn.Sequential):
         )
         layers.append(mlp_head)
 
-        if include_top:
-            layers.append(nn.Linear(out_dim, num_classes))
-
         super().__init__(*layers)
 
         self.apply(self._init_weights)
@@ -220,7 +214,9 @@ class VIPNet(nn.Sequential):
 
 def vip_tiny(pretrained: bool = False, **kwargs: Any) -> VIPNet:
     """
-    VIP-Tiny encoder architecture.
+    VIP-Tiny encoder architecture.Corresponds to SVIPTRv2-T variant in the paper (VIPTRv2 function
+    in the official implementation:
+    https://github.com/cxfyxl/VIPTR/blob/main/modules/VIPTRv2.py)
 
     Args:
         pretrained: whether to load pretrained weights
@@ -232,7 +228,7 @@ def vip_tiny(pretrained: bool = False, **kwargs: Any) -> VIPNet:
     return _vip(
         "vip_tiny",
         pretrained,
-        out_dim=384,
+        out_dim=192,
         embed_dims=[64, 128, 256],
         depths=[3, 3, 3],
         num_heads=[2, 4, 8],
@@ -246,7 +242,9 @@ def vip_tiny(pretrained: bool = False, **kwargs: Any) -> VIPNet:
 
 def vip_base(pretrained: bool = False, **kwargs: Any) -> VIPNet:
     """
-    VIP-Base encoder architecture.
+    VIP-Base encoder architecture. Corresponds to SVIPTRv2-B variant in the paper (VIPTRv2B function
+    in the official implementation:
+    https://github.com/cxfyxl/VIPTR/blob/main/modules/VIPTRv2.py)
 
     Args:
         pretrained: whether to load pretrained weights
@@ -258,7 +256,7 @@ def vip_base(pretrained: bool = False, **kwargs: Any) -> VIPNet:
     return _vip(
         "vip_base",
         pretrained,
-        out_dim=384,
+        out_dim=256,
         embed_dims=[128, 256, 384],
         depths=[3, 6, 9],
         num_heads=[4, 8, 12],
@@ -273,7 +271,7 @@ def vip_base(pretrained: bool = False, **kwargs: Any) -> VIPNet:
 def _vip(
     arch: str,
     pretrained: bool,
-    ignore_keys: List[str],
+    ignore_keys: list[str],
     **kwargs: Any,
 ) -> VIPNet:
     """
@@ -310,12 +308,12 @@ def _vip_local_mixer(
     depth: int,
     num_heads: int,
     mlp_ratio: float,
-    drop_path: List[float],
-    size: Tuple[int, int],
+    drop_path: list[float],
+    size: tuple[int, int],
     split_size: int = 1,
     sr_ratio: int = 1,
     downsample: bool = False,
-    out_dim: Optional[int] = None,
+    out_dim: int | None = None,
 ) -> nn.Module:
     """Builds a VIPBlock performing local (cross-shaped) window attention.
 
@@ -357,12 +355,12 @@ def _vip_global_mha_mixer(
     depth: int,
     num_heads: int,
     mlp_ratio: float,
-    drop_path: List[float],
-    size: Tuple[int, int],
+    drop_path: list[float],
+    size: tuple[int, int],
     split_size: int = 1,
     sr_ratio: int = 1,
     downsample: bool = False,
-    out_dim: Optional[int] = None,
+    out_dim: int | None = None,
 ) -> nn.Module:
     """Builds a VIPBlock performing global multi-head self-attention.
 
@@ -373,7 +371,7 @@ def _vip_global_mha_mixer(
         mlp_ratio: ratio used to expand the hidden dimension in MLP.
         drop_path: list of per-block drop path rates.
         split_size: parameter needed for cross-compatibility between different mixers
-        sr_ratio:parameter needed for cross-compatibility between different mixers
+        sr_ratio: parameter needed for cross-compatibility between different mixers
         size: the (H, W) dimensions of the input feature map at this stage.
         downsample: whether to apply PatchMerging at the end.
         out_dim: output embedding dimension if downsampling.
@@ -408,12 +406,12 @@ def _vip_mixed_mixer(
     depth: int,
     num_heads: int,
     mlp_ratio: float,
-    drop_path: List[float],
-    size: Tuple[int, int],
+    drop_path: list[float],
+    size: tuple[int, int],
     split_size: int = 1,
     sr_ratio: int = 1,
     downsample: bool = False,
-    out_dim: Optional[int] = None,
+    out_dim: int | None = None,
 ) -> nn.Module:
     """Builds a VIPBlock performing mixed local+global attention.
 
