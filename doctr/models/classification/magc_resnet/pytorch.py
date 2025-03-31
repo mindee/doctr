@@ -14,7 +14,6 @@ from torch import nn
 
 from doctr.datasets import VOCABS
 
-from ...utils.pytorch import load_pretrained_params
 from ..resnet.pytorch import ResNet
 
 __all__ = ["magc_resnet31"]
@@ -99,15 +98,6 @@ class MAGC(nn.Module):
         # Transform: B, C, 1, 1 ->  B, C, 1, 1
         transformed = self.transform(context)
         return inputs + transformed
-
-    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
-        """Load pretrained parameters onto the model
-
-        Args:
-            path_or_url: the path or URL to the model parameters (checkpoint)
-            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
-        """
-        load_pretrained_params(self, path_or_url, **kwargs)
 
 
 def _magc_resnet(

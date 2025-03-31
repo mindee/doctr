@@ -44,6 +44,8 @@ def test_load_pretrained_params(tmpdir_factory):
     model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4), nn.ReLU(), nn.Linear(4, 1))
     with pytest.raises(ValueError):
         load_pretrained_params(model, url, cache_dir=str(cache_dir), ignore_keys=["2.weight"])
+    # Default initialization
+    load_pretrained_params(model, None)
 
 
 def test_conv_sequence():
