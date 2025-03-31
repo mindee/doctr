@@ -74,9 +74,7 @@ jobs:
           auto-update-conda: true
           python-version: "3.10"
           channels: pypdfium2-team,bblanchon,defaults,conda-forge
-          channel-priority: flexible
-      - name: Clear Conda Cache
-        run: conda clean -a
+          channel-priority: strict
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client

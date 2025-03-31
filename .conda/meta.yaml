@@ -34,7 +34,7 @@ requirements:
     - huggingface_hub >=0.20.0, <1.0.0
     - defusedxml >=0.7.0
     - anyascii >=0.3.2
-    - conda-forge::validators >=0.30.0
+    - validators >=0.30.0
     - tqdm >=4.30.0
 
 test:
