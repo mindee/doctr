@@ -60,7 +60,7 @@ jobs:
           auto-update-conda: true
           python-version: "3.10"
           channels: pypdfium2-team,bblanchon,defaults,conda-forge
-          channel-priority: strict
+          channel-priority: flexible
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
