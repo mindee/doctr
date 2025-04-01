@@ -52,7 +52,7 @@ class VIPTRPostProcessor(_VIPTRPostProcessor):
         Implements best path decoding as shown by Graves (Dissertation, p63).
 
         Args:
-            logits: model output, shape: N x T x C
+            logits: model output, shape: B x T x C
             vocab: vocabulary string
             blank: index of blank label
 
@@ -60,11 +60,14 @@ class VIPTRPostProcessor(_VIPTRPostProcessor):
             List of (word, confidence) for each sample
         """
         # Compute a "confidence" for each sequence
+        print(logits.size())
         probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
-        # Collapse best path (itertools.groupby), map indices->chars, join to string
         preds_indices = torch.argmax(logits, dim=-1)
-        print(preds_indices.max())
-        words = [decode_sequence([k for k, _ in groupby(seq.tolist()) if k != blank], vocab) for seq in preds_indices]
+        print(preds_indices)
+        print(preds_indices.size())
+        words = [
+            decode_sequence([k - 1 for k, _ in groupby(seq.tolist()) if k != blank], vocab) for seq in preds_indices
+        ]
 
         return list(zip(words, probs.tolist()))
 
@@ -141,7 +144,7 @@ class VIPTR(_VIPTR, nn.Module):
         Forward pass of the VIPTR model.
 
         Args:
-            x: input image batch of shape (N, C, H, W)
+            x: input image batch of shape (B, C, H, W)
             target: list of strings, the labels for training
             return_model_output: whether to include raw logits
             return_preds: whether to decode predictions
@@ -196,7 +199,7 @@ class VIPTR(_VIPTR, nn.Module):
         Compute CTC loss for the model.
 
         Args:
-            model_output: predicted logits (N, T, C)
+            model_output: predicted logits (B, T, C)
             gt: ground-truth indices
             seq_len: the length of each label sequence
 
@@ -207,9 +210,7 @@ class VIPTR(_VIPTR, nn.Module):
         input_length = model_output.shape[1] * torch.ones(size=(batch_len,), dtype=torch.int32)
         # https://github.com/cxfyxl/VIPTR/blob/main/train_benchmark.py
         preds = model_output.log_softmax(2).permute(1, 0, 2)
-        ctc_loss = F.ctc_loss(
-            preds, gt, input_length, torch.tensor(seq_len, dtype=torch.int, device=gt.device), zero_infinity=True
-        )
+        ctc_loss = F.ctc_loss(preds, gt, input_length, seq_len, zero_infinity=True)
         return ctc_loss
 
 
@@ -240,7 +241,8 @@ def _viptr(
 
     # Feature extractor
     feat_extractor = backbone_fn()
-    model = VIPTR(feat_extractor, cfg=_cfg, **kwargs)
+    embedding_dim = feat_extractor.out_dim
+    model = VIPTR(feat_extractor, embedding_units=embedding_dim, cfg=_cfg, **kwargs)
 
     # Load pretrained parameters
     if pretrained:
@@ -264,7 +266,7 @@ def viptr_base(pretrained: bool = False, **kwargs: Any) -> VIPTR:
         VIPTR: a VIPTR model instance
     """
     return _viptr(
-        "vip_base",
+        "viptr_base",
         pretrained,
         vip_base,
         ignore_keys=["head.weight", "head.bias"],
@@ -284,7 +286,7 @@ def viptr_tiny(pretrained: bool = False, **kwargs: Any) -> VIPTR:
         VIPTR: a VIPTR model instance
     """
     return _viptr(
-        "vip_tiny",
+        "viptr_tiny",
         pretrained,
         vip_tiny,
         ignore_keys=["head.weight", "head.bias"],

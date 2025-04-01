@@ -313,7 +313,7 @@ class OSRABlock(nn.Module):
         Returns:
             A float tensor of shape (b, n, c) with globally mixed features.
         """
-        x = x + self.drop_path(self.token_mixer(self.norm1(x), relative_pos_enc=relative_pos_enc))
+        x = x + self.drop_path(self.token_mixer(self.norm1(x), relative_pos_enc))
         x = x + self.drop_path(self.mlp(self.norm2(x)))
         return x
 

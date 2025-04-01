@@ -142,7 +142,7 @@ class VIPNet(nn.Sequential):
             cfg: optional config dictionary
         """
         self.cfg = cfg
-
+        self.out_dim = out_dim
         dpr = [x.item() for x in torch.linspace(0, 0.1, sum(depths))]
         drop_paths = [dpr[sum(depths[:i]) : sum(depths[: i + 1])] for i in range(len(depths))]
         # print (drop_paths)
