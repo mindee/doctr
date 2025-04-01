@@ -269,7 +269,7 @@ def viptr_base(pretrained: bool = False, **kwargs: Any) -> VIPTR:
         "viptr_base",
         pretrained,
         vip_base,
-        ignore_keys=["head.weight", "head.bias"],
+        ignore_keys=["9.fc.weight", "9.fc.bias"],
         **kwargs,
     )
 
@@ -289,6 +289,6 @@ def viptr_tiny(pretrained: bool = False, **kwargs: Any) -> VIPTR:
         "viptr_tiny",
         pretrained,
         vip_tiny,
-        ignore_keys=["head.weight", "head.bias"],
+        ignore_keys=["9.fc.weight", "9.fc.bias"],
         **kwargs,
     )

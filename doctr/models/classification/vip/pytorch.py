@@ -125,6 +125,7 @@ class VIPNet(nn.Sequential):
         sr_ratios: list[int] = [4, 2, 2],
         input_shape: tuple[int, int, int] = (3, 32, 32),
         num_classes: int = 1000,
+        include_top: bool = False,
         cfg: dict[str, Any] | None = None,
     ) -> None:
         """
@@ -139,6 +140,7 @@ class VIPNet(nn.Sequential):
             sr_ratios: used for some global block adjustments
             input_shape: (C, H, W)
             num_classes: number of output classes
+            include_top: whether to include a classification head
             cfg: optional config dictionary
         """
         self.cfg = cfg
@@ -198,6 +200,9 @@ class VIPNet(nn.Sequential):
         )
         layers.append(mlp_head)
 
+        if include_top:
+            layers.append(ClassifierHead(out_dim, num_classes))
+
         super().__init__(*layers)
 
         self.apply(self._init_weights)
@@ -235,7 +240,7 @@ def vip_tiny(pretrained: bool = False, **kwargs: Any) -> VIPNet:
         mlp_ratios=[3, 4, 4],
         split_sizes=[1, 2, 4],
         sr_ratios=[4, 2, 2],
-        ignore_keys=["head.weight", "head.bias"],
+        ignore_keys=["9.fc.weight", "9.fc.bias"],
         **kwargs,
     )
 
@@ -263,7 +268,7 @@ def vip_base(pretrained: bool = False, **kwargs: Any) -> VIPNet:
         mlp_ratios=[4, 4, 4],
         split_sizes=[1, 2, 4],
         sr_ratios=[4, 2, 2],
-        ignore_keys=["head.weight", "head.bias"],
+        ignore_keys=["9.fc.weight", "9.fc.bias"],
         **kwargs,
     )
 
@@ -478,6 +483,17 @@ def _vip_mixed_mixer(
         downsample=downsample,
         out_dim=out_dim,
     )
+
+
+class ClassifierHead(nn.Module):
+    """Classification head which averages the features and applies a linear layer."""
+
+    def __init__(self, in_features: int, out_features: int):
+        super().__init__()
+        self.fc = nn.Linear(in_features, out_features)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.fc(x.mean(dim=1))
 
 
 class PermuteLayer(nn.Module):
