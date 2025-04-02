@@ -31,6 +31,10 @@ ARCHS: list[str] = [
     "vit_s",
     "vit_b",
 ]
+
+if is_torch_available():
+    ARCHS.extend(["vip_tiny", "vip_base"])
+
 ORIENTATION_ARCHS: list[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
 
 
