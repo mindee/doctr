@@ -16,7 +16,7 @@ __all__ = [
     "PatchEmbed",
     "Attention",
     "MultiHeadSelfAttention",
-    "OverlappingShiftedRelativeAttention",
+    "OverlappedSpatialReductionAttention",
     "OSRABlock",
     "PatchMerging",
     "LePEAttention",
@@ -27,7 +27,7 @@ __all__ = [
 class PermuteLayer(nn.Module):
     """Custom layer to permute dimensions in a Sequential model."""
 
-    def __init__(self, dims=(0, 2, 3, 1)):
+    def __init__(self, dims: tuple[int, int, int, int] = (0, 2, 3, 1)):
         super().__init__()
         self.dims = dims
 
@@ -38,7 +38,7 @@ class PermuteLayer(nn.Module):
 class SqueezeLayer(nn.Module):
     """Custom layer to squeeze out a dimension in a Sequential model."""
 
-    def __init__(self, dim=3):
+    def __init__(self, dim: int = 3):
         super().__init__()
         self.dim = dim
 
@@ -195,9 +195,9 @@ class MultiHeadSelfAttention(nn.Module):
         return x
 
 
-class OverlappingShiftedRelativeAttention(nn.Module):
+class OverlappedSpatialReductionAttention(nn.Module):
     """
-    Overlapping Shifted Relative Attention (OSRA).
+    Overlapped Spatial Reduction Attention (OSRA).
 
     This attention mechanism downsamples the input according to 'sr_ratio' (spatial reduction ratio),
     applies a local convolution for feature enhancement, and computes attention with an
@@ -253,7 +253,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
 
     def forward(self, x: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
         """
-        Forward pass for OverlappingShiftedRelativeAttention.
+        Forward pass for OverlappedSpatialReductionAttention.
 
         Args:
             x: A float tensor of shape (b, n, c) where n = h * w.
@@ -283,7 +283,7 @@ class OverlappingShiftedRelativeAttention(nn.Module):
 
 class OSRABlock(nn.Module):
     """
-    Global token mixing block using Overlapping Shifted Relative Attention (OSRA).
+    Global token mixing block using Overlapped Spatial Reduction Attention (OSRA).
 
     Captures global dependencies by aggregating context from a wider spatial area,
     followed by a position-wise feed-forward layer.
@@ -308,7 +308,7 @@ class OSRABlock(nn.Module):
         mlp_hidden_dim = int(dim * mlp_ratio)
 
         self.norm1 = nn.LayerNorm(dim)
-        self.token_mixer = OverlappingShiftedRelativeAttention(dim, num_heads=num_heads, sr_ratio=sr_ratio)
+        self.token_mixer = OverlappedSpatialReductionAttention(dim, num_heads=num_heads, sr_ratio=sr_ratio)
         self.norm2 = nn.LayerNorm(dim)
 
         self.mlp = PositionwiseFeedForward(d_model=dim, ffd=mlp_hidden_dim, dropout=0.0, activation_fct=nn.GELU())
