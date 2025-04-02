@@ -200,8 +200,7 @@ class OverlappedSpatialReductionAttention(nn.Module):
     Overlapped Spatial Reduction Attention (OSRA).
 
     This attention mechanism downsamples the input according to 'sr_ratio' (spatial reduction ratio),
-    applies a local convolution for feature enhancement, and computes attention with an
-    optional relative positional encoding. It captures dependencies in an overlapping manner.
+    applies a local convolution for feature enhancement. It captures dependencies in an overlapping manner.
 
     Args:
         dim: The embedding dimension of the tokens.
