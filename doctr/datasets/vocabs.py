@@ -9,64 +9,60 @@ __all__ = ["VOCABS"]
 
 
 VOCABS: dict[str, str] = {
+    # Arabic & Persian
+    "arabic_diacritics": "ًٌٍَُِّْ",
+    "arabic_digits": "٠١٢٣٤٥٦٧٨٩",
+    "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي",
+    "arabic_punctuation": "؟؛«»—",
+    "persian_letters": "پچڢڤگ",
+    # Bangla
+    "bangla_digits": "০১২৩৪৫৬৭৮৯",
+    "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
+    # Cyrillic
+    "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
+    "russian_cyrillic_letters": "ёыэЁЫЭ",
+    "russian_signs": "ъЪ",
+    # Greek
+    "ancient_greek": "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
+    # Gujarati
+    "gujarati_consonants": "ખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ",
+    "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
+    "gujarati_punctuation": "૰ઽ◌ંઃ॥ૐ઼ઁ" + "૱",
+    "gujarati_vowels": "અઆઇઈઉઊઋએઐઓ",
+    # Hindi
+    "hindi_digits": "०१२३४५६७८९",
+    "hindi_letters": "अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
+    "hindi_punctuation": "।,?!:्ॐ॰॥",
+    # Hebrew
+    "hebrew_cantillations": "֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯",
+    "hebrew_letters": "אבגדהוזחטיךכלםמןנסעףפץצקרשת",
+    "hebrew_specials": "ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
+    "hebrew_punctuation": "ֽ־ֿ׀ׁׂ׃ׅׄ׆׳״",
+    "hebrew_vowels": "ְֱֲֳִֵֶַָׇֹֺֻ",
+    # Latin
     "digits": string.digits,
     "ascii_letters": string.ascii_letters,
     "punctuation": string.punctuation,
     "currency": "£€¥¢฿",
-    "ancient_greek": "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
-    "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي",
-    "persian_letters": "پچڢڤگ",
-    "arabic_digits": "٠١٢٣٤٥٦٧٨٩",
-    "arabic_diacritics": "ًٌٍَُِّْ",
-    "arabic_punctuation": "؟؛«»—",
-    "hindi_letters": "अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
-    "hindi_digits": "०१२३४५६७८९",
-    "hindi_punctuation": "।,?!:्ॐ॰॥",
-    "gujarati_vowels": "અઆઇઈઉઊઋએઐઓ",
-    "gujarati_consonants": "ખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ",
-    "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
-    "gujarati_punctuation": "૰ઽ◌ંઃ॥ૐ઼ઁ" + "૱",
-    "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
-    "bangla_digits": "০১২৩৪৫৬৭৮৯",
-    "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
-    "russian_cyrillic_letters": "ёыэЁЫЭ",
-    "russian_signs": "ъЪ",
-    "hebrew_letters": "אבגדהוזחטיךכלםמןנסעףפץצקרשת",
-    "hebrew_vowels": "ְֱֲֳִֵֶַָׇֹֺֻ",
-    "hebrew_punctuation": "ֽ־ֿ׀ׁׂ׃ׅׄ׆׳״",
-    "hebrew_cantillations": "֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯",
-    "hebrew_specials": "ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
 }
 
+# Latin & latin-dependent alphabets
 VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
 VOCABS["english"] = VOCABS["latin"] + "°" + VOCABS["currency"]
-VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + VOCABS["currency"]
-VOCABS["french"] = VOCABS["english"] + "àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ"
-VOCABS["portuguese"] = VOCABS["english"] + "áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ"
-VOCABS["spanish"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ" + "¡¿"
-VOCABS["italian"] = VOCABS["english"] + "àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ"
-VOCABS["german"] = VOCABS["english"] + "äöüßÄÖÜẞ"
-VOCABS["arabic"] = (
-    VOCABS["digits"]
-    + VOCABS["arabic_digits"]
-    + VOCABS["arabic_letters"]
-    + VOCABS["persian_letters"]
-    + VOCABS["arabic_diacritics"]
-    + VOCABS["arabic_punctuation"]
-    + VOCABS["punctuation"]
-)
+
 VOCABS["czech"] = VOCABS["english"] + "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"
-VOCABS["polish"] = VOCABS["english"] + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"
-VOCABS["dutch"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ"
-VOCABS["norwegian"] = VOCABS["english"] + "æøåÆØÅ"
+
 VOCABS["danish"] = VOCABS["english"] + "æøåÆØÅ"
+
+VOCABS["dutch"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ"
+
+VOCABS["french"] = VOCABS["english"] + "àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ"
+VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + VOCABS["currency"]
+
 VOCABS["finnish"] = VOCABS["english"] + "äöÄÖ"
-VOCABS["swedish"] = VOCABS["english"] + "åäöÅÄÖ"
-VOCABS["vietnamese"] = (
-    VOCABS["english"]
-    + "áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵ"
-    + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ"
-)
+
+VOCABS["german"] = VOCABS["english"] + "äöüßÄÖÜẞ"
+
 VOCABS["hebrew"] = (
     VOCABS["english"]
     + VOCABS["hebrew_letters"]
@@ -76,7 +72,41 @@ VOCABS["hebrew"] = (
     + VOCABS["hebrew_specials"]
     + "₪"
 )
-VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
+
+VOCABS["italian"] = VOCABS["english"] + "àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ"
+
+VOCABS["norwegian"] = VOCABS["english"] + "æøåÆØÅ"
+
+VOCABS["polish"] = VOCABS["english"] + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"
+
+VOCABS["portuguese"] = VOCABS["english"] + "áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ"
+
+VOCABS["spanish"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ" + "¡¿"
+
+VOCABS["swedish"] = VOCABS["english"] + "åäöÅÄÖ"
+
+VOCABS["vietnamese"] = (
+    VOCABS["english"]
+    + "áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵ"
+    + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ"
+)
+
+# Non-latin alphabets.
+# Arabic
+VOCABS["arabic"] = (
+    VOCABS["digits"]
+    + VOCABS["arabic_digits"]
+    + VOCABS["arabic_letters"]
+    + VOCABS["persian_letters"]
+    + VOCABS["arabic_diacritics"]
+    + VOCABS["arabic_punctuation"]
+    + VOCABS["punctuation"]
+)
+
+# Bangla
+VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
+
+# Gujarati
 VOCABS["gujarati"] = (
     VOCABS["gujarati_vowels"]
     + VOCABS["gujarati_consonants"]
@@ -84,6 +114,11 @@ VOCABS["gujarati"] = (
     + VOCABS["gujarati_punctuation"]
     + VOCABS["punctuation"]
 )
+
+# Hindi
+VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
+
+# Cyrillic
 VOCABS["russian"] = (
     VOCABS["generic_cyrillic_letters"]
     + VOCABS["russian_cyrillic_letters"]
@@ -92,10 +127,12 @@ VOCABS["russian"] = (
     + VOCABS["punctuation"]
     + "₽"
 )
-VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
+
 VOCABS["ukrainian"] = (
     VOCABS["generic_cyrillic_letters"] + VOCABS["digits"] + VOCABS["punctuation"] + VOCABS["currency"] + "ґіїєҐІЇЄ₴"
 )
+
+# Multi-lingual
 VOCABS["multilingual"] = "".join(
     dict.fromkeys(
         VOCABS["french"]
