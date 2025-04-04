@@ -4,3 +4,4 @@ from .sar import *
 from .vitstr import *
 from .parseq import *
 from .zoo import *
+from .viptr import *

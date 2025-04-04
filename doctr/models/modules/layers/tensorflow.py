@@ -11,7 +11,30 @@ from tensorflow.keras import layers
 
 from doctr.utils.repr import NestedObject
 
-__all__ = ["FASTConvLayer"]
+__all__ = ["FASTConvLayer", "DropPath"]
+
+
+class DropPath(layers.Layer):
+    """
+    DropPath (Drop Connect) layer for TensorFlow/Keras.
+    """
+
+    def __init__(self, drop_prob: float = 0.0, scale_by_keep: bool = True):
+        super(DropPath, self).__init__()
+        self.drop_prob = drop_prob
+        self.scale_by_keep = scale_by_keep
+
+    def call(self, x: tf.Tensor, **kwargs: Any) -> tf.Tensor:
+        if self.drop_prob == 0.0 or not kwargs.get("training", False):
+            return x
+        keep_prob = 1.0 - self.drop_prob
+        shape = (tf.shape(x)[0],) + (1,) * (len(x.shape) - 1)  # Work with different dimensions
+        random_tensor = tf.random.uniform(shape, dtype=x.dtype)
+        binary_tensor = tf.cast(random_tensor < keep_prob, x.dtype)
+        if keep_prob > 0.0 and self.scale_by_keep:
+            binary_tensor = binary_tensor / keep_prob
+
+        return x * binary_tensor
 
 
 class FASTConvLayer(layers.Layer, NestedObject):
