@@ -60,11 +60,8 @@ class VIPTRPostProcessor(_VIPTRPostProcessor):
             List of (word, confidence) for each sample
         """
         # Compute a "confidence" for each sequence
-        print(logits.size())
         probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
         preds_indices = torch.argmax(logits, dim=-1)
-        print(preds_indices)
-        print(preds_indices.size())
         words = [
             decode_sequence([k - 1 for k, _ in groupby(seq.tolist()) if k != blank], vocab) for seq in preds_indices
         ]

@@ -13,6 +13,7 @@ import torch.nn as nn
 # from itertools import groupby
 from doctr.datasets import VOCABS
 
+from ...modules.layers import AdaptiveAvgPool2d
 from ...utils import load_pretrained_params
 from .layers import CrossShapedWindowAttention, MultiHeadSelfAttention, OSRABlock, PatchEmbed, PatchMerging
 
@@ -190,7 +191,7 @@ class VIPNet(nn.Sequential):
         # LN -> permute -> GAP -> squeeze -> MLP
         layers.append(nn.LayerNorm(embed_dims[-1], eps=1e-6))
         layers.append(PermuteLayer((0, 2, 3, 1)))
-        layers.append(nn.AdaptiveAvgPool2d((embed_dims[-1], 1)))
+        layers.append(AdaptiveAvgPool2d((embed_dims[-1], 1)))
         layers.append(SqueezeLayer(dim=3))
 
         mlp_head = nn.Sequential(
