@@ -23,7 +23,7 @@ from .layers import (
     SqueezeLayer,
 )
 
-__all__ = ["vip_tiny", "vip_base", "default_cfgs"]
+__all__ = ["vip_tiny", "vip_base"]
 
 default_cfgs: dict[str, dict[str, Any]] = {
     "vip_tiny": {

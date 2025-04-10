@@ -34,32 +34,29 @@ class DropPath(nn.Module):
 
 
 class AdaptiveAvgPool2d(nn.Module):
-    """Custom AdaptiveAvgPool2d implementation which is ONNX and `torch.compile` compatible."""
+    """
+    Custom AdaptiveAvgPool2d implementation which is ONNX and `torch.compile` compatible.
+
+    """
 
     def __init__(self, output_size):
         super().__init__()
         self.output_size = output_size
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        B, C, H, W = x.shape
-        device = x.device
+    def forward(self, x: torch.Tensor):
+        H_out, W_out = self.output_size
+        N, C, H, W = x.shape
 
-        width_diff = self.output_size[1] - W
-        if width_diff > 0:
-            pad_tensor = torch.zeros((B, C, H, width_diff), device=device, dtype=x.dtype)
-            x = torch.cat([x, pad_tensor], dim=-1)
-
-        stride_size = (H // self.output_size[0], x.shape[-1] // self.output_size[1])
-        kernel_size = (
-            H - (self.output_size[0] - 1) * stride_size[0],
-            x.shape[-1] - (self.output_size[1] - 1) * stride_size[1],
-        )
-
-        kernel_size = (int(kernel_size[0]), int(kernel_size[1]))
-        stride_size = (int(stride_size[0]), int(stride_size[1]))
-
-        avg_pool = nn.AvgPool2d(kernel_size=kernel_size, stride=stride_size)
-        return avg_pool(x)
+        out = torch.empty((N, C, H_out, W_out), device=x.device, dtype=x.dtype)
+        for oh in range(H_out):
+            start_h = (oh * H) // H_out
+            end_h = ((oh + 1) * H + H_out - 1) // H_out  # ceil((oh+1)*H / H_out)
+            for ow in range(W_out):
+                start_w = (ow * W) // W_out
+                end_w = ((ow + 1) * W + W_out - 1) // W_out  # ceil((ow+1)*W / W_out)
+                # average over the window
+                out[:, :, oh, ow] = x[:, :, start_h:end_h, start_w:end_w].mean(dim=(-2, -1))
+        return out
 
 
 class FASTConvLayer(nn.Module):
