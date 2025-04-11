@@ -47,6 +47,8 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["vit_b", (3, 32, 32), (126,)],
         # Check that the interpolation of positional embeddings for vit models works correctly
         ["vit_s", (3, 64, 64), (126,)],
+        ["vip_base", (3, 32, 32), (126,)],
+        ["vip_tiny", (3, 32, 32), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -230,6 +232,8 @@ def test_page_orientation_model(mock_payslip):
         ["textnet_tiny", (3, 32, 32), (126,)],
         ["textnet_small", (3, 32, 32), (126,)],
         ["textnet_base", (3, 32, 32), (126,)],
+        ["vip_base", (3, 32, 32), (126,)],
+        ["vip_tiny", (3, 32, 32), (126,)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

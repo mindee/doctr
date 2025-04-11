@@ -14,6 +14,7 @@ from doctr.models.recognition.master.pytorch import MASTERPostProcessor
 from doctr.models.recognition.parseq.pytorch import PARSeqPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.sar.pytorch import SARPostProcessor
+from doctr.models.recognition.viptr.pytorch import VIPTRPostProcessor
 from doctr.models.recognition.vitstr.pytorch import ViTSTRPostProcessor
 from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
@@ -32,6 +33,8 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["vitstr_small", (3, 32, 128)],
         ["vitstr_base", (3, 32, 128)],
         ["parseq", (3, 32, 128)],
+        ["viptr_base", (3, 32, 128)],
+        ["viptr_tiny", (3, 32, 128)],
     ],
 )
 def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
@@ -69,6 +72,7 @@ def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
         [ViTSTRPostProcessor, [2, 119, 30]],
         [MASTERPostProcessor, [2, 119, 30]],
         [PARSeqPostProcessor, [2, 119, 30]],
+        [VIPTRPostProcessor, [2, 119, 30]],
     ],
 )
 def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
@@ -93,6 +97,8 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
         "vitstr_small",
         "vitstr_base",
         "parseq",
+        "viptr_tiny",
+        "viptr_base",
     ],
 )
 def test_recognition_zoo(arch_name):
@@ -130,6 +136,8 @@ def test_recognition_zoo(arch_name):
         ),
         ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
         ["parseq", (3, 32, 128)],
+        ["viptr_tiny", (3, 32, 128)],
+        ["viptr_base", (3, 32, 128)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
@@ -168,6 +176,9 @@ def test_models_onnx_export(arch_name, input_shape):
         "vitstr_small",
         "vitstr_base",
         "parseq",
+        # TODO: Add viptr models when they are pretrained
+        # "viptr_tiny",
+        # "viptr_base",
     ],
 )
 def test_torch_compiled_models(arch_name, mock_text_box):

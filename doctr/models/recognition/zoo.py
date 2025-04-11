@@ -25,6 +25,9 @@ ARCHS: list[str] = [
     "parseq",
 ]
 
+if is_torch_available():
+    ARCHS.extend(["viptr_base", "viptr_tiny"])
+
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
     if isinstance(arch, str):
@@ -37,6 +40,8 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     else:
         allowed_archs = [recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR, recognition.PARSeq]
         if is_torch_available():
+            # Add VIPTR which is only available in torch at the moment
+            allowed_archs.append(recognition.VIPTR)
             # Adding the type for torch compiled models to the allowed architectures
             from doctr.models.utils import _CompiledModule
 

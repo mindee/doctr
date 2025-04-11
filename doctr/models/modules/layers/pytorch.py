@@ -8,7 +8,55 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-__all__ = ["FASTConvLayer"]
+__all__ = ["FASTConvLayer", "DropPath", "AdaptiveAvgPool2d"]
+
+
+class DropPath(nn.Module):
+    """
+    DropPath (Drop Connect) layer. This is a stochastic version of the identity layer.
+    """
+
+    # Borrowed from https://github.com/huggingface/pytorch-image-models/blob/main/timm/layers/drop.py
+    def __init__(self, drop_prob: float = 0.0, scale_by_keep: bool = True):
+        super(DropPath, self).__init__()
+        self.drop_prob = drop_prob
+        self.scale_by_keep = scale_by_keep
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if self.drop_prob == 0.0 or not self.training:
+            return x
+        keep_prob = 1 - self.drop_prob
+        shape = (x.shape[0],) + (1,) * (x.ndim - 1)  # work with different dimensions
+        random_tensor = x.new_empty(shape).bernoulli_(keep_prob)
+        if keep_prob > 0.0 and self.scale_by_keep:
+            random_tensor.div_(keep_prob)
+        return x * random_tensor
+
+
+class AdaptiveAvgPool2d(nn.Module):
+    """
+    Custom AdaptiveAvgPool2d implementation which is ONNX and `torch.compile` compatible.
+
+    """
+
+    def __init__(self, output_size):
+        super().__init__()
+        self.output_size = output_size
+
+    def forward(self, x: torch.Tensor):
+        H_out, W_out = self.output_size
+        N, C, H, W = x.shape
+
+        out = torch.empty((N, C, H_out, W_out), device=x.device, dtype=x.dtype)
+        for oh in range(H_out):
+            start_h = (oh * H) // H_out
+            end_h = ((oh + 1) * H + H_out - 1) // H_out  # ceil((oh+1)*H / H_out)
+            for ow in range(W_out):
+                start_w = (ow * W) // W_out
+                end_w = ((ow + 1) * W + W_out - 1) // W_out  # ceil((ow+1)*W / W_out)
+                # average over the window
+                out[:, :, oh, ow] = x[:, :, start_h:end_h, start_w:end_w].mean(dim=(-2, -1))
+        return out
 
 
 class FASTConvLayer(nn.Module):
