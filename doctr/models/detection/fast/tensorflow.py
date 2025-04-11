@@ -153,6 +153,15 @@ class FAST(_FAST, Model, NestedObject):
         # Pooling layer as erosion reversal as described in the paper
         self.pooling = layers.MaxPooling2D(pool_size=pooling_size // 2 + 1, strides=1, padding="same")
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
     def compute_loss(
         self,
         out_map: tf.Tensor,
@@ -332,8 +341,7 @@ def _fast(
     # Load pretrained parameters
     if pretrained:
         # The given class_names differs from the pretrained model => skip the mismatching layers for fine tuning
-        load_pretrained_params(
-            model,
+        model.from_pretrained(
             _cfg["url"],
             skip_mismatch=kwargs["class_names"] != default_cfgs[arch].get("class_names", [CLASS_NAME]),
         )
