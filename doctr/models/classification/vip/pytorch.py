@@ -117,7 +117,7 @@ class VIPBlock(nn.Module):
                 x = self.proj(x) + x  # type: ignore[misc]
                 x = x.permute(0, 2, 3, 1).contiguous()
 
-        if self.downsample:
+        if isinstance(self.downsample, nn.Module):
             x = self.downsample(x)
 
         return x
