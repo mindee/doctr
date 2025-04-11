@@ -329,6 +329,10 @@
     <span class="s2">&quot;vit_s&quot;</span><span class="p">,</span>
     <span class="s2">&quot;vit_b&quot;</span><span class="p">,</span>
 <span class="p">]</span>
+
+<span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
+    <span class="n">ARCHS</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;vip_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;vip_base&quot;</span><span class="p">])</span>
+
 <span class="n">ORIENTATION_ARCHS</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span> <span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">]</span>
 
 

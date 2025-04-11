@@ -129,6 +129,8 @@ The following architectures are currently supported:
 * :py:meth:`vitstr_small <doctr.models.recognition.vitstr_small>`
 * :py:meth:`vitstr_base <doctr.models.recognition.vitstr_base>`
 * :py:meth:`parseq <doctr.models.recognition.parseq>`
+* :py:meth:`viptr_tiny <doctr.models.recognition.viptr_tiny>`
+* :py:meth:`viptr_base <doctr.models.recognition.viptr_base>`
 
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
@@ -170,6 +172,10 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 | PyTorch        | vitstr_base                     | (32, 128, 3)    | 85.2 M       | 88.33      | 89.09         | 95.32      | 95.71         | 4.1                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | PyTorch        | parseq                          | (32, 128, 3)    | 23.8 M       | 88.53      | 89.24         | 95.56      | 95.91         | 2.2                |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| PyTorch        | viptr_tiny                      | (32, 128, 3)    | 3.2 M        |            |               |            |               | 0.08               |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| PyTorch        | viptr_base                      | (32, 128, 3)    | 20.2 M       |            |               |            |               | 0.35               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 
 

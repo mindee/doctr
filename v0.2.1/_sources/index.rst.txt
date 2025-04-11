@@ -51,6 +51,7 @@ Text recognition models
 * MASTER from `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition" <https://arxiv.org/pdf/1910.02562.pdf>`_
 * ViTSTR from `"Vision Transformer for Fast and Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_
 * PARSeq from `"Scene Text Recognition with Permuted Autoregressive Sequence Models" <https://arxiv.org/pdf/2207.06966>`_
+* VIPTR from `"A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition" <https://arxiv.org/abs/2401.10110>`_
 
 
 Supported datasets
