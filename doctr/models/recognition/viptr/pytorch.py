@@ -91,9 +91,9 @@ class VIPTRPostProcessor(RecognitionPostProcessor):
 
 
 class VIPTR(RecognitionModel, nn.Module):
-    """Implements a VIPTR architecture as described in `"A Vision Permutable Extractor for Fast and Efficient 
+    """Implements a VIPTR architecture as described in `"A Vision Permutable Extractor for Fast and Efficient
     Scene Text Recognition" <https://arxiv.org/abs/2401.10110>`_.
-    
+
     Args:
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
@@ -110,7 +110,6 @@ class VIPTR(RecognitionModel, nn.Module):
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
     ):
-       
         super().__init__()
         self.vocab = vocab
         self.exportable = exportable
@@ -230,7 +229,7 @@ def _viptr(
 
     # Feature extractor
     feat_extractor = IntermediateLayerGetter(
-        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]), # type: ignore[call-arg]
+        backbone_fn(pretrained_backbone, input_shape=_cfg["input_shape"]),  # type: ignore[call-arg]
         {layer: "features"},
     )
 
