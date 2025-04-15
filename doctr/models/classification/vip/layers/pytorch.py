@@ -246,7 +246,7 @@ class OverlappedSpatialReductionAttention(nn.Module):
                 *conv_sequence_pt(dim, dim, kernel_size=1, groups=dim, bias=False, bn=True, relu=False),
             )
         else:
-            self.sr = nn.Identity() # type: ignore[assignment]
+            self.sr = nn.Identity()  # type: ignore[assignment]
 
         self.local_conv = nn.Conv2d(dim, dim, kernel_size=3, padding=1, groups=dim)
 
