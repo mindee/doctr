@@ -389,9 +389,9 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">VIPTR</span><span class="p">(</span><span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a VIPTR architecture as described in `&quot;A Vision Permutable Extractor for Fast and Efficient </span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a VIPTR architecture as described in `&quot;A Vision Permutable Extractor for Fast and Efficient</span>
 <span class="sd">    Scene Text Recognition&quot; &lt;https://arxiv.org/abs/2401.10110&gt;`_.</span>
-<span class="sd">    </span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
 <span class="sd">        vocab: vocabulary used for encoding</span>
@@ -408,7 +408,6 @@
         <span class="n">exportable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">cfg</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-       
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">vocab</span> <span class="o">=</span> <span class="n">vocab</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span> <span class="o">=</span> <span class="n">exportable</span>
@@ -528,7 +527,7 @@
 
     <span class="c1"># Feature extractor</span>
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
-        <span class="n">backbone_fn</span><span class="p">(</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]),</span> <span class="c1"># type: ignore[call-arg]</span>
+        <span class="n">backbone_fn</span><span class="p">(</span><span class="n">pretrained_backbone</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]),</span>  <span class="c1"># type: ignore[call-arg]</span>
         <span class="p">{</span><span class="n">layer</span><span class="p">:</span> <span class="s2">&quot;features&quot;</span><span class="p">},</span>
     <span class="p">)</span>
 
