@@ -84,6 +84,7 @@ quality = [
     "ruff>=0.1.5",
     "mypy>=0.812",
     "pre-commit>=2.17.0",
+    "yappi>=1.6.10",
 ]
 docs = [
     "sphinx>=3.0.0,!=3.5.0",
@@ -120,6 +121,7 @@ dev = [
     "ruff>=0.3.0",
     "mypy>=1.0",
     "pre-commit>=3.0.0",
+    "yappi>=1.6.10",
     # Docs
     "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
