@@ -154,6 +154,15 @@ class CRNN(RecognitionModel, Model):
         self.beam_width = beam_width
         self.top_paths = top_paths
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
     def compute_loss(
         self,
         model_output: tf.Tensor,
@@ -243,7 +252,7 @@ def _crnn(
     # Load pretrained parameters
     if pretrained:
         # The given vocab differs from the pretrained model => skip the mismatching layers for fine tuning
-        load_pretrained_params(model, _cfg["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"])
+        model.from_pretrained(_cfg["url"], skip_mismatch=kwargs["vocab"] != default_cfgs[arch]["vocab"])
 
     return model
 

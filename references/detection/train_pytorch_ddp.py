@@ -266,8 +266,7 @@ def main(rank: int, world_size: int, args):
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
-        checkpoint = torch.load(args.resume, map_location="cpu")
-        model.load_state_dict(checkpoint)
+        model.from_pretrained(args.resume)
 
     # create default process group
     device = torch.device("cuda", args.devices[rank])
