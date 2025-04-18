@@ -59,12 +59,24 @@ def _process_file(model, file_path: Path, out_format: str) -> None:
 
 
 def main(args):
+    if args.profile:
+        try:
+            import yappi
+        except ImportError:
+            print("Profiling is not available because yappi is not installed")
+            args.profile = False  # just disable profiling
+        else:
+            yappi.set_clock_type("cpu")
+            yappi.start()
+
     detection_model = detection.__dict__[args.detection](
         pretrained=True,
         bin_thresh=args.bin_thresh,
         box_thresh=args.box_thresh,
     )
     model = ocr_predictor(detection_model, args.recognition, pretrained=True)
+    if args.gpu:
+        model = model.to("cuda")
     path = Path(args.path)
 
     os.makedirs(name="output", exist_ok=True)
@@ -78,6 +90,12 @@ def main(args):
     else:
         _process_file(model, path, args.format)
 
+    if args.profile:
+        yappi.get_func_stats().print_all()
+        print()
+        yappi.get_func_stats().debug_print()
+        print()
+
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -88,6 +106,8 @@ def parse_args():
     parser.add_argument("--detection", type=str, default="fast_base", help="Text detection model to use for analysis")
     parser.add_argument("--bin-thresh", type=float, default=0.3, help="Binarization threshold for the detection model.")
     parser.add_argument("--box-thresh", type=float, default=0.1, help="Threshold for the detection boxes.")
+    parser.add_argument("--profile", action="store_true", help="Run yappi profiling")
+    parser.add_argument("--gpu", action="store_true", help="Force the model to run on CUDA GPU")
     parser.add_argument(
         "--recognition", type=str, default="crnn_vgg16_bn", help="Text recognition model to use for analysis"
     )
