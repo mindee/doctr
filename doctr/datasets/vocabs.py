@@ -63,6 +63,8 @@ VOCABS["finnish"] = VOCABS["english"] + "äöÄÖ"
 
 VOCABS["german"] = VOCABS["english"] + "äöüßÄÖÜẞ"
 
+VOCABS["croatian"] = VOCABS["english"] + "ČčĆćĐđŠšŽž"
+
 VOCABS["hebrew"] = (
     VOCABS["english"]
     + VOCABS["hebrew_letters"]
@@ -140,6 +142,7 @@ VOCABS["multilingual"] = "".join(
         + VOCABS["spanish"]
         + VOCABS["german"]
         + VOCABS["czech"]
+        + VOCABS["croatian"]
         + VOCABS["polish"]
         + VOCABS["dutch"]
         + VOCABS["italian"]
