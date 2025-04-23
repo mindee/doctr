@@ -549,12 +549,18 @@
 <div class="viewcode-block" id="viptr_base">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.viptr_base">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">viptr_base</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VIPTR</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Construct a VIPTR-Base model.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;VIPTR-Base as described in `&quot;A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/abs/2401.10110&gt;`_.</span>
+
+<span class="sd">    &gt;&gt;&gt; import torch</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import viptr_base</span>
+<span class="sd">    &gt;&gt;&gt; model = viptr_base(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = torch.rand((1, 3, 32, 128))</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pretrained: whether to load pretrained weights</span>
-<span class="sd">        **kwargs: extra parameters for the VIPTR builder</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the VIPTR architecture</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        VIPTR: a VIPTR model instance</span>
@@ -573,12 +579,18 @@
 <div class="viewcode-block" id="viptr_tiny">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.viptr_tiny">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">viptr_tiny</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VIPTR</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Construct a VIPTR-Tiny model.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;VIPTR-Tiny as described in `&quot;A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition&quot;</span>
+<span class="sd">    &lt;https://arxiv.org/abs/2401.10110&gt;`_.</span>
+
+<span class="sd">    &gt;&gt;&gt; import torch</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import viptr_tiny</span>
+<span class="sd">    &gt;&gt;&gt; model = viptr_tiny(pretrained=False)</span>
+<span class="sd">    &gt;&gt;&gt; input_tensor = torch.rand((1, 3, 32, 128))</span>
+<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pretrained: whether to load pretrained weights</span>
-<span class="sd">        **kwargs: extra parameters for the VIPTR builder</span>
+<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        **kwargs: keyword arguments of the VIPTR architecture</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        VIPTR: a VIPTR model instance</span>
