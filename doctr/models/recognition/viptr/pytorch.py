@@ -249,12 +249,18 @@ def _viptr(
 
 
 def viptr_base(pretrained: bool = False, **kwargs: Any) -> VIPTR:
-    """
-    Construct a VIPTR-Base model.
+    """VIPTR-Base as described in `"A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition"
+    <https://arxiv.org/abs/2401.10110>`_.
+
+    >>> import torch
+    >>> from doctr.models import viptr_base
+    >>> model = viptr_base(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 128))
+    >>> out = model(input_tensor)
 
     Args:
-        pretrained: whether to load pretrained weights
-        **kwargs: extra parameters for the VIPTR builder
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the VIPTR architecture
 
     Returns:
         VIPTR: a VIPTR model instance
@@ -270,12 +276,18 @@ def viptr_base(pretrained: bool = False, **kwargs: Any) -> VIPTR:
 
 
 def viptr_tiny(pretrained: bool = False, **kwargs: Any) -> VIPTR:
-    """
-    Construct a VIPTR-Tiny model.
+    """VIPTR-Tiny as described in `"A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition"
+    <https://arxiv.org/abs/2401.10110>`_.
+
+    >>> import torch
+    >>> from doctr.models import viptr_tiny
+    >>> model = viptr_tiny(pretrained=False)
+    >>> input_tensor = torch.rand((1, 3, 32, 128))
+    >>> out = model(input_tensor)
 
     Args:
-        pretrained: whether to load pretrained weights
-        **kwargs: extra parameters for the VIPTR builder
+        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        **kwargs: keyword arguments of the VIPTR architecture
 
     Returns:
         VIPTR: a VIPTR model instance
