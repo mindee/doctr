@@ -98,42 +98,102 @@ of vocabs.
    * - punctuation
      - 32
      - !"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~
+   * - albanian
+     - 104
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿çëÇË
+   * - afrikaans
+     - 114
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿èëïîôûêÈËÏÎÔÛÊ
+   * - azerbaijani
+     - 111
+     - 0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿çəğöşüÇƏĞÖŞÜ₼
+   * - basque
+     - 104
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ñçÑÇ
+   * - bosanski
+     - 102
+     - 0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿čćđšžČĆĐŠŽ
+   * - catalan
+     - 120
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿àèéíïòóúüçÀÈÉÍÏÒÓÚÜÇ
+   * - croatian
+     - 110
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ČčĆćĐđŠšŽž
    * - czech
      - 130
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ
    * - danish
      - 106
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~°£€¥¢฿æøåÆØÅ
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿æøåÆØÅ
    * - dutch
      - 114
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ
    * - english
      - 100
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
-   * - finnish
-     - 104
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöÄÖ
-   * - german
-     - 108
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ
-   * - croatian
-     - 110
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ČčĆćĐđŠšŽž
+   * - estonian
+     - 112
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿šžõäöüŠŽÕÄÖÜ
+   * - esperanto
+     - 105
+     - 0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ĉĝĥĵŝŭĈĜĤĴŜŬ₷
    * - french
      - 126
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ
    * - legacy_french
      - 123
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿
-   * - hebrew
-     - 235
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿אבגדהוזחטיךכלםמןנסעףפץצקרשתְֱֲֳִֵֶַָׇֹֺֻֽ־ֿ׀ׁׂ׃ׅׄ׆׳״֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ₪
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿
+   * - finnish
+     - 104
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöÄÖ
+   * - frisian
+     - 107
+     - 0123456789abcdefghijklmnoprstuvwyzABCDEFGHIJKLMNOPRSTUVWYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿âêôûúÂÊÔÛÚƒ
+   * - galician
+     - 98
+     - 0123456789abcdefghilmnopqrstuvxyzABCDEFGHILMNOPQRSTUVXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ñÑçÇ
+   * - german
+     - 108
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ
+   * - hausa
+     - 101
+     - 0123456789abcdefghijklmnorstuwyzABCDEFGHIJKLMNORSTUWYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ɓɗƙƴƁƊƘƳ₦
+   * - hungarian
+     - 114
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áéíóöúüÁÉÍÓÖÚÜ
+   * - icelandic
+     - 114
+     - 0123456789abdefghijklmnoprstuvxyzABDEFGHIJKLMNOPRSTUVXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ðáéíóúýþæöÐÁÉÍÓÚÝÞÆÖ
+   * - indonesian
+     - 100
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
+   * - irish
+     - 110
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áéíóúÁÉÍÓÚ
    * - italian
      - 120
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ
-   * - latin
+   * - latvian
+     - 116
+     - 0123456789abcdefghijklmnoprstuvyzABCDEFGHIJKLMNOPRSTUVYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿āčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ
+   * - lithuanian
+     - 112
+     - 0123456789abcdefghijklmnoprstuvyzABCDEFGHIJKLMNOPRSTUVYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ąčęėįšųūžĄČĘĖĮŠŲŪŽ
+   * - luxembourgish
+     - 110
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿äöüéëÄÖÜÉË
+   * - malagasy
      - 94
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+     - 0123456789abdefghijklmnoprstvyzABDEFGHIJKLMNOPRSTVYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ôñÔÑ
+   * - malay
+     - 100
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
+   * - maltese
+     - 104
+     - 0123456789abdefghijklmnopqrstuvwxzABDEFGHIJKLMNOPQRSTUVWXZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ċġħżĊĠĦŻ
+   * - montenegrin
+     - 103
+     - 0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿čćšžźČĆŠŚŽŹ
    * - norwegian
      - 106
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿æøåÆØÅ
@@ -141,17 +201,53 @@ of vocabs.
      - 118
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ąćęłńóśźżĄĆĘŁŃÓŚŹŻ
    * - portuguese
-     - 131
-     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ¡¿
+     - 128
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ
+   * - romanian
+     - 110
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ăâîșțĂÂÎȘȚ
+   * - scottish_gaelic
+     - 94
+     - 0123456789abcdefghilmnoprstuABCDEFGHILMNOPRSTU!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿àèìòùÀÈÌÒÙ
+   * - serbian_latin
+     - 110
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿čćđžšČĆĐŽŠ
+   * - slovak
+     - 134
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ôäčďľňšťžáéíĺóŕúýÔÄČĎĽŇŠŤŽÁÉÍĹÓŔÚÝ
+   * - slovene
+     - 102
+     - 0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿čćđšžČĆĐŠŽ
+   * - somali
+     - 94
+     - 0123456789abcdefghijklmnoqrstuwxyABCDEFGHIJKLMNOQRSTUWXY!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
    * - spanish
      - 116
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ¡¿
+   * - swahili
+     - 96
+     - 0123456789abcdefghijklmnoprstuvwyzABCDEFGHIJKLMNOPRSTUVWYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
    * - swedish
      - 106
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿åäöÅÄÖ
+   * - tagalog
+     - 95
+     - 0123456789abdefghijklmnoprstuvyzABDEFGHIJKLMNOPRSTUVYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ñÑ₱
+   * - turkish
+     - 112
+     - 0123456789abcdefghijklmnoprstuvyzABCDEFGHIJKLMNOPRSTUVYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿çğıöşüâîûÇĞİÖŞÜÂÎÛ
+   * - uzbek_latin
+     - 110
+     - 0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿çğɉñöşÇĞɈÑÖŞ
    * - vietnamese
      - 234
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ
+   * - welsh
+     - 102
+     - 0123456789abcdefghijlmnoprstuwyABCDEFGHIJLMNOPRSTUWY!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿âêîôŵŷÂÊÎÔŴŶ
+   * - Zulu
+     - 100
+     - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
    * - ancient_greek
      - 48
      - αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ
