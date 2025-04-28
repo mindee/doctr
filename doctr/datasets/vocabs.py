@@ -36,7 +36,7 @@ VOCABS: dict[str, str] = {
     # Hebrew
     "hebrew_cantillations": "֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯",
     "hebrew_letters": "אבגדהוזחטיךכלםמןנסעףפץצקרשת",
-    "hebrew_specials": "װױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
+    "hebrew_specials": "ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
     "hebrew_punctuation": "ֽ־ֿ׀ׁׂ׃ׅׄ׆׳״",
     "hebrew_vowels": "ְֱֲֳִֵֶַָׇֹֺֻ",
     # Latin
