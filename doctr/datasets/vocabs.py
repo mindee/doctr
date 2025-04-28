@@ -36,7 +36,7 @@ VOCABS: dict[str, str] = {
     # Hebrew
     "hebrew_cantillations": "֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯",
     "hebrew_letters": "אבגדהוזחטיךכלםמןנסעףפץצקרשת",
-    "hebrew_specials": "ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
+    "hebrew_specials": "װױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
     "hebrew_punctuation": "ֽ־ֿ׀ׁׂ׃ׅׄ׆׳״",
     "hebrew_vowels": "ְֱֲֳִֵֶַָׇֹֺֻ",
     # Latin
@@ -125,11 +125,90 @@ VOCABS["russian"] = (
     + VOCABS["russian_signs"]
     + VOCABS["digits"]
     + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "₽"
+)
+
+VOCABS["belarusian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ўiЎI"
     + "₽"
 )
 
 VOCABS["ukrainian"] = (
-    VOCABS["generic_cyrillic_letters"] + VOCABS["digits"] + VOCABS["punctuation"] + VOCABS["currency"] + "ґіїєҐІЇЄ₴"
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ґіїєҐІЇЄ"
+    + "₴"
+)
+
+VOCABS["tajik"] = VOCABS["russian"].replace("₽", "") + "ҒғҚқҲҳҶҷӢӣӮӯ"
+
+VOCABS["kazakh"] = VOCABS["russian"].replace("₽", "") + "ӘәҒғҚқҢңӨөҰұҮүҺһІі" + "₸"
+
+VOCABS["kyrgyz"] = VOCABS["russian"].replace("₽", "") + "ҢңӨөҮү"
+
+VOCABS["bulgarian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+)
+
+VOCABS["macedonian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ЃѓЅѕЈјЉљЊњЌќЏџ"
+)
+
+VOCABS["mongolian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ӨөҮү"
+    + "᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙"  # Mongolian digits
+    + "₮"
+)
+
+VOCABS["yakut"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ҔҕҤҥӨөҺһҮү"
+    + "₽"
+)
+
+VOCABS["serbian_cyrillic"] = (
+    "абвгдежзиклмнопрстуфхцчшАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШ"  # limited cyrillic
+    + "JjЂђЉљЊњЋћЏџ"  # Serbian specials
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+)
+
+VOCABS["uzbek_cyrillic"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ЎўҚқҒғҲҳ"
 )
 
 # Multi-lingual
