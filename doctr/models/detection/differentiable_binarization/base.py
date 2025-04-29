@@ -205,7 +205,7 @@ class _DBNet:
         canvas: np.ndarray,
         mask: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Draw a polygon treshold map on a canvas, as described in the DB paper
+        """Draw a polygon threshold map on a canvas, as described in the DB paper
 
         Args:
             polygon : array of coord., to draw the boundary of the polygon
