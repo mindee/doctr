@@ -17,7 +17,7 @@ VOCABS: dict[str, str] = {
     "persian_letters": "پچڢڤگ",
     # Bangla
     "bangla_digits": "০১২৩৪৫৬৭৮৯",
-    "bangla_letters": "অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
+    "bangla_letters": "অআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসড়ঢ়য়ৠৡৰৱৼহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
     # Cyrillic
     "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
     "russian_cyrillic_letters": "ёыэЁЫЭ",
@@ -95,6 +95,9 @@ VOCABS["vietnamese"] = (
 )
 
 # Non-latin alphabets.
+# Greek
+VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["currency"]
+
 # Arabic
 VOCABS["arabic"] = (
     VOCABS["digits"]
@@ -106,8 +109,17 @@ VOCABS["arabic"] = (
     + VOCABS["punctuation"]
 )
 
-# Bangla
-VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"]
+# Devanagari
+VOCABS["devanagari"] = (
+    "ऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऽॐक़ख़ग़ज़ड़ढ़फ़य़ॠॡॱॲॳॴॵॶॷॸॹॺॻॼॽॾॿ"
+    + "ऀँंःऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏ॒॑॓॔ॕॖॗॢॣ"
+    + "०१२३४५६७८९"  # digits
+    + "।॥॰"  # punctuation
+    + "₹"  # currency
+)
+
+# Bengali
+VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"] + "৽" + "৳"
 
 # Gujarati
 VOCABS["gujarati"] = (
@@ -117,6 +129,31 @@ VOCABS["gujarati"] = (
     + VOCABS["gujarati_punctuation"]
     + VOCABS["punctuation"]
 )
+
+# Brahmic scripts
+VOCABS["tamil"] = (
+    "ஃஅஆஇஈஉஊஎஏஐஒஓஔகஙசஜஞடணதநனபமயரறலளழவஶஷஸஹௐ"
+    + "ஂாிீுூெேைொோௌ்ௗ"
+    + "௦௧௨௩௪௫௬௭௮௯௰௱௲"  # digits
+    + "௳௴௵௶௷௸௹௺"  # punctuation
+    + "₹"  # currency
+)
+
+VOCABS["Telugu"] = (
+    "అఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽౘౙౚౠౡ"
+    + "ఀఁంఃఄాిీుూృౄెేైొోౌ్ౕౖౢౣ"
+    + "౦౧౨౩౪౫౬౭౮౯౸౹౺౻౼౽౾"  # digits
+    + "౿"
+    + "₹"  # currency
+)
+
+VOCABS["Kannada"] = (
+    "ಀಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹಽೞೠೡೱೲ"
+    + "ಁಂಃ಼ಾಿೀುೂೃೄೆೇೈೊೋೌ್ೕೖೢೣ"
+    + "೦೧೨೩೪೫೬೭೮೯"  # digits
+    + "₹"  # currency
+)
+
 
 # Hindi
 VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
@@ -143,6 +180,14 @@ VOCABS["armenian"] = (
     + "՚՛՜՝՞՟։֊"
     + "֏"
 )
+
+# Sudanese
+VOCABS["sudanese"] = (
+    "ᮃᮄᮅᮆᮇᮈᮉᮊᮋᮌᮍᮎᮏᮐᮑᮒᮓᮔᮕᮖᮗᮘᮙᮚᮛᮜᮝᮞᮟᮠᮮᮯᮺᮻᮼᮽᮾᮿ"
+    + "ᮀᮁᮂᮡᮢᮣᮤᮥᮦᮧᮨᮩ᮪᮫ᮬᮭ"  # diacritics - "ᮀᮁᮂᮡᮢᮣᮤᮥᮦᮧᮨᮩ᮪᮫ᮬᮭ"
+    + "᮰᮱᮲᮳᮴᮵᮶᮷᮸᮹"  # digits
+    + "ج.س."  # currency
+).replace(".", "") + "."
 
 # Thai
 VOCABS["thai"] = (
@@ -184,7 +229,26 @@ VOCABS["javanese"] = (
     "ꦄꦅꦆꦇꦈꦉꦊꦋꦌꦍꦎꦏꦐꦑꦒꦓꦔꦕꦖꦗꦘꦙꦚꦛꦜꦝꦞꦟꦠꦡꦢꦣꦤꦥꦦꦧꦨꦩꦪꦫꦬꦭꦮꦯꦰꦱꦲꧏ"
     + "ꦀꦁꦂꦃ꦳ꦴꦵꦶꦷꦸꦹꦺꦻꦼꦽꦾꦿ꧀"  # diacritics - ꦃ꦳ꦴꦵꦶꦷꦸꦹꦺꦻꦼꦽꦾꦿ꧀"
     + "꧐꧑꧒꧓꧔꧕꧖꧗꧘꧙"  # digits
-    + "꧁꧂꧃꧄꧅꧆꧇꧈꧉꧊꧋꧌꧍꧞꧟"
+    + "꧆꧇꧈꧉꧊꧋꧌꧍꧞꧟"  # punctuation
+)
+
+# Georgian (Mkhedruli - modern)
+VOCABS["georgian"] = (
+    VOCABS["digits"]
+    + "ႠႡႢႣႤႥႦႧႨႩႪႫႬႭႮႯႰႱႲႳႴႵႶႷႸႹႺႻႼႽႾႿჀჁჂჃჄჅჇჍაბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰჱჲჳჴჵჶჷჸჹჺჼჽჾჿ"
+    + VOCABS["punctuation"]
+    + "჻"
+    + "₾"  # currency
+)
+
+# Ethiopic
+VOCABS["ethiopic"] = (
+    "ሀሁሂሃሄህሆሇለሉሊላሌልሎሏሐሑሒሓሔሕሖሗመሙሚማሜምሞሟሠሡሢሣሤሥሦሧረሩሪራሬርሮሯሰሱሲሳሴስሶሷሸሹሺሻሼሽሾሿቀቁቂቃቄቅቆቇቈቊቋ"
+    + "ቌቍቐቑቒቓቔቕቖቘቚቛቜቝበቡቢባቤብቦቧቨቩቪቫቬቭቮቯተቱቲታቴትቶቷቸቹቺቻቼችቾቿኀኁኂኃኄኅኆኇኈኊኋኌኍነኑኒናኔንኖኗኘኙኚኛኜኝኞኟአኡኢኣኤእኦኧ"
+    + "ከኩኪካኬክኮኯኰኲኳኴኵኸኹኺኻኼኽኾዀዂዃዄዅወዉዊዋዌውዎዏዐዑዒዓዔዕዖዘዙዚዛዜዝዞዟዠዡዢዣዤዥዦዧየዩዪያዬይዮዯደዱዲዳዴድዶዷዸዹዺ"
+    + "ዻዼዽዾዿጀጁጂጃጄጅጆጇገጉጊጋጌግጎጏጐጒጓጔጕጘጙጚጛጜጝጞጟጠጡጢጣጤጥጦጧጨጩጪጫጬጭጮጯጰጱጲጳጴጵጶጷጸጹጺጻጼጽጾጿፀፁፂፃፄፅፆ"
+    + "ፇፈፉፊፋፌፍፎፏፐፑፒፓፔፕፖፗፘፙፚᎀᎁᎂᎃᎄᎅᎆᎇᎈᎉᎊᎋᎌᎍᎎᎏ"
+    + "፩፪፫፬፭፮፯፰፱፲፳፴፵፶፷፸፹፺፻፼"  # digits
 )
 
 # East Asian
@@ -198,7 +262,7 @@ VOCABS["japanese"] = (
     + "チヂッツヅテデトドナニヌネノハバパヒビピフブプヘベペホボポマミムメ"
     + "モャヤュユョヨラリルレロヮワヰヱヲンヴヵヶヷヸヹヺーヽヾヿ"  # Katakana
     + VOCABS["punctuation"]
-    + "。、「」・〜『』《》【】゛゜゠"  # punctuation
+    + "。・〜°"
     + VOCABS["currency"]
 )
 
