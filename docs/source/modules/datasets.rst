@@ -320,7 +320,7 @@ of vocabs.
    * - welsh
      - 102
      - 0123456789abcdefghijlmnoprstuwyABCDEFGHIJLMNOPRSTUWY!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿âêîôŵŷÂÊÎÔŴŶ
-   * - Zulu
+   * - zulu
      - 100
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿
    * - greek
