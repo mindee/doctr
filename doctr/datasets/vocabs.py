@@ -152,7 +152,7 @@ VOCABS["vietnamese"] = (
 
 VOCABS["welsh"] = re.sub(r"[KkQqVvXxZz]", "", VOCABS["english"]) + "âêîôŵŷÂÊÎÔŴŶ"
 
-VOCABS["Zulu"] = VOCABS["english"]
+VOCABS["zulu"] = VOCABS["english"]
 
 # Non-latin alphabets.
 # Greek
