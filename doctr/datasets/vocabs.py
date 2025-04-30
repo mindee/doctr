@@ -109,14 +109,29 @@ VOCABS["arabic"] = (
     + VOCABS["punctuation"]
 )
 
+VOCABS["persian"] = VOCABS["arabic"] + "ژیک"
+
+VOCABS["urdu"] = VOCABS["arabic"] + "ژیکٹڈڑںھےہۃ"
+
+VOCABS["kurdish"] = VOCABS["arabic"] + "ژیکڵڕۆێە"
+
+VOCABS["pashto"] = VOCABS["arabic"] + "ژیکټډړږښځڅڼېۍ"
+
+VOCABS["uyghur"] = VOCABS["arabic"] + "ژیەېۆۇۈڭھ"
+
+VOCABS["sindhi"] = VOCABS["arabic"] + "ژیڀٿٺٽڦڄڃڇڏڌڊڍڙڳڱڻکھ"
+
 # Devanagari
 VOCABS["devanagari"] = (
     "ऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऽॐक़ख़ग़ज़ड़ढ़फ़य़ॠॡॱॲॳॴॵॶॷॸॹॺॻॼॽॾॿ"
     + "ऀँंःऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏ॒॑॓॔ॕॖॗॢॣ"
     + "०१२३४५६७८९"  # digits
-    + "।॥॰"  # punctuation
+    + VOCABS["punctuation"]
+    + "।॥॰"
     + "₹"  # currency
 )
+
+VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
 
 # Bengali
 VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"] + "৽" + "৳"
@@ -135,7 +150,8 @@ VOCABS["tamil"] = (
     "ஃஅஆஇஈஉஊஎஏஐஒஓஔகஙசஜஞடணதநனபமயரறலளழவஶஷஸஹௐ"
     + "ஂாிீுூெேைொோௌ்ௗ"
     + "௦௧௨௩௪௫௬௭௮௯௰௱௲"  # digits
-    + "௳௴௵௶௷௸௹௺"  # punctuation
+    + VOCABS["punctuation"]
+    + "௳௴௵௶௷௸௹௺"
     + "₹"  # currency
 )
 
@@ -144,6 +160,7 @@ VOCABS["Telugu"] = (
     + "ఀఁంఃఄాిీుూృౄెేైొోౌ్ౕౖౢౣ"
     + "౦౧౨౩౪౫౬౭౮౯౸౹౺౻౼౽౾"  # digits
     + "౿"
+    + VOCABS["punctuation"]
     + "₹"  # currency
 )
 
@@ -151,12 +168,42 @@ VOCABS["Kannada"] = (
     "ಀಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹಽೞೠೡೱೲ"
     + "ಁಂಃ಼ಾಿೀುೂೃೄೆೇೈೊೋೌ್ೕೖೢೣ"
     + "೦೧೨೩೪೫೬೭೮೯"  # digits
+    + VOCABS["punctuation"]
     + "₹"  # currency
 )
 
+VOCABS["Sinhala"] = (
+    "අආඇඈඉඊඋඌඍඎඏඐඑඒඓඔඕඖකඛගඝඞඟචඡජඣඤඥඦටඨඩඪණඬතථදධනඳපඵබභමඹයරලවශෂසහළෆ"
+    + "ඁංඃ්ාැෑිීුූෘෙේෛොෝෞෟෲෳ"
+    + "෦෧෨෩෪෫෬෭෮෯"  # digits
+    + VOCABS["punctuation"]
+)
 
-# Hindi
-VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
+VOCABS["malayalam"] = (
+    "ഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡ"
+    + "ഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺഽൎൔൕൖൟൠൡൺൻർൽൾൿ"
+    + "ഀഁംഃ഻഼ാിീുൂൃൄെേൈൊോൌ്ൗൢൣ"
+    + "൘൙൚൛൜൝൞൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸"  # digits
+    + VOCABS["punctuation"]
+    + "൏൹"  # special
+)
+
+VOCABS["punjabi"] = (
+    "ਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹਖ਼ਗ਼ਜ਼ੜਫ਼ੲੳੴ"
+    + "ਁਂਃ਼ਾਿੀੁੂੇੈੋੌ੍ੑੰੱੵ"
+    + "੦੧੨੩੪੫੬੭੮੯"  # digits
+    + VOCABS["punctuation"]
+    + "੶"
+    + "₹"  # currency
+)
+
+VOCABS["odia"] = (
+    "ଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହଽଡ଼ଢ଼ୟୠୡୱ"
+    + "୦୧୨୩୪୫୬୭୮୯୲୳୴୵୶୷"  # digits
+    + VOCABS["punctuation"]
+    + "୰"  # special
+    + "₹"  # currency
+)
 
 # Cyrillic
 VOCABS["russian"] = (
