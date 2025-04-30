@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import re
 import string
 
 __all__ = ["VOCABS"]
@@ -51,21 +52,113 @@ VOCABS: dict[str, str] = {
 VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
 VOCABS["english"] = VOCABS["latin"] + "°" + VOCABS["currency"]
 
+VOCABS["albanian"] = VOCABS["english"] + "çëÇË"
+
+VOCABS["afrikaans"] = VOCABS["english"] + "èëïîôûêÈËÏÎÔÛÊ"
+
+VOCABS["azerbaijani"] = re.sub(r"[Ww]", "", VOCABS["english"]) + "çəğöşüÇƏĞÖŞÜ" + "₼"
+
+VOCABS["basque"] = VOCABS["english"] + "ñçÑÇ"
+
+VOCABS["bosanski"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "čćđšžČĆĐŠŽ"
+
+VOCABS["catalan"] = VOCABS["english"] + "àèéíïòóúüçÀÈÉÍÏÒÓÚÜÇ"
+
+VOCABS["croatian"] = VOCABS["english"] + "ČčĆćĐđŠšŽž"
+
 VOCABS["czech"] = VOCABS["english"] + "áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ"
 
 VOCABS["danish"] = VOCABS["english"] + "æøåÆØÅ"
 
 VOCABS["dutch"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ"
 
+VOCABS["estonian"] = VOCABS["english"] + "šžõäöüŠŽÕÄÖÜ"
+
+VOCABS["esperanto"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "ĉĝĥĵŝŭĈĜĤĴŜŬ" + "₷"
+
 VOCABS["french"] = VOCABS["english"] + "àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ"
 VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + VOCABS["currency"]
 
 VOCABS["finnish"] = VOCABS["english"] + "äöÄÖ"
 
+VOCABS["frisian"] = re.sub(r"[QqXx]", "", VOCABS["english"]) + "âêôûúÂÊÔÛÚ" + "ƒ"
+
+VOCABS["galician"] = re.sub(r"[JjKkWw]", "", VOCABS["english"]) + "ñÑçÇ"
+
 VOCABS["german"] = VOCABS["english"] + "äöüßÄÖÜẞ"
 
-VOCABS["croatian"] = VOCABS["english"] + "ČčĆćĐđŠšŽž"
+VOCABS["hausa"] = re.sub(r"[PpQqVvXx]", "", VOCABS["english"]) + "ɓɗƙƴƁƊƘƳ" + "₦"
 
+VOCABS["hungarian"] = VOCABS["english"] + "áéíóöúüÁÉÍÓÖÚÜ"
+
+VOCABS["icelandic"] = re.sub(r"[CcQqWw]", "", VOCABS["english"]) + "ðáéíóúýþæöÐÁÉÍÓÚÝÞÆÖ"
+
+VOCABS["indonesian"] = VOCABS["english"]
+
+VOCABS["irish"] = VOCABS["english"] + "áéíóúÁÉÍÓÚ"
+
+VOCABS["italian"] = VOCABS["english"] + "àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ"
+
+VOCABS["latvian"] = re.sub(r"[QqWwXx]", "", VOCABS["english"]) + "āčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ"
+
+VOCABS["lithuanian"] = re.sub(r"[QqWwXx]", "", VOCABS["english"]) + "ąčęėįšųūžĄČĘĖĮŠŲŪŽ"
+
+VOCABS["luxembourgish"] = VOCABS["english"] + "äöüéëÄÖÜÉË"
+
+VOCABS["malagasy"] = re.sub(r"[CcQqUuWwXx]", "", VOCABS["english"]) + "ôñÔÑ"
+
+VOCABS["malay"] = VOCABS["english"]
+
+VOCABS["maltese"] = re.sub(r"[CcYy]", "", VOCABS["english"]) + "ċġħżĊĠĦŻ"
+
+VOCABS["montenegrin"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "čćšžźČĆŠŚŽŹ"
+
+VOCABS["norwegian"] = VOCABS["english"] + "æøåÆØÅ"
+
+VOCABS["polish"] = VOCABS["english"] + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"
+
+VOCABS["portuguese"] = VOCABS["english"] + "áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ"
+
+VOCABS["romanian"] = VOCABS["english"] + "ăâîșțĂÂÎȘȚ"
+
+VOCABS["scottish_gaelic"] = re.sub(r"[JjKkQqVvWwXxYyZz]", "", VOCABS["english"]) + "àèìòùÀÈÌÒÙ"
+
+VOCABS["serbian_latin"] = VOCABS["english"] + "čćđžšČĆĐŽŠ"
+
+VOCABS["slovak"] = VOCABS["english"] + "ôäčďľňšťžáéíĺóŕúýÔÄČĎĽŇŠŤŽÁÉÍĹÓŔÚÝ"
+
+VOCABS["slovene"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "čćđšžČĆĐŠŽ"
+
+VOCABS["somali"] = re.sub(r"[PpVvZz]", "", VOCABS["english"])
+
+VOCABS["spanish"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ" + "¡¿"
+
+VOCABS["swahili"] = re.sub(r"[QqXx]", "", VOCABS["english"])
+
+VOCABS["swedish"] = VOCABS["english"] + "åäöÅÄÖ"
+
+VOCABS["tagalog"] = re.sub(r"[CcQqWwXx]", "", VOCABS["english"]) + "ñÑ" + "₱"
+
+VOCABS["turkish"] = re.sub(r"[QqWwXx]", "", VOCABS["english"]) + "çğıöşüâîûÇĞİÖŞÜÂÎÛ"
+
+VOCABS["uzbek_latin"] = re.sub(r"[Ww]", "", VOCABS["english"]) + "çğɉñöşÇĞɈÑÖŞ"
+
+VOCABS["vietnamese"] = (
+    VOCABS["english"]
+    + "áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵ"
+    + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ"
+    + "₫"  # currency
+)
+
+VOCABS["welsh"] = re.sub(r"[KkQqVvXxZz]", "", VOCABS["english"]) + "âêîôŵŷÂÊÎÔŴŶ"
+
+VOCABS["Zulu"] = VOCABS["english"]
+
+# Non-latin alphabets.
+# Greek
+VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["currency"]
+
+# Hebrew
 VOCABS["hebrew"] = (
     VOCABS["english"]
     + VOCABS["hebrew_letters"]
@@ -75,28 +168,6 @@ VOCABS["hebrew"] = (
     + VOCABS["hebrew_specials"]
     + "₪"
 )
-
-VOCABS["italian"] = VOCABS["english"] + "àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ"
-
-VOCABS["norwegian"] = VOCABS["english"] + "æøåÆØÅ"
-
-VOCABS["polish"] = VOCABS["english"] + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"
-
-VOCABS["portuguese"] = VOCABS["english"] + "áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ"
-
-VOCABS["spanish"] = VOCABS["english"] + "áéíóúüñÁÉÍÓÚÜÑ" + "¡¿"
-
-VOCABS["swedish"] = VOCABS["english"] + "åäöÅÄÖ"
-
-VOCABS["vietnamese"] = (
-    VOCABS["english"]
-    + "áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵ"
-    + "ÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ"
-)
-
-# Non-latin alphabets.
-# Greek
-VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["currency"]
 
 # Arabic
 VOCABS["arabic"] = (
@@ -212,7 +283,90 @@ VOCABS["russian"] = (
     + VOCABS["russian_signs"]
     + VOCABS["digits"]
     + VOCABS["punctuation"]
+    + VOCABS["currency"]
     + "₽"
+)
+
+VOCABS["belarusian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ўiЎI"
+    + "₽"
+)
+
+VOCABS["ukrainian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ґіїєҐІЇЄ"
+    + "₴"
+)
+
+VOCABS["tajik"] = VOCABS["russian"].replace("₽", "") + "ҒғҚқҲҳҶҷӢӣӮӯ"
+
+VOCABS["kazakh"] = VOCABS["russian"].replace("₽", "") + "ӘәҒғҚқҢңӨөҰұҮүҺһІі" + "₸"
+
+VOCABS["kyrgyz"] = VOCABS["russian"].replace("₽", "") + "ҢңӨөҮү"
+
+VOCABS["bulgarian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+)
+
+VOCABS["macedonian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ЃѓЅѕЈјЉљЊњЌќЏџ"
+)
+
+VOCABS["mongolian"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ӨөҮү"
+    + "᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙"  # Mongolian digits
+    + "₮"
+)
+
+VOCABS["yakut"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ҔҕҤҥӨөҺһҮү"
+    + "₽"
+)
+
+VOCABS["serbian_cyrillic"] = (
+    "абвгдежзиклмнопрстуфхцчшАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШ"  # limited cyrillic
+    + "JjЂђЉљЊњЋћЏџ"  # Serbian specials
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+)
+
+VOCABS["uzbek_cyrillic"] = (
+    VOCABS["generic_cyrillic_letters"]
+    + VOCABS["russian_cyrillic_letters"]
+    + VOCABS["russian_signs"]
+    + VOCABS["digits"]
+    + VOCABS["punctuation"]
+    + VOCABS["currency"]
+    + "ЎўҚқҒғҲҳ"
 )
 
 VOCABS["ukrainian"] = (
