@@ -217,6 +217,10 @@ def main(args):
         class_names=val_set.class_names,
     )
 
+    # Target building params
+    model.min_size_box = args.min_size_box
+    model.shrink_ratio = args.shrink_ratio
+
     # Resume weights
     if isinstance(args.resume, str):
         model.load_weights(args.resume)
@@ -245,13 +249,13 @@ def main(args):
             T.RandomApply(T.RandomJpegQuality(60), 0.15),
             # T.RandomApply(T.RandomShadow(), 0.2), # Broken atm on GPU
             T.RandomApply(T.GaussianNoise(), 0.1),
-            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.5, 1.5)), 0.3),
+            T.RandomApply(T.GaussianBlur(kernel_shape=5, std=(0.5, 1.5)), 0.2),
             T.RandomApply(T.ToGray(num_output_channels=3), 0.15),
         ]),
         T.Compose([
-            T.RandomApply(T.RandomSaturation(0.3), 0.3),
-            T.RandomApply(T.RandomContrast(0.3), 0.3),
-            T.RandomApply(T.RandomBrightness(0.3), 0.3),
+            T.RandomApply(T.RandomSaturation(0.3), 0.2),
+            T.RandomApply(T.RandomContrast(0.3), 0.2),
+            T.RandomApply(T.RandomBrightness(0.3), 0.2),
         ]),
         lambda x: x,  # Identity no transformation
     ])
@@ -259,23 +263,23 @@ def main(args):
     sample_transforms = T.SampleCompose(
         (
             [
-                T.RandomHorizontalFlip(0.15),
+                T.RandomHorizontalFlip(0.1),
                 T.OneOf([
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
             if not args.rotation
             else [
-                T.RandomHorizontalFlip(0.15),
+                T.RandomHorizontalFlip(0.1),
                 T.OneOf([
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomResize(scale_range=(0.75, 0.95), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True),
-                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.75),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
             ]
         )
@@ -513,6 +517,16 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
+    parser.add_argument(
+        "--min-size-box", type=int, default=2, help="minimum size of a box to be considered", dest="min_size_box"
+    )
+    parser.add_argument(
+        "--shrink-ratio",
+        type=float,
+        default=0.4,
+        help="shrink ratio for the polygons range [0.1, 0.9]",
+        dest="shrink_ratio",
+    )
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")

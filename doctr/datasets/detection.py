@@ -54,14 +54,20 @@ class DetectionDataset(AbstractDataset):
 
         self.data: list[tuple[str, tuple[np.ndarray, list[str]]]] = []
         np_dtype = np.float32
+        missing_files = []
         for img_name, label in labels.items():
             # File existence check
             if not os.path.exists(os.path.join(self.root, img_name)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+                missing_files.append(img_name)
+                # raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+            else:
+                geoms, polygons_classes = self.format_polygons(label["polygons"], use_polygons, np_dtype)
+                self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
+        print("List of missing files:")
+        print(f"MISSING FILES: {len(missing_files)}")
+        from pprint import pprint
 
-            geoms, polygons_classes = self.format_polygons(label["polygons"], use_polygons, np_dtype)
-
-            self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
+        pprint(missing_files)
 
     def format_polygons(
         self, polygons: list | dict, use_polygons: bool, np_dtype: type
