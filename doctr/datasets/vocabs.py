@@ -139,7 +139,7 @@ VOCABS["swedish"] = VOCABS["english"] + "åäöÅÄÖ"
 
 VOCABS["tagalog"] = re.sub(r"[CcQqWwXx]", "", VOCABS["english"]) + "ñÑ" + "₱"
 
-VOCABS["turkish"] = re.sub(r"[QqWwXx]", "", VOCABS["english"]) + "çğıöşüâîûÇĞİÖŞÜÂÎÛ"
+VOCABS["turkish"] = re.sub(r"[QqWwXx]", "", VOCABS["english"]) + "çğıöşüâîûÇĞİÖŞÜÂÎÛ" + "₺"
 
 VOCABS["uzbek_latin"] = re.sub(r"[Ww]", "", VOCABS["english"]) + "çğɉñöşÇĞɈÑÖŞ"
 
@@ -626,6 +626,7 @@ VOCABS["korean"] = (
     + VOCABS["punctuation"]
     + "。・〜°"  # punctuation
     + VOCABS["currency"]
+    + "₩"
 )
 
 VOCABS["simplified_chinese"] = (
