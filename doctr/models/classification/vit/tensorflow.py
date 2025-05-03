@@ -101,6 +101,15 @@ class VisionTransformer(Sequential):
         super().__init__(_layers)
         self.cfg = cfg
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
 
 def _vit(
     arch: str,
