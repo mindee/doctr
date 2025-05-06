@@ -16,7 +16,6 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.distributed as dist
-import torch.multiprocessing as mp
 import wandb
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR, PolynomialLR
@@ -117,13 +116,19 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False)
     return val_loss, result["raw"], result["unicase"]
 
 
-def main(rank: int, world_size: int, args):
+def main(args):
     """
     Args:
         rank (int): device id to put the model on
         world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI
     """
+    # Setup device and distributed
+    torch.cuda.set_device(args.local_rank)
+    dist.init_process_group(backend=args.backend)
+    rank = dist.get_rank()
+    world_size = dist.get_world_size()
+
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
@@ -225,13 +230,11 @@ def main(rank: int, world_size: int, args):
         for p in model.feat_extractor.parameters():
             p.requires_grad = False
 
-    # create default process group
-    device = torch.device("cuda", args.devices[rank])
-    dist.init_process_group(args.backend, rank=rank, world_size=world_size)
+    device = torch.device("cuda", args.local_rank)
     # create local model
     model = model.to(device)
     # construct DDP model
-    model = DDP(model, device_ids=[device])
+    model = DDP(model, device_ids=[args.local_rank])
 
     if rank == 0:
         # Metrics
@@ -384,7 +387,6 @@ def main(rank: int, world_size: int, args):
             "train_hash": train_hash,
             "val_hash": val_hash,
             "pretrained": args.pretrained,
-            "rotation": args.rotation,
             "amp": args.amp,
         }
 
@@ -469,13 +471,15 @@ def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="DocTR DDP training script for text recognition (PyTorch)",
+        description="DocTR torchrun training script for text recognition (PyTorch)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # DDP related args
     parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for Torch DDP")
-
+    parser.add_argument(
+        "--local_rank", type=int, default=int(os.environ.get("LOCAL_RANK", 0)), help="Local rank passed by torchrun"
+    )
     parser.add_argument("arch", type=str, help="text-recognition model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
     parser.add_argument("--train_path", type=str, default=None, help="path to train data folder(s)")
@@ -556,12 +560,4 @@ if __name__ == "__main__":
     args = parse_args()
     if not torch.cuda.is_available():
         raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
-    if not isinstance(args.devices, list):
-        args.devices = list(range(torch.cuda.device_count()))
-    nprocs = len(args.devices)
-    # Environment variables which need to be
-    # set when using c10d's default "env"
-    # initialization mode.
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "29500"
-    mp.spawn(main, args=(nprocs, args), nprocs=nprocs, join=True)
+    main(args)
