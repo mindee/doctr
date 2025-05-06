@@ -18,7 +18,6 @@ import torch
 
 # The following import is required for DDP
 import torch.distributed as dist
-import torch.multiprocessing as mp
 import wandb
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
@@ -194,6 +193,13 @@ def main(rank: int, world_size: int, args):
         world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI
     """
+    # Setup device and distributed
+    rank = int(os.environ.get("LOCAL_RANK", 0))
+    torch.cuda.set_device(rank)
+    dist.init_process_group(backend=args.backend)
+
+    world_size = dist.get_world_size()
+
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
@@ -270,12 +276,11 @@ def main(rank: int, world_size: int, args):
         model.load_state_dict(checkpoint)
 
     # create default process group
-    device = torch.device("cuda", args.devices[rank])
-    dist.init_process_group(args.backend, rank=rank, world_size=world_size)
+    device = torch.device("cuda", rank)
     # create local model
     model = model.to(device)
     # construct the DDP model
-    model = DDP(model, device_ids=[device])
+    model = DDP(model, device_ids=[rank])
 
     if rank == 0:
         # Metrics
@@ -509,7 +514,7 @@ def parse_args():
     )
 
     # DDP related args
-    parser.add_argument("--backend", default="nccl", type=str, help="backend to use for torch DDP")
+    parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for torch.distributed")
 
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
@@ -567,14 +572,4 @@ if __name__ == "__main__":
     args = parse_args()
     if not torch.cuda.is_available():
         raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
-
-    if not isinstance(args.devices, list):
-        args.devices = list(range(torch.cuda.device_count()))
-    # no of process per gpu
-    nprocs = len(args.devices)
-    # Environment variables which need to be
-    # set when using c10d's default "env"
-    # initialization mode.
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "29500"
-    mp.spawn(main, args=(nprocs, args), nprocs=nprocs, join=True)
+    main(args)
