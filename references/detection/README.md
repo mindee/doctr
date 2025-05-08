@@ -27,24 +27,32 @@ python references/detection/train_pytorch.py db_resnet50 --train_path path/to/yo
 
 ### Multi-GPU support (PyTorch only)
 
-Multi-GPU support on Detection task with PyTorch has been added.
-Arguments are the same than the ones from single GPU, except:
-
-- `--devices`: **by default, if you do not pass `--devices`, it will use all GPUs on your computer**.
-You can use specific GPUs by passing a list of ids (ex: `0 1 2`). To find them, you can use the following snippet:
-
-```python
-import torch
-devices = [torch.cuda.device(i) for i in range(torch.cuda.device_count())]
-device_names = [torch.cuda.get_device_name(d) for d in devices]
-```
+We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run.html) launcher to spawn your DDP workers. `torchrun` will set all the necessary environment variables (`LOCAL_RANK`, `RANK`, etc.) for you. Arguments are the same than the ones from single GPU, except:
 
 - `--backend`: you can specify another `backend` for `DistribuedDataParallel` if the default one is not available on
 your operating system. Fastest one is `nccl` according to [PyTorch Documentation](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html).
 
+# Key `torchrun` parameters:
+- `--nproc_per_node=<N>`
+  Spawn `<N>` processes on the local machine (typically equal to the number of GPUs you want to use).
+- `--nnodes=<M>`
+  (Optional) Total number of nodes in your job. Default is 1.
+- `--rdzv_backend`, `--rdzv_endpoint`, `--rdzv_id`
+  (Optional) Rendezvous settings for multi-node jobs. See the [torchrun docs](https://pytorch.org/docs/stable/elastic/run.html) for details.
+
+# GPU selection:
+By default all visible GPUs will be used. To limit which GPUs participate, set the `CUDA_VISIBLE_DEVICES` environment variable **before** running `torchrun`. For example, to use only CUDA devices 0 and 2:
+
 ```shell
-python references/detection/train_pytorch_ddp.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5 --devices 0 1 --backend nccl
-```
+CUDA_VISIBLE_DEVICES=0,2 \
+torchrun --nproc_per_node=2 references/detection/train_pytorch_ddp.py \
+  db_resnet50 \
+  --train_path path/to/train \
+  --val_path   path/to/val \
+  --epochs 5 \
+  --backend nccl
+  ```
+
 
 ## Data format
 
