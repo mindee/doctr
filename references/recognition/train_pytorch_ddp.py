@@ -124,9 +124,10 @@ def main(args):
         args: other arguments passed through the CLI
     """
     # Setup device and distributed
-    torch.cuda.set_device(args.local_rank)
+    rank = int(os.environ.get("LOCAL_RANK", 0))
+    torch.cuda.set_device(rank)
     dist.init_process_group(backend=args.backend)
-    rank = dist.get_rank()
+
     world_size = dist.get_world_size()
 
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
@@ -230,11 +231,11 @@ def main(args):
         for p in model.feat_extractor.parameters():
             p.requires_grad = False
 
-    device = torch.device("cuda", args.local_rank)
+    device = torch.device("cuda", rank)
     # create local model
     model = model.to(device)
     # construct DDP model
-    model = DDP(model, device_ids=[args.local_rank])
+    model = DDP(model, device_ids=[rank])
 
     if rank == 0:
         # Metrics
@@ -476,10 +477,8 @@ def parse_args():
     )
 
     # DDP related args
-    parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for Torch DDP")
-    parser.add_argument(
-        "--local_rank", type=int, default=int(os.environ.get("LOCAL_RANK", 0)), help="Local rank passed by torchrun"
-    )
+    parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for torch.distributed")
+
     parser.add_argument("arch", type=str, help="text-recognition model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
     parser.add_argument("--train_path", type=str, default=None, help="path to train data folder(s)")
