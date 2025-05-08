@@ -186,7 +186,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False):
     return val_loss, recall, precision, mean_iou
 
 
-def main(rank: int, world_size: int, args):
+def main(args):
     """
     Args:
         rank (int): device id to put the model on
@@ -523,7 +523,6 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
-    parser.add_argument("--devices", default=None, nargs="+", type=int, help="GPU devices to use for training")
     parser.add_argument(
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
