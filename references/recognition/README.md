@@ -32,7 +32,7 @@ We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run
 - `--backend`: you can specify another `backend` for `DistribuedDataParallel` if the default one is not available on
 your operating system. Fastest one is `nccl` according to [PyTorch Documentation](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html).
 
-# Key `torchrun` parameters:
+#### Key `torchrun` parameters:
 - `--nproc_per_node=<N>`
   Spawn `<N>` processes on the local machine (typically equal to the number of GPUs you want to use).
 - `--nnodes=<M>`
@@ -40,7 +40,7 @@ your operating system. Fastest one is `nccl` according to [PyTorch Documentation
 - `--rdzv_backend`, `--rdzv_endpoint`, `--rdzv_id`
   (Optional) Rendezvous settings for multi-node jobs. See the [torchrun docs](https://pytorch.org/docs/stable/elastic/run.html) for details.
 
-# GPU selection:
+#### GPU selection:
 By default all visible GPUs will be used. To limit which GPUs participate, set the `CUDA_VISIBLE_DEVICES` environment variable **before** running `torchrun`. For example, to use only CUDA devices 0 and 2:
 
 ```shell
