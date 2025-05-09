@@ -198,8 +198,6 @@ def main(args):
     torch.cuda.set_device(rank)
     dist.init_process_group(backend=args.backend)
 
-    world_size = dist.get_world_size()
-
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
@@ -354,7 +352,7 @@ def main(args):
         batch_size=args.batch_size,
         drop_last=True,
         num_workers=args.workers,
-        sampler=DistributedSampler(train_set, num_replicas=world_size, rank=rank, shuffle=False, drop_last=True),
+        sampler=DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True),
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
