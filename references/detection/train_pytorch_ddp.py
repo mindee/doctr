@@ -18,7 +18,6 @@ import torch
 
 # The following import is required for DDP
 import torch.distributed as dist
-import torch.multiprocessing as mp
 import wandb
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
@@ -187,13 +186,18 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False):
     return val_loss, recall, precision, mean_iou
 
 
-def main(rank: int, world_size: int, args):
+def main(args):
     """
     Args:
         rank (int): device id to put the model on
         world_size (int): number of processes participating in the job
         args: other arguments passed through the CLI
     """
+    # Setup device and distributed
+    rank = int(os.environ.get("LOCAL_RANK", 0))
+    torch.cuda.set_device(rank)
+    dist.init_process_group(backend=args.backend)
+
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
@@ -270,12 +274,11 @@ def main(rank: int, world_size: int, args):
         model.load_state_dict(checkpoint)
 
     # create default process group
-    device = torch.device("cuda", args.devices[rank])
-    dist.init_process_group(args.backend, rank=rank, world_size=world_size)
+    device = torch.device("cuda", rank)
     # create local model
     model = model.to(device)
     # construct the DDP model
-    model = DDP(model, device_ids=[device])
+    model = DDP(model, device_ids=[rank])
 
     if rank == 0:
         # Metrics
@@ -349,7 +352,7 @@ def main(rank: int, world_size: int, args):
         batch_size=args.batch_size,
         drop_last=True,
         num_workers=args.workers,
-        sampler=DistributedSampler(train_set, num_replicas=world_size, rank=rank, shuffle=False, drop_last=True),
+        sampler=DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True),
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
@@ -509,7 +512,7 @@ def parse_args():
     )
 
     # DDP related args
-    parser.add_argument("--backend", default="nccl", type=str, help="backend to use for torch DDP")
+    parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for torch.distributed")
 
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
@@ -518,7 +521,6 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
-    parser.add_argument("--devices", default=None, nargs="+", type=int, help="GPU devices to use for training")
     parser.add_argument(
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
@@ -567,14 +569,4 @@ if __name__ == "__main__":
     args = parse_args()
     if not torch.cuda.is_available():
         raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
-
-    if not isinstance(args.devices, list):
-        args.devices = list(range(torch.cuda.device_count()))
-    # no of process per gpu
-    nprocs = len(args.devices)
-    # Environment variables which need to be
-    # set when using c10d's default "env"
-    # initialization mode.
-    os.environ["MASTER_ADDR"] = "localhost"
-    os.environ["MASTER_PORT"] = "29500"
-    mp.spawn(main, args=(nprocs, args), nprocs=nprocs, join=True)
+    main(args)
