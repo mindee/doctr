@@ -24,7 +24,7 @@ VOCABS: dict[str, str] = {
     "russian_cyrillic_letters": "ёыэЁЫЭ",
     "russian_signs": "ъЪ",
     # Greek
-    "ancient_greek": "αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
+    "ancient_greek": "αβγδεζηθικλμνξοπρστςυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
     # Gujarati
     "gujarati_consonants": "કખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ",
     "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
@@ -81,7 +81,7 @@ VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂ
 
 VOCABS["finnish"] = VOCABS["english"] + "äöÄÖ"
 
-VOCABS["frisian"] = re.sub(r"[QqXx]", "", VOCABS["english"]) + "âêôûúÂÊÔÛÚ" + "ƒ"
+VOCABS["frisian"] = re.sub(r"[QqXx]", "", VOCABS["english"]) + "âêôûúÂÊÔÛÚ" + "ƒƑ"
 
 VOCABS["galician"] = re.sub(r"[JjKkWw]", "", VOCABS["english"]) + "ñÑçÇ"
 
@@ -160,7 +160,8 @@ VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["curr
 
 # Hebrew
 VOCABS["hebrew"] = (
-    VOCABS["english"]
+    VOCABS["digits"]
+    + VOCABS["punctuation"]
     + VOCABS["hebrew_letters"]
     + VOCABS["hebrew_vowels"]
     + VOCABS["hebrew_punctuation"]
