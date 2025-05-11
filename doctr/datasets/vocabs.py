@@ -111,6 +111,8 @@ VOCABS["malay"] = VOCABS["english"]
 
 VOCABS["maltese"] = re.sub(r"[CcYy]", "", VOCABS["english"]) + "ċġħżĊĠĦŻ"
 
+VOCABS["maori"] = re.sub(r"[BbCcDdFfJjLlOoQqSsVvXxYyZz]", "", VOCABS["english"]) + "āēīōūĀĒĪŌŪ"
+
 VOCABS["montenegrin"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "čćšžźČĆŠŚŽŹ"
 
 VOCABS["norwegian"] = VOCABS["english"] + "æøåÆØÅ"
@@ -118,6 +120,8 @@ VOCABS["norwegian"] = VOCABS["english"] + "æøåÆØÅ"
 VOCABS["polish"] = VOCABS["english"] + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"
 
 VOCABS["portuguese"] = VOCABS["english"] + "áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ"
+
+VOCABS["quechua"] = re.sub(r"[BbDdFfGgJjVvXxZz]", "", VOCABS["english"]) + "ñÑĉĈçÇq̂Q̂"
 
 VOCABS["romanian"] = VOCABS["english"] + "ăâîșțĂÂÎȘȚ"
 
@@ -151,6 +155,8 @@ VOCABS["vietnamese"] = (
 )
 
 VOCABS["welsh"] = re.sub(r"[KkQqVvXxZz]", "", VOCABS["english"]) + "âêîôŵŷÂÊÎÔŴŶ"
+
+VOCABS["yoruba"] = re.sub(r"[CcQqVvXxZz]", "", VOCABS["english"]) + "ẹọṣẸỌṢ" + "₦"
 
 VOCABS["zulu"] = VOCABS["english"]
 
@@ -306,6 +312,8 @@ VOCABS["ukrainian"] = (
     + "ґіїєҐІЇЄ"
     + "₴"
 )
+
+VOCABS["tatar"] = VOCABS["russian"] + "ӘәҖҗҢңӨөҮү"
 
 VOCABS["tajik"] = VOCABS["russian"].replace("₽", "") + "ҒғҚқҲҳҶҷӢӣӮӯ"
 
@@ -739,19 +747,77 @@ VOCABS["simplified_chinese"] = (
 # Multi-lingual
 VOCABS["multilingual"] = "".join(
     dict.fromkeys(
-        VOCABS["french"]
-        + VOCABS["portuguese"]
-        + VOCABS["spanish"]
-        + VOCABS["german"]
-        + VOCABS["czech"]
+        # latin_based
+        VOCABS["english"]
+        + VOCABS["albanian"]
+        + VOCABS["afrikaans"]
+        + VOCABS["azerbaijani"]
+        + VOCABS["basque"]
+        + VOCABS["bosanski"]
+        + VOCABS["catalan"]
         + VOCABS["croatian"]
-        + VOCABS["polish"]
-        + VOCABS["dutch"]
-        + VOCABS["italian"]
-        + VOCABS["norwegian"]
+        + VOCABS["czech"]
         + VOCABS["danish"]
+        + VOCABS["dutch"]
+        + VOCABS["estonian"]
+        + VOCABS["esperanto"]
+        + VOCABS["french"]
         + VOCABS["finnish"]
+        + VOCABS["frisian"]
+        + VOCABS["galician"]
+        + VOCABS["german"]
+        + VOCABS["hausa"]
+        + VOCABS["hungarian"]
+        + VOCABS["icelandic"]
+        + VOCABS["indonesian"]
+        + VOCABS["irish"]
+        + VOCABS["italian"]
+        + VOCABS["latvian"]
+        + VOCABS["lithuanian"]
+        + VOCABS["luxembourgish"]
+        + VOCABS["maori"]
+        + VOCABS["malagasy"]
+        + VOCABS["malay"]
+        + VOCABS["maltese"]
+        + VOCABS["montenegrin"]
+        + VOCABS["norwegian"]
+        + VOCABS["polish"]
+        + VOCABS["portuguese"]
+        + VOCABS["quechua"]
+        + VOCABS["romanian"]
+        + VOCABS["scottish_gaelic"]
+        + VOCABS["serbian_latin"]
+        + VOCABS["slovak"]
+        + VOCABS["slovene"]
+        + VOCABS["somali"]
+        + VOCABS["spanish"]
+        + VOCABS["swahili"]
         + VOCABS["swedish"]
-        + "§"
+        + VOCABS["tagalog"]
+        + VOCABS["turkish"]
+        + VOCABS["uzbek_latin"]
+        + VOCABS["vietnamese"]
+        + VOCABS["welsh"]
+        + VOCABS["yoruba"]
+        + VOCABS["zulu"]
+        + "§"  # paragraph sign
+        # cyrillic_based
+        + VOCABS["russian"]
+        + VOCABS["belarusian"]
+        + VOCABS["ukrainian"]
+        + VOCABS["tatar"]
+        + VOCABS["tajik"]
+        + VOCABS["kazakh"]
+        + VOCABS["kyrgyz"]
+        + VOCABS["bulgarian"]
+        + VOCABS["macedonian"]
+        + VOCABS["mongolian"]
+        + VOCABS["yakut"]
+        + VOCABS["serbian_cyrillic"]
+        + VOCABS["uzbek_cyrillic"]
+        # greek
+        + VOCABS["greek"]
+        # hebrew
+        + VOCABS["hebrew"]
     )
 )
