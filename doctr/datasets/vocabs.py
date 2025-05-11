@@ -121,7 +121,7 @@ VOCABS["polish"] = VOCABS["english"] + "ąćęłńóśźżĄĆĘŁŃÓŚŹŻ"
 
 VOCABS["portuguese"] = VOCABS["english"] + "áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ"
 
-VOCABS["quechua"] = re.sub(r"[BbDdFfGgJjVvXxZz]", "", VOCABS["english"]) + "ñÑĉĈçÇq̂Q̂"
+VOCABS["quechua"] = re.sub(r"[BbDdFfGgJjVvXxZz]", "", VOCABS["english"]) + "ñÑĉĈçÇ"
 
 VOCABS["romanian"] = VOCABS["english"] + "ăâîșțĂÂÎȘȚ"
 
