@@ -185,7 +185,6 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         if log:
             log(val_loss=out["loss"].item())
 
-        log(val_loss=out["loss"].item())
         val_loss += out["loss"].item()
         batch_cnt += 1
 
@@ -199,7 +198,6 @@ def main(args):
     # variable is set by torchrun
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     distributed = world_size > 1
-    print("IS distributed:", distributed)
 
     # GPU setup
     if distributed:

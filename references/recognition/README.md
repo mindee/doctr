@@ -45,7 +45,7 @@ By default all visible GPUs will be used. To limit which GPUs participate, set t
 
 ```shell
 CUDA_VISIBLE_DEVICES=0,2 \
-torchrun --nproc_per_node=2 references/recognition/train_pytorch_ddp.py \
+torchrun --nproc_per_node=2 references/recognition/train_pytorch.py \
   crnn_vgg16_bn \
   --train_path path/to/train \
   --val_path   path/to/val \
