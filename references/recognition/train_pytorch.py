@@ -17,9 +17,8 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.distributed as dist
-import wandb
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR, PolynomialLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms.v2 import (
@@ -40,7 +39,78 @@ from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
-from utils import EarlyStopper, plot_samples
+from utils import EarlyStopper, plot_recorder, plot_samples
+
+
+def record_lr(
+    model: torch.nn.Module,
+    train_loader: DataLoader,
+    batch_transforms,
+    optimizer,
+    start_lr: float = 1e-7,
+    end_lr: float = 1,
+    num_it: int = 100,
+    amp: bool = False,
+):
+    """Gridsearch the optimal learning rate for the training.
+    Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
+    """
+    if num_it > len(train_loader):
+        raise ValueError("the value of `num_it` needs to be lower than the number of available batches")
+
+    model = model.train()
+    # Update param groups & LR
+    optimizer.defaults["lr"] = start_lr
+    for pgroup in optimizer.param_groups:
+        pgroup["lr"] = start_lr
+
+    gamma = (end_lr / start_lr) ** (1 / (num_it - 1))
+    scheduler = MultiplicativeLR(optimizer, lambda step: gamma)
+
+    lr_recorder = [start_lr * gamma**idx for idx in range(num_it)]
+    loss_recorder = []
+
+    if amp:
+        scaler = torch.cuda.amp.GradScaler()
+
+    for batch_idx, (images, targets) in enumerate(train_loader):
+        if torch.cuda.is_available():
+            images = images.cuda()
+
+        images = batch_transforms(images)
+
+        # Forward, Backward & update
+        optimizer.zero_grad()
+        if amp:
+            with torch.cuda.amp.autocast():
+                train_loss = model(images, targets)["loss"]
+            scaler.scale(train_loss).backward()
+            # Gradient clipping
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            # Update the params
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            train_loss = model(images, targets)["loss"]
+            train_loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            optimizer.step()
+        # Update LR
+        scheduler.step()
+
+        # Record
+        if not torch.isfinite(train_loss):
+            if batch_idx == 0:
+                raise ValueError("loss value is NaN or inf.")
+            else:
+                break
+        loss_recorder.append(train_loss.item())
+        # Stop after the number of iterations
+        if batch_idx + 1 == num_it:
+            break
+
+    return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
 def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
@@ -112,6 +182,9 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         val_metric.update(targets, words)
 
         pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
+        if log:
+            log(val_loss=out["loss"].item())
+
         log(val_loss=out["loss"].item())
         val_loss += out["loss"].item()
         batch_cnt += 1
@@ -122,15 +195,11 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
 
 
 def main(args):
-    """
-    Args:
-        rank (int): device id to put the model on
-        world_size (int): number of processes participating in the job
-        args: other arguments passed through the CLI
-    """
     # Detect distributed setup
+    # variable is set by torchrun
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     distributed = world_size > 1
+    print("IS distributed:", distributed)
 
     # GPU setup
     if distributed:
@@ -395,6 +464,12 @@ def main(args):
             weight_decay=args.weight_decay or 1e-4,
         )
 
+    # LR finder
+    if rank == 0 and args.find_lr:
+        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
+        plot_recorder(lrs, losses)
+        return
+
     # Scheduler
     if args.sched == "cosine":
         scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
@@ -418,6 +493,7 @@ def main(args):
             "optimizer": args.optim,
             "framework": "pytorch",
             "scheduler": args.sched,
+            "vocab": args.vocab,
             "train_hash": train_hash,
             "val_hash": val_hash,
             "pretrained": args.pretrained,
@@ -428,6 +504,8 @@ def main(args):
     global_step = 0  # Shared global step counter
     # W&B
     if rank == 0 and args.wb:
+        import wandb
+
         run = wandb.init(
             name=exp_name,
             project="text-recognition",
@@ -471,8 +549,6 @@ def main(args):
                     iteration=global_step,
                     value=lr,
                 )
-
-        # Unified logger
 
     def log_at_step(train_loss=None, val_loss=None, lr=None):
         global global_step
@@ -559,7 +635,7 @@ def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="DocTR torchrun training script for text recognition (PyTorch)",
+        description="DocTR training script for text recognition (PyTorch)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -606,6 +682,7 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
+
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument(
         "--device",
@@ -640,6 +717,7 @@ def parse_args():
         "--sched", type=str, default="cosine", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
     parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
     parser.add_argument("--early-stop-delta", type=float, default=0.01, help="Minimum Delta for early stopping")
@@ -650,6 +728,4 @@ def parse_args():
 
 if __name__ == "__main__":
     args = parse_args()
-    if not torch.cuda.is_available():
-        raise AssertionError("PyTorch cannot access your GPUs. Please investigate!")
     main(args)
