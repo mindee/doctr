@@ -25,7 +25,7 @@ or PyTorch:
 python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
-### Multi-GPU support (PyTorch only )
+### Multi-GPU support (PyTorch only)
 
 We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run.html) launcher to spawn your DDP workers. `torchrun` will set all the necessary environment variables (`LOCAL_RANK`, `RANK`, etc.) for you. Arguments are the same than the ones from single GPU, except:
 
