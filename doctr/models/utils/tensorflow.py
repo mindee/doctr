@@ -9,6 +9,7 @@ from typing import Any
 
 import tensorflow as tf
 import tf2onnx
+import validators
 from tensorflow.keras import Model, layers
 
 from doctr.utils.data import download_from_url
@@ -47,7 +48,7 @@ def _build_model(model: Model):
 
 def load_pretrained_params(
     model: Model,
-    url: str | None = None,
+    path_or_url: str | None = None,
     hash_prefix: str | None = None,
     skip_mismatch: bool = False,
     **kwargs: Any,
@@ -59,17 +60,23 @@ def load_pretrained_params(
 
     Args:
         model: the keras model to be loaded
-        url: URL of the zipped set of parameters
+        path_or_url: the path or URL to the model parameters (checkpoint)
         hash_prefix: first characters of SHA256 expected hash
         skip_mismatch: skip loading layers with mismatched shapes
         **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
-    if url is None:
-        logging.warning("Invalid model URL, using default initialization.")
-    else:
-        archive_path = download_from_url(url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
-        # Load weights
-        model.load_weights(archive_path, skip_mismatch=skip_mismatch)
+    if path_or_url is None:
+        logging.warning("No model URL or Path provided, using default initialization.")
+        return
+
+    archive_path = (
+        download_from_url(path_or_url, hash_prefix=hash_prefix, cache_subdir="models", **kwargs)
+        if validators.url(path_or_url)
+        else path_or_url
+    )
+
+    # Load weights
+    model.load_weights(archive_path, skip_mismatch=skip_mismatch)
 
 
 def conv_sequence(

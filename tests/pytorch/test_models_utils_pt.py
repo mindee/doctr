@@ -38,6 +38,8 @@ def test_load_pretrained_params(tmpdir_factory):
     load_pretrained_params(model, url, cache_dir=str(cache_dir))
     # Check that the file was downloaded & the archive extracted
     assert os.path.exists(cache_dir.join("models").join(url.rpartition("/")[-1].split("&")[0]))
+    # Default initialization
+    load_pretrained_params(model, None)
     # Check ignore keys
     load_pretrained_params(model, url, cache_dir=str(cache_dir), ignore_keys=["2.weight"])
     # non matching keys
