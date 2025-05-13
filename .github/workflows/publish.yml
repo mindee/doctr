@@ -109,6 +109,6 @@ jobs:
         shell: bash -el {0}
         run: |
           conda config --set channel_priority strict
-          conda install pytorch torchvision torchaudio cpuonly -c pytorch
+          pip install "torch>=2.0.0,<3.0.0" torchvision --extra-index-url https://download.pytorch.org/whl/cpu
           conda install -c techMindee -c pypdfium2-team -c bblanchon -c defaults -c conda-forge python-doctr
           python -c "from importlib.metadata import version; print(version('python-doctr'))"
