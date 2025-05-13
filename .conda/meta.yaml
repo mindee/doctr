@@ -18,6 +18,7 @@ requirements:
   host:
     - python>=3.10, <3.12
     - setuptools
+    - pip
 
   run:
     - numpy >=1.16.0, <3.0.0
@@ -38,11 +39,12 @@ requirements:
 test:
   requires:
     - pip
-    - pytorch >=2.0.0, <3.0.0
-    - torchvision
+    - python>=3.10,<3.12
 
-  imports:
-    - doctr
+  commands:
+    - pip install "torch>=2.0.0,<3.0.0" torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+    - python -c "import doctr; print(doctr.__version__)"
+    - python -c "from importlib.metadata import version; print(version('python-doctr'))"
 
 about:
   home: {{ urls.get('repository') }}

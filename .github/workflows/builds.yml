@@ -64,6 +64,8 @@ jobs:
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
+      - name: Install libEGL
+        run: sudo apt-get update && sudo apt-get install -y libegl1
       - name: Build and verify
         shell: bash -el {0}
         run: |
