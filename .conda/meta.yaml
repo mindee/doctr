@@ -40,12 +40,10 @@ test:
   requires:
     - pip
     - python>=3.10,<3.12
-    - pip:
-        - torch >=2.0.0, <3.0.0
-        - torchvision
 
-  imports:
-    - doctr
+  commands:
+    - pip install "torch>=2.0.0,<3.0.0" torchvision --extra-index-url https://download.pytorch.org/whl/cpu
+    - python -c "import doctr"
 
 about:
   home: {{ urls.get('repository') }}
