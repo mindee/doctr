@@ -38,7 +38,7 @@ requirements:
 test:
   requires:
     - pip
-    - pytorch >=2.0.0, <2.7.0
+    - pytorch >=2.0.0, <3.0.0
     - torchvision
 
   imports:
