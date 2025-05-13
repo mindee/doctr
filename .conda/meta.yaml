@@ -38,8 +38,8 @@ requirements:
 test:
   requires:
     - pip
-    - pytorch >=2.0.0, <3.0.0
-    - torchvision
+    - conda-forge::pytorch >=2.0.0, <3.0.0
+    - conda-forge::torchvision
 
   imports:
     - doctr
