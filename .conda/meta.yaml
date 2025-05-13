@@ -34,8 +34,8 @@ requirements:
     - defusedxml >=0.7.0
     - anyascii >=0.3.2
     - tqdm >=4.30.0
-    - conda-forge::pytorch >=2.6.0, <3.0.0
-    - conda-forge::torchvision
+    - conda-forge::pytorch-cpu >=2.6.0, <3.0.0
+    - conda-forge::torchvision-cpu
 
 test:
   requires:
