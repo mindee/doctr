@@ -12,9 +12,7 @@ source:
   url: ../dist/{{ project.get('name') | replace("-", "_") }}-{{ version }}.tar.gz
 
 build:
-  script: |
-    python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-    python setup.py install --single-version-externally-managed --record=record.txt
+  script: python setup.py install --single-version-externally-managed --record=record.txt
 
 requirements:
   host:
@@ -41,6 +39,10 @@ requirements:
 test:
   requires:
     - pip
+    - python>=3.10,<3.12
+    - pip:
+        - torch >=2.0.0, <3.0.0
+        - torchvision
 
   imports:
     - doctr
