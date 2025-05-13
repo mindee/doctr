@@ -162,7 +162,14 @@ VOCABS["zulu"] = VOCABS["english"]
 
 # Non-latin alphabets.
 # Greek
-VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["currency"]
+VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["currency"] + "άέήίϊΐόύϋΰώΆΈΉΊΪΌΎΫΏ"
+VOCABS["greek_extended"] = (
+    VOCABS["greek"]
+    + "ͶͷΆΈΉΊΌΎΏΐΪΫάέήίΰϊϋόύώϜϝἀἁἂἃἄἅἆἇἈἉἊἋἌἍἎἏἐἑἒἓἔἕἘἙἚἛἜἝἠἡἢἣἤἥἦἧἨἩἪἫἬἭἮἯ"
+    + "ἰἱἲἳἴἵἶἷἸἹἺἻἼἽἾἿὀὁὂὃὄὅὈὉὊὋὌὍὐὑὒὓὔὕὖὗὙὛὝὟὠὡὢὣὤὥὦὧὨὩὪὫὬὭὮὯὰὲὴὶὸὺὼᾀᾁᾂᾃᾄ"
+    + "ᾅᾆᾇᾈᾉᾊᾋᾌᾍᾎᾏᾐᾑᾒᾓᾔᾕᾖᾗᾘᾙᾚᾛᾜᾝᾞᾟᾠᾡᾢᾣᾤᾥᾦᾧᾨᾩᾪᾫᾬᾭᾮᾯᾲᾳᾴᾶᾷᾺᾼῂῃῄῆῇῈῊῌῒΐῖῗῚῢΰῤῥῦ"
+    + "ῧῪῬῲῳῴῶῷῸῺῼ"
+)
 
 # Hebrew
 VOCABS["hebrew"] = (
