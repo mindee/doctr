@@ -78,6 +78,8 @@ jobs:
       - name: Install dependencies
         shell: bash -el {0}
         run: conda install -y conda-build conda-verify anaconda-client
+      - name: Install libEGL
+        run: sudo apt-get update && sudo apt-get install -y libegl1
       - name: Get release tag
         id: release_tag
         run: echo "VERSION=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
