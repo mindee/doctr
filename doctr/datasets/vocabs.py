@@ -60,7 +60,7 @@ VOCABS["azerbaijani"] = re.sub(r"[Ww]", "", VOCABS["english"]) + "çəğöşüÇ
 
 VOCABS["basque"] = VOCABS["english"] + "ñçÑÇ"
 
-VOCABS["bosanski"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "čćđšžČĆĐŠŽ"
+VOCABS["bosnian"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "čćđšžČĆĐŠŽ"
 
 VOCABS["catalan"] = VOCABS["english"] + "àèéíïòóúüçÀÈÉÍÏÒÓÚÜÇ"
 
@@ -791,7 +791,7 @@ VOCABS["multilingual"] = "".join(
         + VOCABS["afrikaans"]
         + VOCABS["azerbaijani"]
         + VOCABS["basque"]
-        + VOCABS["bosanski"]
+        + VOCABS["bosnian"]
         + VOCABS["catalan"]
         + VOCABS["croatian"]
         + VOCABS["czech"]

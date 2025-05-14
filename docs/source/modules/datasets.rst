@@ -188,7 +188,7 @@ of vocabs.
    * - basque
      - 104
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿ñçÑÇ
-   * - bosanski
+   * - bosnian
      - 102
      - 0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~°£€¥¢฿čćđšžČĆĐŠŽ
    * - catalan
