@@ -14,6 +14,7 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
         ("abccccX", "Xcccccc", 0.4, "abcccccccc"),
         ("abc", "", 0.5, "abc"),
         ("", "abc", 0.5, "abc"),
+        ("a", "b", 0.5, "ab"),
     ],
 )
 def test_merge_strings(a, b, overlap_ratio, merged):
@@ -26,6 +27,7 @@ def test_merge_strings(a, b, overlap_ratio, merged):
         (["abcX", "Xdef"], 0.25, 0.25, "abcdef"),
         (["abcdX", "XdefX", "XefghX", "Xijk"], 0.5, 0.5, "abcdefghijk"),
         (["abcdX", "XdefX", "XefghiX", "Xaijk"], 0.5, 0.8, "abcdefghijk"),
+        (["aaaa", "aaab", "aabc"], 0.8, 0.3, "aaaabc"),
     ],
 )
 def test_merge_multi_strings(seq_list, overlap_ratio, last_overlap_ratio, merged):
