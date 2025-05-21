@@ -192,12 +192,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
 
 
 def main(args):
-    """
-    Args:
-        rank (int): device id to put the model on
-        world_size (int): number of processes participating in the job
-        args: other arguments passed through the CLI
-    """
+    # Detect distributed setup
+    # variable is set by torchrun
     world_size = int(os.environ.get("WORLD_SIZE", 1))
     distributed = world_size > 1
 
@@ -240,7 +236,8 @@ def main(args):
         args.workers = min(16, multiprocessing.cpu_count())
 
     torch.backends.cudnn.benchmark = True
-
+    # placeholder for class names
+    cls_container = [None]
     if rank == 0:
         # validation dataset related code
         st = time.time()
@@ -280,9 +277,12 @@ def main(args):
         with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
             val_hash = hashlib.sha256(f.read()).hexdigest()
 
-        class_names = val_set.class_names
-    else:
-        class_names = None
+        cls_container[0] = val_set.class_names
+    if distributed:
+        # broadcast class names to all ranks
+        dist.broadcast_object_list(cls_container, src=0)
+    # unpack class names on all ranks
+    class_names = cls_container[0]
 
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
@@ -391,7 +391,7 @@ def main(args):
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
         plot_samples(x, target)
-        # return
+        return
 
     # Backbone freezing
     if args.freeze_backbone:
@@ -525,21 +525,22 @@ def main(args):
         train_loss, actual_lr = fit_one_epoch(
             model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
         )
-        pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
-
         if rank == 0:
+            pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
+
             # Validation loop at the end of each epoch
             val_loss, recall, precision, mean_iou = evaluate(
                 model, val_loader, batch_transforms, val_metric, args, amp=args.amp, log=log_at_step
             )
+            params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-                params = model.module if hasattr(model, "module") else model
                 torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
                 min_loss = val_loss
             if args.save_interval_epoch:
                 pbar.write(f"Saving state at epoch: {epoch + 1}")
-                torch.save(model.module.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
+                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
+
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             if any(val is None for val in (recall, precision, mean_iou)):
                 log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
