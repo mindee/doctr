@@ -1,6 +1,6 @@
 import pytest
 
-from doctr.models.recognition.utils import _get_index_closest_to_target_index, merge_multi_strings, merge_strings
+from doctr.models.recognition.utils import merge_multi_strings, merge_strings
 
 
 # Last character of first string and first of last string will be cropped when merging - indicated by X
@@ -186,21 +186,3 @@ def test_merge_multi_strings_example_from_docs():
     result = merge_multi_strings(strings, overlap_ratio, last_overlap_ratio)
 
     assert result == expected_result
-
-
-def test_get_index_closest_to_target_index_with_perfect_match():
-    indexes: list[int] = [0, 3, 5]
-    target_index: int = 3
-
-    result = _get_index_closest_to_target_index(indexes, target_index)
-
-    assert result == 3
-
-
-def test_get_index_closest_to_target_index_with_non_perfect_match():
-    indexes: list[int] = [0, 3, 5]
-    target_index: int = 4
-
-    result = _get_index_closest_to_target_index(indexes, target_index)
-
-    assert result == 3
