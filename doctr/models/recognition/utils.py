@@ -56,7 +56,9 @@ def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
 
     # Case 3: Absence of zero scores indicates that the same character in the image was recognized differently OR that
     # the overlap was too small and we just need to merge the crops fully
-    if expected_overlap < 1:
+    if expected_overlap < 0:
+        return a + b
+    elif expected_overlap < 1:
         return a_crop + b_crop
 
     # Find best overlap by minimizing Hamming distance + distance from expected overlap size
