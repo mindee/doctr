@@ -136,12 +136,12 @@ def test_multiple_repetitions_shorter():
 
 
 def test_multiple_repetitions_full_overlap():
-    a_ = "ababX"
-    b = "Xabab"
+    a = "abaX"
+    b = "Xbab"
     expected_result = "abab"
     overlap_ratio = 1.0
 
-    result = merge_strings(a_, b, overlap_ratio)
+    result = merge_strings(a, b, overlap_ratio)
 
     assert result == expected_result
 
@@ -158,12 +158,12 @@ def test_longer_multiple_repetitions_half_overlap():
 
 
 def test_longer_multiple_repetitions_full_overlap():
-    a_ = "abababX"
-    b = "Xababab"
+    a = "ababaX"
+    b = "Xbabab"
     expected_result = "ababab"
     overlap_ratio = 1.0
 
-    result = merge_strings(a_, b, overlap_ratio)
+    result = merge_strings(a, b, overlap_ratio)
 
     assert result == expected_result
 
