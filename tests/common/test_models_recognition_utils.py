@@ -11,7 +11,7 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
         ("abcdX", "Xdef", 0.75, "abcdef"),
         ("abcdeX", "Xdef", 0.9, "abcdef"),
         ("abcdefX", "Xdef", 0.9, "abcdef"),
-        ("abccccX", "Xcccccc", 0.4, "abcccccccc"),
+        ("abccccX", "Xcccccc", 0.5, "abcccccccc"),
         ("abc", "", 0.5, "abc"),
         ("", "abc", 0.5, "abc"),
         ("a", "b", 0.5, "ab"),
