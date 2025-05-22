@@ -7,7 +7,7 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
 @pytest.mark.parametrize(
     "a, b, overlap_ratio, merged",
     [
-        ("abcX", "Xdef", 0.25, "abcdef"),
+        ("abcX", "Xdef", 0.5, "abcdef"),
         ("abcdX", "Xdef", 0.75, "abcdef"),
         ("abcdeX", "Xdef", 0.9, "abcdef"),
         ("abcdefX", "Xdef", 0.9, "abcdef"),
@@ -24,7 +24,7 @@ def test_merge_strings(a, b, overlap_ratio, merged):
 @pytest.mark.parametrize(
     "seq_list, overlap_ratio, last_overlap_ratio, merged",
     [
-        (["abcX", "Xdef"], 0.25, 0.25, "abcdef"),
+        (["abcX", "Xdef"], 0.5, 0.5, "abcdef"),
         (["abcdX", "XdefX", "XefghX", "Xijk"], 0.5, 0.5, "abcdefghijk"),
         (["abcdX", "XdefX", "XefghiX", "Xaijk"], 0.5, 0.8, "abcdefghijk"),
         (["aaaa", "aaab", "aabc"], 0.8, 0.3, "aaaabc"),
@@ -183,7 +183,7 @@ def test_merge_multi_strings_example_from_docs():
     strings = ["abc", "bcdef", "difghi", "aijkl"]
     expected_result = "abcdefghijkl"
     overlap_ratio = 0.5
-    last_overlap_ratio = 0.1
+    last_overlap_ratio = 0.4
 
     result = merge_multi_strings(strings, overlap_ratio, last_overlap_ratio)
 
