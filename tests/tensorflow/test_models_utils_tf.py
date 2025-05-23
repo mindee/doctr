@@ -37,6 +37,8 @@ def test_load_pretrained_params(tmpdir_factory):
         load_pretrained_params(model, url, "mywronghash", cache_dir=str(cache_dir))
     # Let tit resolve the hash from the file name
     load_pretrained_params(model, url, cache_dir=str(cache_dir))
+    # Default initialization
+    load_pretrained_params(model, None)
     # Check that the file was downloaded
     assert os.path.exists(cache_dir.join("models").join("mobilenet_v3_small-3fcebad7.weights.h5"))
 

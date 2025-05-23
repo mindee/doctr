@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+import types
 from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
@@ -152,6 +153,15 @@ class ResNet(nn.Sequential):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
 
 def _resnet(
     arch: str,
@@ -179,7 +189,7 @@ def _resnet(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -201,12 +211,25 @@ def _tv_resnet(
 
     # Build the model
     model = arch_fn(**kwargs, weights=None)
-    # Load pretrained parameters
+
+    # monkeypatch the model to allow for loading pretrained parameters
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:  # noqa: D417
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
+    # Bind method to the instance
+    model.from_pretrained = types.MethodType(from_pretrained, model)
+
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 

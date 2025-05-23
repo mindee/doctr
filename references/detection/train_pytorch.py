@@ -296,8 +296,7 @@ def main(args):
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
-        checkpoint = torch.load(args.resume, map_location="cpu")
-        model.load_state_dict(checkpoint)
+        model.from_pretrained(args.resume)
 
     if rank == 0:
         # Metrics

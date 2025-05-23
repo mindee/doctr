@@ -5,6 +5,7 @@
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+import types
 from copy import deepcopy
 from typing import Any
 
@@ -99,12 +100,25 @@ def _mobilenet_v3(
                 m = getattr(m, child)
             m.stride = (2, 1)
 
+    # monkeypatch the model to allow for loading pretrained parameters
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:  # noqa: D417
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
+    # Bind method to the instance
+    model.from_pretrained = types.MethodType(from_pretrained, model)
+
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
