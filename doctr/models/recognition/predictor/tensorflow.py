@@ -39,7 +39,7 @@ class RecognitionPredictor(NestedObject):
         self.model = model
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
-        self.dil_factor = 1.4  # Dilation factor to overlap the crops
+        self.overlap_ratio = 0.5  # Ratio of overlap between neighboring crops
         self.target_ar = 6  # Target aspect ratio
 
     def __call__(
@@ -56,7 +56,7 @@ class RecognitionPredictor(NestedObject):
         # Split crops that are too wide
         remapped = False
         if self.split_wide_crops:
-            new_crops, crop_map, remapped = split_crops(crops, self.critical_ar, self.target_ar, self.dil_factor)
+            new_crops, crop_map, remapped = split_crops(crops, self.critical_ar, self.target_ar, self.overlap_ratio)
             if remapped:
                 crops = new_crops
 
@@ -74,6 +74,6 @@ class RecognitionPredictor(NestedObject):
 
         # Remap crops
         if self.split_wide_crops and remapped:
-            out = remap_preds(out, crop_map, self.dil_factor)
+            out = remap_preds(out, crop_map, self.overlap_ratio)
 
         return out
