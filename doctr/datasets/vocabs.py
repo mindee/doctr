@@ -8,49 +8,236 @@ import string
 
 __all__ = ["VOCABS"]
 
-
-VOCABS: dict[str, str] = {
-    # Arabic & Persian
-    "arabic_diacritics": "ًٌٍَُِّْ",
-    "arabic_digits": "٠١٢٣٤٥٦٧٨٩",
-    "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي",
-    "arabic_punctuation": "؟؛«»—",
-    "persian_letters": "پچڢڤگ",
-    # Bangla
-    "bangla_digits": "০১২৩৪৫৬৭৮৯",
-    "bangla_letters": "অআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসড়ঢ়য়ৠৡৰৱৼহ়ঽািীুূৃেৈোৌ্ৎংঃঁ",
+_BASE_VOCABS = {
+    # Latin
+    "digits": string.digits,
+    "ascii_letters": string.ascii_letters,
+    "punctuation": string.punctuation,
+    "currency": "£€¥¢฿",
     # Cyrillic
     "generic_cyrillic_letters": "абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ",
     "russian_cyrillic_letters": "ёыэЁЫЭ",
     "russian_signs": "ъЪ",
     # Greek
     "ancient_greek": "αβγδεζηθικλμνξοπρστςυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
+    # Arabic & Persian
+    "arabic_diacritics": "".join(["ً", "ٌ", "ٍ", "َ", "ُ", "ِ", "ّ", "ْ", "ٕ", "ٓ", "ٔ", "ٚ"]),
+    "arabic_digits": "٠١٢٣٤٥٦٧٨٩",
+    "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱ",
+    "arabic_punctuation": "؟؛«»—،",
+    "persian_letters": "پچژڢڤگکی",
+    # Bengali
+    "bengali_consonants": "কখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহড়ঢ়য়ৰৱৼ",
+    "bengali_vowels": "অআইঈউঊঋঌএঐওঔৠৡ",
+    "bengali_digits": "০১২৩৪৫৬৭৮৯",
+    "bengali_matras": "".join(["া", "ি", "ী", "ু", "ূ", "ৃ", "ে", "ৈ", "ো", "ৌ", "ৗ"]),
+    "bengali_virama": "্",
+    "bengali_punctuation": "ঽৎ৽৺৻",
+    "bengali_signs": "".join(["ঁ", "ং", "ঃ", "়"]),
     # Gujarati
     "gujarati_consonants": "કખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહ",
-    "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
-    "gujarati_punctuation": "ૐ૱૰ઽ॥",
     "gujarati_vowels": "અઆઇઈઉઊઋઌઍએઐઑઓઔ",
-    "gujarati_diacritics": "ઁંઃ઼ાિીુૂૃૄૅેૈૉોૌ્ૢૣૺૻૼ૽૾૿",
-    # Hindi
-    "hindi_digits": "०१२३४५६७८९",
-    "hindi_letters": "अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह",
-    "hindi_punctuation": "।,?!:्ॐ॰॥",
+    "gujarati_digits": "૦૧૨૩૪૫૬૭૮૯",
+    "gujarati_matras": "".join([
+        "ઁ",
+        "ં",
+        "ઃ",
+        "઼",
+        "ા",
+        "િ",
+        "ી",
+        "ુ",
+        "ૂ",
+        "ૃ",
+        "ૄ",
+        "ૅ",
+        "ે",
+        "ૈ",
+        "ૉ",
+        "ો",
+        "ૌ",
+        "ૢ",
+        "ૣ",
+        "ૺ",
+        "ૻ",
+        "ૼ",
+        "૽",
+        "૾",
+        "૿",
+    ]),
+    "gujarati_virama": "્",
+    "gujarati_punctuation": "ઽ॥",
+    "gujarati_signs": "ૐ૰",
+    # Devanagari
+    "devanagari_consonants": "कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहऴऩळक़ख़ग़ज़ड़ढ़फ़य़ऱॺॻॼॽॾ",
+    "devanagari_vowels": "अआइईउऊऋऌऍऎएऐऑऒओऔॠॡॲऄॵॶॳॴॷॸॹ",
+    "devanagari_digits": "०१२३४५६७८९",
+    "devanagari_matras": "".join([
+        "़",
+        "ं",
+        "ँ",
+        "ः",
+        "॑",
+        "॒",
+        "ा",
+        "ि",
+        "ी",
+        "ु",
+        "ू",
+        "ृ",
+        "ॄ",
+        "ॅ",
+        "ॆ",
+        "े",
+        "ै",
+        "ॉ",
+        "ॊ",
+        "ो",
+        "ौ",
+        "ॢ",
+        "ॣ",
+        "ॏ",
+        "ॎ",
+    ]),
+    "devanagari_virama": "्",
+    "devanagari_punctuation": "।॥॰ऽꣲ",
+    "devanagari_signs": "ॐ",
+    # Punjabi (Gurmukhi script)
+    "punjabi_consonants": "ਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਵਸ਼ਸਹਖ਼ਗ਼ਜ਼ਫ਼ੜਲ਼",
+    "punjabi_vowels": "ਅਆਇਈਉਊਏਐਓਔੲੳ",
+    "punjabi_digits": "੦੧੨੩੪੫੬੭੮੯",
+    "punjabi_matras": "".join(["ਂ", "਼", "ਾ", "ਿ", "ੀ", "ੁ", "ੂ", "ੇ", "ੈ", "ੋ", "ੌ", "ੑ", "ੰ", "ੱ", "ੵ"]),
+    "punjabi_virama": "੍",
+    "punjabi_punctuation": "।॥",
+    "punjabi_signs": "ੴ",
+    # Tamil
+    "tamil_consonants": "கஙசஞடணதநபமயரலவழளறன",
+    "tamil_vowels": "அஆஇஈஉஊஎஏஐஒஓஔ",
+    "tamil_digits": "௦௧௨௩௪௫௬௭௮௯",
+    "tamil_matras": "".join(["ா", "ி", "ீ", "ு", "ூ", "ெ", "ே", "ை", "ொ", "ோ", "ௌ"]),
+    "tamil_virama": "்",
+    "tamil_punctuation": "௰௱௲",
+    "tamil_signs": "ஃௐ",
+    "tamil_fractions": "௳௴௵௶௷௸௹௺",
+    # Telugu
+    "telugu_consonants": "కఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళవశషసహఴ",
+    "telugu_digits": "౦౧౨౩౪౫౬౭౮౯" + "౸౹౺౻",  # Telugu digits and fractional digits
+    "telugu_vowels": "అఆఇఈఉఊఋఌఎఏఐఒఓఔౠౡ",
+    "telugu_matras": "".join(["ా", "ి", "ీ", "ు", "ూ", "ృ", "ౄ", "ె", "ే", "ై", "ొ", "ో", "ౌ", "ౢ", "ౣ"]),
+    "telugu_virama": "్",
+    "telugu_punctuation": "ఽ",
+    "telugu_signs": "".join(["ఁ", "ం", "ః"]),
+    # Kannada
+    "kannada_consonants": "ಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಲವಶಷಸಹಳ",
+    "kannada_vowels": "ಅಆಇಈಉಊಋॠಌೡಎಏಐಒಓಔ",
+    "kannada_digits": "೦೧೨೩೪೫೬೭೮೯",
+    "kannada_matras": "".join(["ಾ", "ಿ", "ೀ", "ು", "ೂ", "ೃ", "ೄ", "ೆ", "ೇ", "ೈ", "ೊ", "ೋ", "ೌ"]),
+    "kannada_virama": "್",
+    "kannada_punctuation": "।॥ೱೲ",
+    "kannada_signs": "".join(["ಂ", "ಃ", "ಁ"]),
+    # Sinhala
+    "sinhala_consonants": "කඛගඝඞචඡජඣඤටඨඩඪණතථදධනපඵබභමයරලවශෂසහළෆ",
+    "sinhala_vowels": "අආඇඈඉඊඋඌඍඎඏඐඑඒඓඔඕඖ",
+    "sinhala_digits": "෦෧෨෩෪෫෬෭෮෯",
+    "sinhala_matras": "".join(["ා", "ැ", "ෑ", "ි", "ී", "ු", "ූ", "ෙ", "ේ", "ෛ", "ො", "ෝ", "ෞ"]),
+    "sinhala_virama": "්",
+    "sinhala_punctuation": "෴",
+    "sinhala_signs": "".join(["ං", "ඃ"]),
+    # Malayalam
+    "malayalam_consonants": "കഖഗഘങചഛജഝഞടഠഡഢണതഥദധനപഫബഭമയരറലളഴവശഷസഹ",
+    "malayalam_vowels": "അആഇഈഉഊഋൠഌൡഎഏഐഒഓഔ",
+    "malayalam_digits": "൦൧൨൩൪൫൬൭൮൯",
+    "malayalam_matras": "".join(["ാ", "ി", "ീ", "ു", "ൂ", "ൃ", "ൄ", "ൢ", "ൣ", "െ", "േ", "ൈ", "ൊ", "ോ", "ൌ"]),
+    "malayalam_virama": "്",
+    "malayalam_signs": "".join(["ഃ", "൹", "ഽ", "൏", "ം"]),
+    # Odia (Oriya)
+    "odia_consonants": "କଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହୟୱଡ଼ଢ଼",
+    "odia_vowels": "ଅଆଇଈଉଊଋଌଏଐଓଔୡୠ",
+    "odia_digits": "୦୧୨୩୪୫୬୭୮୯" + "୲୳୴୵୶୷",  # Odia digits and fractional digits
+    "odia_matras": "".join(["ା", "ି", "ୀ", "ୁ", "ୂ", "ୃ", "ୄ", "େ", "ୈ", "ୋ", "ୌ", "ୢ", "ୣ"]),
+    "odia_virama": "୍",
+    "odia_punctuation": "ଽ",
+    "odia_signs": "".join(["ଂ", "ଃ", "ଁ", "଼", "୰"]),
+    # Khmer
+    "khmer_consonants": "កខគឃងចឆជឈញដឋឌឍណតថទធនបផពភមយរលវឝឞសហឡអ",
+    "khmer_vowels": "ឣឤឥឦឧឨឩឪឫឬឭឮឯឰឱឲឳ",
+    "khmer_digits": "០១២៣៤៥៦៧៨៩",
+    "khmer_matras": "".join(["ា", "ិ", "ី", "ឹ", "ឺ", "ុ", "ូ", "ួ", "ើ", "ឿ", "ៀ", "េ", "ែ", "ៃ", "ោ", "ៅ"]),
+    "khmer_diacritics": "".join(["ំ", "ះ", "ៈ", "៉", "៊", "់", "៌", "៍", "៎", "៏", "័", "៑", "៓", "៝"]),
+    "khmer_virama": "្",
+    "khmer_punctuation": "។៕៖៘៙៚ៗៜ",
+    # Burmese
+    "burmese_consonants": "ကခဂဃငစဆဇဈဉညဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝသဟဠအၐၑၒၓၔၕၚၛၜၝၡၥၦၮၯၰၵၶၷၸၹၺၻၼၽၾၿႀႁႎ",
+    "burmese_vowels": "ဣဤဥဦဧဩဪဿ",
+    "burmese_digits": "၀၁၂၃၄၅၆၇၈၉" + "႐႑႒႓႔႕႖႗႘႙",  # Burmese digits and Shan digits
+    "burmese_diacritics": "".join(["့", "း", "ံ", "ါ", "ာ", "ိ", "ီ", "ု", "ူ", "ေ", "ဲ", "ဳ", "ဴ", "ဵ", "ျြွှ"]),  # းံါာိီုူေဲံ့းှျြွှ
+    #  ္ (virama) and ် (final consonant) - the first is used to stack consonants, the second is used for final consonants
+    "burmese_virama": "".join([
+        "္",
+        "်",
+    ]),
+    "burmese_punctuation": "၊။၌၍၎၏" + "ၤ" + "ၗ",  # Includes ၗ and ၤ
+    # Javanese
+    "javanese_consonants": "ꦏꦐꦑꦒꦓꦔꦕꦖꦗꦘꦙꦚꦛꦜꦝꦞꦟꦠꦡꦢꦣꦤꦥꦦꦧꦨꦩꦪꦫꦬꦭꦮꦯꦰꦱꦲ",
+    "javanese_vowels": "ꦄꦅꦆꦇꦈꦉꦊꦋꦌꦍꦎ" + "ꦴꦵꦶꦷꦸꦹꦺꦻꦼ",  # sec: Dependent vowels ꦴꦵꦶꦷꦸꦹꦺꦻꦼ
+    "javanese_digits": "꧐꧑꧒꧓꧔꧕꧖꧗꧘꧙",
+    "javanese_diacritics": "".join(["ꦀ", "ꦁ", "ꦂ", "ꦃ", "꦳", "ꦽ", "ꦾ", "ꦿ"]),  # ꦀꦁꦂꦃ꦳ꦽꦾꦿ
+    "javanese_virama": "꧀",
+    "javanese_punctuation": "".join(["꧈", "꧉", "꧊", "꧋", "꧌", "꧍", "ꧏ"]),
+    # Sudanese
+    "sudanese_consonants": "ᮊᮋᮌᮍᮎᮏᮐᮑᮒᮓᮔᮕᮖᮗᮘᮙᮚᮛᮜᮝᮞᮟᮠᮮᮯᮺᮻᮼᮽᮾᮿ",
+    "sudanese_vowels": "ᮃᮄᮅᮆᮇᮈᮉ",
+    "sudanese_digits": "᮰᮱᮲᮳᮴᮵᮶᮷᮸᮹",
+    "sudanese_diacritics": "".join(["ᮀ", "ᮁ", "ᮂ", "ᮡ", "ᮢ", "ᮣ", "ᮤ", "ᮥ", "ᮦ", "ᮧ", "ᮨ", "ᮩ", "᮪", "᮫", "ᮬ", "ᮭ"]),  # "ᮀᮁᮂᮡᮢᮣᮤᮥᮦᮧᮨᮩ᮪᮫ᮬᮭ"
     # Hebrew
-    "hebrew_cantillations": "֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯",
-    "hebrew_letters": "אבגדהוזחטיךכלםמןנסעףפץצקרשת",
+    "hebrew_cantillations": "".join([
+        "֑",
+        "֒",
+        "֓",
+        "֔",
+        "֕",
+        "֖",
+        "֗",
+        "֘",
+        "֙",
+        "֚",
+        "֛",
+        "֜",
+        "֝",
+        "֞",
+        "֟",
+        "֠",
+        "֡",
+        "֢",
+        "֣",
+        "֤",
+        "֥",
+        "֦",
+        "֧",
+        "֨",
+        "֩",
+        "֪",
+        "֫",
+        "֬",
+        "֭",
+        "֮",
+        "֯",
+    ]),
+    "hebrew_consonants": "אבגדהוזחטיךכלםמןנסעףפץצקרשת",
     "hebrew_specials": "ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ",
-    "hebrew_punctuation": "ֽ־ֿ׀ׁׂ׃ׅׄ׆׳״",
-    "hebrew_vowels": "ְֱֲֳִֵֶַָׇֹֺֻ",
-    # Latin
-    "digits": string.digits,
-    "ascii_letters": string.ascii_letters,
-    "punctuation": string.punctuation,
-    "currency": "£€¥¢฿",
+    "hebrew_punctuation": "".join(["ֽ", "־", "ֿ", "׀", "ׁ", "ׂ", "׃", "ׄ", "ׅ", "׆", "׳", "״"]),
+    "hebrew_vowels": "".join(["ְ", "ֱ", "ֲ", "ֳ", "ִ", "ֵ", "ֶ", "ַ", "ָ", "ֹ", "ֺ", "ֻ", "ׇ"]),
 }
 
+
+VOCABS: dict[str, str] = {}
+
+for key, value in _BASE_VOCABS.items():
+    VOCABS[key] = value
+
 # Latin & latin-dependent alphabets
-VOCABS["latin"] = VOCABS["digits"] + VOCABS["ascii_letters"] + VOCABS["punctuation"]
-VOCABS["english"] = VOCABS["latin"] + "°" + VOCABS["currency"]
+VOCABS["latin"] = _BASE_VOCABS["digits"] + _BASE_VOCABS["ascii_letters"] + _BASE_VOCABS["punctuation"]
+VOCABS["english"] = VOCABS["latin"] + "°" + _BASE_VOCABS["currency"]
 
 VOCABS["albanian"] = VOCABS["english"] + "çëÇË"
 
@@ -77,7 +264,8 @@ VOCABS["estonian"] = VOCABS["english"] + "šžõäöüŠŽÕÄÖÜ"
 VOCABS["esperanto"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "ĉĝĥĵŝŭĈĜĤĴŜŬ" + "₷"
 
 VOCABS["french"] = VOCABS["english"] + "àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ"
-VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + VOCABS["currency"]
+# NOTE: legacy french is outdated, but kept for compatibility
+VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + _BASE_VOCABS["currency"]
 
 VOCABS["finnish"] = VOCABS["english"] + "äöÄÖ"
 
@@ -161,160 +349,33 @@ VOCABS["yoruba"] = re.sub(r"[CcQqVvXxZz]", "", VOCABS["english"]) + "ẹọṣ�
 VOCABS["zulu"] = VOCABS["english"]
 
 # Non-latin alphabets.
-# Greek
-VOCABS["greek"] = VOCABS["punctuation"] + VOCABS["ancient_greek"] + VOCABS["currency"] + "άέήίϊΐόύϋΰώΆΈΉΊΪΌΎΫΏ"
-VOCABS["greek_extended"] = (
-    VOCABS["greek"]
-    + "ͶͷϜϝἀἁἂἃἄἅἆἇἈἉἊἋἌἍἎἏἐἑἒἓἔἕἘἙἚἛἜἝἠἡἢἣἤἥἦἧἨἩἪἫἬἭἮἯἰἱἲἳἴἵἶἷἸἹἺἻἼἽἾἿ"
-    + "ὀὁὂὃὄὅὈὉὊὋὌὍὐὑὒὓὔὕὖὗὙὛὝὟὠὡὢὣὤὥὦὧὨὩὪὫὬὭὮὯὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾈᾉᾊᾋᾌᾍᾎᾏᾐ"
-    + "ᾑᾒᾓᾔᾕᾖᾗᾘᾙᾚᾛᾜᾝᾞᾟᾠᾡᾢᾣᾤᾥᾦᾧᾨᾩᾪᾫᾬᾭᾮᾯᾲᾳᾴᾶᾷᾺᾼῂῃῄῆῇῈῊῌῒΐῖῗῚῢΰῤῥῦῧῪῬῲῳῴῶῷῸῺῼ"
-)
-
-# Hebrew
-VOCABS["hebrew"] = (
-    VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["hebrew_letters"]
-    + VOCABS["hebrew_vowels"]
-    + VOCABS["hebrew_punctuation"]
-    + VOCABS["hebrew_cantillations"]
-    + VOCABS["hebrew_specials"]
-    + "₪"
-)
-
-# Arabic
-VOCABS["arabic"] = (
-    VOCABS["digits"]
-    + VOCABS["arabic_digits"]
-    + VOCABS["arabic_letters"]
-    + VOCABS["persian_letters"]
-    + VOCABS["arabic_diacritics"]
-    + VOCABS["arabic_punctuation"]
-    + VOCABS["punctuation"]
-)
-
-VOCABS["persian"] = VOCABS["arabic"] + "ژیک"
-
-VOCABS["urdu"] = VOCABS["arabic"] + "ژیکٹڈڑںھےہۃ"
-
-VOCABS["kurdish"] = VOCABS["arabic"] + "ژیکڵڕۆێە"
-
-VOCABS["pashto"] = VOCABS["arabic"] + "ژیکټډړږښځڅڼېۍ"
-
-VOCABS["uyghur"] = VOCABS["arabic"] + "ژیەېۆۇۈڭھ"
-
-VOCABS["sindhi"] = VOCABS["arabic"] + "ژیڀٿٺٽڦڄڃڇڏڌڊڍڙڳڱڻکھ"
-
-# Devanagari
-VOCABS["devanagari"] = (
-    "ऄअआइईउऊऋऌऍऎएऐऑऒओऔकखगघङचछजझञटठडढणतथदधनऩपफबभमयरऱलळऴवशषसहऽॐक़ख़ग़ज़ड़ढ़फ़य़ॠॡॱॲॳॴॵॶॷॸॹॺॻॼॽॾॿ"
-    + "ऀँंःऺऻ़ािीुूृॄॅॆेैॉॊोौ्ॎॏ॒॑॓॔ॕॖॗॢॣ"
-    + "०१२३४५६७८९"  # digits
-    + VOCABS["punctuation"]
-    + "।॥॰"
-    + "₹"  # currency
-)
-
-VOCABS["hindi"] = VOCABS["hindi_letters"] + VOCABS["hindi_digits"] + VOCABS["hindi_punctuation"]
-
-# Bengali
-VOCABS["bangla"] = VOCABS["bangla_letters"] + VOCABS["bangla_digits"] + "৽" + "৳"
-
-# Gujarati
-VOCABS["gujarati"] = (
-    VOCABS["gujarati_vowels"]
-    + VOCABS["gujarati_consonants"]
-    + VOCABS["gujarati_digits"]
-    + VOCABS["gujarati_punctuation"]
-    + VOCABS["punctuation"]
-)
-
-# Brahmic scripts
-VOCABS["tamil"] = (
-    "ஃஅஆஇஈஉஊஎஏஐஒஓஔகஙசஜஞடணதநனபமயரறலளழவஶஷஸஹௐ"
-    + "ஂாிீுூெேைொோௌ்ௗ"
-    + "௦௧௨௩௪௫௬௭௮௯௰௱௲"  # digits
-    + VOCABS["punctuation"]
-    + "௳௴௵௶௷௸௹௺"
-    + "₹"  # currency
-)
-
-VOCABS["telugu"] = (
-    "అఆఇఈఉఊఋఌఎఏఐఒఓఔకఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళఴవశషసహఽౘౙౚౠౡ"
-    + "ఀఁంఃఄాిీుూృౄెేైొోౌ్ౕౖౢౣ"
-    + "౦౧౨౩౪౫౬౭౮౯౸౹౺౻౼౽౾"  # digits
-    + "౿"
-    + VOCABS["punctuation"]
-    + "₹"  # currency
-)
-
-VOCABS["kannada"] = (
-    "ಀಅಆಇಈಉಊಋಌಎಏಐಒಓಔಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಱಲಳವಶಷಸಹಽೞೠೡೱೲ"
-    + "ಁಂಃ಼ಾಿೀುೂೃೄೆೇೈೊೋೌ್ೕೖೢೣ"
-    + "೦೧೨೩೪೫೬೭೮೯"  # digits
-    + VOCABS["punctuation"]
-    + "₹"  # currency
-)
-
-VOCABS["sinhala"] = (
-    "අආඇඈඉඊඋඌඍඎඏඐඑඒඓඔඕඖකඛගඝඞඟචඡජඣඤඥඦටඨඩඪණඬතථදධනඳපඵබභමඹයරලවශෂසහළෆ"
-    + "ඁංඃ්ාැෑිීුූෘෙේෛොෝෞෟෲෳ"
-    + "෦෧෨෩෪෫෬෭෮෯"  # digits
-    + VOCABS["punctuation"]
-)
-
-VOCABS["malayalam"] = (
-    "ഄഅആഇഈഉഊഋഌഎഏഐഒഓഔകഖഗഘങചഛജഝഞടഠഡ"
-    + "ഢണതഥദധനഩപഫബഭമയരറലളഴവശഷസഹഺഽൎൔൕൖൟൠൡൺൻർൽൾൿ"
-    + "ഀഁംഃ഻഼ാിീുൂൃൄെേൈൊോൌ്ൗൢൣ"
-    + "൘൙൚൛൜൝൞൦൧൨൩൪൫൬൭൮൯൰൱൲൳൴൵൶൷൸"  # digits
-    + VOCABS["punctuation"]
-    + "൏൹"  # special
-)
-
-VOCABS["punjabi"] = (
-    "ਅਆਇਈਉਊਏਐਓਔਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਲ਼ਵਸ਼ਸਹਖ਼ਗ਼ਜ਼ੜਫ਼ੲੳੴ"
-    + "ਁਂਃ਼ਾਿੀੁੂੇੈੋੌ੍ੑੰੱੵ"
-    + "੦੧੨੩੪੫੬੭੮੯"  # digits
-    + VOCABS["punctuation"]
-    + "੶"
-    + "₹"  # currency
-)
-
-VOCABS["odia"] = (
-    "ଅଆଇଈଉଊଋଌଏଐଓଔକଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହଽଡ଼ଢ଼ୟୠୡୱ"
-    + "୦୧୨୩୪୫୬୭୮୯୲୳୴୵୶୷"  # digits
-    + VOCABS["punctuation"]
-    + "୰"  # special
-    + "₹"  # currency
-)
 
 # Cyrillic
 VOCABS["russian"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["russian_cyrillic_letters"]
-    + VOCABS["russian_signs"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["russian_cyrillic_letters"]
+    + _BASE_VOCABS["russian_signs"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "₽"
 )
 
 VOCABS["belarusian"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["russian_cyrillic_letters"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["russian_cyrillic_letters"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "ўiЎI"
     + "₽"
 )
 
 VOCABS["ukrainian"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "ґіїєҐІЇЄ"
     + "₴"
 )
@@ -328,40 +389,40 @@ VOCABS["kazakh"] = VOCABS["russian"].replace("₽", "") + "ӘәҒғҚқҢңӨө�
 VOCABS["kyrgyz"] = VOCABS["russian"].replace("₽", "") + "ҢңӨөҮү"
 
 VOCABS["bulgarian"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["russian_signs"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["russian_signs"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
 )
 
 VOCABS["macedonian"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "ЃѓЅѕЈјЉљЊњЌќЏџ"
 )
 
 VOCABS["mongolian"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["russian_cyrillic_letters"]
-    + VOCABS["russian_signs"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["russian_cyrillic_letters"]
+    + _BASE_VOCABS["russian_signs"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "ӨөҮү"
     + "᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙"  # Mongolian digits
     + "₮"
 )
 
 VOCABS["yakut"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["russian_cyrillic_letters"]
-    + VOCABS["russian_signs"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["russian_cyrillic_letters"]
+    + _BASE_VOCABS["russian_signs"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "ҔҕҤҥӨөҺһҮү"
     + "₽"
 )
@@ -369,90 +430,308 @@ VOCABS["yakut"] = (
 VOCABS["serbian_cyrillic"] = (
     "абвгдежзиклмнопрстуфхцчшАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШ"  # limited cyrillic
     + "JjЂђЉљЊњЋћЏџ"  # Serbian specials
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
 )
 
 VOCABS["uzbek_cyrillic"] = (
-    VOCABS["generic_cyrillic_letters"]
-    + VOCABS["russian_cyrillic_letters"]
-    + VOCABS["russian_signs"]
-    + VOCABS["digits"]
-    + VOCABS["punctuation"]
-    + VOCABS["currency"]
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["russian_cyrillic_letters"]
+    + _BASE_VOCABS["russian_signs"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
     + "ЎўҚқҒғҲҳ"
 )
 
 VOCABS["ukrainian"] = (
-    VOCABS["generic_cyrillic_letters"] + VOCABS["digits"] + VOCABS["punctuation"] + VOCABS["currency"] + "ґіїєҐІЇЄ₴"
+    _BASE_VOCABS["generic_cyrillic_letters"]
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["currency"]
+    + "ґіїєҐІЇЄ₴"
+)
+
+# Greek
+VOCABS["greek"] = (
+    _BASE_VOCABS["punctuation"] + _BASE_VOCABS["ancient_greek"] + _BASE_VOCABS["currency"] + "άέήίϊΐόύϋΰώΆΈΉΊΪΌΎΫΏ"
+)
+VOCABS["greek_extended"] = (
+    VOCABS["greek"]
+    + "ͶͷϜϝἀἁἂἃἄἅἆἇἈἉἊἋἌἍἎἏἐἑἒἓἔἕἘἙἚἛἜἝἠἡἢἣἤἥἦἧἨἩἪἫἬἭἮἯἰἱἲἳἴἵἶἷἸἹἺἻἼἽἾἿ"
+    + "ὀὁὂὃὄὅὈὉὊὋὌὍὐὑὒὓὔὕὖὗὙὛὝὟὠὡὢὣὤὥὦὧὨὩὪὫὬὭὮὯὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾈᾉᾊᾋᾌᾍᾎᾏᾐ"
+    + "ᾑᾒᾓᾔᾕᾖᾗᾘᾙᾚᾛᾜᾝᾞᾟᾠᾡᾢᾣᾤᾥᾦᾧᾨᾩᾪᾫᾬᾭᾮᾯᾲᾳᾴᾶᾷᾺᾼῂῃῄῆῇῈῊῌῒΐῖῗῚῢΰῤῥῦῧῪῬῲῳῴῶῷῸῺῼ"
+)
+
+# Hebrew
+VOCABS["hebrew"] = (
+    _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
+    + _BASE_VOCABS["hebrew_consonants"]
+    + _BASE_VOCABS["hebrew_vowels"]
+    + _BASE_VOCABS["hebrew_punctuation"]
+    + _BASE_VOCABS["hebrew_cantillations"]
+    + _BASE_VOCABS["hebrew_specials"]
+    + "₪"
+)
+
+# Arabic
+VOCABS["arabic"] = (
+    _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["arabic_digits"]
+    + _BASE_VOCABS["arabic_letters"]
+    + _BASE_VOCABS["persian_letters"]
+    + _BASE_VOCABS["arabic_diacritics"]
+    + _BASE_VOCABS["arabic_punctuation"]
+    + _BASE_VOCABS["punctuation"]
+)
+
+VOCABS["persian"] = VOCABS["arabic"]
+
+VOCABS["urdu"] = VOCABS["persian"] + "ٹڈڑںھےہۃ"
+
+VOCABS["pashto"] = VOCABS["persian"] + "ټډړږښځڅڼېۍ"
+
+VOCABS["kurdish"] = VOCABS["persian"] + "ڵڕۆێە"
+
+VOCABS["uyghur"] = VOCABS["persian"] + "ەېۆۇۈڭھ"
+
+VOCABS["sindhi"] = VOCABS["persian"] + "ڀٿٺٽڦڄڃڇڏڌڊڍڙڳڱڻھ"
+
+# Indic scripts
+# Rules:
+# Any consonant can be "combined" with any matra
+# The virama is used to create consonant clusters - so C + Virama + C = CC
+
+# Devanagari based
+VOCABS["devanagari"] = (
+    _BASE_VOCABS["devanagari_consonants"]
+    + _BASE_VOCABS["devanagari_vowels"]
+    + _BASE_VOCABS["devanagari_digits"]
+    + _BASE_VOCABS["devanagari_matras"]
+    + _BASE_VOCABS["devanagari_virama"]
+    + _BASE_VOCABS["devanagari_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Devanagari
+    + "₹"  # currency
+)
+
+VOCABS["hindi"] = VOCABS["devanagari"]
+
+VOCABS["sanskrit"] = VOCABS["devanagari"]
+
+VOCABS["marathi"] = VOCABS["devanagari"]
+
+VOCABS["nepali"] = VOCABS["devanagari"]
+
+# Gujarati
+VOCABS["gujarati"] = (
+    _BASE_VOCABS["gujarati_consonants"]
+    + _BASE_VOCABS["gujarati_vowels"]
+    + _BASE_VOCABS["gujarati_digits"]
+    + _BASE_VOCABS["gujarati_matras"]
+    + _BASE_VOCABS["gujarati_virama"]
+    + _BASE_VOCABS["gujarati_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Gujarati
+    + _BASE_VOCABS["gujarati_signs"]
+    + "૱"  # currency
+)
+
+# Bengali
+VOCABS["bengali"] = (
+    _BASE_VOCABS["bengali_consonants"]
+    + _BASE_VOCABS["bengali_vowels"]
+    + _BASE_VOCABS["bengali_digits"]
+    + _BASE_VOCABS["bengali_matras"]
+    + _BASE_VOCABS["bengali_virama"]
+    + _BASE_VOCABS["bengali_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Bengali
+    + _BASE_VOCABS["bengali_signs"]
+    + "৳"  # currency
+)
+
+# Brahmic scripts
+VOCABS["tamil"] = (
+    _BASE_VOCABS["tamil_consonants"]
+    + _BASE_VOCABS["tamil_vowels"]
+    + _BASE_VOCABS["tamil_digits"]
+    + _BASE_VOCABS["tamil_matras"]
+    + _BASE_VOCABS["tamil_virama"]
+    + _BASE_VOCABS["tamil_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Tamil
+    + _BASE_VOCABS["tamil_fractions"]  # This is a Tamil-specific addition
+    + _BASE_VOCABS["tamil_signs"]
+    + "₹"  # currency
+)
+
+VOCABS["telugu"] = (
+    _BASE_VOCABS["telugu_consonants"]
+    + _BASE_VOCABS["telugu_vowels"]
+    + _BASE_VOCABS["telugu_digits"]
+    + _BASE_VOCABS["telugu_matras"]
+    + _BASE_VOCABS["telugu_virama"]
+    + _BASE_VOCABS["telugu_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Telugu
+    + _BASE_VOCABS["telugu_signs"]
+    + "₹"  # currency
+)
+
+VOCABS["kannada"] = (
+    _BASE_VOCABS["kannada_consonants"]
+    + _BASE_VOCABS["kannada_vowels"]
+    + _BASE_VOCABS["kannada_digits"]
+    + _BASE_VOCABS["kannada_matras"]
+    + _BASE_VOCABS["kannada_virama"]
+    + _BASE_VOCABS["kannada_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Kannada
+    + _BASE_VOCABS["kannada_signs"]
+    + "₹"  # currency
+)
+
+VOCABS["sinhala"] = (
+    _BASE_VOCABS["sinhala_consonants"]
+    + _BASE_VOCABS["sinhala_vowels"]
+    + _BASE_VOCABS["sinhala_digits"]
+    + _BASE_VOCABS["sinhala_matras"]
+    + _BASE_VOCABS["sinhala_virama"]
+    + _BASE_VOCABS["sinhala_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Sinhala
+    + _BASE_VOCABS["sinhala_signs"]
+    + "₹"  # currency
+)
+
+VOCABS["malayalam"] = (
+    _BASE_VOCABS["malayalam_consonants"]
+    + _BASE_VOCABS["malayalam_vowels"]
+    + _BASE_VOCABS["malayalam_digits"]
+    + _BASE_VOCABS["malayalam_matras"]
+    + _BASE_VOCABS["malayalam_virama"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Malayalam
+    + _BASE_VOCABS["malayalam_signs"]
+    + "₹"  # currency
+)
+
+VOCABS["punjabi"] = (
+    _BASE_VOCABS["punjabi_consonants"]
+    + _BASE_VOCABS["punjabi_vowels"]
+    + _BASE_VOCABS["punjabi_digits"]
+    + _BASE_VOCABS["punjabi_matras"]
+    + _BASE_VOCABS["punjabi_virama"]
+    + _BASE_VOCABS["punjabi_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Punjabi
+    + _BASE_VOCABS["punjabi_signs"]
+    + "₹"  # currency
+)
+
+
+VOCABS["odia"] = (
+    _BASE_VOCABS["odia_consonants"]
+    + _BASE_VOCABS["odia_vowels"]
+    + _BASE_VOCABS["odia_digits"]
+    + _BASE_VOCABS["odia_matras"]
+    + _BASE_VOCABS["odia_virama"]
+    + _BASE_VOCABS["odia_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Odia
+    + _BASE_VOCABS["odia_signs"]
+    + "₹"  # currency
+)
+
+VOCABS["khmer"] = (
+    _BASE_VOCABS["khmer_consonants"]
+    + _BASE_VOCABS["khmer_vowels"]
+    + _BASE_VOCABS["khmer_digits"]
+    + _BASE_VOCABS["khmer_matras"]
+    + _BASE_VOCABS["khmer_virama"]
+    + _BASE_VOCABS["khmer_diacritics"]  # This is a Khmer-specific addition
+    + _BASE_VOCABS["khmer_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Khmer
+    + "៛"  # Cambodian currency
 )
 
 # Armenian
 VOCABS["armenian"] = (
-    VOCABS["digits"]
-    + "ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖՙՠաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆևֈ"
-    + VOCABS["punctuation"]
+    "ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖՙՠաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆևֈ"
+    + _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["punctuation"]
     + "՚՛՜՝՞՟։֊"
     + "֏"
 )
 
 # Sudanese
 VOCABS["sudanese"] = (
-    "ᮃᮄᮅᮆᮇᮈᮉᮊᮋᮌᮍᮎᮏᮐᮑᮒᮓᮔᮕᮖᮗᮘᮙᮚᮛᮜᮝᮞᮟᮠᮮᮯᮺᮻᮼᮽᮾᮿ"
-    + "ᮀᮁᮂᮡᮢᮣᮤᮥᮦᮧᮨᮩ᮪᮫ᮬᮭ"  # diacritics - "ᮀᮁᮂᮡᮢᮣᮤᮥᮦᮧᮨᮩ᮪᮫ᮬᮭ"
-    + "᮰᮱᮲᮳᮴᮵᮶᮷᮸᮹"  # digits
-    + "ج.س."  # currency
-).replace(".", "") + "."
+    _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["sudanese_digits"]
+    + _BASE_VOCABS["sudanese_consonants"]
+    + _BASE_VOCABS["sudanese_vowels"]
+    + _BASE_VOCABS["sudanese_diacritics"]
+    + _BASE_VOCABS["punctuation"]
+)
 
 # Thai
+# Rules:
+# Diacritics are used to modify the consonants and vowels
 VOCABS["thai"] = (
-    VOCABS["digits"]
+    _BASE_VOCABS["digits"]
     + "๐๑๒๓๔๕๖๗๘๙"
-    + VOCABS["punctuation"]
-    + "๏๚๛"
-    + "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮฯะาำเแโใไๅๆ"
+    + _BASE_VOCABS["punctuation"]
+    + "๏๚๛ๆฯ"
+    + "กขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮ"  # Thai consonants
+    + "ะาำเแโใไๅ"  # Thai vowels
     + " ัิีึืฺุู็่้๊๋์ํ๎".replace(" ", "")
     + "฿"
 )
 
 VOCABS["lao"] = (
-    VOCABS["digits"]
+    _BASE_VOCABS["digits"]
     + "໐໑໒໓໔໕໖໗໘໙"
-    + VOCABS["punctuation"]
-    + "ກຂຄຆງຈຉຊຌຍຎຏຐຑຒຓດຕຖທຘນບປຜຝພຟຠມຢຣລວຨຩສຫຬອຮຯະາຳຽເແໂໃໄໆໜໝໞໟ"
-    + "ັິີຶື຺ຸູົຼ່້໊໋໌ໍ"
+    + _BASE_VOCABS["punctuation"]
+    + "ໆໞໟຯ"
+    + "ກຂຄຆງຈຉຊຌຍຎຏຐຑຒຓດຕຖທຘນບປຜຝພຟຠມຢຣລວຨຩສຫຬອຮ"  # Lao consonants
+    + "ະາຳຽເແໂໃໄ"  # Lao vowels
+    + "ໜໝ"  # Lao ligature
+    + "".join(["ັ", "ິ", "ີ", "ຶ", "ື", "ຸ", "ູ", "຺", "ົ", "ຼ", "່", "້", "໊", "໋", "໌", "ໍ"])
 )
 
-VOCABS["khmer"] = (
-    "កខគឃងចឆជឈញដឋឌឍណតថទធនបផពភមយរលវឝឞសហឡអឣឤឥឦឧឨឩឪឫឬឭឮឯឰឱឲឳៗៜ"
-    + "឴឵ាិីឹឺុូួើឿៀេែៃោៅំះៈ៉៊់៌៍៎៏័៑្៓៝"
-    + "០១២៣៤៥៦៧៨៩៰៱៲៳៴៵៶៷៸៹"  # Cambodian digits
-    + "។៕៖៘៙៚"  # Cambodian punctuation
-    + "៛"  # Cambodian currency
-)
+# Burmese & Javanese
 
-# Burmese
+# Rules:
+# - A syllable usually starts with a base consonant.
+# - Diacritics (sandhangan), which represent vowels and consonant modifications, are attached to the base consonant:
+#   - Vowel signs (ꦴꦵꦶꦷꦸꦹꦺꦻꦼ) follow the consonant and determine the syllable's vowel sound.
+#   - Medial signs like ꦿ (ra), ꦾ (ya), and ꦽ (vocalic r) modify the consonant cluster.
+# - The virama (꧀, called *pangkon*) suppresses the inherent vowel,
+# creating consonant clusters.
+# - Special signs like ꦀ (cecak), ꦁ (layar), ꦂ (cakra), and ꦃ (wignyan)
+# can appear before or after syllables to represent nasal or glottal finals.
+# - Independent vowels (ꦄꦅꦆꦇꦈꦉꦊꦋꦌꦍꦎ) can occur without a base consonant, especially at word/sentence starts.
+# - Use Unicode NFC normalization to ensure composed syllables render correctly.
+
 VOCABS["burmese"] = (
-    "ကခဂဃငစဆဇဈဉညဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝသဟဠအဢဣဤဥဦဧဨဩဪဿၐၑၒၓၔၕၚၛၜၝၡၥၦၮၯၰၵၶၷၸၹၺၻၼၽၾၿႀႁႎ"
-    + " ါာိီုူေဲဳဴဵံ့း္်ျြွှၖၗၘၙၞၟၠၢၣၤၧၨၩၪၫၬၭၱၲၳၴႂႃႄႅႆႇႈႉႊႋႌႍႏႚႛႜႝ".replace(" ", "")
-    + "၀၁၂၃၄၅၆၇၈၉႐႑႒႓႔႕႖႗႘႙"  # digits
-    + "၊။၌၍၎၏"  # punctuation
+    _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["burmese_digits"]
+    + _BASE_VOCABS["burmese_consonants"]
+    + _BASE_VOCABS["burmese_vowels"]
+    + _BASE_VOCABS["burmese_diacritics"]
+    + _BASE_VOCABS["burmese_virama"]
+    + _BASE_VOCABS["burmese_punctuation"]
 )
 
-# Javanese
 VOCABS["javanese"] = (
-    "ꦄꦅꦆꦇꦈꦉꦊꦋꦌꦍꦎꦏꦐꦑꦒꦓꦔꦕꦖꦗꦘꦙꦚꦛꦜꦝꦞꦟꦠꦡꦢꦣꦤꦥꦦꦧꦨꦩꦪꦫꦬꦭꦮꦯꦰꦱꦲꧏ"
-    + "ꦀꦁꦂꦃ꦳ꦴꦵꦶꦷꦸꦹꦺꦻꦼꦽꦾꦿ꧀"  # diacritics - ꦃ꦳ꦴꦵꦶꦷꦸꦹꦺꦻꦼꦽꦾꦿ꧀"
-    + "꧐꧑꧒꧓꧔꧕꧖꧗꧘꧙"  # digits
-    + "꧆꧇꧈꧉꧊꧋꧌꧍꧞꧟"  # punctuation
+    _BASE_VOCABS["digits"]
+    + _BASE_VOCABS["javanese_digits"]
+    + _BASE_VOCABS["javanese_consonants"]
+    + _BASE_VOCABS["javanese_vowels"]
+    + _BASE_VOCABS["javanese_diacritics"]
+    + _BASE_VOCABS["javanese_virama"]
+    + _BASE_VOCABS["javanese_punctuation"]
+    + _BASE_VOCABS["punctuation"]  # western punctuation used in Javanese
 )
 
 # Georgian (Mkhedruli - modern)
 VOCABS["georgian"] = (
-    VOCABS["digits"]
+    _BASE_VOCABS["digits"]
     + "ႠႡႢႣႤႥႦႧႨႩႪႫႬႭႮႯႰႱႲႳႴႵႶႷႸႹႺႻႼႽႾႿჀჁჂჃჄჅჇჍაბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰჱჲჳჴჵჶჷჸჹჺჼჽჾჿ"
-    + VOCABS["punctuation"]
+    + _BASE_VOCABS["punctuation"]
     + "჻"
     + "₾"  # currency
 )
@@ -469,7 +748,7 @@ VOCABS["ethiopic"] = (
 
 # East Asian
 VOCABS["japanese"] = (
-    VOCABS["digits"]
+    _BASE_VOCABS["digits"]
     + "ぁあぃいぅうぇえぉおかがきぎくぐけげこごさざしじすずせぜそぞただちぢっつづ"
     + "てでとどなにぬねのはばぱひびぴふぶぷへべぺほぼぽまみむめ"
     + "もゃやゅゆょよらりるれろゎわゐゑをんゔゕゖゝゞゟ"  # Hiragana
@@ -509,13 +788,13 @@ VOCABS["japanese"] = (
     + "耗猛網目黙門紋問冶夜野弥厄役約訳薬躍闇由油喩愉諭輸癒唯友有勇幽悠郵湧猶裕遊雄誘憂融優与予余誉預幼用羊妖洋要容庸揚揺葉陽溶腰様瘍踊窯養擁"  # noqa: E501
     + "謡曜抑沃浴欲翌翼拉裸羅来雷頼絡落酪辣乱卵覧濫藍欄吏利里理痢裏履璃離陸立律慄略柳流留竜粒隆硫侶旅虜慮了両良料涼猟陵量僚領寮療瞭糧力緑林厘"  # noqa: E501
     + "倫輪隣臨瑠涙累塁類令礼冷励戻例鈴零霊隷齢麗暦歴列劣烈裂恋連廉練錬呂炉賂路露老労弄郎朗浪廊楼漏籠六録麓論和話賄脇惑枠湾腕"  # noqa: E501
-    + VOCABS["punctuation"]
+    + _BASE_VOCABS["punctuation"]
     + "。・〜°—、「」『』【】゛》《〉〈"
-    + VOCABS["currency"]
+    + _BASE_VOCABS["currency"]
 )
 
 VOCABS["korean"] = (
-    VOCABS["digits"]
+    _BASE_VOCABS["digits"]
     + "가각갂갃간갅갆갇갈갉갊갋갌갍갎갏감갑값갓갔강갖갗갘같갚갛개객갞갟갠갡갢갣갤갥갦갧갨갩갪갫갬갭갮갯갰갱갲갳갴갵갶갷갸갹갺갻갼갽갾갿걀걁걂걃걄걅걆걇걈"  # noqa: E501
     + "걉걊걋걌걍걎걏걐걑걒걓걔걕걖걗걘걙걚걛걜걝걞걟걠걡걢걣걤걥걦걧걨걩걪걫걬걭걮걯거걱걲걳건걵걶걷걸걹걺걻걼걽걾걿검겁겂것겄겅겆겇겈겉겊겋게겍겎겏겐겑"  # noqa: E501
     + "겒겓겔겕겖겗겘겙겚겛겜겝겞겟겠겡겢겣겤겥겦겧겨격겪겫견겭겮겯결겱겲겳겴겵겶겷겸겹겺겻겼경겾겿곀곁곂곃계곅곆곇곈곉곊곋곌곍곎곏곐곑곒곓곔곕곖곗곘곙곚"  # noqa: E501
@@ -670,14 +949,14 @@ VOCABS["korean"] = (
     + "휏휐휑휒휓휔휕휖휗휘휙휚휛휜휝휞휟휠휡휢휣휤휥휦휧휨휩휪휫휬휭휮휯휰휱휲휳휴휵휶휷휸휹휺휻휼휽휾휿흀흁흂흃흄흅흆흇흈흉흊흋흌흍흎흏흐흑흒흓흔흕흖흗"  # noqa: E501
     + "흘흙흚흛흜흝흞흟흠흡흢흣흤흥흦흧흨흩흪흫희흭흮흯흰흱흲흳흴흵흶흷흸흹흺흻흼흽흾흿힀힁힂힃힄힅힆힇히힉힊힋힌힍힎힏힐힑힒힓힔힕힖힗힘힙힚힛힜힝힞힟힠"  # noqa: E501
     + "힡힢힣"
-    + VOCABS["punctuation"]
+    + _BASE_VOCABS["punctuation"]
     + "。・〜°—、「」『』【】゛》《〉〈"  # punctuation
-    + VOCABS["currency"]
+    + _BASE_VOCABS["currency"]
     + "₩"
 )
 
 VOCABS["simplified_chinese"] = (
-    VOCABS["digits"]
+    _BASE_VOCABS["digits"]
     + "㐀㐁㐂㐃㐄㐅㐆㐇㐈㐉㐊㐋㐌㐍㐎㐏㐐㐑㐒㐓㐔㐕㐖㐗㐘㐙㐚㐛㐜㐝㐞㐟㐠㐡㐢㐣㐤㐥㐦㐧㐨㐩㐪㐫㐬㐭㐮㐯㐰㐱㐲㐳㐴㐵㐶㐷㐸㐹㐺㐻㐼㐽㐾㐿㑀㑁㑂"  # noqa: E501
     + "㑄㑅㑆㑇㑈㑉㑊㑋㑌㑍㑎㑏㑐㑑㑒㑓㑔㑕㑖㑗㑘㑙㑚㑛㑜㑝㑞㑟㑠㑡㑢㑣㑤㑥㑦㑧㑨㑩㑪㑫㑬㑭㑮㑯㑰㑱㑲㑳㑴㑵㑶㑷㑸㑹㑺㑻㑼㑽㑾㑿㒀㒁㒂㒃㒄㒅㒆"  # noqa: E501
     + "㒇㒈㒉㒊㒋㒌㒍㒎㒏㒐㒑㒒㒓㒔㒕㒖㒗㒘㒙㒚㒛㒜㒝㒞㒟㒠㒡㒢㒣㒤㒥㒦㒧㒨㒩㒪㒫㒬㒭㒮㒯㒰㒱㒲㒳㒴㒵㒶㒷㒸㒹㒺㒻㒼㒽㒾㒿㓀㓁㓂㓃㓄㓅㓆㓇㓈㓉"  # noqa: E501
@@ -777,9 +1056,9 @@ VOCABS["simplified_chinese"] = (
     + "䴠䴡䴢䴣䴤䴥䴦䴧䴨䴩䴪䴫䴬䴭䴮䴯䴰䴱䴲䴳䴴䴵䴶䴷䴸䴹䴺䴻䴼䴽䴾䴿䵀䵁䵂䵃䵄䵅䵆䵇䵈䵉䵊䵋䵌䵍䵎䵏䵐䵑䵒䵓䵔䵕䵖䵗䵘䵙䵚䵛䵜䵝䵞䵟䵠䵡䵢"  # noqa: E501
     + "䵣䵤䵥䵦䵧䵨䵩䵪䵫䵬䵭䵮䵯䵰䵱䵲䵳䵴䵵䵶䵷䵸䵹䵺䵻䵼䵽䵾䵿䶀䶁䶂䶃䶄䶅䶆䶇䶈䶉䶊䶋䶌䶍䶎䶏䶐䶑䶒䶓䶔䶕䶖䶗䶘䶙䶚䶛䶜䶝䶞䶟䶠䶡䶢䶣䶤䶥"  # noqa: E501
     + "䶦䶧䶨䶩䶪䶫䶬䶭䶮䶯䶰䶱䶲䶳䶴䶵䶶䶷䶸䶹䶺䶻䶼䶽䶾䶿"
-    + VOCABS["punctuation"]
+    + _BASE_VOCABS["punctuation"]
     + "。・〜°—、「」『』【】゛》《〉〈"  # punctuation
-    + VOCABS["currency"]
+    + _BASE_VOCABS["currency"]
 )
 
 # Multi-lingual
