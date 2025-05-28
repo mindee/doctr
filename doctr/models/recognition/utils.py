@@ -40,7 +40,7 @@ def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
     # Find zero-score matches
     zero_matches = [i for i, score in enumerate(scores) if score == 0]
 
-    expected_overlap = round(len(b) * overlap_ratio) - 2  # adjust for cropping
+    expected_overlap = round(len(b) * overlap_ratio) - 3  # adjust for cropping and index
 
     # Case 1: One perfect match - exactly one zero score - just merge there
     if len(zero_matches) == 1:
@@ -50,20 +50,18 @@ def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
     # Case 2: Multiple perfect matches - likely due to repeated characters.
     # Use the estimated overlap length to choose the match closest to the expected alignment.
     elif len(zero_matches) > 1:
-        expected_overlap_index = expected_overlap - 1
-        best_i = min(zero_matches, key=lambda x: abs(x - expected_overlap_index))
+        best_i = min(zero_matches, key=lambda x: abs(x - expected_overlap))
         return a_crop + b_crop[best_i + 1 :]
 
     # Case 3: Absence of zero scores indicates that the same character in the image was recognized differently OR that
     # the overlap was too small and we just need to merge the crops fully
-    if expected_overlap < 0:
+    if expected_overlap < -1:
         return a + b
-    elif expected_overlap < 1:
+    elif expected_overlap < 0:
         return a_crop + b_crop
 
     # Find best overlap by minimizing Hamming distance + distance from expected overlap size
-    expected_overlap_index = expected_overlap - 1
-    combined_scores = [score + abs(i - expected_overlap_index) for i, score in enumerate(scores)]
+    combined_scores = [score + abs(i - expected_overlap) for i, score in enumerate(scores)]
     best_i = combined_scores.index(min(combined_scores))
     return a_crop + b_crop[best_i + 1 :]
 
