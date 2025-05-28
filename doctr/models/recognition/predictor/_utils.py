@@ -19,7 +19,7 @@ def split_crops(
     target_ratio: int,
     split_overlap_ratio: float,
     channels_last: bool = True,
-) -> tuple[list[np.ndarray], list[int | tuple[int, int]], bool]:
+) -> tuple[list[np.ndarray], list[int | tuple[int, int, float]], bool]:
     """
     Split crops horizontally if they exceed a given aspect ratio.
 
@@ -38,7 +38,7 @@ def split_crops(
     """
     remap_required = False
     new_crops: list[np.ndarray] = []
-    crop_map: list[int | tuple[int, int]] = []
+    crop_map: list[int | tuple[int, int, float]] = []
 
     for crop in crops:
         h, w = crop.shape[:2] if channels_last else crop.shape[-2:]
@@ -115,7 +115,7 @@ def _split_horizontally(
 
 def remap_preds(
     preds: list[tuple[str, float]],
-    crop_map: list[int | tuple[int, int]],
+    crop_map: list[int | tuple[int, int, float]],
     overlap_ratio: float,
 ) -> list[tuple[str, float]]:
     """
