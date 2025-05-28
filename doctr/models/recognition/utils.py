@@ -4,81 +4,90 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-from rapidfuzz.distance import Levenshtein
+from rapidfuzz.distance import Hamming
 
 __all__ = ["merge_strings", "merge_multi_strings"]
 
 
-def merge_strings(a: str, b: str, dil_factor: float) -> str:
+def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
     """Merges 2 character sequences in the best way to maximize the alignment of their overlapping characters.
 
     Args:
         a: first char seq, suffix should be similar to b's prefix.
         b: second char seq, prefix should be similar to a's suffix.
-        dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
-            only used when the mother sequence is splitted on a character repetition
+        overlap_ratio: estimated ratio of overlapping characters.
 
     Returns:
         A merged character sequence.
 
     Example::
-        >>> from doctr.models.recognition.utils import merge_sequences
-        >>> merge_sequences('abcd', 'cdefgh', 1.4)
+        >>> from doctr.models.recognition.utils import merge_strings
+        >>> merge_strings('abcd', 'cdefgh', 0.5)
         'abcdefgh'
-        >>> merge_sequences('abcdi', 'cdefgh', 1.4)
+        >>> merge_strings('abcdi', 'cdefgh', 0.5)
         'abcdefgh'
     """
     seq_len = min(len(a), len(b))
     if seq_len == 0:  # One sequence is empty, return the other
         return b if len(a) == 0 else a
 
-    # Initialize merging index and corresponding score (mean Levenstein)
-    min_score, index = 1.0, 0  # No overlap, just concatenate
+    a_crop, b_crop = a[:-1], b[1:]  # Remove last letter of "a" and first of "b", because they might be cut off
+    max_overlap = min(len(a_crop), len(b_crop))
 
-    scores = [Levenshtein.distance(a[-i:], b[:i], processor=None) / i for i in range(1, seq_len + 1)]
+    # Compute Hamming distances for all possible overlaps
+    scores = [Hamming.distance(a_crop[-i:], b_crop[:i], processor=None) for i in range(1, max_overlap + 1)]
 
-    # Edge case (split in the middle of char repetitions): if it starts with 2 or more 0
-    if len(scores) > 1 and (scores[0], scores[1]) == (0, 0):
-        # Compute n_overlap (number of overlapping chars, geometrically determined)
-        n_overlap = round(len(b) * (dil_factor - 1) / dil_factor)
-        # Find the number of consecutive zeros in the scores list
-        # Impossible to have a zero after a non-zero score in that case
-        n_zeros = sum(val == 0 for val in scores)
-        # Index is bounded by the geometrical overlap to avoid collapsing repetitions
-        min_score, index = 0, min(n_zeros, n_overlap)
+    # Find zero-score matches
+    zero_matches = [i for i, score in enumerate(scores) if score == 0]
 
-    else:  # Common case: choose the min score index
-        for i, score in enumerate(scores):
-            if score < min_score:
-                min_score, index = score, i + 1  # Add one because first index is an overlap of 1 char
+    expected_overlap = round(len(b) * overlap_ratio) - 3  # adjust for cropping and index
 
-    # Merge with correct overlap
-    if index == 0:
+    # Case 1: One perfect match - exactly one zero score - just merge there
+    if len(zero_matches) == 1:
+        i = zero_matches[0]
+        return a_crop + b_crop[i + 1 :]
+
+    # Case 2: Multiple perfect matches - likely due to repeated characters.
+    # Use the estimated overlap length to choose the match closest to the expected alignment.
+    elif len(zero_matches) > 1:
+        best_i = min(zero_matches, key=lambda x: abs(x - expected_overlap))
+        return a_crop + b_crop[best_i + 1 :]
+
+    # Case 3: Absence of zero scores indicates that the same character in the image was recognized differently OR that
+    # the overlap was too small and we just need to merge the crops fully
+    if expected_overlap < -1:
         return a + b
-    return a[:-1] + b[index - 1 :]
+    elif expected_overlap < 0:
+        return a_crop + b_crop
+
+    # Find best overlap by minimizing Hamming distance + distance from expected overlap size
+    combined_scores = [score + abs(i - expected_overlap) for i, score in enumerate(scores)]
+    best_i = combined_scores.index(min(combined_scores))
+    return a_crop + b_crop[best_i + 1 :]
 
 
-def merge_multi_strings(seq_list: list[str], dil_factor: float) -> str:
-    """Recursively merges consecutive string sequences with overlapping characters.
+def merge_multi_strings(seq_list: list[str], overlap_ratio: float, last_overlap_ratio: float) -> str:
+    """
+    Merges consecutive string sequences with overlapping characters.
 
     Args:
         seq_list: list of sequences to merge. Sequences need to be ordered from left to right.
-        dil_factor: dilation factor of the boxes to overlap, should be > 1. This parameter is
-            only used when the mother sequence is splitted on a character repetition
+        overlap_ratio: Estimated ratio of overlapping letters between neighboring strings.
+        last_overlap_ratio: Estimated ratio of overlapping letters for the last element in seq_list.
 
     Returns:
         A merged character sequence
 
     Example::
-        >>> from doctr.models.recognition.utils import merge_multi_sequences
-        >>> merge_multi_sequences(['abc', 'bcdef', 'difghi', 'aijkl'], 1.4)
+        >>> from doctr.models.recognition.utils import merge_multi_strings
+        >>> merge_multi_strings(['abc', 'bcdef', 'difghi', 'aijkl'], 0.5, 0.1)
         'abcdefghijkl'
     """
-
-    def _recursive_merge(a: str, seq_list: list[str], dil_factor: float) -> str:
-        # Recursive version of compute_overlap
-        if len(seq_list) == 1:
-            return merge_strings(a, seq_list[0], dil_factor)
-        return _recursive_merge(merge_strings(a, seq_list[0], dil_factor), seq_list[1:], dil_factor)
-
-    return _recursive_merge("", seq_list, dil_factor)
+    if not seq_list:
+        return ""
+    result = seq_list[0]
+    for i in range(1, len(seq_list)):
+        text_b = seq_list[i]
+        ratio = last_overlap_ratio if i == len(seq_list) - 1 else overlap_ratio
+        result = merge_strings(result, text_b, ratio)
+    return result

@@ -38,7 +38,7 @@ class RecognitionPredictor(nn.Module):
         self.model = model.eval()
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
-        self.dil_factor = 1.4  # Dilation factor to overlap the crops
+        self.overlap_ratio = 0.5  # Ratio of overlap between neighboring crops
         self.target_ar = 6  # Target aspect ratio
 
     @torch.inference_mode()
@@ -60,7 +60,7 @@ class RecognitionPredictor(nn.Module):
                 crops,  # type: ignore[arg-type]
                 self.critical_ar,
                 self.target_ar,
-                self.dil_factor,
+                self.overlap_ratio,
                 isinstance(crops[0], np.ndarray),
             )
             if remapped:
@@ -81,6 +81,6 @@ class RecognitionPredictor(nn.Module):
 
         # Remap crops
         if self.split_wide_crops and remapped:
-            out = remap_preds(out, crop_map, self.dil_factor)
+            out = remap_preds(out, crop_map, self.overlap_ratio)
 
         return out
