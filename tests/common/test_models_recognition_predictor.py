@@ -39,126 +39,59 @@ def test_remap_preds(preds, crop_map, split_overlap_ratio, pred):
     assert all(isinstance(pred[0], str) and isinstance(pred[1], float) for pred in preds)
 
 
-def test_dont_split_if_not_necessary():
-    max_ratio = 4
-    inputs = [np.zeros((32, 32 * max_ratio, 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert not _remap_required
-    assert len(inputs) == len(new_crops)
-    assert len(new_crops) == 1
-    assert np.array_equal(inputs[0], new_crops[0])
-    assert crop_map[0] == 0
-
-
-def test_split_if_necessary():
-    max_ratio = 4
-    inputs = [np.zeros((32, 32 * max_ratio + 1, 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(inputs) < len(new_crops)
-    assert len(new_crops) == 2
-    assert not np.array_equal(inputs[0], new_crops[0])
-    assert crop_map[0] == (0, 2, 0.9921875)
-
-
-def test_split_only_if_necessary_with_larger_max_ratio():
-    max_ratio = 8
-    inputs = [np.zeros((32, 32 * max_ratio, 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert not _remap_required
-    assert len(inputs) == len(new_crops)
-    assert len(new_crops) == 1
-    assert np.array_equal(inputs[0], new_crops[0])
-    assert crop_map[0] == 0
-
-
-def test_split_in_two_equally_shaped_crops_with_half_overlap():
-    inputs = [np.zeros((32, 128 + int(128 / 2), 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio=4, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(new_crops) == 2
-    for crop in new_crops:
-        assert crop.shape == (32, 128, 3)
-    assert crop_map[0] == (0, 2, 0.5)
-
-
-def test_split_in_two_equally_shaped_crops_with_half_overlap_channels_first():
-    inputs = [np.zeros((3, 32, 128 + int(128 / 2)))]
-
+@pytest.mark.parametrize(
+    "inputs, max_ratio, target_ratio, target_overlap_ratio, expected_remap_required, expected_len, expected_shape, "
+    "expected_crop_map, channels_last",
+    [
+        # Don't split
+        ([np.zeros((32, 32 * 4, 3))], 4, 4, 0.5, False, 1, (32, 128, 3), 0, True),
+        # Split needed
+        ([np.zeros((32, 32 * 4 + 1, 3))], 4, 4, 0.5, True, 2, (32, 128, 3), (0, 2, 0.9921875), True),
+        # Larger max ratio prevents split
+        ([np.zeros((32, 32 * 8, 3))], 8, 4, 0.5, False, 1, (32, 256, 3), 0, True),
+        # Half-overlap, two crops
+        ([np.zeros((32, 128 + 64, 3))], 4, 4, 0.5, True, 2, (32, 128, 3), (0, 2, 0.5), True),
+        # Half-overlap, two crops, channels first
+        ([np.zeros((3, 32, 128 + 64))], 4, 4, 0.5, True, 2, (3, 32, 128), (0, 2, 0.5), False),
+        # Half-overlap with small max_ratio forces split
+        ([np.zeros((32, 128 + 64, 3))], 2, 4, 0.5, True, 2, (32, 128, 3), (0, 2, 0.5), True),
+        # > half last overlap ratio
+        ([np.zeros((32, 128 + 32, 3))], 4, 4, 0.5, True, 2, (32, 128, 3), (0, 2, 0.75), True),
+        # 3 crops, half last overlap
+        ([np.zeros((32, 128 + 128, 3))], 4, 4, 0.5, True, 3, (32, 128, 3), (0, 3, 0.5), True),
+        # 3 crops, > half last overlap
+        ([np.zeros((32, 128 + 64 + 32, 3))], 4, 4, 0.5, True, 3, (32, 128, 3), (0, 3, 0.75), True),
+        # Split into larger crops
+        ([np.zeros((32, 192 * 2, 3))], 4, 6, 0.5, True, 3, (32, 192, 3), (0, 3, 0.5), True),
+    ],
+)
+def test_split_crops_cases(
+    inputs,
+    max_ratio,
+    target_ratio,
+    target_overlap_ratio,
+    expected_remap_required,
+    expected_len,
+    expected_shape,
+    expected_crop_map,
+    channels_last,
+):
     new_crops, crop_map, _remap_required = split_crops(
-        inputs, max_ratio=4, target_ratio=4, split_overlap_ratio=0.5, channels_last=False
+        inputs,
+        max_ratio=max_ratio,
+        target_ratio=target_ratio,
+        split_overlap_ratio=target_overlap_ratio,
+        channels_last=channels_last,
     )
 
-    assert _remap_required
-    assert len(new_crops) == 2
+    assert _remap_required == expected_remap_required
+    assert len(new_crops) == expected_len
+    assert len(crop_map) == 1
+
+    if expected_remap_required:
+        assert isinstance(crop_map[0], tuple)
+
+    assert crop_map[0] == expected_crop_map
+
     for crop in new_crops:
-        assert crop.shape == (3, 32, 128)
-    assert crop_map[0] == (0, 2, 0.5)
-
-
-def test_split_in_two_equally_shaped_crops_with_half_overlap_with_max_ratio_below_target_split_ratio():
-    inputs = [np.zeros((32, 128 + int(128 / 2), 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio=2, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(new_crops) == 2
-    for crop in new_crops:
-        assert crop.shape == (32, 128, 3)
-    assert crop_map[0] == (0, 2, 0.5)
-
-
-def test_split_in_two_equally_shaped_crops_with_greater_than_half_last_overlap_ratio():
-    inputs = [np.zeros((32, 128 + int(128 / 4), 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio=4, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(new_crops) == 2
-    for crop in new_crops:
-        assert crop.shape == (32, 128, 3)
-    assert crop_map[0] == (0, 2, 0.75)
-
-
-def test_split_in_three_equally_shaped_crops_with_half_last_overlap_ratio():
-    inputs = [np.zeros((32, 128 + 128, 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio=4, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(new_crops) == 3
-    for crop in new_crops:
-        assert crop.shape == (32, 128, 3)
-    assert crop_map[0] == (0, 3, 0.5)
-
-
-def test_split_in_three_equally_shaped_crops_with_greater_than_half_last_overlap_ratio():
-    inputs = [np.zeros((32, 128 + int(128 / 2) + int(128 / 4), 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio=4, target_ratio=4, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(new_crops) == 3
-    for crop in new_crops:
-        assert crop.shape == (32, 128, 3)
-    assert crop_map[0] == (0, 3, 0.75)
-
-
-def test_split_into_larger_crops():
-    inputs = [np.zeros((32, 192 * 2, 3))]
-
-    new_crops, crop_map, _remap_required = split_crops(inputs, max_ratio=4, target_ratio=6, split_overlap_ratio=0.5)
-
-    assert _remap_required
-    assert len(new_crops) == 3
-    for crop in new_crops:
-        assert crop.shape == (32, 192, 3)
-    assert crop_map[0] == (0, 3, 0.5)
+        assert crop.shape == expected_shape
