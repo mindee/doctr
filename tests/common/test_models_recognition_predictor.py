@@ -63,6 +63,8 @@ def test_remap_preds(preds, crop_map, split_overlap_ratio, pred):
         ([np.zeros((32, 128 + 64 + 32, 3))], 4, 4, 0.5, True, 3, (32, 128, 3), (0, 3, 0.75), True),
         # Split into larger crops
         ([np.zeros((32, 192 * 2, 3))], 4, 6, 0.5, True, 3, (32, 192, 3), (0, 3, 0.5), True),
+        # Test fallback for empty splits
+        ([np.empty((1, 0, 3))], -1, 4, 0.5, False, 1, (1, 0, 3), (0), True),
     ],
 )
 def test_split_crops_cases(
