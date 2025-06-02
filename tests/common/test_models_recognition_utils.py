@@ -57,6 +57,8 @@ def test_merge_strings(a, b, overlap_ratio, merged):
         (["aaaa", "aaab", "aabc"], 0.8, 0.3, "aaaabc"),
         # Example from docs
         (["abc", "bcdef", "difghi", "aijkl"], 0.5, 0.4, "abcdefghijkl"),
+        # Handle empty input
+        ([], 0.5, 0.4, ""),
     ],
 )
 def test_merge_multi_strings(seq_list, overlap_ratio, last_overlap_ratio, merged):
