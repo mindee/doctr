@@ -97,3 +97,22 @@ def test_split_crops_cases(
 
     for crop in new_crops:
         assert crop.shape == expected_shape
+
+
+@pytest.mark.parametrize(
+    "split_overlap_ratio",
+    [
+        # lower bound
+        0.0,
+        # upper bound
+        1.0,
+    ],
+)
+def test_invalid_split_overlap_ratio(split_overlap_ratio):
+    with pytest.raises(ValueError):
+        split_crops(
+            [np.zeros((32, 32 * 4, 3))],
+            max_ratio=4,
+            target_ratio=4,
+            split_overlap_ratio=split_overlap_ratio,
+        )

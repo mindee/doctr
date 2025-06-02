@@ -36,6 +36,9 @@ def split_crops(
             - A mapping indicating how to reassemble predictions,
             - A boolean indicating whether remapping is required.
     """
+    if split_overlap_ratio <= 0.0 or split_overlap_ratio >= 1.0:
+        raise ValueError(f"Valid range for split_overlap_ratio is (0.0, 1.0), but is: {split_overlap_ratio}")
+
     remap_required = False
     new_crops: list[np.ndarray] = []
     crop_map: list[int | tuple[int, int, float]] = []
