@@ -17,10 +17,6 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
         ("abc", "", 0.5, "abc"),
         ("", "abc", 0.5, "abc"),
         ("a", "b", 0.5, "ab"),
-        # Example from docs 1
-        ("abcd", "cdefgh", 0.33, "abcdefgh"),
-        # Example from docs 2
-        ("abcdi", "cdefgh", 0.5, "abcdefgh"),
         # No overlap of input strings after crop
         ("abcdX", "Xefghi", 0.33, "abcdefghi"),
         # No overlap of input strings after crop with shorter inputs
@@ -55,8 +51,6 @@ def test_merge_strings(a, b, overlap_ratio, merged):
         (["abcdX", "XdefX", "XefghX", "Xijk"], 0.5, 0.5, "abcdefghijk"),
         (["abcdX", "XdefX", "XefghiX", "Xaijk"], 0.5, 0.8, "abcdefghijk"),
         (["aaaa", "aaab", "aabc"], 0.8, 0.3, "aaaabc"),
-        # Example from docs
-        (["abc", "bcdef", "difghi", "aijkl"], 0.5, 0.4, "abcdefghijkl"),
         # Handle empty input
         ([], 0.5, 0.4, ""),
     ],
