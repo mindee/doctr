@@ -27,23 +27,19 @@ This section shows how you can easily load a custom trained model in docTR.
 
             # Load custom detection model
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_params = torch.load('<path_to_pt>', map_location="cpu")
-            det_model.load_state_dict(det_params)
+            det_model.from_pretrained('<path_to_pt>', map_location="cpu")
             predictor = ocr_predictor(det_arch=det_model, reco_arch="vitstr_small", pretrained=True)
 
             # Load custom recognition model
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_params = torch.load('<path_to_pt>', map_location="cpu")
-            reco_model.load_state_dict(reco_params)
+            reco_model.from_pretrained('<path_to_pt>', map_location="cpu")
             predictor = ocr_predictor(det_arch="linknet_resnet18", reco_arch=reco_model, pretrained=True)
 
             # Load custom detection and recognition model
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_params = torch.load('<path_to_pt>', map_location="cpu")
-            det_model.load_state_dict(det_params)
+            det_model.from_pretrained('<path_to_pt>', map_location="cpu")
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_params = torch.load('<path_to_pt>', map_location="cpu")
-            reco_model.load_state_dict(reco_params)
+            reco_model.from_pretrained('<path_to_pt>', map_location="cpu")
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model, pretrained=False)
 
     .. tab:: TensorFlow
@@ -54,19 +50,19 @@ This section shows how you can easily load a custom trained model in docTR.
 
             # Load custom detection model
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_model.load_weights("<path_to_checkpoint>")
+            det_model.from_pretrained("<path_to_checkpoint>")
             predictor = ocr_predictor(det_arch=det_model, reco_arch="vitstr_small", pretrained=True)
 
             # Load custom recognition model
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_model.load_weights("<path_to_checkpoint>")
+            reco_model.from_pretrained("<path_to_checkpoint>")
             predictor = ocr_predictor(det_arch="linknet_resnet18", reco_arch=reco_model, pretrained=True)
 
             # Load custom detection and recognition model
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_model.load_weights("<path_to_checkpoint>")
+            det_model.from_pretrained("<path_to_checkpoint>")
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_model.load_weights("<path_to_checkpoint>")
+            reco_model.from_pretrained("<path_to_checkpoint>")
             predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model, pretrained=False)
 
 Load a custom recognition model trained on another vocabulary as the default one (French):
@@ -82,8 +78,7 @@ Load a custom recognition model trained on another vocabulary as the default one
             from doctr.datasets import VOCABS
 
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=VOCABS["german"])
-            reco_params = torch.load('<path_to_pt>', map_location="cpu")
-            reco_model.load_state_dict(reco_params)
+            reco_model.from_pretrained('<path_to_pt>')
 
             predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
 
@@ -95,7 +90,7 @@ Load a custom recognition model trained on another vocabulary as the default one
             from doctr.datasets import VOCABS
 
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=VOCABS["german"])
-            reco_model.load_weights("<path_to_checkpoint>")
+            reco_model.from_pretrained("<path_to_checkpoint>")
 
             predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
 
@@ -111,8 +106,7 @@ Load a custom trained KIE detection model:
             from doctr.models import kie_predictor, db_resnet50
 
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False, class_names=['total', 'date'])
-            det_params = torch.load('<path_to_pt>', map_location="cpu")
-            det_model.load_state_dict(det_params)
+            det_model.from_pretrained('<path_to_pt>')
             kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
 
     .. tab:: TensorFlow
@@ -122,7 +116,7 @@ Load a custom trained KIE detection model:
             from doctr.models import kie_predictor, db_resnet50
 
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False, class_names=['total', 'date'])
-            det_model.load_weights("<path_to_checkpoint>")
+            det_model.from_pretrained("<path_to_checkpoint>")
             kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
 
 Load a model with customized Preprocessor:
@@ -141,11 +135,9 @@ Load a model with customized Preprocessor:
             from doctr.models import db_resnet50, crnn_vgg16_bn
 
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_params = torch.load('<path_to_pt>', map_location="cpu")
-            det_model.load_state_dict(det_params)
+            det_model.from_pretrained('<path_to_pt>')
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_params = torch.load(<path_to_pt>, map_location="cpu")
-            reco_model.load_state_dict(reco_params)
+            reco_model.from_pretrained('<path_to_pt>')
 
             det_predictor = DetectionPredictor(
                 PreProcessor(
@@ -181,9 +173,9 @@ Load a model with customized Preprocessor:
             from doctr.models import db_resnet50, crnn_vgg16_bn
 
             det_model = db_resnet50(pretrained=False, pretrained_backbone=False)
-            det_model.load_weights("<path_to_checkpoint>")
+            det_model.from_pretrained("<path_to_checkpoint>")
             reco_model = crnn_vgg16_bn(pretrained=False, pretrained_backbone=False)
-            reco_model.load_weights("<path_to_checkpoint>")
+            reco_model.from_pretrained("<path_to_checkpoint>")
 
             det_predictor = DetectionPredictor(
                 PreProcessor(
@@ -238,11 +230,9 @@ Loading your custom trained orientation classification model
             from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
 
             custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=False)
-            page_params = torch.load('<path_to_pt>', map_location="cpu")
-            custom_page_orientation_model.load_state_dict(page_params)
+            custom_page_orientation_model.from_pretrained('<path_to_pt>')
             custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
-            crop_params = torch.load('<path_to_pt>', map_location="cpu")
-            custom_crop_orientation_model.load_state_dict(crop_params)
+            custom_crop_orientation_model.from_pretrained('<path_to_pt>')
 
             predictor = ocr_predictor(
                 pretrained=True,
@@ -264,9 +254,9 @@ Loading your custom trained orientation classification model
             from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
 
             custom_page_orientation_model = mobilenet_v3_small_page_orientation(pretrained=False)
-            custom_page_orientation_model.load_weights("<path_to_checkpoint>")
+            custom_page_orientation_model.from_pretrained("<path_to_checkpoint>")
             custom_crop_orientation_model = mobilenet_v3_small_crop_orientation(pretrained=False)
-            custom_crop_orientation_model.load_weights("<path_to_checkpoint>")
+            custom_crop_orientation_model.from_pretrained("<path_to_checkpoint>")
 
             predictor = ocr_predictor(
                 pretrained=True,
