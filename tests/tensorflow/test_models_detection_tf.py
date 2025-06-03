@@ -97,6 +97,8 @@ def test_detection_models(arch_name, input_shape, output_size, out_prob, train_m
     ]
     loss = model(input_tensor, target, training=True)["loss"]
     assert isinstance(loss, tf.Tensor) and ((loss - out["loss"]) / loss).numpy() < 1
+    # Check from pretrained is a class method
+    assert hasattr(model, "from_pretrained")
 
 
 @pytest.fixture(scope="session")

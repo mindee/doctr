@@ -50,6 +50,8 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     assert classification.__dict__[arch_name](
         pretrained=True, include_top=True, input_shape=input_shape, num_classes=10
     )
+    # Check from pretrained is a class method
+    assert hasattr(model, "from_pretrained")
 
 
 @pytest.mark.parametrize(

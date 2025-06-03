@@ -219,7 +219,7 @@ def main(args):
 
     # Resume weights
     if isinstance(args.resume, str):
-        model.load_weights(args.resume)
+        model.from_pretrained(args.resume)
 
     # Metrics
     val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)

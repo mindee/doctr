@@ -217,10 +217,10 @@ def from_hub(repo_id: str, **kwargs: Any):
 
     # Load checkpoint
     if is_torch_available():
-        state_dict = torch.load(hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs), map_location="cpu")
-        model.load_state_dict(state_dict)
+        weights = hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs)
     else:  # tf
         weights = hf_hub_download(repo_id, filename="tf_model.weights.h5", **kwargs)
-        model.load_weights(weights)
+
+    model.from_pretrained(weights)
 
     return model

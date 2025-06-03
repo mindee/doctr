@@ -57,6 +57,8 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     _test_classification(model, input_shape, output_size)
     # Check that you can pretrained everything up until the last layer
     assert classification.__dict__[arch_name](pretrained=True, num_classes=10)
+    # Check from pretrained is a class method
+    assert hasattr(model, "from_pretrained")
 
 
 @pytest.mark.parametrize(
