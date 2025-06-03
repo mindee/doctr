@@ -37,6 +37,10 @@ from doctr.models.recognition.utils import merge_multi_strings, merge_strings
         ("ababaX", "Xbabab", 1.0, "ababab"),
         # One different letter in overlap
         ("one_differon", "ferent_letter", 0.5, "one_differont_letter"),
+        # First string empty after crop
+        ("-", "test", 0.9, "-test"),
+        # Second string empty after crop
+        ("test", "-", 0.9, "test-"),
     ],
 )
 def test_merge_strings(a, b, overlap_ratio, merged):

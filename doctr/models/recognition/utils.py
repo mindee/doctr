@@ -28,8 +28,8 @@ def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
         'abcdefgh'
     """
     seq_len = min(len(a), len(b))
-    if seq_len == 0:  # One sequence is empty, return the other
-        return b if len(a) == 0 else a
+    if seq_len <= 1:  # One sequence is empty or will be after cropping in next step, return both to keep data
+        return a + b
 
     a_crop, b_crop = a[:-1], b[1:]  # Remove last letter of "a" and first of "b", because they might be cut off
     max_overlap = min(len(a_crop), len(b_crop))
