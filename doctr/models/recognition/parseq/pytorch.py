@@ -210,7 +210,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         sos_idx = torch.zeros(len(final_perms), 1, device=seqlen.device)
         eos_idx = torch.full((len(final_perms), 1), max_num_chars + 1, device=seqlen.device)
-        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()  # type: ignore[list-item]
+        combined = torch.cat([sos_idx, final_perms + 1, eos_idx], dim=1).int()
         if len(combined) > 1:
             combined[1, 1:] = max_num_chars + 1 - torch.arange(max_num_chars + 1, device=seqlen.device)
         return combined
@@ -349,7 +349,7 @@ class PARSeq(_PARSeq, nn.Module):
                     # remove the [EOS] tokens for the succeeding perms
                     if i == 1:
                         gt_out = torch.where(gt_out == self.vocab_size, self.vocab_size + 2, gt_out)
-                        n = (gt_out != self.vocab_size + 2).sum().item()
+                        n = (gt_out != self.vocab_size + 2).sum().item()  # type: ignore[attr-defined]
 
                 loss /= loss_numel
 

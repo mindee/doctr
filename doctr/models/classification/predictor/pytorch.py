@@ -50,7 +50,7 @@ class OrientationPredictor(nn.Module):
         self.model, processed_batches = set_device_and_dtype(
             self.model, processed_batches, _params.device, _params.dtype
         )
-        predicted_batches = [self.model(batch) for batch in processed_batches]  # type: ignore[misc]
+        predicted_batches = [self.model(batch) for batch in processed_batches]
         # confidence
         probs = [
             torch.max(torch.softmax(batch, dim=1), dim=1).values.cpu().detach().numpy() for batch in predicted_batches
