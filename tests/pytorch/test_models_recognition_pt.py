@@ -87,39 +87,12 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 
 
 @pytest.mark.parametrize(
-    "arch_name",
+    "input_shape",
     [
-        "crnn_vgg16_bn",
-        "crnn_mobilenet_v3_small",
-        "crnn_mobilenet_v3_large",
-        "sar_resnet31",
-        "master",
-        "vitstr_small",
-        "vitstr_base",
-        "parseq",
-        "viptr_tiny",
-        "viptr_base",
+        (3, 128, 128),
+        (3, 32, 1024),  # test case split wide crops
     ],
 )
-def test_recognition_zoo(arch_name):
-    batch_size = 2
-    # Model
-    predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
-    predictor.model.eval()
-    # object check
-    assert isinstance(predictor, RecognitionPredictor)
-    input_tensor = torch.rand((batch_size, 3, 128, 128))
-    if torch.cuda.is_available():
-        predictor.model.cuda()
-        input_tensor = input_tensor.cuda()
-
-    with torch.no_grad():
-        out = predictor(input_tensor)
-    out = predictor(input_tensor)
-    assert isinstance(out, list) and len(out) == batch_size
-    assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
-
-
 @pytest.mark.parametrize(
     "arch_name",
     [
@@ -135,19 +108,21 @@ def test_recognition_zoo(arch_name):
         "viptr_base",
     ],
 )
-def test_recognition_with_split_crops(arch_name):
+def test_recognition_zoo(arch_name, input_shape):
     batch_size = 2
     # Model
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     predictor.model.eval()
     # object check
     assert isinstance(predictor, RecognitionPredictor)
-    input_tensor = torch.rand((batch_size, 3, 32, 1024))
+
+    input_tensor = torch.rand((batch_size, *input_shape))
     if torch.cuda.is_available():
         predictor.model.cuda()
         input_tensor = input_tensor.cuda()
 
-    out = predictor(input_tensor)
+    with torch.no_grad():
+        out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
 

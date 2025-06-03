@@ -114,6 +114,13 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):
 
 
 @pytest.mark.parametrize(
+    "input_shape",
+    [
+        (128, 128, 3),
+        (32, 1024, 3),  # test case split wide crops
+    ],
+)
+@pytest.mark.parametrize(
     "arch_name",
     [
         "crnn_vgg16_bn",
@@ -126,13 +133,13 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):
         "parseq",
     ],
 )
-def test_recognition_zoo(arch_name):
+def test_recognition_zoo(arch_name, input_shape):
     batch_size = 2
     # Model
     predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
     # object check
     assert isinstance(predictor, RecognitionPredictor)
-    input_tensor = tf.random.uniform(shape=[batch_size, 128, 128, 3], minval=0, maxval=1)
+    input_tensor = tf.random.uniform(shape=[batch_size, *input_shape], minval=0, maxval=1)
     out = predictor(input_tensor)
     assert isinstance(out, list) and len(out) == batch_size
     assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)

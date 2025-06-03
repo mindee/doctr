@@ -40,7 +40,7 @@ class OCRDataset(AbstractDataset):
         super().__init__(img_folder, **kwargs)
 
         # List images
-        self.data: list[tuple[str, dict[str, Any]]] = []
+        self.data: list[tuple[Path, dict[str, Any]]] = []
         np_dtype = np.float32
         with open(label_file, "rb") as f:
             data = json.load(f)
