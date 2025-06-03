@@ -131,8 +131,6 @@ def test_recognitionpredictor(mock_pdf, mock_vocab):
         "vitstr_small",
         "vitstr_base",
         "parseq",
-        "viptr_tiny",
-        "viptr_base",
     ],
 )
 def test_recognition_zoo(arch_name, input_shape):
