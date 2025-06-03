@@ -4,6 +4,8 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+import math
+
 import numpy as np
 
 from ..utils import merge_multi_strings
@@ -15,69 +17,129 @@ def split_crops(
     crops: list[np.ndarray],
     max_ratio: float,
     target_ratio: int,
-    dilation: float,
+    split_overlap_ratio: float,
     channels_last: bool = True,
-) -> tuple[list[np.ndarray], list[int | tuple[int, int]], bool]:
-    """Chunk crops horizontally to match a given aspect ratio
+) -> tuple[list[np.ndarray], list[int | tuple[int, int, float]], bool]:
+    """
+    Split crops horizontally if they exceed a given aspect ratio.
 
     Args:
-        crops: list of numpy array of shape (H, W, 3) if channels_last or (3, H, W) otherwise
-        max_ratio: the maximum aspect ratio that won't trigger the chunk
-        target_ratio: when crops are chunked, they will be chunked to match this aspect ratio
-        dilation: the width dilation of final chunks (to provide some overlaps)
-        channels_last: whether the numpy array has dimensions in channels last order
+        crops: List of image crops (H, W, C) if channels_last else (C, H, W).
+        max_ratio: Aspect ratio threshold above which crops are split.
+        target_ratio: Target aspect ratio after splitting (e.g., 4 for 128x32).
+        split_overlap_ratio: Desired overlap between splits (as a fraction of split width).
+        channels_last: Whether the crops are in channels-last format.
 
     Returns:
-        a tuple with the new crops, their mapping, and a boolean specifying whether any remap is required
+        A tuple containing:
+            - The new list of crops (possibly with splits),
+            - A mapping indicating how to reassemble predictions,
+            - A boolean indicating whether remapping is required.
     """
-    _remap_required = False
-    crop_map: list[int | tuple[int, int]] = []
+    if split_overlap_ratio <= 0.0 or split_overlap_ratio >= 1.0:
+        raise ValueError(f"Valid range for split_overlap_ratio is (0.0, 1.0), but is: {split_overlap_ratio}")
+
+    remap_required = False
     new_crops: list[np.ndarray] = []
+    crop_map: list[int | tuple[int, int, float]] = []
+
     for crop in crops:
         h, w = crop.shape[:2] if channels_last else crop.shape[-2:]
         aspect_ratio = w / h
+
         if aspect_ratio > max_ratio:
-            # Determine the number of crops, reference aspect ratio = 4 = 128 / 32
-            num_subcrops = int(aspect_ratio // target_ratio)
-            # Find the new widths, additional dilation factor to overlap crops
-            width = dilation * w / num_subcrops
-            centers = [(w / num_subcrops) * (1 / 2 + idx) for idx in range(num_subcrops)]
-            # Get the crops
-            if channels_last:
-                _crops = [
-                    crop[:, max(0, int(round(center - width / 2))) : min(w - 1, int(round(center + width / 2))), :]
-                    for center in centers
-                ]
+            split_width = max(1, math.ceil(h * target_ratio))
+            overlap_width = max(0, math.floor(split_width * split_overlap_ratio))
+
+            splits, last_overlap = _split_horizontally(crop, split_width, overlap_width, channels_last)
+
+            # Remove any empty splits
+            splits = [s for s in splits if all(dim > 0 for dim in s.shape)]
+            if splits:
+                crop_map.append((len(new_crops), len(new_crops) + len(splits), last_overlap))
+                new_crops.extend(splits)
+                remap_required = True
             else:
-                _crops = [
-                    crop[:, :, max(0, int(round(center - width / 2))) : min(w - 1, int(round(center + width / 2)))]
-                    for center in centers
-                ]
-            # Avoid sending zero-sized crops
-            _crops = [crop for crop in _crops if all(s > 0 for s in crop.shape)]
-            # Record the slice of crops
-            crop_map.append((len(new_crops), len(new_crops) + len(_crops)))
-            new_crops.extend(_crops)
-            # At least one crop will require merging
-            _remap_required = True
+                # Fallback: treat it as a single crop
+                crop_map.append(len(new_crops))
+                new_crops.append(crop)
         else:
             crop_map.append(len(new_crops))
             new_crops.append(crop)
 
-    return new_crops, crop_map, _remap_required
+    return new_crops, crop_map, remap_required
+
+
+def _split_horizontally(
+    image: np.ndarray, split_width: int, overlap_width: int, channels_last: bool
+) -> tuple[list[np.ndarray], float]:
+    """
+    Horizontally split a single image with overlapping regions.
+
+    Args:
+        image: The image to split (H, W, C) if channels_last else (C, H, W).
+        split_width: Width of each split.
+        overlap_width: Width of the overlapping region.
+        channels_last: Whether the image is in channels-last format.
+
+    Returns:
+        - A list of horizontal image slices.
+        - The actual overlap ratio of the last split.
+    """
+    image_width = image.shape[1] if channels_last else image.shape[-1]
+    if image_width <= split_width:
+        return [image], 0.0
+
+    # Compute start columns for each split
+    step = split_width - overlap_width
+    starts = list(range(0, image_width - split_width + 1, step))
+
+    # Ensure the last patch reaches the end of the image
+    if starts[-1] + split_width < image_width:
+        starts.append(image_width - split_width)
+
+    splits = []
+    for start_col in starts:
+        end_col = start_col + split_width
+        if channels_last:
+            split = image[:, start_col:end_col, :]
+        else:
+            split = image[:, :, start_col:end_col]
+        splits.append(split)
+
+    # Calculate the last overlap ratio, if only one split no overlap
+    last_overlap = 0
+    if len(starts) > 1:
+        last_overlap = (starts[-2] + split_width) - starts[-1]
+    last_overlap_ratio = last_overlap / split_width if split_width else 0.0
+
+    return splits, last_overlap_ratio
 
 
 def remap_preds(
-    preds: list[tuple[str, float]], crop_map: list[int | tuple[int, int]], dilation: float
+    preds: list[tuple[str, float]],
+    crop_map: list[int | tuple[int, int, float]],
+    overlap_ratio: float,
 ) -> list[tuple[str, float]]:
-    remapped_out = []
-    for _idx in crop_map:
-        # Crop hasn't been split
-        if isinstance(_idx, int):
-            remapped_out.append(preds[_idx])
+    """
+    Reconstruct predictions from possibly split crops.
+
+    Args:
+        preds: List of (text, confidence) tuples from each crop.
+        crop_map: Map returned by `split_crops`.
+        overlap_ratio: Overlap ratio used during splitting.
+
+    Returns:
+        List of merged (text, confidence) tuples corresponding to original crops.
+    """
+    remapped = []
+    for item in crop_map:
+        if isinstance(item, int):
+            remapped.append(preds[item])
         else:
-            # unzip
-            vals, probs = zip(*preds[_idx[0] : _idx[1]])
-            # Merge the string values
-            remapped_out.append((merge_multi_strings(vals, dilation), min(probs)))  # type: ignore[arg-type]
-    return remapped_out
+            start_idx, end_idx, last_overlap = item
+            text_parts, confidences = zip(*preds[start_idx:end_idx])
+            merged_text = merge_multi_strings(list(text_parts), overlap_ratio, last_overlap)
+            merged_conf = sum(confidences) / len(confidences)  # average confidence
+            remapped.append((merged_text, merged_conf))
+    return remapped

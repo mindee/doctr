@@ -144,6 +144,31 @@ def test_recognition_zoo(arch_name):
         "crnn_vgg16_bn",
         "crnn_mobilenet_v3_small",
         "crnn_mobilenet_v3_large",
+        "sar_resnet31",
+        "master",
+        "vitstr_small",
+        "vitstr_base",
+        "parseq",
+    ],
+)
+def test_recognition_with_split_crops(arch_name):
+    batch_size = 2
+    # Model
+    predictor = recognition.zoo.recognition_predictor(arch_name, pretrained=False)
+    # object check
+    assert isinstance(predictor, RecognitionPredictor)
+    input_tensor = tf.random.uniform(shape=[batch_size, 32, 1024, 3], minval=0, maxval=1)
+    out = predictor(input_tensor)
+    assert isinstance(out, list) and len(out) == batch_size
+    assert all(isinstance(word, str) and isinstance(conf, float) for word, conf in out)
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
     ],
 )
 def test_crnn_beam_search(arch_name):
