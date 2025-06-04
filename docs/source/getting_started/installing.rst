@@ -19,6 +19,20 @@ For MacBooks with M1 chip, you will need some additional packages or specific ve
 * `TensorFlow 2 Metal Plugin <https://developer.apple.com/metal/tensorflow-plugin/>`_
 * `PyTorch >= 2.0.0 <https://pytorch.org/get-started/locally/#start-locally>`_
 
+.. warning::
+
+   **TensorFlow Backend Deprecation Notice**
+
+   Using docTR with TensorFlow as a backend is **deprecated** and will be removed in the next major release (v1.0.0).
+   We **recommend switching to the PyTorch backend**, which is more actively maintained and supports the latest features and models.
+   Alternatively, you can use `OnnxTR <https://github.com/felixdittrich92/OnnxTR>`_, which does **not** require TensorFlow or PyTorch.
+
+   This decision was made based on several considerations:
+
+   - Allows better focus on improving the core library
+   - Frees up resources to develop new features faster
+   - Enables more targeted optimizations with PyTorch
+
 Via Python Package
 ==================
 
