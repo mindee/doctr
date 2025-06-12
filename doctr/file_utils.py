@@ -80,6 +80,15 @@ if USE_TF in ENV_VARS_TRUE_AND_AUTO_VALUES and USE_TORCH not in ENV_VARS_TRUE_VA
             logging.info(f"TensorFlow version {_tf_version} available.")
             ensure_keras_v2()
 
+        import warnings
+
+        warnings.simplefilter("always", DeprecationWarning)
+        warnings.warn(
+            "Support for TensorFlow in DocTR is deprecated and will be removed in the next major release (v1.0.0). "
+            "Please switch to the PyTorch backend.",
+            DeprecationWarning,
+        )
+
 else:  # pragma: no cover
     logging.info("Disabling Tensorflow because USE_TORCH is set")
     _tf_available = False

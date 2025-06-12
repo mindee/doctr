@@ -133,6 +133,19 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ## Installation
 
+> [!WARNING]
+> **TensorFlow Backend Deprecation Notice**
+>
+> Using docTR with TensorFlow as a backend is deprecated and will be removed in the next major release (v1.0.0).
+> We **recommend switching to the PyTorch backend**, which is more actively maintained and supports the latest features and models.
+> Alternatively, you can use [OnnxTR](https://github.com/felixdittrich92/OnnxTR), which does **not** require TensorFlow or PyTorch.
+>
+> This decision was made based on several considerations:
+>
+> - Allows better focus on improving the core library
+> - Frees up resources to develop new features faster
+> - Enables more targeted optimizations with PyTorch
+
 ### Prerequisites
 
 Python 3.10 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
