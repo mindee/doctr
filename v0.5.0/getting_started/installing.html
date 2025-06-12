@@ -318,6 +318,19 @@
 <li><p><a class="reference external" href="https://developer.apple.com/metal/tensorflow-plugin/">TensorFlow 2 Metal Plugin</a></p></li>
 <li><p><a class="reference external" href="https://pytorch.org/get-started/locally/#start-locally">PyTorch &gt;= 2.0.0</a></p></li>
 </ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p><strong>TensorFlow Backend Deprecation Notice</strong></p>
+<p>Using docTR with TensorFlow as a backend is <strong>deprecated</strong> and will be removed in the next major release (v1.0.0).
+We <strong>recommend switching to the PyTorch backend</strong>, which is more actively maintained and supports the latest features and models.
+Alternatively, you can use <a class="reference external" href="https://github.com/felixdittrich92/OnnxTR">OnnxTR</a>, which does <strong>not</strong> require TensorFlow or PyTorch.</p>
+<p>This decision was made based on several considerations:</p>
+<ul class="simple">
+<li><p>Allows better focus on improving the core library</p></li>
+<li><p>Frees up resources to develop new features faster</p></li>
+<li><p>Enables more targeted optimizations with PyTorch</p></li>
+</ul>
+</div>
 </section>
 <section id="via-python-package">
 <h2>Via Python Package<a class="headerlink" href="#via-python-package" title="Link to this heading">¶</a></h2>
