@@ -91,6 +91,7 @@ Supported datasets
    :hidden:
 
    community/resources
+   community/tools
 
 
 .. toctree::

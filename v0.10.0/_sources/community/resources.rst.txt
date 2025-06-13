@@ -1,4 +1,4 @@
-Community resources
+Community Resources
 ===================
 
 This section contains some cool resources created by the docTR community.
