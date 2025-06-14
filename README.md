@@ -171,10 +171,12 @@ pip install "python-doctr[torch]"
 pip install "python-doctr[torch,viz,html,contib]"
 ```
 
-For MacBooks with M1 chip, you will need some additional packages or specific versions:
+For M-chip Mac, we recommend using the Torch backend and enabling GPU acceleration like this:
 
-- TensorFlow 2: [metal plugin](https://developer.apple.com/metal/tensorflow-plugin/)
-- PyTorch: [version >= 2.0.0](https://pytorch.org/get-started/locally/#start-locally)
+```Python
+mps_device = torch.device("mps")
+predictor = ocr_predictor(pretrained=True).to(mps_device)
+```
 
 ### Developer mode
 
