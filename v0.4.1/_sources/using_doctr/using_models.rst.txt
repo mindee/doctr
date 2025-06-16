@@ -332,6 +332,39 @@ For example to disable the automatic grouping of lines into blocks:
     model = ocr_predictor(pretrained=True, resolve_blocks=False)
 
 
+Running the predictors on GPU
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can run the predictors on GPU by specifying the appropriate device.
+
+Here's how to do it for both **NVIDIA** and **Apple Silicon (MPS)** GPUs:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import ocr_predictor
+
+    # For NVIDIA GPU
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    predictor = ocr_predictor(pretrained=True).to(device)
+    # Alternatively: predictor = ocr_predictor(pretrained=True).cuda()
+
+    # For Apple Silicon (MPS)
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    predictor = ocr_predictor(pretrained=True).to(device)
+
+
+The same approach applies to all standalone predictors:
+
+* `recognition_predictor`
+* `detection_predictor`
+* `crop_orientation_predictor`
+* `page_orientation_predictor`
+
+Just create the predictor instance and move it to the appropriate device.
+To enable **half-precision inference**, you can append `.half()` after moving the predictor to the device.
+
+
 What should I do with the output?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

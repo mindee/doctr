@@ -1013,6 +1013,33 @@ Explanations about the metrics being used are available in <a class="reference i
 </pre></div>
 </div>
 </section>
+<section id="running-the-predictors-on-gpu">
+<h3>Running the predictors on GPU<a class="headerlink" href="#running-the-predictors-on-gpu" title="Link to this heading">¶</a></h3>
+<p>You can run the predictors on GPU by specifying the appropriate device.</p>
+<p>Here’s how to do it for both <strong>NVIDIA</strong> and <strong>Apple Silicon (MPS)</strong> GPUs:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="c1"># For NVIDIA GPU</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="c1"># Alternatively: predictor = ocr_predictor(pretrained=True).cuda()</span>
+
+<span class="c1"># For Apple Silicon (MPS)</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;mps&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The same approach applies to all standalone predictors:</p>
+<ul class="simple">
+<li><p><cite>recognition_predictor</cite></p></li>
+<li><p><cite>detection_predictor</cite></p></li>
+<li><p><cite>crop_orientation_predictor</cite></p></li>
+<li><p><cite>page_orientation_predictor</cite></p></li>
+</ul>
+<p>Just create the predictor instance and move it to the appropriate device.
+To enable <strong>half-precision inference</strong>, you can append <cite>.half()</cite> after moving the predictor to the device.</p>
+</section>
 <section id="what-should-i-do-with-the-output">
 <h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Link to this heading">¶</a></h3>
 <p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
@@ -1259,6 +1286,7 @@ To get a better understanding of our document model, check our <a class="referen
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
 <li><a class="reference internal" href="#id2">Available architectures</a></li>
 <li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
+<li><a class="reference internal" href="#running-the-predictors-on-gpu">Running the predictors on GPU</a></li>
 <li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
 <li><a class="reference internal" href="#advanced-options">Advanced options</a></li>
 </ul>
