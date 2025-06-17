@@ -12,6 +12,7 @@ import hashlib
 import logging
 import multiprocessing
 import time
+import json
 from pathlib import Path
 
 import numpy as np
@@ -36,6 +37,38 @@ from doctr.models import detection, login_to_hub, push_to_hf_hub
 from doctr.utils.metrics import LocalizationConfusion
 from utils import EarlyStopper, plot_recorder, plot_samples
 
+def extract_image_names(dataset, train_path=None):
+    """Extract image filenames from dataset if possible"""
+    # If we have the path to the labels.json file, use it directly
+    if train_path:
+        labels_path = os.path.join(train_path, "labels.json")
+        if os.path.exists(labels_path):
+            try:
+                with open(labels_path, 'r') as f:
+                    data = json.load(f)
+                return list(data.keys())
+            except Exception:
+                pass
+    
+    # Fallback to existing methods
+    if hasattr(dataset, 'data') and isinstance(dataset.data, dict):
+        return list(dataset.data.keys())
+    elif hasattr(dataset, 'img_paths') and isinstance(dataset.img_paths, list):
+        return [Path(img_path).name for img_path in dataset.img_paths]
+    else:
+        # Default to empty list if we can't determine image names
+        return []
+
+def get_image_names_from_json(json_path):
+    """Extract image names directly from JSON file"""
+    try:
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+        # Return the list of keys (file names)
+        return list(data.keys())
+    except Exception as e:
+        print(f"Error loading JSON file: {e}")
+        return []
 
 def record_lr(
     model: torch.nn.Module,
@@ -68,89 +101,152 @@ def record_lr(
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
+    # Try to extract image names from the dataset
+    image_names = extract_image_names(train_loader.dataset)
+    
     for batch_idx, (images, targets) in enumerate(train_loader):
         if torch.cuda.is_available():
             images = images.cuda()
 
         images = batch_transforms(images)
 
+        # Get the batch filenames if available
+        batch_filenames = []
+        if image_names:
+            batch_start_idx = batch_idx * train_loader.batch_size
+            batch_end_idx = min(batch_start_idx + len(images), len(image_names))
+            batch_filenames = image_names[batch_start_idx:batch_end_idx]
+        
         # Forward, Backward & update
         optimizer.zero_grad()
-        if amp:
-            with torch.cuda.amp.autocast():
-                train_loss = model(images, targets)["loss"]
-            scaler.scale(train_loss).backward()
-            # Gradient clipping
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-            # Update the params
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            train_loss = model(images, targets)["loss"]
-            train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-            optimizer.step()
+        try:
+            if amp:
+                with torch.cuda.amp.autocast():
+                    train_loss = model(images, targets, image_names=batch_filenames)["loss"]
+                scaler.scale(train_loss).backward()
+                # Gradient clipping
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+                # Update the params
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                train_loss = model(images, targets, image_names=batch_filenames)["loss"]
+                train_loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+                optimizer.step()
+            
+            # Record
+            if not torch.isfinite(train_loss):
+                if batch_idx == 0:
+                    raise ValueError("loss value is NaN or inf.")
+                else:
+                    break
+            loss_recorder.append(train_loss.item())
+        except ValueError as e:
+            # Skip this batch if there's an error with coordinates
+            if "Invalid box coordinates" in str(e):
+                print(f"Skipping batch with invalid coordinates: {e}")
+                continue
+            else:
+                # Re-raise if it's a different ValueError
+                raise
+            
         # Update LR
         scheduler.step()
 
-        # Record
-        if not torch.isfinite(train_loss):
-            if batch_idx == 0:
-                raise ValueError("loss value is NaN or inf.")
-            else:
-                break
-        loss_recorder.append(train_loss.item())
         # Stop after the number of iterations
         if batch_idx + 1 == num_it:
             break
 
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
-
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
+    # Load image names from JSON file
+    image_names = get_image_names_from_json(os.path.join(args.train_path, "labels.json"))
+    
     model.train()
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
+    skipped_batches = 0
     pbar = tqdm(train_loader, dynamic_ncols=True, disable=(rank != 0))
-    for images, targets in pbar:
+    for batch_idx, (images, targets) in enumerate(pbar):
+        # Calculate indices of images in this batch
+        start_idx = batch_idx * train_loader.batch_size
+        end_idx = start_idx + len(images)
+        
+        # Get image names for this batch
+        batch_filenames = []
+        if start_idx < len(image_names):
+            batch_filenames = image_names[start_idx:end_idx]
+            if batch_idx % 10 == 0:  # Show every 10 batches to avoid excessive output
+                print(f"Batch {batch_idx} contains: {batch_filenames}")
+        else:
+            batch_filenames = [f"unknown_{i}" for i in range(len(images))]
+        
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
 
         optimizer.zero_grad()
-        if amp:
-            with torch.cuda.amp.autocast():
-                train_loss = model(images, targets)["loss"]
-            scaler.scale(train_loss).backward()
-            # Gradient clipping
-            scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-            # Update the params
-            scaler.step(optimizer)
-            scaler.update()
-        else:
-            train_loss = model(images, targets)["loss"]
-            train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
-            optimizer.step()
+        
+        try:
+            if amp:
+                with torch.cuda.amp.autocast():
+                    # Pass file names to the model
+                    train_loss = model(images, targets, image_names=batch_filenames)["loss"]
+                scaler.scale(train_loss).backward()
+                # Gradient clipping
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+                # Update the params
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                # Pass file names to the model
+                train_loss = model(images, targets, image_names=batch_filenames)["loss"]
+                train_loss.backward()
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+                optimizer.step()
 
-        scheduler.step()
-        last_lr = scheduler.get_last_lr()[0]
+            scheduler.step()
+            last_lr = scheduler.get_last_lr()[0]
 
-        pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
-        if log:
-            log(train_loss=train_loss.item(), lr=last_lr)
+            pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
+            if log:
+                log(train_loss=train_loss.item(), lr=last_lr)
 
-        epoch_train_loss += train_loss.item()
-        batch_cnt += 1
+            epoch_train_loss += train_loss.item()
+            batch_cnt += 1
+            
+        except ValueError as e:
+            # Skip this batch if there's an error with coordinates
+            if "Invalid box coordinates" in str(e):
+                skipped_batches += 1
+                print(f"Skipping batch {batch_idx} with invalid coordinates: {e}")
+                # Still step the scheduler to maintain the learning rate schedule
+                scheduler.step()
+                last_lr = scheduler.get_last_lr()[0]
+                
+                # Update progress bar to show we're skipping
+                pbar.set_description(f"Skipped batch ({skipped_batches} total) | LR: {last_lr:.6}")
+                continue
+            else:
+                # Re-raise if it's a different ValueError
+                raise
 
-    epoch_train_loss /= batch_cnt
+    if batch_cnt > 0:
+        epoch_train_loss /= batch_cnt
+    else:
+        epoch_train_loss = float('nan')
+        
+    if skipped_batches > 0:
+        print(f"Skipped {skipped_batches} batches with invalid coordinates in this epoch")
+        
     return epoch_train_loss, last_lr
-
 
 @torch.no_grad()
 def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, log=None):
@@ -158,39 +254,77 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
     model.eval()
     # Reset val metric
     val_metric.reset()
+    
+    # Load image names from JSON file
+    image_names = get_image_names_from_json(os.path.join(args.val_path, "labels.json"))
+    
     # Validation loop
     val_loss, batch_cnt = 0, 0
+    skipped_batches = 0
     pbar = tqdm(val_loader, dynamic_ncols=True)
-    for images, targets in pbar:
+    for batch_idx, (images, targets) in enumerate(pbar):
+        # Calculate indices of images in this batch
+        start_idx = batch_idx * val_loader.batch_size
+        end_idx = start_idx + len(images)
+        
+        # Get image names for this batch
+        batch_filenames = []
+        if start_idx < len(image_names):
+            batch_filenames = image_names[start_idx:end_idx]
+        else:
+            batch_filenames = [f"unknown_{i}" for i in range(len(images))]
+            
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
-        if amp:
-            with torch.cuda.amp.autocast():
-                out = model(images, targets, return_preds=True)
-        else:
-            out = model(images, targets, return_preds=True)
-        # Compute metric
-        loc_preds = out["preds"]
-        for target, loc_pred in zip(targets, loc_preds):
-            for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
-                if args.rotation and args.eval_straight:
-                    # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 5, 2 (with scores) --> N, 4
-                    boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
-                val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
+        
+        try:
+            if amp:
+                with torch.cuda.amp.autocast():
+                    out = model(images, targets, return_preds=True, image_names=batch_filenames)
+            else:
+                out = model(images, targets, return_preds=True, image_names=batch_filenames)
+            
+            # Compute metric
+            loc_preds = out["preds"]
+            for target, loc_pred in zip(targets, loc_preds):
+                for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
+                    if args.rotation and args.eval_straight:
+                        # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 5, 2 (with scores) --> N, 4
+                        boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
+                    val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
-        pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
-        if log:
-            log(val_loss=out["loss"].item())
+            pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
+            if log:
+                log(val_loss=out["loss"].item())
 
-        val_loss += out["loss"].item()
-        batch_cnt += 1
+            val_loss += out["loss"].item()
+            batch_cnt += 1
+            
+        except ValueError as e:
+            # Skip this batch if there's an error with coordinates
+            if "Invalid box coordinates" in str(e):
+                skipped_batches += 1
+                print(f"Skipping validation batch {batch_idx} with invalid coordinates: {e}")
+                pbar.set_description(f"Skipped batch ({skipped_batches} total)")
+                continue
+            else:
+                # Re-raise if it's a different ValueError
+                raise
 
-    val_loss /= batch_cnt
+    if batch_cnt > 0:
+        val_loss /= batch_cnt
+    else:
+        val_loss = float('nan')
+        
+    if skipped_batches > 0:
+        print(f"Skipped {skipped_batches} validation batches with invalid coordinates")
+        
     recall, precision, mean_iou = val_metric.summary()
     return val_loss, recall, precision, mean_iou
 
-
+# The rest of your code remains the same...
+# main function, parse_args, etc.
 def main(args):
     # Detect distributed setup
     # variable is set by torchrun

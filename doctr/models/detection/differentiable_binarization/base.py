@@ -28,6 +28,17 @@ class DBPostProcessor(DetectionPostProcessor):
         bin_thresh: threshold used to binzarized p_map at inference time
 
     """
+    class InvalidCoordinatesError(Exception):
+     def __init__(self, image_name, class_name, min_val, max_val):
+        self.image_name = image_name
+        self.class_name = class_name
+        self.min_val = min_val
+        self.max_val = max_val
+        message = (
+            f"Invalid box coordinates in {image_name}, class '{class_name}': "
+            f"values should be between 0 & 1, but found range [{min_val:.4f}, {max_val:.4f}]."
+        )
+        super().__init__(message)
 
     def __init__(
         self,
@@ -270,11 +281,24 @@ class _DBNet:
         target: list[dict[str, np.ndarray]],
         output_shape: tuple[int, int, int],
         channels_last: bool = True,
+        image_names: list[str] = None,  # Add optional parameter for image names
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
-        if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
-            raise ValueError("the 'boxes' entry of the target is expected to take values between 0 & 1.")
+        
+        # Enhanced error checking with image identification
+        for idx, tgt in enumerate(target):
+            for class_name, t in tgt.items():
+                if np.any((t[:, :4] > 1) | (t[:, :4] < 0)):
+                    image_id = f"image #{idx}" if image_names is None else image_names[idx]
+                    # Find the actual values that are out of range for better debugging
+                    min_val = t[:, :4].min()
+                    max_val = t[:, :4].max()
+                    raise ValueError(
+                        f"Invalid box coordinates in {image_id}, class '{class_name}': "
+                        f"values should be between 0 & 1, but found range [{min_val:.4f}, {max_val:.4f}]. "
+                        f"Please normalize your coordinates by dividing x by image width and y by image height."
+                    )
 
         input_dtype = next(iter(target[0].values())).dtype if len(target) > 0 else np.float32
 

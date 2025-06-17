@@ -4,8 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from collections.abc import Callable
-from typing import Any
-
+from typing import Any, List, Optional
 import numpy as np
 import torch
 from torch import nn
@@ -185,6 +184,7 @@ class DBNet(_DBNet, nn.Module):
         target: list[np.ndarray] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
+        image_names: Optional[List[str]] = None,  # Added parameter for image names
     ) -> dict[str, torch.Tensor]:
         # Extract feature maps at different stages
         feats = self.feat_extractor(x)
@@ -218,7 +218,7 @@ class DBNet(_DBNet, nn.Module):
 
         if target is not None:
             thresh_map = self.thresh_head(feat_concat)
-            loss = self.compute_loss(logits, thresh_map, target)
+            loss = self.compute_loss(logits, thresh_map, target, image_names=image_names)  # Pass image_names to compute_loss
             out["loss"] = loss
 
         return out
@@ -231,6 +231,7 @@ class DBNet(_DBNet, nn.Module):
         gamma: float = 2.0,
         alpha: float = 0.5,
         eps: float = 1e-8,
+        image_names: Optional[List[str]] = None,  # Paramètre pour les noms d'images
     ) -> torch.Tensor:
         """Compute a batch of gts, masks, thresh_gts, thresh_masks from a list of boxes
         and a list of masks for each image. From there it computes the loss with the model output
@@ -242,6 +243,7 @@ class DBNet(_DBNet, nn.Module):
             gamma: modulating factor in the focal loss formula
             alpha: balancing factor in the focal loss formula
             eps: epsilon factor in dice loss
+            image_names: list of image filenames for error reporting
 
         Returns:
             A loss tensor
@@ -252,13 +254,26 @@ class DBNet(_DBNet, nn.Module):
         prob_map = torch.sigmoid(out_map)
         thresh_map = torch.sigmoid(thresh_map)
 
-        targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
+        try:
+            targets = self.build_target(target, out_map.shape[1:], False, image_names=image_names)
+        except ValueError as e:
+            # Re-raise with more context about which images caused the problem
+            if "Invalid box coordinates" in str(e) and image_names:
+                batch_info = ", ".join(image_names)
+                raise ValueError(f"{str(e)} Images in batch: {batch_info}")
+            else:
+                raise
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         thresh_target, thresh_mask = torch.from_numpy(targets[2]), torch.from_numpy(targets[3])
         thresh_target, thresh_mask = thresh_target.to(out_map.device), thresh_mask.to(out_map.device)
 
+        # Initialize all loss components
+        focal_loss = torch.tensor(0.0, device=out_map.device)
+        dice_loss = torch.tensor(0.0, device=out_map.device)
+        l1_loss = torch.tensor(0.0, device=out_map.device)
+        
         if torch.any(seg_mask):
             # Focal loss
             focal_scale = 10.0
@@ -269,7 +284,7 @@ class DBNet(_DBNet, nn.Module):
             # Unreduced version
             focal_loss = alpha_t * (1 - p_t) ** gamma * bce_loss
             # Class reduced
-            focal_loss = (seg_mask * focal_loss).sum((0, 1, 2, 3)) / seg_mask.sum((0, 1, 2, 3))
+            focal_loss = (seg_mask * focal_loss).sum((0, 1, 2, 3)) / (seg_mask.sum((0, 1, 2, 3)) + eps)
 
             # Compute dice loss for each class or for approx binary_map
             if len(self.class_names) > 1:

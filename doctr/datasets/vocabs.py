@@ -13,7 +13,7 @@ VOCABS: dict[str, str] = {
     # Arabic & Persian
     "arabic_diacritics": "ًٌٍَُِّْ",
     "arabic_digits": "٠١٢٣٤٥٦٧٨٩",
-    "arabic_letters": "ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي",
+    "arabic_letters": "- ء آ أ ؤ إ ئ ا ٪ ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك  ٰیٕ٪ ل م ن ه ة و ي پ چ ڢ ڤ گ ﻻ ﻷ ﻹ ﻵ ﺀ ﺁ ﺃ ﺅ ﺇ ﺉ ﺍ ﺏ ﺕ ﺙ ﺝ ﺡ ﺥ ﺩ ﺫ ﺭ ﺯ ﺱ ﺵ ﺹ ﺽ ﻁ ﻅ ﻉ ﻍ ﻑ ﻕ ﻙ ﻝ ﻡ ﻥ ﻩ ﻩ ﻭ ﻱ ﺑ ﺗ ﺛ ﺟ ﺣ ﺧ ﺳ ﺷ ﺻ ﺿ ﻃ ﻇ ﻋ ﻏ ﻓ ﻗ ﻛ ﻟ ﻣ ﻧ ﻫ ﻳ ﺒ ﺘ ﺜ ﺠ ﺤ ﺨ ﺴ ﺸ ﺼ ﺾ ﻄ ﻈ ﻌ ﻐ ﻔ ﻘ ﻜ ﻠ ﻤ ﻨ ﻬ ﻴ ﺎ ﺐ ﺖ ﺚ ﺞ ﺢ ﺦ ﺪ ﺬ ﺮ ﺰ ﺲ ﺶ ﺺ ﺾ ﻂ ﻆ ﻊ ﻎ ﻒ ﻖ ﻚ ﻞ ﻢ ﻦ ﻪ ﺔ ﺓﺋ ﺓﺋ ى ﻼوفرّٕ  ﺊ ﻯ ﻀ ﻯ ﻼ ﺋ ﺊﺓى ﻀال ص ح x ـ ـوx  ﻰ ﻮ ﻲ ً ٌ  ؟ ؛ « » — !  # $ % & ' ( ) * + , - . / : ; < = > ? @ [ ] ^ _  { | } ~",
     "arabic_punctuation": "؟؛«»—",
     "persian_letters": "پچڢڤگ",
     # Bangla
@@ -786,7 +786,8 @@ VOCABS["simplified_chinese"] = (
 VOCABS["multilingual"] = "".join(
     dict.fromkeys(
         # latin_based
-        VOCABS["english"]
+        VOCABS["arabic"]
+        +VOCABS["english"]
         + VOCABS["albanian"]
         + VOCABS["afrikaans"]
         + VOCABS["azerbaijani"]
