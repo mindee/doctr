@@ -519,7 +519,7 @@ def main(args):
 
     # ClearML
     if rank == 0 and args.clearml:
-        from clearml import Task
+        from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
