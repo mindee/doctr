@@ -164,7 +164,7 @@ class _DBNet:
     shrink_ratio = 0.4
     thresh_min = 0.3
     thresh_max = 0.7
-    min_size_box = 3
+    min_size_box = 2
     assume_straight_pages: bool = True
 
     @staticmethod

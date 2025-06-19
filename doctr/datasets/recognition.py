@@ -39,11 +39,18 @@ class RecognitionDataset(AbstractDataset):
         with open(labels_path, encoding="utf-8") as f:
             labels = json.load(f)
 
+        missing_files = []
         for img_name, label in labels.items():
             if not os.path.exists(os.path.join(self.root, img_name)):
-                raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+                missing_files.append(img_name)
+                # raise FileNotFoundError(f"unable to locate {os.path.join(self.root, img_name)}")
+            else:
+                self.data.append((img_name, label))
+        print("List of missing files:")
+        print(f"MISSING FILES: {len(missing_files)}")
+        from pprint import pprint
 
-            self.data.append((img_name, label))
+        pprint(missing_files)
 
     def merge_dataset(self, ds: AbstractDataset) -> None:
         # Update data with new root for self
