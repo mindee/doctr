@@ -182,8 +182,7 @@ def test_models_onnx_export(arch_name, input_shape):
         "vitstr_small",
         "vitstr_base",
         "parseq",
-        # TODO: Add viptr models when they are pretrained
-        # "viptr_tiny",
+        "viptr_tiny",
     ],
 )
 def test_torch_compiled_models(arch_name, mock_text_box):
