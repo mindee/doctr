@@ -48,8 +48,7 @@ def test_push_to_hf_hub():
         ["master", "recognition", "Felix92/doctr-dummy-torch-master"],
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
-        # TODO: Add dummy models for the following architectures until they are pretrained
-        # ["viptr_tiny", "recognition", None],
+        ["viptr_tiny", "recognition", "Felix92/doctr-dummy-torch-viptr-tiny"],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
