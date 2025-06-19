@@ -93,8 +93,6 @@ doctr.models.recognition
 
 .. autofunction:: doctr.models.recognition.viptr_tiny
 
-.. autofunction:: doctr.models.recognition.viptr_base
-
 .. autofunction:: doctr.models.recognition.recognition_predictor
 
 

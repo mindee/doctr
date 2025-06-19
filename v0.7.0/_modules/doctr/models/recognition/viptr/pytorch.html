@@ -314,22 +314,15 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span><span class="p">,</span> <span class="n">decode_sequence</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">...classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">vip_base</span><span class="p">,</span> <span class="n">vip_tiny</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">vip_tiny</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils.pytorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;VIPTR&quot;</span><span class="p">,</span> <span class="s2">&quot;viptr_base&quot;</span><span class="p">,</span> <span class="s2">&quot;viptr_tiny&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;VIPTR&quot;</span><span class="p">,</span> <span class="s2">&quot;viptr_tiny&quot;</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;viptr_tiny&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
-        <span class="s2">&quot;vocab&quot;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s2">&quot;viptr_base&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
         <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
         <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
@@ -554,36 +547,6 @@
         <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
-
-
-<div class="viewcode-block" id="viptr_base">
-<a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.viptr_base">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">viptr_base</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">VIPTR</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;VIPTR-Base as described in `&quot;A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition&quot;</span>
-<span class="sd">    &lt;https://arxiv.org/abs/2401.10110&gt;`_.</span>
-
-<span class="sd">    &gt;&gt;&gt; import torch</span>
-<span class="sd">    &gt;&gt;&gt; from doctr.models import viptr_base</span>
-<span class="sd">    &gt;&gt;&gt; model = viptr_base(pretrained=False)</span>
-<span class="sd">    &gt;&gt;&gt; input_tensor = torch.rand((1, 3, 32, 128))</span>
-<span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
-<span class="sd">        **kwargs: keyword arguments of the VIPTR architecture</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        VIPTR: a VIPTR model instance</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_viptr</span><span class="p">(</span>
-        <span class="s2">&quot;viptr_base&quot;</span><span class="p">,</span>
-        <span class="n">pretrained</span><span class="p">,</span>
-        <span class="n">vip_base</span><span class="p">,</span>
-        <span class="s2">&quot;5&quot;</span><span class="p">,</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;head.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;head.bias&quot;</span><span class="p">],</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">)</span></div>
-
 
 
 <div class="viewcode-block" id="viptr_tiny">

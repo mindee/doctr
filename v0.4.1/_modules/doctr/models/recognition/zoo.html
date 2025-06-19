@@ -325,7 +325,7 @@
 <span class="p">]</span>
 
 <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-    <span class="n">ARCHS</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;viptr_base&quot;</span><span class="p">,</span> <span class="s2">&quot;viptr_tiny&quot;</span><span class="p">])</span>
+    <span class="n">ARCHS</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s2">&quot;viptr_tiny&quot;</span><span class="p">])</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
