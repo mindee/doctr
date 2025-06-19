@@ -26,7 +26,7 @@ ARCHS: list[str] = [
 ]
 
 if is_torch_available():
-    ARCHS.extend(["viptr_base", "viptr_tiny"])
+    ARCHS.extend(["viptr_tiny"])
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:

@@ -589,7 +589,7 @@ def main(args):
                 params = model.module if hasattr(model, "module") else model
 
                 torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
-                min_loss = val_loss 
+                min_loss = val_loss
             pbar.write(
                 f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
                 f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"

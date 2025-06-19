@@ -49,7 +49,6 @@ def test_push_to_hf_hub():
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
         # TODO: Add dummy models for the following architectures until they are pretrained
-        # ["viptr_base", "recognition", None],
         # ["viptr_tiny", "recognition", None],
     ],
 )
