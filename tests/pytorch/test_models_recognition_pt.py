@@ -33,7 +33,6 @@ system_available_memory = int(psutil.virtual_memory().available / 1024**3)
         ["vitstr_small", (3, 32, 128)],
         ["vitstr_base", (3, 32, 128)],
         ["parseq", (3, 32, 128)],
-        ["viptr_base", (3, 32, 128)],
         ["viptr_tiny", (3, 32, 128)],
     ],
 )
@@ -107,7 +106,6 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
         "vitstr_base",
         "parseq",
         "viptr_tiny",
-        "viptr_base",
     ],
 )
 def test_recognition_zoo(arch_name, input_shape):
@@ -146,7 +144,6 @@ def test_recognition_zoo(arch_name, input_shape):
         ["vitstr_small", (3, 32, 128)],  # testing one vitstr version is enough
         ["parseq", (3, 32, 128)],
         ["viptr_tiny", (3, 32, 128)],
-        ["viptr_base", (3, 32, 128)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
@@ -187,7 +184,6 @@ def test_models_onnx_export(arch_name, input_shape):
         "parseq",
         # TODO: Add viptr models when they are pretrained
         # "viptr_tiny",
-        # "viptr_base",
     ],
 )
 def test_torch_compiled_models(arch_name, mock_text_box):

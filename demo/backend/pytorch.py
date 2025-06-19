@@ -30,7 +30,6 @@ RECO_ARCHS = [
     "vitstr_base",
     "parseq",
     "viptr_tiny",
-    "viptr_base",
 ]
 
 

@@ -15,22 +15,15 @@ from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS, decode_sequence
 
-from ...classification import vip_base, vip_tiny
+from ...classification import vip_tiny
 from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
-__all__ = ["VIPTR", "viptr_base", "viptr_tiny"]
+__all__ = ["VIPTR", "viptr_tiny"]
 
 
 default_cfgs: dict[str, dict[str, Any]] = {
     "viptr_tiny": {
-        "mean": (0.694, 0.695, 0.693),
-        "std": (0.299, 0.296, 0.301),
-        "input_shape": (3, 32, 128),
-        "vocab": VOCABS["french"],
-        "url": None,
-    },
-    "viptr_base": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 128),
@@ -255,33 +248,6 @@ def _viptr(
         model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
-
-
-def viptr_base(pretrained: bool = False, **kwargs: Any) -> VIPTR:
-    """VIPTR-Base as described in `"A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition"
-    <https://arxiv.org/abs/2401.10110>`_.
-
-    >>> import torch
-    >>> from doctr.models import viptr_base
-    >>> model = viptr_base(pretrained=False)
-    >>> input_tensor = torch.rand((1, 3, 32, 128))
-    >>> out = model(input_tensor)
-
-    Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
-        **kwargs: keyword arguments of the VIPTR architecture
-
-    Returns:
-        VIPTR: a VIPTR model instance
-    """
-    return _viptr(
-        "viptr_base",
-        pretrained,
-        vip_base,
-        "5",
-        ignore_keys=["head.weight", "head.bias"],
-        **kwargs,
-    )
 
 
 def viptr_tiny(pretrained: bool = False, **kwargs: Any) -> VIPTR:
