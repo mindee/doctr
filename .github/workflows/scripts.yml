@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
