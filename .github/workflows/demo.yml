@@ -27,7 +27,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
@@ -38,45 +37,17 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/tf-requirements.txt') }}
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('demo/pt-requirements.txt') }}
-
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-          pip install -r demo/tf-requirements.txt
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r demo/pt-requirements.txt
-
-      - if: matrix.framework == 'tensorflow'
-        name: Run demo (TF)
-        env:
-            USE_TF: 1
-        run: |
-          streamlit --version
-          screen -dm streamlit run demo/app.py
-          sleep 10
-          curl http://localhost:8501/docs
-      - if: matrix.framework == 'pytorch'
-        name: Run demo (PT)
-        env:
-            USE_TORCH: 1
+      - name: Run demo
         run: |
           streamlit --version
           screen -dm streamlit run demo/app.py

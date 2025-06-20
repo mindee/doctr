@@ -13,6 +13,7 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
+import torch
 from huggingface_hub import (
     HfApi,
     Repository,
@@ -23,10 +24,6 @@ from huggingface_hub import (
 )
 
 from doctr import models
-from doctr.file_utils import is_tf_available, is_torch_available
-
-if is_torch_available():
-    import torch
 
 __all__ = ["login_to_hub", "push_to_hf_hub", "from_hub", "_save_model_and_config_for_hf_hub"]
 
@@ -67,13 +64,8 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, arch: str, task
         task: task name
     """
     save_directory = Path(save_dir)
-
-    if is_torch_available():
-        weights_path = save_directory / "pytorch_model.bin"
-        torch.save(model.state_dict(), weights_path)
-    elif is_tf_available():
-        weights_path = save_directory / "tf_model.weights.h5"
-        model.save_weights(str(weights_path))
+    weights_path = save_directory / "pytorch_model.bin"
+    torch.save(model.state_dict(), weights_path)
 
     config_path = save_directory / "config.json"
 
@@ -120,7 +112,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
     <img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
     </p>
 
-    **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
+    **Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
 
     ## Task: {task}
 
@@ -215,12 +207,4 @@ def from_hub(repo_id: str, **kwargs: Any):
     # update model cfg
     model.cfg = cfg
 
-    # Load checkpoint
-    if is_torch_available():
-        weights = hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs)
-    else:  # tf
-        weights = hf_hub_download(repo_id, filename="tf_model.weights.h5", **kwargs)
-
-    model.from_pretrained(weights)
-
-    return model
+    return model.from_pretrained(hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs))
