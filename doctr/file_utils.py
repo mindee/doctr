@@ -9,6 +9,7 @@ import logging
 __all__ = ["requires_package", "CLASS_NAME"]
 
 CLASS_NAME: str = "words"
+ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 
 
 def requires_package(name: str, extra_message: str | None = None) -> None:  # pragma: no cover
