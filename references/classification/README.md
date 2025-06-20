@@ -13,13 +13,7 @@ pip install -r references/requirements.txt
 
 ## Usage character classification
 
-You can start your training in TensorFlow:
-
-```shell
-python references/classification/train_tensorflow_character.py mobilenet_v3_large --epochs 5
-```
-
-or PyTorch:
+You can start your training in PyTorch:
 
 ```shell
 python references/classification/train_pytorch_character.py mobilenet_v3_large --epochs 5 --device 0
@@ -27,13 +21,7 @@ python references/classification/train_pytorch_character.py mobilenet_v3_large -
 
 ## Usage orientation classification
 
-You can start your training in TensorFlow:
-
-```shell
-python references/classification/train_tensorflow_orientation.py resnet18 --type page --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
-```
-
-or PyTorch:
+You can start your training in PyTorch:
 
 ```shell
 python references/classification/train_pytorch_orientation.py resnet18 --type page --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
@@ -63,7 +51,6 @@ To enable Slack logging using `tqdm`, you need to set the following environment 
 
 You can follow this page on [how to create a Slack App](https://api.slack.com/quickstart).
 
-
 ## Advanced options
 
 Feel free to inspect the multiple script option to customize your training to your own needs!
@@ -71,11 +58,11 @@ Feel free to inspect the multiple script option to customize your training to yo
 Character classification:
 
 ```shell
-python references/classification/train_tensorflow_character.py --help
+python references/classification/train_pytorch_character.py --help
 ```
 
 Orientation classification:
 
 ```shell
-python references/classification/train_tensorflow_orientation.py --help
+python references/classification/train_pytorch_orientation.py --help
 ```

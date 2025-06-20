@@ -13,26 +13,21 @@ pip install -r references/requirements.txt
 
 ## Usage
 
-You can start your training in TensorFlow:
-
-```shell
-python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set  --epochs 5
-```
-
-or PyTorch:
+You can start your training in PyTorch:
 
 ```shell
 python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
-### Multi-GPU support (PyTorch only)
+### Multi-GPU support
 
 We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run.html) launcher to spawn your DDP workers. `torchrun` will set all the necessary environment variables (`LOCAL_RANK`, `RANK`, etc.) for you. Arguments are the same than the ones from single GPU, except:
 
 - `--backend`: you can specify another `backend` for `DistributedDataParallel` if the default one is not available on
 your operating system. Fastest one is `nccl` according to [PyTorch Documentation](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html).
 
-#### Key `torchrun` parameters:
+#### Key `torchrun` parameters
+
 - `--nproc_per_node=<N>`
   Spawn `<N>` processes on the local machine (typically equal to the number of GPUs you want to use).
 - `--nnodes=<M>`
@@ -40,7 +35,8 @@ your operating system. Fastest one is `nccl` according to [PyTorch Documentation
 - `--rdzv_backend`, `--rdzv_endpoint`, `--rdzv_id`
   (Optional) Rendezvous settings for multi-node jobs. See the [torchrun docs](https://pytorch.org/docs/stable/elastic/run.html) for details.
 
-#### GPU selection:
+#### GPU selection
+
 By default all visible GPUs will be used. To limit which GPUs participate, set the `CUDA_VISIBLE_DEVICES` environment variable **before** running `torchrun`. For example, to use only CUDA devices 0 and 2:
 
 ```shell
@@ -52,8 +48,6 @@ torchrun --nproc_per_node=2 references/recognition/train_pytorch.py \
   --epochs 5 \
   --backend nccl
 ```
-
-
 
 ## Data format
 
@@ -94,7 +88,6 @@ To enable Slack logging using `tqdm`, you need to set the following environment 
 - `TQDM_SLACK_CHANNEL`: you can retrieve it using `Right Click on Channel > Copy > Copy link`. You should get something like `https://xxxxxx.slack.com/archives/yyyyyyyy`. Keep only the `yyyyyyyy` part.
 
 You can follow this page on [how to create a Slack App](https://api.slack.com/quickstart).
-
 
 ## Advanced options
 

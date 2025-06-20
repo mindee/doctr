@@ -5,7 +5,7 @@
 
 from typing import Any
 
-from doctr.file_utils import is_tf_available, is_torch_available
+from doctr.models.utils import _CompiledModule
 
 from .. import classification
 from ..preprocessor import PreProcessor
@@ -30,10 +30,9 @@ ARCHS: list[str] = [
     "vgg16_bn_r",
     "vit_s",
     "vit_b",
+    "vip_tiny",
+    "vip_base",
 ]
-
-if is_torch_available():
-    ARCHS.extend(["vip_tiny", "vip_base"])
 
 ORIENTATION_ARCHS: list[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
 
@@ -52,12 +51,8 @@ def _orientation_predictor(
         # Load directly classifier from backbone
         _model = classification.__dict__[arch](pretrained=pretrained)
     else:
-        allowed_archs = [classification.MobileNetV3]
-        if is_torch_available():
-            # Adding the type for torch compiled models to the allowed architectures
-            from doctr.models.utils import _CompiledModule
-
-            allowed_archs.append(_CompiledModule)
+        # Adding the type for torch compiled models to the allowed architectures
+        allowed_archs = [classification.MobileNetV3, _CompiledModule]
 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
@@ -66,7 +61,7 @@ def _orientation_predictor(
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128 if model_type == "crop" else 4)
-    input_shape = _model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:]
+    input_shape = _model.cfg["input_shape"][1:]
     predictor = OrientationPredictor(
         PreProcessor(input_shape, preserve_aspect_ratio=True, symmetric_pad=True, **kwargs), _model
     )

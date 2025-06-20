@@ -20,27 +20,13 @@ __all__ = ["SampleCompose", "ImageTransform", "ColorInversion", "OneOf", "Random
 class SampleCompose(NestedObject):
     """Implements a wrapper that will apply transformations sequentially on both image and target
 
-    .. tabs::
+    .. code:: python
 
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import numpy as np
-                >>> import torch
-                >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
-                >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
-                >>> out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import numpy as np
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
-                >>> transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
-                >>> out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))
+        >>> import numpy as np
+        >>> import torch
+        >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
+        >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
+        >>> out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))
 
     Args:
         transforms: list of transformation modules
@@ -61,25 +47,12 @@ class SampleCompose(NestedObject):
 class ImageTransform(NestedObject):
     """Implements a transform wrapper to turn an image-only transformation into an image+target transform
 
-    .. tabs::
+    .. code:: python
 
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.transforms import ImageTransform, ColorInversion
-                >>> transfo = ImageTransform(ColorInversion((32, 32)))
-                >>> out, _ = transfo(torch.rand(8, 64, 64, 3), None)
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import ImageTransform, ColorInversion
-                >>> transfo = ImageTransform(ColorInversion((32, 32)))
-                >>> out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)
+        >>> import torch
+        >>> from doctr.transforms import ImageTransform, ColorInversion
+        >>> transfo = ImageTransform(ColorInversion((32, 32)))
+        >>> out, _ = transfo(torch.rand(8, 64, 64, 3), None)
 
     Args:
         transform: the image transformation module to wrap
@@ -99,25 +72,12 @@ class ColorInversion(NestedObject):
     """Applies the following tranformation to a tensor (image or batch of images):
     convert to grayscale, colorize (shift 0-values randomly), and then invert colors
 
-    .. tabs::
+    .. code:: python
 
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.transforms import ColorInversion
-                >>> transfo = ColorInversion(min_val=0.6)
-                >>> out = transfo(torch.rand(8, 64, 64, 3))
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import ColorInversion
-                >>> transfo = ColorInversion(min_val=0.6)
-                >>> out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))
+        >>> import torch
+        >>> from doctr.transforms import ColorInversion
+        >>> transfo = ColorInversion(min_val=0.6)
+        >>> out = transfo(torch.rand(8, 64, 64, 3))
 
     Args:
         min_val: range [min_val, 1] to colorize RGB pixels
@@ -136,25 +96,12 @@ class ColorInversion(NestedObject):
 class OneOf(NestedObject):
     """Randomly apply one of the input transformations
 
-    .. tabs::
+    .. code:: python
 
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.transforms import OneOf
-                >>> transfo = OneOf([JpegQuality(), Gamma()])
-                >>> out = transfo(torch.rand(1, 64, 64, 3))
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import OneOf
-                >>> transfo = OneOf([JpegQuality(), Gamma()])
-                >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+        >>> import torch
+        >>> from doctr.transforms import OneOf
+        >>> transfo = OneOf([JpegQuality(), Gamma()])
+        >>> out = transfo(torch.rand(1, 64, 64, 3))
 
     Args:
         transforms: list of transformations, one only will be picked
@@ -175,25 +122,12 @@ class OneOf(NestedObject):
 class RandomApply(NestedObject):
     """Apply with a probability p the input transformation
 
-    .. tabs::
+    .. code:: python
 
-        .. tab:: PyTorch
-
-            .. code:: python
-
-                >>> import torch
-                >>> from doctr.transforms import RandomApply
-                >>> transfo = RandomApply(Gamma(), p=.5)
-                >>> out = transfo(torch.rand(1, 64, 64, 3))
-
-        .. tab:: TensorFlow
-
-            .. code:: python
-
-                >>> import tensorflow as tf
-                >>> from doctr.transforms import RandomApply
-                >>> transfo = RandomApply(Gamma(), p=.5)
-                >>> out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))
+        >>> import torch
+        >>> from doctr.transforms import RandomApply
+        >>> transfo = RandomApply(Gamma(), p=.5)
+        >>> out = transfo(torch.rand(1, 64, 64, 3))
 
     Args:
         transform: transformation to apply

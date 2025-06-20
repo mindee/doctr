@@ -15,7 +15,7 @@ maintainers = [
 readme = "README.md"
 requires-python = ">=3.10.0,<4"
 license = {file = "LICENSE"}
-keywords=["OCR", "deep learning", "computer vision", "tensorflow", "pytorch", "text detection", "text recognition"]
+keywords=["OCR", "deep learning", "computer vision", "pytorch", "text detection", "text recognition"]
 classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -32,6 +32,9 @@ classifiers=[
 ]
 dynamic = ["version"]
 dependencies = [
+    "torch>=2.0.0,<3.0.0",
+    "torchvision>=0.15.0",
+    "onnx>=1.12.0,<3.0.0",
     # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
     # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
     "numpy>=1.16.0,<3.0.0",
@@ -52,18 +55,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-tf = [
-    # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow[and-cuda]>=2.15.0,<3.0.0; sys_platform == 'linux'",
-    "tensorflow>=2.15.0,<3.0.0; sys_platform != 'linux'", # TensorFlow compatible for macOS and Windows
-    "tf-keras>=2.15.0,<3.0.0",  # Keep keras 2 compatibility
-    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
-]
-torch = [
-    "torch>=2.0.0,<3.0.0",
-    "torchvision>=0.15.0",
-    "onnx>=1.12.0,<3.0.0",
-]
 html = [
     "weasyprint>=55.0",
 ]
@@ -97,12 +88,6 @@ docs = [
     "furo>=2022.3.4",
 ]
 dev = [
-    # Tensorflow
-    # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow[and-cuda]>=2.15.0,<3.0.0; sys_platform == 'linux'",
-    "tensorflow>=2.15.0,<3.0.0; sys_platform != 'linux'", # TensorFlow compatible for macOS and Windows
-    "tf-keras>=2.15.0,<3.0.0",  # Keep keras 2 compatibility
-    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
     "torch>=2.0.0,<3.0.0",
     "torchvision>=0.15.0",
@@ -160,8 +145,6 @@ implicit_reexport = false
 [[tool.mypy.overrides]]
 module = [
 	"anyascii.*",
-	"tensorflow.*",
-    "keras.*",
 	"torchvision.*",
     "onnxruntime.*",
 	"PIL.*",
@@ -172,7 +155,6 @@ module = [
 	"matplotlib.*",
 	"pyclipper.*",
 	"shapely.*",
-	"tf2onnx.*",
 	"mplcursors.*",
 	"defusedxml.*",
 	"weasyprint.*",
@@ -199,7 +181,7 @@ ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408", "LOG015"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["doctr", "app", "utils"]
-known-third-party = ["tensorflow", "keras", "torch", "torchvision", "wandb", "tqdm", "fastapi", "onnxruntime", "cv2"]
+known-third-party = ["torch", "torchvision", "wandb", "tqdm", "fastapi", "onnxruntime", "cv2"]
 
 [tool.ruff.lint.per-file-ignores]
 "doctr/models/**.py" = ["N806", "F841"]
