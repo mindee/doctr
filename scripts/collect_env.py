@@ -27,13 +27,6 @@ except (ImportError, NameError, AttributeError, OSError):
     DOCTR_AVAILABLE = False
 
 try:
-    import tensorflow as tf
-
-    TF_AVAILABLE = True
-except (ImportError, NameError, AttributeError, OSError):
-    TF_AVAILABLE = False
-
-try:
     import torch
 
     TORCH_AVAILABLE = True
@@ -62,13 +55,11 @@ SystemEnv = namedtuple(
     "SystemEnv",
     [
         "doctr_version",
-        "tf_version",
         "torch_version",
         "torchvision_version",
         "cv2_version",
         "os",
         "python_version",
-        "is_cuda_available_tf",
         "is_cuda_available_torch",
         "cuda_runtime_version",
         "nvidia_driver_version",
@@ -119,8 +110,6 @@ def get_nvidia_driver_version(run_lambda):
 
 def get_gpu_info(run_lambda):
     if get_platform() == "darwin":
-        if TF_AVAILABLE and any(tf.config.list_physical_devices("GPU")):
-            return tf.config.list_physical_devices("GPU")[0].name
         return None
     smi = get_nvidia_smi()
     uuid_regex = re.compile(r" \(UUID: .+?\)")
@@ -240,12 +229,6 @@ def get_env_info():
 
     doctr_str = doctr.__version__ if DOCTR_AVAILABLE else "N/A"
 
-    if TF_AVAILABLE:
-        tf_str = tf.__version__
-        tf_cuda_available_str = any(tf.config.list_physical_devices("GPU"))
-    else:
-        tf_str = tf_cuda_available_str = "N/A"
-
     if TORCH_AVAILABLE:
         torch_str = torch.__version__
         torch_cuda_available_str = torch.cuda.is_available()
@@ -258,12 +241,10 @@ def get_env_info():
 
     return SystemEnv(
         doctr_version=doctr_str,
-        tf_version=tf_str,
         torch_version=torch_str,
         torchvision_version=tv_str,
         cv2_version=cv2_str,
         python_version=".".join(map(str, sys.version_info[:3])),
-        is_cuda_available_tf=tf_cuda_available_str,
         is_cuda_available_torch=torch_cuda_available_str,
         cuda_runtime_version=get_running_cuda_version(run_lambda),
         nvidia_gpu_models=get_gpu_info(run_lambda),
@@ -275,12 +256,10 @@ def get_env_info():
 
 env_info_fmt = """
 DocTR version: {doctr_version}
-TensorFlow version: {tf_version}
 PyTorch version: {torch_version} (torchvision {torchvision_version})
 OpenCV version: {cv2_version}
 OS: {os}
 Python version: {python_version}
-Is CUDA available (TensorFlow): {is_cuda_available_tf}
 Is CUDA available (PyTorch): {is_cuda_available_torch}
 CUDA runtime version: {cuda_runtime_version}
 GPU models and configuration: {nvidia_gpu_models}
@@ -315,18 +294,6 @@ def pretty_str(envinfo):
 
     # If nvidia_gpu_models is multiline, start on the next line
     mutable_dict["nvidia_gpu_models"] = maybe_start_on_next_line(envinfo.nvidia_gpu_models)
-
-    # If the machine doesn't have CUDA, report some fields as 'No CUDA'
-    dynamic_cuda_fields = [
-        "cuda_runtime_version",
-        "nvidia_gpu_models",
-        "nvidia_driver_version",
-    ]
-    all_cuda_fields = dynamic_cuda_fields + ["cudnn_version"]
-    all_dynamic_cuda_fields_missing = all(mutable_dict[field] is None for field in dynamic_cuda_fields)
-    if TF_AVAILABLE and not any(tf.config.list_physical_devices("GPU")) and all_dynamic_cuda_fields_missing:
-        for field in all_cuda_fields:
-            mutable_dict[field] = "No CUDA"
 
     # Replace True with Yes, False with No
     mutable_dict = replace_bools(mutable_dict)
