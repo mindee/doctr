@@ -243,7 +243,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul class="current">
@@ -666,6 +667,36 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 </dl>
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.COCOTEXT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">COCOTEXT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/coco_text.html#COCOTEXT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.COCOTEXT" title="Link to this definition">¶</a></dt>
+<dd><p>COCO-Text dataset from <a class="reference external" href="https://arxiv.org/pdf/1601.07140v2">“COCO-Text: Dataset and Benchmark for Text Detection and Recognition in Natural Images”</a> |
+<a class="reference external" href="https://bgshih.github.io/cocotext/">“homepage”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset first.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">COCOTEXT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">COCOTEXT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/coco_text/train2014/&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/coco_text/cocotext.v2.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">COCOTEXT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/coco_text/train2014/&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">label_path</span> <span class="o">=</span> <span class="s2">&quot;/path/to/coco_text/cocotext.v2.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the annotations file of the dataset</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 <section id="synthetic-dataset-generator">
 <h2>Synthetic dataset generator<a class="headerlink" href="#synthetic-dataset-generator" title="Link to this heading">¶</a></h2>
@@ -756,7 +787,7 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>img_folder</strong> – path to the images folder</p></li>
-<li><p><strong>labels_path</strong> – pathe to the json file containing all labels (character sequences)</p></li>
+<li><p><strong>labels_path</strong> – path to the json file containing all labels (character sequences)</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
 </ul>
 </dd>
@@ -933,141 +964,421 @@ of vocabs.</p>
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p>digits</p></td>
-<td><p>10</p></td>
-<td><p>0123456789</p></td>
-</tr>
-<tr class="row-odd"><td><p>hindi_digits</p></td>
-<td><p>10</p></td>
-<td><p>٠١٢٣٤٥٦٧٨٩</p></td>
-</tr>
-<tr class="row-even"><td><p>ascii_letters</p></td>
-<td><p>52</p></td>
-<td><p>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</p></td>
-</tr>
-<tr class="row-odd"><td><p>punctuation</p></td>
-<td><p>32</p></td>
-<td><p>!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~</p></td>
-</tr>
-<tr class="row-even"><td><p>currency</p></td>
-<td><p>5</p></td>
-<td><p>£€¥¢฿</p></td>
-</tr>
-<tr class="row-odd"><td><p>ancient_greek</p></td>
-<td><p>48</p></td>
-<td><p>αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ</p></td>
-</tr>
-<tr class="row-even"><td><p>arabic_letters</p></td>
-<td><p>37</p></td>
-<td><p>ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي</p></td>
-</tr>
-<tr class="row-odd"><td><p>generic_cyrillic_letters</p></td>
-<td><p>58</p></td>
-<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ</p></td>
-</tr>
-<tr class="row-even"><td><p>persian_letters</p></td>
-<td><p>5</p></td>
-<td><p>پچڢڤگ</p></td>
-</tr>
-<tr class="row-odd"><td><p>arabic_diacritics</p></td>
-<td><p>2</p></td>
-<td><p>‘ًٌٍَُِّْ’</p></td>
-</tr>
-<tr class="row-even"><td><p>arabic_punctuation</p></td>
-<td><p>5</p></td>
-<td><p>؟؛«»—</p></td>
-</tr>
-<tr class="row-odd"><td><p>latin</p></td>
+<tr class="row-even"><td><p>latin</p></td>
 <td><p>94</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
 </tr>
-<tr class="row-even"><td><p>english</p></td>
+<tr class="row-odd"><td><p>english</p></td>
 <td><p>100</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
 </tr>
-<tr class="row-odd"><td><p>legacy_french</p></td>
-<td><p>123</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿</p></td>
+<tr class="row-even"><td><p>albanian</p></td>
+<td><p>104</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿çëÇË</p></td>
+</tr>
+<tr class="row-odd"><td><p>afrikaans</p></td>
+<td><p>114</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿èëïîôûêÈËÏÎÔÛÊ</p></td>
+</tr>
+<tr class="row-even"><td><p>azerbaijani</p></td>
+<td><p>111</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿çəğöşüÇƏĞÖŞÜ₼</p></td>
+</tr>
+<tr class="row-odd"><td><p>basque</p></td>
+<td><p>104</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ñçÑÇ</p></td>
+</tr>
+<tr class="row-even"><td><p>bosnian</p></td>
+<td><p>102</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿čćđšžČĆĐŠŽ</p></td>
+</tr>
+<tr class="row-odd"><td><p>catalan</p></td>
+<td><p>120</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àèéíïòóúüçÀÈÉÍÏÒÓÚÜÇ</p></td>
+</tr>
+<tr class="row-even"><td><p>croatian</p></td>
+<td><p>110</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ČčĆćĐđŠšŽž</p></td>
+</tr>
+<tr class="row-odd"><td><p>czech</p></td>
+<td><p>130</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ</p></td>
+</tr>
+<tr class="row-even"><td><p>danish</p></td>
+<td><p>106</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿æøåÆØÅ</p></td>
+</tr>
+<tr class="row-odd"><td><p>dutch</p></td>
+<td><p>114</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ</p></td>
+</tr>
+<tr class="row-even"><td><p>estonian</p></td>
+<td><p>112</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿šžõäöüŠŽÕÄÖÜ</p></td>
+</tr>
+<tr class="row-odd"><td><p>esperanto</p></td>
+<td><p>105</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ĉĝĥĵŝŭĈĜĤĴŜŬ₷</p></td>
 </tr>
 <tr class="row-even"><td><p>french</p></td>
 <td><p>126</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ</p></td>
 </tr>
-<tr class="row-odd"><td><p>portuguese</p></td>
-<td><p>131</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ¡¿</p></td>
+<tr class="row-odd"><td><p>legacy_french</p></td>
+<td><p>123</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿</p></td>
 </tr>
-<tr class="row-even"><td><p>spanish</p></td>
-<td><p>116</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ¡¿</p></td>
+<tr class="row-even"><td><p>finnish</p></td>
+<td><p>104</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöÄÖ</p></td>
+</tr>
+<tr class="row-odd"><td><p>frisian</p></td>
+<td><p>108</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvwyzABCDEFGHIJKLMNOPRSTUVWYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿âêôûúÂÊÔÛÚƒƑ</p></td>
+</tr>
+<tr class="row-even"><td><p>galician</p></td>
+<td><p>98</p></td>
+<td><p>0123456789abcdefghilmnopqrstuvxyzABCDEFGHILMNOPQRSTUVXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ñÑçÇ</p></td>
+</tr>
+<tr class="row-odd"><td><p>german</p></td>
+<td><p>108</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ</p></td>
+</tr>
+<tr class="row-even"><td><p>hausa</p></td>
+<td><p>101</p></td>
+<td><p>0123456789abcdefghijklmnorstuwyzABCDEFGHIJKLMNORSTUWYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ɓɗƙƴƁƊƘƳ₦</p></td>
+</tr>
+<tr class="row-odd"><td><p>hungarian</p></td>
+<td><p>114</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóöúüÁÉÍÓÖÚÜ</p></td>
+</tr>
+<tr class="row-even"><td><p>icelandic</p></td>
+<td><p>114</p></td>
+<td><p>0123456789abdefghijklmnoprstuvxyzABDEFGHIJKLMNOPRSTUVXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ðáéíóúýþæöÐÁÉÍÓÚÝÞÆÖ</p></td>
+</tr>
+<tr class="row-odd"><td><p>indonesian</p></td>
+<td><p>100</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>irish</p></td>
+<td><p>110</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúÁÉÍÓÚ</p></td>
 </tr>
 <tr class="row-odd"><td><p>italian</p></td>
 <td><p>120</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ</p></td>
 </tr>
-<tr class="row-even"><td><p>german</p></td>
-<td><p>108</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ</p></td>
+<tr class="row-even"><td><p>latvian</p></td>
+<td><p>116</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvyzABCDEFGHIJKLMNOPRSTUVYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿āčēģīķļņšūžĀČĒĢĪĶĻŅŠŪŽ</p></td>
 </tr>
-<tr class="row-odd"><td><p>arabic</p></td>
-<td><p>101</p></td>
-<td><p>ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيپچڢڤگ؟؛«»—0123456789٠١٢٣٤٥٦٧٨٩’ًٌٍَُِّْ’!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~</p></td>
+<tr class="row-odd"><td><p>lithuanian</p></td>
+<td><p>112</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvyzABCDEFGHIJKLMNOPRSTUVYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ąčęėįšųūžĄČĘĖĮŠŲŪŽ</p></td>
 </tr>
-<tr class="row-even"><td><p>czech</p></td>
-<td><p>130</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ</p></td>
+<tr class="row-even"><td><p>luxembourgish</p></td>
+<td><p>110</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöüéëÄÖÜÉË</p></td>
+</tr>
+<tr class="row-odd"><td><p>malagasy</p></td>
+<td><p>94</p></td>
+<td><p>0123456789abdefghijklmnoprstvyzABDEFGHIJKLMNOPRSTVYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ôñÔÑ</p></td>
+</tr>
+<tr class="row-even"><td><p>malay</p></td>
+<td><p>100</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
+</tr>
+<tr class="row-odd"><td><p>maltese</p></td>
+<td><p>104</p></td>
+<td><p>0123456789abdefghijklmnopqrstuvwxzABDEFGHIJKLMNOPQRSTUVWXZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ċġħżĊĠĦŻ</p></td>
+</tr>
+<tr class="row-even"><td><p>maori</p></td>
+<td><p>84</p></td>
+<td><p>0123456789aeghikmnprtuwAEGHIKMNPRTUW!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿āēīōūĀĒĪŌŪ</p></td>
+</tr>
+<tr class="row-odd"><td><p>montenegrin</p></td>
+<td><p>103</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿čćšžźČĆŠŚŽŹ</p></td>
+</tr>
+<tr class="row-even"><td><p>norwegian</p></td>
+<td><p>106</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿æøåÆØÅ</p></td>
 </tr>
 <tr class="row-odd"><td><p>polish</p></td>
 <td><p>118</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ąćęłńóśźżĄĆĘŁŃÓŚŹŻ</p></td>
 </tr>
-<tr class="row-even"><td><p>dutch</p></td>
-<td><p>114</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ</p></td>
+<tr class="row-even"><td><p>portuguese</p></td>
+<td><p>128</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàâãéêíïóôõúüçÁÀÂÃÉÊÍÏÓÔÕÚÜÇ</p></td>
 </tr>
-<tr class="row-odd"><td><p>norwegian</p></td>
-<td><p>106</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿æøåÆØÅ</p></td>
+<tr class="row-odd"><td><p>quechua</p></td>
+<td><p>90</p></td>
+<td><p>0123456789acehiklmnopqrstuwyACEHIKLMNOPQRSTUWY!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ñÑĉĈçÇ</p></td>
 </tr>
-<tr class="row-even"><td><p>danish</p></td>
-<td><p>106</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°£€¥¢฿æøåÆØÅ</p></td>
+<tr class="row-even"><td><p>romanian</p></td>
+<td><p>110</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ăâîșțĂÂÎȘȚ</p></td>
 </tr>
-<tr class="row-odd"><td><p>finnish</p></td>
-<td><p>104</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöÄÖ</p></td>
+<tr class="row-odd"><td><p>scottish_gaelic</p></td>
+<td><p>94</p></td>
+<td><p>0123456789abcdefghilmnoprstuABCDEFGHILMNOPRSTU!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àèìòùÀÈÌÒÙ</p></td>
+</tr>
+<tr class="row-even"><td><p>serbian_latin</p></td>
+<td><p>110</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿čćđžšČĆĐŽŠ</p></td>
+</tr>
+<tr class="row-odd"><td><p>slovak</p></td>
+<td><p>134</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ôäčďľňšťžáéíĺóŕúýÔÄČĎĽŇŠŤŽÁÉÍĹÓŔÚÝ</p></td>
+</tr>
+<tr class="row-even"><td><p>slovene</p></td>
+<td><p>102</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvzABCDEFGHIJKLMNOPRSTUVZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿čćđšžČĆĐŠŽ</p></td>
+</tr>
+<tr class="row-odd"><td><p>somali</p></td>
+<td><p>94</p></td>
+<td><p>0123456789abcdefghijklmnoqrstuwxyABCDEFGHIJKLMNOQRSTUWXY!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>spanish</p></td>
+<td><p>116</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ¡¿</p></td>
+</tr>
+<tr class="row-odd"><td><p>swahili</p></td>
+<td><p>96</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvwyzABCDEFGHIJKLMNOPRSTUVWYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
 </tr>
 <tr class="row-even"><td><p>swedish</p></td>
 <td><p>106</p></td>
 <td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿åäöÅÄÖ</p></td>
 </tr>
-<tr class="row-odd"><td><p>ukrainian</p></td>
-<td><p>115</p></td>
-<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ґіїєҐІЇЄ₴</p></td>
+<tr class="row-odd"><td><p>tagalog</p></td>
+<td><p>95</p></td>
+<td><p>0123456789abdefghijklmnoprstuvyzABDEFGHIJKLMNOPRSTUVYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ñÑ₱</p></td>
+</tr>
+<tr class="row-even"><td><p>turkish</p></td>
+<td><p>113</p></td>
+<td><p>0123456789abcdefghijklmnoprstuvyzABCDEFGHIJKLMNOPRSTUVYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿çğıöşüâîûÇĞİÖŞÜÂÎÛ₺</p></td>
+</tr>
+<tr class="row-odd"><td><p>uzbek_latin</p></td>
+<td><p>110</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvxyzABCDEFGHIJKLMNOPQRSTUVXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿çğɉñöşÇĞɈÑÖŞ</p></td>
 </tr>
 <tr class="row-even"><td><p>vietnamese</p></td>
-<td><p>234</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ</p></td>
+<td><p>235</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ₫</p></td>
+</tr>
+<tr class="row-odd"><td><p>welsh</p></td>
+<td><p>102</p></td>
+<td><p>0123456789abcdefghijlmnoprstuwyABCDEFGHIJLMNOPRSTUWY!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿âêîôŵŷÂÊÎÔŴŶ</p></td>
+</tr>
+<tr class="row-even"><td><p>yoruba</p></td>
+<td><p>97</p></td>
+<td><p>0123456789abdefghijklmnoprstuwyABDEFGHIJKLMNOPRSTUWY!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ẹọṣẸỌṢ₦</p></td>
+</tr>
+<tr class="row-odd"><td><p>zulu</p></td>
+<td><p>100</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>russian</p></td>
+<td><p>114</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿₽</p></td>
+</tr>
+<tr class="row-odd"><td><p>belarusian</p></td>
+<td><p>116</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ўiЎI₽</p></td>
+</tr>
+<tr class="row-even"><td><p>ukrainian</p></td>
+<td><p>114</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ґіїєҐІЇЄ₴</p></td>
+</tr>
+<tr class="row-odd"><td><p>tatar</p></td>
+<td><p>124</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿₽ӘәҖҗҢңӨөҮү</p></td>
+</tr>
+<tr class="row-even"><td><p>tajik</p></td>
+<td><p>125</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ҒғҚқҲҳҶҷӢӣӮӯ</p></td>
+</tr>
+<tr class="row-odd"><td><p>kazakh</p></td>
+<td><p>132</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ӘәҒғҚқҢңӨөҰұҮүҺһІі₸</p></td>
+</tr>
+<tr class="row-even"><td><p>kyrgyz</p></td>
+<td><p>119</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ҢңӨөҮү</p></td>
+</tr>
+<tr class="row-odd"><td><p>bulgarian</p></td>
+<td><p>107</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>macedonian</p></td>
+<td><p>119</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ЃѓЅѕЈјЉљЊњЌќЏџ</p></td>
+</tr>
+<tr class="row-odd"><td><p>mongolian</p></td>
+<td><p>128</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ӨөҮү᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙₮</p></td>
+</tr>
+<tr class="row-even"><td><p>yakut</p></td>
+<td><p>124</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ҔҕҤҥӨөҺһҮү₽</p></td>
+</tr>
+<tr class="row-odd"><td><p>serbian_cyrillic</p></td>
+<td><p>107</p></td>
+<td><p>абвгдежзиклмнопрстуфхцчшАБВГДЕЖЗИКЛМНОПРСТУФХЦЧШJjЂђЉљЊњЋћЏџ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>uzbek_cyrillic</p></td>
+<td><p>121</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~£€¥¢฿ЎўҚқҒғҲҳ</p></td>
+</tr>
+<tr class="row-odd"><td><p>greek</p></td>
+<td><p>106</p></td>
+<td><p>!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~αβγδεζηθικλμνξοπρστςυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ£€¥¢฿άέήίϊΐόύϋΰώΆΈΉΊΪΌΎΫΏ</p></td>
+</tr>
+<tr class="row-even"><td><p>greek_extended</p></td>
+<td><p>301</p></td>
+<td><p>!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~αβγδεζηθικλμνξοπρστςυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ£€¥¢฿άέήίϊΐόύϋΰώΆΈΉΊΪΌΎΫΏͶͷϜϝἀἁἂἃἄἅἆἇἈἉἊἋἌἍἎἏἐἑἒἓἔἕἘἙἚἛἜἝἠἡἢἣἤἥἦἧἨἩἪἫἬἭἮἯἰἱἲἳἴἵἶἷἸἹἺἻἼἽἾἿὀὁὂὃὄὅὈὉὊὋὌὍὐὑὒὓὔὕὖὗὙὛὝὟὠὡὢὣὤὥὦὧὨὩὪὫὬὭὮὯὰὲὴὶὸὺὼᾀᾁᾂᾃᾄᾅᾆᾇᾈᾉᾊᾋᾌᾍᾎᾏᾐᾑᾒᾓᾔᾕᾖᾗᾘᾙᾚᾛᾜᾝᾞᾟᾠᾡᾢᾣᾤᾥᾦᾧᾨᾩᾪᾫᾬᾭᾮᾯᾲᾳᾴᾶᾷᾺᾼῂῃῄῆῇῈῊῌῒΐῖῗῚῢΰῤῥῦῧῪῬῲῳῴῶῷῸῺῼ</p></td>
 </tr>
 <tr class="row-odd"><td><p>hebrew</p></td>
+<td><p>176</p></td>
+<td><p>0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~אבגדהוזחטיךכלםמןנסעףפץצקרשתְֱֲֳִֵֶַָׇֹֺֻֽ־ֿ׀ׁׂ׃ׅׄ׆׳״֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ₪</p></td>
+</tr>
+<tr class="row-even"><td><p>arabic</p></td>
+<td><p>116</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
+</tr>
+<tr class="row-odd"><td><p>persian</p></td>
+<td><p>116</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
+</tr>
+<tr class="row-even"><td><p>urdu</p></td>
+<td><p>124</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ٹڈڑںھےہۃ</p></td>
+</tr>
+<tr class="row-odd"><td><p>pashto</p></td>
+<td><p>126</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ټډړږښځڅڼېۍ</p></td>
+</tr>
+<tr class="row-even"><td><p>kurdish</p></td>
+<td><p>121</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ڵڕۆێە</p></td>
+</tr>
+<tr class="row-odd"><td><p>uyghur</p></td>
 <td><p>123</p></td>
-<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿אבגדהוזחטיכלמנסעפצקרשת₪</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ەېۆۇۈڭھ</p></td>
+</tr>
+<tr class="row-even"><td><p>sindhi</p></td>
+<td><p>133</p></td>
+<td><p>0123456789٠١٢٣٤٥٦٧٨٩ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيٱپچژڢڤگکیًٌٍَُِّْٕٓٔٚ؟؛«»—،!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ڀٿٺٽڦڄڃڇڏڌڊڍڙڳڱڻھ</p></td>
+</tr>
+<tr class="row-odd"><td><p>devanagari</p></td>
+<td><p>151</p></td>
+<td><p>कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहऴऩळक़ख़ग़ज़ड़ढ़फ़य़ऱॺॻॼॽॾअआइईउऊऋऌऍऎएऐऑऒओऔॠॡॲऄॵॶॳॴॷॸॹ०१२३४५६७८९़ंँः॒॑ािीुूृॄॅॆेैॉॊोौॢॣॏॎ्।॥॰ऽꣲ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~₹</p></td>
 </tr>
 <tr class="row-even"><td><p>hindi</p></td>
-<td><p>68</p></td>
-<td><p>अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह०१२३४५६७८९।,?!:्ॐ॰॥</p></td>
+<td><p>151</p></td>
+<td><p>कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहऴऩळक़ख़ग़ज़ड़ढ़फ़य़ऱॺॻॼॽॾअआइईउऊऋऌऍऎएऐऑऒओऔॠॡॲऄॵॶॳॴॷॸॹ०१२३४५६७८९़ंँः॒॑ािीुूृॄॅॆेैॉॊोौॢॣॏॎ्।॥॰ऽꣲ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~₹</p></td>
 </tr>
-<tr class="row-odd"><td><p>bangla</p></td>
-<td><p>70</p></td>
-<td><p>অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ০১২৩৪৫৬৭৮৯</p></td>
+<tr class="row-odd"><td><p>sanskrit</p></td>
+<td><p>151</p></td>
+<td><p>कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहऴऩळक़ख़ग़ज़ड़ढ़फ़य़ऱॺॻॼॽॾअआइईउऊऋऌऍऎएऐऑऒओऔॠॡॲऄॵॶॳॴॷॸॹ०१२३४५६७८९़ंँः॒॑ािीुूृॄॅॆेैॉॊोौॢॣॏॎ्।॥॰ऽꣲ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~₹</p></td>
+</tr>
+<tr class="row-even"><td><p>marathi</p></td>
+<td><p>151</p></td>
+<td><p>कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहऴऩळक़ख़ग़ज़ड़ढ़फ़य़ऱॺॻॼॽॾअआइईउऊऋऌऍऎएऐऑऒओऔॠॡॲऄॵॶॳॴॷॸॹ०१२३४५६७८९़ंँः॒॑ािीुूृॄॅॆेैॉॊोौॢॣॏॎ्।॥॰ऽꣲ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~₹</p></td>
+</tr>
+<tr class="row-odd"><td><p>nepali</p></td>
+<td><p>151</p></td>
+<td><p>कखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसहऴऩळक़ख़ग़ज़ड़ढ़फ़य़ऱॺॻॼॽॾअआइईउऊऋऌऍऎएऐऑऒओऔॠॡॲऄॵॶॳॴॷॸॹ०१२३४५६७८९़ंँः॒॑ािीुूृॄॅॆेैॉॊोौॢॣॏॎ्।॥॰ऽꣲ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~₹</p></td>
 </tr>
 <tr class="row-even"><td><p>gujarati</p></td>
+<td><p>121</p></td>
+<td><p>કખગઘઙચછજઝઞટઠડઢણતથદધનપફબભમયરલળવશષસહઅઆઇઈઉઊઋઌઍએઐઑઓઔ૦૧૨૩૪૫૬૭૮૯ઁંઃ઼ાિીુૂૃૄૅેૈૉોૌૢૣૺૻૼ૽૾૿્ઽ॥!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ૐ૰૱</p></td>
+</tr>
+<tr class="row-odd"><td><p>bengali</p></td>
+<td><p>116</p></td>
+<td><p>কখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহড়ঢ়য়ৰৱৼঅআইঈউঊঋঌএঐওঔৠৡ০১২৩৪৫৬৭৮৯ািীুূৃেৈোৌৗ্ঽৎ৽৺৻!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ঁংঃ়৳</p></td>
+</tr>
+<tr class="row-even"><td><p>tamil</p></td>
 <td><p>98</p></td>
-<td><p>અઆઇઈઉઊઋએઐઓઔખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ૦૧૨૩૪૫૬૭૮૯!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~૰ઽ◌ંઃ॥ૐ઼ ઁ૱</p></td>
+<td><p>கஙசஞடணதநபமயரலவழளறனஅஆஇஈஉஊஎஏஐஒஓஔ௦௧௨௩௪௫௬௭௮௯ாிீுூெேைொோௌ்௰௱௲!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~௳௴௵௶௷௸௹௺ஃௐ₹</p></td>
+</tr>
+<tr class="row-odd"><td><p>telugu</p></td>
+<td><p>119</p></td>
+<td><p>కఖగఘఙచఛజఝఞటఠడఢణతథదధనపఫబభమయరఱలళవశషసహఴఅఆఇఈఉఊఋఌఎఏఐఒఓఔౠౡ౦౧౨౩౪౫౬౭౮౯౸౹౺౻ాిీుూృౄెేైొోౌౢౣ్ఽ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ఁంః₹</p></td>
+</tr>
+<tr class="row-even"><td><p>kannada</p></td>
+<td><p>114</p></td>
+<td><p>ಕಖಗಘಙಚಛಜಝಞಟಠಡಢಣತಥದಧನಪಫಬಭಮಯರಲವಶಷಸಹಳಅಆಇಈಉಊಋॠಌೡಎಏಐಒಓಔ೦೧೨೩೪೫೬೭೮೯ಾಿೀುೂೃೄೆೇೈೊೋೌ್।॥ೱೲ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ಂಃಁ₹</p></td>
+</tr>
+<tr class="row-odd"><td><p>sinhala</p></td>
+<td><p>113</p></td>
+<td><p>කඛගඝඞචඡජඣඤටඨඩඪණතථදධනපඵබභමයරලවශෂසහළෆඅආඇඈඉඊඋඌඍඎඏඐඑඒඓඔඕඖ෦෧෨෩෪෫෬෭෮෯ාැෑිීුූෙේෛොෝෞ්෴!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ංඃ₹</p></td>
+</tr>
+<tr class="row-even"><td><p>malayalam</p></td>
+<td><p>116</p></td>
+<td><p>കഖഗഘങചഛജഝഞടഠഡഢണതഥദധനപഫബഭമയരറലളഴവശഷസഹഅആഇഈഉഊഋൠഌൡഎഏഐഒഓഔ൦൧൨൩൪൫൬൭൮൯ാിീുൂൃൄൢൣെേൈൊോൌ്!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ഃ൹ഽ൏ം₹</p></td>
+</tr>
+<tr class="row-odd"><td><p>punjabi</p></td>
+<td><p>112</p></td>
+<td><p>ਕਖਗਘਙਚਛਜਝਞਟਠਡਢਣਤਥਦਧਨਪਫਬਭਮਯਰਲਵਸ਼ਸਹਖ਼ਗ਼ਜ਼ਫ਼ੜਲ਼ਅਆਇਈਉਊਏਐਓਔੲੳ੦੧੨੩੪੫੬੭੮੯ਂ਼ਾਿੀੁੂੇੈੋੌੑੰੱੵ੍।॥!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ੴ₹</p></td>
+</tr>
+<tr class="row-even"><td><p>odia</p></td>
+<td><p>121</p></td>
+<td><p>କଖଗଘଙଚଛଜଝଞଟଠଡଢଣତଥଦଧନପଫବଭମଯରଲଳଵଶଷସହୟୱଡ଼ଢ଼ଅଆଇଈଉଊଋଌଏଐଓଔୡୠ୦୧୨୩୪୫୬୭୮୯୲୳୴୵୶୷ାିୀୁୂୃୄେୈୋୌୢୣ୍ଽ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ଂଃଁ଼୰₹</p></td>
+</tr>
+<tr class="row-odd"><td><p>khmer</p></td>
+<td><p>134</p></td>
+<td><p>កខគឃងចឆជឈញដឋឌឍណតថទធនបផពភមយរលវឝឞសហឡអឣឤឥឦឧឨឩឪឫឬឭឮឯឰឱឲឳ០១២៣៤៥៦៧៨៩ាិីឹឺុូួើឿៀេែៃោៅ្ំះៈ៉៊់៌៍៎៏័៑៓៝។៕៖៘៙៚ៗៜ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~៛</p></td>
+</tr>
+<tr class="row-even"><td><p>armenian</p></td>
+<td><p>131</p></td>
+<td><p>ԱԲԳԴԵԶԷԸԹԺԻԼԽԾԿՀՁՂՃՄՅՆՇՈՉՊՋՌՍՎՏՐՑՒՓՔՕՖՙՠաբգդեզէըթժիլխծկհձղճմյնշոչպջռսվտրցւփքօֆևֈ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~՚՛՜՝՞՟։֊֏</p></td>
+</tr>
+<tr class="row-odd"><td><p>sudanese</p></td>
+<td><p>106</p></td>
+<td><p>0123456789᮰᮱᮲᮳᮴᮵᮶᮷᮸᮹ᮊᮋᮌᮍᮎᮏᮐᮑᮒᮓᮔᮕᮖᮗᮘᮙᮚᮛᮜᮝᮞᮟᮠᮮᮯᮺᮻᮼᮽᮾᮿᮃᮄᮅᮆᮇᮈᮉᮀᮁᮂᮡᮢᮣᮤᮥᮦᮧᮨᮩ᮪᮫ᮬᮭ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
+</tr>
+<tr class="row-even"><td><p>thai</p></td>
+<td><p>129</p></td>
+<td><p>0123456789๐๑๒๓๔๕๖๗๘๙!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~๏๚๛ๆฯกขฃคฅฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรฤลฦวศษสหฬอฮะาำเแโใไๅัิีึืฺุู็่้๊๋์ํ๎฿</p></td>
+</tr>
+<tr class="row-odd"><td><p>lao</p></td>
+<td><p>124</p></td>
+<td><p>0123456789໐໑໒໓໔໕໖໗໘໙!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~ໆໞໟຯກຂຄຆງຈຉຊຌຍຎຏຐຑຒຓດຕຖທຘນບປຜຝພຟຠມຢຣລວຨຩສຫຬອຮະາຳຽເແໂໃໄໜໝັິີຶື຺ຸູົຼ່້໊໋໌ໍ</p></td>
+</tr>
+<tr class="row-even"><td><p>burmese</p></td>
+<td><p>130</p></td>
+<td><p>0123456789၀၁၂၃၄၅၆၇၈၉႐႑႒႓႔႕႖႗႘႙ကခဂဃငစဆဇဈဉညဋဌဍဎဏတထဒဓနပဖဗဘမယရလဝသဟဠအၐၑၒၓၔၕၚၛၜၝၡၥၦၮၯၰၵၶၷၸၹၺၻၼၽၾၿႀႁႎဣဤဥဦဧဩဪဿ့းံါာိီုူေဲဳဴဵျြွှ္်၊။၌၍၎၏ၤၗ</p></td>
+</tr>
+<tr class="row-odd"><td><p>javanese</p></td>
+<td><p>124</p></td>
+<td><p>0123456789꧐꧑꧒꧓꧔꧕꧖꧗꧘꧙ꦏꦐꦑꦒꦓꦔꦕꦖꦗꦘꦙꦚꦛꦜꦝꦞꦟꦠꦡꦢꦣꦤꦥꦦꦧꦨꦩꦪꦫꦬꦭꦮꦯꦰꦱꦲꦄꦅꦆꦇꦈꦉꦊꦋꦌꦍꦎꦴꦵꦶꦷꦸꦹꦺꦻꦼꦀꦁꦂꦃ꦳ꦽꦾꦿ꧀꧈꧉꧊꧋꧌꧍ꧏ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
+</tr>
+<tr class="row-even"><td><p>georgian</p></td>
+<td><p>131</p></td>
+<td><p>0123456789ႠႡႢႣႤႥႦႧႨႩႪႫႬႭႮႯႰႱႲႳႴႵႶႷႸႹႺႻႼႽႾႿჀჁჂჃჄჅჇჍაბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰჱჲჳჴჵჶჷჸჹჺჼჽჾჿ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~჻₾</p></td>
+</tr>
+<tr class="row-odd"><td><p>ethiopic</p></td>
+<td><p>362</p></td>
+<td><p>ሀሁሂሃሄህሆሇለሉሊላሌልሎሏሐሑሒሓሔሕሖሗመሙሚማሜምሞሟሠሡሢሣሤሥሦሧረሩሪራሬርሮሯሰሱሲሳሴስሶሷሸሹሺሻሼሽሾሿቀቁቂቃቄቅቆቇቈቊቋቌቍቐቑቒቓቔቕቖቘቚቛቜቝበቡቢባቤብቦቧቨቩቪቫቬቭቮቯተቱቲታቴትቶቷቸቹቺቻቼችቾቿኀኁኂኃኄኅኆኇኈኊኋኌኍነኑኒናኔንኖኗኘኙኚኛኜኝኞኟአኡኢኣኤእኦኧከኩኪካኬክኮኯኰኲኳኴኵኸኹኺኻኼኽኾዀዂዃዄዅወዉዊዋዌውዎዏዐዑዒዓዔዕዖዘዙዚዛዜዝዞዟዠዡዢዣዤዥዦዧየዩዪያዬይዮዯደዱዲዳዴድዶዷዸዹዺዻዼዽዾዿጀጁጂጃጄጅጆጇገጉጊጋጌግጎጏጐጒጓጔጕጘጙጚጛጜጝጞጟጠጡጢጣጤጥጦጧጨጩጪጫጬጭጮጯጰጱጲጳጴጵጶጷጸጹጺጻጼጽጾጿፀፁፂፃፄፅፆፇፈፉፊፋፌፍፎፏፐፑፒፓፔፕፖፗፘፙፚᎀᎁᎂᎃᎄᎅᎆᎇᎈᎉᎊᎋᎌᎍᎎᎏ፩፪፫፬፭፮፯፰፱፲፳፴፵፶፷፸፹፺፻፼</p></td>
+</tr>
+<tr class="row-even"><td><p>japanese</p></td>
+<td><p>2383</p></td>
+<td><p>0123456789ぁあぃいぅうぇえぉおかがきぎく…路露老労弄郎朗浪廊楼漏籠六録麓論和話賄脇惑枠湾腕!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~。・〜°—、「」『』【】゛》《〉〈£€¥¢฿</p></td>
+</tr>
+<tr class="row-odd"><td><p>korean</p></td>
+<td><p>11237</p></td>
+<td><p>0123456789가각갂갃간갅갆갇갈갉갊틹틺틻틼틽틾틿팀폨폩…흿힀힁힂힃힄힅힆힇히힉힊힋힌힍힎힏힐힑힒힓힔힕힖힗힘힙힚힛힜힝힞힟힠힡힢힣!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~。・〜°—、「」『』【】゛》《〉〈£€¥¢฿₩</p></td>
+</tr>
+<tr class="row-even"><td><p>simplified_chinese</p></td>
+<td><p>6656</p></td>
+<td><p>0123456789㐀㐁㐂㐃㐄㐅㐆㐇㐈㐉㐊㐋㐌㐍㐎㐏㐐㐑㐒㐓㐔㐕㐖㐗㐘㐙㐚…䶮䶯䶰䶱䶲䶳䶴䶵䶶䶷䶸䶹䶺䶻䶼䶽䶾䶿!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~。・〜°—、「」『』【】゛》《〉〈£€¥¢฿</p></td>
 </tr>
 <tr class="row-odd"><td><p>multilingual</p></td>
-<td><p>195</p></td>
-<td><p>english &amp; french &amp; german &amp; italian &amp; spanish &amp; portuguese &amp; czech &amp; polish &amp; dutch &amp; norwegian &amp; danish &amp; finnish &amp; swedish &amp; §</p></td>
+<td><p>726</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿çëÇËèïîôûêÈÏÎÔÛÊəğöşüƏĞÖŞÜ₼ñÑčćđšžČĆĐŠŽàéíòóúÀÉÍÒÓÚáďěňřťůýÁĎĚŇŘŤŮÝæøåÆØÅõäÕÄĉĝĥĵŝŭĈĜĤĴŜŬ₷âùÂÙƒƑßẞɓɗƙƴƁƊƘƳ₦ðþÐÞìÌāēģīķļņūĀĒĢĪĶĻŅŪąęėįųĄĘĖĮŲōŌċġħżĊĠĦŻźŚŹłńśŁŃãÃășțĂȘȚľĺŕĽĹŔ¡¿₱ıİ₺ɉɈảạắằẳẵặấầẩẫậẻẽẹếềểễệỏọốồổộỗơớờởợỡủũụưứừửữựỉĩịỳỷỹỵẢẠẮẰẲẴẶẤẦẨẪẬẺẼẸẾỀỂỄỆỎỌỐỒỔỘỖƠỚỜỞỢỠỦŨỤƯỨỪỬỮỰỈĨỊỲỶỸỴ₫ŵŷŴŶṣṢ§абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯёыэЁЫЭъЪ₽ўЎґіїєҐІЇЄ₴ӘәҖҗҢңӨөҮүҒғҚқҲҳҶҷӢӣӮӯҰұҺһ₸ЃѓЅѕЈјЉљЊњЌќЏџ᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙₮ҔҕҤҥЂђЋћαβγδεζηθικλμνξοπρστςυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩάέήίϊΐόύϋΰώΆΈΉΊΪΌΎΫΏאבגדהוזחטיךכלםמןנסעףפץצקרשתְֱֲֳִֵֶַָׇֹֺֻֽ־ֿ׀ׁׂ׃ׅׄ׆׳״֑֖֛֢֣֤֥֦֧֪֚֭֮֒֓֔֕֗֘֙֜֝֞֟֠֡֨֩֫֬֯ׯװױײיִﬞײַﬠﬡﬢﬣﬤﬥﬦﬧﬨ﬩שׁשׂשּׁשּׂאַאָאּבּגּדּהּוּזּטּיּךּכּלּמּנּסּףּפּצּקּרּשּתּוֹבֿכֿפֿﭏ₪</p></td>
 </tr>
 </tbody>
 </table>
@@ -1146,6 +1457,7 @@ of vocabs.</p>
 <li><a class="reference internal" href="#doctr.datasets.IIITHWS"><code class="docutils literal notranslate"><span class="pre">IIITHWS</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.DocArtefacts"><code class="docutils literal notranslate"><span class="pre">DocArtefacts</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.WILDRECEIPT"><code class="docutils literal notranslate"><span class="pre">WILDRECEIPT</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.COCOTEXT"><code class="docutils literal notranslate"><span class="pre">COCOTEXT</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#synthetic-dataset-generator">Synthetic dataset generator</a><ul>
@@ -1181,12 +1493,12 @@ of vocabs.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=af03451e"></script>
+    <script src="../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

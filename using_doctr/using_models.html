@@ -243,7 +243,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -565,6 +566,7 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.vitstr_small" title="doctr.models.recognition.vitstr_small"><code class="xref py py-meth docutils literal notranslate"><span class="pre">vitstr_small</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.vitstr_base" title="doctr.models.recognition.vitstr_base"><code class="xref py py-meth docutils literal notranslate"><span class="pre">vitstr_base</span></code></a></p></li>
 <li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.parseq" title="doctr.models.recognition.parseq"><code class="xref py py-meth docutils literal notranslate"><span class="pre">parseq</span></code></a></p></li>
+<li><p><a class="reference internal" href="../modules/models.html#doctr.models.recognition.viptr_tiny" title="doctr.models.recognition.viptr_tiny"><code class="xref py py-meth docutils literal notranslate"><span class="pre">viptr_tiny</span></code></a></p></li>
 </ul>
 <p>For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:</p>
 <div class="table-wrapper docutils container">
@@ -746,6 +748,16 @@ Explanations about the metrics being used are available in <a class="reference i
 <td><p>95.56</p></td>
 <td><p>95.91</p></td>
 <td><p>2.2</p></td>
+</tr>
+<tr class="row-odd"><td><p>PyTorch</p></td>
+<td><p>viptr_tiny</p></td>
+<td><p>(32, 128, 3)</p></td>
+<td><p>3.2 M</p></td>
+<td><p>86.03</p></td>
+<td><p>86.71</p></td>
+<td><p>93.08</p></td>
+<td><p>93.47</p></td>
+<td><p>0.08</p></td>
 </tr>
 </tbody>
 </table>
@@ -990,6 +1002,33 @@ Explanations about the metrics being used are available in <a class="reference i
 </pre></div>
 </div>
 </section>
+<section id="running-the-predictors-on-gpu">
+<h3>Running the predictors on GPU<a class="headerlink" href="#running-the-predictors-on-gpu" title="Link to this heading">¶</a></h3>
+<p>You can run the predictors on GPU by specifying the appropriate device.</p>
+<p>Here’s how to do it for both <strong>NVIDIA</strong> and <strong>Apple Silicon (MPS)</strong> GPUs:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="c1"># For NVIDIA GPU</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+<span class="c1"># Alternatively: predictor = ocr_predictor(pretrained=True).cuda()</span>
+
+<span class="c1"># For Apple Silicon (MPS)</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;mps&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The same approach applies to all standalone predictors:</p>
+<ul class="simple">
+<li><p><cite>recognition_predictor</cite></p></li>
+<li><p><cite>detection_predictor</cite></p></li>
+<li><p><cite>crop_orientation_predictor</cite></p></li>
+<li><p><cite>page_orientation_predictor</cite></p></li>
+</ul>
+<p>Just create the predictor instance and move it to the appropriate device.
+To enable <strong>half-precision inference</strong>, you can append <cite>.half()</cite> after moving the predictor to the device.</p>
+</section>
 <section id="what-should-i-do-with-the-output">
 <h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Link to this heading">¶</a></h3>
 <p>The ocr_predictor returns a <cite>Document</cite> object with a nested structure (with <cite>Page</cite>, <cite>Block</cite>, <cite>Line</cite>, <cite>Word</cite>, <cite>Artefact</cite>).
@@ -1071,7 +1110,7 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>To export the outpout as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
+<p>To export the output as XML (hocr-format) you can use the <cite>export_as_xml</cite> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
 <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">xml_output</span><span class="p">:</span>
     <span class="n">xml_bytes_string</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1084,20 +1123,20 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="w">  </span><span class="nt">&lt;head&gt;</span>
 <span class="w">    </span><span class="nt">&lt;title&gt;</span>docTR<span class="w"> </span>-<span class="w"> </span>hOCR<span class="nt">&lt;/title&gt;</span>
 <span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">http-equiv=</span><span class="s">&quot;Content-Type&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;text/html; charset=utf-8&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-system&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;doctr 0.5.0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-system&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;doctr 0.11.0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
 <span class="w">    </span><span class="nt">&lt;meta</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;ocr-capabilities&quot;</span><span class="w"> </span><span class="na">content=</span><span class="s">&quot;ocr_page ocr_carea ocr_par ocr_line ocrx_word&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/head&gt;</span>
 <span class="w">  </span><span class="nt">&lt;body&gt;</span>
 <span class="w">    </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_page&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;page_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;image; bbox 0 0 3456 3456; ppageno 0&quot;</span><span class="w"> </span><span class="nt">/&gt;</span>
-<span class="w">    </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_carea&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;block_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
-<span class="w">      </span><span class="nt">&lt;p</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_par&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;par_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
-<span class="w">        </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_line&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;line_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;</span><span class="nt">&gt;</span>
-<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1552 540 1778 580; x_wconf 99&quot;</span><span class="nt">&gt;</span>Hello<span class="nt">&lt;/span&gt;</span>
-<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_2&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1782 529 1900 583; x_wconf 99&quot;</span><span class="nt">&gt;</span>XML<span class="nt">&lt;/span&gt;</span>
-<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_3&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1420 597 1684 641; x_wconf 81&quot;</span><span class="nt">&gt;</span>World<span class="nt">&lt;/span&gt;</span>
-<span class="w">        </span><span class="nt">&lt;/span&gt;</span>
-<span class="w">      </span><span class="nt">&lt;/p&gt;</span>
-<span class="w">    </span><span class="nt">&lt;/div&gt;</span>
+<span class="w">      </span><span class="nt">&lt;div</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_carea&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;block_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
+<span class="w">        </span><span class="nt">&lt;p</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_par&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;par_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710&quot;</span><span class="nt">&gt;</span>
+<span class="w">          </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocr_line&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;line_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;</span><span class="nt">&gt;</span>
+<span class="w">            </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_1&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1552 540 1778 580; x_wconf 99&quot;</span><span class="nt">&gt;</span>Hello<span class="nt">&lt;/span&gt;</span>
+<span class="w">            </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_2&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1782 529 1900 583; x_wconf 99&quot;</span><span class="nt">&gt;</span>XML<span class="nt">&lt;/span&gt;</span>
+<span class="w">            </span><span class="nt">&lt;span</span><span class="w"> </span><span class="na">class=</span><span class="s">&quot;ocrx_word&quot;</span><span class="w"> </span><span class="na">id=</span><span class="s">&quot;word_1_3&quot;</span><span class="w"> </span><span class="na">title=</span><span class="s">&quot;bbox 1420 597 1684 641; x_wconf 81&quot;</span><span class="nt">&gt;</span>World<span class="nt">&lt;/span&gt;</span>
+<span class="w">          </span><span class="nt">&lt;/span&gt;</span>
+<span class="w">        </span><span class="nt">&lt;/p&gt;</span>
+<span class="w">      </span><span class="nt">&lt;/div&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/body&gt;</span>
 <span class="nt">&lt;/html&gt;</span>
 </pre></div>
@@ -1149,7 +1188,7 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="k">class</span><span class="w"> </span><span class="nc">CustomHook</span><span class="p">:</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loc_preds</span><span class="p">):</span>
         <span class="c1"># Manipulate the location predictions here</span>
-        <span class="c1"># 1. The outpout structure needs to be the same as the input location predictions</span>
+        <span class="c1"># 1. The output structure needs to be the same as the input location predictions</span>
         <span class="c1"># 2. Be aware that the coordinates are relative and needs to be between 0 and 1</span>
         <span class="k">return</span> <span class="n">loc_preds</span>
 
@@ -1236,6 +1275,7 @@ To get a better understanding of our document model, check our <a class="referen
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>
 <li><a class="reference internal" href="#id2">Available architectures</a></li>
 <li><a class="reference internal" href="#two-stage-approaches">Two-stage approaches</a></li>
+<li><a class="reference internal" href="#running-the-predictors-on-gpu">Running the predictors on GPU</a></li>
 <li><a class="reference internal" href="#what-should-i-do-with-the-output">What should I do with the output?</a></li>
 <li><a class="reference internal" href="#advanced-options">Advanced options</a></li>
 </ul>
@@ -1251,12 +1291,12 @@ To get a better understanding of our document model, check our <a class="referen
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=af03451e"></script>
+    <script src="../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

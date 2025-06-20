@@ -244,7 +244,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -323,23 +324,19 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 
 <span class="c1"># Load custom detection model</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">det_params</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load custom recognition model</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">reco_params</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load custom detection and recognition model</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">det_params</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">reco_params</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -347,19 +344,19 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 
 <span class="c1"># Load custom detection model</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load custom recognition model</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="c1"># Load custom detection and recognition model</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -371,8 +368,7 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;german&quot;</span><span class="p">])</span>
-<span class="n">reco_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">reco_params</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
@@ -381,7 +377,7 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;german&quot;</span><span class="p">])</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
@@ -393,15 +389,14 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">kie_predictor</span><span class="p">,</span> <span class="n">db_resnet50</span>
 
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">])</span>
-<span class="n">det_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">det_params</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 <span class="n">kie_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div><div aria-labelledby="tab-2-2-1" class="sphinx-tabs-panel" hidden="true" id="panel-2-2-1" name="2-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">kie_predictor</span><span class="p">,</span> <span class="n">db_resnet50</span>
 
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">,</span> <span class="s1">&#39;date&#39;</span><span class="p">])</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">kie_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s1">&#39;crnn_vgg16_bn&#39;</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -416,11 +411,9 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_resnet50</span><span class="p">,</span> <span class="n">crnn_vgg16_bn</span>
 
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">det_params</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="o">&lt;</span><span class="n">path_to_pt</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">reco_params</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 
 <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
     <span class="n">PreProcessor</span><span class="p">(</span>
@@ -453,9 +446,9 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">db_resnet50</span><span class="p">,</span> <span class="n">crnn_vgg16_bn</span>
 
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">db_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">det_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">det_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">crnn_vgg16_bn</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pretrained_backbone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">reco_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 
 <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">DetectionPredictor</span><span class="p">(</span>
     <span class="n">PreProcessor</span><span class="p">(</span>
@@ -505,11 +498,9 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.classification.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">crop_orientation_predictor</span><span class="p">,</span> <span class="n">page_orientation_predictor</span>
 
 <span class="n">custom_page_orientation_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">page_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">custom_page_orientation_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">page_params</span><span class="p">)</span>
+<span class="n">custom_page_orientation_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 <span class="n">custom_crop_orientation_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">crop_params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-<span class="n">custom_crop_orientation_model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">crop_params</span><span class="p">)</span>
+<span class="n">custom_crop_orientation_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -528,9 +519,9 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.classification.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">crop_orientation_predictor</span><span class="p">,</span> <span class="n">page_orientation_predictor</span>
 
 <span class="n">custom_page_orientation_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">custom_page_orientation_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">custom_page_orientation_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 <span class="n">custom_crop_orientation_model</span> <span class="o">=</span> <span class="n">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">custom_crop_orientation_model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
+<span class="n">custom_crop_orientation_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s2">&quot;&lt;path_to_checkpoint&gt;&quot;</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -621,13 +612,13 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=af03451e"></script>
+    <script src="../_static/js/custom.js?v=dc6a7468"></script>
     <script src="../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

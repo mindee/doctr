@@ -242,7 +242,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -306,6 +307,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">scipy.io</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sio</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisionDataset</span>
@@ -398,7 +400,9 @@
                 <span class="n">box_targets</span> <span class="o">=</span> <span class="p">[[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span> <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">box_targets</span><span class="p">]</span>
 
             <span class="k">if</span> <span class="n">recognition_task</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">_raw_path</span><span class="p">,</span> <span class="n">_raw_label</span><span class="p">))</span>
+                <span class="k">if</span> <span class="s2">&quot; &quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_raw_label</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">_raw_path</span><span class="p">))</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">)),</span> <span class="n">_raw_label</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">detection_task</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">_raw_path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)))</span>
             <span class="k">else</span><span class="p">:</span>
@@ -445,12 +449,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../../../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=af03451e"></script>
+    <script src="../../../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

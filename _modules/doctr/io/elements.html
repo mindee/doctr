@@ -242,7 +242,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -662,7 +663,7 @@
         <span class="p">)</span>
         <span class="c1"># Create the body</span>
         <span class="n">body</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="s2">&quot;body&quot;</span><span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span>
+        <span class="n">page_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
             <span class="n">body</span><span class="p">,</span>
             <span class="s2">&quot;div&quot;</span><span class="p">,</span>
             <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
@@ -677,7 +678,7 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;XML export is only available for straight bounding boxes for now.&quot;</span><span class="p">)</span>
             <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">geometry</span>
             <span class="n">block_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                <span class="n">body</span><span class="p">,</span>
+                <span class="n">page_div</span><span class="p">,</span>
                 <span class="s2">&quot;div&quot;</span><span class="p">,</span>
                 <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
                     <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;ocr_carea&quot;</span><span class="p">,</span>
@@ -866,7 +867,41 @@
 <span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                     <span class="p">},</span>
                 <span class="p">)</span>
-                <span class="n">prediction_div</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">value</span>
+                <span class="c1"># NOTE: ocr_par, ocr_line and ocrx_word are the same because the KIE predictions contain only words</span>
+                <span class="c1"># This is a workaround to make it PDF/A compatible</span>
+                <span class="n">par_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
+                    <span class="n">prediction_div</span><span class="p">,</span>
+                    <span class="s2">&quot;p&quot;</span><span class="p">,</span>
+                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;ocr_par&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_par_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">line_span</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
+                    <span class="n">par_div</span><span class="p">,</span>
+                    <span class="s2">&quot;span&quot;</span><span class="p">,</span>
+                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;ocr_line&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_line_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">; </span><span class="se">\</span>
+<span class="s2">                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">word_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
+                    <span class="n">line_span</span><span class="p">,</span>
+                    <span class="s2">&quot;span&quot;</span><span class="p">,</span>
+                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;class&quot;</span><span class="p">:</span> <span class="s2">&quot;ocrx_word&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_word_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
+<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">; </span><span class="se">\</span>
+<span class="s2">                        x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">)</span>
+                <span class="n">word_div</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">value</span>
                 <span class="n">prediction_count</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;xml&quot;</span><span class="p">),</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">)</span>
@@ -987,12 +1022,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../../../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=af03451e"></script>
+    <script src="../../../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

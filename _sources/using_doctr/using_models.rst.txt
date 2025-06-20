@@ -129,6 +129,7 @@ The following architectures are currently supported:
 * :py:meth:`vitstr_small <doctr.models.recognition.vitstr_small>`
 * :py:meth:`vitstr_base <doctr.models.recognition.vitstr_base>`
 * :py:meth:`parseq <doctr.models.recognition.parseq>`
+* :py:meth:`viptr_tiny <doctr.models.recognition.viptr_tiny>`
 
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
@@ -170,6 +171,8 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 | PyTorch        | vitstr_base                     | (32, 128, 3)    | 85.2 M       | 88.33      | 89.09         | 95.32      | 95.71         | 4.1                |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 | PyTorch        | parseq                          | (32, 128, 3)    | 23.8 M       | 88.53      | 89.24         | 95.56      | 95.91         | 2.2                |
++----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| PyTorch        | viptr_tiny                      | (32, 128, 3)    | 3.2 M        | 86.03      | 86.71         | 93.08      | 93.47         | 0.08               |
 +----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 
 
@@ -326,6 +329,39 @@ For example to disable the automatic grouping of lines into blocks:
     model = ocr_predictor(pretrained=True, resolve_blocks=False)
 
 
+Running the predictors on GPU
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can run the predictors on GPU by specifying the appropriate device.
+
+Here's how to do it for both **NVIDIA** and **Apple Silicon (MPS)** GPUs:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import ocr_predictor
+
+    # For NVIDIA GPU
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    predictor = ocr_predictor(pretrained=True).to(device)
+    # Alternatively: predictor = ocr_predictor(pretrained=True).cuda()
+
+    # For Apple Silicon (MPS)
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    predictor = ocr_predictor(pretrained=True).to(device)
+
+
+The same approach applies to all standalone predictors:
+
+* `recognition_predictor`
+* `detection_predictor`
+* `crop_orientation_predictor`
+* `page_orientation_predictor`
+
+Just create the predictor instance and move it to the appropriate device.
+To enable **half-precision inference**, you can append `.half()` after moving the predictor to the device.
+
+
 What should I do with the output?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -409,7 +445,7 @@ For reference, here is the export for the same `Document` as above::
     ]
   }
 
-To export the outpout as XML (hocr-format) you can use the `export_as_xml` method:
+To export the output as XML (hocr-format) you can use the `export_as_xml` method:
 
 .. code-block:: python
 
@@ -427,20 +463,20 @@ For reference, here is a sample XML byte string output:
     <head>
       <title>docTR - hOCR</title>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="ocr-system" content="doctr 0.5.0" />
+      <meta name="ocr-system" content="doctr 0.11.0" />
       <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />
     </head>
     <body>
       <div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0" />
-      <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
-        <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
-          <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
-            <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
-            <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
-            <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
-          </span>
-        </p>
-      </div>
+        <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
+          <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
+            <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
+              <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
+              <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
+              <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
+            </span>
+          </p>
+        </div>
     </body>
   </html>
 
@@ -502,7 +538,7 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
     class CustomHook:
         def __call__(self, loc_preds):
             # Manipulate the location predictions here
-            # 1. The outpout structure needs to be the same as the input location predictions
+            # 1. The output structure needs to be the same as the input location predictions
             # 2. Be aware that the coordinates are relative and needs to be between 0 and 1
             return loc_preds
 

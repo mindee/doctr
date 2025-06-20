@@ -242,7 +242,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -371,6 +372,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">embedding_units</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># +1 for EOS</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">ViTSTRPostProcessor</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pretrained parameters onto the model</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            path_or_url: the path or URL to the model parameters (checkpoint)</span>
+<span class="sd">            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -512,7 +522,7 @@
         <span class="c1"># The number of classes is not the same as the number of classes in the pretrained model =&gt;</span>
         <span class="c1"># remove the last layer weights</span>
         <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">load_pretrained_params</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
@@ -611,12 +621,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=af03451e"></script>
+    <script src="../../../../../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

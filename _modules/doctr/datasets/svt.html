@@ -242,7 +242,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -335,7 +336,7 @@
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">URL</span> <span class="o">=</span> <span class="s2">&quot;http://vision.ucsd.edu/~kai/svt/svt.zip&quot;</span>
+    <span class="n">URL</span> <span class="o">=</span> <span class="s2">&quot;http://www.iapr-tc11.org/dataset/SVT/svt.zip&quot;</span>
     <span class="n">SHA256</span> <span class="o">=</span> <span class="s2">&quot;63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -413,7 +414,7 @@
             <span class="k">if</span> <span class="n">recognition_task</span><span class="p">:</span>
                 <span class="n">crops</span> <span class="o">=</span> <span class="n">crop_bboxes_from_image</span><span class="p">(</span><span class="n">img_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">),</span> <span class="n">geoms</span><span class="o">=</span><span class="n">boxes</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">crop</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="s2">&quot; &quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">detection_task</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">boxes</span><span class="p">))</span>
@@ -457,12 +458,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../../../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=af03451e"></script>
+    <script src="../../../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

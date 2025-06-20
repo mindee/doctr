@@ -1,0 +1,1192 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-40DVRMX8T4');
+</script>
+    <link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="doctr.io" href="io.html" /><link rel="prev" title="doctr.contrib" href="contrib.html" />
+
+    <link rel="shortcut icon" href="../_static/favicon.ico"/><!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>doctr.datasets - docTR documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f0f0f0;
+  --color-code-foreground: black;
+  --color-sidebar-background: #082747;
+  --color-sidebar-background-border: #082747;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  --color-sidebar-link-text: white;
+  --sidebar-caption-font-size: normal;
+  --color-sidebar-item-background--hover:  #5dade2;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  --color-sidebar-background: #1a1c1e;
+  --color-sidebar-background-border: #1a1c1e;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  --color-sidebar-background: #1a1c1e;
+  --color-sidebar-background-border: #1a1c1e;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">docTR documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/Logo-docTR-white.png" alt="Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community resources</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="contrib.html">doctr.contrib</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/contributing.html">Contributing to docTR</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/modules/datasets.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="doctr-datasets">
+<h1>doctr.datasets<a class="headerlink" href="#doctr-datasets" title="Link to this heading">¶</a></h1>
+<section id="datasets">
+<span id="id1"></span><h2>doctr.datasets<a class="headerlink" href="#datasets" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.FUNSD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">FUNSD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/funsd.html#FUNSD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.FUNSD" title="Link to this definition">¶</a></dt>
+<dd><p>FUNSD dataset from <a class="reference external" href="https://arxiv.org/pdf/1905.13538.pdf">“FUNSD: A Dataset for Form Understanding in Noisy Scanned Documents”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/funsd-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/funsd-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">FUNSD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">FUNSD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.SROIE">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">SROIE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/sroie.html#SROIE"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.SROIE" title="Link to this definition">¶</a></dt>
+<dd><p>SROIE dataset from <a class="reference external" href="https://arxiv.org/pdf/2103.10213.pdf">“ICDAR2019 Competition on Scanned Receipt OCR and Information Extraction”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/sroie-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/sroie-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">SROIE</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SROIE</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.CORD">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">CORD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/cord.html#CORD"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.CORD" title="Link to this definition">¶</a></dt>
+<dd><p>CORD dataset from <a class="reference external" href="https://openreview.net/pdf?id=SJl3z659UH">“CORD: A Consolidated Receipt Dataset forPost-OCR Parsing”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/cord-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/cord-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CORD</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">CORD</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.IIIT5K">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">IIIT5K</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/iiit5k.html#IIIT5K"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.IIIT5K" title="Link to this definition">¶</a></dt>
+<dd><p>IIIT-5K character-level localization dataset from
+<a class="reference external" href="https://cdn.iiit.ac.in/cdn/cvit.iiit.ac.in/images/Projects/SceneTextUnderstanding/home/mishraBMVC12.pdf">“BMVC 2012 Scene Text Recognition using Higher Order Language Priors”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/iiit5k-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/iiit5k-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: this dataset is for character-level localization</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">IIIT5K</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IIIT5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.SVT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">SVT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/svt.html#SVT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.SVT" title="Link to this definition">¶</a></dt>
+<dd><p>SVT dataset from <a class="reference external" href="http://vision.ucsd.edu/~kai/svt/">“The Street View Text Dataset - UCSD Computer Vision”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">SVT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SVT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.SVHN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">SVHN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/svhn.html#SVHN"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.SVHN" title="Link to this definition">¶</a></dt>
+<dd><p>SVHN dataset from <a class="reference external" href="http://ufldl.stanford.edu/housenumbers/">“The Street View House Numbers (SVHN) Dataset”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/svhn-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/svhn-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">SVHN</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SVHN</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.SynthText">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">SynthText</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/synthtext.html#SynthText"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.SynthText" title="Link to this definition">¶</a></dt>
+<dd><p>SynthText dataset from <a class="reference external" href="https://arxiv.org/abs/1604.06646">“Synthetic Data for Text Localisation in Natural Images”</a> | <a class="reference external" href="https://github.com/ankush-me/SynthText">“repository”</a> |
+<a class="reference external" href="https://www.robots.ox.ac.uk/~vgg/data/scenetext/">“website”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/svt-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">SynthText</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">SynthText</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.IC03">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">IC03</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/ic03.html#IC03"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.IC03" title="Link to this definition">¶</a></dt>
+<dd><p>IC03 dataset from <a class="reference external" href="http://www.iapr-tc11.org/mediawiki/index.php?title=ICDAR_2003_Robust_Reading_Competitions">“ICDAR 2003 Robust Reading Competitions: Entries, Results and Future Directions”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/ic03-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/ic03-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">IC03</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IC03</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.IC13">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">IC13</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/ic13.html#IC13"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.IC13" title="Link to this definition">¶</a></dt>
+<dd><p>IC13 dataset from <a class="reference external" href="https://rrc.cvc.uab.es/">“ICDAR 2013 Robust Reading Competition”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/ic13-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/ic13-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download both image and label parts from Focused Scene Text challenge Task2.1 2013-2015.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">IC13</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IC13</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Training_Task12_Images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                 <span class="n">label_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Training_Task1_GT&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">IC13</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Test_Task12_Images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                <span class="n">label_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/Challenge2_Test_Task1_GT&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_folder</strong> – folder with all annotation files for the images</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.IMGUR5K">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">IMGUR5K</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/imgur5k.html#IMGUR5K"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.IMGUR5K" title="Link to this definition">¶</a></dt>
+<dd><p>IMGUR5K dataset from <a class="reference external" href="https://arxiv.org/abs/2106.08385">“TextStyleBrush: Transfer of Text Aesthetics from a Single Example”</a> |
+<a class="reference external" href="https://github.com/facebookresearch/IMGUR5K-Handwriting-Dataset">repository</a>.</p>
+<a class="reference internal image-reference" href="https://doctr-static.mindee.com/models?id=v0.5.0/imgur5k-grid.png&amp;src=0"><img alt="https://doctr-static.mindee.com/models?id=v0.5.0/imgur5k-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/imgur5k-grid.png&amp;src=0" style="width: 630px; height: 400px;" />
+</a>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download/generate the dataset from the repository.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">IMGUR5K</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IMGUR5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">IMGUR5K</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the annotations file of the dataset</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.MJSynth">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">MJSynth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/mjsynth.html#MJSynth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.MJSynth" title="Link to this definition">¶</a></dt>
+<dd><p>MJSynth dataset from <a class="reference external" href="https://www.robots.ox.ac.uk/~vgg/data/text/">“Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: This is a pure recognition dataset without bounding box labels.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">MJSynth</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">MJSynth</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">MJSynth</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the file with the labels</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.IIITHWS">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">IIITHWS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/iiithws.html#IIITHWS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.IIITHWS" title="Link to this definition">¶</a></dt>
+<dd><p>IIITHWS dataset from <a class="reference external" href="https://arxiv.org/pdf/1608.04224.pdf">“Generating Synthetic Data for Text Recognition”</a> | <a class="reference external" href="https://github.com/kris314/hwnet">“repository”</a> |
+<a class="reference external" href="https://cvit.iiit.ac.in/research/projects/cvit-projects/matchdocimgs">“website”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: This is a pure recognition dataset without bounding box labels.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">IIITHWS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">IIITHWS</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/iiit-hws/Images_90K_Normalized&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IIIT-HWS-90K.txt&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">IIITHWS</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/iiit-hws/Images_90K_Normalized&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/IIIT-HWS-90K.txt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the file with the labels</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.DocArtefacts">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">DocArtefacts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/doc_artefacts.html#DocArtefacts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.DocArtefacts" title="Link to this definition">¶</a></dt>
+<dd><p>Object detection dataset for non-textual elements in documents.
+The dataset includes a variety of synthetic document pages with non-textual elements.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.5.0/artefacts-grid.png&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.5.0/artefacts-grid.png&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocArtefacts</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">DocArtefacts</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">download</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>VisionDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.WILDRECEIPT">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">WILDRECEIPT</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">train</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recognition_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detection_task</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/wildreceipt.html#WILDRECEIPT"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.WILDRECEIPT" title="Link to this definition">¶</a></dt>
+<dd><p>WildReceipt dataset from <a class="reference external" href="https://arxiv.org/abs/2103.14470v1">“Spatial Dual-Modality Graph Reasoning for Key Information Extraction”</a> |
+<a class="reference external" href="https://download.openmmlab.com/mmocr/data/wildreceipt.tar">“repository”</a>.</p>
+<img alt="https://doctr-static.mindee.com/models?id=v0.7.0/wildreceipt-dataset.jpg&amp;src=0" class="align-center" src="https://doctr-static.mindee.com/models?id=v0.7.0/wildreceipt-dataset.jpg&amp;src=0" />
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># NOTE: You need to download the dataset first.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">WILDRECEIPT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">WILDRECEIPT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/wildreceipt/&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/wildreceipt/train.txt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_set</span> <span class="o">=</span> <span class="n">WILDRECEIPT</span><span class="p">(</span><span class="n">train</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/wildreceipt/&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                   <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/wildreceipt/test.txt&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">test_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the annotations file of the dataset</p></li>
+<li><p><strong>train</strong> – whether the subset should be the training one</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>recognition_task</strong> – whether the dataset should be used for recognition task</p></li>
+<li><p><strong>detection_task</strong> – whether the dataset should be used for detection task</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="synthetic-dataset-generator">
+<h2>Synthetic dataset generator<a class="headerlink" href="#synthetic-dataset-generator" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.CharacterGenerator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">CharacterGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/generator/pytorch.html#CharacterGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.CharacterGenerator" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a character image generation dataset</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">CharacterGenerator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">CharacterGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab</strong> – vocabulary to take the character from</p></li>
+<li><p><strong>num_samples</strong> – number of samples that will be generated iterating over the dataset</p></li>
+<li><p><strong>cache_samples</strong> – whether generated images should be cached firsthand</p></li>
+<li><p><strong>font_family</strong> – font to use to generate the text images</p></li>
+<li><p><strong>img_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to both the image and the target</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.WordGenerator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">WordGenerator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vocab</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_chars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_chars</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cache_samples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">font_family</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">img_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_transforms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Callable" title="(in Python v3.13)"><span class="pre">Callable</span></a><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/generator/pytorch.html#WordGenerator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.WordGenerator" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a character image generation dataset</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">WordGenerator</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ds</span> <span class="o">=</span> <span class="n">WordGenerator</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="s1">&#39;abdef&#39;</span><span class="p">,</span> <span class="n">min_chars</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">max_chars</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vocab</strong> – vocabulary to take the character from</p></li>
+<li><p><strong>min_chars</strong> – minimum number of characters in a word</p></li>
+<li><p><strong>max_chars</strong> – maximum number of characters in a word</p></li>
+<li><p><strong>num_samples</strong> – number of samples that will be generated iterating over the dataset</p></li>
+<li><p><strong>cache_samples</strong> – whether generated images should be cached firsthand</p></li>
+<li><p><strong>font_family</strong> – font to use to generate the text images</p></li>
+<li><p><strong>img_transforms</strong> – composable transformations that will be applied to each image</p></li>
+<li><p><strong>sample_transforms</strong> – composable transformations that will be applied to both the image and the target</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="custom-dataset-loader">
+<h2>Custom dataset loader<a class="headerlink" href="#custom-dataset-loader" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.DetectionDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">DetectionDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/detection.html#DetectionDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.DetectionDataset" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a text detection dataset</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">DetectionDataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">DetectionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                             <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the images of the dataset</p></li>
+<li><p><strong>label_path</strong> – path to the annotations of each image</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.RecognitionDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">RecognitionDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/recognition.html#RecognitionDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.RecognitionDataset" title="Link to this definition">¶</a></dt>
+<dd><p>Dataset implementation for text recognition tasks</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecognitionDataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">RecognitionDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                               <span class="n">labels_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – path to the images folder</p></li>
+<li><p><strong>labels_path</strong> – pathe to the json file containing all labels (character sequences)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.OCRDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">OCRDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Link to this definition">¶</a></dt>
+<dd><p>Implements an OCR dataset</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">OCRDataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">OCRDataset</span><span class="p">(</span><span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>                       <span class="n">label_file</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – local path to image folder (all jpg at the root)</p></li>
+<li><p><strong>label_file</strong> – local path to the label file</p></li>
+<li><p><strong>use_polygons</strong> – whether polygons should be considered as rotated bounding box (instead of straight ones)</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="dataset-utils">
+<h2>Dataset utils<a class="headerlink" href="#dataset-utils" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.translate">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">translate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">unknown_char</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'■'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#translate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.translate" title="Link to this definition">¶</a></dt>
+<dd><p>Translate a string input in a given vocabulary</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_string</strong> – input string to translate</p></li>
+<li><p><strong>vocab_name</strong> – vocabulary to use (french, latin, …)</p></li>
+<li><p><strong>unknown_char</strong> – unknown character for non-translatable characters</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A string translated in a given vocab</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.encode_string">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">encode_string</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_string</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#encode_string"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.encode_string" title="Link to this definition">¶</a></dt>
+<dd><p>Given a predefined mapping, encode the string to a sequence of numbers</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_string</strong> – string to encode</p></li>
+<li><p><strong>vocab</strong> – vocabulary (string), the encoding is given by the indexing of the character sequence</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list encoding the input_string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.decode_sequence">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">decode_sequence</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_seq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.13)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#decode_sequence"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.decode_sequence" title="Link to this definition">¶</a></dt>
+<dd><p>Given a predefined mapping, decode the sequence of numbers to a string</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>input_seq</strong> – array to decode</p></li>
+<li><p><strong>mapping</strong> – vocabulary (string), the encoding is given by the indexing of the character sequence</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A string, decoded from input_seq</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.encode_sequences">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">encode_sequences</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sequences</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocab</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sos</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_seq_length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#encode_sequences"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.encode_sequences" title="Link to this definition">¶</a></dt>
+<dd><p>Encode character sequences using a given vocab as mapping</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sequences</strong> – the list of character sequences of size N</p></li>
+<li><p><strong>vocab</strong> – the ordered vocab to use for encoding</p></li>
+<li><p><strong>target_size</strong> – maximum length of the encoded data</p></li>
+<li><p><strong>eos</strong> – encoding of End Of String</p></li>
+<li><p><strong>sos</strong> – optional encoding of Start Of String</p></li>
+<li><p><strong>pad</strong> – optional encoding for padding. In case of padding, all sequences are followed by 1 EOS then PAD</p></li>
+<li><p><strong>dynamic_seq_length</strong> – if <cite>target_size</cite> is specified, uses it as upper bound and enables dynamic sequence size</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the padded encoded data as a tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.pre_transform_multiclass">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">pre_transform_multiclass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#pre_transform_multiclass"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.pre_transform_multiclass" title="Link to this definition">¶</a></dt>
+<dd><p>Converts multiclass target to relative coordinates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> – Image</p></li>
+<li><p><strong>target</strong> – tuple of target polygons and their classes names</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Image and dictionary of boxes, with class names as keys</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.crop_bboxes_from_image">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">crop_bboxes_from_image</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#crop_bboxes_from_image"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.crop_bboxes_from_image" title="Link to this definition">¶</a></dt>
+<dd><p>Crop a set of bounding boxes from an image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_path</strong> – path to the image</p></li>
+<li><p><strong>geoms</strong> – a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a list of cropped images</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.datasets.convert_target_to_relative">
+<span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">convert_target_to_relative</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ImageTensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">ImageTensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.13)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/datasets/utils.html#convert_target_to_relative"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.convert_target_to_relative" title="Link to this definition">¶</a></dt>
+<dd><p>Converts target to relative coordinates</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img</strong> – tf.Tensor or torch.Tensor representing the image</p></li>
+<li><p><strong>target</strong> – target to convert to relative coordinates (boxes (N, 4) or polygons (N, 4, 2))</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The image and the target in relative coordinates</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="supported-vocabs">
+<span id="vocabs"></span><h2>Supported Vocabs<a class="headerlink" href="#supported-vocabs" title="Link to this heading">¶</a></h2>
+<p>Since textual content has to be encoded properly for models to interpret them efficiently, docTR supports multiple sets
+of vocabs.</p>
+<div class="table-wrapper colwidths-given docutils container" id="id6">
+<table class="docutils align-default" id="id6">
+<caption><span class="caption-text">docTR Vocabs</span><a class="headerlink" href="#id6" title="Link to this table">¶</a></caption>
+<colgroup>
+<col style="width: 26.7%" />
+<col style="width: 6.7%" />
+<col style="width: 66.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>size</p></th>
+<th class="head"><p>characters</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>digits</p></td>
+<td><p>10</p></td>
+<td><p>0123456789</p></td>
+</tr>
+<tr class="row-odd"><td><p>hindi_digits</p></td>
+<td><p>10</p></td>
+<td><p>٠١٢٣٤٥٦٧٨٩</p></td>
+</tr>
+<tr class="row-even"><td><p>ascii_letters</p></td>
+<td><p>52</p></td>
+<td><p>abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</p></td>
+</tr>
+<tr class="row-odd"><td><p>punctuation</p></td>
+<td><p>32</p></td>
+<td><p>!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~</p></td>
+</tr>
+<tr class="row-even"><td><p>currency</p></td>
+<td><p>5</p></td>
+<td><p>£€¥¢฿</p></td>
+</tr>
+<tr class="row-odd"><td><p>ancient_greek</p></td>
+<td><p>48</p></td>
+<td><p>αβγδεζηθικλμνξοπρστυφχψωΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ</p></td>
+</tr>
+<tr class="row-even"><td><p>arabic_letters</p></td>
+<td><p>37</p></td>
+<td><p>ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىي</p></td>
+</tr>
+<tr class="row-odd"><td><p>generic_cyrillic_letters</p></td>
+<td><p>58</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ</p></td>
+</tr>
+<tr class="row-even"><td><p>persian_letters</p></td>
+<td><p>5</p></td>
+<td><p>پچڢڤگ</p></td>
+</tr>
+<tr class="row-odd"><td><p>arabic_diacritics</p></td>
+<td><p>2</p></td>
+<td><p>‘ًٌٍَُِّْ’</p></td>
+</tr>
+<tr class="row-even"><td><p>arabic_punctuation</p></td>
+<td><p>5</p></td>
+<td><p>؟؛«»—</p></td>
+</tr>
+<tr class="row-odd"><td><p>latin</p></td>
+<td><p>94</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~</p></td>
+</tr>
+<tr class="row-even"><td><p>english</p></td>
+<td><p>100</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿</p></td>
+</tr>
+<tr class="row-odd"><td><p>legacy_french</p></td>
+<td><p>123</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ£€¥¢฿</p></td>
+</tr>
+<tr class="row-even"><td><p>french</p></td>
+<td><p>126</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ</p></td>
+</tr>
+<tr class="row-odd"><td><p>portuguese</p></td>
+<td><p>131</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàâãéêëíïóôõúüçÁÀÂÃÉËÍÏÓÔÕÚÜÇ¡¿</p></td>
+</tr>
+<tr class="row-even"><td><p>spanish</p></td>
+<td><p>116</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ¡¿</p></td>
+</tr>
+<tr class="row-odd"><td><p>italian</p></td>
+<td><p>120</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿àèéìíîòóùúÀÈÉÌÍÎÒÓÙÚ</p></td>
+</tr>
+<tr class="row-even"><td><p>german</p></td>
+<td><p>108</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöüßÄÖÜẞ</p></td>
+</tr>
+<tr class="row-odd"><td><p>arabic</p></td>
+<td><p>101</p></td>
+<td><p>ءآأؤإئابةتثجحخدذرزسشصضطظعغـفقكلمنهوىيپچڢڤگ؟؛«»—0123456789٠١٢٣٤٥٦٧٨٩’ًٌٍَُِّْ’!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~</p></td>
+</tr>
+<tr class="row-even"><td><p>czech</p></td>
+<td><p>130</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áčďéěíňóřšťúůýžÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ</p></td>
+</tr>
+<tr class="row-odd"><td><p>polish</p></td>
+<td><p>118</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ąćęłńóśźżĄĆĘŁŃÓŚŹŻ</p></td>
+</tr>
+<tr class="row-even"><td><p>dutch</p></td>
+<td><p>114</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áéíóúüñÁÉÍÓÚÜÑ</p></td>
+</tr>
+<tr class="row-odd"><td><p>norwegian</p></td>
+<td><p>106</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿æøåÆØÅ</p></td>
+</tr>
+<tr class="row-even"><td><p>danish</p></td>
+<td><p>106</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;'()*+,-./:;&lt;=&gt;?&#64;[\]^_`{|}~°£€¥¢฿æøåÆØÅ</p></td>
+</tr>
+<tr class="row-odd"><td><p>finnish</p></td>
+<td><p>104</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿äöÄÖ</p></td>
+</tr>
+<tr class="row-even"><td><p>swedish</p></td>
+<td><p>106</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿åäöÅÄÖ</p></td>
+</tr>
+<tr class="row-odd"><td><p>ukrainian</p></td>
+<td><p>115</p></td>
+<td><p>абвгдежзийклмнопрстуфхцчшщьюяАБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЬЮЯ0123456789!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿ґіїєҐІЇЄ₴</p></td>
+</tr>
+<tr class="row-even"><td><p>vietnamese</p></td>
+<td><p>234</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿áàảạãăắằẳẵặâấầẩẫậđéèẻẽẹêếềểễệóòỏõọôốồổộỗơớờởợỡúùủũụưứừửữựíìỉĩịýỳỷỹỵÁÀẢẠÃĂẮẰẲẴẶÂẤẦẨẪẬĐÉÈẺẼẸÊẾỀỂỄỆÓÒỎÕỌÔỐỒỔỘỖƠỚỜỞỢỠÚÙỦŨỤƯỨỪỬỮỰÍÌỈĨỊÝỲỶỸỴ</p></td>
+</tr>
+<tr class="row-odd"><td><p>hebrew</p></td>
+<td><p>123</p></td>
+<td><p>0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~°£€¥¢฿אבגדהוזחטיכלמנסעפצקרשת₪</p></td>
+</tr>
+<tr class="row-even"><td><p>hindi</p></td>
+<td><p>68</p></td>
+<td><p>अआइईउऊऋॠऌॡएऐओऔंःकखगघङचछजझञटठडढणतथदधनपफबभमयरलवशषसह०१२३४५६७८९।,?!:्ॐ॰॥</p></td>
+</tr>
+<tr class="row-odd"><td><p>bangla</p></td>
+<td><p>70</p></td>
+<td><p>অআইঈউঊঋএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃেৈোৌ্ৎংঃঁ০১২৩৪৫৬৭৮৯</p></td>
+</tr>
+<tr class="row-even"><td><p>gujarati</p></td>
+<td><p>98</p></td>
+<td><p>અઆઇઈઉઊઋએઐઓઔખગઘચછજઝઞટઠડઢણતથદધનપફબભમયરલવશસહળક્ષ૦૧૨૩૪૫૬૭૮૯!”#$%&amp;’()*+,-./:;&lt;=&gt;?&#64;[]^_`{|}~૰ઽ◌ંઃ॥ૐ઼ ઁ૱</p></td>
+</tr>
+<tr class="row-odd"><td><p>multilingual</p></td>
+<td><p>195</p></td>
+<td><p>english &amp; french &amp; german &amp; italian &amp; spanish &amp; portuguese &amp; czech &amp; polish &amp; dutch &amp; norwegian &amp; danish &amp; finnish &amp; swedish &amp; §</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="io.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">doctr.io</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="contrib.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">doctr.contrib</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2025, Mindee
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">doctr.datasets</a><ul>
+<li><a class="reference internal" href="#datasets">doctr.datasets</a><ul>
+<li><a class="reference internal" href="#doctr.datasets.FUNSD"><code class="docutils literal notranslate"><span class="pre">FUNSD</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.SROIE"><code class="docutils literal notranslate"><span class="pre">SROIE</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.CORD"><code class="docutils literal notranslate"><span class="pre">CORD</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.IIIT5K"><code class="docutils literal notranslate"><span class="pre">IIIT5K</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.SVT"><code class="docutils literal notranslate"><span class="pre">SVT</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.SVHN"><code class="docutils literal notranslate"><span class="pre">SVHN</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.SynthText"><code class="docutils literal notranslate"><span class="pre">SynthText</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.IC03"><code class="docutils literal notranslate"><span class="pre">IC03</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.IC13"><code class="docutils literal notranslate"><span class="pre">IC13</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.IMGUR5K"><code class="docutils literal notranslate"><span class="pre">IMGUR5K</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.MJSynth"><code class="docutils literal notranslate"><span class="pre">MJSynth</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.IIITHWS"><code class="docutils literal notranslate"><span class="pre">IIITHWS</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.DocArtefacts"><code class="docutils literal notranslate"><span class="pre">DocArtefacts</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.WILDRECEIPT"><code class="docutils literal notranslate"><span class="pre">WILDRECEIPT</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#synthetic-dataset-generator">Synthetic dataset generator</a><ul>
+<li><a class="reference internal" href="#doctr.datasets.CharacterGenerator"><code class="docutils literal notranslate"><span class="pre">CharacterGenerator</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.WordGenerator"><code class="docutils literal notranslate"><span class="pre">WordGenerator</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#custom-dataset-loader">Custom dataset loader</a><ul>
+<li><a class="reference internal" href="#doctr.datasets.DetectionDataset"><code class="docutils literal notranslate"><span class="pre">DetectionDataset</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.RecognitionDataset"><code class="docutils literal notranslate"><span class="pre">RecognitionDataset</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.OCRDataset"><code class="docutils literal notranslate"><span class="pre">OCRDataset</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#dataset-utils">Dataset utils</a><ul>
+<li><a class="reference internal" href="#doctr.datasets.translate"><code class="docutils literal notranslate"><span class="pre">translate()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.encode_string"><code class="docutils literal notranslate"><span class="pre">encode_string()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.decode_sequence"><code class="docutils literal notranslate"><span class="pre">decode_sequence()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.encode_sequences"><code class="docutils literal notranslate"><span class="pre">encode_sequences()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.pre_transform_multiclass"><code class="docutils literal notranslate"><span class="pre">pre_transform_multiclass()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.crop_bboxes_from_image"><code class="docutils literal notranslate"><span class="pre">crop_bboxes_from_image()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.convert_target_to_relative"><code class="docutils literal notranslate"><span class="pre">convert_target_to_relative()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#supported-vocabs">Supported Vocabs</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=3d11136f"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/custom.js?v=dc6a7468"></script>
+    </body>
+</html>

@@ -242,7 +242,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -348,7 +349,7 @@
 <span class="sd">        A string translated in a given vocab</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">VOCABS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">vocab_name</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;output vocabulary must be in vocabs dictionnary&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;output vocabulary must be in vocabs dictionary&quot;</span><span class="p">)</span>
 
     <span class="n">translated</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">input_string</span><span class="p">:</span>
@@ -384,11 +385,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">vocab</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">input_string</span><span class="p">))</span>
-    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">missing_chars</span> <span class="o">=</span> <span class="p">[</span><span class="n">char</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">input_string</span> <span class="k">if</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">]</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;some characters cannot be found in &#39;vocab&#39;. </span><span class="se">\</span>
-<span class="s2">                         Please check the input string </span><span class="si">{</span><span class="n">input_string</span><span class="si">}</span><span class="s2"> and the vocabulary </span><span class="si">{</span><span class="n">vocab</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="p">)</span></div>
+            <span class="sa">f</span><span class="s2">&quot;Some characters cannot be found in &#39;vocab&#39;: </span><span class="si">{</span><span class="nb">set</span><span class="p">(</span><span class="n">missing_chars</span><span class="p">)</span><span class="si">}</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Please check the input string `</span><span class="si">{</span><span class="n">input_string</span><span class="si">}</span><span class="s2">` and the vocabulary `</span><span class="si">{</span><span class="n">vocab</span><span class="si">}</span><span class="s2">`&quot;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
 
 
 
@@ -514,7 +516,7 @@
 <span class="sd">        a list of cropped images</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
-        <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">))</span>
+        <span class="n">img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">))</span>
     <span class="c1"># Polygon</span>
     <span class="k">if</span> <span class="n">geoms</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">3</span> <span class="ow">and</span> <span class="n">geoms</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">extract_rcrops</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">geoms</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
@@ -576,12 +578,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../../../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=af03451e"></script>
+    <script src="../../../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>

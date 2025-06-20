@@ -242,7 +242,8 @@
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../community/resources.html">Community resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../community/tools.html">Community Tools</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
 <ul>
@@ -523,11 +524,11 @@
 
     <span class="c1"># Load checkpoint</span>
     <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-        <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">)</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># tf</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;tf_model.weights.h5&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">load_weights</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+    <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span></div>
 
@@ -563,12 +564,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=3d11136f"></script>
+</div><script src="../../../../_static/documentation_options.js?v=b844ecfe"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=af03451e"></script>
+    <script src="../../../../_static/js/custom.js?v=dc6a7468"></script>
     </body>
 </html>
