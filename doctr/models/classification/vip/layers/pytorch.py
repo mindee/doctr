@@ -433,7 +433,7 @@ class LePEAttention(nn.Module):
         Returns:
             A float tensor of shape (b, h, w, c).
         """
-        b_merged = int(img_splits_hw.shape[0] / (h * w / h_sp / w_sp))
+        b_merged = img_splits_hw.shape[0] // ((h * w) // (h_sp * w_sp))
         img = img_splits_hw.view(b_merged, h // h_sp, w // w_sp, h_sp, w_sp, -1)
         # contiguous() required to ensure the tensor has a contiguous memory layout
         # after permute, allowing the subsequent view operation to work correctly.
