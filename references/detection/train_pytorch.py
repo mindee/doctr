@@ -13,29 +13,24 @@ from pathlib import Path
 
 import numpy as np
 import torch
+
+# The following import is required for DDP
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
-from torchvision.transforms.v2 import (
-    Compose,
-    Normalize,
-    RandomGrayscale,
-    RandomPerspective,
-    RandomPhotometricDistort,
-)
+from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
 
 if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
     from tqdm.contrib.slack import tqdm
 else:
     from tqdm.auto import tqdm
 
-from doctr import datasets
 from doctr import transforms as T
-from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
-from doctr.models import login_to_hub, push_to_hf_hub, recognition
-from doctr.utils.metrics import TextMatch
+from doctr.datasets import DetectionDataset
+from doctr.models import detection, login_to_hub, push_to_hf_hub
+from doctr.utils.metrics import LocalizationConfusion
 from utils import EarlyStopper, plot_recorder, plot_samples
 
 
@@ -110,7 +105,7 @@ def record_lr(
     return lr_recorder[: len(loss_recorder)], loss_recorder
 
 
-def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
+def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
     if amp:
         scaler = torch.cuda.amp.GradScaler()
 
@@ -120,7 +115,7 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
     pbar = tqdm(train_loader, dynamic_ncols=True, disable=(rank != 0))
     for images, targets in pbar:
         if torch.cuda.is_available():
-            images = images.to(device)
+            images = images.cuda()
         images = batch_transforms(images)
 
         optimizer.zero_grad()
@@ -155,7 +150,7 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
 
 
 @torch.no_grad()
-def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False, log=None):
+def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, log=None):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -164,7 +159,8 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
     val_loss, batch_cnt = 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True)
     for images, targets in pbar:
-        images = images.to(device)
+        if torch.cuda.is_available():
+            images = images.cuda()
         images = batch_transforms(images)
         if amp:
             with torch.cuda.amp.autocast():
@@ -172,11 +168,13 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         else:
             out = model(images, targets, return_preds=True)
         # Compute metric
-        if len(out["preds"]):
-            words, _ = zip(*out["preds"])
-        else:
-            words = []
-        val_metric.update(targets, words)
+        loc_preds = out["preds"]
+        for target, loc_pred in zip(targets, loc_preds):
+            for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
+                if args.rotation and args.eval_straight:
+                    # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 5, 2 (with scores) --> N, 4
+                    boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
+                val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
 
         pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
         if log:
@@ -186,8 +184,8 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         batch_cnt += 1
 
     val_loss /= batch_cnt
-    result = val_metric.summary()
-    return val_loss, result["raw"], result["unicase"]
+    recall, precision, mean_iou = val_metric.summary()
+    return val_loss, recall, precision, mean_iou
 
 
 def main(args):
@@ -235,62 +233,32 @@ def main(args):
         args.workers = min(16, multiprocessing.cpu_count())
 
     torch.backends.cudnn.benchmark = True
-
-    vocab = VOCABS[args.vocab]
-    fonts = args.font.split(",")
-
+    # placeholder for class names
+    cls_container = [None]
     if rank == 0:
-        # Load val data generator
+        # validation dataset related code
         st = time.time()
-        if isinstance(args.val_path, str):
-            with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-                val_hash = hashlib.sha256(f.read()).hexdigest()
-
-            val_set = RecognitionDataset(
-                img_folder=os.path.join(args.val_path, "images"),
-                labels_path=os.path.join(args.val_path, "labels.json"),
-                img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-            )
-        elif args.val_datasets:
-            val_hash = None
-            val_datasets = args.val_datasets
-
-            val_set = datasets.__dict__[val_datasets[0]](
-                train=False,
-                download=True,
-                recognition_task=True,
-                use_polygons=True,
-                img_transforms=Compose([
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Augmentations
-                    T.RandomApply(T.ColorInversion(), 0.1),
-                ]),
-            )
-            if len(val_datasets) > 1:
-                for dataset_name in val_datasets[1:]:
-                    _ds = datasets.__dict__[dataset_name](
-                        train=False,
-                        download=True,
-                        recognition_task=True,
-                        use_polygons=True,
-                    )
-                    val_set.data.extend((np_img, target) for np_img, target in _ds.data)
-        else:
-            val_hash = None
-            # Load synthetic data generator
-            val_set = WordGenerator(
-                vocab=vocab,
-                min_chars=args.min_chars,
-                max_chars=args.max_chars,
-                num_samples=args.val_samples * len(vocab),
-                font_family=fonts,
-                img_transforms=Compose([
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                ]),
-            )
-
+        val_set = DetectionDataset(
+            img_folder=os.path.join(args.val_path, "images"),
+            label_path=os.path.join(args.val_path, "labels.json"),
+            sample_transforms=T.SampleCompose(
+                (
+                    [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                    if not args.rotation or args.eval_straight
+                    else []
+                )
+                + (
+                    [
+                        T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                        T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                        T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                    ]
+                    if args.rotation and not args.eval_straight
+                    else []
+                )
+            ),
+            use_polygons=args.rotation and not args.eval_straight,
+        )
         val_loader = DataLoader(
             val_set,
             batch_size=args.batch_size,
@@ -303,122 +271,99 @@ def main(args):
         pbar.write(
             f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
         )
+        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+            val_hash = hashlib.sha256(f.read()).hexdigest()
 
-    batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
+        cls_container[0] = val_set.class_names
+    if distributed:
+        # broadcast class names to all ranks
+        dist.broadcast_object_list(cls_container, src=0)
+    # unpack class names on all ranks
+    class_names = cls_container[0]
 
-    # Load doctr model
-    model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
+    batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
+
+    # Load docTR model
+    model = detection.__dict__[args.arch](
+        pretrained=args.pretrained,
+        assume_straight_pages=not args.rotation,
+        class_names=class_names,
+    )
 
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
         model.from_pretrained(args.resume)
 
-    # Backbone freezing
-    if args.freeze_backbone:
-        for p in model.feat_extractor.parameters():
-            p.requires_grad = False
-
-    if torch.cuda.is_available():
-        torch.cuda.set_device(device)
-        model = model.to(device)
-
-    if distributed:
-        # construct DDP model
-        model = DDP(model, device_ids=[rank])
-
     if rank == 0:
         # Metrics
-        val_metric = TextMatch()
+        val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
 
     if rank == 0 and args.test_only:
         pbar.write("Running evaluation")
-        val_loss, exact_match, partial_match = evaluate(
-            model, device, val_loader, batch_transforms, val_metric, amp=args.amp
+        val_loss, recall, precision, mean_iou = evaluate(
+            model, val_loader, batch_transforms, val_metric, args, amp=args.amp
         )
-        pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        pbar.write(
+            f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
+            f"Mean IoU: {mean_iou:.2%})"
+        )
         return
 
     st = time.time()
+    # Augmentations
+    # Image augmentations
+    img_transforms = T.OneOf([
+        Compose([
+            T.RandomApply(T.ColorInversion(), 0.3),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
+        ]),
+        Compose([
+            T.RandomApply(T.RandomShadow(), 0.3),
+            T.RandomApply(T.GaussianNoise(), 0.1),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
+            RandomGrayscale(p=0.15),
+        ]),
+        RandomPhotometricDistort(p=0.3),
+        lambda x: x,  # Identity no transformation
+    ])
+    # Image + target augmentations
+    sample_transforms = T.SampleCompose(
+        (
+            [
+                T.RandomHorizontalFlip(0.15),
+                T.OneOf([
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                ]),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+            if not args.rotation
+            else [
+                T.RandomHorizontalFlip(0.15),
+                T.OneOf([
+                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                ]),
+                # Rotation augmentation
+                T.Resize(args.input_size, preserve_aspect_ratio=True),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+        )
+    )
 
-    if isinstance(args.train_path, str):
-        # Load train data generator
-        base_path = Path(args.train_path)
-        parts = (
-            [base_path]
-            if base_path.joinpath("labels.json").is_file()
-            else [base_path.joinpath(sub) for sub in os.listdir(base_path)]
-        )
-        with open(parts[0].joinpath("labels.json"), "rb") as f:
-            train_hash = hashlib.sha256(f.read()).hexdigest()
+    # Load both train and val data generators
+    train_set = DetectionDataset(
+        img_folder=os.path.join(args.train_path, "images"),
+        label_path=os.path.join(args.train_path, "labels.json"),
+        img_transforms=img_transforms,
+        sample_transforms=sample_transforms,
+        use_polygons=args.rotation,
+    )
 
-        train_set = RecognitionDataset(
-            parts[0].joinpath("images"),
-            parts[0].joinpath("labels.json"),
-            img_transforms=Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.1),
-                RandomGrayscale(p=0.1),
-                RandomPhotometricDistort(p=0.1),
-                T.RandomApply(T.RandomShadow(), p=0.4),
-                T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
-                T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-                RandomPerspective(distortion_scale=0.2, p=0.3),
-            ]),
-        )
-        if len(parts) > 1:
-            for subfolder in parts[1:]:
-                train_set.merge_dataset(
-                    RecognitionDataset(subfolder.joinpath("images"), subfolder.joinpath("labels.json"))
-                )
-    elif args.train_datasets:
-        train_hash = None
-        train_datasets = args.train_datasets
-
-        train_set = datasets.__dict__[train_datasets[0]](
-            train=True,
-            download=True,
-            recognition_task=True,
-            use_polygons=True,
-            img_transforms=Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.1),
-            ]),
-        )
-        if len(train_datasets) > 1:
-            for dataset_name in train_datasets[1:]:
-                _ds = datasets.__dict__[dataset_name](
-                    train=True,
-                    download=True,
-                    recognition_task=True,
-                    use_polygons=True,
-                )
-                train_set.data.extend((np_img, target) for np_img, target in _ds.data)
-    else:
-        train_hash = None
-        # Load synthetic data generator
-        train_set = WordGenerator(
-            vocab=vocab,
-            min_chars=args.min_chars,
-            max_chars=args.max_chars,
-            num_samples=args.train_samples * len(vocab),
-            font_family=fonts,
-            img_transforms=Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Ensure we have a 90% split of white-background images
-                T.RandomApply(T.ColorInversion(), 0.9),
-                RandomGrayscale(p=0.1),
-                RandomPhotometricDistort(p=0.1),
-                T.RandomApply(T.RandomShadow(), p=0.4),
-                T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
-                T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-                RandomPerspective(distortion_scale=0.2, p=0.3),
-            ]),
-        )
     if distributed:
-        sampler = DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
+        sampler = DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True)
     else:
         sampler = RandomSampler(train_set)
 
@@ -436,11 +381,26 @@ def main(args):
             f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
         )
 
+    with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
+        train_hash = hashlib.sha256(f.read()).hexdigest()
+
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
         plot_samples(x, target)
         return
 
+    # Backbone freezing
+    if args.freeze_backbone:
+        for p in model.feat_extractor.parameters():
+            p.requires_grad = False
+
+    if torch.cuda.is_available():
+        torch.cuda.set_device(device)
+        model = model.to(device)
+
+    if distributed:
+        # construct DDP model
+        model = DDP(model, device_ids=[rank])
     # Optimizer
     if args.optim == "adam":
         optimizer = torch.optim.Adam(
@@ -459,7 +419,7 @@ def main(args):
             weight_decay=args.weight_decay or 1e-4,
         )
 
-    # LR finder
+    # LR Finder
     if rank == 0 and args.find_lr:
         lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
         plot_recorder(lrs, losses)
@@ -488,24 +448,21 @@ def main(args):
             "optimizer": args.optim,
             "framework": "pytorch",
             "scheduler": args.sched,
-            "vocab": args.vocab,
             "train_hash": train_hash,
             "val_hash": val_hash,
             "pretrained": args.pretrained,
+            "rotation": args.rotation,
             "amp": args.amp,
         }
 
     global global_step
     global_step = 0  # Shared global step counter
+
     # W&B
-    if rank == 0 and args.wb:
+    if args.wb:
         import wandb
 
-        run = wandb.init(
-            name=exp_name,
-            project="text-recognition",
-            config=config,
-        )
+        run = wandb.init(name=exp_name, project="text-detection", config=config)
 
         def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
             wandb.log({
@@ -515,10 +472,10 @@ def main(args):
             })
 
     # ClearML
-    if rank == 0 and args.clearml:
+    if args.clearml:
         from clearml import Logger, Task
 
-        task = Task.init(project_name="docTR/text-recognition", task_name=exp_name, reuse_last_task_id=False)
+        task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
 
         def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
@@ -545,6 +502,7 @@ def main(args):
                     value=lr,
                 )
 
+    # Unified logger
     def log_at_step(train_loss=None, val_loss=None, lr=None):
         global global_step
         if args.wb:
@@ -557,48 +515,43 @@ def main(args):
     min_loss = np.inf
     if args.early_stop:
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
+
     # Training loop
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(
-            model,
-            device,
-            train_loader,
-            batch_transforms,
-            optimizer,
-            scheduler,
-            amp=args.amp,
-            log=log_at_step,
-            rank=rank,
+            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
         )
-
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
 
             # Validation loop at the end of each epoch
-            val_loss, exact_match, partial_match = evaluate(
-                model, device, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
+            val_loss, recall, precision, mean_iou = evaluate(
+                model, val_loader, batch_transforms, val_metric, args, amp=args.amp, log=log_at_step
             )
+            params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
-                # All processes should see same parameters as they all start from same
-                # random parameters and gradients are synchronized in backward passes.
-                # Therefore, saving it in one process is sufficient.
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-                params = model.module if hasattr(model, "module") else model
-
                 torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
                 min_loss = val_loss
-            pbar.write(
-                f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-                f"(Exact: {exact_match:.2%} | Partial: {partial_match:.2%})"
-            )
+            if args.save_interval_epoch:
+                pbar.write(f"Saving state at epoch: {epoch + 1}")
+                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
+
+            log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
+            if any(val is None for val in (recall, precision, mean_iou)):
+                log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
+            else:
+                log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
+            pbar.write(log_msg)
             # W&B
             if args.wb:
                 wandb.log({
                     "train_loss": train_loss,
                     "val_loss": val_loss,
                     "learning_rate": actual_lr,
-                    "exact_match": exact_match,
-                    "partial_match": partial_match,
+                    "recall": recall,
+                    "precision": precision,
+                    "mean_iou": mean_iou,
                 })
 
             # ClearML
@@ -609,10 +562,9 @@ def main(args):
                 logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
                 logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
                 logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
-                logger.report_scalar(title="Exact Match", series="exact_match", value=exact_match, iteration=epoch)
-                logger.report_scalar(
-                    title="Partial Match", series="partial_match", value=partial_match, iteration=epoch
-                )
+                logger.report_scalar(title="Recall", series="recall", value=recall, iteration=epoch)
+                logger.report_scalar(title="Precision", series="precision", value=precision, iteration=epoch)
+                logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
             if args.early_stop and early_stopper.early_stop(val_loss):
                 pbar.write("Training halted early due to reaching patience limit.")
@@ -623,74 +575,40 @@ def main(args):
             run.finish()
 
         if args.push_to_hub:
-            push_to_hf_hub(model, exp_name, task="recognition", run_config=args)
+            push_to_hf_hub(model, exp_name, task="detection", run_config=args)
 
 
 def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="DocTR training script for text recognition (PyTorch)",
+        description="DocTR training script for text detection (PyTorch)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
     # DDP related args
     parser.add_argument("--backend", default="nccl", type=str, help="Backend to use for torch.distributed")
-
-    parser.add_argument("arch", type=str, help="text-recognition model to train")
-    parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
-    parser.add_argument("--train_path", type=str, default=None, help="path to train data folder(s)")
-    parser.add_argument("--val_path", type=str, default=None, help="path to val data folder")
-    parser.add_argument(
-        "--train_datasets",
-        type=str,
-        nargs="+",
-        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
-        default=None,
-        help="Built-in datasets to use for training",
-    )
-    parser.add_argument(
-        "--val_datasets",
-        type=str,
-        nargs="+",
-        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
-        default=None,
-        help="Built-in datasets to use for validation",
-    )
-    parser.add_argument(
-        "--train-samples",
-        type=int,
-        default=1000,
-        help="Multiplied by the vocab length gets you the number of synthetic training samples that will be used.",
-    )
-    parser.add_argument(
-        "--val-samples",
-        type=int,
-        default=20,
-        help="Multiplied by the vocab length gets you the number of synthetic validation samples that will be used.",
-    )
-    parser.add_argument(
-        "--font", type=str, default="FreeMono.ttf,FreeSans.ttf,FreeSerif.ttf", help="Font family to be used"
-    )
-    parser.add_argument("--min-chars", type=int, default=1, help="Minimum number of characters per synthetic sample")
-    parser.add_argument("--max-chars", type=int, default=12, help="Maximum number of characters per synthetic sample")
-    parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
-    parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
-    parser.add_argument("-b", "--batch_size", type=int, default=64, help="batch size for training")
-
-    parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument(
         "--device",
         default=None,
         type=int,
         help="Specify gpu device for single-gpu training. In destributed setting, this parameter is ignored",
     )
-
+    parser.add_argument("arch", type=str, help="text-detection model to train")
+    parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
+    parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
+    parser.add_argument("--val_path", type=str, required=True, help="path to validation data folder")
+    parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
+    parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
+    parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
+    parser.add_argument(
+        "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
+    )
+    parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
-    parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for training")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
     parser.add_argument(
         "--freeze-backbone", dest="freeze_backbone", action="store_true", help="freeze model backbone for fine-tuning"
@@ -707,9 +625,15 @@ def parse_args():
         action="store_true",
         help="Load pretrained parameters before starting the training",
     )
+    parser.add_argument("--rotation", dest="rotation", action="store_true", help="train with rotated documents")
+    parser.add_argument(
+        "--eval-straight",
+        action="store_true",
+        help="metrics evaluation with straight boxes instead of polygons to save time + memory",
+    )
     parser.add_argument("--optim", type=str, default="adam", choices=["adam", "adamw"], help="optimizer to use")
     parser.add_argument(
-        "--sched", type=str, default="cosine", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
+        "--sched", type=str, default="poly", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
