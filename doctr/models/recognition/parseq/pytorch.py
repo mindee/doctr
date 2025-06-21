@@ -299,7 +299,7 @@ class PARSeq(_PARSeq, nn.Module):
 
                 # Stop decoding if all sequences have reached the EOS token
                 # NOTE: `break` isn't correctly translated to Onnx so we don't break here if we want to export
-                if not self.exportable and max_len is None and (ys == self.vocab_size).any(dim=-1).all():  # type: ignore[attr-defined]
+                if not self.exportable and max_len is None and (ys == self.vocab_size).any(dim=-1).all():
                     break
 
         logits = torch.cat(pos_logits, dim=1)  # (N, max_length, vocab_size + 1)
@@ -314,7 +314,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         # Create padding mask for refined target input maskes all behind EOS token as False
         # (N, 1, 1, max_length)
-        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)  # type: ignore[attr-defined]
+        target_pad_mask = ~((ys == self.vocab_size).int().cumsum(-1) > 0).unsqueeze(1).unsqueeze(1)
         mask = (target_pad_mask.bool() & query_mask[:, : ys.shape[1]].bool()).int()
         logits = self.head(self.decode(ys, features, mask, target_query=pos_queries))
 
@@ -367,7 +367,7 @@ class PARSeq(_PARSeq, nn.Module):
                     # remove the [EOS] tokens for the succeeding perms
                     if i == 1:
                         gt_out = torch.where(gt_out == self.vocab_size, self.vocab_size + 2, gt_out)
-                        n = (gt_out != self.vocab_size + 2).sum().item()  # type: ignore[attr-defined]
+                        n = (gt_out != self.vocab_size + 2).sum().item()
 
                 loss /= loss_numel
 
@@ -391,7 +391,7 @@ class PARSeq(_PARSeq, nn.Module):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable  # type: ignore[attr-defined]
+            @torch.compiler.disable
             def _postprocess(logits: torch.Tensor) -> list[tuple[str, float]]:
                 return self.postprocessor(logits)
 

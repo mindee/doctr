@@ -151,16 +151,16 @@ class FASTConvLayer(nn.Module):
             id_tensor = torch.from_numpy(kernel_value).to(identity.weight.device)
             self.id_tensor = self._pad_to_mxn_tensor(id_tensor)
         kernel = self.id_tensor
-        std = (identity.running_var + identity.eps).sqrt()  # type: ignore
+        std = (identity.running_var + identity.eps).sqrt()
         t = (identity.weight / std).reshape(-1, 1, 1, 1)
-        return kernel * t, identity.bias - identity.running_mean * identity.weight / std
+        return kernel * t, identity.bias - identity.running_mean * identity.weight / std  # type: ignore[operator]
 
     def _fuse_bn_tensor(self, conv: nn.Conv2d, bn: nn.BatchNorm2d) -> tuple[torch.Tensor, torch.Tensor]:
         kernel = conv.weight
         kernel = self._pad_to_mxn_tensor(kernel)
         std = (bn.running_var + bn.eps).sqrt()  # type: ignore
         t = (bn.weight / std).reshape(-1, 1, 1, 1)
-        return kernel * t, bn.bias - bn.running_mean * bn.weight / std
+        return kernel * t, bn.bias - bn.running_mean * bn.weight / std  # type: ignore[operator]
 
     def _get_equivalent_kernel_bias(self) -> tuple[torch.Tensor, torch.Tensor]:
         kernel_mxn, bias_mxn = self._fuse_bn_tensor(self.conv, self.bn)

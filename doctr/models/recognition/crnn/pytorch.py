@@ -223,7 +223,7 @@ class CRNN(RecognitionModel, nn.Module):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable  # type: ignore[attr-defined]
+            @torch.compiler.disable
             def _postprocess(logits: torch.Tensor) -> list[tuple[str, float]]:
                 return self.postprocessor(logits)
 
@@ -257,7 +257,7 @@ def _crnn(
     _cfg["input_shape"] = kwargs["input_shape"]
 
     # Build the model
-    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
+    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)  # type: ignore[arg-type]
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>

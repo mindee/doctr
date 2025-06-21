@@ -206,7 +206,7 @@ class FAST(_FAST, nn.Module):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable  # type: ignore[attr-defined]
+            @torch.compiler.disable
             def _postprocess(prob_map: torch.Tensor) -> list[dict[str, Any]]:
                 return [
                     dict(zip(self.class_names, preds))
@@ -303,7 +303,7 @@ def reparameterize(model: FAST | nn.Module) -> FAST:
 
     for module in model.modules():
         if hasattr(module, "reparameterize_layer"):
-            module.reparameterize_layer()
+            module.reparameterize_layer()  # type: ignore[operator]
 
     for name, child in model.named_children():
         if isinstance(child, nn.BatchNorm2d):
@@ -315,7 +315,7 @@ def reparameterize(model: FAST | nn.Module) -> FAST:
 
             factor = child.weight / torch.sqrt(child.running_var + child.eps)  # type: ignore
             last_conv.weight = nn.Parameter(conv_w * factor.reshape([last_conv.out_channels, 1, 1, 1]))
-            last_conv.bias = nn.Parameter((conv_b - child.running_mean) * factor + child.bias)
+            last_conv.bias = nn.Parameter((conv_b - child.running_mean) * factor + child.bias)  # type: ignore[operator]
             model._modules[last_conv_name] = last_conv  # type: ignore[index]
             model._modules[name] = nn.Identity()
             last_conv = None

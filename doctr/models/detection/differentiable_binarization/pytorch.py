@@ -215,7 +215,7 @@ class DBNet(_DBNet, nn.Module):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable  # type: ignore[attr-defined]
+            @torch.compiler.disable
             def _postprocess(prob_map: torch.Tensor) -> list[dict[str, Any]]:
                 return [
                     dict(zip(self.class_names, preds))
@@ -285,7 +285,7 @@ class DBNet(_DBNet, nn.Module):
                 dice_map = torch.softmax(out_map, dim=1)
             else:
                 # compute binary map instead
-                dice_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))  # type: ignore[assignment]
+                dice_map = 1 / (1 + torch.exp(-50.0 * (prob_map - thresh_map)))
             # Class reduced
             inter = (seg_mask * dice_map * seg_target).sum((0, 2, 3))
             cardinality = (seg_mask * (dice_map + seg_target)).sum((0, 2, 3))
