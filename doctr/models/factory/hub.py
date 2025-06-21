@@ -206,5 +206,8 @@ def from_hub(repo_id: str, **kwargs: Any):
 
     # update model cfg
     model.cfg = cfg
+    # load the weights
+    weights = hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs)
+    model.from_pretrained(weights)
 
-    return model.from_pretrained(hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs))
+    return model

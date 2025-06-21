@@ -62,7 +62,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract detection toy set
         run: |
@@ -103,7 +103,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
@@ -135,7 +135,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
       - name: Evaluate text recognition
         run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small --dataset SVT -b 32
 
@@ -161,7 +161,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/recognition/latency_pytorch.py crnn_mobilenet_v3_small --it 5
 
@@ -189,7 +189,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
@@ -221,7 +221,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Evaluate text detection
         run: python references/detection/evaluate_pytorch.py db_mobilenet_v3_large
@@ -248,6 +248,6 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/detection/latency_pytorch.py db_mobilenet_v3_large --it 5 --size 512
