@@ -59,7 +59,7 @@ class DetectionPredictor(nn.Module):
         ]
         # Remove padding from loc predictions
         preds = _remove_padding(
-            pages,
+            pages,  # type: ignore[arg-type]
             [pred for batch in predicted_batches for pred in batch["preds"]],
             preserve_aspect_ratio=preserve_aspect_ratio,
             symmetric_pad=symmetric_pad,
