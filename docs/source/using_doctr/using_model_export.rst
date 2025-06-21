@@ -15,7 +15,7 @@ This section is meant to help you perform inference with optimized versions of y
 Half-precision
 ^^^^^^^^^^^^^^
 
-**NOTE:** We support half-precision inference for PyTorch and TensorFlow models only on **GPU devices**.
+**NOTE:** We support half-precision inference for PyTorch models only on **GPU devices**.
 
 Half-precision (or FP16) is a binary floating-point format that occupies 16 bits in computer memory.
 
@@ -24,32 +24,15 @@ Advantages:
 - Faster inference
 - Less memory usage
 
-.. tabs::
+.. code:: python3
 
-    .. tab:: PyTorch
-
-        .. code:: python3
-
-            import torch
-            predictor = ocr_predictor(
-                reco_arch="crnn_mobilenet_v3_small",
-                det_arch="linknet_resnet34",
-                pretrained=True
-            ).cuda().half()
-            res = predictor(doc)
-
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            import tensorflow as tf
-            from tensorflow.keras import mixed_precision
-            mixed_precision.set_global_policy('mixed_float16')
-            predictor = ocr_predictor(
-                reco_arch="crnn_mobilenet_v3_small",
-                det_arch="linknet_resnet34",
-                pretrained=True
-            )
+    import torch
+    predictor = ocr_predictor(
+        reco_arch="crnn_mobilenet_v3_small",
+        det_arch="linknet_resnet34",
+        pretrained=True
+    ).cuda().half()
+    res = predictor(doc)
 
 
 Compiling your models (PyTorch only)
@@ -109,43 +92,21 @@ Export to ONNX
 ONNX (Open Neural Network Exchange) is an open and interoperable format for representing and exchanging machine learning models.
 It defines a common format for representing models, including the network structure, layer types, parameters, and metadata.
 
-.. tabs::
+.. code:: python3
 
-    .. tab:: PyTorch
+    import torch
+    from doctr.models import vitstr_small
+    from doctr.models.utils import export_model_to_onnx
 
-        .. code:: python3
-
-            import torch
-            from doctr.models import vitstr_small
-            from doctr.models.utils import export_model_to_onnx
-
-            batch_size = 1
-            input_shape = (3, 32, 128)
-            model = vitstr_small(pretrained=True, exportable=True)
-            dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-            model_path = export_model_to_onnx(
-                model,
-                model_name="vitstr.onnx",
-                dummy_input=dummy_input
-            )
-
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            import tensorflow as tf
-            from doctr.models import vitstr_small
-            from doctr.models.utils import export_model_to_onnx
-
-            batch_size = 1
-            input_shape = (32, 128, 3)
-            model = vitstr_small(pretrained=True, exportable=True)
-            dummy_input = [tf.TensorSpec([batch_size, *input_shape], tf.float32, name="input")]
-            model_path, output = export_model_to_onnx(
-                model,
-                model_name="vitstr.onnx",
-                dummy_input=dummy_input
-            )
+    batch_size = 1
+    input_shape = (3, 32, 128)
+    model = vitstr_small(pretrained=True, exportable=True)
+    dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
+    model_path = export_model_to_onnx(
+        model,
+        model_name="vitstr.onnx",
+        dummy_input=dummy_input
+    )
 
 
 Using your ONNX exported model

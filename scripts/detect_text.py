@@ -12,17 +12,8 @@ from tqdm import tqdm
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
-from doctr.file_utils import is_tf_available
 from doctr.io import DocumentFile
 from doctr.models import detection, ocr_predictor
-
-# Enable GPU growth if using TF
-if is_tf_available():
-    import tensorflow as tf
-
-    gpu_devices = tf.config.list_physical_devices("GPU")
-    if any(gpu_devices):
-        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
 
 IMAGE_FILE_EXTENSIONS = [".jpeg", ".jpg", ".png", ".tif", ".tiff", ".bmp"]
 OTHER_EXTENSIONS = [".pdf"]
