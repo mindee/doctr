@@ -6,13 +6,10 @@
 """Text detection latency benchmark"""
 
 import argparse
-import os
 import time
 
 import numpy as np
 import torch
-
-os.environ["USE_TORCH"] = "1"
 
 from doctr.models import detection
 
