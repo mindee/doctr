@@ -148,7 +148,7 @@ def get_colors(num_colors: int) -> list[tuple[float, float, float]]:
         hue = i / 360.0
         lightness = (50 + np.random.rand() * 10) / 100.0
         saturation = (90 + np.random.rand() * 10) / 100.0
-        colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
+        colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))  # type: ignore[arg-type]
     return colors
 
 
