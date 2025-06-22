@@ -44,7 +44,7 @@ class RecognitionPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        crops: Sequence[np.ndarray | torch.Tensor],
+        crops: Sequence[np.ndarray],
         **kwargs: Any,
     ) -> list[tuple[str, float]]:
         if len(crops) == 0:
