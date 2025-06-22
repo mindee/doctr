@@ -35,7 +35,7 @@ class OrientationPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        inputs: list[np.ndarray],
+        inputs: list[np.ndarray | torch.Tensor],
     ) -> list[list[int] | list[float]]:
         # Dimension check
         if any(input.ndim != 3 for input in inputs):
