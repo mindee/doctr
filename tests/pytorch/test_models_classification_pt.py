@@ -92,7 +92,7 @@ def test_classification_models(arch_name, input_shape):
 def test_classification_zoo(arch_name):
     if "crop" in arch_name:
         batch_size = 16
-        input_tensor = np.random.randint(0, 255, (batch_size, 256, 256, 3), dtype=np.uint8)
+        input_tensor = torch.rand((batch_size, 3, 256, 256))
         # Model
         predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
         predictor.model.eval()
@@ -101,7 +101,7 @@ def test_classification_zoo(arch_name):
             predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
     else:
         batch_size = 2
-        input_tensor = np.random.randint(0, 255, (batch_size, 512, 512, 3), dtype=np.uint8)
+        input_tensor = torch.rand((batch_size, 3, 512, 512))
         # Model
         predictor = classification.zoo.page_orientation_predictor(arch_name, pretrained=False)
         predictor.model.eval()
@@ -112,6 +112,7 @@ def test_classification_zoo(arch_name):
     assert isinstance(predictor, OrientationPredictor)
     if torch.cuda.is_available():
         predictor.model.cuda()
+        input_tensor = input_tensor.cuda()
 
     with torch.no_grad():
         out = predictor(input_tensor)
