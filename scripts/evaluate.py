@@ -47,6 +47,9 @@ def main(args):
         assume_straight_pages=not args.rotation,
     )
 
+    if torch.cuda.is_available():
+        predictor = predictor.cuda()
+
     if args.img_folder and args.label_file:
         testset = datasets.OCRDataset(
             img_folder=args.img_folder,
@@ -79,6 +82,8 @@ def main(args):
 
     for dataset in sets:
         for page, target in tqdm(dataset):
+            if isinstance(page, torch.Tensor):
+                page = np.transpose(page.numpy(), (1, 2, 0))
             # GT
             gt_boxes = target["boxes"]
             gt_labels = target["labels"]
@@ -92,8 +97,7 @@ def main(args):
             # Forward
             with torch.no_grad():
                 out = predictor(page[None, ...])
-                # We directly crop on PyTorch tensors, which are in channels_first
-                crops = extraction_fn(page, gt_boxes, channels_last=False)
+                crops = extraction_fn(page, gt_boxes, channels_last=True)
                 reco_out = predictor.reco_predictor(crops)
 
             if len(reco_out):

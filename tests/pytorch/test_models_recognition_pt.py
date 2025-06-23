@@ -90,8 +90,8 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
 @pytest.mark.parametrize(
     "input_shape",
     [
-        (3, 128, 128),
-        (3, 32, 1024),  # test case split wide crops
+        (128, 128, 3),
+        (32, 1024, 3),  # test case split wide crops
     ],
 )
 @pytest.mark.parametrize(
@@ -116,10 +116,9 @@ def test_recognition_zoo(arch_name, input_shape):
     # object check
     assert isinstance(predictor, RecognitionPredictor)
 
-    input_tensor = torch.rand((batch_size, *input_shape))
+    input_tensor = np.random.rand(batch_size, *input_shape).astype(np.float32)
     if torch.cuda.is_available():
         predictor.model.cuda()
-        input_tensor = input_tensor.cuda()
 
     with torch.no_grad():
         out = predictor(input_tensor)
