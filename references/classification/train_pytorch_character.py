@@ -3,13 +3,10 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import os
-
-os.environ["USE_TORCH"] = "1"
-
 import datetime
 import logging
 import multiprocessing as mp
+import os
 import time
 from pathlib import Path
 

@@ -2,7 +2,7 @@
 docTR: Document Text Recognition
 ********************************
 
-State-of-the-art Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch
+State-of-the-art Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch
 
 .. image:: https://github.com/mindee/doctr/releases/download/v0.2.0/ocr.png
         :align: center

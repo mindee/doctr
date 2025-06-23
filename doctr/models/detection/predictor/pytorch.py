@@ -36,7 +36,7 @@ class DetectionPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        pages: list[np.ndarray | torch.Tensor],
+        pages: list[np.ndarray],
         return_maps: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, np.ndarray]] | tuple[list[dict[str, np.ndarray]], list[np.ndarray]]:

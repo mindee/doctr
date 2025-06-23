@@ -5,8 +5,8 @@
 
 from typing import Any
 
-from doctr.file_utils import is_tf_available, is_torch_available
 from doctr.models.preprocessor import PreProcessor
+from doctr.models.utils import _CompiledModule
 
 from .. import recognition
 from .predictor import RecognitionPredictor
@@ -23,10 +23,8 @@ ARCHS: list[str] = [
     "vitstr_small",
     "vitstr_base",
     "parseq",
+    "viptr_tiny",
 ]
-
-if is_torch_available():
-    ARCHS.extend(["viptr_tiny"])
 
 
 def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
@@ -38,14 +36,16 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             pretrained=pretrained, pretrained_backbone=kwargs.get("pretrained_backbone", True)
         )
     else:
-        allowed_archs = [recognition.CRNN, recognition.SAR, recognition.MASTER, recognition.ViTSTR, recognition.PARSeq]
-        if is_torch_available():
-            # Add VIPTR which is only available in torch at the moment
-            allowed_archs.append(recognition.VIPTR)
-            # Adding the type for torch compiled models to the allowed architectures
-            from doctr.models.utils import _CompiledModule
-
-            allowed_archs.append(_CompiledModule)
+        # Adding the type for torch compiled models to the allowed architectures
+        allowed_archs = [
+            recognition.CRNN,
+            recognition.SAR,
+            recognition.MASTER,
+            recognition.ViTSTR,
+            recognition.PARSeq,
+            recognition.VIPTR,
+            _CompiledModule,
+        ]
 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
@@ -56,7 +56,7 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 128)
-    input_shape = _model.cfg["input_shape"][:2] if is_tf_available() else _model.cfg["input_shape"][-2:]
+    input_shape = _model.cfg["input_shape"][-2:]
     predictor = RecognitionPredictor(PreProcessor(input_shape, preserve_aspect_ratio=True, **kwargs), _model)
 
     return predictor

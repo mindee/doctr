@@ -5,7 +5,7 @@
 
 from typing import Any
 
-from doctr.file_utils import is_tf_available, is_torch_available
+from doctr.models.utils import _CompiledModule
 
 from .. import detection
 from ..detection.fast import reparameterize
@@ -16,30 +16,17 @@ __all__ = ["detection_predictor"]
 
 ARCHS: list[str]
 
-
-if is_tf_available():
-    ARCHS = [
-        "db_resnet50",
-        "db_mobilenet_v3_large",
-        "linknet_resnet18",
-        "linknet_resnet34",
-        "linknet_resnet50",
-        "fast_tiny",
-        "fast_small",
-        "fast_base",
-    ]
-elif is_torch_available():
-    ARCHS = [
-        "db_resnet34",
-        "db_resnet50",
-        "db_mobilenet_v3_large",
-        "linknet_resnet18",
-        "linknet_resnet34",
-        "linknet_resnet50",
-        "fast_tiny",
-        "fast_small",
-        "fast_base",
-    ]
+ARCHS = [
+    "db_resnet34",
+    "db_resnet50",
+    "db_mobilenet_v3_large",
+    "linknet_resnet18",
+    "linknet_resnet34",
+    "linknet_resnet50",
+    "fast_tiny",
+    "fast_small",
+    "fast_base",
+]
 
 
 def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, **kwargs: Any) -> DetectionPredictor:
@@ -56,12 +43,8 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         if isinstance(_model, detection.FAST):
             _model = reparameterize(_model)
     else:
-        allowed_archs = [detection.DBNet, detection.LinkNet, detection.FAST]
-        if is_torch_available():
-            # Adding the type for torch compiled models to the allowed architectures
-            from doctr.models.utils import _CompiledModule
-
-            allowed_archs.append(_CompiledModule)
+        # Adding the type for torch compiled models to the allowed architectures
+        allowed_archs = [detection.DBNet, detection.LinkNet, detection.FAST, _CompiledModule]
 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
@@ -76,7 +59,7 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
     kwargs["std"] = kwargs.get("std", _model.cfg["std"])
     kwargs["batch_size"] = kwargs.get("batch_size", 2)
     predictor = DetectionPredictor(
-        PreProcessor(_model.cfg["input_shape"][:-1] if is_tf_available() else _model.cfg["input_shape"][1:], **kwargs),
+        PreProcessor(_model.cfg["input_shape"][1:], **kwargs),
         _model,
     )
     return predictor

@@ -166,7 +166,7 @@ class VIPTR(RecognitionModel, nn.Module):
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
-            @torch.compiler.disable  # type: ignore[attr-defined]
+            @torch.compiler.disable
             def _postprocess(decoded_features: torch.Tensor) -> list[tuple[str, float]]:
                 return self.postprocessor(decoded_features)
 

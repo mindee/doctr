@@ -68,14 +68,14 @@ class KIEPredictor(nn.Module, _KIEPredictor):
     @torch.inference_mode()
     def forward(
         self,
-        pages: list[np.ndarray | torch.Tensor],
+        pages: list[np.ndarray],
         **kwargs: Any,
     ) -> Document:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
-        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
+        origin_page_shapes = [page.shape[:2] for page in pages]
 
         # Localize text elements
         loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
