@@ -103,10 +103,9 @@ def test_detection_zoo(arch_name):
     predictor.model.eval()
     # object check
     assert isinstance(predictor, DetectionPredictor)
-    input_tensor = torch.rand((2, 3, 1024, 1024))
+    input_tensor = np.random.rand(2, 1024, 1024, 3).astype(np.float32)
     if torch.cuda.is_available():
         predictor.model.cuda()
-        input_tensor = input_tensor.cuda()
 
     with torch.no_grad():
         out, seq_maps = predictor(input_tensor, return_maps=True)

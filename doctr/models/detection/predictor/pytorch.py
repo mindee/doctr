@@ -36,7 +36,7 @@ class DetectionPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        pages: list[np.ndarray | torch.Tensor],
+        pages: list[np.ndarray],
         return_maps: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, np.ndarray]] | tuple[list[dict[str, np.ndarray]], list[np.ndarray]]:
@@ -59,7 +59,7 @@ class DetectionPredictor(nn.Module):
         ]
         # Remove padding from loc predictions
         preds = _remove_padding(
-            pages,  # type: ignore[arg-type]
+            pages,
             [pred for batch in predicted_batches for pred in batch["preds"]],
             preserve_aspect_ratio=preserve_aspect_ratio,
             symmetric_pad=symmetric_pad,
