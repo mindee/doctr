@@ -63,7 +63,7 @@ def estimate_orientation(
         thresh = img.astype(np.uint8)
 
     page_orientation, orientation_confidence = general_page_orientation or (None, 0.0)
-    if page_orientation and orientation_confidence >= min_confidence:
+    if page_orientation is not None and orientation_confidence >= min_confidence:
         # We rotate the image to the general orientation which improves the detection
         # No expand needed bitmap is already padded
         thresh = rotate_image(thresh, -page_orientation)
@@ -100,7 +100,7 @@ def estimate_orientation(
         estimated_angle = -round(median) if abs(median) != 0 else 0
 
     # combine with the general orientation and the estimated angle
-    if page_orientation and orientation_confidence >= min_confidence:
+    if page_orientation is not None and orientation_confidence >= min_confidence:
         # special case where the estimated angle is mostly wrong:
         # case 1: - and + swapped
         # case 2: estimated angle is completely wrong
