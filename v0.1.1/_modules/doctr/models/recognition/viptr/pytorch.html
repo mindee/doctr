@@ -369,7 +369,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs decoding of raw output with CTC and decoding of CTC predictions</span>
-<span class="sd">        with label_to_idx mapping dictionnary</span>
+<span class="sd">        with label_to_idx mapping dictionary</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            logits: raw output of the model, shape (N, C + 1, seq_len)</span>
