@@ -29,7 +29,7 @@ python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/t
 
 We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run.html) launcher to spawn your DDP workers. `torchrun` will set all the necessary environment variables (`LOCAL_RANK`, `RANK`, etc.) for you. Arguments are the same than the ones from single GPU, except:
 
-- `--backend`: you can specify another `backend` for `DistribuedDataParallel` if the default one is not available on
+- `--backend`: you can specify another `backend` for `DistributedDataParallel` if the default one is not available on
 your operating system. Fastest one is `nccl` according to [PyTorch Documentation](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html).
 
 #### Key `torchrun` parameters:

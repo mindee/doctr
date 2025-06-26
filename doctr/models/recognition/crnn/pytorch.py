@@ -82,7 +82,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
     def __call__(self, logits: torch.Tensor) -> list[tuple[str, float]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions
-        with label_to_idx mapping dictionnary
+        with label_to_idx mapping dictionary
 
         Args:
             logits: raw output of the model, shape (N, C + 1, seq_len)

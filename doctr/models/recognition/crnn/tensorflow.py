@@ -59,7 +59,7 @@ class CTCPostProcessor(RecognitionPostProcessor):
         top_paths: int = 1,
     ) -> list[tuple[str, float]] | list[tuple[list[str] | list[float]]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions
-        with label_to_idx mapping dictionnary
+        with label_to_idx mapping dictionary
 
         Args:
             logits: raw output of the model, shape BATCH_SIZE X SEQ_LEN X NUM_CLASSES + 1
