@@ -176,7 +176,7 @@ class MASTER(_MASTER, nn.Module):
             return_preds: if True, decode logits
 
         Returns:
-            A dictionnary containing eventually loss, logits and predictions.
+            A dictionary containing eventually loss, logits and predictions.
         """
         # Encode
         features = self.feat_extractor(x)["features"]

@@ -165,7 +165,7 @@ class MASTER(_MASTER, Model):
             **kwargs: keyword arguments passed to the decoder
 
         Returns:
-            A dictionnary containing eventually loss, logits and predictions.
+            A dictionary containing eventually loss, logits and predictions.
         """
         # Encode
         feature = self.feat_extractor(x, **kwargs)
