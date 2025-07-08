@@ -168,7 +168,7 @@ pip install "python-doctr[tf]"
 # for PyTorch
 pip install "python-doctr[torch]"
 # optional dependencies for visualization, html, and contrib modules can be installed as follows:
-pip install "python-doctr[torch,viz,html,contib]"
+pip install "python-doctr[torch,viz,html,contrib]"
 ```
 
 For MacBooks with M1 chip, you will need some additional packages or specific versions:
