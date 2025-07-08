@@ -151,7 +151,7 @@ We try to keep extra dependencies to a minimum. You can install specific builds 
 # standard build
 pip install python-doctr
 # optional dependencies for visualization, html, and contrib modules can be installed as follows:
-pip install "python-doctr[viz,html,contib]"
+pip install "python-doctr[viz,html,contrib]"
 ```
 
 ### Developer mode
