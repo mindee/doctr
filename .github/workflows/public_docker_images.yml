@@ -23,6 +23,7 @@ jobs:
       matrix:
         # Must match version at https://www.python.org/ftp/python/
         python: ["3.10.13", "3.11.8", "3.12.7"]
+        # NOTE: Since docTR 1.0.0 torch doesn't exist as a seperate install option it's only to keep the naming convention
         framework: ["torch", "torch,viz,html,contrib"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
