@@ -109,8 +109,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         loc_preds = [list(loc_pred.values())[0] for loc_pred in loc_preds]
         # Detach objectness scores from loc_preds
         loc_preds, objectness_scores = detach_scores(loc_preds)
-        # Check whether crop mode should be switched to channels first
-        channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
@@ -120,7 +118,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         crops, loc_preds = self._prepare_crops(
             pages,
             loc_preds,
-            channels_last=channels_last,
             assume_straight_pages=self.assume_straight_pages,
             assume_horizontal=self._page_orientation_disabled,
         )

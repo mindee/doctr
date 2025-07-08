@@ -17,8 +17,6 @@ import subprocess
 import sys
 from collections import namedtuple
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
-
 try:
     import doctr
 

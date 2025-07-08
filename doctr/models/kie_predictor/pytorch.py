@@ -113,9 +113,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             dict_loc_preds[class_name] = _loc_preds
             objectness_scores[class_name] = _scores
 
-        # Check whether crop mode should be switched to channels first
-        channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
-
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
             dict_loc_preds = hook(dict_loc_preds)
@@ -126,7 +123,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
                 pages,
                 dict_loc_preds[class_name],
-                channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
                 assume_horizontal=self._page_orientation_disabled,
             )

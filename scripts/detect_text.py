@@ -10,8 +10,6 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
 from doctr.io import DocumentFile
 from doctr.models import detection, ocr_predictor
 

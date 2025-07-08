@@ -61,7 +61,6 @@ class RecognitionPredictor(nn.Module):
                 self.critical_ar,
                 self.target_ar,
                 self.overlap_ratio,
-                isinstance(crops[0], np.ndarray),
             )
             if remapped:
                 crops = new_crops

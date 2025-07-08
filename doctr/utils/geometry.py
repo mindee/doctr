@@ -390,14 +390,13 @@ def convert_to_relative_coords(geoms: np.ndarray, img_shape: tuple[int, int]) ->
     raise ValueError(f"invalid format for arg `geoms`: {geoms.shape}")
 
 
-def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True) -> list[np.ndarray]:
+def extract_crops(img: np.ndarray, boxes: np.ndarray) -> list[np.ndarray]:
     """Created cropped images from list of bounding boxes
 
     Args:
         img: input image
         boxes: bounding boxes of shape (N, 4) where N is the number of boxes, and the relative
             coordinates (xmin, ymin, xmax, ymax)
-        channels_last: whether the channel dimensions is the last one instead of the last one
 
     Returns:
         list of cropped images
@@ -409,21 +408,19 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray, channels_last: bool = True
 
     # Project relative coordinates
     _boxes = boxes.copy()
-    h, w = img.shape[:2] if channels_last else img.shape[-2:]
+    h, w = img.shape[:2]
     if not np.issubdtype(_boxes.dtype, np.integer):
         _boxes[:, [0, 2]] *= w
         _boxes[:, [1, 3]] *= h
         _boxes = _boxes.round().astype(int)
         # Add last index
         _boxes[2:] += 1
-    if channels_last:
-        return deepcopy([img[box[1] : box[3], box[0] : box[2]] for box in _boxes])
 
-    return deepcopy([img[:, box[1] : box[3], box[0] : box[2]] for box in _boxes])
+    return deepcopy([img[box[1] : box[3], box[0] : box[2]] for box in _boxes])
 
 
 def extract_rcrops(
-    img: np.ndarray, polys: np.ndarray, dtype=np.float32, channels_last: bool = True, assume_horizontal: bool = False
+    img: np.ndarray, polys: np.ndarray, dtype=np.float32, assume_horizontal: bool = False
 ) -> list[np.ndarray]:
     """Created cropped images from list of rotated bounding boxes
 
@@ -431,7 +428,6 @@ def extract_rcrops(
         img: input image
         polys: bounding boxes of shape (N, 4, 2)
         dtype: target data type of bounding boxes
-        channels_last: whether the channel dimensions is the last one instead of the last one
         assume_horizontal: whether the boxes are assumed to be only horizontally oriented
 
     Returns:
@@ -444,12 +440,12 @@ def extract_rcrops(
 
     # Project relative coordinates
     _boxes = polys.copy()
-    height, width = img.shape[:2] if channels_last else img.shape[-2:]
+    height, width = img.shape[:2]
     if not np.issubdtype(_boxes.dtype, np.integer):
         _boxes[:, :, 0] *= width
         _boxes[:, :, 1] *= height
 
-    src_img = img if channels_last else img.transpose(1, 2, 0)
+    src_img = img
 
     # Handle only horizontal oriented boxes
     if assume_horizontal:

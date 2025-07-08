@@ -58,7 +58,7 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, arch: str, task
     """Save model and config to disk for pushing to huggingface hub
 
     Args:
-        model: TF or PyTorch model to be saved
+        model: PyTorch model to be saved
         save_dir: directory to save model and config
         arch: architecture name
         task: task name
@@ -88,7 +88,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
     >>> push_to_hf_hub(model, 'my-model', 'recognition', arch='crnn_mobilenet_v3_small')
 
     Args:
-        model: TF or PyTorch model to be saved
+        model: PyTorch model to be saved
         model_name: name of the model which is also the repository name
         task: task name
         **kwargs: keyword arguments for push_to_hf_hub

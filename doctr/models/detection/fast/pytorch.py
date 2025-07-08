@@ -238,7 +238,7 @@ class FAST(_FAST, nn.Module):
         Returns:
             A loss tensor
         """
-        targets = self.build_target(target, out_map.shape[1:], False)  # type: ignore[arg-type]
+        targets = self.build_target(target, out_map.shape[1:])  # type: ignore[arg-type]
 
         seg_target, seg_mask = torch.from_numpy(targets[0]), torch.from_numpy(targets[1])
         shrunken_kernel = torch.from_numpy(targets[2]).to(out_map.device)

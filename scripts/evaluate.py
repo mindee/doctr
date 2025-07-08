@@ -3,9 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import os
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import numpy as np
 import torch
@@ -97,7 +94,7 @@ def main(args):
             # Forward
             with torch.no_grad():
                 out = predictor(page[None, ...])
-                crops = extraction_fn(page, gt_boxes, channels_last=True)
+                crops = extraction_fn(page, gt_boxes)
                 reco_out = predictor.reco_predictor(crops)
 
             if len(reco_out):

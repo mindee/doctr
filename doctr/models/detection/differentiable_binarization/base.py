@@ -224,7 +224,7 @@ class _DBNet:
         padded_polygon: np.ndarray = np.array(padding.Execute(distance)[0])
 
         # Fill the mask with 1 on the new padded polygon
-        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
 
         # Get min/max to recover polygon after distance computation
         xmin = padded_polygon[:, 0].min()
@@ -269,7 +269,6 @@ class _DBNet:
         self,
         target: list[dict[str, np.ndarray]],
         output_shape: tuple[int, int, int],
-        channels_last: bool = True,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
@@ -280,10 +279,8 @@ class _DBNet:
 
         h: int
         w: int
-        if channels_last:
-            h, w, num_classes = output_shape
-        else:
-            num_classes, h, w = output_shape
+
+        num_classes, h, w = output_shape
         target_shape = (len(target), num_classes, h, w)
 
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
@@ -343,17 +340,12 @@ class _DBNet:
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)
 
                     # Draw on both thresh map and thresh mask
                     poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
                         poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
                     )
-        if channels_last:
-            seg_target = seg_target.transpose((0, 2, 3, 1))
-            seg_mask = seg_mask.transpose((0, 2, 3, 1))
-            thresh_target = thresh_target.transpose((0, 2, 3, 1))
-            thresh_mask = thresh_mask.transpose((0, 2, 3, 1))
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 

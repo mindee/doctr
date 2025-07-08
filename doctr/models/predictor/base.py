@@ -116,18 +116,14 @@ class _OCRPredictor:
     def _generate_crops(
         pages: list[np.ndarray],
         loc_preds: list[np.ndarray],
-        channels_last: bool,
         assume_straight_pages: bool = False,
         assume_horizontal: bool = False,
     ) -> list[list[np.ndarray]]:
         if assume_straight_pages:
-            crops = [
-                extract_crops(page, _boxes[:, :4], channels_last=channels_last)
-                for page, _boxes in zip(pages, loc_preds)
-            ]
+            crops = [extract_crops(page, _boxes[:, :4]) for page, _boxes in zip(pages, loc_preds)]
         else:
             crops = [
-                extract_rcrops(page, _boxes[:, :4], channels_last=channels_last, assume_horizontal=assume_horizontal)
+                extract_rcrops(page, _boxes[:, :4], assume_horizontal=assume_horizontal)
                 for page, _boxes in zip(pages, loc_preds)
             ]
         return crops
@@ -136,11 +132,10 @@ class _OCRPredictor:
     def _prepare_crops(
         pages: list[np.ndarray],
         loc_preds: list[np.ndarray],
-        channels_last: bool,
         assume_straight_pages: bool = False,
         assume_horizontal: bool = False,
     ) -> tuple[list[list[np.ndarray]], list[np.ndarray]]:
-        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages, assume_horizontal)
+        crops = _OCRPredictor._generate_crops(pages, loc_preds, assume_straight_pages, assume_horizontal)
 
         # Avoid sending zero-sized crops
         is_kept = [[all(s > 0 for s in crop.shape) for crop in page_crops] for page_crops in crops]

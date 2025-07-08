@@ -18,17 +18,15 @@ def split_crops(
     max_ratio: float,
     target_ratio: int,
     split_overlap_ratio: float,
-    channels_last: bool = True,
 ) -> tuple[list[np.ndarray], list[int | tuple[int, int, float]], bool]:
     """
     Split crops horizontally if they exceed a given aspect ratio.
 
     Args:
-        crops: List of image crops (H, W, C) if channels_last else (C, H, W).
+        crops: List of image crops (H, W, C).
         max_ratio: Aspect ratio threshold above which crops are split.
         target_ratio: Target aspect ratio after splitting (e.g., 4 for 128x32).
         split_overlap_ratio: Desired overlap between splits (as a fraction of split width).
-        channels_last: Whether the crops are in channels-last format.
 
     Returns:
         A tuple containing:
@@ -44,14 +42,14 @@ def split_crops(
     crop_map: list[int | tuple[int, int, float]] = []
 
     for crop in crops:
-        h, w = crop.shape[:2] if channels_last else crop.shape[-2:]
+        h, w = crop.shape[:2]
         aspect_ratio = w / h
 
         if aspect_ratio > max_ratio:
             split_width = max(1, math.ceil(h * target_ratio))
             overlap_width = max(0, math.floor(split_width * split_overlap_ratio))
 
-            splits, last_overlap = _split_horizontally(crop, split_width, overlap_width, channels_last)
+            splits, last_overlap = _split_horizontally(crop, split_width, overlap_width)
 
             # Remove any empty splits
             splits = [s for s in splits if all(dim > 0 for dim in s.shape)]
@@ -70,23 +68,20 @@ def split_crops(
     return new_crops, crop_map, remap_required
 
 
-def _split_horizontally(
-    image: np.ndarray, split_width: int, overlap_width: int, channels_last: bool
-) -> tuple[list[np.ndarray], float]:
+def _split_horizontally(image: np.ndarray, split_width: int, overlap_width: int) -> tuple[list[np.ndarray], float]:
     """
     Horizontally split a single image with overlapping regions.
 
     Args:
-        image: The image to split (H, W, C) if channels_last else (C, H, W).
+        image: The image to split (H, W, C).
         split_width: Width of each split.
         overlap_width: Width of the overlapping region.
-        channels_last: Whether the image is in channels-last format.
 
     Returns:
         - A list of horizontal image slices.
         - The actual overlap ratio of the last split.
     """
-    image_width = image.shape[1] if channels_last else image.shape[-1]
+    image_width = image.shape[1]
     if image_width <= split_width:
         return [image], 0.0
 
@@ -101,11 +96,7 @@ def _split_horizontally(
     splits = []
     for start_col in starts:
         end_col = start_col + split_width
-        if channels_last:
-            split = image[:, start_col:end_col, :]
-        else:
-            split = image[:, :, start_col:end_col]
-        splits.append(split)
+        splits.append(image[:, start_col:end_col, :])
 
     # Calculate the last overlap ratio, if only one split no overlap
     last_overlap = 0

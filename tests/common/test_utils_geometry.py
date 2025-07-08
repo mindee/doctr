@@ -229,17 +229,7 @@ def test_extract_crops(mock_pdf):
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # Identity
-    assert np.all(
-        doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=True)[0]
-    )
-    torch_img = np.transpose(doc_img, axes=(-1, 0, 1))
-    assert np.all(
-        torch_img
-        == np.transpose(
-            geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=False)[0],
-            axes=(-1, 0, 1),
-        )
-    )
+    assert np.all(doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32))[0])
 
     # No box
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []

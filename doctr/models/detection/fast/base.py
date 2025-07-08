@@ -153,14 +153,12 @@ class _FAST(BaseModel):
         self,
         target: list[dict[str, np.ndarray]],
         output_shape: tuple[int, int, int],
-        channels_last: bool = True,
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
 
         Args:
             target: target coming from dataset
             output_shape: shape of the output of the model without batch_size
-            channels_last: whether channels are last or not
 
         Returns:
             the new formatted target, mask and shrunken text kernel
@@ -172,10 +170,8 @@ class _FAST(BaseModel):
 
         h: int
         w: int
-        if channels_last:
-            h, w, num_classes = output_shape
-        else:
-            num_classes, h, w = output_shape
+
+        num_classes, h, w = output_shape
         target_shape = (len(target), num_classes, h, w)
 
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
@@ -235,14 +231,8 @@ class _FAST(BaseModel):
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(shrunken_kernel[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(shrunken_kernel[idx, class_idx], [shrunken.astype(np.int32)], 1.0)
                     # draw the original polygon on the segmentation target
-                    cv2.fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)  # type: ignore[call-overload]
-
-        # Don't forget to switch back to channel last if Tensorflow is used
-        if channels_last:
-            seg_target = seg_target.transpose((0, 2, 3, 1))
-            seg_mask = seg_mask.transpose((0, 2, 3, 1))
-            shrunken_kernel = shrunken_kernel.transpose((0, 2, 3, 1))
+                    cv2.fillPoly(seg_target[idx, class_idx], [poly.astype(np.int32)], 1.0)
 
         return seg_target, seg_mask, shrunken_kernel
