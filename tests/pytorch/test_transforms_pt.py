@@ -27,60 +27,77 @@ def test_resize():
 
     assert torch.all(out == 1)
     assert out.shape[-2:] == output_size
-    assert repr(transfo) == f"Resize(output_size={output_size}, interpolation='bilinear')"
+    assert repr(transfo) == "Resize(output_size=(32, 32), interpolation='bilinear')"
 
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    # Test with preserve_aspect_ratio
+    output_size = (32, 32)
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-    out = transfo(input_t)
 
+    # Asymmetric padding
+    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    out = transfo(input_t)
     assert out.shape[-2:] == output_size
     assert not torch.all(out == 1)
-    # Asymetric padding
     assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 1)
 
-    # Symetric padding
-    transfo = Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
-    assert repr(transfo) == (
-        f"Resize(output_size={output_size}, interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
-    )
+    # Symmetric padding
+    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
     out = transfo(input_t)
     assert out.shape[-2:] == output_size
-    # symetric padding
-    assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 0)
+    assert torch.all(out[:, 0] == 0) and torch.all(out[:, -1] == 0)
 
-    # Inverse aspect ratio
+    expected = "Resize(output_size=(32, 32), interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
+    assert repr(transfo) == expected
+
+    # Test with inverse resize
     input_t = torch.ones((3, 64, 32), dtype=torch.float32)
+    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
     out = transfo(input_t)
+    assert out.shape[-2:] == (32, 32)
 
-    assert not torch.all(out == 1)
-    assert out.shape[-2:] == output_size
-
-    # Same aspect ratio
-    output_size = (32, 128)
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    # Test resize with same ratio
+    transfo = Resize((32, 128), preserve_aspect_ratio=True)
     out = transfo(torch.ones((3, 16, 64), dtype=torch.float32))
-    assert out.shape[-2:] == output_size
+    assert out.shape[-2:] == (32, 128)
 
-    # FP16
+    # Test with fp16 input
+    transfo = Resize((32, 128), preserve_aspect_ratio=True)
     input_t = torch.ones((3, 64, 64), dtype=torch.float16)
     out = transfo(input_t)
     assert out.dtype == torch.float16
 
-    # --- Test with target (bounding boxes) ---
+    padding = [True, False]
+    for symmetric_pad in padding:
+        # Test with target boxes
+        target_boxes = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+        out, new_target = transfo(input_t, target_boxes)
 
-    target_boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]])
-    output_size = (64, 64)
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
 
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
+        # Test with target polygons
+        target_boxes = np.array([
+            [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
+            [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
+        ])
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+        out, new_target = transfo(input_t, target_boxes)
+
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
+
+    # Test with invalid target shape
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-    out, new_target = transfo(input_t, target_boxes)
+    target = np.ones((2, 5))  # Invalid shape
 
-    assert out.shape[-2:] == output_size
-    assert new_target.shape == target_boxes.shape
-    assert np.all(new_target >= 0) and np.all(new_target <= 1)
-
-    out = transfo(input_t)
-    assert out.shape[-2:] == output_size
+    transfo = Resize((64, 64), preserve_aspect_ratio=True)
+    with pytest.raises(AssertionError):
+        transfo(input_t, target)
 
 
 @pytest.mark.parametrize(
