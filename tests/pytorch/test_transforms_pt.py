@@ -66,28 +66,30 @@ def test_resize():
     out = transfo(input_t)
     assert out.dtype == torch.float16
 
-    # Test with target boxes
-    target_boxes = np.array([[0.1, 0.1, 0.9, 0.9], [0.2, 0.2, 0.8, 0.8]])
-    transfo = Resize((64, 64), preserve_aspect_ratio=True)
-    input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-    out, new_target = transfo(input_t, target_boxes)
+    padding = [True, False]
+    for symmetric_pad in padding:
+        # Test with target boxes
+        target_boxes = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+        out, new_target = transfo(input_t, target_boxes)
 
-    assert out.shape[-2:] == (64, 64)
-    assert new_target.shape == target_boxes.shape
-    assert np.all((0 <= new_target) & (new_target <= 1))
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
 
-    # Test with target polygons
-    target_boxes = np.array([
-        [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
-        [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
-    ])
-    transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=True)
-    input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-    out, new_target = transfo(input_t, target_boxes)
+        # Test with target polygons
+        target_boxes = np.array([
+            [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
+            [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
+        ])
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+        out, new_target = transfo(input_t, target_boxes)
 
-    assert out.shape[-2:] == (64, 64)
-    assert new_target.shape == target_boxes.shape
-    assert np.all((0 <= new_target) & (new_target <= 1))
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
 
     # Test with invalid target shape
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
