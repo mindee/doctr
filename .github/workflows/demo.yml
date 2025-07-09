@@ -79,7 +79,6 @@ jobs:
         # Only keep the requirements.txt file for the demo (PyTorch)
         run: |
           mv demo/pt-requirements.txt demo/requirements.txt
-          rm demo/tf-requirements.txt
 
           python -c "
           from huggingface_hub import HfApi
