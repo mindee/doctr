@@ -50,7 +50,7 @@ class Resize(T.Resize):
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
     ) -> None:
-        super().__init__(size if isinstance(size, tuple) else (size, size), interpolation, antialias=True)
+        super().__init__(size if isinstance(size, (list, tuple)) else (size, size), interpolation, antialias=True)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
 
