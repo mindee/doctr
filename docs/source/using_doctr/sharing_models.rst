@@ -48,7 +48,7 @@ It is also possible to push your model directly after training.
 
 .. code:: bash
 
-    python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+    python3 ~/doctr/references/recognition/train.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
 
 Pretrained community models
