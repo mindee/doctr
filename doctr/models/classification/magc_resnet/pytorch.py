@@ -14,7 +14,7 @@ from torch import nn
 
 from doctr.datasets import VOCABS
 
-from ..resnet.pytorch import ResNet
+from ..resnet import ResNet
 
 __all__ = ["magc_resnet31"]
 

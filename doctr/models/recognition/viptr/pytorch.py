@@ -16,7 +16,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 from doctr.datasets import VOCABS, decode_sequence
 
 from ...classification import vip_tiny
-from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
+from ...utils import _bf16_to_float32, load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["VIPTR", "viptr_tiny"]

@@ -19,7 +19,7 @@ from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFeedForward
 
 from ...classification import vit_s
-from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
+from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
