@@ -406,7 +406,7 @@
         <span class="c1"># NOTE: nn.TransformerDecoder takes the inverse from this implementation</span>
         <span class="c1"># [True, True, True, ..., False, False, False] -&gt; False is masked</span>
         <span class="c1"># (N, 1, 1, max_length)</span>
-        <span class="n">target_pad_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># type: ignore[attr-defined]</span>
+        <span class="n">target_pad_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">target</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">target_length</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># sub mask filled diagonal with True = see and False = masked (max_length, max_length)</span>
         <span class="c1"># NOTE: onnxruntime tril/triu works only with float currently (onnxruntime 1.11.1 - opset 14)</span>
@@ -439,7 +439,7 @@
         <span class="c1"># Input length : number of timesteps</span>
         <span class="n">input_len</span> <span class="o">=</span> <span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># Add one for additional &lt;eos&gt; token (sos disappear in shift!)</span>
-        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># type: ignore[assignment]</span>
+        <span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="c1"># Compute loss: don&#39;t forget to shift gt! Otherwise the model learns to output the gt[t-1]!</span>
         <span class="c1"># The &quot;masked&quot; first gt char is &lt;sos&gt;. Delete last logit of the model output.</span>
         <span class="n">cce</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">model_output</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">gt</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
@@ -518,7 +518,7 @@
 
         <span class="k">if</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Disable for torch.compile compatibility</span>
-            <span class="nd">@torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="nd">@torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess</span><span class="p">(</span><span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
 
@@ -677,7 +677,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=27067864"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=5fa4622c"></script>

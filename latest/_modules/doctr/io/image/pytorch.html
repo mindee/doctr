@@ -400,7 +400,7 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the shape of an image&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>  <span class="c1"># type: ignore[return-value]</span>
 </pre></div>
         </article>
       </div>
@@ -433,7 +433,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=27067864"></script>
+</div><script src="../../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>

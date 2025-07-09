@@ -20,7 +20,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
-    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -312,15 +311,14 @@
 <p>This section is meant to help you perform inference with optimized versions of your model.</p>
 <section id="half-precision">
 <h3>Half-precision<a class="headerlink" href="#half-precision" title="Link to this heading">¶</a></h3>
-<p><strong>NOTE:</strong> We support half-precision inference for PyTorch and TensorFlow models only on <strong>GPU devices</strong>.</p>
+<p><strong>NOTE:</strong> We support half-precision inference for PyTorch models only on <strong>GPU devices</strong>.</p>
 <p>Half-precision (or FP16) is a binary floating-point format that occupies 16 bits in computer memory.</p>
 <p>Advantages:</p>
 <ul class="simple">
 <li><p>Faster inference</p></li>
 <li><p>Less memory usage</p></li>
 </ul>
-<div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
     <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
@@ -329,17 +327,6 @@
 <span class="n">res</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
 </pre></div>
 </div>
-</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">mixed_precision</span>
-<span class="n">mixed_precision</span><span class="o">.</span><span class="n">set_global_policy</span><span class="p">(</span><span class="s1">&#39;mixed_float16&#39;</span><span class="p">)</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
-    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
-    <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
-    <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div></div>
 </section>
 <section id="compiling-your-models-pytorch-only">
 <h3>Compiling your models (PyTorch only)<a class="headerlink" href="#compiling-your-models-pytorch-only" title="Link to this heading">¶</a></h3>
@@ -393,8 +380,7 @@ This process can make inference faster and reduce memory overhead during executi
 <h3>Export to ONNX<a class="headerlink" href="#export-to-onnx" title="Link to this heading">¶</a></h3>
 <p>ONNX (Open Neural Network Exchange) is an open and interoperable format for representing and exchanging machine learning models.
 It defines a common format for representing models, including the network structure, layer types, parameters, and metadata.</p>
-<div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vitstr_small</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_model_to_onnx</span>
 
@@ -409,22 +395,6 @@ It defines a common format for representing models, including the network struct
 <span class="p">)</span>
 </pre></div>
 </div>
-</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vitstr_small</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_model_to_onnx</span>
-
-<span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
-<span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)]</span>
-<span class="n">model_path</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
-    <span class="n">model</span><span class="p">,</span>
-    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
-    <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-</div></div>
 </section>
 <section id="using-your-onnx-exported-model">
 <h3>Using your ONNX exported model<a class="headerlink" href="#using-your-onnx-exported-model" title="Link to this heading">¶</a></h3>
@@ -532,13 +502,12 @@ It is simple and easy-to-use (with the same interface you know already from docT
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=27067864"></script>
+</div><script src="../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
     <script src="../_static/js/custom.js?v=dc6a7468"></script>
-    <script src="../_static/tabs.js?v=3030b3cb"></script>
     </body>
 </html>

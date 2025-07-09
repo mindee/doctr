@@ -514,7 +514,7 @@
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Disable for torch.compile compatibility</span>
-            <span class="nd">@torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="nd">@torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess</span><span class="p">(</span><span class="n">prob_map</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
                 <span class="k">return</span> <span class="p">[</span>
                     <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">,</span> <span class="n">preds</span><span class="p">))</span>
@@ -560,7 +560,7 @@
         <span class="n">prob_map</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">out_map</span><span class="p">)</span>
         <span class="n">thresh_map</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">thresh_map</span><span class="p">)</span>
 
-        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>  <span class="c1"># type: ignore[arg-type]</span>
 
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">targets</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">seg_target</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">out_map</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">seg_mask</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">out_map</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
@@ -584,7 +584,7 @@
                 <span class="n">dice_map</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">out_map</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># compute binary map instead</span>
-                <span class="n">dice_map</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">50.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">prob_map</span> <span class="o">-</span> <span class="n">thresh_map</span><span class="p">)))</span>  <span class="c1"># type: ignore[assignment]</span>
+                <span class="n">dice_map</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">50.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">prob_map</span> <span class="o">-</span> <span class="n">thresh_map</span><span class="p">)))</span>
             <span class="c1"># Class reduced</span>
             <span class="n">inter</span> <span class="o">=</span> <span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="n">dice_map</span> <span class="o">*</span> <span class="n">seg_target</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
             <span class="n">cardinality</span> <span class="o">=</span> <span class="p">(</span><span class="n">seg_mask</span> <span class="o">*</span> <span class="p">(</span><span class="n">dice_map</span> <span class="o">+</span> <span class="n">seg_target</span><span class="p">))</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
@@ -776,7 +776,7 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=27067864"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=5fa4622c"></script>
