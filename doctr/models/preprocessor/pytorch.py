@@ -60,15 +60,12 @@ class PreProcessor(nn.Module):
 
         return batches
 
-    def sample_transforms(self, x: np.ndarray | torch.Tensor) -> torch.Tensor:
+    def sample_transforms(self, x: np.ndarray) -> torch.Tensor:
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
-        if isinstance(x, np.ndarray):
-            if x.dtype not in (np.uint8, np.float32, np.float16):
-                raise TypeError("unsupported data type for numpy.ndarray")
-            x = torch.from_numpy(x.copy()).permute(2, 0, 1)
-        elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
-            raise TypeError("unsupported data type for torch.Tensor")
+        if x.dtype not in (np.uint8, np.float32, np.float16):
+            raise TypeError("unsupported data type for numpy.ndarray")
+        x = torch.from_numpy(x.copy()).permute(2, 0, 1)
         # Resizing
         x = self.resize(x)
         # Data type
