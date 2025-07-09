@@ -315,7 +315,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span><span class="p">,</span> <span class="n">decode_sequence</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">...classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">vip_tiny</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">...utils.pytorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">..core</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecognitionModel</span><span class="p">,</span> <span class="n">RecognitionPostProcessor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;VIPTR&quot;</span><span class="p">,</span> <span class="s2">&quot;viptr_tiny&quot;</span><span class="p">]</span>
@@ -369,7 +369,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Performs decoding of raw output with CTC and decoding of CTC predictions</span>
-<span class="sd">        with label_to_idx mapping dictionnary</span>
+<span class="sd">        with label_to_idx mapping dictionary</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            logits: raw output of the model, shape (N, C + 1, seq_len)</span>
@@ -465,7 +465,7 @@
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Disable for torch.compile compatibility</span>
-            <span class="nd">@torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span>  <span class="c1"># type: ignore[attr-defined]</span>
+            <span class="nd">@torch</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">disable</span>
             <span class="k">def</span><span class="w"> </span><span class="nf">_postprocess</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">)</span>
 
@@ -609,12 +609,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=b844ecfe"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=dc6a7468"></script>
+    <script src="../../../../../_static/js/custom.js?v=acd6bf77"></script>
     </body>
 </html>

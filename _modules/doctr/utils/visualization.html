@@ -447,7 +447,7 @@
         <span class="n">hue</span> <span class="o">=</span> <span class="n">i</span> <span class="o">/</span> <span class="mf">360.0</span>
         <span class="n">lightness</span> <span class="o">=</span> <span class="p">(</span><span class="mi">50</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span>
         <span class="n">saturation</span> <span class="o">=</span> <span class="p">(</span><span class="mi">90</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span> <span class="o">/</span> <span class="mf">100.0</span>
-        <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colorsys</span><span class="o">.</span><span class="n">hls_to_rgb</span><span class="p">(</span><span class="n">hue</span><span class="p">,</span> <span class="n">lightness</span><span class="p">,</span> <span class="n">saturation</span><span class="p">))</span>
+        <span class="n">colors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colorsys</span><span class="o">.</span><span class="n">hls_to_rgb</span><span class="p">(</span><span class="n">hue</span><span class="p">,</span> <span class="n">lightness</span><span class="p">,</span> <span class="n">saturation</span><span class="p">))</span>  <span class="c1"># type: ignore[arg-type]</span>
     <span class="k">return</span> <span class="n">colors</span>
 
 
@@ -707,12 +707,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=b844ecfe"></script>
+</div><script src="../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=dc6a7468"></script>
+    <script src="../../../_static/js/custom.js?v=acd6bf77"></script>
     </body>
 </html>

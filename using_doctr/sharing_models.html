@@ -20,7 +20,6 @@
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
     <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
     <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
-    <link rel="stylesheet" type="text/css" href="../_static/tabs.css?v=a5c4661c" />
     <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
     
     
@@ -311,8 +310,7 @@ To make it easy for you, we have integrated a interface to the huggingface hub.<
 <section id="loading-from-huggingface-hub">
 <h2>Loading from Huggingface Hub<a class="headerlink" href="#loading-from-huggingface-hub" title="Link to this heading">¶</a></h2>
 <p>This section shows how you can easily load a pretrained model from the Huggingface Hub.</p>
-<div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">from_hub</span>
 <span class="n">image</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s1">&#39;data/example.jpg&#39;</span><span class="p">])</span>
 <span class="c1"># Load a custom detection model from huggingface hub</span>
@@ -324,19 +322,6 @@ To make it easy for you, we have integrated a interface to the huggingface hub.<
 <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 </pre></div>
 </div>
-</div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">from_hub</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s1">&#39;data/example.jpg&#39;</span><span class="p">])</span>
-<span class="c1"># Load a custom detection model from huggingface hub</span>
-<span class="n">det_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">&#39;Felix92/doctr-tf-db-resnet50&#39;</span><span class="p">)</span>
-<span class="c1"># Load a custom recognition model from huggingface hub</span>
-<span class="n">reco_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">&#39;Felix92/doctr-tf-crnn-vgg16-bn-french&#39;</span><span class="p">)</span>
-<span class="c1"># You can easily plug in this models to the OCR predictor</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">)</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
-</pre></div>
-</div>
-</div></div>
 </section>
 <section id="pushing-to-the-huggingface-hub">
 <h2>Pushing to the Huggingface Hub<a class="headerlink" href="#pushing-to-the-huggingface-hub" title="Link to this heading">¶</a></h2>
@@ -360,14 +345,9 @@ existing repositories will not be overwritten) and the model name itself.</p>
 </pre></div>
 </div>
 <p>It is also possible to push your model directly after training.</p>
-<div class="sphinx-tabs docutils container">
-<div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-1-1-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-1-1-0" name="1-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-1-1-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-1-1-1" name="1-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-1-1-0" class="sphinx-tabs-panel" id="panel-1-1-0" name="1-0" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>~/doctr/references/recognition/train_pytorch.py<span class="w"> </span>crnn_mobilenet_v3_large<span class="w"> </span>--name<span class="w"> </span>doctr-crnn-mobilenet-v3-large<span class="w"> </span>--push-to-hub
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>~/doctr/references/recognition/train.py<span class="w"> </span>crnn_mobilenet_v3_large<span class="w"> </span>--name<span class="w"> </span>doctr-crnn-mobilenet-v3-large<span class="w"> </span>--push-to-hub
 </pre></div>
 </div>
-</div><div aria-labelledby="tab-1-1-1" class="sphinx-tabs-panel" hidden="true" id="panel-1-1-1" name="1-1" role="tabpanel" tabindex="0"><div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python3<span class="w"> </span>~/doctr/references/recognition/train_tensorflow.py<span class="w"> </span>crnn_mobilenet_v3_large<span class="w"> </span>--name<span class="w"> </span>doctr-crnn-mobilenet-v3-large<span class="w"> </span>--push-to-hub
-</pre></div>
-</div>
-</div></div>
 </section>
 <section id="pretrained-community-models">
 <h2>Pretrained community models<a class="headerlink" href="#pretrained-community-models" title="Link to this heading">¶</a></h2>
@@ -388,19 +368,12 @@ Feel free to open a pull request or issue to add your model to this list.</p>
 <tr class="row-odd"><th class="head"><p><strong>Architecture</strong></p></th>
 <th class="head"><p><strong>Repo_ID</strong></p></th>
 <th class="head"><p><strong>Vocabulary</strong></p></th>
-<th class="head"><p><strong>Framework</strong></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p>resnet18 (dummy)</p></td>
 <td><p>Felix92/doctr-dummy-torch-resnet18</p></td>
 <td><p>french</p></td>
-<td><p>PyTorch</p></td>
-</tr>
-<tr class="row-odd"><td><p>resnet18 (dummy)</p></td>
-<td><p>Felix92/doctr-dummy-tf-resnet18</p></td>
-<td><p>french</p></td>
-<td><p>TensorFlow</p></td>
 </tr>
 </tbody>
 </table>
@@ -535,13 +508,12 @@ Feel free to open a pull request or issue to add your model to this list.</p>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=b844ecfe"></script>
+</div><script src="../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../_static/doctools.js?v=9bcbadda"></script>
     <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=dc6a7468"></script>
-    <script src="../_static/tabs.js?v=3030b3cb"></script>
+    <script src="../_static/js/custom.js?v=acd6bf77"></script>
     </body>
 </html>

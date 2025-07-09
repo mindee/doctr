@@ -321,27 +321,13 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">SampleCompose</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a wrapper that will apply transformations sequentially on both image and target</span>
 
-<span class="sd">    .. tabs::</span>
+<span class="sd">    .. code:: python</span>
 
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
-<span class="sd">                &gt;&gt;&gt; transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
-<span class="sd">                &gt;&gt;&gt; out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
-<span class="sd">                &gt;&gt;&gt; transfo = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
-<span class="sd">                &gt;&gt;&gt; out, out_boxes = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), np.zeros((2, 4)))</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; import torch</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate</span>
+<span class="sd">        &gt;&gt;&gt; transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])</span>
+<span class="sd">        &gt;&gt;&gt; out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transforms: list of transformation modules</span>
@@ -365,25 +351,12 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">ImageTransform</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a transform wrapper to turn an image-only transformation into an image+target transform</span>
 
-<span class="sd">    .. tabs::</span>
+<span class="sd">    .. code:: python</span>
 
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
-<span class="sd">                &gt;&gt;&gt; out, _ = transfo(torch.rand(8, 64, 64, 3), None)</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
-<span class="sd">                &gt;&gt;&gt; out, _ = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1), None)</span>
+<span class="sd">        &gt;&gt;&gt; import torch</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import ImageTransform, ColorInversion</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ImageTransform(ColorInversion((32, 32)))</span>
+<span class="sd">        &gt;&gt;&gt; out, _ = transfo(torch.rand(8, 64, 64, 3), None)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transform: the image transformation module to wrap</span>
@@ -406,25 +379,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Applies the following tranformation to a tensor (image or batch of images):</span>
 <span class="sd">    convert to grayscale, colorize (shift 0-values randomly), and then invert colors</span>
 
-<span class="sd">    .. tabs::</span>
+<span class="sd">    .. code:: python</span>
 
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(8, 64, 64, 3))</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
-<span class="sd">                &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[8, 64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">        &gt;&gt;&gt; import torch</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import ColorInversion</span>
+<span class="sd">        &gt;&gt;&gt; transfo = ColorInversion(min_val=0.6)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(torch.rand(8, 64, 64, 3))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        min_val: range [min_val, 1] to colorize RGB pixels</span>
@@ -446,25 +406,12 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">OneOf</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Randomly apply one of the input transformations</span>
 
-<span class="sd">    .. tabs::</span>
+<span class="sd">    .. code:: python</span>
 
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import OneOf</span>
-<span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import OneOf</span>
-<span class="sd">                &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">        &gt;&gt;&gt; import torch</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import OneOf</span>
+<span class="sd">        &gt;&gt;&gt; transfo = OneOf([JpegQuality(), Gamma()])</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transforms: list of transformations, one only will be picked</span>
@@ -488,25 +435,12 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">RandomApply</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply with a probability p the input transformation</span>
 
-<span class="sd">    .. tabs::</span>
+<span class="sd">    .. code:: python</span>
 
-<span class="sd">        .. tab:: PyTorch</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import torch</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
-<span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
-
-<span class="sd">        .. tab:: TensorFlow</span>
-
-<span class="sd">            .. code:: python</span>
-
-<span class="sd">                &gt;&gt;&gt; import tensorflow as tf</span>
-<span class="sd">                &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
-<span class="sd">                &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
-<span class="sd">                &gt;&gt;&gt; out = transfo(tf.random.uniform(shape=[64, 64, 3], minval=0, maxval=1))</span>
+<span class="sd">        &gt;&gt;&gt; import torch</span>
+<span class="sd">        &gt;&gt;&gt; from doctr.transforms import RandomApply</span>
+<span class="sd">        &gt;&gt;&gt; transfo = RandomApply(Gamma(), p=.5)</span>
+<span class="sd">        &gt;&gt;&gt; out = transfo(torch.rand(1, 64, 64, 3))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        transform: transformation to apply</span>
@@ -642,12 +576,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=b844ecfe"></script>
+</div><script src="../../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=dc6a7468"></script>
+    <script src="../../../../_static/js/custom.js?v=acd6bf77"></script>
     </body>
 </html>

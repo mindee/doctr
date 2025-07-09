@@ -312,6 +312,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">HfApi</span><span class="p">,</span>
     <span class="n">Repository</span><span class="p">,</span>
@@ -322,10 +323,6 @@
 <span class="p">)</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr</span><span class="w"> </span><span class="kn">import</span> <span class="n">models</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.file_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">is_tf_available</span><span class="p">,</span> <span class="n">is_torch_available</span>
-
-<span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;login_to_hub&quot;</span><span class="p">,</span> <span class="s2">&quot;push_to_hf_hub&quot;</span><span class="p">,</span> <span class="s2">&quot;from_hub&quot;</span><span class="p">,</span> <span class="s2">&quot;_save_model_and_config_for_hf_hub&quot;</span><span class="p">]</span>
 
@@ -363,19 +360,14 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Save model and config to disk for pushing to huggingface hub</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        model: TF or PyTorch model to be saved</span>
+<span class="sd">        model: PyTorch model to be saved</span>
 <span class="sd">        save_dir: directory to save model and config</span>
 <span class="sd">        arch: architecture name</span>
 <span class="sd">        task: task name</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">save_directory</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;pytorch_model.bin&quot;</span>
-        <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">weights_path</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">is_tf_available</span><span class="p">():</span>
-        <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;tf_model.weights.h5&quot;</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">weights_path</span><span class="p">))</span>
+    <span class="n">weights_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;pytorch_model.bin&quot;</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">state_dict</span><span class="p">(),</span> <span class="n">weights_path</span><span class="p">)</span>
 
     <span class="n">config_path</span> <span class="o">=</span> <span class="n">save_directory</span> <span class="o">/</span> <span class="s2">&quot;config.json&quot;</span>
 
@@ -400,7 +392,7 @@
 <span class="sd">    &gt;&gt;&gt; push_to_hf_hub(model, &#39;my-model&#39;, &#39;recognition&#39;, arch=&#39;crnn_mobilenet_v3_small&#39;)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        model: TF or PyTorch model to be saved</span>
+<span class="sd">        model: PyTorch model to be saved</span>
 <span class="sd">        model_name: name of the model which is also the repository name</span>
 <span class="sd">        task: task name</span>
 <span class="sd">        **kwargs: keyword arguments for push_to_hf_hub</span>
@@ -424,7 +416,7 @@
 <span class="s2">    &lt;img src=&quot;https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&amp;src=0&quot; width=&quot;60%&quot;&gt;</span>
 <span class="s2">    &lt;/p&gt;</span>
 
-<span class="s2">    **Optical Character Recognition made seamless &amp; accessible to anyone, powered by TensorFlow 2 &amp; PyTorch**</span>
+<span class="s2">    **Optical Character Recognition made seamless &amp; accessible to anyone, powered by PyTorch**</span>
 
 <span class="s2">    ## Task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
 
@@ -521,13 +513,8 @@
 
     <span class="c1"># update model cfg</span>
     <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
-
-    <span class="c1"># Load checkpoint</span>
-    <span class="k">if</span> <span class="n">is_torch_available</span><span class="p">():</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>  <span class="c1"># tf</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;tf_model.weights.h5&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
+    <span class="c1"># load the weights</span>
+    <span class="n">weights</span> <span class="o">=</span> <span class="n">hf_hub_download</span><span class="p">(</span><span class="n">repo_id</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;pytorch_model.bin&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span></div>
@@ -564,12 +551,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=b844ecfe"></script>
+</div><script src="../../../../_static/documentation_options.js?v=963c0e75"></script>
     <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/scripts/furo.js?v=5fa4622c"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=dc6a7468"></script>
+    <script src="../../../../_static/js/custom.js?v=acd6bf77"></script>
     </body>
 </html>
