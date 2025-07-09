@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.10", "3.11"]
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +33,11 @@ jobs:
       - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            pip install -e .[viz] --upgrade
+          else
+            pip install -e .[viz,html] --upgrade
+          fi
+        shell: bash  # Ensures shell is consistent across OSes
       - name: Import package
         run: python -c "import doctr; print(doctr.__version__)"
