@@ -16,7 +16,7 @@ pip install -r references/requirements.txt
 You can start your training in PyTorch:
 
 ```shell
-python references/detection/train_pytorch.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
+python references/detection/train.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 ### Multi-GPU support
@@ -41,7 +41,7 @@ By default all visible GPUs will be used. To limit which GPUs participate, set t
 
 ```shell
 CUDA_VISIBLE_DEVICES=0,2 \
-torchrun --nproc_per_node=2 references/detection/train_pytorch.py \
+torchrun --nproc_per_node=2 references/detection/train.py \
   db_resnet50 \
   --train_path path/to/train \
   --val_path   path/to/val \
@@ -124,5 +124,5 @@ You can follow this page on [how to create a Slack App](https://api.slack.com/qu
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
 ```python
-python references/detection/train_pytorch.py --help
+python references/detection/train.py --help
 ```

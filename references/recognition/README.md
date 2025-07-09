@@ -16,7 +16,7 @@ pip install -r references/requirements.txt
 You can start your training in PyTorch:
 
 ```shell
-python references/recognition/train_pytorch.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
+python references/recognition/train.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
 ### Multi-GPU support
@@ -41,7 +41,7 @@ By default all visible GPUs will be used. To limit which GPUs participate, set t
 
 ```shell
 CUDA_VISIBLE_DEVICES=0,2 \
-torchrun --nproc_per_node=2 references/recognition/train_pytorch.py \
+torchrun --nproc_per_node=2 references/recognition/train.py \
   crnn_vgg16_bn \
   --train_path path/to/train \
   --val_path   path/to/val \
@@ -94,7 +94,7 @@ You can follow this page on [how to create a Slack App](https://api.slack.com/qu
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
 ```shell
-python references/recognition/train_pytorch.py --help
+python references/recognition/train.py --help
 ```
 
 ## Using custom fonts
@@ -102,10 +102,10 @@ python references/recognition/train_pytorch.py --help
 If you want to use your own custom fonts for training, make sure the font is installed on your OS.
 Do so on linux by copying the .ttf file to the desired directory with: ```sudo cp custom-font.ttf /usr/local/share/fonts/``` and then running ```fc-cache -f -v``` to build the font cache.
 
-Keep in mind that passing fonts to the training script will only work with the WordGenerator which will not augment or change images from the dataset if it is passed as argument. If no path to a dataset is passed like in this command ```python3 doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_small --vocab french --font "custom-font.ttf"```  only then is the WordGenerator "triggered" to create random images from the given vocab and font.
+Keep in mind that passing fonts to the training script will only work with the WordGenerator which will not augment or change images from the dataset if it is passed as argument. If no path to a dataset is passed like in this command ```python3 doctr/references/recognition/train.py crnn_mobilenet_v3_small --vocab french --font "custom-font.ttf"```  only then is the WordGenerator "triggered" to create random images from the given vocab and font.
 
 Running the training script should look like this for multiple custom fonts:
 
 ```shell
-python references/recognition/train_pytorch.py crnn_vgg16_bn --epochs 5 --font "custom-font-1.ttf,custom-font-2.ttf"
+python references/recognition/train.py crnn_vgg16_bn --epochs 5 --font "custom-font-1.ttf,custom-font-2.ttf"
 ```
