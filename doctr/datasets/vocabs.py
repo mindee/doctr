@@ -264,8 +264,6 @@ VOCABS["estonian"] = VOCABS["english"] + "šžõäöüŠŽÕÄÖÜ"
 VOCABS["esperanto"] = re.sub(r"[QqWwXxYy]", "", VOCABS["english"]) + "ĉĝĥĵŝŭĈĜĤĴŜŬ" + "₷"
 
 VOCABS["french"] = VOCABS["english"] + "àâéèêëîïôùûüçÀÂÉÈÊËÎÏÔÙÛÜÇ"
-# NOTE: legacy french is outdated, but kept for compatibility
-VOCABS["legacy_french"] = VOCABS["latin"] + "°" + "àâéèêëîïôùûçÀÂÉÈËÎÏÔÙÛÇ" + _BASE_VOCABS["currency"]
 
 VOCABS["finnish"] = VOCABS["english"] + "äöÄÖ"
 

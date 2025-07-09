@@ -3,29 +3,16 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import os
-
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 
 import numpy as np
+import torch
 from tqdm import tqdm
 
 from doctr import datasets
 from doctr import transforms as T
-from doctr.file_utils import is_tf_available
 from doctr.models import ocr_predictor
 from doctr.utils.geometry import extract_crops, extract_rcrops
 from doctr.utils.metrics import LocalizationConfusion, OCRMetric, TextMatch
-
-# Enable GPU growth if using TF
-if is_tf_available():
-    import tensorflow as tf
-
-    gpu_devices = tf.config.list_physical_devices("GPU")
-    if any(gpu_devices):
-        tf.config.experimental.set_memory_growth(gpu_devices[0], True)
-else:
-    import torch
 
 
 def _pct(val):
@@ -56,6 +43,9 @@ def main(args):
         symmetric_pad=False,  # we handle the transformation directly in the dataset so this is set to False
         assume_straight_pages=not args.rotation,
     )
+
+    if torch.cuda.is_available():
+        predictor = predictor.cuda()
 
     if args.img_folder and args.label_file:
         testset = datasets.OCRDataset(
@@ -89,6 +79,8 @@ def main(args):
 
     for dataset in sets:
         for page, target in tqdm(dataset):
+            if isinstance(page, torch.Tensor):
+                page = np.transpose(page.numpy(), (1, 2, 0))
             # GT
             gt_boxes = target["boxes"]
             gt_labels = target["labels"]
@@ -100,16 +92,10 @@ def main(args):
                 gt_boxes = np.stack([xmin, ymin, xmax, ymax], axis=-1)
 
             # Forward
-            if is_tf_available():
+            with torch.no_grad():
                 out = predictor(page[None, ...])
                 crops = extraction_fn(page, gt_boxes)
                 reco_out = predictor.reco_predictor(crops)
-            else:
-                with torch.no_grad():
-                    out = predictor(page[None, ...])
-                    # We directly crop on PyTorch tensors, which are in channels_first
-                    crops = extraction_fn(page, gt_boxes, channels_last=False)
-                    reco_out = predictor.reco_predictor(crops)
 
             if len(reco_out):
                 reco_words, _ = zip(*reco_out)

@@ -44,7 +44,7 @@ class RecognitionPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        crops: Sequence[np.ndarray | torch.Tensor],
+        crops: Sequence[np.ndarray],
         **kwargs: Any,
     ) -> list[tuple[str, float]]:
         if len(crops) == 0:
@@ -61,7 +61,6 @@ class RecognitionPredictor(nn.Module):
                 self.critical_ar,
                 self.target_ar,
                 self.overlap_ratio,
-                isinstance(crops[0], np.ndarray),
             )
             if remapped:
                 crops = new_crops

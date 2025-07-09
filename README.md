@@ -5,7 +5,7 @@
 [![Slack Icon](https://img.shields.io/badge/Slack-Community-4A154B?style=flat-square&logo=slack&logoColor=white)](https://slack.mindee.com) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![Docker Images](https://img.shields.io/badge/Docker-4287f5?style=flat&logo=docker&logoColor=white)](https://github.com/mindee/doctr/pkgs/container/doctr) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.12.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb) [![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20docTR%20Guru-006BFF)](https://gurubase.io/g/doctr)
 
 
-**Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
+**Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
 
 What you can expect from this repository:
 
@@ -133,19 +133,6 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ## Installation
 
-> [!WARNING]
-> **TensorFlow Backend Deprecation Notice**
->
-> Using docTR with TensorFlow as a backend is deprecated and will be removed in the next major release (v1.0.0).
-> We **recommend switching to the PyTorch backend**, which is more actively maintained and supports the latest features and models.
-> Alternatively, you can use [OnnxTR](https://github.com/felixdittrich92/OnnxTR), which does **not** require TensorFlow or PyTorch.
->
-> This decision was made based on several considerations:
->
-> - Allows better focus on improving the core library
-> - Frees up resources to develop new features faster
-> - Enables more targeted optimizations with PyTorch
-
 ### Prerequisites
 
 Python 3.10 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
@@ -158,23 +145,14 @@ You can then install the latest release of the package using [pypi](https://pypi
 pip install python-doctr
 ```
 
-> :warning: Please note that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
-
-We try to keep framework-specific dependencies to a minimum. You can install framework-specific builds as follows:
+We try to keep extra dependencies to a minimum. You can install specific builds as follows:
 
 ```shell
-# for TensorFlow
-pip install "python-doctr[tf]"
-# for PyTorch
-pip install "python-doctr[torch]"
+# standard build
+pip install python-doctr
 # optional dependencies for visualization, html, and contrib modules can be installed as follows:
-pip install "python-doctr[torch,viz,html,contrib]"
+pip install "python-doctr[viz,html,contrib]"
 ```
-
-For MacBooks with M1 chip, you will need some additional packages or specific versions:
-
-- TensorFlow 2: [metal plugin](https://developer.apple.com/metal/tensorflow-plugin/)
-- PyTorch: [version >= 2.0.0](https://pytorch.org/get-started/locally/#start-locally)
 
 ### Developer mode
 
@@ -186,13 +164,10 @@ git clone https://github.com/mindee/doctr.git
 pip install -e doctr/.
 ```
 
-Again, if you prefer to avoid the risk of missing dependencies, you can install the TensorFlow or the PyTorch build:
+Again, if you prefer to avoid the risk of missing dependencies, you can install the build:
 
 ```shell
-# for TensorFlow
-pip install -e doctr/.[tf]
-# for PyTorch
-pip install -e doctr/.[torch]
+pip install -e doctr/.
 ```
 
 ## Models architectures
@@ -235,20 +210,6 @@ Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%2
 
 If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required.
 
-##### Tensorflow version
-
-```shell
-pip install -r demo/tf-requirements.txt
-```
-
-Then run your app in your default browser with:
-
-```shell
-USE_TF=1 streamlit run demo/app.py
-```
-
-##### PyTorch version
-
 ```shell
 pip install -r demo/pt-requirements.txt
 ```
@@ -256,15 +217,8 @@ pip install -r demo/pt-requirements.txt
 Then run your app in your default browser with:
 
 ```shell
-USE_TORCH=1 streamlit run demo/app.py
+streamlit run demo/app.py
 ```
-
-#### TensorFlow.js
-
-Instead of having your demo actually running Python, you would prefer to run everything in your web browser?
-Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to get started!
-
-![TFJS demo](https://github.com/mindee/doctr/raw/main/docs/images/demo_illustration_mini.png)
 
 ### Docker container
 
@@ -272,7 +226,7 @@ We offer Docker container support for easy testing and deployment. [Here are the
 
 #### Using GPU with docTR Docker Images
 
-The docTR Docker images are GPU-ready and based on CUDA `12.2`. Make sure your host is **at least `12.2`**, otherwise Torch or TensorFlow won't be able to initialize the GPU.
+The docTR Docker images are GPU-ready and based on CUDA `12.2`. Make sure your host is **at least `12.2`**, otherwise Torch won't be able to initialize the GPU.
 Please ensure that Docker is configured to use your GPU.
 
 To verify and configure GPU support for Docker, please follow the instructions provided in the [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
@@ -287,7 +241,7 @@ docker run -it --gpus all ghcr.io/mindee/doctr:torch-py3.9.18-2024-10 bash
 
 The Docker images for docTR follow a specific tag nomenclature: `<deps>-py<python_version>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
 
-- `<deps>`: `tf`, `torch`, `tf-viz-html-contrib` or `torch-viz-html-contrib`.
+- `<deps>`: `torch`, `torch-viz-html-contrib`.
 - `<python_version>`: `3.9.18`, `3.10.13` or `3.11.8`.
 - `<doctr_version>`: a tag >= `v0.11.0`
 - `<YYYY-MM>`: e.g. `2014-10`
@@ -296,7 +250,6 @@ Here are examples of different image tags:
 
 | Tag                        | Description                                       |
 |----------------------------|---------------------------------------------------|
-| `tf-py3.10.13-v0.11.0`       | TensorFlow version `3.10.13` with docTR `v0.11.0`. |
 | `torch-viz-html-contrib-py3.11.8-2024-10`       | Torch with extra dependencies version `3.11.8` from latest commit on `main` in `2024-10`. |
 | `torch-py3.11.8-2024-10`| PyTorch version `3.11.8` from latest commit on `main` in `2024-10`. |
 
@@ -308,10 +261,10 @@ You can also build docTR Docker images locally on your computer.
 docker build -t doctr .
 ```
 
-You can specify custom Python versions and docTR versions using build arguments. For example, to build a docTR image with TensorFlow, Python version `3.9.10`, and docTR version `v0.7.0`, run the following command:
+You can specify custom Python versions and docTR versions using build arguments. For example, to build a docTR image with PyTorch, Python version `3.9.10`, and docTR version `v0.7.0`, run the following command:
 
 ```shell
-docker build -t doctr --build-arg FRAMEWORK=tf --build-arg PYTHON_VERSION=3.9.10 --build-arg DOCTR_VERSION=v0.7.0 .
+docker build -t doctr --build-arg FRAMEWORK=torch --build-arg PYTHON_VERSION=3.9.10 --build-arg DOCTR_VERSION=v0.7.0 .
 ```
 
 ### Example script

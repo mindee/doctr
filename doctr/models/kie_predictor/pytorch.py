@@ -68,14 +68,14 @@ class KIEPredictor(nn.Module, _KIEPredictor):
     @torch.inference_mode()
     def forward(
         self,
-        pages: list[np.ndarray | torch.Tensor],
+        pages: list[np.ndarray],
         **kwargs: Any,
     ) -> Document:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
-        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
+        origin_page_shapes = [page.shape[:2] for page in pages]
 
         # Localize text elements
         loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
@@ -113,9 +113,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             dict_loc_preds[class_name] = _loc_preds
             objectness_scores[class_name] = _scores
 
-        # Check whether crop mode should be switched to channels first
-        channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
-
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
             dict_loc_preds = hook(dict_loc_preds)
@@ -126,7 +123,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
                 pages,
                 dict_loc_preds[class_name],
-                channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
                 assume_horizontal=self._page_orientation_disabled,
             )

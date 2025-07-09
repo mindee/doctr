@@ -14,7 +14,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -22,41 +21,21 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
           sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
-          pip install -r references/requirements.txt
-          sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
-      - if: matrix.framework == 'tensorflow'
-        name: Train for a short epoch (TF)
-        run: python references/classification/train_tensorflow_character.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
-      - if: matrix.framework == 'pytorch'
-        name: Train for a short epoch (PT)
+      - name: Train for a short epoch
         run: python references/classification/train_pytorch_character.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
 
   train-orientation-classification:
@@ -66,7 +45,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -74,33 +52,17 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-          pip install -r references/requirements.txt
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract detection toy set
         run: |
@@ -112,17 +74,9 @@ jobs:
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_recogition_set-036a4d80.zip
           sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_recogition_set-036a4d80.zip -d reco_set
-      - if: matrix.framework == 'tensorflow'
-        name: Train for a short epoch (TF) (document orientation)
-        run: python references/classification/train_tensorflow_orientation.py resnet18 --type page --train_path ./det_set --val_path ./det_set  -b 2 --epochs 1
-      - if: matrix.framework == 'pytorch'
-        name: Train for a short epoch (PT) (document orientation)
+      - name: Train for a short epoch (document orientation)
         run: python references/classification/train_pytorch_orientation.py resnet18 --type page --train_path ./det_set --val_path ./det_set  -b 2 --epochs 1
-      - if: matrix.framework == 'tensorflow'
-        name: Train for a short epoch (TF) (crop orientation)
-        run: python references/classification/train_tensorflow_orientation.py resnet18 --type crop --train_path ./reco_set --val_path ./reco_set  -b 4 --epochs 1
-      - if: matrix.framework == 'pytorch'
-        name: Train for a short epoch (PT) (crop orientation)
+      - name: Train for a short epoch (crop orientation)
         run: python references/classification/train_pytorch_orientation.py resnet18 --type crop --train_path ./reco_set --val_path ./reco_set  -b 4 --epochs 1
 
   train-text-recognition:
@@ -132,7 +86,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -140,44 +93,24 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-          pip install -r references/requirements.txt
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_recogition_set-036a4d80.zip
           sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_recogition_set-036a4d80.zip -d reco_set
-      - if: matrix.framework == 'tensorflow'
-        name: Train for a short epoch (TF)
-        run: python references/recognition/train_tensorflow.py crnn_vgg16_bn --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
-      - if: matrix.framework == 'pytorch'
-        name: Train for a short epoch (PT)
+      - name: Train for a short epoch
         run: python references/recognition/train_pytorch.py crnn_mobilenet_v3_small --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
 
   evaluate-text-recognition:
@@ -187,7 +120,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -195,33 +127,16 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
-      - if: matrix.framework == 'tensorflow'
-        name: Evaluate text recognition (TF)
-        run: python references/recognition/evaluate_tensorflow.py crnn_mobilenet_v3_small --dataset SVT -b 32
-      - if: matrix.framework == 'pytorch'
-        name: Evaluate text recognition (PT)
+          pip install -e .[viz,html] --upgrade
+      - name: Evaluate text recognition
         run: python references/recognition/evaluate_pytorch.py crnn_mobilenet_v3_small --dataset SVT -b 32
 
   latency-text-recognition:
@@ -231,7 +146,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -239,33 +153,16 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
-      - if: matrix.framework == 'tensorflow'
-        name: Benchmark latency (TF)
-        run: python references/recognition/latency_tensorflow.py crnn_mobilenet_v3_small --it 5
-      - if: matrix.framework == 'pytorch'
-        name: Benchmark latency (PT)
+          pip install -e .[viz,html] --upgrade
+      - name: Benchmark latency
         run: python references/recognition/latency_pytorch.py crnn_mobilenet_v3_small --it 5
 
   train-text-detection:
@@ -275,7 +172,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -283,44 +179,24 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}-
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-          pip install -r references/requirements.txt
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_detection_set-bbbb4243.zip
           sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_detection_set-bbbb4243.zip -d det_set
-      - if: matrix.framework == 'tensorflow'
-        name: Train for a short epoch (TF)
-        run: python references/detection/train_tensorflow.py linknet_resnet18 --train_path ./det_set --val_path ./det_set -b 2 --epochs 1
-      - if: matrix.framework == 'pytorch'
-        name: Train for a short epoch (PT)
+      - name: Train for a short epoch
         run: python references/detection/train_pytorch.py db_mobilenet_v3_large --train_path ./det_set --val_path ./det_set -b 2 --epochs 1
 
   evaluate-text-detection:
@@ -330,7 +206,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -338,35 +213,17 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
+          pip install -e .[viz,html] --upgrade
           pip install -r references/requirements.txt
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
-          pip install -r references/requirements.txt
-      - if: matrix.framework == 'tensorflow'
-        name: Evaluate text detection (TF)
-        run: python references/detection/evaluate_tensorflow.py db_mobilenet_v3_large
-      - if: matrix.framework == 'pytorch'
-        name: Evaluate text detection (PT)
+      - name: Evaluate text detection
         run: python references/detection/evaluate_pytorch.py db_mobilenet_v3_large
 
   latency-text-detection:
@@ -376,7 +233,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ["3.10"]
-        framework: [tensorflow, pytorch]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -384,31 +240,14 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements.txt') }}
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - if: matrix.framework == 'tensorflow'
-        name: Install dependencies (TF)
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-      - if: matrix.framework == 'pytorch'
-        name: Install dependencies (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
-      - if: matrix.framework == 'tensorflow'
-        name: Benchmark latency (TF)
-        run: python references/detection/latency_tensorflow.py db_mobilenet_v3_large --it 5 --size 512
-      - if: matrix.framework == 'pytorch'
-        name: Benchmark latency (PT)
+          pip install -e .[viz,html] --upgrade
+      - name: Benchmark latency
         run: python references/detection/latency_pytorch.py db_mobilenet_v3_large --it 5 --size 512

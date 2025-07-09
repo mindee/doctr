@@ -64,7 +64,7 @@ class PreProcessor(nn.Module):
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if isinstance(x, np.ndarray):
-            if x.dtype not in (np.uint8, np.float32):
+            if x.dtype not in (np.uint8, np.float32, np.float16):
                 raise TypeError("unsupported data type for numpy.ndarray")
             x = torch.from_numpy(x.copy()).permute(2, 0, 1)
         elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
@@ -77,29 +77,27 @@ class PreProcessor(nn.Module):
         else:
             x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
 
-        return x  # type: ignore[return-value]
+        return x
 
-    def __call__(self, x: torch.Tensor | np.ndarray | list[torch.Tensor | np.ndarray]) -> list[torch.Tensor]:
+    def __call__(self, x: np.ndarray | list[np.ndarray]) -> list[torch.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
-            x: list of images (np.array) or tensors (already resized and batched)
+            x: list of images (np.array) or a single image (np.array) of shape (H, W, C)
 
         Returns:
-            list of page batches
+            list of page batches (*, C, H, W) ready for model inference
         """
         # Input type check
-        if isinstance(x, (np.ndarray, torch.Tensor)):
+        if isinstance(x, np.ndarray):
             if x.ndim != 4:
                 raise AssertionError("expected 4D Tensor")
-            if isinstance(x, np.ndarray):
-                if x.dtype not in (np.uint8, np.float32):
-                    raise TypeError("unsupported data type for numpy.ndarray")
-                x = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)
-            elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
-                raise TypeError("unsupported data type for torch.Tensor")
+            if x.dtype not in (np.uint8, np.float32, np.float16):
+                raise TypeError("unsupported data type for numpy.ndarray")
+            x = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)  # type: ignore[assignment]
+
             # Resizing
-            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:  # type: ignore[union-attr]
+            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
                 x = F.resize(
                     x, self.resize.size, interpolation=self.resize.interpolation, antialias=self.resize.antialias
                 )
@@ -110,7 +108,7 @@ class PreProcessor(nn.Module):
                 x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
             batches = [x]
 
-        elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
+        elif isinstance(x, list) and all(isinstance(sample, np.ndarray) for sample in x):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching

@@ -7,25 +7,13 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
+import torch
+from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
-from doctr.file_utils import is_tf_available
 from doctr.io import DocumentFile
 from doctr.utils.visualization import visualize_page
 
-if is_tf_available():
-    import tensorflow as tf
-    from backend.tensorflow import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
-
-    if any(tf.config.experimental.list_physical_devices("gpu")):
-        forward_device = tf.device("/gpu:0")
-    else:
-        forward_device = tf.device("/cpu:0")
-
-else:
-    import torch
-    from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
-
-    forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def main(det_archs, reco_archs):
@@ -62,7 +50,7 @@ def main(det_archs, reco_archs):
 
     # Model selection
     st.sidebar.title("Model selection")
-    st.sidebar.markdown("**Backend**: " + ("TensorFlow" if is_tf_available() else "PyTorch"))
+    st.sidebar.markdown("**Backend**: PyTorch")
     det_arch = st.sidebar.selectbox("Text detection model", det_archs)
     reco_arch = st.sidebar.selectbox("Text recognition model", reco_archs)
 

@@ -3,19 +3,16 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-import os
-
-from doctr.file_utils import CLASS_NAME
-
-os.environ["USE_TORCH"] = "1"
-
 import multiprocessing as mp
+import os
 import time
 from pathlib import Path
 
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision.transforms import Normalize
+
+from doctr.file_utils import CLASS_NAME
 
 if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
     from tqdm.contrib.slack import tqdm
