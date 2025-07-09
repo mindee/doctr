@@ -27,7 +27,21 @@ __all__ = [
 
 
 class Resize(T.Resize):
-    """Resize the input image to the given size"""
+    """Resize the input image to the given size
+
+    >>> import torch
+    >>> from doctr.transforms import Resize
+    >>> transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=True)
+    >>> out = transfo(torch.rand((3, 64, 64)))
+
+    Args:
+        size: output size in pixels, either a tuple (height, width) or a single integer for square images
+        interpolation: interpolation mode to use for resizing, default is bilinear
+        preserve_aspect_ratio: whether to preserve the aspect ratio of the image,
+            if True, the image will be resized to fit within the target size while maintaining its aspect ratio
+        symmetric_pad: whether to symmetrically pad the image to the target size,
+            if True, the image will be padded equally on both sides to fit the target size
+    """
 
     def __init__(
         self,
