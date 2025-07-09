@@ -13,7 +13,7 @@ from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
-from ..functional.pytorch import random_shadow
+from ..functional import random_shadow
 
 __all__ = [
     "Resize",

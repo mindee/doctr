@@ -11,7 +11,7 @@ from torch import nn
 
 from doctr.datasets import VOCABS
 
-from ...modules.layers.pytorch import FASTConvLayer
+from ...modules.layers import FASTConvLayer
 from ...utils import conv_sequence_pt, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
