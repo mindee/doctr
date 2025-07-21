@@ -64,7 +64,7 @@ Should you use docTR on documents that include rotated pages, or pages with mult
 you have multiple options to handle it:
 
 - If you only use straight document pages with straight words (horizontal, same reading direction),
-consider passing `assume_straight_boxes=True` to the ocr_predictor. It will directly fit straight boxes
+consider passing `assume_straight_pages=True` to the ocr_predictor. It will directly fit straight boxes
 on your page and return straight boxes, which makes it the fastest option.
 
 - If you want the predictor to output straight boxes (no matter the orientation of your pages, the final localizations
