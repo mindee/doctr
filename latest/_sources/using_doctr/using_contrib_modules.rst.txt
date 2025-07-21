@@ -20,20 +20,20 @@ Available contribution modules
 
 Here are all contribution modules that are available through docTR:
 
-ArtefactDetection
+ArtefactDetector
 ^^^^^^^^^^^^^^^^^
 
-The ArtefactDetection module provides a set of functions to detect artefacts in the document images, such as logos, QR codes, bar codes, etc.
+The ArtefactDetector module provides a set of functions to detect artefacts in the document images, such as logos, QR codes, bar codes, etc.
 It is based on the YOLOv8 architecture, which is a state-of-the-art object detection model.
 
 .. code:: python3
 
     from doctr.io import DocumentFile
-    from doctr.contrib.artefacts import ArtefactDetection
+    from doctr.contrib.artefacts import ArtefactDetector
 
     # Load the document
     doc = DocumentFile.from_images(["path/to/your/image"])
-    detector = ArtefactDetection(batch_size=2, conf_threshold=0.5, iou_threshold=0.5)
+    detector = ArtefactDetector(batch_size=2, conf_threshold=0.5, iou_threshold=0.5)
     artefacts = detector(doc)
 
     # Visualize the detected artefacts
@@ -46,6 +46,6 @@ Reference: `YOLOv8 <https://github.com/ultralytics/ultralytics>`_
 
 .. code:: python3
 
-    from doctr.contrib import ArtefactDetection
+    from doctr.contrib import ArtefactDetector
 
-    detector = ArtefactDetection(model_path="path/to/your/model.onnx", labels=["table", "figure"])
+    detector = ArtefactDetector(model_path="path/to/your/model.onnx", labels=["table", "figure"])
