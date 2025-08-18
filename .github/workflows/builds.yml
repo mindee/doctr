@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
