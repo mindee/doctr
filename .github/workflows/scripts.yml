@@ -20,7 +20,7 @@ jobs:
         run: brew install cairo pango gdk-pixbuf libffi
       - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -52,7 +52,7 @@ jobs:
         run: brew install cairo pango gdk-pixbuf libffi
       - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -84,7 +84,7 @@ jobs:
         run: brew install cairo pango gdk-pixbuf libffi
       - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -112,7 +112,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           # MacOS issue ref.: https://github.com/actions/setup-python/issues/855 & https://github.com/actions/setup-python/issues/865
           python-version: ${{ matrix.os == 'macos-latest' && matrix.python == '3.10' && '3.11' || matrix.python }}
