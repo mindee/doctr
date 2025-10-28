@@ -1,9 +1,8 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Tuple, Union
 
 import cv2
 import numpy as np
@@ -15,17 +14,15 @@ __all__ = ["crop_boxes", "create_shadow_mask"]
 
 def crop_boxes(
     boxes: np.ndarray,
-    crop_box: Union[Tuple[int, int, int, int], Tuple[float, float, float, float]],
+    crop_box: tuple[int, int, int, int] | tuple[float, float, float, float],
 ) -> np.ndarray:
     """Crop localization boxes
 
     Args:
-    ----
         boxes: ndarray of shape (N, 4) in relative or abs coordinates
         crop_box: box (xmin, ymin, xmax, ymax) to crop the image, in the same coord format that the boxes
 
     Returns:
-    -------
         the cropped boxes
     """
     is_box_rel = boxes.max() <= 1
@@ -49,17 +46,15 @@ def crop_boxes(
     return boxes[is_valid]
 
 
-def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float, float]:
+def expand_line(line: np.ndarray, target_shape: tuple[int, int]) -> tuple[float, float]:
     """Expands a 2-point line, so that the first is on the edge. In other terms, we extend the line in
     the same direction until we meet one of the edges.
 
     Args:
-    ----
         line: array of shape (2, 2) of the point supposed to be on one edge, and the shadow tip.
         target_shape: the desired mask shape
 
     Returns:
-    -------
         2D coordinates of the first point once we extended the line (on one of the edges)
     """
     if any(coord == 0 or coord == size for coord, size in zip(line[0], target_shape[::-1])):
@@ -112,7 +107,7 @@ def expand_line(line: np.ndarray, target_shape: Tuple[int, int]) -> Tuple[float,
 
 
 def create_shadow_mask(
-    target_shape: Tuple[int, int],
+    target_shape: tuple[int, int],
     min_base_width=0.3,
     max_tip_width=0.5,
     max_tip_height=0.3,
@@ -120,14 +115,12 @@ def create_shadow_mask(
     """Creates a random shadow mask
 
     Args:
-    ----
         target_shape: the target shape (H, W)
         min_base_width: the relative minimum shadow base width
         max_tip_width: the relative maximum shadow tip width
         max_tip_height: the relative maximum shadow tip height
 
     Returns:
-    -------
         a numpy ndarray of shape (H, W, 1) with values in the range [0, 1]
     """
     # Default base is top

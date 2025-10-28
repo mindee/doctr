@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -19,13 +19,15 @@ class KIEIn(BaseModel):
     straighten_pages: bool = Field(default=False, examples=[False])
     det_bs: int = Field(default=2, examples=[2])
     reco_bs: int = Field(default=128, examples=[128])
+    disable_page_orientation: bool = Field(default=False, examples=[False])
+    disable_crop_orientation: bool = Field(default=False, examples=[False])
     bin_thresh: float = Field(default=0.1, examples=[0.1])
     box_thresh: float = Field(default=0.1, examples=[0.1])
 
 
 class OCRIn(KIEIn, BaseModel):
     resolve_lines: bool = Field(default=True, examples=[True])
-    resolve_blocks: bool = Field(default=True, examples=[True])
+    resolve_blocks: bool = Field(default=False, examples=[False])
     paragraph_break: float = Field(default=0.0035, examples=[0.0035])
 
 
@@ -52,21 +54,21 @@ class RecognitionOut(BaseModel):
 
 class DetectionOut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
-    geometries: List[List[float]] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    geometries: list[list[float]] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
 
 
 class OCRWord(BaseModel):
     value: str = Field(..., examples=["example"])
-    geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
     objectness_score: float = Field(..., examples=[0.99])
     confidence: float = Field(..., examples=[0.99])
-    crop_orientation: Dict[str, Any] = Field(..., examples=[{"value": 0, "confidence": None}])
+    crop_orientation: dict[str, Any] = Field(..., examples=[{"value": 0, "confidence": None}])
 
 
 class OCRLine(BaseModel):
-    geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
     objectness_score: float = Field(..., examples=[0.99])
-    words: List[OCRWord] = Field(
+    words: list[OCRWord] = Field(
         ...,
         examples=[
             {
@@ -81,9 +83,9 @@ class OCRLine(BaseModel):
 
 
 class OCRBlock(BaseModel):
-    geometry: List[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
     objectness_score: float = Field(..., examples=[0.99])
-    lines: List[OCRLine] = Field(
+    lines: list[OCRLine] = Field(
         ...,
         examples=[
             {
@@ -103,7 +105,7 @@ class OCRBlock(BaseModel):
 
 
 class OCRPage(BaseModel):
-    blocks: List[OCRBlock] = Field(
+    blocks: list[OCRBlock] = Field(
         ...,
         examples=[
             {
@@ -131,10 +133,10 @@ class OCRPage(BaseModel):
 
 class OCROut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
-    orientation: Dict[str, Union[float, None]] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
-    language: Dict[str, Union[str, float, None]] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
-    dimensions: Tuple[int, int] = Field(..., examples=[(100, 100)])
-    items: List[OCRPage] = Field(
+    orientation: dict[str, float | None] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
+    language: dict[str, str | float | None] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
+    dimensions: tuple[int, int] = Field(..., examples=[(100, 100)])
+    items: list[OCRPage] = Field(
         ...,
         examples=[
             {
@@ -162,7 +164,7 @@ class OCROut(BaseModel):
 
 class KIEElement(BaseModel):
     class_name: str = Field(..., examples=["example"])
-    items: List[Dict[str, Union[str, List[float], float, Dict[str, Any]]]] = Field(
+    items: list[dict[str, str | list[float] | float | dict[str, Any]]] = Field(
         ...,
         examples=[
             {
@@ -178,7 +180,7 @@ class KIEElement(BaseModel):
 
 class KIEOut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
-    orientation: Dict[str, Union[float, None]] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
-    language: Dict[str, Union[str, float, None]] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
-    dimensions: Tuple[int, int] = Field(..., examples=[(100, 100)])
-    predictions: List[KIEElement]
+    orientation: dict[str, float | None] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
+    language: dict[str, str | float | None] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
+    dimensions: tuple[int, int] = Field(..., examples=[(100, 100)])
+    predictions: list[KIEElement]

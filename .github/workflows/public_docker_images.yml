@@ -9,7 +9,7 @@ on:
   pull_request:
     branches: main
   schedule:
-    - cron: '0 2 29 * *'  # At 02:00 on day-of-month 29
+    - cron: '0 2 1 */3 *'  # At 02:00 on the 1st day of every 3rd month
 
 env:
   REGISTRY: ghcr.io
@@ -22,9 +22,9 @@ jobs:
       fail-fast: false
       matrix:
         # Must match version at https://www.python.org/ftp/python/
-        python: ["3.9.18", "3.10.13", "3.11.8"]
-        framework: ["tf", "torch", "tf,viz,html,contrib", "torch,viz,html,contrib"]
-        system: ["cpu", "gpu"]
+        python: ["3.10.13", "3.11.8", "3.12.7"]
+        # NOTE: Since docTR 1.0.0 torch doesn't exist as a seperate install option it's only to keep the naming convention
+        framework: ["torch", "torch,viz,html,contrib"]
 
     # Sets the permissions granted to the `GITHUB_TOKEN` for the actions in this job.
     permissions:
@@ -33,35 +33,41 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Log in to the Container registry
-        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Sanitize docker tag
+        run: |
+          PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-"
+          PREFIX_DOCKER_TAG=$(echo ${PREFIX_DOCKER_TAG}|sed 's/,/-/g')
+          echo PREFIX_DOCKER_TAG=${PREFIX_DOCKER_TAG} >> $GITHUB_ENV
+          echo $PREFIX_DOCKER_TAG
+
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}
           tags: |
             # used only on schedule event
-            type=schedule,pattern={{date 'YYYY-MM'}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
+            type=schedule,pattern={{date 'YYYY-MM'}},prefix=${{ env.PREFIX_DOCKER_TAG }}
             # used only if a tag following semver is published
-            type=semver,pattern={{raw}},prefix=${{ matrix.framework }}-py${{ matrix.python }}-${{ matrix.system }}-
+            type=semver,pattern={{raw}},prefix=${{ env.PREFIX_DOCKER_TAG }}
 
       - name: Build Docker image
         id: build
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        uses: docker/build-push-action@v6
         with:
           context: .
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
-            SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: false  # push only if `import doctr` works
@@ -72,14 +78,13 @@ jobs:
 
       - name: Push Docker image
         # Push only if the CI is not triggered by "PR on main"
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        if: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || (startsWith(github.ref, 'refs/tags') && github.event_name == 'push') }}
+        uses: docker/build-push-action@v6
         with:
           context: .
           build-args: |
             FRAMEWORK=${{ matrix.framework }}
             PYTHON_VERSION=${{ matrix.python }}
-            SYSTEM=${{ matrix.system }}
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: true

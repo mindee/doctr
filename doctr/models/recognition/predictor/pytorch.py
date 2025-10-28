@@ -1,9 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Sequence, Tuple, Union
+from collections.abc import Sequence
+from typing import Any
 
 import numpy as np
 import torch
@@ -21,7 +22,6 @@ class RecognitionPredictor(nn.Module):
     """Implements an object able to identify character sequences in images
 
     Args:
-    ----
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
         split_wide_crops: wether to use crop splitting for high aspect ratio crops
@@ -38,15 +38,15 @@ class RecognitionPredictor(nn.Module):
         self.model = model.eval()
         self.split_wide_crops = split_wide_crops
         self.critical_ar = 8  # Critical aspect ratio
-        self.dil_factor = 1.4  # Dilation factor to overlap the crops
+        self.overlap_ratio = 0.5  # Ratio of overlap between neighboring crops
         self.target_ar = 6  # Target aspect ratio
 
     @torch.inference_mode()
     def forward(
         self,
-        crops: Sequence[Union[np.ndarray, torch.Tensor]],
+        crops: Sequence[np.ndarray],
         **kwargs: Any,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         if len(crops) == 0:
             return []
         # Dimension check
@@ -60,14 +60,13 @@ class RecognitionPredictor(nn.Module):
                 crops,  # type: ignore[arg-type]
                 self.critical_ar,
                 self.target_ar,
-                self.dil_factor,
-                isinstance(crops[0], np.ndarray),
+                self.overlap_ratio,
             )
             if remapped:
                 crops = new_crops
 
         # Resize & batch them
-        processed_batches = self.pre_processor(crops)
+        processed_batches = self.pre_processor(crops)  # type: ignore[arg-type]
 
         # Forward it
         _params = next(self.model.parameters())
@@ -81,6 +80,6 @@ class RecognitionPredictor(nn.Module):
 
         # Remap crops
         if self.split_wide_crops and remapped:
-            out = remap_preds(out, crop_map, self.dil_factor)
+            out = remap_preds(out, crop_map, self.overlap_ratio)
 
         return out

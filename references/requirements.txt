@@ -1,5 +1,6 @@
 -e .
 tqdm
+slack-sdk
 wandb>=0.10.31
 clearml>=1.11.1
 matplotlib>=3.1.0

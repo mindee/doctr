@@ -1,11 +1,11 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import glob
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from PIL import Image
@@ -31,21 +31,28 @@ class SynthText(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
     URL = "https://thor.robots.ox.ac.uk/~vgg/data/scenetext/SynthText.zip"
     SHA256 = "28ab030485ec8df3ed612c568dd71fb2793b9afbfa3a9d9c6e792aef33265bf1"
 
+    # filter corrupted or missing images
+    BLACKLIST = (
+        "67/fruits_129_",
+        "194/window_19_",
+    )
+
     def __init__(
         self,
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -56,8 +63,14 @@ class SynthText(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
+
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         # Load mat data
@@ -83,7 +96,7 @@ class SynthText(VisionDataset):
         del mat_data
 
         for img_path, word_boxes, txt in tqdm(
-            iterable=zip(paths, boxes, labels), desc="Unpacking SynthText", total=len(paths)
+            iterable=zip(paths, boxes, labels), desc="Preparing and Loading SynthText", total=len(paths)
         ):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path[0])):
@@ -104,13 +117,21 @@ class SynthText(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_path[0]), geoms=word_boxes)
                 for crop, label in zip(crops, labels):
-                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                    if (
+                        crop.shape[0] > 0
+                        and crop.shape[1] > 0
+                        and len(label) > 0
+                        and len(label) < 30
+                        and " " not in label
+                    ):
                         # write data to disk
                         with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
                             f.write(label)
                             tmp_img = Image.fromarray(crop)
                             tmp_img.save(os.path.join(reco_folder_path, f"{reco_images_counter}.png"))
                             reco_images_counter += 1
+            elif detection_task:
+                self.data.append((img_path[0], np.asarray(word_boxes, dtype=np_dtype)))
             else:
                 self.data.append((img_path[0], dict(boxes=np.asarray(word_boxes, dtype=np_dtype), labels=labels)))
 
@@ -123,6 +144,7 @@ class SynthText(VisionDataset):
         return f"train={self.train}"
 
     def _read_from_folder(self, path: str) -> None:
-        for img_path in glob.glob(os.path.join(path, "*.png")):
+        img_paths = glob.glob(os.path.join(path, "*.png"))
+        for img_path in tqdm(iterable=img_paths, desc="Preparing and Loading SynthText", total=len(img_paths)):
             with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
                 self.data.append((img_path, f.read()))

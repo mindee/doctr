@@ -9,13 +9,13 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           persist-credentials: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html]
+          pip install -e .[viz,html] --upgrade
           pip install -e .[docs]
 
       - name: Build documentation
@@ -37,12 +37,12 @@ jobs:
         run: test -e docs/build/index.html || exit
 
       - name: Install SSH Client 🔑
-        uses: webfactory/ssh-agent@v0.4.1
+        uses: webfactory/ssh-agent@v0.9.1
         with:
           ssh-private-key: ${{ secrets.SSH_DEPLOY_KEY }}
 
       - name: Deploy to Github Pages
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+        uses: JamesIves/github-pages-deploy-action@v4.7.3
         with:
           BRANCH: gh-pages
           FOLDER: 'docs/build'

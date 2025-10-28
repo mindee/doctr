@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -7,20 +7,19 @@
 import math
 from copy import deepcopy
 from functools import partial
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import nn
 
 from doctr.datasets import VOCABS
 
-from ...utils.pytorch import load_pretrained_params
-from ..resnet.pytorch import ResNet
+from ..resnet import ResNet
 
 __all__ = ["magc_resnet31"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "magc_resnet31": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -36,7 +35,6 @@ class MAGC(nn.Module):
     <https://arxiv.org/pdf/1910.02562.pdf>`_.
 
     Args:
-    ----
         inplanes: input channels
         headers: number of headers to split channels
         attn_scale: if True, re-scale attention to counteract the variance distibutions
@@ -50,7 +48,7 @@ class MAGC(nn.Module):
         headers: int = 8,
         attn_scale: bool = False,
         ratio: float = 0.0625,  # bottleneck ratio of 1/16 as described in paper
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
 
@@ -74,7 +72,7 @@ class MAGC(nn.Module):
     def forward(self, inputs: torch.Tensor) -> torch.Tensor:
         batch, _, height, width = inputs.size()
         # (N * headers, C / headers, H , W)
-        x = inputs.view(batch * self.headers, self.single_header_inplanes, height, width)
+        x = inputs.contiguous().view(batch * self.headers, self.single_header_inplanes, height, width)
         shortcut = x
         # (N * headers, C / headers, H * W)
         shortcut = shortcut.view(batch * self.headers, self.single_header_inplanes, height * width)
@@ -105,12 +103,12 @@ class MAGC(nn.Module):
 def _magc_resnet(
     arch: str,
     pretrained: bool,
-    num_blocks: List[int],
-    output_channels: List[int],
-    stage_stride: List[int],
-    stage_conv: List[bool],
-    stage_pooling: List[Optional[Tuple[int, int]]],
-    ignore_keys: Optional[List[str]] = None,
+    num_blocks: list[int],
+    output_channels: list[int],
+    stage_stride: list[int],
+    stage_conv: list[bool],
+    stage_pooling: list[tuple[int, int] | None],
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> ResNet:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -137,7 +135,7 @@ def _magc_resnet(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -154,12 +152,10 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
-    -------
         A feature extractor model
     """
     return _magc_resnet(

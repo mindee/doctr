@@ -1,9 +1,8 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Dict, List
 
 import numpy as np
 
@@ -11,16 +10,15 @@ __all__ = ["_remove_padding"]
 
 
 def _remove_padding(
-    pages: List[np.ndarray],
-    loc_preds: List[Dict[str, np.ndarray]],
+    pages: list[np.ndarray],
+    loc_preds: list[dict[str, np.ndarray]],
     preserve_aspect_ratio: bool,
     symmetric_pad: bool,
     assume_straight_pages: bool,
-) -> List[Dict[str, np.ndarray]]:
+) -> list[dict[str, np.ndarray]]:
     """Remove padding from the localization predictions
 
     Args:
-    ----
         pages: list of pages
         loc_preds: list of localization predictions
         preserve_aspect_ratio: whether the aspect ratio was preserved during padding
@@ -28,7 +26,6 @@ def _remove_padding(
         assume_straight_pages: whether the pages are assumed to be straight
 
     Returns:
-    -------
         list of unpaded localization predictions
     """
     if preserve_aspect_ratio:

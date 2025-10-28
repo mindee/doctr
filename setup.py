@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -9,7 +9,7 @@ from pathlib import Path
 from setuptools import setup
 
 PKG_NAME = "python-doctr"
-VERSION = os.getenv("BUILD_VERSION", "0.9.0a0")
+VERSION = os.getenv("BUILD_VERSION", "1.0.1a0")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
@@ -20,7 +20,6 @@ class DocumentBuilder(NestedObject):
     """Implements a document builder
 
     Args:
-    ----
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
@@ -31,7 +30,7 @@ class DocumentBuilder(NestedObject):
     def __init__(
         self,
         resolve_lines: bool = True,
-        resolve_blocks: bool = True,
+        resolve_blocks: bool = False,
         paragraph_break: float = 0.035,
         export_as_straight_boxes: bool = False,
     ) -> None:
@@ -41,15 +40,13 @@ class DocumentBuilder(NestedObject):
         self.export_as_straight_boxes = export_as_straight_boxes
 
     @staticmethod
-    def _sort_boxes(boxes: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    def _sort_boxes(boxes: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """Sort bounding boxes from top to bottom, left to right
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) (in case of rotated bbox)
 
         Returns:
-        -------
             tuple: indices of ordered boxes of shape (N,), boxes
                 If straight boxes are passed tpo the function, boxes are unchanged
                 else: boxes returned are straight boxes fitted to the straightened rotated boxes
@@ -65,16 +62,14 @@ class DocumentBuilder(NestedObject):
             boxes = np.concatenate((boxes.min(1), boxes.max(1)), -1)
         return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
 
-    def _resolve_sub_lines(self, boxes: np.ndarray, word_idcs: List[int]) -> List[List[int]]:
+    def _resolve_sub_lines(self, boxes: np.ndarray, word_idcs: list[int]) -> list[list[int]]:
         """Split a line in sub_lines
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4)
             word_idcs: list of indexes for the words of the line
 
         Returns:
-        -------
             A list of (sub-)lines computed from the original line (words)
         """
         lines = []
@@ -105,15 +100,13 @@ class DocumentBuilder(NestedObject):
 
         return lines
 
-    def _resolve_lines(self, boxes: np.ndarray) -> List[List[int]]:
+    def _resolve_lines(self, boxes: np.ndarray) -> list[list[int]]:
         """Order boxes to group them in lines
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
 
         Returns:
-        -------
             nested list of box indices
         """
         # Sort boxes, and straighten the boxes if they are rotated
@@ -153,16 +146,14 @@ class DocumentBuilder(NestedObject):
         return lines
 
     @staticmethod
-    def _resolve_blocks(boxes: np.ndarray, lines: List[List[int]]) -> List[List[List[int]]]:
+    def _resolve_blocks(boxes: np.ndarray, lines: list[list[int]]) -> list[list[list[int]]]:
         """Order lines to group them in blocks
 
         Args:
-        ----
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2)
             lines: list of lines, each line is a list of idx
 
         Returns:
-        -------
             nested list of box indices
         """
         # Resolve enclosing boxes of lines
@@ -207,7 +198,7 @@ class DocumentBuilder(NestedObject):
         # Compute clusters
         clusters = fclusterdata(box_features, t=0.1, depth=4, criterion="distance", metric="euclidean")
 
-        _blocks: Dict[int, List[int]] = {}
+        _blocks: dict[int, list[int]] = {}
         # Form clusters
         for line_idx, cluster_idx in enumerate(clusters):
             if cluster_idx in _blocks.keys():
@@ -224,13 +215,12 @@ class DocumentBuilder(NestedObject):
         self,
         boxes: np.ndarray,
         objectness_scores: np.ndarray,
-        word_preds: List[Tuple[str, float]],
-        crop_orientations: List[Dict[str, Any]],
-    ) -> List[Block]:
+        word_preds: list[tuple[str, float]],
+        crop_orientations: list[dict[str, Any]],
+    ) -> list[Block]:
         """Gather independent words in structured blocks
 
         Args:
-        ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 4) or (N, 4, 2)
             objectness_scores: objectness scores of all detected words of the page, of shape N
             word_preds: list of all detected words of the page, of shape N
@@ -238,7 +228,6 @@ class DocumentBuilder(NestedObject):
                 the general orientation (orientations + confidences) of the crops
 
         Returns:
-        -------
             list of block elements
         """
         if boxes.shape[0] != len(word_preds):
@@ -266,7 +255,7 @@ class DocumentBuilder(NestedObject):
                 Line([
                     Word(
                         *word_preds[idx],
-                        tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+                        tuple(tuple(pt) for pt in boxes[idx].tolist()),  # type: ignore[arg-type]
                         float(objectness_scores[idx]),
                         crop_orientations[idx],
                     )
@@ -295,19 +284,18 @@ class DocumentBuilder(NestedObject):
 
     def __call__(
         self,
-        pages: List[np.ndarray],
-        boxes: List[np.ndarray],
-        objectness_scores: List[np.ndarray],
-        text_preds: List[List[Tuple[str, float]]],
-        page_shapes: List[Tuple[int, int]],
-        crop_orientations: List[Dict[str, Any]],
-        orientations: Optional[List[Dict[str, Any]]] = None,
-        languages: Optional[List[Dict[str, Any]]] = None,
+        pages: list[np.ndarray],
+        boxes: list[np.ndarray],
+        objectness_scores: list[np.ndarray],
+        text_preds: list[list[tuple[str, float]]],
+        page_shapes: list[tuple[int, int]],
+        crop_orientations: list[dict[str, Any]],
+        orientations: list[dict[str, Any]] | None = None,
+        languages: list[dict[str, Any]] | None = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
         Args:
-        ----
             pages: list of N elements, where each element represents the page image
             boxes: list of N elements, where each element represents the localization predictions, of shape (*, 4)
                 or (*, 4, 2) for all words for a given page
@@ -322,7 +310,6 @@ class DocumentBuilder(NestedObject):
                 where each element is a dictionary containing the language (language + confidence)
 
         Returns:
-        -------
             document object
         """
         if len(boxes) != len(text_preds) != len(crop_orientations) != len(objectness_scores) or len(boxes) != len(
@@ -374,7 +361,6 @@ class KIEDocumentBuilder(DocumentBuilder):
     """Implements a KIE document builder
 
     Args:
-    ----
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
         paragraph_break: relative length of the minimum space separating paragraphs
@@ -384,19 +370,18 @@ class KIEDocumentBuilder(DocumentBuilder):
 
     def __call__(  # type: ignore[override]
         self,
-        pages: List[np.ndarray],
-        boxes: List[Dict[str, np.ndarray]],
-        objectness_scores: List[Dict[str, np.ndarray]],
-        text_preds: List[Dict[str, List[Tuple[str, float]]]],
-        page_shapes: List[Tuple[int, int]],
-        crop_orientations: List[Dict[str, List[Dict[str, Any]]]],
-        orientations: Optional[List[Dict[str, Any]]] = None,
-        languages: Optional[List[Dict[str, Any]]] = None,
+        pages: list[np.ndarray],
+        boxes: list[dict[str, np.ndarray]],
+        objectness_scores: list[dict[str, np.ndarray]],
+        text_preds: list[dict[str, list[tuple[str, float]]]],
+        page_shapes: list[tuple[int, int]],
+        crop_orientations: list[dict[str, list[dict[str, Any]]]],
+        orientations: list[dict[str, Any]] | None = None,
+        languages: list[dict[str, Any]] | None = None,
     ) -> KIEDocument:
         """Re-arrange detected words into structured predictions
 
         Args:
-        ----
             pages: list of N elements, where each element represents the page image
             boxes: list of N dictionaries, where each element represents the localization predictions for a class,
                 of shape (*, 5) or (*, 6) for all predictions
@@ -411,7 +396,6 @@ class KIEDocumentBuilder(DocumentBuilder):
                 where each element is a dictionary containing the language (language + confidence)
 
         Returns:
-        -------
             document object
         """
         if len(boxes) != len(text_preds) != len(crop_orientations) != len(objectness_scores) or len(boxes) != len(
@@ -425,7 +409,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if next(iter(boxes[0].values())).ndim == 3:
-                straight_boxes: List[Dict[str, np.ndarray]] = []
+                straight_boxes: list[dict[str, np.ndarray]] = []
                 # Iterate over pages
                 for p_boxes in boxes:
                     # Iterate over boxes of the pages
@@ -471,20 +455,18 @@ class KIEDocumentBuilder(DocumentBuilder):
         self,
         boxes: np.ndarray,
         objectness_scores: np.ndarray,
-        word_preds: List[Tuple[str, float]],
-        crop_orientations: List[Dict[str, Any]],
-    ) -> List[Prediction]:
+        word_preds: list[tuple[str, float]],
+        crop_orientations: list[dict[str, Any]],
+    ) -> list[Prediction]:
         """Gather independent words in structured blocks
 
         Args:
-        ----
             boxes: bounding boxes of all detected words of the page, of shape (N, 4) or (N, 4, 2)
             objectness_scores: objectness scores of all detected words of the page
             word_preds: list of all detected words of the page, of shape N
             crop_orientations: list of orientations for each word crop
 
         Returns:
-        -------
             list of block elements
         """
         if boxes.shape[0] != len(word_preds):
@@ -500,7 +482,7 @@ class KIEDocumentBuilder(DocumentBuilder):
             Prediction(
                 value=word_preds[idx][0],
                 confidence=word_preds[idx][1],
-                geometry=tuple([tuple(pt) for pt in boxes[idx].tolist()]),  # type: ignore[arg-type]
+                geometry=tuple(tuple(pt) for pt in boxes[idx].tolist()),  # type: ignore[arg-type]
                 objectness_score=float(objectness_scores[idx]),
                 crop_orientation=crop_orientations[idx],
             )

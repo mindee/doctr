@@ -1,10 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Tuple
 
 import torch
 from torch import nn
@@ -15,12 +14,12 @@ __all__ = ["PatchEmbedding"]
 class PatchEmbedding(nn.Module):
     """Compute 2D patch embeddings with cls token and positional encoding"""
 
-    def __init__(self, input_shape: Tuple[int, int, int], embed_dim: int, patch_size: Tuple[int, int]) -> None:
+    def __init__(self, input_shape: tuple[int, int, int], embed_dim: int, patch_size: tuple[int, int]) -> None:
         super().__init__()
         channels, height, width = input_shape
         self.patch_size = patch_size
         self.interpolate = True if patch_size[0] == patch_size[1] else False
-        self.grid_size = tuple([s // p for s, p in zip((height, width), self.patch_size)])
+        self.grid_size = tuple(s // p for s, p in zip((height, width), self.patch_size))
         self.num_patches = self.grid_size[0] * self.grid_size[1]
 
         self.cls_token = nn.Parameter(torch.randn(1, 1, embed_dim))

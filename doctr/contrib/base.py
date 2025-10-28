@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Optional
+from typing import Any
 
 import numpy as np
 
@@ -16,32 +16,29 @@ class _BasePredictor:
     Base class for all predictors
 
     Args:
-    ----
         batch_size: the batch size to use
         url: the url to use to download a model if needed
         model_path: the path to the model to use
         **kwargs: additional arguments to be passed to `download_from_url`
     """
 
-    def __init__(self, batch_size: int, url: Optional[str] = None, model_path: Optional[str] = None, **kwargs) -> None:
+    def __init__(self, batch_size: int, url: str | None = None, model_path: str | None = None, **kwargs) -> None:
         self.batch_size = batch_size
         self.session = self._init_model(url, model_path, **kwargs)
 
-        self._inputs: List[np.ndarray] = []
-        self._results: List[Any] = []
+        self._inputs: list[np.ndarray] = []
+        self._results: list[Any] = []
 
-    def _init_model(self, url: Optional[str] = None, model_path: Optional[str] = None, **kwargs: Any) -> Any:
+    def _init_model(self, url: str | None = None, model_path: str | None = None, **kwargs: Any) -> Any:
         """
         Download the model from the given url if needed
 
         Args:
-        ----
             url: the url to use
             model_path: the path to the model to use
             **kwargs: additional arguments to be passed to `download_from_url`
 
         Returns:
-        -------
             Any: the ONNX loaded model
         """
         requires_package("onnxruntime", "`.contrib` module requires `onnxruntime` to be installed.")
@@ -57,40 +54,34 @@ class _BasePredictor:
         Preprocess the input image
 
         Args:
-        ----
             img: the input image to preprocess
 
         Returns:
-        -------
             np.ndarray: the preprocessed image
         """
         raise NotImplementedError
 
-    def postprocess(self, output: List[np.ndarray], input_images: List[List[np.ndarray]]) -> Any:
+    def postprocess(self, output: list[np.ndarray], input_images: list[list[np.ndarray]]) -> Any:
         """
         Postprocess the model output
 
         Args:
-        ----
             output: the model output to postprocess
             input_images: the input images used to generate the output
 
         Returns:
-        -------
             Any: the postprocessed output
         """
         raise NotImplementedError
 
-    def __call__(self, inputs: List[np.ndarray]) -> Any:
+    def __call__(self, inputs: list[np.ndarray]) -> Any:
         """
         Call the model on the given inputs
 
         Args:
-        ----
             inputs: the inputs to use
 
         Returns:
-        -------
             Any: the postprocessed output
         """
         self._inputs = inputs

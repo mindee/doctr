@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -29,6 +29,7 @@ RECO_ARCHS = [
     "vitstr_small",
     "vitstr_base",
     "parseq",
+    "viptr_tiny",
 ]
 
 
@@ -37,6 +38,9 @@ def load_predictor(
     reco_arch: str,
     assume_straight_pages: bool,
     straighten_pages: bool,
+    export_as_straight_boxes: bool,
+    disable_page_orientation: bool,
+    disable_crop_orientation: bool,
     bin_thresh: float,
     box_thresh: float,
     device: torch.device,
@@ -44,17 +48,18 @@ def load_predictor(
     """Load a predictor from doctr.models
 
     Args:
-    ----
         det_arch: detection architecture
         reco_arch: recognition architecture
         assume_straight_pages: whether to assume straight pages or not
         straighten_pages: whether to straighten rotated pages or not
+        export_as_straight_boxes: whether to export boxes as straight or not
+        disable_page_orientation: whether to disable page orientation or not
+        disable_crop_orientation: whether to disable crop orientation or not
         bin_thresh: binarization threshold for the segmentation map
         box_thresh: minimal objectness score to consider a box
         device: torch.device, the device to load the predictor on
 
     Returns:
-    -------
         instance of OCRPredictor
     """
     predictor = ocr_predictor(
@@ -63,8 +68,10 @@ def load_predictor(
         pretrained=True,
         assume_straight_pages=assume_straight_pages,
         straighten_pages=straighten_pages,
-        export_as_straight_boxes=straighten_pages,
+        export_as_straight_boxes=export_as_straight_boxes,
         detect_orientation=not assume_straight_pages,
+        disable_page_orientation=disable_page_orientation,
+        disable_crop_orientation=disable_crop_orientation,
     ).to(device)
     predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
     predictor.det_predictor.model.postprocessor.box_thresh = box_thresh
@@ -75,13 +82,11 @@ def forward_image(predictor: OCRPredictor, image: np.ndarray, device: torch.devi
     """Forward an image through the predictor
 
     Args:
-    ----
         predictor: instance of OCRPredictor
         image: image to process
         device: torch.device, the device to process the image on
 
     Returns:
-    -------
         segmentation map
     """
     with torch.no_grad():

@@ -9,7 +9,7 @@ import torch
 
 from doctr.models import classification
 from doctr.models.classification.predictor import OrientationPredictor
-from doctr.models.utils import export_model_to_onnx
+from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
 
 def _test_classification(model, input_shape, output_size, batch_size=2):
@@ -47,6 +47,8 @@ def _test_classification(model, input_shape, output_size, batch_size=2):
         ["vit_b", (3, 32, 32), (126,)],
         # Check that the interpolation of positional embeddings for vit models works correctly
         ["vit_s", (3, 64, 64), (126,)],
+        ["vip_base", (3, 32, 32), (126,)],
+        ["vip_tiny", (3, 32, 32), (126,)],
     ],
 )
 def test_classification_architectures(arch_name, input_shape, output_size):
@@ -54,7 +56,9 @@ def test_classification_architectures(arch_name, input_shape, output_size):
     model = classification.__dict__[arch_name](pretrained=True).eval()
     _test_classification(model, input_shape, output_size)
     # Check that you can pretrained everything up until the last layer
-    classification.__dict__[arch_name](pretrained=True, num_classes=10)
+    assert classification.__dict__[arch_name](pretrained=True, num_classes=10)
+    # Check from pretrained is a class method
+    assert hasattr(model, "from_pretrained")
 
 
 @pytest.mark.parametrize(
@@ -88,7 +92,7 @@ def test_classification_models(arch_name, input_shape):
 def test_classification_zoo(arch_name):
     if "crop" in arch_name:
         batch_size = 16
-        input_tensor = torch.rand((batch_size, 3, 256, 256))
+        input_tensor = np.random.randint(0, 255, (batch_size, 256, 256, 3), dtype=np.uint8)
         # Model
         predictor = classification.zoo.crop_orientation_predictor(arch_name, pretrained=False)
         predictor.model.eval()
@@ -97,7 +101,7 @@ def test_classification_zoo(arch_name):
             predictor = classification.zoo.crop_orientation_predictor(arch="wrong_model", pretrained=False)
     else:
         batch_size = 2
-        input_tensor = torch.rand((batch_size, 3, 512, 512))
+        input_tensor = np.random.randint(0, 255, (batch_size, 512, 512, 3), dtype=np.uint8)
         # Model
         predictor = classification.zoo.page_orientation_predictor(arch_name, pretrained=False)
         predictor.model.eval()
@@ -108,11 +112,9 @@ def test_classification_zoo(arch_name):
     assert isinstance(predictor, OrientationPredictor)
     if torch.cuda.is_available():
         predictor.model.cuda()
-        input_tensor = input_tensor.cuda()
 
     with torch.no_grad():
         out = predictor(input_tensor)
-    out = predictor(input_tensor)
     class_idxs, classes, confs = out[0], out[1], out[2]
     assert isinstance(class_idxs, list) and len(class_idxs) == batch_size
     assert isinstance(classes, list) and len(classes) == batch_size
@@ -134,6 +136,38 @@ def test_crop_orientation_model(mock_text_box):
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
 
+    # Test with disabled predictor
+    classifier = classification.crop_orientation_predictor(
+        "mobilenet_v3_small_crop_orientation", pretrained=False, disabled=True
+    )
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90]) == [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [1.0, 1.0, 1.0, 1.0],
+    ]
+
+    # Test custom model loading
+    classifier = classification.crop_orientation_predictor(
+        classification.mobilenet_v3_small_crop_orientation(pretrained=True)
+    )
+    assert isinstance(classifier, OrientationPredictor)
+
+    with pytest.raises(ValueError):
+        _ = classification.crop_orientation_predictor(classification.textnet_tiny(pretrained=True))
+
+    # Test torch compilation
+    compiled_model = torch.compile(classification.mobilenet_v3_small_crop_orientation(pretrained=True))
+    compiled_classifier = classification.crop_orientation_predictor(compiled_model)
+
+    assert isinstance(compiled_model, _CompiledModule)
+    assert isinstance(compiled_classifier, OrientationPredictor)
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
+    assert all(
+        isinstance(pred, float)
+        for pred in compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2]
+    )
+
 
 def test_page_orientation_model(mock_payslip):
     text_box_0 = cv2.imread(mock_payslip)
@@ -141,11 +175,43 @@ def test_page_orientation_model(mock_payslip):
     text_box_270 = np.rot90(text_box_0, 1)
     text_box_180 = np.rot90(text_box_0, 2)
     text_box_90 = np.rot90(text_box_0, 3)
-    classifier = classification.crop_orientation_predictor("mobilenet_v3_small_page_orientation", pretrained=True)
+    classifier = classification.page_orientation_predictor("mobilenet_v3_small_page_orientation", pretrained=True)
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
     # 270 degrees is equivalent to -90 degrees
     assert classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
     assert all(isinstance(pred, float) for pred in classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2])
+
+    # Test with disabled predictor
+    classifier = classification.page_orientation_predictor(
+        "mobilenet_v3_small_page_orientation", pretrained=False, disabled=True
+    )
+    assert classifier([text_box_0, text_box_270, text_box_180, text_box_90]) == [
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [1.0, 1.0, 1.0, 1.0],
+    ]
+
+    # Test custom model loading
+    classifier = classification.page_orientation_predictor(
+        classification.mobilenet_v3_small_page_orientation(pretrained=True)
+    )
+    assert isinstance(classifier, OrientationPredictor)
+
+    with pytest.raises(ValueError):
+        _ = classification.page_orientation_predictor(classification.textnet_tiny(pretrained=True))
+
+    # Test torch compilation
+    compiled_model = torch.compile(classification.mobilenet_v3_small_page_orientation(pretrained=True))
+    compiled_classifier = classification.page_orientation_predictor(compiled_model)
+
+    assert isinstance(compiled_model, _CompiledModule)
+    assert isinstance(compiled_classifier, OrientationPredictor)
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[0] == [0, 1, 2, 3]
+    assert compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[1] == [0, -90, 180, 90]
+    assert all(
+        isinstance(pred, float)
+        for pred in compiled_classifier([text_box_0, text_box_270, text_box_180, text_box_90])[2]
+    )
 
 
 @pytest.mark.parametrize(
@@ -167,6 +233,8 @@ def test_page_orientation_model(mock_payslip):
         ["textnet_tiny", (3, 32, 32), (126,)],
         ["textnet_small", (3, 32, 32), (126,)],
         ["textnet_base", (3, 32, 32), (126,)],
+        ["vip_base", (3, 32, 32), (126,)],
+        ["vip_tiny", (3, 32, 32), (126,)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape, output_size):

@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 import numpy as np
 
@@ -24,7 +24,6 @@ class OCRDataset(AbstractDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         img_folder: local path to image folder (all jpg at the root)
         label_file: local path to the label file
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
@@ -41,7 +40,7 @@ class OCRDataset(AbstractDataset):
         super().__init__(img_folder, **kwargs)
 
         # List images
-        self.data: List[Tuple[str, Dict[str, Any]]] = []
+        self.data: list[tuple[Path, dict[str, Any]]] = []
         np_dtype = np.float32
         with open(label_file, "rb") as f:
             data = json.load(f)

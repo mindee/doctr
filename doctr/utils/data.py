@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -13,7 +13,6 @@ import urllib
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Optional, Union
 
 from tqdm.auto import tqdm
 
@@ -25,7 +24,7 @@ HASH_REGEX = re.compile(r"-([a-f0-9]*)\.")
 USER_AGENT = "mindee/doctr"
 
 
-def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -> None:
+def _urlretrieve(url: str, filename: Path | str, chunk_size: int = 1024) -> None:
     with open(filename, "wb") as fh:
         with urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent": USER_AGENT})) as response:
             with tqdm(total=response.length) as pbar:
@@ -36,7 +35,7 @@ def _urlretrieve(url: str, filename: Union[Path, str], chunk_size: int = 1024) -
                     fh.write(chunk)
 
 
-def _check_integrity(file_path: Union[str, Path], hash_prefix: str) -> bool:
+def _check_integrity(file_path: str | Path, hash_prefix: str) -> bool:
     with open(file_path, "rb") as f:
         sha_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -45,10 +44,10 @@ def _check_integrity(file_path: Union[str, Path], hash_prefix: str) -> bool:
 
 def download_from_url(
     url: str,
-    file_name: Optional[str] = None,
-    hash_prefix: Optional[str] = None,
-    cache_dir: Optional[str] = None,
-    cache_subdir: Optional[str] = None,
+    file_name: str | None = None,
+    hash_prefix: str | None = None,
+    cache_dir: str | None = None,
+    cache_subdir: str | None = None,
 ) -> Path:
     """Download a file using its URL
 
@@ -56,7 +55,6 @@ def download_from_url(
     >>> download_from_url("https://yoursource.com/yourcheckpoint-yourhash.zip")
 
     Args:
-    ----
         url: the URL of the file to download
         file_name: optional name of the file once downloaded
         hash_prefix: optional expected SHA256 hash of the file
@@ -64,11 +62,9 @@ def download_from_url(
         cache_subdir: subfolder to use in the cache
 
     Returns:
-    -------
         the location of the downloaded file
 
     Note:
-    ----
         You can change cache directory location by using `DOCTR_CACHE_DIR` environment variable.
     """
     if not isinstance(file_name, str):
@@ -96,7 +92,7 @@ def download_from_url(
         # Create folder hierarchy
         folder_path.mkdir(parents=True, exist_ok=True)
     except OSError:
-        error_message = f"Failed creating cache direcotry at {folder_path}"
+        error_message = f"Failed creating cache directory at {folder_path}"
         if os.environ.get("DOCTR_CACHE_DIR", ""):
             error_message += " using path from 'DOCTR_CACHE_DIR' environment variable."
         else:
@@ -112,7 +108,7 @@ def download_from_url(
     except (urllib.error.URLError, IOError) as e:
         if url[:5] == "https":
             url = url.replace("https:", "http:")
-            print("Failed download. Trying https -> http instead." f" Downloading {url} to {file_path}")
+            print(f"Failed download. Trying https -> http instead. Downloading {url} to {file_path}")
             _urlretrieve(url, file_path)
         else:
             raise e

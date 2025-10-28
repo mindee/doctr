@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -20,7 +20,6 @@ class DetectionPredictor(nn.Module):
     """Implements an object able to localize text elements in a document
 
     Args:
-    ----
         pre_processor: transform inputs for easier batched model inference
         model: core detection architecture
     """
@@ -37,10 +36,10 @@ class DetectionPredictor(nn.Module):
     @torch.inference_mode()
     def forward(
         self,
-        pages: List[Union[np.ndarray, torch.Tensor]],
+        pages: list[np.ndarray],
         return_maps: bool = False,
         **kwargs: Any,
-    ) -> Union[List[Dict[str, np.ndarray]], Tuple[List[Dict[str, np.ndarray]], List[np.ndarray]]]:
+    ) -> list[dict[str, np.ndarray]] | tuple[list[dict[str, np.ndarray]], list[np.ndarray]]:
         # Extract parameters from the preprocessor
         preserve_aspect_ratio = self.pre_processor.resize.preserve_aspect_ratio
         symmetric_pad = self.pre_processor.resize.symmetric_pad
@@ -60,11 +59,11 @@ class DetectionPredictor(nn.Module):
         ]
         # Remove padding from loc predictions
         preds = _remove_padding(
-            pages,  # type: ignore[arg-type]
+            pages,
             [pred for batch in predicted_batches for pred in batch["preds"]],
             preserve_aspect_ratio=preserve_aspect_ratio,
             symmetric_pad=symmetric_pad,
-            assume_straight_pages=assume_straight_pages,
+            assume_straight_pages=assume_straight_pages,  # type: ignore[arg-type]
         )
 
         if return_maps:

@@ -1,24 +1,24 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import nn
 
 from doctr.datasets import VOCABS
 from doctr.models.modules.transformer import EncoderBlock
-from doctr.models.modules.vision_transformer.pytorch import PatchEmbedding
+from doctr.models.modules.vision_transformer import PatchEmbedding
 
-from ...utils.pytorch import load_pretrained_params
+from ...utils import load_pretrained_params
 
 __all__ = ["vit_s", "vit_b"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vit_s": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -40,7 +40,6 @@ class ClassifierHead(nn.Module):
     """Classifier head for Vision Transformer
 
     Args:
-    ----
         in_channels: number of input channels
         num_classes: number of output classes
     """
@@ -65,7 +64,6 @@ class VisionTransformer(nn.Sequential):
     <https://arxiv.org/pdf/2010.11929.pdf>`_.
 
     Args:
-    ----
         d_model: dimension of the transformer layers
         num_layers: number of transformer layers
         num_heads: number of attention heads
@@ -83,14 +81,14 @@ class VisionTransformer(nn.Sequential):
         num_layers: int,
         num_heads: int,
         ffd_ratio: int,
-        patch_size: Tuple[int, int] = (4, 4),
-        input_shape: Tuple[int, int, int] = (3, 32, 32),
+        patch_size: tuple[int, int] = (4, 4),
+        input_shape: tuple[int, int, int] = (3, 32, 32),
         dropout: float = 0.0,
         num_classes: int = 1000,
         include_top: bool = True,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
-        _layers: List[nn.Module] = [
+        _layers: list[nn.Module] = [
             PatchEmbedding(input_shape, d_model, patch_size),
             EncoderBlock(num_layers, num_heads, d_model, d_model * ffd_ratio, dropout, nn.GELU()),
         ]
@@ -100,11 +98,20 @@ class VisionTransformer(nn.Sequential):
         super().__init__(*_layers)
         self.cfg = cfg
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
 
 def _vit(
     arch: str,
     pretrained: bool,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> VisionTransformer:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -124,7 +131,7 @@ def _vit(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -143,12 +150,10 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:
-    -------
         A feature extractor model
     """
     return _vit(
@@ -175,12 +180,10 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:
-    -------
         A feature extractor model
     """
     return _vit(

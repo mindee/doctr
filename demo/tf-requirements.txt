@@ -1,2 +1,0 @@
--e git+https://github.com/mindee/doctr.git#egg=python-doctr[tf]
-streamlit>=1.0.0

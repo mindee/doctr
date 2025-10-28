@@ -2,10 +2,10 @@
   <img src="https://github.com/mindee/doctr/raw/main/docs/images/Logo_doctr.gif" width="40%">
 </p>
 
-[![Slack Icon](https://img.shields.io/badge/Slack-Community-4A154B?style=flat-square&logo=slack&logoColor=white)](https://slack.mindee.com) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![Docker Images](https://img.shields.io/badge/Docker-4287f5?style=flat&logo=docker&logoColor=white)](https://github.com/mindee/doctr/pkgs/container/doctr) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v0.8.1-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb)
+[![Slack Icon](https://img.shields.io/badge/Slack-Community-4A154B?style=flat-square&logo=slack&logoColor=white)](https://slack.mindee.com) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE) ![Build Status](https://github.com/mindee/doctr/workflows/builds/badge.svg) [![Docker Images](https://img.shields.io/badge/Docker-4287f5?style=flat&logo=docker&logoColor=white)](https://github.com/mindee/doctr/pkgs/container/doctr) [![codecov](https://codecov.io/gh/mindee/doctr/branch/main/graph/badge.svg?token=577MO567NM)](https://codecov.io/gh/mindee/doctr) [![CodeFactor](https://www.codefactor.io/repository/github/mindee/doctr/badge?s=bae07db86bb079ce9d6542315b8c6e70fa708a7e)](https://www.codefactor.io/repository/github/mindee/doctr) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/340a76749b634586a498e1c0ab998f08)](https://app.codacy.com/gh/mindee/doctr?utm_source=github.com&utm_medium=referral&utm_content=mindee/doctr&utm_campaign=Badge_Grade) [![Doc Status](https://github.com/mindee/doctr/workflows/doc-status/badge.svg)](https://mindee.github.io/doctr) [![Pypi](https://img.shields.io/badge/pypi-v1.0.0-blue.svg)](https://pypi.org/project/python-doctr/) [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/mindee/doctr) [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mindee/notebooks/blob/main/doctr/quicktour.ipynb) [![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20docTR%20Guru-006BFF)](https://gurubase.io/g/doctr)
 
 
-**Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
+**Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
 
 What you can expect from this repository:
 
@@ -64,7 +64,7 @@ Should you use docTR on documents that include rotated pages, or pages with mult
 you have multiple options to handle it:
 
 - If you only use straight document pages with straight words (horizontal, same reading direction),
-consider passing `assume_straight_boxes=True` to the ocr_predictor. It will directly fit straight boxes
+consider passing `assume_straight_pages=True` to the ocr_predictor. It will directly fit straight boxes
 on your page and return straight boxes, which makes it the fastest option.
 
 - If you want the predictor to output straight boxes (no matter the orientation of your pages, the final localizations
@@ -135,7 +135,7 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ### Prerequisites
 
-Python 3.9 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
+Python 3.10 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
 
 ### Latest release
 
@@ -145,21 +145,14 @@ You can then install the latest release of the package using [pypi](https://pypi
 pip install python-doctr
 ```
 
-> :warning: Please note that the basic installation is not standalone, as it does not provide a deep learning framework, which is required for the package to run.
-
-We try to keep framework-specific dependencies to a minimum. You can install framework-specific builds as follows:
+We try to keep extra dependencies to a minimum. You can install specific builds as follows:
 
 ```shell
-# for TensorFlow
-pip install "python-doctr[tf]"
-# for PyTorch
-pip install "python-doctr[torch]"
+# standard build
+pip install python-doctr
+# optional dependencies for visualization, html, and contrib modules can be installed as follows:
+pip install "python-doctr[viz,html,contrib]"
 ```
-
-For MacBooks with M1 chip, you will need some additional packages or specific versions:
-
-- TensorFlow 2: [metal plugin](https://developer.apple.com/metal/tensorflow-plugin/)
-- PyTorch: [version >= 1.12.0](https://pytorch.org/get-started/locally/#start-locally)
 
 ### Developer mode
 
@@ -171,13 +164,10 @@ git clone https://github.com/mindee/doctr.git
 pip install -e doctr/.
 ```
 
-Again, if you prefer to avoid the risk of missing dependencies, you can install the TensorFlow or the PyTorch build:
+Again, if you prefer to avoid the risk of missing dependencies, you can install the build:
 
 ```shell
-# for TensorFlow
-pip install -e doctr/.[tf]
-# for PyTorch
-pip install -e doctr/.[torch]
+pip install -e doctr/.
 ```
 
 ## Models architectures
@@ -197,6 +187,7 @@ Credits where it's due: this repository is implementing, among others, architect
 - MASTER: [MASTER: Multi-Aspect Non-local Network for Scene Text Recognition](https://arxiv.org/pdf/1910.02562.pdf).
 - ViTSTR: [Vision Transformer for Fast and Efficient Scene Text Recognition](https://arxiv.org/pdf/2105.08582.pdf).
 - PARSeq: [Scene Text Recognition with Permuted Autoregressive Sequence Models](https://arxiv.org/pdf/2207.06966).
+- VIPTR: [A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition](https://arxiv.org/abs/2401.10110).
 
 ## More goodies
 
@@ -219,20 +210,6 @@ Check it out [![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%2
 
 If you prefer to use it locally, there is an extra dependency ([Streamlit](https://streamlit.io/)) that is required.
 
-##### Tensorflow version
-
-```shell
-pip install -r demo/tf-requirements.txt
-```
-
-Then run your app in your default browser with:
-
-```shell
-USE_TF=1 streamlit run demo/app.py
-```
-
-##### PyTorch version
-
 ```shell
 pip install -r demo/pt-requirements.txt
 ```
@@ -240,49 +217,41 @@ pip install -r demo/pt-requirements.txt
 Then run your app in your default browser with:
 
 ```shell
-USE_TORCH=1 streamlit run demo/app.py
+streamlit run demo/app.py
 ```
-
-#### TensorFlow.js
-
-Instead of having your demo actually running Python, you would prefer to run everything in your web browser?
-Check out our [TensorFlow.js demo](https://github.com/mindee/doctr-tfjs-demo) to get started!
-
-![TFJS demo](https://github.com/mindee/doctr/raw/main/docs/images/demo_illustration_mini.png)
 
 ### Docker container
 
-[We offer Docker container support for easy testing and deployment](https://github.com/mindee/doctr/pkgs/container/doctr).
+We offer Docker container support for easy testing and deployment. [Here are the available docker tags.](https://github.com/mindee/doctr/pkgs/container/doctr).
 
 #### Using GPU with docTR Docker Images
 
-The docTR Docker images are GPU-ready and based on CUDA `11.8`.
-However, to use GPU support with these Docker images, please ensure that Docker is configured to use your GPU.
+The docTR Docker images are GPU-ready and based on CUDA `12.2`. Make sure your host is **at least `12.2`**, otherwise Torch won't be able to initialize the GPU.
+Please ensure that Docker is configured to use your GPU.
 
 To verify and configure GPU support for Docker, please follow the instructions provided in the [NVIDIA Container Toolkit Installation Guide](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html).
 
 Once Docker is configured to use GPUs, you can run docTR Docker containers with GPU support:
 
 ```shell
-docker run -it --gpus all ghcr.io/mindee/doctr:tf-py3.8.18-gpu-2023-09 bash
+docker run -it --gpus all ghcr.io/mindee/doctr:torch-py3.9.18-2024-10 bash
 ```
 
 #### Available Tags
 
-The Docker images for docTR follow a specific tag nomenclature: `<framework>-py<python_version>-<system>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
+The Docker images for docTR follow a specific tag nomenclature: `<deps>-py<python_version>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
 
-- `<framework>`: `tf` (TensorFlow) or `torch` (PyTorch).
-- `<python_version>`: `3.8.18`, `3.9.18`, or `3.10.13`.
-- `<system>`: `cpu` or `gpu`
-- `<doctr_version>`: a tag >= `v0.7.1`
-- `<YYYY-MM>`: e.g. `2023-09`
+- `<deps>`: `torch`, `torch-viz-html-contrib`.
+- `<python_version>`: `3.9.18`, `3.10.13` or `3.11.8`.
+- `<doctr_version>`: a tag >= `v0.11.0`
+- `<YYYY-MM>`: e.g. `2014-10`
 
 Here are examples of different image tags:
 
 | Tag                        | Description                                       |
 |----------------------------|---------------------------------------------------|
-| `tf-py3.8.18-cpu-v0.7.1`       | TensorFlow version `3.8.18` with docTR `v0.7.1`. |
-| `torch-py3.9.18-gpu-2023-09`| PyTorch version `3.9.18` with GPU support and a monthly build from `2023-09`. |
+| `torch-viz-html-contrib-py3.11.8-2024-10`       | Torch with extra dependencies version `3.11.8` from latest commit on `main` in `2024-10`. |
+| `torch-py3.11.8-2024-10`| PyTorch version `3.11.8` from latest commit on `main` in `2024-10`. |
 
 #### Building Docker Images Locally
 
@@ -292,10 +261,10 @@ You can also build docTR Docker images locally on your computer.
 docker build -t doctr .
 ```
 
-You can specify custom Python versions and docTR versions using build arguments. For example, to build a docTR image with TensorFlow, Python version `3.9.10`, and docTR version `v0.7.0`, run the following command:
+You can specify custom Python versions and docTR versions using build arguments. For example, to build a docTR image with PyTorch, Python version `3.9.10`, and docTR version `v0.7.0`, run the following command:
 
 ```shell
-docker build -t doctr --build-arg FRAMEWORK=tf --build-arg PYTHON_VERSION=3.9.10 --build-arg DOCTR_VERSION=v0.7.0 .
+docker build -t doctr --build-arg FRAMEWORK=torch --build-arg PYTHON_VERSION=3.9.10 --build-arg DOCTR_VERSION=v0.7.0 .
 ```
 
 ### Example script
@@ -342,14 +311,13 @@ Your API should now be running locally on your port 8002. Access your automatica
 ```python
 import requests
 
-headers = {"accept": "application/json"}
 params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn"}
 
 with open('/path/to/your/doc.jpg', 'rb') as f:
     files = [  # application/pdf, image/jpeg, image/png supported
         ("files", ("doc.jpg", f.read(), "image/jpeg")),
     ]
-print(requests.post("http://localhost:8080/ocr", headers=headers, params=params, files=files).json())
+print(requests.post("http://localhost:8080/ocr", params=params, files=files).json())
 ```
 
 ### Example notebooks

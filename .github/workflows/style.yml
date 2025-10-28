@@ -12,11 +12,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -31,11 +31,11 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: ["3.9"]
+        python: ["3.10"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -43,7 +43,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-style
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip

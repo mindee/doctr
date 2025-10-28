@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -24,7 +24,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
@@ -52,8 +51,8 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
-        self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
-        self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
+        self.det_predictor = det_predictor.eval()
+        self.reco_predictor = reco_predictor.eval()
         _KIEPredictor.__init__(
             self,
             assume_straight_pages,
@@ -69,14 +68,14 @@ class KIEPredictor(nn.Module, _KIEPredictor):
     @torch.inference_mode()
     def forward(
         self,
-        pages: List[Union[np.ndarray, torch.Tensor]],
+        pages: list[np.ndarray],
         **kwargs: Any,
     ) -> Document:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
-        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
+        origin_page_shapes = [page.shape[:2] for page in pages]
 
         # Localize text elements
         loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
@@ -89,7 +88,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             for out_map in out_maps
         ]
         if self.detect_orientation:
-            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)  # type: ignore[arg-type]
+            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
             orientations = [
                 {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
             ]
@@ -98,11 +97,14 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             general_pages_orientations = None
             origin_pages_orientations = None
         if self.straighten_pages:
-            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)  # type: ignore
+            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
+            # update page shapes after straightening
+            origin_page_shapes = [page.shape[:2] for page in pages]
+
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
-        dict_loc_preds: Dict[str, List[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
+        dict_loc_preds: dict[str, list[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
 
         # Detach objectness scores from loc_preds
         objectness_scores = {}
@@ -110,9 +112,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             _loc_preds, _scores = detach_scores(det_preds)
             dict_loc_preds[class_name] = _loc_preds
             objectness_scores[class_name] = _scores
-
-        # Check whether crop mode should be switched to channels first
-        channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
@@ -122,10 +121,10 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         crops = {}
         for class_name in dict_loc_preds.keys():
             crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages,  # type: ignore[arg-type]
+                pages,
                 dict_loc_preds[class_name],
-                channels_last=channels_last,
                 assume_straight_pages=self.assume_straight_pages,
+                assume_horizontal=self._page_orientation_disabled,
             )
         # Rectify crop orientation
         crop_orientations: Any = {}
@@ -146,18 +145,18 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         if not crop_orientations:
             crop_orientations = {k: [{"value": 0, "confidence": None} for _ in word_preds[k]] for k in word_preds}
 
-        boxes: Dict = {}
-        text_preds: Dict = {}
-        word_crop_orientations: Dict = {}
+        boxes: dict = {}
+        text_preds: dict = {}
+        word_crop_orientations: dict = {}
         for class_name in dict_loc_preds.keys():
             boxes[class_name], text_preds[class_name], word_crop_orientations[class_name] = self._process_predictions(
                 dict_loc_preds[class_name], word_preds[class_name], crop_orientations[class_name]
             )
 
-        boxes_per_page: List[Dict] = invert_data_structure(boxes)  # type: ignore[assignment]
-        objectness_scores_per_page: List[Dict] = invert_data_structure(objectness_scores)  # type: ignore[assignment]
-        text_preds_per_page: List[Dict] = invert_data_structure(text_preds)  # type: ignore[assignment]
-        crop_orientations_per_page: List[Dict] = invert_data_structure(word_crop_orientations)  # type: ignore[assignment]
+        boxes_per_page: list[dict] = invert_data_structure(boxes)  # type: ignore[assignment]
+        objectness_scores_per_page: list[dict] = invert_data_structure(objectness_scores)  # type: ignore[assignment]
+        text_preds_per_page: list[dict] = invert_data_structure(text_preds)  # type: ignore[assignment]
+        crop_orientations_per_page: list[dict] = invert_data_structure(word_crop_orientations)  # type: ignore[assignment]
 
         if self.detect_language:
             languages = [get_language(self.get_text(text_pred)) for text_pred in text_preds_per_page]
@@ -166,11 +165,11 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             languages_dict = None
 
         out = self.doc_builder(
-            pages,  # type: ignore[arg-type]
+            pages,
             boxes_per_page,
             objectness_scores_per_page,
             text_preds_per_page,
-            origin_page_shapes,  # type: ignore[arg-type]
+            origin_page_shapes,
             crop_orientations_per_page,
             orientations,
             languages_dict,
@@ -178,7 +177,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         return out
 
     @staticmethod
-    def get_text(text_pred: Dict) -> str:
+    def get_text(text_pred: dict) -> str:
         text = []
         for value in text_pred.values():
             text += [item[0] for item in value]

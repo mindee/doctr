@@ -1,9 +1,8 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import List
 
 import cv2
 import numpy as np
@@ -17,7 +16,6 @@ class DetectionPostProcessor(NestedObject):
     """Abstract class to postprocess the raw output of the model
 
     Args:
-    ----
         box_thresh (float): minimal objectness score to consider a box
         bin_thresh (float): threshold to apply to segmentation raw heatmap
         assume straight_pages (bool): if True, fit straight boxes only
@@ -37,13 +35,11 @@ class DetectionPostProcessor(NestedObject):
         """Compute the confidence score for a polygon : mean of the p values on the polygon
 
         Args:
-        ----
             pred (np.ndarray): p map returned by the model
             points: coordinates of the polygon
             assume_straight_pages: if True, fit straight boxes only
 
         Returns:
-        -------
             polygon objectness
         """
         h, w = pred.shape[:2]
@@ -57,7 +53,7 @@ class DetectionPostProcessor(NestedObject):
 
         else:
             mask: np.ndarray = np.zeros((h, w), np.int32)
-            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
             product = pred * mask
             return np.sum(product) / np.count_nonzero(product)
 
@@ -71,15 +67,13 @@ class DetectionPostProcessor(NestedObject):
     def __call__(
         self,
         proba_map,
-    ) -> List[List[np.ndarray]]:
+    ) -> list[list[np.ndarray]]:
         """Performs postprocessing for a list of model outputs
 
         Args:
-        ----
             proba_map: probability map of shape (N, H, W, C)
 
         Returns:
-        -------
             list of N class predictions (for each input sample), where each class predictions is a list of C tensors
         of shape (*, 5) or (*, 6)
         """

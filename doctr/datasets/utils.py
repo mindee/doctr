@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -6,10 +6,10 @@
 import string
 import unicodedata
 from collections.abc import Sequence
+from collections.abc import Sequence as SequenceType
 from functools import partial
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Union
-from typing import Sequence as SequenceType
+from typing import Any, TypeVar
 
 import numpy as np
 from PIL import Image
@@ -19,7 +19,15 @@ from doctr.utils.geometry import convert_to_relative_coords, extract_crops, extr
 
 from .vocabs import VOCABS
 
-__all__ = ["translate", "encode_string", "decode_sequence", "encode_sequences", "pre_transform_multiclass"]
+__all__ = [
+    "translate",
+    "encode_string",
+    "decode_sequence",
+    "encode_sequences",
+    "pre_transform_multiclass",
+    "crop_bboxes_from_image",
+    "convert_target_to_relative",
+]
 
 ImageTensor = TypeVar("ImageTensor")
 
@@ -32,17 +40,15 @@ def translate(
     """Translate a string input in a given vocabulary
 
     Args:
-    ----
         input_string: input string to translate
         vocab_name: vocabulary to use (french, latin, ...)
         unknown_char: unknown character for non-translatable characters
 
     Returns:
-    -------
         A string translated in a given vocab
     """
     if VOCABS.get(vocab_name) is None:
-        raise KeyError("output vocabulary must be in vocabs dictionnary")
+        raise KeyError("output vocabulary must be in vocabs dictionary")
 
     translated = ""
     for char in input_string:
@@ -63,40 +69,37 @@ def translate(
 def encode_string(
     input_string: str,
     vocab: str,
-) -> List[int]:
+) -> list[int]:
     """Given a predefined mapping, encode the string to a sequence of numbers
 
     Args:
-    ----
         input_string: string to encode
         vocab: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-    -------
         A list encoding the input_string
     """
     try:
         return list(map(vocab.index, input_string))
-    except ValueError:
+    except ValueError as e:
+        missing_chars = [char for char in input_string if char not in vocab]
         raise ValueError(
-            f"some characters cannot be found in 'vocab'. \
-                         Please check the input string {input_string} and the vocabulary {vocab}"
-        )
+            f"Some characters cannot be found in 'vocab': {set(missing_chars)}.\n"
+            f"Please check the input string `{input_string}` and the vocabulary `{vocab}`"
+        ) from e
 
 
 def decode_sequence(
-    input_seq: Union[np.ndarray, SequenceType[int]],
+    input_seq: np.ndarray | SequenceType[int],
     mapping: str,
 ) -> str:
     """Given a predefined mapping, decode the sequence of numbers to a string
 
     Args:
-    ----
         input_seq: array to decode
         mapping: vocabulary (string), the encoding is given by the indexing of the character sequence
 
     Returns:
-    -------
         A string, decoded from input_seq
     """
     if not isinstance(input_seq, (Sequence, np.ndarray)):
@@ -108,18 +111,17 @@ def decode_sequence(
 
 
 def encode_sequences(
-    sequences: List[str],
+    sequences: list[str],
     vocab: str,
-    target_size: Optional[int] = None,
+    target_size: int | None = None,
     eos: int = -1,
-    sos: Optional[int] = None,
-    pad: Optional[int] = None,
+    sos: int | None = None,
+    pad: int | None = None,
     dynamic_seq_length: bool = False,
 ) -> np.ndarray:
     """Encode character sequences using a given vocab as mapping
 
     Args:
-    ----
         sequences: the list of character sequences of size N
         vocab: the ordered vocab to use for encoding
         target_size: maximum length of the encoded data
@@ -129,7 +131,6 @@ def encode_sequences(
         dynamic_seq_length: if `target_size` is specified, uses it as upper bound and enables dynamic sequence size
 
     Returns:
-    -------
         the padded encoded data as a tensor
     """
     if 0 <= eos < len(vocab):
@@ -169,25 +170,37 @@ def encode_sequences(
     return encoded_data
 
 
-def convert_target_to_relative(img: ImageTensor, target: Dict[str, Any]) -> Tuple[ImageTensor, Dict[str, Any]]:
-    target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))
+def convert_target_to_relative(
+    img: ImageTensor, target: np.ndarray | dict[str, Any]
+) -> tuple[ImageTensor, dict[str, Any] | np.ndarray]:
+    """Converts target to relative coordinates
+
+    Args:
+        img: tf.Tensor or torch.Tensor representing the image
+        target: target to convert to relative coordinates (boxes (N, 4) or polygons (N, 4, 2))
+
+    Returns:
+        The image and the target in relative coordinates
+    """
+    if isinstance(target, np.ndarray):
+        target = convert_to_relative_coords(target, get_img_shape(img))  # type: ignore[arg-type]
+    else:
+        target["boxes"] = convert_to_relative_coords(target["boxes"], get_img_shape(img))  # type: ignore[arg-type]
     return img, target
 
 
-def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> List[np.ndarray]:
+def crop_bboxes_from_image(img_path: str | Path, geoms: np.ndarray) -> list[np.ndarray]:
     """Crop a set of bounding boxes from an image
 
     Args:
-    ----
         img_path: path to the image
         geoms: a array of polygons of shape (N, 4, 2) or of straight boxes of shape (N, 4)
 
     Returns:
-    -------
         a list of cropped images
     """
     with Image.open(img_path) as pil_img:
-        img: np.ndarray = np.array(pil_img.convert("RGB"))
+        img: np.ndarray = np.asarray(pil_img.convert("RGB"))
     # Polygon
     if geoms.ndim == 3 and geoms.shape[1:] == (4, 2):
         return extract_rcrops(img, geoms.astype(dtype=int))
@@ -196,21 +209,19 @@ def crop_bboxes_from_image(img_path: Union[str, Path], geoms: np.ndarray) -> Lis
     raise ValueError("Invalid geometry format")
 
 
-def pre_transform_multiclass(img, target: Tuple[np.ndarray, List]) -> Tuple[np.ndarray, Dict[str, List]]:
+def pre_transform_multiclass(img, target: tuple[np.ndarray, list]) -> tuple[np.ndarray, dict[str, list]]:
     """Converts multiclass target to relative coordinates.
 
     Args:
-    ----
         img: Image
         target: tuple of target polygons and their classes names
 
     Returns:
-    -------
         Image and dictionary of boxes, with class names as keys
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]
-    boxes_dict: Dict = {k: [] for k in sorted(set(boxes_classes))}
+    boxes_dict: dict = {k: [] for k in sorted(set(boxes_classes))}
     for k, poly in zip(boxes_classes, boxes):
         boxes_dict[k].append(poly)
     boxes_dict = {k: np.stack(v, axis=0) for k, v in boxes_dict.items()}

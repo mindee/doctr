@@ -13,17 +13,41 @@ pip install -r references/requirements.txt
 
 ## Usage
 
-You can start your training in TensorFlow:
+You can start your training in PyTorch:
 
 ```shell
-python references/detection/train_tensorflow.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5
+python references/detection/train.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
-or PyTorch:
+### Multi-GPU support
+
+We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run.html) launcher to spawn your DDP workers. `torchrun` will set all the necessary environment variables (`LOCAL_RANK`, `RANK`, etc.) for you. Arguments are the same than the ones from single GPU, except:
+
+- `--backend`: you can specify another `backend` for `DistributedDataParallel` if the default one is not available on
+your operating system. Fastest one is `nccl` according to [PyTorch Documentation](https://pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html).
+
+#### Key `torchrun` parameters
+
+- `--nproc_per_node=<N>`
+  Spawn `<N>` processes on the local machine (typically equal to the number of GPUs you want to use).
+- `--nnodes=<M>`
+  (Optional) Total number of nodes in your job. Default is 1.
+- `--rdzv_backend`, `--rdzv_endpoint`, `--rdzv_id`
+  (Optional) Rendezvous settings for multi-node jobs. See the [torchrun docs](https://pytorch.org/docs/stable/elastic/run.html) for details.
+
+#### GPU selection
+
+By default all visible GPUs will be used. To limit which GPUs participate, set the `CUDA_VISIBLE_DEVICES` environment variable **before** running `torchrun`. For example, to use only CUDA devices 0 and 2:
 
 ```shell
-python references/detection/train_pytorch.py path/to/your/train_set path/to/your/val_set db_resnet50 --epochs 5 --device 0
-```
+CUDA_VISIBLE_DEVICES=0,2 \
+torchrun --nproc_per_node=2 references/detection/train.py \
+  db_resnet50 \
+  --train_path path/to/train \
+  --val_path   path/to/val \
+  --epochs 5 \
+  --backend nccl
+  ```
 
 ## Data format
 
@@ -60,7 +84,7 @@ labels.json
 }
 ```
 
-If you want to train a model with multiple classes, you can use the following format where polygons is a dictionnary where each key represents one class and has all the polygons representing that class.
+If you want to train a model with multiple classes, you can use the following format where polygons is a dictionary where each key represents one class and has all the polygons representing that class.
 
 labels.json
 
@@ -86,10 +110,19 @@ labels.json
 }
 ```
 
+## Slack Logging with tqdm
+
+To enable Slack logging using `tqdm`, you need to set the following environment variables:
+
+- `TQDM_SLACK_TOKEN`: the Slack Bot Token
+- `TQDM_SLACK_CHANNEL`: you can retrieve it using `Right Click on Channel > Copy > Copy link`. You should get something like `https://xxxxxx.slack.com/archives/yyyyyyyy`. Keep only the `yyyyyyyy` part.
+
+You can follow this page on [how to create a Slack App](https://api.slack.com/quickstart).
+
 ## Advanced options
 
 Feel free to inspect the multiple script option to customize your training to your own needs!
 
 ```python
-python references/detection/train_tensorflow.py --help
+python references/detection/train.py --help
 ```

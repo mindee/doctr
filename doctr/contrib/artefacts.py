@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 import cv2
 import numpy as np
@@ -14,7 +14,7 @@ from .base import _BasePredictor
 
 __all__ = ["ArtefactDetector"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "yolov8_artefact": {
         "input_shape": (3, 1024, 1024),
         "labels": ["bar_code", "qr_code", "logo", "photo"],
@@ -34,7 +34,6 @@ class ArtefactDetector(_BasePredictor):
     >>> results = detector(doc)
 
     Args:
-    ----
         arch: the architecture to use
         batch_size: the batch size to use
         model_path: the path to the model to use
@@ -50,9 +49,9 @@ class ArtefactDetector(_BasePredictor):
         self,
         arch: str = "yolov8_artefact",
         batch_size: int = 2,
-        model_path: Optional[str] = None,
-        labels: Optional[List[str]] = None,
-        input_shape: Optional[Tuple[int, int, int]] = None,
+        model_path: str | None = None,
+        labels: list[str] | None = None,
+        input_shape: tuple[int, int, int] | None = None,
         conf_threshold: float = 0.5,
         iou_threshold: float = 0.5,
         **kwargs: Any,
@@ -66,7 +65,7 @@ class ArtefactDetector(_BasePredictor):
     def preprocess(self, img: np.ndarray) -> np.ndarray:
         return np.transpose(cv2.resize(img, (self.input_shape[2], self.input_shape[1])), (2, 0, 1)) / np.array(255.0)
 
-    def postprocess(self, output: List[np.ndarray], input_images: List[List[np.ndarray]]) -> List[List[Dict[str, Any]]]:
+    def postprocess(self, output: list[np.ndarray], input_images: list[list[np.ndarray]]) -> list[list[dict[str, Any]]]:
         results = []
 
         for batch in zip(output, input_images):
@@ -109,7 +108,6 @@ class ArtefactDetector(_BasePredictor):
         Display the results
 
         Args:
-        ----
             **kwargs: additional keyword arguments to be passed to `plt.show`
         """
         requires_package("matplotlib", "`.show()` requires matplotlib installed")

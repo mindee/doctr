@@ -7,6 +7,7 @@ import torch
 from doctr.transforms import (
     ChannelShuffle,
     ColorInversion,
+    GaussianBlur,
     GaussianNoise,
     RandomCrop,
     RandomHorizontalFlip,
@@ -26,45 +27,77 @@ def test_resize():
 
     assert torch.all(out == 1)
     assert out.shape[-2:] == output_size
-    assert repr(transfo) == f"Resize(output_size={output_size}, interpolation='bilinear')"
+    assert repr(transfo) == "Resize(output_size=(32, 32), interpolation='bilinear')"
 
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    # Test with preserve_aspect_ratio
+    output_size = (32, 32)
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-    out = transfo(input_t)
 
+    # Asymmetric padding
+    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    out = transfo(input_t)
     assert out.shape[-2:] == output_size
     assert not torch.all(out == 1)
-    # Asymetric padding
     assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 1)
 
-    # Symetric padding
-    transfo = Resize(output_size, preserve_aspect_ratio=True, symmetric_pad=True)
-    assert repr(transfo) == (
-        f"Resize(output_size={output_size}, interpolation='bilinear', "
-        f"preserve_aspect_ratio=True, symmetric_pad=True)"
-    )
+    # Symmetric padding
+    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
     out = transfo(input_t)
     assert out.shape[-2:] == output_size
-    # symetric padding
-    assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 0)
+    assert torch.all(out[:, 0] == 0) and torch.all(out[:, -1] == 0)
 
-    # Inverse aspect ratio
+    expected = "Resize(output_size=(32, 32), interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
+    assert repr(transfo) == expected
+
+    # Test with inverse resize
     input_t = torch.ones((3, 64, 32), dtype=torch.float32)
+    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
     out = transfo(input_t)
+    assert out.shape[-2:] == (32, 32)
 
-    assert not torch.all(out == 1)
-    assert out.shape[-2:] == output_size
-
-    # Same aspect ratio
-    output_size = (32, 128)
-    transfo = Resize(output_size, preserve_aspect_ratio=True)
+    # Test resize with same ratio
+    transfo = Resize((32, 128), preserve_aspect_ratio=True)
     out = transfo(torch.ones((3, 16, 64), dtype=torch.float32))
-    assert out.shape[-2:] == output_size
+    assert out.shape[-2:] == (32, 128)
 
-    # FP16
+    # Test with fp16 input
+    transfo = Resize((32, 128), preserve_aspect_ratio=True)
     input_t = torch.ones((3, 64, 64), dtype=torch.float16)
     out = transfo(input_t)
     assert out.dtype == torch.float16
+
+    padding = [True, False]
+    for symmetric_pad in padding:
+        # Test with target boxes
+        target_boxes = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+        out, new_target = transfo(input_t, target_boxes)
+
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
+
+        # Test with target polygons
+        target_boxes = np.array([
+            [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
+            [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
+        ])
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+        out, new_target = transfo(input_t, target_boxes)
+
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
+
+    # Test with invalid target shape
+    input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+    target = np.ones((2, 5))  # Invalid shape
+
+    transfo = Resize((64, 64), preserve_aspect_ratio=True)
+    with pytest.raises(AssertionError):
+        transfo(input_t, target)
 
 
 @pytest.mark.parametrize(
@@ -261,6 +294,38 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.0)
+
+
+@pytest.mark.parametrize(
+    "input_dtype, input_shape",
+    [
+        [torch.float32, (3, 32, 32)],
+        [torch.uint8, (3, 32, 32)],
+    ],
+)
+def test_gaussian_blur(input_dtype, input_shape):
+    sigma_range = (0.5, 1.5)
+    transform = GaussianBlur(sigma=sigma_range)
+
+    input_t = torch.rand(input_shape, dtype=torch.float32)
+
+    if input_dtype == torch.uint8:
+        input_t = (255 * input_t).round().to(dtype=torch.uint8)
+
+    blurred = transform(input_t)
+
+    assert isinstance(blurred, torch.Tensor)
+    assert blurred.shape == input_shape
+    assert blurred.dtype == input_dtype
+
+    if input_dtype == torch.uint8:
+        assert torch.any(blurred != input_t)
+        assert torch.all(blurred <= 255)
+        assert torch.all(blurred >= 0)
+    else:
+        assert torch.any(blurred != input_t)
+        assert torch.all(blurred <= 1.0)
+        assert torch.all(blurred >= 0.0)
 
 
 @pytest.mark.parametrize(

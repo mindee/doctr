@@ -12,62 +12,32 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        python: ["3.9", "3.10"]
-        framework: [tensorflow, pytorch]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.11"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           # MacOS issue ref.: https://github.com/actions/setup-python/issues/855 & https://github.com/actions/setup-python/issues/865
-          python-version: ${{ matrix.os == 'macos-latest' && '3.11' || matrix.python }}
+          python-version: ${{ matrix.os == 'macos-latest' && matrix.python == '3.10' && '3.11' || matrix.python }}
           architecture: x64
-      - if: matrix.framework == 'tensorflow'
-        name: Cache python modules (TF)
+      - name: Cache python modules
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
-      - if: matrix.framework == 'pytorch'
-        name: Cache python modules (PT)
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
-      - if: matrix.framework == 'tensorflow'
-        name: Install package (TF)
+      - name: Install package
         run: |
           python -m pip install --upgrade pip
-          pip install -e .[tf,viz,html] --upgrade
-      - if: matrix.framework == 'pytorch'
-        name: Install package (PT)
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[torch,viz,html] --upgrade
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            pip install -e .[viz] --upgrade
+          else
+            pip install -e .[viz,html] --upgrade
+          fi
+        shell: bash  # Ensures shell is consistent across OSes
       - name: Import package
         run: python -c "import doctr; print(doctr.__version__)"
-
-  conda:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          auto-update-conda: true
-          python-version: 3.9
-          channels: pypdfium2-team,bblanchon,defaults,conda-forge
-          channel-priority: strict
-      - name: Install dependencies
-        shell: bash -el {0}
-        run: conda install -y conda-build conda-verify anaconda-client
-      - name: Build and verify
-        shell: bash -el {0}
-        run: |
-          python setup.py sdist
-          mkdir conda-dist
-          conda build .conda/ --output-folder conda-dist
-          conda-verify conda-dist/linux-64/*tar.bz2 --ignore=C1115

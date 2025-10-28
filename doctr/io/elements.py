@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 from defusedxml import defuse_stdlib
 
@@ -32,8 +32,8 @@ __all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page",
 class Element(NestedObject):
     """Implements an abstract document element with exporting and text rendering capabilities"""
 
-    _children_names: List[str] = []
-    _exported_keys: List[str] = []
+    _children_names: list[str] = []
+    _exported_keys: list[str] = []
 
     def __init__(self, **kwargs: Any) -> None:
         for k, v in kwargs.items():
@@ -42,7 +42,7 @@ class Element(NestedObject):
             else:
                 raise KeyError(f"{self.__class__.__name__} object does not have any attribute named '{k}'")
 
-    def export(self) -> Dict[str, Any]:
+    def export(self) -> dict[str, Any]:
         """Exports the object into a nested dict format"""
         export_dict = {k: getattr(self, k) for k in self._exported_keys}
         for children_name in self._children_names:
@@ -56,7 +56,7 @@ class Element(NestedObject):
         return export_dict
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         raise NotImplementedError
 
     def render(self) -> str:
@@ -67,7 +67,6 @@ class Word(Element):
     """Implements a word element
 
     Args:
-    ----
         value: the text string of the word
         confidence: the confidence associated with the text prediction
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
@@ -76,16 +75,16 @@ class Word(Element):
         crop_orientation: the general orientation of the crop in degrees and its confidence
     """
 
-    _exported_keys: List[str] = ["value", "confidence", "geometry", "objectness_score", "crop_orientation"]
-    _children_names: List[str] = []
+    _exported_keys: list[str] = ["value", "confidence", "geometry", "objectness_score", "crop_orientation"]
+    _children_names: list[str] = []
 
     def __init__(
         self,
         value: str,
         confidence: float,
-        geometry: Union[BoundingBox, np.ndarray],
+        geometry: BoundingBox | np.ndarray,
         objectness_score: float,
-        crop_orientation: Dict[str, Any],
+        crop_orientation: dict[str, Any],
     ) -> None:
         super().__init__()
         self.value = value
@@ -102,7 +101,7 @@ class Word(Element):
         return f"value='{self.value}', confidence={self.confidence:.2}"
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         return cls(**kwargs)
 
@@ -111,15 +110,14 @@ class Artefact(Element):
     """Implements a non-textual element
 
     Args:
-    ----
         artefact_type: the type of artefact
         confidence: the confidence of the type prediction
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
             the page's size.
     """
 
-    _exported_keys: List[str] = ["geometry", "type", "confidence"]
-    _children_names: List[str] = []
+    _exported_keys: list[str] = ["geometry", "type", "confidence"]
+    _children_names: list[str] = []
 
     def __init__(self, artefact_type: str, confidence: float, geometry: BoundingBox) -> None:
         super().__init__()
@@ -135,7 +133,7 @@ class Artefact(Element):
         return f"type='{self.type}', confidence={self.confidence:.2}"
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         return cls(**kwargs)
 
@@ -144,22 +142,21 @@ class Line(Element):
     """Implements a line element as a collection of words
 
     Args:
-    ----
         words: list of word elements
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
             the page's size. If not specified, it will be resolved by default to the smallest bounding box enclosing
             all words in it.
     """
 
-    _exported_keys: List[str] = ["geometry", "objectness_score"]
-    _children_names: List[str] = ["words"]
-    words: List[Word] = []
+    _exported_keys: list[str] = ["geometry", "objectness_score"]
+    _children_names: list[str] = ["words"]
+    words: list[Word] = []
 
     def __init__(
         self,
-        words: List[Word],
-        geometry: Optional[Union[BoundingBox, np.ndarray]] = None,
-        objectness_score: Optional[float] = None,
+        words: list[Word],
+        geometry: BoundingBox | np.ndarray | None = None,
+        objectness_score: float | None = None,
     ) -> None:
         # Compute the objectness score of the line
         if objectness_score is None:
@@ -168,7 +165,7 @@ class Line(Element):
         if geometry is None:
             # Check whether this is a rotated or straight box
             box_resolution_fn = resolve_enclosing_rbbox if len(words[0].geometry) == 4 else resolve_enclosing_bbox
-            geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[operator]
+            geometry = box_resolution_fn([w.geometry for w in words])  # type: ignore[misc]
 
         super().__init__(words=words)
         self.geometry = geometry
@@ -179,7 +176,7 @@ class Line(Element):
         return " ".join(w.render() for w in self.words)
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({
             "words": [Word.from_dict(_dict) for _dict in save_dict["words"]],
@@ -202,7 +199,6 @@ class Block(Element):
     """Implements a block element as a collection of lines and artefacts
 
     Args:
-    ----
         lines: list of line elements
         artefacts: list of artefacts
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
@@ -210,17 +206,17 @@ class Block(Element):
             all lines and artefacts in it.
     """
 
-    _exported_keys: List[str] = ["geometry", "objectness_score"]
-    _children_names: List[str] = ["lines", "artefacts"]
-    lines: List[Line] = []
-    artefacts: List[Artefact] = []
+    _exported_keys: list[str] = ["geometry", "objectness_score"]
+    _children_names: list[str] = ["lines", "artefacts"]
+    lines: list[Line] = []
+    artefacts: list[Artefact] = []
 
     def __init__(
         self,
-        lines: List[Line] = [],
-        artefacts: List[Artefact] = [],
-        geometry: Optional[Union[BoundingBox, np.ndarray]] = None,
-        objectness_score: Optional[float] = None,
+        lines: list[Line] = [],
+        artefacts: list[Artefact] = [],
+        geometry: BoundingBox | np.ndarray | None = None,
+        objectness_score: float | None = None,
     ) -> None:
         # Compute the objectness score of the line
         if objectness_score is None:
@@ -232,7 +228,7 @@ class Block(Element):
             box_resolution_fn = (
                 resolve_enclosing_rbbox if isinstance(lines[0].geometry, np.ndarray) else resolve_enclosing_bbox
             )
-            geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore[operator]
+            geometry = box_resolution_fn(line_boxes + artefact_boxes)  # type: ignore
 
         super().__init__(lines=lines, artefacts=artefacts)
         self.geometry = geometry
@@ -243,7 +239,7 @@ class Block(Element):
         return line_break.join(line.render() for line in self.lines)
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({
             "lines": [Line.from_dict(_dict) for _dict in save_dict["lines"]],
@@ -256,7 +252,6 @@ class Page(Element):
     """Implements a page element as a collection of blocks
 
     Args:
-    ----
         page: image encoded as a numpy array in uint8
         blocks: list of block elements
         page_idx: the index of the page in the input raw document
@@ -265,18 +260,18 @@ class Page(Element):
         language: a dictionary with the language value and confidence of the prediction
     """
 
-    _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: List[str] = ["blocks"]
-    blocks: List[Block] = []
+    _exported_keys: list[str] = ["page_idx", "dimensions", "orientation", "language"]
+    _children_names: list[str] = ["blocks"]
+    blocks: list[Block] = []
 
     def __init__(
         self,
         page: np.ndarray,
-        blocks: List[Block],
+        blocks: list[Block],
         page_idx: int,
-        dimensions: Tuple[int, int],
-        orientation: Optional[Dict[str, Any]] = None,
-        language: Optional[Dict[str, Any]] = None,
+        dimensions: tuple[int, int],
+        orientation: dict[str, Any] | None = None,
+        language: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(blocks=blocks)
         self.page = page
@@ -310,22 +305,22 @@ class Page(Element):
     def synthesize(self, **kwargs) -> np.ndarray:
         """Synthesize the page from the predictions
 
-        Returns
-        -------
+        Args:
+            **kwargs: keyword arguments passed to the `synthesize_page` method
+
+        Returns:
             synthesized page
         """
         return synthesize_page(self.export(), **kwargs)
 
-    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> Tuple[bytes, ET.ElementTree]:
+    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> tuple[bytes, ET.ElementTree]:
         """Export the page as XML (hOCR-format)
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
         Args:
-        ----
             file_title: the title of the XML file
 
         Returns:
-        -------
             a tuple of the XML byte string, and its ElementTree
         """
         p_idx = self.page_idx
@@ -352,7 +347,7 @@ class Page(Element):
         )
         # Create the body
         body = SubElement(page_hocr, "body")
-        SubElement(
+        page_div = SubElement(
             body,
             "div",
             attrib={
@@ -367,7 +362,7 @@ class Page(Element):
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
             (xmin, ymin), (xmax, ymax) = block.geometry
             block_div = SubElement(
-                body,
+                page_div,
                 "div",
                 attrib={
                     "class": "ocr_carea",
@@ -423,7 +418,7 @@ class Page(Element):
         return (ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr))
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({"blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]]})
         return cls(**kwargs)
@@ -433,7 +428,6 @@ class KIEPage(Element):
     """Implements a KIE page element as a collection of predictions
 
     Args:
-    ----
         predictions: Dictionary with list of block elements for each detection class
         page: image encoded as a numpy array in uint8
         page_idx: the index of the page in the input raw document
@@ -442,18 +436,18 @@ class KIEPage(Element):
         language: a dictionary with the language value and confidence of the prediction
     """
 
-    _exported_keys: List[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: List[str] = ["predictions"]
-    predictions: Dict[str, List[Prediction]] = {}
+    _exported_keys: list[str] = ["page_idx", "dimensions", "orientation", "language"]
+    _children_names: list[str] = ["predictions"]
+    predictions: dict[str, list[Prediction]] = {}
 
     def __init__(
         self,
         page: np.ndarray,
-        predictions: Dict[str, List[Prediction]],
+        predictions: dict[str, list[Prediction]],
         page_idx: int,
-        dimensions: Tuple[int, int],
-        orientation: Optional[Dict[str, Any]] = None,
-        language: Optional[Dict[str, Any]] = None,
+        dimensions: tuple[int, int],
+        orientation: dict[str, Any] | None = None,
+        language: dict[str, Any] | None = None,
     ) -> None:
         super().__init__(predictions=predictions)
         self.page = page
@@ -492,25 +486,21 @@ class KIEPage(Element):
         """Synthesize the page from the predictions
 
         Args:
-        ----
-            **kwargs: keyword arguments passed to the matplotlib.pyplot.show method
+            **kwargs: keyword arguments passed to the `synthesize_kie_page` method
 
         Returns:
-        -------
             synthesized page
         """
         return synthesize_kie_page(self.export(), **kwargs)
 
-    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> Tuple[bytes, ET.ElementTree]:
+    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> tuple[bytes, ET.ElementTree]:
         """Export the page as XML (hOCR-format)
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
         Args:
-        ----
             file_title: the title of the XML file
 
         Returns:
-        -------
             a tuple of the XML byte string, and its ElementTree
         """
         p_idx = self.page_idx
@@ -560,13 +550,47 @@ class KIEPage(Element):
                         {int(round(xmax * width))} {int(round(ymax * height))}",
                     },
                 )
-                prediction_div.text = prediction.value
+                # NOTE: ocr_par, ocr_line and ocrx_word are the same because the KIE predictions contain only words
+                # This is a workaround to make it PDF/A compatible
+                par_div = SubElement(
+                    prediction_div,
+                    "p",
+                    attrib={
+                        "class": "ocr_par",
+                        "id": f"{class_name}_par_{prediction_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}",
+                    },
+                )
+                line_span = SubElement(
+                    par_div,
+                    "span",
+                    attrib={
+                        "class": "ocr_line",
+                        "id": f"{class_name}_line_{prediction_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}; \
+                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                    },
+                )
+                word_div = SubElement(
+                    line_span,
+                    "span",
+                    attrib={
+                        "class": "ocrx_word",
+                        "id": f"{class_name}_word_{prediction_count}",
+                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
+                        {int(round(xmax * width))} {int(round(ymax * height))}; \
+                        x_wconf {int(round(prediction.confidence * 100))}",
+                    },
+                )
+                word_div.text = prediction.value
                 prediction_count += 1
 
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({
             "predictions": [Prediction.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]
@@ -578,16 +602,15 @@ class Document(Element):
     """Implements a document element as a collection of pages
 
     Args:
-    ----
         pages: list of page elements
     """
 
-    _children_names: List[str] = ["pages"]
-    pages: List[Page] = []
+    _children_names: list[str] = ["pages"]
+    pages: list[Page] = []
 
     def __init__(
         self,
-        pages: List[Page],
+        pages: list[Page],
     ) -> None:
         super().__init__(pages=pages)
 
@@ -600,30 +623,30 @@ class Document(Element):
         for result in self.pages:
             result.show(**kwargs)
 
-    def synthesize(self, **kwargs) -> List[np.ndarray]:
+    def synthesize(self, **kwargs) -> list[np.ndarray]:
         """Synthesize all pages from their predictions
 
-        Returns
-        -------
+        Args:
+            **kwargs: keyword arguments passed to the `Page.synthesize` method
+
+        Returns:
             list of synthesized pages
         """
-        return [page.synthesize() for page in self.pages]
+        return [page.synthesize(**kwargs) for page in self.pages]
 
-    def export_as_xml(self, **kwargs) -> List[Tuple[bytes, ET.ElementTree]]:
+    def export_as_xml(self, **kwargs) -> list[tuple[bytes, ET.ElementTree]]:
         """Export the document as XML (hOCR-format)
 
         Args:
-        ----
             **kwargs: additional keyword arguments passed to the Page.export_as_xml method
 
         Returns:
-        -------
             list of tuple of (bytes, ElementTree)
         """
         return [page.export_as_xml(**kwargs) for page in self.pages]
 
     @classmethod
-    def from_dict(cls, save_dict: Dict[str, Any], **kwargs):
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({"pages": [Page.from_dict(page_dict) for page_dict in save_dict["pages"]]})
         return cls(**kwargs)
@@ -633,15 +656,14 @@ class KIEDocument(Document):
     """Implements a document element as a collection of pages
 
     Args:
-    ----
         pages: list of page elements
     """
 
-    _children_names: List[str] = ["pages"]
-    pages: List[KIEPage] = []  # type: ignore[assignment]
+    _children_names: list[str] = ["pages"]
+    pages: list[KIEPage] = []  # type: ignore[assignment]
 
     def __init__(
         self,
-        pages: List[KIEPage],
+        pages: list[KIEPage],
     ) -> None:
         super().__init__(pages=pages)  # type: ignore[arg-type]

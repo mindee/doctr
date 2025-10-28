@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -39,7 +39,6 @@ def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> N
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py
 
     Args:
-    ----
         lr_recorder: list of LR values
         loss_recorder: list of loss values
         beta (float, optional): smoothing factor

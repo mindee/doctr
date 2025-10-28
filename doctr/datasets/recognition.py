@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any
 
 from .datasets import AbstractDataset
 
@@ -22,9 +22,8 @@ class RecognitionDataset(AbstractDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         img_folder: path to the images folder
-        labels_path: pathe to the json file containing all labels (character sequences)
+        labels_path: path to the json file containing all labels (character sequences)
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -36,7 +35,7 @@ class RecognitionDataset(AbstractDataset):
     ) -> None:
         super().__init__(img_folder, **kwargs)
 
-        self.data: List[Tuple[str, str]] = []
+        self.data: list[tuple[str, str]] = []
         with open(labels_path, encoding="utf-8") as f:
             labels = json.load(f)
 

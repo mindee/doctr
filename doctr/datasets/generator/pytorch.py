@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -18,7 +18,6 @@ class CharacterGenerator(_CharacterGenerator):
     >>> img, target = ds[0]
 
     Args:
-    ----
         vocab: vocabulary to take the character from
         num_samples: number of samples that will be generated iterating over the dataset
         cache_samples: whether generated images should be cached firsthand
@@ -40,7 +39,6 @@ class WordGenerator(_WordGenerator):
     >>> img, target = ds[0]
 
     Args:
-    ----
         vocab: vocabulary to take the character from
         min_chars: minimum number of characters in a word
         max_chars: maximum number of characters in a word

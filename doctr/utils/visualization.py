@@ -1,10 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 import colorsys
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import cv2
 import matplotlib.patches as patches
@@ -19,9 +19,9 @@ __all__ = ["visualize_page", "visualize_kie_page", "draw_boxes"]
 
 def rect_patch(
     geometry: BoundingBox,
-    page_dimensions: Tuple[int, int],
-    label: Optional[str] = None,
-    color: Tuple[float, float, float] = (0, 0, 0),
+    page_dimensions: tuple[int, int],
+    label: str | None = None,
+    color: tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
@@ -30,7 +30,6 @@ def rect_patch(
     """Create a matplotlib rectangular patch for the element
 
     Args:
-    ----
         geometry: bounding box of the element
         page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
@@ -41,7 +40,6 @@ def rect_patch(
         preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
-    -------
         a rectangular Patch
     """
     if len(geometry) != 2 or any(not isinstance(elt, tuple) or len(elt) != 2 for elt in geometry):
@@ -70,9 +68,9 @@ def rect_patch(
 
 def polygon_patch(
     geometry: np.ndarray,
-    page_dimensions: Tuple[int, int],
-    label: Optional[str] = None,
-    color: Tuple[float, float, float] = (0, 0, 0),
+    page_dimensions: tuple[int, int],
+    label: str | None = None,
+    color: tuple[float, float, float] = (0, 0, 0),
     alpha: float = 0.3,
     linewidth: int = 2,
     fill: bool = True,
@@ -81,7 +79,6 @@ def polygon_patch(
     """Create a matplotlib polygon patch for the element
 
     Args:
-    ----
         geometry: bounding box of the element
         page_dimensions: dimensions of the Page in format (height, width)
         label: label to display when hovered
@@ -92,7 +89,6 @@ def polygon_patch(
         preserve_aspect_ratio: pass True if you passed True to the predictor
 
     Returns:
-    -------
         a polygon Patch
     """
     if not geometry.shape == (4, 2):
@@ -114,20 +110,18 @@ def polygon_patch(
 
 
 def create_obj_patch(
-    geometry: Union[BoundingBox, Polygon4P, np.ndarray],
-    page_dimensions: Tuple[int, int],
+    geometry: BoundingBox | Polygon4P | np.ndarray,
+    page_dimensions: tuple[int, int],
     **kwargs: Any,
 ) -> patches.Patch:
     """Create a matplotlib patch for the element
 
     Args:
-    ----
         geometry: bounding box (straight or rotated) of the element
         page_dimensions: dimensions of the page in format (height, width)
         **kwargs: keyword arguments for the patch
 
     Returns:
-    -------
         a matplotlib Patch
     """
     if isinstance(geometry, tuple):
@@ -140,15 +134,13 @@ def create_obj_patch(
     raise ValueError("invalid geometry format")
 
 
-def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
+def get_colors(num_colors: int) -> list[tuple[float, float, float]]:
     """Generate num_colors color for matplotlib
 
     Args:
-    ----
         num_colors: number of colors to generate
 
     Returns:
-    -------
         colors: list of generated colors
     """
     colors = []
@@ -156,12 +148,12 @@ def get_colors(num_colors: int) -> List[Tuple[float, float, float]]:
         hue = i / 360.0
         lightness = (50 + np.random.rand() * 10) / 100.0
         saturation = (90 + np.random.rand() * 10) / 100.0
-        colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))
+        colors.append(colorsys.hls_to_rgb(hue, lightness, saturation))  # type: ignore[arg-type]
     return colors
 
 
 def visualize_page(
-    page: Dict[str, Any],
+    page: dict[str, Any],
     image: np.ndarray,
     words_only: bool = True,
     display_artefacts: bool = True,
@@ -183,7 +175,6 @@ def visualize_page(
     >>> plt.show()
 
     Args:
-    ----
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
@@ -194,7 +185,6 @@ def visualize_page(
         **kwargs: keyword arguments for the polygon patch
 
     Returns:
-    -------
         the matplotlib figure
     """
     # Get proper scale and aspect ratio
@@ -207,7 +197,7 @@ def visualize_page(
     ax.axis("off")
 
     if interactive:
-        artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+        artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     for block in page["blocks"]:
         if not words_only:
@@ -287,7 +277,7 @@ def visualize_page(
 
 
 def visualize_kie_page(
-    page: Dict[str, Any],
+    page: dict[str, Any],
     image: np.ndarray,
     words_only: bool = False,
     display_artefacts: bool = True,
@@ -309,7 +299,6 @@ def visualize_kie_page(
     >>> plt.show()
 
     Args:
-    ----
         page: the exported Page of a Document
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
@@ -320,7 +309,6 @@ def visualize_kie_page(
         **kwargs: keyword arguments for the polygon patch
 
     Returns:
-    -------
         the matplotlib figure
     """
     # Get proper scale and aspect ratio
@@ -333,7 +321,7 @@ def visualize_kie_page(
     ax.axis("off")
 
     if interactive:
-        artists: List[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+        artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
 
     colors = {k: color for color, k in zip(get_colors(len(page["predictions"])), page["predictions"])}
     for key, value in page["predictions"].items():
@@ -363,11 +351,10 @@ def visualize_kie_page(
     return fig
 
 
-def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: Optional[Tuple[int, int, int]] = None, **kwargs) -> None:
+def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: tuple[int, int, int] | None = None, **kwargs) -> None:
     """Draw an array of relative straight boxes on an image
 
     Args:
-    ----
         boxes: array of relative boxes, of shape (*, 4)
         image: np array, float32 or uint8
         color: color to use for bounding box edges

@@ -1,6 +1,26 @@
 Changelog
 =========
 
+v1.0.0 (2025-07-09)
+-------------------
+Release note: `v1.0.0 <https://github.com/mindee/doctr/releases/tag/v1.0.0>`_
+
+v0.12.0 (2025-06-20)
+--------------------
+Release note: `v0.12.0 <https://github.com/mindee/doctr/releases/tag/v0.12.0>`_
+
+v0.11.0 (2025-01-30)
+--------------------
+Release note: `v0.11.0 <https://github.com/mindee/doctr/releases/tag/v0.11.0>`_
+
+v0.10.0 (2024-10-21)
+--------------------
+Release note: `v0.10.0 <https://github.com/mindee/doctr/releases/tag/v0.10.0>`_
+
+v0.9.0 (2024-08-08)
+-------------------
+Release note: `v0.9.0 <https://github.com/mindee/doctr/releases/tag/v0.9.0>`_
+
 v0.8.1 (2024-03-04)
 -------------------
 Release note: `v0.8.1 <https://github.com/mindee/doctr/releases/tag/v0.8.1>`_

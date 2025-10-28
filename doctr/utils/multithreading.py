@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -6,15 +6,16 @@
 
 import multiprocessing as mp
 import os
+from collections.abc import Callable, Iterable, Iterator
 from multiprocessing.pool import ThreadPool
-from typing import Any, Callable, Iterable, Iterator, Optional
+from typing import Any
 
 from doctr.file_utils import ENV_VARS_TRUE_VALUES
 
 __all__ = ["multithread_exec"]
 
 
-def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Optional[int] = None) -> Iterator[Any]:
+def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: int | None = None) -> Iterator[Any]:
     """Execute a given function in parallel for each element of a given sequence
 
     >>> from doctr.utils.multithreading import multithread_exec
@@ -22,17 +23,14 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: Op
     >>> results = multithread_exec(lambda x: x ** 2, entries)
 
     Args:
-    ----
         func: function to be executed on each element of the iterable
         seq: iterable
         threads: number of workers to be used for multiprocessing
 
     Returns:
-    -------
         iterator of the function's results using the iterable as inputs
 
     Notes:
-    -----
         This function uses ThreadPool from multiprocessing package, which uses `/dev/shm` directory for shared memory.
         If you do not have write permissions for this directory (if you run `doctr` on AWS Lambda for instance),
         you might want to disable multiprocessing. To achieve that, set 'DOCTR_MULTIPROCESSING_DISABLE' to 'TRUE'.

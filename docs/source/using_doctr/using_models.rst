@@ -7,7 +7,7 @@ Either performed at once or separately, to each task corresponds a type of deep 
 For a given task, docTR provides a Predictor, which is composed of 2 components:
 
 * PreProcessor: a module in charge of making inputs directly usable by the deep learning model.
-* Model: a deep learning model, implemented with all supported deep learning backends (TensorFlow & PyTorch) along with its specific post-processor to make outputs structured and reusable.
+* Model: a deep learning model, implemented with all supported deep learning backends (PyTorch) along with its specific post-processor to make outputs structured and reusable.
 
 
 Text Detection
@@ -36,43 +36,27 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 
 +------------------------------------------------------------------------------------+----------------------------+----------------------------+--------------------+
 |                                                                                    |        FUNSD               |        CORD                |                    |
-+================+=================================+=================+===============+============+===============+============+===============+====================+
-| **Backend**    | **Architecture**                | **Input shape** | **# params**  | **Recall** | **Precision** | **Recall** | **Precision** | **sec/it (B: 1)**  |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | db_resnet50                     | (1024, 1024, 3) | 25.2 M        | 84.39      | 85.86         | 93.70      | 83.24         | 1.2                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | db_mobilenet_v3_large           | (1024, 1024, 3) | 4.2 M         | 80.29      | 70.90         | 84.70      | 67.76         | 0.5                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | linknet_resnet18                | (1024, 1024, 3) | 11.5 M        | 81.37      | 84.08         | 85.71      | 83.70         | 0.7                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | linknet_resnet34                | (1024, 1024, 3) | 21.6 M        | 82.20      | 85.49         | 87.63      | 87.17         | 0.8                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | linknet_resnet50                | (1024, 1024, 3) | 28.8 M        | 80.70      | 83.51         | 86.46      | 84.94         | 1.1                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | fast_tiny                       | (1024, 1024, 3) | 13.5 M (8.5M) | 85.29      | 85.34         | 93.46      | 75.99         | 0.7 (0.4)          |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | fast_small                      | (1024, 1024, 3) | 14.7 M (9.7M) | 85.50      | 86.89         | 94.05      | 78.33         | 0.7 (0.5)          |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | fast_base                       | (1024, 1024, 3) | 16.3 M (10.6M)| 85.22      | 86.97         | 94.18      | 84.74         | 0.8 (0.5)          |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | db_resnet34                     | (1024, 1024, 3) | 22.4 M        | 82.76      | 76.75         | 89.20      | 71.74         | 0.8                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | db_resnet50                     | (1024, 1024, 3) | 25.4 M        | 83.56      | 86.68         | 92.61      | 86.39         | 1.1                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | db_mobilenet_v3_large           | (1024, 1024, 3) | 4.2 M         | 82.69      | 84.63         | 94.51      | 70.28         | 0.5                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | linknet_resnet18                | (1024, 1024, 3) | 11.5 M        | 81.64      | 85.52         | 88.92      | 82.74         | 0.6                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | linknet_resnet34                | (1024, 1024, 3) | 21.6 M        | 81.62      | 82.95         | 86.26      | 81.06         | 0.7                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | linknet_resnet50                | (1024, 1024, 3) | 28.8 M        | 81.78      | 82.47         | 87.29      | 85.54         | 1.0                |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | fast_tiny                       | (1024, 1024, 3) | 13.5 M (8.5M) | 84.90      | 85.04         | 93.73      | 76.26         | 0.7 (0.4)          |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | fast_small                      | (1024, 1024, 3) | 14.7 M (9.7M) | 85.36      | 86.68         | 94.09      | 78.53         | 0.7 (0.5)          |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | fast_base                       | (1024, 1024, 3) | 16.3 M (10.6M)| 84.95      | 86.73         | 94.39      | 85.36         | 0.8 (0.5)          |
-+----------------+---------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
++==================================================+=================+===============+============+===============+============+===============+====================+
+| **Architecture**                                 | **Input shape** | **# params**  | **Recall** | **Precision** | **Recall** | **Precision** | **sec/it (B: 1)**  |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| db_resnet34                                      | (1024, 1024, 3) | 22.4 M        | 82.76      | 76.75         | 89.20      | 71.74         | 0.8                |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| db_resnet50                                      | (1024, 1024, 3) | 25.4 M        | 83.56      | 86.68         | 92.61      | 86.39         | 1.1                |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| db_mobilenet_v3_large                            | (1024, 1024, 3) | 4.2 M         | 82.69      | 84.63         | 94.51      | 70.28         | 0.5                |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| linknet_resnet18                                 | (1024, 1024, 3) | 11.5 M        | 81.64      | 85.52         | 88.92      | 82.74         | 0.6                |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| linknet_resnet34                                 | (1024, 1024, 3) | 21.6 M        | 81.62      | 82.95         | 86.26      | 81.06         | 0.7                |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| linknet_resnet50                                 | (1024, 1024, 3) | 28.8 M        | 81.78      | 82.47         | 87.29      | 85.54         | 1.0                |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| fast_tiny                                        | (1024, 1024, 3) | 13.5 M (8.5M) | 84.90      | 85.04         | 93.73      | 76.26         | 0.7 (0.4)          |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| fast_small                                       | (1024, 1024, 3) | 14.7 M (9.7M) | 85.36      | 86.68         | 94.09      | 78.53         | 0.7 (0.5)          |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
+| fast_base                                        | (1024, 1024, 3) | 16.3 M (10.6M)| 84.95      | 86.73         | 94.39      | 85.36         | 0.8 (0.5)          |
++--------------------------------------------------+-----------------+---------------+------------+---------------+------------+---------------+--------------------+
 
 
 All text detection models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
@@ -92,12 +76,12 @@ Detection predictors
 
     import numpy as np
     from doctr.models import detection_predictor
-    predictor = detection_predictor('db_resnet50')
+    model = detection_predictor('db_resnet50')
     dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
     out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
-
+* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, setting `pretrained=True` this will load the corresponding weights. If `pretrained=False`, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
 * `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
 * `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
 * `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
@@ -129,6 +113,7 @@ The following architectures are currently supported:
 * :py:meth:`vitstr_small <doctr.models.recognition.vitstr_small>`
 * :py:meth:`vitstr_base <doctr.models.recognition.vitstr_base>`
 * :py:meth:`parseq <doctr.models.recognition.parseq>`
+* :py:meth:`viptr_tiny <doctr.models.recognition.viptr_tiny>`
 
 
 For a comprehensive comparison, we have compiled a detailed benchmark on publicly available datasets:
@@ -136,41 +121,27 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 
 +-----------------------------------------------------------------------------------+----------------------------+----------------------------+--------------------+
 |                                                                                   |        FUNSD               |        CORD                |                    |
-+================+=================================+=================+==============+============+===============+============+===============+====================+
-| **Backend**    | **Architecture**                | **Input shape** | **# params** | **Exact**  | **Partial**   | **Exact**  | **Partial**   | **sec/it (B: 64)** |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | crnn_vgg16_bn                   | (32, 128, 3)    | 15.8 M       | 88.12      | 88.85         | 94.68      | 95.10         | 0.9                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | crnn_mobilenet_v3_small         | (32, 128, 3)    | 2.1 M        | 86.88      | 87.61         | 92.28      | 92.73         | 0.25               |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | crnn_mobilenet_v3_large         | (32, 128, 3)    | 4.5 M        | 87.44      | 88.12         | 94.14      | 94.55         | 0.34               |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | master                          | (32, 128, 3)    | 58.8 M       | 87.44      | 88.21         | 93.83      | 94.25         | 22.3               |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | sar_resnet31                    | (32, 128, 3)    | 57.2 M       | 87.67      | 88.48         | 94.21      | 94.66         | 7.1                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | vitstr_small                    | (32, 128, 3)    | 21.4 M       | 83.01      | 83.84         | 86.57      | 87.00         | 2.0                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | vitstr_base                     | (32, 128, 3)    | 85.2 M       | 85.98      | 86.70         | 90.47      | 90.95         | 5.8                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| TensorFlow     | parseq                          | (32, 128, 3)    | 23.8 M       | 81.62      | 82.29         | 79.13      | 79.52         | 3.6                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | crnn_vgg16_bn                   | (32, 128, 3)    | 15.8 M       | 86.54      | 87.41         | 94.29      | 94.69         | 0.6                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | crnn_mobilenet_v3_small         | (32, 128, 3)    | 2.1 M        | 87.25      | 87.99         | 93.91      | 94.34         | 0.05               |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | crnn_mobilenet_v3_large         | (32, 128, 3)    | 4.5 M        | 87.38      | 88.09         | 94.46      | 94.92         | 0.08               |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | master                          | (32, 128, 3)    | 58.7 M       | 88.57      | 89.39         | 95.73      | 96.21         | 17.6               |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | sar_resnet31                    | (32, 128, 3)    | 55.4 M       | 88.10      | 88.88         | 94.83      | 95.29         | 4.9                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | vitstr_small                    | (32, 128, 3)    | 21.4 M       | 88.00      | 88.82         | 95.40      | 95.78         | 1.5                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | vitstr_base                     | (32, 128, 3)    | 85.2 M       | 88.33      | 89.09         | 95.32      | 95.71         | 4.1                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
-| PyTorch        | parseq                          | (32, 128, 3)    | 23.8 M       | 88.53      | 89.24         | 95.56      | 95.91         | 2.2                |
-+----------------+---------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
++==================================================+=================+==============+============+===============+============+===============+====================+
+| **Architecture**                                 | **Input shape** | **# params** | **Exact**  | **Partial**   | **Exact**  | **Partial**   | **sec/it (B: 64)** |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| crnn_vgg16_bn                                    | (32, 128, 3)    | 15.8 M       | 88.21      | 88.95         | 95.47      | 95.91         | 0.6                |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| crnn_mobilenet_v3_small                          | (32, 128, 3)    | 2.1 M        | 87.25      | 87.99         | 93.91      | 94.34         | 0.05               |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| crnn_mobilenet_v3_large                          | (32, 128, 3)    | 4.5 M        | 87.38      | 88.09         | 94.46      | 94.92         | 0.08               |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| master                                           | (32, 128, 3)    | 58.7 M       | 88.57      | 89.39         | 95.73      | 96.21         | 17.6               |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| sar_resnet31                                     | (32, 128, 3)    | 55.4 M       | 88.10      | 88.88         | 94.83      | 95.29         | 4.9                |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| vitstr_small                                     | (32, 128, 3)    | 21.4 M       | 88.00      | 88.82         | 95.40      | 95.78         | 1.5                |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| vitstr_base                                      | (32, 128, 3)    | 85.2 M       | 88.33      | 89.09         | 95.32      | 95.71         | 4.1                |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| parseq                                           | (32, 128, 3)    | 23.8 M       | 88.53      | 89.24         | 95.56      | 95.91         | 2.2                |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
+| viptr_tiny                                       | (32, 128, 3)    | 3.2 M        | 86.03      | 86.71         | 93.08      | 93.47         | 0.08               |
++--------------------------------------------------+-----------------+--------------+------------+---------------+------------+---------------+--------------------+
 
 
 All text recognition models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
@@ -198,7 +169,7 @@ Recognition predictors
 
     import numpy as np
     from doctr.models import recognition_predictor
-    predictor = recognition_predictor('crnn_vgg16_bn')
+    model = recognition_predictor('crnn_vgg16_bn')
     dummy_img = (255 * np.random.rand(50, 150, 3)).astype(np.uint8)
     out = model([dummy_img])
 
@@ -217,49 +188,33 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 
 +---------------------------------------------------------------------------+----------------------------+----------------------------+
 |                                                                           |        FUNSD               |        CORD                |
-+================+==========================================================+============================+============+===============+
-| **Backend**    | **Architecture**                                         | **Recall** | **Precision** | **Recall** | **Precision** |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + crnn_vgg16_bn                              | 73.45      | 74.73         | 85.79      | 76.21         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + crnn_mobilenet_v3_small                    | 72.66      | 73.93         | 83.43      | 74.11         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + crnn_mobilenet_v3_large                    | 72.86      | 74.13         | 85.16      | 75.65         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + master                                     | 72.73      | 74.00         | 84.13      | 75.05         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + sar_resnet31                               | 73.23      | 74.51         | 85.34      | 76.03         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + vitstr_small                               | 68.57      | 69.77         | 78.24      | 69.51         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + vitstr_base                                | 70.96      | 72.20         | 82.10      | 72.94         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| TensorFlow     | db_resnet50 + parseq                                     | 68.85      | 70.05         | 72.38      | 64.30         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + crnn_vgg16_bn                              | 72.43      | 75.13         | 85.05      | 79.33         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + crnn_mobilenet_v3_small                    | 73.06      | 75.79         | 84.64      | 78.94         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + crnn_mobilenet_v3_large                    | 73.17      | 75.90         | 84.96      | 79.25         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + master                                     | 73.90      | 76.66         | 85.84      | 80.07         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + sar_resnet31                               | 73.58      | 76.33         | 85.64      | 79.88         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + vitstr_small                               | 73.06      | 75.79         | 85.95      | 80.17         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + vitstr_base                                | 73.70      | 76.46         | 85.76      | 79.99         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| PyTorch        | db_resnet50 + parseq                                     | 73.52      | 76.27         | 85.91      | 80.13         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| None           | Gvision text detection                                   | 59.50      | 62.50         | 75.30      | 59.03         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| None           | Gvision doc. text detection                              | 64.00      | 53.30         | 68.90      | 61.10         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| None           | AWS textract                                             | 78.10      | 83.00         | 87.50      | 66.00         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
-| None           | Azure Form Recognizer (v3.2)                             | 79.42      | 85.89         | 89.62      | 88.93         |
-+----------------+----------------------------------------------------------+------------+---------------+------------+---------------+
++===========================================================================+============================+============+===============+
+| **Architecture**                                                          | **Recall** | **Precision** | **Recall** | **Precision** |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + crnn_vgg16_bn                                               | 73.37      | 76.11         | 84.80      | 79.09         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + crnn_mobilenet_v3_small                                     | 73.06      | 75.79         | 84.64      | 78.94         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + crnn_mobilenet_v3_large                                     | 73.17      | 75.90         | 84.96      | 79.25         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + master                                                      | 73.90      | 76.66         | 85.84      | 80.07         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + sar_resnet31                                                | 73.58      | 76.33         | 85.64      | 79.88         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + vitstr_small                                                | 73.06      | 75.79         | 85.95      | 80.17         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + vitstr_base                                                 | 73.70      | 76.46         | 85.76      | 79.99         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| db_resnet50 + parseq                                                      | 73.52      | 76.27         | 85.91      | 80.13         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| Gvision text detection                                                    | 59.50      | 62.50         | 75.30      | 59.03         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| Gvision doc. text detection                                               | 64.00      | 53.30         | 68.90      | 61.10         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| AWS textract                                                              | 78.10      | 83.00         | 87.50      | 66.00         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
+| Azure Form Recognizer (v3.2)                                              | 79.42      | 85.89         | 89.62      | 88.93         |
++---------------------------------------------------------------------------+------------+---------------+------------+---------------+
 
 
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
@@ -283,20 +238,24 @@ Those architectures involve one stage of text detection, and one stage of text r
 
 You can pass specific boolean arguments to the predictor:
 
-* `assume_straight_pages`
-* `preserve_aspect_ratio`
-* `symmetric_pad`
+* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
 Those 3 are going straight to the detection predictor, as mentioned above (in the detection part).
 
+Additional arguments which can be passed to the `ocr_predictor` are:
+
 * `export_as_straight_boxes`: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.
+* `straighten_pages`: If you want to straighten the pages before sending them to the detection model, set it to True.
 
 For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor('linknet_resnet18', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+
 
 Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
 
@@ -305,21 +264,54 @@ Additionally, you can change the batch size of the underlying detection and reco
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, det_bs=4, reco_bs=1024)
 
 To modify the output structure you can pass the following arguments to the predictor which will be handled by the underlying `DocumentBuilder`:
 
 * `resolve_lines`: whether words should be automatically grouped into lines (default: True)
-* `resolve_blocks`: whether lines should be automatically grouped into blocks (default: True)
+* `resolve_blocks`: whether lines should be automatically grouped into blocks (default: False)
 * `paragraph_break`: relative length of the minimum space separating paragraphs (default: 0.035)
 
 For example to disable the automatic grouping of lines into blocks:
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, resolve_blocks=False)
+
+
+Running the predictors on GPU
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can run the predictors on GPU by specifying the appropriate device.
+
+Here's how to do it for both **NVIDIA** and **Apple Silicon (MPS)** GPUs:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import ocr_predictor
+
+    # For NVIDIA GPU
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    predictor = ocr_predictor(pretrained=True).to(device)
+    # Alternatively: predictor = ocr_predictor(pretrained=True).cuda()
+
+    # For Apple Silicon (MPS)
+    device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
+    predictor = ocr_predictor(pretrained=True).to(device)
+
+
+The same approach applies to all standalone predictors:
+
+* `recognition_predictor`
+* `detection_predictor`
+* `crop_orientation_predictor`
+* `page_orientation_predictor`
+
+Just create the predictor instance and move it to the appropriate device.
+To enable **half-precision inference**, you can append `.half()` after moving the predictor to the device.
 
 
 What should I do with the output?
@@ -405,7 +397,7 @@ For reference, here is the export for the same `Document` as above::
     ]
   }
 
-To export the outpout as XML (hocr-format) you can use the `export_as_xml` method:
+To export the output as XML (hocr-format) you can use the `export_as_xml` method:
 
 .. code-block:: python
 
@@ -423,20 +415,20 @@ For reference, here is a sample XML byte string output:
     <head>
       <title>docTR - hOCR</title>
       <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-      <meta name="ocr-system" content="doctr 0.5.0" />
+      <meta name="ocr-system" content="doctr 0.11.0" />
       <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />
     </head>
     <body>
       <div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0" />
-      <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
-        <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
-          <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
-            <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
-            <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
-            <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
-          </span>
-        </p>
-      </div>
+        <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
+          <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
+            <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
+              <span class="ocrx_word" id="word_1_1" title="bbox 1552 540 1778 580; x_wconf 99">Hello</span>
+              <span class="ocrx_word" id="word_1_2" title="bbox 1782 529 1900 583; x_wconf 99">XML</span>
+              <span class="ocrx_word" id="word_1_3" title="bbox 1420 597 1684 641; x_wconf 81">World</span>
+            </span>
+          </p>
+        </div>
     </body>
   </html>
 
@@ -465,16 +457,40 @@ This is useful to detect (possible less) text regions more accurately with a hig
     out = predictor([input_page])
 
 
+* Disable page orientation classification
+
+If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.
+
+This will only have an effect with `assume_straight_pages=False` and/or `straighten_pages=True` and/or `detect_orientation=True`.
+
+.. code:: python3
+
+    from doctr.models import ocr_predictor
+    model = ocr_predictor(pretrained=True, assume_straight_pages=False, disable_page_orientation=True)
+
+
+* Disable crop orientation classification
+
+If you deal with documents which contains only horizontal text, you can disable the crop orientation classification to speed up the inference.
+
+This will only have an effect with `assume_straight_pages=False` and/or `straighten_pages=True`.
+
+.. code:: python3
+
+    from doctr.models import ocr_predictor
+    model = ocr_predictor(pretrained=True, assume_straight_pages=False, disable_crop_orientation=True)
+
+
 * Add a hook to the `ocr_predictor` to manipulate the location predictions before the crops are passed to the recognition model.
 
 .. code:: python3
 
-    from doctr.model import ocr_predictor
+    from doctr.models import ocr_predictor
 
     class CustomHook:
         def __call__(self, loc_preds):
             # Manipulate the location predictions here
-            # 1. The outpout structure needs to be the same as the input location predictions
+            # 1. The output structure needs to be the same as the input location predictions
             # 2. Be aware that the coordinates are relative and needs to be between 0 and 1
             return loc_preds
 

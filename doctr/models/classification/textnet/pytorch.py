@@ -1,22 +1,22 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
 from copy import deepcopy
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from torch import nn
 
 from doctr.datasets import VOCABS
 
-from ...modules.layers.pytorch import FASTConvLayer
+from ...modules.layers import FASTConvLayer
 from ...utils import conv_sequence_pt, load_pretrained_params
 
 __all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "textnet_tiny": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -47,22 +47,21 @@ class TextNet(nn.Sequential):
     Implementation based on the official Pytorch implementation: <https://github.com/czczup/FAST>`_.
 
     Args:
-    ----
-        stages (List[Dict[str, List[int]]]): List of dictionaries containing the parameters of each stage.
+        stages (list[dict[str, list[int]]]): list of dictionaries containing the parameters of each stage.
         include_top (bool, optional): Whether to include the classifier head. Defaults to True.
         num_classes (int, optional): Number of output classes. Defaults to 1000.
-        cfg (Optional[Dict[str, Any]], optional): Additional configuration. Defaults to None.
+        cfg (dict[str, Any], optional): Additional configuration. Defaults to None.
     """
 
     def __init__(
         self,
-        stages: List[Dict[str, List[int]]],
-        input_shape: Tuple[int, int, int] = (3, 32, 32),
+        stages: list[dict[str, list[int]]],
+        input_shape: tuple[int, int, int] = (3, 32, 32),
         num_classes: int = 1000,
         include_top: bool = True,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
-        _layers: List[nn.Module] = [
+        _layers: list[nn.Module] = [
             *conv_sequence_pt(
                 in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
             ),
@@ -94,11 +93,20 @@ class TextNet(nn.Sequential):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
 
 def _textnet(
     arch: str,
     pretrained: bool,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> TextNet:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -116,7 +124,7 @@ def _textnet(
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -135,12 +143,10 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
-    -------
         A textnet tiny model
     """
     return _textnet(
@@ -184,12 +190,10 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
-    -------
         A TextNet small model
     """
     return _textnet(
@@ -233,12 +237,10 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
-    -------
         A TextNet base model
     """
     return _textnet(

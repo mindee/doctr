@@ -9,6 +9,22 @@ updates:
       interval: weekly
       day: sunday
     reviewers:
-      - "frgfm"
       - "charlesmindee"
       - "felixdittrich92"
+      - "odulcy-mindee"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels: ["topic: ci"]
+    schedule:
+      interval: weekly
+      day: sunday
+    reviewers:
+      - "charlesmindee"
+      - "felixdittrich92"
+      - "odulcy-mindee"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

@@ -1,10 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import h5py
 import numpy as np
@@ -28,10 +28,10 @@ class SVHN(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -52,6 +52,7 @@ class SVHN(VisionDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         url, sha256, name = self.TRAIN if train else self.TEST
@@ -63,8 +64,14 @@ class SVHN(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
+
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         tmp_root = os.path.join(self.root, "train" if train else "test")
@@ -73,7 +80,9 @@ class SVHN(VisionDataset):
         with h5py.File(os.path.join(tmp_root, "digitStruct.mat"), "r") as f:
             img_refs = f["digitStruct/name"]
             box_refs = f["digitStruct/bbox"]
-            for img_ref, box_ref in tqdm(iterable=zip(img_refs, box_refs), desc="Unpacking SVHN", total=len(img_refs)):
+            for img_ref, box_ref in tqdm(
+                iterable=zip(img_refs, box_refs), desc="Preparing and Loading SVHN", total=len(img_refs)
+            ):
                 # convert ascii matrix to string
                 img_name = "".join(map(chr, f[img_ref[0]][()].flatten()))
 
@@ -120,8 +129,10 @@ class SVHN(VisionDataset):
                 if recognition_task:
                     crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, img_name), geoms=box_targets)
                     for crop, label in zip(crops, label_targets):
-                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and " " not in label:
                             self.data.append((crop, label))
+                elif detection_task:
+                    self.data.append((img_name, box_targets))
                 else:
                     self.data.append((img_name, dict(boxes=box_targets, labels=label_targets)))
 

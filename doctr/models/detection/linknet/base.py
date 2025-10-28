@@ -1,11 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -23,7 +22,6 @@ class LinkNetPostProcessor(DetectionPostProcessor):
     """Implements a post processor for LinkNet model.
 
     Args:
-    ----
         bin_thresh: threshold used to binzarized p_map at inference time
         box_thresh: minimal objectness score to consider a box
         assume_straight_pages: whether the inputs were expected to have horizontal text elements
@@ -45,11 +43,9 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
-        ----
             points: The first parameter.
 
         Returns:
-        -------
             a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         if not self.assume_straight_pages:
@@ -60,9 +56,8 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             area = (rect[1][0] + 1) * (1 + rect[1][1])
             length = 2 * (rect[1][0] + rect[1][1]) + 2
         else:
-            poly = Polygon(points)
-            area = poly.area
-            length = poly.length
+            area = cv2.contourArea(points)
+            length = cv2.arcLength(points, closed=True)
         distance = area * self.unclip_ratio / length  # compute distance to expand polygon
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
@@ -94,24 +89,22 @@ class LinkNetPostProcessor(DetectionPostProcessor):
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
-        ----
             pred: Pred map from differentiable linknet output
             bitmap: Bitmap map computed from pred (binarized)
             angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
-        -------
             np tensor boxes for the bitmap, each box is a 6-element list
                 containing x, y, w, h, alpha, score for the box
         """
         height, width = bitmap.shape[:2]
-        boxes: List[Union[np.ndarray, List[float]]] = []
+        boxes: list[np.ndarray | list[float]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < 2):  # type: ignore[index]
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < 2):
                 continue
             # Compute objectness
             if self.assume_straight_pages:
@@ -152,7 +145,6 @@ class _LinkNet(BaseModel):
     <https://arxiv.org/pdf/1707.03718.pdf>`_.
 
     Args:
-    ----
         out_chan: number of channels for the output
     """
 
@@ -162,20 +154,16 @@ class _LinkNet(BaseModel):
 
     def build_target(
         self,
-        target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int],
-        channels_last: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+        target: list[dict[str, np.ndarray]],
+        output_shape: tuple[int, int, int],
+    ) -> tuple[np.ndarray, np.ndarray]:
         """Build the target, and it's mask to be used from loss computation.
 
         Args:
-        ----
             target: target coming from dataset
             output_shape: shape of the output of the model without batch_size
-            channels_last: whether channels are last or not
 
         Returns:
-        -------
             the new formatted target and the mask
         """
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
@@ -185,10 +173,8 @@ class _LinkNet(BaseModel):
 
         h: int
         w: int
-        if channels_last:
-            h, w, num_classes = output_shape
-        else:
-            num_classes, h, w = output_shape
+
+        num_classes, h, w = output_shape
         target_shape = (len(target), num_classes, h, w)
 
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
@@ -247,11 +233,6 @@ class _LinkNet(BaseModel):
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
-
-        # Don't forget to switch back to channel last if Tensorflow is used
-        if channels_last:
-            seg_target = seg_target.transpose((0, 2, 3, 1))
-            seg_mask = seg_mask.transpose((0, 2, 3, 1))
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)
 
         return seg_target, seg_mask

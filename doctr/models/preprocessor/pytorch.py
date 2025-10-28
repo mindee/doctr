@@ -1,10 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -22,19 +22,19 @@ class PreProcessor(nn.Module):
     """Implements an abstract preprocessor object which performs casting, resizing, batching and normalization.
 
     Args:
-    ----
         output_size: expected size of each page in format (H, W)
         batch_size: the size of page batches
         mean: mean value of the training distribution by channel
         std: standard deviation of the training distribution by channel
+        **kwargs: additional arguments for the resizing operation
     """
 
     def __init__(
         self,
-        output_size: Tuple[int, int],
+        output_size: tuple[int, int],
         batch_size: int,
-        mean: Tuple[float, float, float] = (0.5, 0.5, 0.5),
-        std: Tuple[float, float, float] = (1.0, 1.0, 1.0),
+        mean: tuple[float, float, float] = (0.5, 0.5, 0.5),
+        std: tuple[float, float, float] = (1.0, 1.0, 1.0),
         **kwargs: Any,
     ) -> None:
         super().__init__()
@@ -43,15 +43,13 @@ class PreProcessor(nn.Module):
         # Perform the division by 255 at the same time
         self.normalize = T.Normalize(mean, std)
 
-    def batch_inputs(self, samples: List[torch.Tensor]) -> List[torch.Tensor]:
+    def batch_inputs(self, samples: list[torch.Tensor]) -> list[torch.Tensor]:
         """Gather samples into batches for inference purposes
 
         Args:
-        ----
             samples: list of samples of shape (C, H, W)
 
         Returns:
-        -------
             list of batched samples (*, C, H, W)
         """
         num_batches = int(math.ceil(len(samples) / self.batch_size))
@@ -62,59 +60,52 @@ class PreProcessor(nn.Module):
 
         return batches
 
-    def sample_transforms(self, x: Union[np.ndarray, torch.Tensor]) -> torch.Tensor:
+    def sample_transforms(self, x: np.ndarray) -> torch.Tensor:
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
-        if isinstance(x, np.ndarray):
-            if x.dtype not in (np.uint8, np.float32):
-                raise TypeError("unsupported data type for numpy.ndarray")
-            x = torch.from_numpy(x.copy()).permute(2, 0, 1)
-        elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
-            raise TypeError("unsupported data type for torch.Tensor")
+        if x.dtype not in (np.uint8, np.float32, np.float16):
+            raise TypeError("unsupported data type for numpy.ndarray")
+        tensor = torch.from_numpy(x.copy()).permute(2, 0, 1)
         # Resizing
-        x = self.resize(x)
+        tensor = self.resize(tensor)
         # Data type
-        if x.dtype == torch.uint8:
-            x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+        if tensor.dtype == torch.uint8:
+            tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
         else:
-            x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
+            tensor = tensor.to(dtype=torch.float32)
 
-        return x
+        return tensor
 
-    def __call__(self, x: Union[torch.Tensor, np.ndarray, List[Union[torch.Tensor, np.ndarray]]]) -> List[torch.Tensor]:
+    def __call__(self, x: np.ndarray | list[np.ndarray]) -> list[torch.Tensor]:
         """Prepare document data for model forwarding
 
         Args:
-        ----
-            x: list of images (np.array) or tensors (already resized and batched)
+            x: list of images (np.array) or a single image (np.array) of shape (H, W, C)
 
         Returns:
-        -------
-            list of page batches
+            list of page batches (*, C, H, W) ready for model inference
         """
         # Input type check
-        if isinstance(x, (np.ndarray, torch.Tensor)):
+        if isinstance(x, np.ndarray):
             if x.ndim != 4:
                 raise AssertionError("expected 4D Tensor")
-            if isinstance(x, np.ndarray):
-                if x.dtype not in (np.uint8, np.float32):
-                    raise TypeError("unsupported data type for numpy.ndarray")
-                x = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)
-            elif x.dtype not in (torch.uint8, torch.float16, torch.float32):
-                raise TypeError("unsupported data type for torch.Tensor")
+            if x.dtype not in (np.uint8, np.float32, np.float16):
+                raise TypeError("unsupported data type for numpy.ndarray")
+            tensor = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)
+
             # Resizing
-            if x.shape[-2] != self.resize.size[0] or x.shape[-1] != self.resize.size[1]:
-                x = F.resize(
-                    x, self.resize.size, interpolation=self.resize.interpolation, antialias=self.resize.antialias
+            if tensor.shape[-2] != self.resize.size[0] or tensor.shape[-1] != self.resize.size[1]:
+                tensor = F.resize(
+                    tensor, self.resize.size, interpolation=self.resize.interpolation, antialias=self.resize.antialias
                 )
             # Data type
-            if x.dtype == torch.uint8:  # type: ignore[union-attr]
-                x = x.to(dtype=torch.float32).div(255).clip(0, 1)  # type: ignore[union-attr]
+            if tensor.dtype == torch.uint8:
+                tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
             else:
-                x = x.to(dtype=torch.float32)  # type: ignore[union-attr]
-            batches = [x]
+                tensor = tensor.to(dtype=torch.float32)
+            batches = [tensor]
 
-        elif isinstance(x, list) and all(isinstance(sample, (np.ndarray, torch.Tensor)) for sample in x):
+        elif isinstance(x, list) and all(isinstance(sample, np.ndarray) for sample in x):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching

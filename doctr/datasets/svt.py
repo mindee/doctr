@@ -1,10 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import defusedxml.ElementTree as ET
 import numpy as np
@@ -28,14 +28,14 @@ class SVT(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
-    URL = "http://vision.ucsd.edu/~kai/svt/svt.zip"
+    URL = "http://www.iapr-tc11.org/dataset/SVT/svt.zip"
     SHA256 = "63b3d55e6b6d1e036e2a844a20c034fe3af3c32e4d914d6e0c4a3cd43df3bebf"
 
     def __init__(
@@ -43,6 +43,7 @@ class SVT(VisionDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -53,8 +54,14 @@ class SVT(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
+
         self.train = train
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         # Load xml data
@@ -66,7 +73,7 @@ class SVT(VisionDataset):
         )
         xml_root = xml_tree.getroot()
 
-        for image in tqdm(iterable=xml_root, desc="Unpacking SVT", total=len(xml_root)):
+        for image in tqdm(iterable=xml_root, desc="Preparing and Loading SVT", total=len(xml_root)):
             name, _, _, _resolution, rectangles = image
 
             # File existence check
@@ -106,8 +113,10 @@ class SVT(VisionDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=os.path.join(tmp_root, name.text), geoms=boxes)
                 for crop, label in zip(crops, labels):
-                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                    if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0 and " " not in label:
                         self.data.append((crop, label))
+            elif detection_task:
+                self.data.append((name.text, boxes))
             else:
                 self.data.append((name.text, dict(boxes=boxes, labels=labels)))
 

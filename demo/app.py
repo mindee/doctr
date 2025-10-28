@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -7,25 +7,13 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
+import torch
+from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
-from doctr.file_utils import is_tf_available
 from doctr.io import DocumentFile
 from doctr.utils.visualization import visualize_page
 
-if is_tf_available():
-    import tensorflow as tf
-    from backend.tensorflow import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
-
-    if any(tf.config.experimental.list_physical_devices("gpu")):
-        forward_device = tf.device("/gpu:0")
-    else:
-        forward_device = tf.device("/cpu:0")
-
-else:
-    import torch
-    from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
-
-    forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 def main(det_archs, reco_archs):
@@ -62,7 +50,7 @@ def main(det_archs, reco_archs):
 
     # Model selection
     st.sidebar.title("Model selection")
-    st.sidebar.markdown("**Backend**: " + ("TensorFlow" if is_tf_available() else "PyTorch"))
+    st.sidebar.markdown("**Backend**: PyTorch")
     det_arch = st.sidebar.selectbox("Text detection model", det_archs)
     reco_arch = st.sidebar.selectbox("Text recognition model", reco_archs)
 
@@ -71,9 +59,14 @@ def main(det_archs, reco_archs):
     # Only straight pages or possible rotation
     st.sidebar.title("Parameters")
     assume_straight_pages = st.sidebar.checkbox("Assume straight pages", value=True)
-    st.sidebar.write("\n")
+    # Disable page orientation detection
+    disable_page_orientation = st.sidebar.checkbox("Disable page orientation detection", value=False)
+    # Disable crop orientation detection
+    disable_crop_orientation = st.sidebar.checkbox("Disable crop orientation detection", value=False)
     # Straighten pages
     straighten_pages = st.sidebar.checkbox("Straighten pages", value=False)
+    # Export as straight boxes
+    export_straight_boxes = st.sidebar.checkbox("Export as straight boxes", value=False)
     st.sidebar.write("\n")
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
@@ -89,7 +82,16 @@ def main(det_archs, reco_archs):
         else:
             with st.spinner("Loading model..."):
                 predictor = load_predictor(
-                    det_arch, reco_arch, assume_straight_pages, straighten_pages, bin_thresh, box_thresh, forward_device
+                    det_arch=det_arch,
+                    reco_arch=reco_arch,
+                    assume_straight_pages=assume_straight_pages,
+                    straighten_pages=straighten_pages,
+                    export_as_straight_boxes=export_straight_boxes,
+                    disable_page_orientation=disable_page_orientation,
+                    disable_crop_orientation=disable_crop_orientation,
+                    bin_thresh=bin_thresh,
+                    box_thresh=box_thresh,
+                    device=forward_device,
                 )
 
             with st.spinner("Analyzing..."):

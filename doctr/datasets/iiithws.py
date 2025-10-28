@@ -1,11 +1,11 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
 from random import sample
-from typing import Any, List, Tuple
+from typing import Any
 
 from tqdm import tqdm
 
@@ -32,7 +32,6 @@ class IIITHWS(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the file with the labels
         train: whether the subset should be the training one
@@ -52,7 +51,7 @@ class IIITHWS(AbstractDataset):
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[str, str]] = []
+        self.data: list[tuple[str, str]] = []
         self.train = train
 
         with open(label_path) as f:
@@ -64,7 +63,7 @@ class IIITHWS(AbstractDataset):
         set_slice = slice(train_samples) if self.train else slice(train_samples, None)
 
         for annotation in tqdm(
-            iterable=annotations[set_slice], desc="Unpacking IIITHWS", total=len(annotations[set_slice])
+            iterable=annotations[set_slice], desc="Preparing and Loading IIITHWS", total=len(annotations[set_slice])
         ):
             img_path, label = annotation.split()[0:2]
             img_path = os.path.join(img_folder, img_path)

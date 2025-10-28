@@ -1,20 +1,23 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Greatly inspired by https://github.com/pytorch/vision/blob/master/torchvision/models/mobilenetv3.py
 
+import types
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from torchvision.models import mobilenetv3
+from torchvision.models.mobilenetv3 import MobileNetV3
 
 from doctr.datasets import VOCABS
 
 from ...utils import load_pretrained_params
 
 __all__ = [
+    "MobileNetV3",
     "mobilenet_v3_small",
     "mobilenet_v3_small_r",
     "mobilenet_v3_large",
@@ -23,7 +26,7 @@ __all__ = [
     "mobilenet_v3_small_page_orientation",
 ]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "mobilenet_v3_large": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -72,8 +75,8 @@ default_cfgs: Dict[str, Dict[str, Any]] = {
 def _mobilenet_v3(
     arch: str,
     pretrained: bool,
-    rect_strides: Optional[List[str]] = None,
-    ignore_keys: Optional[List[str]] = None,
+    rect_strides: list[str] | None = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> mobilenetv3.MobileNetV3:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -97,12 +100,25 @@ def _mobilenet_v3(
                 m = getattr(m, child)
             m.stride = (2, 1)
 
+    # monkeypatch the model to allow for loading pretrained parameters
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:  # noqa: D417
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
+    # Bind method to the instance
+    model.from_pretrained = types.MethodType(from_pretrained, model)
+
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -121,12 +137,10 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -146,12 +160,10 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -175,12 +187,10 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -203,12 +213,10 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -232,12 +240,10 @@ def mobilenet_v3_small_crop_orientation(pretrained: bool = False, **kwargs: Any)
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(
@@ -260,12 +266,10 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained: boolean, True if model is pretrained
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
-    -------
         a torch.nn.Module
     """
     return _mobilenet_v3(

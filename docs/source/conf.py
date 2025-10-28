@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -28,7 +28,7 @@ master_doc = "index"
 project = "docTR"
 _copyright_str = f"-{datetime.now().year}" if datetime.now().year > 2021 else ""
 copyright = f"2021{_copyright_str}, Mindee"
-author = "François-Guillaume Fernandez, Charles Gaillard"
+author = "François-Guillaume Fernandez, Charles Gaillard, Olivier Dulcy, Felix Dittrich"
 
 # The full version, including alpha/beta/rc tags
 version = doctr.__version__

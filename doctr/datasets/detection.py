@@ -1,11 +1,11 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import json
 import os
-from typing import Any, Dict, List, Tuple, Type, Union
+from typing import Any
 
 import numpy as np
 
@@ -26,7 +26,6 @@ class DetectionDataset(AbstractDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations of each image
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
@@ -47,13 +46,13 @@ class DetectionDataset(AbstractDataset):
         )
 
         # File existence check
-        self._class_names: List = []
+        self._class_names: list = []
         if not os.path.exists(label_path):
             raise FileNotFoundError(f"unable to locate {label_path}")
         with open(label_path, "rb") as f:
             labels = json.load(f)
 
-        self.data: List[Tuple[str, Tuple[np.ndarray, List[str]]]] = []
+        self.data: list[tuple[str, tuple[np.ndarray, list[str]]]] = []
         np_dtype = np.float32
         for img_name, label in labels.items():
             # File existence check
@@ -65,18 +64,16 @@ class DetectionDataset(AbstractDataset):
             self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
 
     def format_polygons(
-        self, polygons: Union[List, Dict], use_polygons: bool, np_dtype: Type
-    ) -> Tuple[np.ndarray, List[str]]:
+        self, polygons: list | dict, use_polygons: bool, np_dtype: type
+    ) -> tuple[np.ndarray, list[str]]:
         """Format polygons into an array
 
         Args:
-        ----
             polygons: the bounding boxes
             use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
             np_dtype: dtype of array
 
         Returns:
-        -------
             geoms: bounding boxes as np array
             polygons_classes: list of classes for each bounding box
         """

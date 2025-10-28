@@ -1,11 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Credits: post-processing adapted from https://github.com/xuannianz/DifferentiableBinarization
 
-from typing import Dict, List, Tuple, Union
 
 import cv2
 import numpy as np
@@ -22,7 +21,6 @@ class DBPostProcessor(DetectionPostProcessor):
     <https://github.com/xuannianz/DifferentiableBinarization>`_.
 
     Args:
-    ----
         unclip ratio: ratio used to unshrink polygons
         min_size_box: minimal length (pix) to keep a box
         max_candidates: maximum boxes to consider in a single page
@@ -47,11 +45,9 @@ class DBPostProcessor(DetectionPostProcessor):
         """Expand a polygon (points) by a factor unclip_ratio, and returns a polygon
 
         Args:
-        ----
             points: The first parameter.
 
         Returns:
-        -------
             a box in absolute coordinates (xmin, ymin, xmax, ymax) or (4, 2) array (quadrangle)
         """
         if not self.assume_straight_pages:
@@ -62,9 +58,8 @@ class DBPostProcessor(DetectionPostProcessor):
             area = (rect[1][0] + 1) * (1 + rect[1][1])
             length = 2 * (rect[1][0] + rect[1][1]) + 2
         else:
-            poly = Polygon(points)
-            area = poly.area
-            length = poly.length
+            area = cv2.contourArea(points)
+            length = cv2.arcLength(points, closed=True)
         distance = area * self.unclip_ratio / length  # compute distance to expand polygon
         offset = pyclipper.PyclipperOffset()
         offset.AddPath(points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
@@ -96,25 +91,23 @@ class DBPostProcessor(DetectionPostProcessor):
         """Compute boxes from a bitmap/pred_map: find connected components then filter boxes
 
         Args:
-        ----
             pred: Pred map from differentiable binarization output
             bitmap: Bitmap map computed from pred (binarized)
             angle_tol: Comparison tolerance of the angle with the median angle across the page
             ratio_tol: Under this limit aspect ratio, we cannot resolve the direction of the crop
 
         Returns:
-        -------
             np tensor boxes for the bitmap, each box is a 5-element list
                 containing x, y, w, h, score for the box
         """
         height, width = bitmap.shape[:2]
         min_size_box = 2
-        boxes: List[Union[np.ndarray, List[float]]] = []
+        boxes: list[np.ndarray | list[float]] = []
         # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             # Check whether smallest enclosing bounding box is not too small
-            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):  # type: ignore[index]
+            if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
             # Compute objectness
             if self.assume_straight_pages:
@@ -164,7 +157,6 @@ class _DBNet:
     <https://arxiv.org/pdf/1911.08947.pdf>`_.
 
     Args:
-    ----
         feature extractor: the backbone serving as feature extractor
         fpn_channels: number of channels each extracted feature maps is mapped to
     """
@@ -186,7 +178,6 @@ class _DBNet:
         """Compute the distance for each point of the map (xs, ys) to the (a, b) segment
 
         Args:
-        ----
             xs : map of x coordinates (height, width)
             ys : map of y coordinates (height, width)
             a: first point defining the [ab] segment
@@ -194,7 +185,6 @@ class _DBNet:
             eps: epsilon to avoid division by zero
 
         Returns:
-        -------
             The computed distance
 
         """
@@ -214,11 +204,10 @@ class _DBNet:
         polygon: np.ndarray,
         canvas: np.ndarray,
         mask: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """Draw a polygon treshold map on a canvas, as described in the DB paper
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Draw a polygon threshold map on a canvas, as described in the DB paper
 
         Args:
-        ----
             polygon : array of coord., to draw the boundary of the polygon
             canvas : threshold map to fill with polygons
             mask : mask for training on threshold polygons
@@ -235,7 +224,7 @@ class _DBNet:
         padded_polygon: np.ndarray = np.array(padding.Execute(distance)[0])
 
         # Fill the mask with 1 on the new padded polygon
-        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+        cv2.fillPoly(mask, [padded_polygon.astype(np.int32)], 1.0)
 
         # Get min/max to recover polygon after distance computation
         xmin = padded_polygon[:, 0].min()
@@ -278,10 +267,9 @@ class _DBNet:
 
     def build_target(
         self,
-        target: List[Dict[str, np.ndarray]],
-        output_shape: Tuple[int, int, int],
-        channels_last: bool = True,
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        target: list[dict[str, np.ndarray]],
+        output_shape: tuple[int, int, int],
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if any(t.dtype != np.float32 for tgt in target for t in tgt.values()):
             raise AssertionError("the expected dtype of target 'boxes' entry is 'np.float32'.")
         if any(np.any((t[:, :4] > 1) | (t[:, :4] < 0)) for tgt in target for t in tgt.values()):
@@ -291,10 +279,8 @@ class _DBNet:
 
         h: int
         w: int
-        if channels_last:
-            h, w, num_classes = output_shape
-        else:
-            num_classes, h, w = output_shape
+
+        num_classes, h, w = output_shape
         target_shape = (len(target), num_classes, h, w)
 
         seg_target: np.ndarray = np.zeros(target_shape, dtype=np.uint8)
@@ -354,17 +340,12 @@ class _DBNet:
                     if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
                         seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
                         continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)  # type: ignore[call-overload]
+                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)
 
                     # Draw on both thresh map and thresh mask
                     poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
                         poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
                     )
-        if channels_last:
-            seg_target = seg_target.transpose((0, 2, 3, 1))
-            seg_mask = seg_mask.transpose((0, 2, 3, 1))
-            thresh_target = thresh_target.transpose((0, 2, 3, 1))
-            thresh_mask = thresh_mask.transpose((0, 2, 3, 1))
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
 

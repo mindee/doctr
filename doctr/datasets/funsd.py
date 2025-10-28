@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -6,7 +6,7 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from tqdm import tqdm
@@ -29,10 +29,10 @@ class FUNSD(VisionDataset):
     >>> img, target = train_set[0]
 
     Args:
-    ----
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `VisionDataset`.
     """
 
@@ -45,6 +45,7 @@ class FUNSD(VisionDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -55,16 +56,24 @@ class FUNSD(VisionDataset):
             pre_transforms=convert_target_to_relative if not recognition_task else None,
             **kwargs,
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
+
         self.train = train
         np_dtype = np.float32
 
         # Use the subset
         subfolder = os.path.join("dataset", "training_data" if train else "testing_data")
 
-        # # List images
+        # # list images
         tmp_root = os.path.join(self.root, subfolder, "images")
-        self.data: List[Tuple[Union[str, np.ndarray], Union[str, Dict[str, Any]]]] = []
-        for img_path in tqdm(iterable=os.listdir(tmp_root), desc="Unpacking FUNSD", total=len(os.listdir(tmp_root))):
+        self.data: list[tuple[str | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
+        for img_path in tqdm(
+            iterable=os.listdir(tmp_root), desc="Preparing and Loading FUNSD", total=len(os.listdir(tmp_root))
+        ):
             # File existence check
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
@@ -98,8 +107,10 @@ class FUNSD(VisionDataset):
                 )
                 for crop, label in zip(crops, list(text_targets)):
                     # filter labels with unknown characters
-                    if not any(char in label for char in ["☑", "☐", "\uf703", "\uf702"]):
-                        self.data.append((crop, label))
+                    if not any(char in label for char in ["☑", "☐", "\u03bf", "\uf703", "\uf702", " "]):
+                        self.data.append((crop, label.replace("–", "-")))
+            elif detection_task:
+                self.data.append((img_path, np.asarray(box_targets, dtype=np_dtype)))
             else:
                 self.data.append((
                     img_path,

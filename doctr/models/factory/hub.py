@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -13,6 +13,7 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
+import torch
 from huggingface_hub import (
     HfApi,
     Repository,
@@ -20,20 +21,15 @@ from huggingface_hub import (
     get_token_permission,
     hf_hub_download,
     login,
-    snapshot_download,
 )
 
 from doctr import models
-from doctr.file_utils import is_tf_available, is_torch_available
-
-if is_torch_available():
-    import torch
 
 __all__ = ["login_to_hub", "push_to_hf_hub", "from_hub", "_save_model_and_config_for_hf_hub"]
 
 
 AVAILABLE_ARCHS = {
-    "classification": models.classification.zoo.ARCHS,
+    "classification": models.classification.zoo.ARCHS + models.classification.zoo.ORIENTATION_ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
 }
@@ -62,20 +58,14 @@ def _save_model_and_config_for_hf_hub(model: Any, save_dir: str, arch: str, task
     """Save model and config to disk for pushing to huggingface hub
 
     Args:
-    ----
-        model: TF or PyTorch model to be saved
+        model: PyTorch model to be saved
         save_dir: directory to save model and config
         arch: architecture name
         task: task name
     """
     save_directory = Path(save_dir)
-
-    if is_torch_available():
-        weights_path = save_directory / "pytorch_model.bin"
-        torch.save(model.state_dict(), weights_path)
-    elif is_tf_available():
-        weights_path = save_directory / "tf_model" / "weights"
-        model.save_weights(str(weights_path))
+    weights_path = save_directory / "pytorch_model.bin"
+    torch.save(model.state_dict(), weights_path)
 
     config_path = save_directory / "config.json"
 
@@ -98,8 +88,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
     >>> push_to_hf_hub(model, 'my-model', 'recognition', arch='crnn_mobilenet_v3_small')
 
     Args:
-    ----
-        model: TF or PyTorch model to be saved
+        model: PyTorch model to be saved
         model_name: name of the model which is also the repository name
         task: task name
         **kwargs: keyword arguments for push_to_hf_hub
@@ -115,15 +104,15 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
     # default readme
     readme = textwrap.dedent(
         f"""
-    ---
+
     language: en
-    ---
+
 
     <p align="center">
     <img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
     </p>
 
-    **Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch**
+    **Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
 
     ## Task: {task}
 
@@ -174,7 +163,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     local_cache_dir = os.path.join(os.path.expanduser("~"), ".cache", "huggingface", "hub", model_name)
     repo_url = HfApi().create_repo(model_name, token=get_token(), exist_ok=False)
-    repo = Repository(local_dir=local_cache_dir, clone_from=repo_url, use_auth_token=True)
+    repo = Repository(local_dir=local_cache_dir, clone_from=repo_url)
 
     with repo.commit(commit_message):
         _save_model_and_config_for_hf_hub(model, repo.local_dir, arch=arch, task=task)
@@ -191,12 +180,10 @@ def from_hub(repo_id: str, **kwargs: Any):
     >>> model = from_hub("mindee/fasterrcnn_mobilenet_v3_large_fpn")
 
     Args:
-    ----
         repo_id: HuggingFace model hub repo
         kwargs: kwargs of `hf_hub_download` or `snapshot_download`
 
     Returns:
-    -------
         Model loaded with the checkpoint
     """
     # Get the config
@@ -219,13 +206,8 @@ def from_hub(repo_id: str, **kwargs: Any):
 
     # update model cfg
     model.cfg = cfg
-
-    # Load checkpoint
-    if is_torch_available():
-        state_dict = torch.load(hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs), map_location="cpu")
-        model.load_state_dict(state_dict)
-    else:  # tf
-        repo_path = snapshot_download(repo_id, **kwargs)
-        model.load_weights(os.path.join(repo_path, "tf_model", "weights"))
+    # load the weights
+    weights = hf_hub_download(repo_id, filename="pytorch_model.bin", **kwargs)
+    model.from_pretrained(weights)
 
     return model

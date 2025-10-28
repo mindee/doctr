@@ -14,6 +14,11 @@ Easy-to-use functions to make sense of your model's predictions.
 
 .. autofunction:: visualize_page
 
+Reconstitution
+---------------
+
+.. currentmodule:: doctr.utils.reconstitution
+
 .. autofunction:: synthesize_page
 
 

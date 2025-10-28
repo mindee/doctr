@@ -1,11 +1,12 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Callable
 from copy import deepcopy
 from itertools import groupby
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 import torch
 from torch import nn
@@ -15,18 +16,18 @@ from doctr.models.classification.effnet.pytorch import efficientnetv2_m
 from doctr.datasets import VOCABS, decode_sequence
 
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
-from ...utils.pytorch import load_pretrained_params
+from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large", "crnn_efficientnetv2_mV2"]
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "crnn_vgg16_bn": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
         "input_shape": (3, 32, 128),
-        "vocab": VOCABS["legacy_french"],
-        "url": "https://doctr-static.mindee.com/models?id=v0.3.1/crnn_vgg16_bn-9762b0b0.pt&src=0",
+        "vocab": VOCABS["french"],
+        "url": "https://doctr-static.mindee.com/models?id=v0.12.0/crnn_vgg16_bn-0417f351.pt&src=0",
     },
     "crnn_mobilenet_v3_small": {
         "mean": (0.694, 0.695, 0.693),
@@ -56,7 +57,6 @@ class CTCPostProcessor(RecognitionPostProcessor):
     """Postprocess raw prediction of the model (logits) to a list of words using CTC decoding
 
     Args:
-    ----
         vocab: string containing the ordered sequence of supported characters
     """
 
@@ -65,18 +65,16 @@ class CTCPostProcessor(RecognitionPostProcessor):
         logits: torch.Tensor,
         vocab: str = VOCABS["french"],
         blank: int = 0,
-    ) -> List[Tuple[str, float]]:
+    ) -> list[tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
 
         Args:
-        ----
             logits: model output, shape: N x T x C
             vocab: vocabulary to use
             blank: index of blank label
 
         Returns:
-        -------
             A list of tuples: (word, confidence)
         """
         # Gather the most confident characters, and assign the smallest conf among those to the sequence prob
@@ -90,16 +88,14 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         return list(zip(words, probs.tolist()))
 
-    def __call__(self, logits: torch.Tensor) -> List[Tuple[str, float]]:
+    def __call__(self, logits: torch.Tensor) -> list[tuple[str, float]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions
-        with label_to_idx mapping dictionnary
+        with label_to_idx mapping dictionary
 
         Args:
-        ----
             logits: raw output of the model, shape (N, C + 1, seq_len)
 
         Returns:
-        -------
             A tuple of 2 lists: a list of str (words) and a list of float (probs)
 
         """
@@ -112,7 +108,6 @@ class CRNN(RecognitionModel, nn.Module):
     Sequence Recognition and Its Application to Scene Text Recognition" <https://arxiv.org/pdf/1507.05717.pdf>`_.
 
     Args:
-    ----
         feature_extractor: the backbone serving as feature extractor
         vocab: vocabulary used for encoding
         rnn_units: number of units in the LSTM layers
@@ -120,16 +115,16 @@ class CRNN(RecognitionModel, nn.Module):
         cfg: configuration dictionary
     """
 
-    _children_names: List[str] = ["feat_extractor", "decoder", "linear", "postprocessor"]
+    _children_names: list[str] = ["feat_extractor", "decoder", "linear", "postprocessor"]
 
     def __init__(
         self,
         feature_extractor: nn.Module,
         vocab: str,
         rnn_units: int = 128,
-        input_shape: Tuple[int, int, int] = (3, 32, 128),
+        input_shape: tuple[int, int, int] = (3, 32, 128),
         exportable: bool = False,
-        cfg: Optional[Dict[str, Any]] = None,
+        cfg: dict[str, Any] | None = None,
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -168,20 +163,27 @@ class CRNN(RecognitionModel, nn.Module):
                 m.weight.data.fill_(1.0)
                 m.bias.data.zero_()
 
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
     def compute_loss(
         self,
         model_output: torch.Tensor,
-        target: List[str],
+        target: list[str],
     ) -> torch.Tensor:
         """Compute CTC loss for the model.
 
         Args:
-        ----
             model_output: predicted logits of the model
             target: list of target strings
 
         Returns:
-        -------
             The loss of the model on the batch
         """
         gt, seq_len = self.build_target(target)
@@ -204,10 +206,10 @@ class CRNN(RecognitionModel, nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: Optional[List[str]] = None,
+        target: list[str] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if self.training and target is None:
             raise ValueError("Need to provide labels during training")
 
@@ -219,7 +221,7 @@ class CRNN(RecognitionModel, nn.Module):
         logits, _ = self.decoder(features_seq)
         logits = self.linear(logits)
 
-        out: Dict[str, Any] = {}
+        out: dict[str, Any] = {}
         if self.exportable:
             out["logits"] = logits
             return out
@@ -228,8 +230,13 @@ class CRNN(RecognitionModel, nn.Module):
             out["out_map"] = logits
 
         if target is None or return_preds:
+            # Disable for torch.compile compatibility
+            @torch.compiler.disable
+            def _postprocess(logits: torch.Tensor) -> list[tuple[str, float]]:
+                return self.postprocessor(logits)
+
             # Post-process boxes
-            out["preds"] = self.postprocessor(logits)
+            out["preds"] = _postprocess(logits)
 
         if target is not None:
             out["loss"] = self.compute_loss(logits, target)
@@ -242,7 +249,7 @@ def _crnn(
     pretrained: bool,
     backbone_fn: Callable[[Any], nn.Module],
     pretrained_backbone: bool = True,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> CRNN:
     pretrained_backbone = pretrained_backbone and not pretrained
@@ -258,13 +265,13 @@ def _crnn(
     _cfg["input_shape"] = kwargs["input_shape"]
 
     # Build the model
-    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)
+    model = CRNN(feat_extractor, cfg=_cfg, **kwargs)  # type: ignore[arg-type]
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if _cfg["vocab"] != default_cfgs[arch]["vocab"] else None
-        load_pretrained_params(model, _cfg["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(_cfg["url"], ignore_keys=_ignore_keys)
 
     return model
 
@@ -280,12 +287,10 @@ def crnn_vgg16_bn(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
         **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
-    -------
         text recognition architecture
     """
     return _crnn("crnn_vgg16_bn", pretrained, vgg16_bn_r, ignore_keys=["linear.weight", "linear.bias"], **kwargs)
@@ -302,12 +307,10 @@ def crnn_mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
         **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
-    -------
         text recognition architecture
     """
     return _crnn(
@@ -330,12 +333,10 @@ def crnn_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> CRNN:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
         **kwargs: keyword arguments of the CRNN architecture
 
     Returns:
-    -------
         text recognition architecture
     """
     return _crnn(

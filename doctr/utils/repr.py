@@ -1,11 +1,10 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 # Adapted from https://github.com/pytorch/torch/blob/master/torch/nn/modules/module.py
 
-from typing import List
 
 __all__ = ["NestedObject"]
 
@@ -25,7 +24,7 @@ def _addindent(s_, num_spaces):
 class NestedObject:
     """Base class for all nested objects in doctr"""
 
-    _children_names: List[str]
+    _children_names: list[str]
 
     def extra_repr(self) -> str:
         return ""

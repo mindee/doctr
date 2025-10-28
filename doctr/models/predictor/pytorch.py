@@ -1,9 +1,9 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, List, Union
+from typing import Any
 
 import numpy as np
 import torch
@@ -24,7 +24,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-    ----
         det_predictor: detection module
         reco_predictor: recognition module
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
@@ -52,8 +51,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
-        self.det_predictor = det_predictor.eval()  # type: ignore[attr-defined]
-        self.reco_predictor = reco_predictor.eval()  # type: ignore[attr-defined]
+        self.det_predictor = det_predictor.eval()
+        self.reco_predictor = reco_predictor.eval()
         _OCRPredictor.__init__(
             self,
             assume_straight_pages,
@@ -69,14 +68,14 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     @torch.inference_mode()
     def forward(
         self,
-        pages: List[Union[np.ndarray, torch.Tensor]],
+        pages: list[np.ndarray],
         **kwargs: Any,
     ) -> Document:
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
 
-        origin_page_shapes = [page.shape[:2] if isinstance(page, np.ndarray) else page.shape[-2:] for page in pages]
+        origin_page_shapes = [page.shape[:2] for page in pages]
 
         # Localize text elements
         loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
@@ -87,7 +86,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             for out_map in out_maps
         ]
         if self.detect_orientation:
-            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)  # type: ignore[arg-type]
+            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
             orientations = [
                 {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
             ]
@@ -96,19 +95,20 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             general_pages_orientations = None
             origin_pages_orientations = None
         if self.straighten_pages:
-            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)  # type: ignore
+            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
+            # update page shapes after straightening
+            origin_page_shapes = [page.shape[:2] for page in pages]
+
             # Forward again to get predictions on straight pages
             loc_preds = self.det_predictor(pages, **kwargs)
 
-        assert all(
-            len(loc_pred) == 1 for loc_pred in loc_preds
-        ), "Detection Model in ocr_predictor should output only one class"
+        assert all(len(loc_pred) == 1 for loc_pred in loc_preds), (
+            "Detection Model in ocr_predictor should output only one class"
+        )
 
         loc_preds = [list(loc_pred.values())[0] for loc_pred in loc_preds]
         # Detach objectness scores from loc_preds
         loc_preds, objectness_scores = detach_scores(loc_preds)
-        # Check whether crop mode should be switched to channels first
-        channels_last = len(pages) == 0 or isinstance(pages[0], np.ndarray)
 
         # Apply hooks to loc_preds if any
         for hook in self.hooks:
@@ -116,10 +116,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
         # Crop images
         crops, loc_preds = self._prepare_crops(
-            pages,  # type: ignore[arg-type]
+            pages,
             loc_preds,
-            channels_last=channels_last,
             assume_straight_pages=self.assume_straight_pages,
+            assume_horizontal=self._page_orientation_disabled,
         )
         # Rectify crop orientation and get crop orientation predictions
         crop_orientations: Any = []
@@ -143,11 +143,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             languages_dict = None
 
         out = self.doc_builder(
-            pages,  # type: ignore[arg-type]
+            pages,
             boxes,
             objectness_scores,
             text_preds,
-            origin_page_shapes,  # type: ignore[arg-type]
+            origin_page_shapes,
             crop_orientations,
             orientations,
             languages_dict,

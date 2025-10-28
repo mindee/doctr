@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -7,7 +7,7 @@ import glob
 import json
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import cv2
 import numpy as np
@@ -40,12 +40,12 @@ class IMGUR5K(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_path: path to the annotations file of the dataset
         train: whether the subset should be the training one
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -56,17 +56,23 @@ class IMGUR5K(AbstractDataset):
         train: bool = True,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
 
         # File existence check
         if not os.path.exists(label_path) or not os.path.exists(img_folder):
             raise FileNotFoundError(f"unable to locate {label_path if not os.path.exists(label_path) else img_folder}")
 
-        self.data: List[Tuple[Union[str, Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: list[tuple[str | Path | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         self.train = train
         np_dtype = np.float32
 
@@ -89,7 +95,9 @@ class IMGUR5K(AbstractDataset):
         with open(label_path) as f:
             annotation_file = json.load(f)
 
-        for img_name in tqdm(iterable=img_names[set_slice], desc="Unpacking IMGUR5K", total=len(img_names[set_slice])):
+        for img_name in tqdm(
+            iterable=img_names[set_slice], desc="Preparing and Loading IMGUR5K", total=len(img_names[set_slice])
+        ):
             img_path = Path(img_folder, img_name)
             img_id = img_name.split(".")[0]
 
@@ -125,13 +133,21 @@ class IMGUR5K(AbstractDataset):
                         img_path=os.path.join(self.root, img_name), geoms=np.asarray(box_targets, dtype=np_dtype)
                     )
                     for crop, label in zip(crops, labels):
-                        if crop.shape[0] > 0 and crop.shape[1] > 0 and len(label) > 0:
+                        if (
+                            crop.shape[0] > 0
+                            and crop.shape[1] > 0
+                            and len(label) > 0
+                            and len(label) < 30
+                            and " " not in label
+                        ):
                             # write data to disk
                             with open(os.path.join(reco_folder_path, f"{reco_images_counter}.txt"), "w") as f:
                                 f.write(label)
                                 tmp_img = Image.fromarray(crop)
                                 tmp_img.save(os.path.join(reco_folder_path, f"{reco_images_counter}.png"))
                                 reco_images_counter += 1
+                elif detection_task:
+                    self.data.append((img_path, np.asarray(box_targets, dtype=np_dtype)))
                 else:
                     self.data.append((img_path, dict(boxes=np.asarray(box_targets, dtype=np_dtype), labels=labels)))
 
@@ -142,6 +158,7 @@ class IMGUR5K(AbstractDataset):
         return f"train={self.train}"
 
     def _read_from_folder(self, path: str) -> None:
-        for img_path in glob.glob(os.path.join(path, "*.png")):
+        img_paths = glob.glob(os.path.join(path, "*.png"))
+        for img_path in tqdm(iterable=img_paths, desc="Preparing and Loading IMGUR5K", total=len(img_paths)):
             with open(os.path.join(path, f"{os.path.basename(img_path)[:-4]}.txt"), "r") as f:
                 self.data.append((img_path, f.read()))

@@ -142,6 +142,17 @@ def test_rotate_image():
     assert rotated[0, :, 0].sum() <= 1
 
 
+def test_remove_image_padding():
+    img = np.ones((32, 64, 3), dtype=np.float32)
+    padded = np.pad(img, ((10, 10), (20, 20), (0, 0)))
+    cropped = geometry.remove_image_padding(padded)
+    assert np.all(cropped == img)
+
+    # No padding
+    cropped = geometry.remove_image_padding(img)
+    assert np.all(cropped == img)
+
+
 @pytest.mark.parametrize(
     "abs_geoms, img_size, rel_geoms",
     [
@@ -218,23 +229,14 @@ def test_extract_crops(mock_pdf):
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # Identity
-    assert np.all(
-        doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=True)[0]
-    )
-    torch_img = np.transpose(doc_img, axes=(-1, 0, 1))
-    assert np.all(
-        torch_img
-        == np.transpose(
-            geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32), channels_last=False)[0],
-            axes=(-1, 0, 1),
-        )
-    )
+    assert np.all(doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32))[0])
 
     # No box
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
 
 
-def test_extract_rcrops(mock_pdf):
+@pytest.mark.parametrize("assume_horizontal", [True, False])
+def test_extract_rcrops(mock_pdf, assume_horizontal):
     doc_img = DocumentFile.from_pdf(mock_pdf)[0]
     num_crops = 2
     rel_boxes = np.array(
@@ -255,9 +257,9 @@ def test_extract_rcrops(mock_pdf):
     abs_boxes = abs_boxes.astype(np.int64)
 
     with pytest.raises(AssertionError):
-        geometry.extract_rcrops(doc_img, np.zeros((1, 8)))
+        geometry.extract_rcrops(doc_img, np.zeros((1, 8)), assume_horizontal=assume_horizontal)
     for boxes in (rel_boxes, abs_boxes):
-        croped_imgs = geometry.extract_rcrops(doc_img, boxes)
+        croped_imgs = geometry.extract_rcrops(doc_img, boxes, assume_horizontal=assume_horizontal)
         # Number of crops
         assert len(croped_imgs) == num_crops
         # Data type and shape
@@ -265,4 +267,4 @@ def test_extract_rcrops(mock_pdf):
         assert all(crop.ndim == 3 for crop in croped_imgs)
 
     # No box
-    assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2))) == []
+    assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2)), assume_horizontal=assume_horizontal) == []

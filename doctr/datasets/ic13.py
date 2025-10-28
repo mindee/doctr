@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -6,7 +6,7 @@
 import csv
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any
 
 import numpy as np
 from tqdm import tqdm
@@ -33,11 +33,11 @@ class IC13(AbstractDataset):
     >>> img, target = test_set[0]
 
     Args:
-    ----
         img_folder: folder with all the images of the dataset
         label_folder: folder with all annotation files for the images
         use_polygons: whether polygons should be considered as rotated bounding box (instead of straight ones)
         recognition_task: whether the dataset should be used for recognition task
+        detection_task: whether the dataset should be used for detection task
         **kwargs: keyword arguments from `AbstractDataset`.
     """
 
@@ -47,11 +47,17 @@ class IC13(AbstractDataset):
         label_folder: str,
         use_polygons: bool = False,
         recognition_task: bool = False,
+        detection_task: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
             img_folder, pre_transforms=convert_target_to_relative if not recognition_task else None, **kwargs
         )
+        if recognition_task and detection_task:
+            raise ValueError(
+                "`recognition_task` and `detection_task` cannot be set to True simultaneously. "
+                + "To get the whole dataset with boxes and labels leave both parameters to False."
+            )
 
         # File existence check
         if not os.path.exists(label_folder) or not os.path.exists(img_folder):
@@ -59,12 +65,12 @@ class IC13(AbstractDataset):
                 f"unable to locate {label_folder if not os.path.exists(label_folder) else img_folder}"
             )
 
-        self.data: List[Tuple[Union[Path, np.ndarray], Union[str, Dict[str, Any]]]] = []
+        self.data: list[tuple[Path | np.ndarray, str | dict[str, Any] | np.ndarray]] = []
         np_dtype = np.float32
 
         img_names = os.listdir(img_folder)
 
-        for img_name in tqdm(iterable=img_names, desc="Unpacking IC13", total=len(img_names)):
+        for img_name in tqdm(iterable=img_names, desc="Preparing and Loading IC13", total=len(img_names)):
             img_path = Path(img_folder, img_name)
             label_path = Path(label_folder, "gt_" + Path(img_name).stem + ".txt")
 
@@ -94,6 +100,9 @@ class IC13(AbstractDataset):
             if recognition_task:
                 crops = crop_bboxes_from_image(img_path=img_path, geoms=box_targets)
                 for crop, label in zip(crops, labels):
-                    self.data.append((crop, label))
+                    if " " not in label:
+                        self.data.append((crop, label))
+            elif detection_task:
+                self.data.append((img_path, box_targets))
             else:
                 self.data.append((img_path, dict(boxes=box_targets, labels=labels)))

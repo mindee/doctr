@@ -1,10 +1,11 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import types
 from copy import deepcopy
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from torch import nn
 from torchvision.models import vgg as tv_vgg
@@ -16,7 +17,7 @@ from ...utils import load_pretrained_params
 __all__ = ["vgg16_bn_r"]
 
 
-default_cfgs: Dict[str, Dict[str, Any]] = {
+default_cfgs: dict[str, dict[str, Any]] = {
     "vgg16_bn_r": {
         "mean": (0.694, 0.695, 0.693),
         "std": (0.299, 0.296, 0.301),
@@ -32,7 +33,7 @@ def _vgg(
     pretrained: bool,
     tv_arch: str,
     num_rect_pools: int = 3,
-    ignore_keys: Optional[List[str]] = None,
+    ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> tv_vgg.VGG:
     kwargs["num_classes"] = kwargs.get("num_classes", len(default_cfgs[arch]["classes"]))
@@ -45,7 +46,7 @@ def _vgg(
 
     # Build the model
     model = tv_vgg.__dict__[tv_arch](**kwargs, weights=None)
-    # List the MaxPool2d
+    # list the MaxPool2d
     pool_idcs = [idx for idx, m in enumerate(model.features) if isinstance(m, nn.MaxPool2d)]
     # Replace their kernel with rectangular ones
     for idx in pool_idcs[-num_rect_pools:]:
@@ -53,12 +54,26 @@ def _vgg(
     # Patch average pool & classification head
     model.avgpool = nn.AdaptiveAvgPool2d((1, 1))
     model.classifier = nn.Linear(512, kwargs["num_classes"])
+
+    # monkeypatch the model to allow for loading pretrained parameters
+    def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:  # noqa: D417
+        """Load pretrained parameters onto the model
+
+        Args:
+            path_or_url: the path or URL to the model parameters (checkpoint)
+            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
+        """
+        load_pretrained_params(self, path_or_url, **kwargs)
+
+    # Bind method to the instance
+    model.from_pretrained = types.MethodType(from_pretrained, model)
+
     # Load pretrained parameters
     if pretrained:
         # The number of classes is not the same as the number of classes in the pretrained model =>
         # remove the last layer weights
         _ignore_keys = ignore_keys if kwargs["num_classes"] != len(default_cfgs[arch]["classes"]) else None
-        load_pretrained_params(model, default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
+        model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     model.cfg = _cfg
 
@@ -77,12 +92,10 @@ def vgg16_bn_r(pretrained: bool = False, **kwargs: Any) -> tv_vgg.VGG:
     >>> out = model(input_tensor)
 
     Args:
-    ----
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         **kwargs: keyword arguments of the VGG architecture
 
     Returns:
-    -------
         VGG feature extractor
     """
     return _vgg(

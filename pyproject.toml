@@ -13,9 +13,9 @@ maintainers = [
     {name = "Felix Dittrich"},
 ]
 readme = "README.md"
-requires-python = ">=3.9.0,<4"
+requires-python = ">=3.10.0,<4"
 license = {file = "LICENSE"}
-keywords=["OCR", "deep learning", "computer vision", "tensorflow", "pytorch", "text detection", "text recognition"]
+keywords=["OCR", "deep learning", "computer vision", "pytorch", "text detection", "text recognition"]
 classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -25,16 +25,19 @@ classifiers=[
         "Natural Language :: English",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 dynamic = ["version"]
 dependencies = [
+    "torch>=2.0.0,<3.0.0",
+    "torchvision>=0.15.0",
+    "onnx>=1.12.0,<3.0.0",
     # For proper typing, mypy needs numpy>=1.20.0 (cf. https://github.com/numpy/numpy/pull/16515)
     # Additional typing support is brought by numpy>=1.22.4, but core build sticks to >=1.16.0
-    "numpy>=1.16.0,<2.0.0",
+    "numpy>=1.16.0,<3.0.0",
     "scipy>=1.4.0,<2.0.0",
     "h5py>=3.1.0,<4.0.0",
     "opencv-python>=4.5.0,<5.0.0",
@@ -47,21 +50,11 @@ dependencies = [
     "Pillow>=9.2.0",
     "defusedxml>=0.7.0",
     "anyascii>=0.3.2",
+    "validators>=0.18.0",
     "tqdm>=4.30.0",
 ]
 
 [project.optional-dependencies]
-tf = [
-    # cf. https://github.com/mindee/doctr/pull/1182
-    # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.11.0,<2.16.0",
-    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
-]
-torch = [
-    "torch>=1.12.0,<3.0.0",
-    "torchvision>=0.13.0",
-    "onnx>=1.12.0,<3.0.0",
-]
 html = [
     "weasyprint>=55.0",
 ]
@@ -75,7 +68,6 @@ contrib = [
 testing = [
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
-    "hdf5storage>=0.1.18",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     "psutil>=5.9.5"
@@ -89,21 +81,16 @@ docs = [
     "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
-    "docutils<0.22",
+    "docutils<0.23",
     "recommonmark>=0.7.1",
     "sphinx-markdown-tables>=0.0.15",
     "sphinx-tabs>=3.3.0",
     "furo>=2022.3.4",
 ]
 dev = [
-    # Tensorflow
-    # cf. https://github.com/mindee/doctr/pull/1182
-    # cf. https://github.com/mindee/doctr/pull/1461
-    "tensorflow>=2.11.0,<2.16.0",
-    "tf2onnx>=1.16.0,<2.0.0",  # cf. https://github.com/onnx/tensorflow-onnx/releases/tag/v1.16.0
     # PyTorch
-    "torch>=1.12.0,<3.0.0",
-    "torchvision>=0.13.0",
+    "torch>=2.0.0,<3.0.0",
+    "torchvision>=0.15.0",
     "onnx>=1.12.0,<3.0.0",
     # Extras
     "weasyprint>=55.0",
@@ -112,7 +99,6 @@ dev = [
     # Testing
     "pytest>=5.3.2",
     "coverage[toml]>=4.5.4",
-    "hdf5storage>=0.1.18",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     "psutil>=5.9.5",
@@ -124,7 +110,7 @@ dev = [
     "sphinx>=3.0.0,!=3.5.0",
     "sphinxemoji>=0.1.8",
     "sphinx-copybutton>=0.3.1",
-    "docutils<0.22",
+    "docutils<0.23",
     "recommonmark>=0.7.1",
     "sphinx-markdown-tables>=0.0.15",
     "sphinx-tabs>=3.3.0",
@@ -159,7 +145,6 @@ implicit_reexport = false
 [[tool.mypy.overrides]]
 module = [
 	"anyascii.*",
-	"tensorflow.*",
 	"torchvision.*",
     "onnxruntime.*",
 	"PIL.*",
@@ -170,7 +155,6 @@ module = [
 	"matplotlib.*",
 	"pyclipper.*",
 	"shapely.*",
-	"tf2onnx.*",
 	"mplcursors.*",
 	"defusedxml.*",
 	"weasyprint.*",
@@ -184,7 +168,7 @@ ignore_missing_imports = true
 [tool.ruff]
 exclude = [".git", "venv*", "build", "**/__init__.py"]
 line-length = 120
-target-version = "py39"
+target-version = "py310"
 preview=true
 
 [tool.ruff.lint]
@@ -193,11 +177,11 @@ select = [
     "E", "W", "F", "I", "N", "Q", "C4", "T10", "LOG",
     "D101", "D103", "D201","D202","D207","D208","D214","D215","D300","D301","D417", "D419", "D207"  # pydocstyle
 ]
-ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408"]
+ignore = ["E402", "E203", "F403", "E731", "N812", "N817", "C408", "LOG015"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["doctr", "app", "utils"]
-known-third-party = ["tensorflow", "torch", "torchvision", "wandb", "tqdm", "fastapi", "onnxruntime", "cv2"]
+known-third-party = ["torch", "torchvision", "wandb", "tqdm", "fastapi", "onnxruntime", "cv2"]
 
 [tool.ruff.lint.per-file-ignores]
 "doctr/models/**.py" = ["N806", "F841"]

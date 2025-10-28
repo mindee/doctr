@@ -12,37 +12,18 @@ Loading from Huggingface Hub
 
 This section shows how you can easily load a pretrained model from the Huggingface Hub.
 
-.. tabs::
+.. code:: python3
 
-    .. tab:: TensorFlow
-
-        .. code:: python3
-
-            from doctr.io import DocumentFile
-            from doctr.models import ocr_predictor, from_hub
-            image = DocumentFile.from_images(['data/example.jpg'])
-            # Load a custom detection model from huggingface hub
-            det_model = from_hub('Felix92/doctr-tf-db-resnet50')
-            # Load a custom recognition model from huggingface hub
-            reco_model = from_hub('Felix92/doctr-tf-crnn-vgg16-bn-french')
-            # You can easily plug in this models to the OCR predictor
-            predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
-            result = predictor(image)
-
-    .. tab:: PyTorch
-
-        .. code:: python3
-
-            from doctr.io import DocumentFile
-            from doctr.models import ocr_predictor, from_hub
-            image = DocumentFile.from_images(['data/example.jpg'])
-            # Load a custom detection model from huggingface hub
-            det_model = from_hub('Felix92/doctr-torch-db-mobilenet-v3-large')
-            # Load a custom recognition model from huggingface hub
-            reco_model = from_hub('Felix92/doctr-torch-crnn-mobilenet-v3-large-french')
-            # You can easily plug in this models to the OCR predictor
-            predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
-            result = predictor(image)
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor, from_hub
+    image = DocumentFile.from_images(['data/example.jpg'])
+    # Load a custom detection model from huggingface hub
+    det_model = from_hub('Felix92/doctr-torch-db-mobilenet-v3-large')
+    # Load a custom recognition model from huggingface hub
+    reco_model = from_hub('Felix92/doctr-torch-crnn-mobilenet-v3-large-french')
+    # You can easily plug in this models to the OCR predictor
+    predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
+    result = predictor(image)
 
 
 Pushing to the Huggingface Hub
@@ -65,19 +46,9 @@ existing repositories will not be overwritten) and the model name itself.
 
 It is also possible to push your model directly after training.
 
-.. tabs::
+.. code:: bash
 
-    .. tab:: TensorFlow
-
-        .. code:: bash
-
-            python3 ~/doctr/references/recognition/train_tensorflow.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
-
-    .. tab:: PyTorch
-
-        .. code:: bash
-
-            python3 ~/doctr/references/recognition/train_pytorch.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
+    python3 ~/doctr/references/recognition/train.py crnn_mobilenet_v3_large --name doctr-crnn-mobilenet-v3-large --push-to-hub
 
 
 Pretrained community models
@@ -101,13 +72,11 @@ We suggest using the following naming conventions for your models:
 Classification
 --------------
 
-+---------------------------------+-------------------------------------+-----------------------+------------------------+
-|        **Architecture**         |            **Repo_ID**              |     **Vocabulary**    |     **Framework**      |
-+=================================+=====================================+=======================+========================+
-| resnet18 (dummy)                | Felix92/doctr-dummy-torch-resnet18  | french                | PyTorch                |
-+---------------------------------+-------------------------------------+-----------------------+------------------------+
-| resnet18 (dummy)                | Felix92/doctr-dummy-tf-resnet18     | french                | TensorFlow             |
-+---------------------------------+-------------------------------------+-----------------------+------------------------+
++---------------------------------+-------------------------------------+-----------------------+
+|        **Architecture**         |            **Repo_ID**              |     **Vocabulary**    |
++=================================+=====================================+=======================+
+| resnet18 (dummy)                | Felix92/doctr-dummy-torch-resnet18  | french                |
++---------------------------------+-------------------------------------+-----------------------+
 
 
 Detection
@@ -116,9 +85,7 @@ Detection
 +---------------------------------+-------------------------------------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**                          |     **Framework**      |
 +=================================+=================================================+========================+
-| db_mobilenet_v3_large (dummy)   | Felix92/doctr-torch-db-mobilenet-v3-large       | PyTorch                |
-+---------------------------------+-------------------------------------------------+------------------------+
-| db_resnet50 (dummy)             | Felix92/doctr-tf-db-resnet50                    | TensorFlow             |
+| db_resnet50                     | rania-sr/doctr-Detection-model-v1-arabic        | PyTorch                |
 +---------------------------------+-------------------------------------------------+------------------------+
 
 
@@ -128,11 +95,9 @@ Recognition
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+
 |        **Architecture**         |            **Repo_ID**                            |     **Language**    |     **Framework**      |
 +=================================+===================================================+=====================+========================+
-| crnn_mobilenet_v3_large (dummy) | Felix92/doctr-torch-crnn-mobilenet-v3-large       | french              | PyTorch                |
-+---------------------------------+---------------------------------------------------+---------------------+------------------------+
-| crnn_vgg16_bn (dummy)           | Felix92/doctr-tf-crnn-vgg16-bn-french             | french              | TensorFlow             |
-+---------------------------------+---------------------------------------------------+---------------------+------------------------+
 | crnn_vgg16_bn                   | tilman-rassy/doctr-crnn-vgg16-bn-fascan-v1        | french + german + § | PyTorch                |
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+
 | parseq                          | Felix92/doctr-torch-parseq-multilingual-v1        | multilingual        | PyTorch                |
++---------------------------------+---------------------------------------------------+---------------------+------------------------+
+| parseq                          | rania-sr/doctr-model-v1-arabic                    | arabic              | PyTorch                |
 +---------------------------------+---------------------------------------------------+---------------------+------------------------+

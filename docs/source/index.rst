@@ -2,7 +2,7 @@
 docTR: Document Text Recognition
 ********************************
 
-State-of-the-art Optical Character Recognition made seamless & accessible to anyone, powered by TensorFlow 2 & PyTorch
+State-of-the-art Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch
 
 .. image:: https://github.com/mindee/doctr/releases/download/v0.2.0/ocr.png
         :align: center
@@ -51,6 +51,7 @@ Text recognition models
 * MASTER from `"MASTER: Multi-Aspect Non-local Network for Scene Text Recognition" <https://arxiv.org/pdf/1910.02562.pdf>`_
 * ViTSTR from `"Vision Transformer for Fast and Efficient Scene Text Recognition" <https://arxiv.org/pdf/2105.08582.pdf>`_
 * PARSeq from `"Scene Text Recognition with Permuted Autoregressive Sequence Models" <https://arxiv.org/pdf/2207.06966>`_
+* VIPTR from `"A Vision Permutable Extractor for Fast and Efficient Scene Text Recognition" <https://arxiv.org/abs/2401.10110>`_
 
 
 Supported datasets
@@ -68,7 +69,7 @@ Supported datasets
 * MJSynth from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition" <https://www.robots.ox.ac.uk/~vgg/data/text/>`_.
 * IIITHWS from `"Generating Synthetic Data for Text Recognition" <https://github.com/kris314/hwnet>`_.
 * WILDRECEIPT from `"Spatial Dual-Modality Graph Reasoning for Key Information Extraction" <https://arxiv.org/pdf/2103.14470v1.pdf>`_.
-
+* COCO-Text dataset from `"COCO-Text: Dataset and Benchmark for Text Detection and Recognition in Natural Images" <https://arxiv.org/pdf/1601.07140v2>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -82,6 +83,15 @@ Supported datasets
    using_doctr/using_model_export
    using_doctr/custom_models_training
    using_doctr/running_on_aws
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Community
+   :hidden:
+
+   community/resources
+   community/tools
 
 
 .. toctree::

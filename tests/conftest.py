@@ -4,7 +4,6 @@ import tempfile
 from io import BytesIO
 
 import cv2
-import hdf5storage
 import numpy as np
 import pytest
 import requests
@@ -257,24 +256,34 @@ def mock_imgur5k(tmpdir_factory, mock_image_stream):
 def mock_svhn_dataset(tmpdir_factory, mock_image_stream):
     root = tmpdir_factory.mktemp("datasets")
     svhn_root = root.mkdir("svhn")
-    file = BytesIO(mock_image_stream)
-    # ascii image names
-    first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
-    second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
-    third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 3.png
-    # labels: label is also ascii
-    label = {
-        "height": [35, 35, 35, 35],
-        "label": [1, 1, 3, 7],
-        "left": [116, 128, 137, 151],
-        "top": [27, 29, 29, 26],
-        "width": [15, 10, 17, 17],
-    }
-
-    matcontent = {"digitStruct": {"name": [first, second, third], "bbox": [label, label, label]}}
-    # Mock train data
     train_root = svhn_root.mkdir("train")
-    hdf5storage.write(matcontent, filename=train_root.join("digitStruct.mat"))
+    file = BytesIO(mock_image_stream)
+
+    # NOTE: hdf5storage seems not to be maintained anymore, ref.: https://github.com/frejanordsiek/hdf5storage/pull/134
+    # Instead we download the mocked data which was generated using the following code:
+    # ascii image names
+    # first = np.array([[49], [46], [112], [110], [103]], dtype=np.int16)  # 1.png
+    # second = np.array([[50], [46], [112], [110], [103]], dtype=np.int16)  # 2.png
+    # third = np.array([[51], [46], [112], [110], [103]], dtype=np.int16)  # 3.png
+    # labels: label is also ascii
+    # label = {
+    #     "height": [35, 35, 35, 35],
+    #     "label": [1, 1, 3, 7],
+    #     "left": [116, 128, 137, 151],
+    #     "top": [27, 29, 29, 26],
+    #     "width": [15, 10, 17, 17],
+    # }
+
+    # matcontent = {"digitStruct": {"name": [first, second, third], "bbox": [label, label, label]}}
+    # Mock train data
+    # hdf5storage.write(matcontent, filename=train_root.join("digitStruct.mat"))
+
+    # Downloading the mocked data
+    url = "https://github.com/mindee/doctr/releases/download/v0.9.0/digitStruct.mat"
+    response = requests.get(url)
+    with open(train_root.join("digitStruct.mat"), "wb") as f:
+        f.write(response.content)
+
     for i in range(3):
         fn = train_root.join(f"{i + 1}.png")
         with open(fn, "wb") as f:
@@ -700,5 +709,75 @@ def mock_wildreceipt_dataset(tmpdir_factory, mock_image_stream):
     for i in range(2):
         fn_i = wildreceipt_image_folder.join(f"receipt_{i}.jpeg")
         with open(fn_i, "wb") as f:
+            f.write(file.getbuffer())
+    return str(image_folder), str(annotation_file)
+
+
+@pytest.fixture(scope="session")
+def mock_cocotext_dataset(tmpdir_factory, mock_image_stream):
+    file = BytesIO(mock_image_stream)
+    root = tmpdir_factory.mktemp("datasets")
+    cocotext_root = root.mkdir("cocotext")
+    annotations_folder = cocotext_root
+    image_folder = cocotext_root.mkdir("train2014")
+
+    filenames = [
+        "COCO_train2014_000000353709.jpg",
+        "COCO_train2014_000000077346.jpg",
+        "COCO_train2014_000000437996.jpg",
+    ]
+    labels = {
+        "cats": {},
+        "anns": {
+            "1": {
+                "mask": [286.1, 215.5, 285.2, 221.5, 304.6, 222.0, 304.6, 216.9],
+                "class": "machine printed",
+                "bbox": [285.2, 215.5, 19.4, 6.5],
+                "image_id": 367969,
+                "id": 108418,
+                "language": "english",
+                "area": 105.6,
+                "utf8_string": "GATO",
+                "legibility": "legible",
+            },
+            "2": {
+                "mask": [310.4, 304.6, 319.4, 302.1, 323.2, 318.1, 307.2, 318.1],
+                "class": "machine printed",
+                "bbox": [307.2, 302.1, 16.0, 16.0],
+                "image_id": 77346,
+                "id": 196817,
+                "language": "english",
+                "area": 184.75,
+                "utf8_string": "6",
+                "legibility": "legible",
+            },
+            "3": {
+                "mask": [212.6, 245.8, 210.1, 248.6, 212.0, 262.8, 221.9, 260.9, 227.4, 244.6],
+                "class": "machine printed",
+                "bbox": [210.1, 244.6, 17.3, 18.2],
+                "image_id": 437996,
+                "id": 134765,
+                "language": "english",
+                "area": 221.31,
+                "utf8_string": "17",
+                "legibility": "legible",
+            },
+        },
+        "imgs": {
+            "367969": {"id": 367969, "set": "train", "width": 640, "file_name": f"{filenames[0]}", "height": 427},
+            "77346": {"id": 77346, "set": "train", "width": 640, "file_name": f"{filenames[1]}", "height": 427},
+            "437996": {"id": 437996, "set": "train", "width": 640, "file_name": f"{filenames[2]}", "height": 427},
+        },
+        "imgToAnns": {},
+        "info": {},
+    }
+
+    annotation_file = annotations_folder.join("cocotext.v2.json")
+    with open(annotation_file, "w") as f:
+        json.dump(labels, f)
+    file = BytesIO(mock_image_stream)
+    for img_name in filenames:
+        fn = image_folder.join(f"{img_name}")
+        with open(fn, "wb") as f:
             f.write(file.getbuffer())
     return str(image_folder), str(annotation_file)

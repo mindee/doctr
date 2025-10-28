@@ -1,14 +1,15 @@
-# Copyright (C) 2021-2024, Mindee.
+# Copyright (C) 2021-2025, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from collections.abc import Callable
+from typing import Any
 
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import extract_crops, extract_rcrops, rotate_image
+from doctr.utils.geometry import extract_crops, extract_rcrops, remove_image_padding, rotate_image
 
 from .._utils import estimate_orientation, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
@@ -21,7 +22,6 @@ class _OCRPredictor:
     """Implements an object able to localize and identify text elements in a set of documents
 
     Args:
-    ----
         assume_straight_pages: if True, speeds up the inference by assuming you only pass straight pages
             without rotated textual elements.
         straighten_pages: if True, estimates the page general orientation based on the median line orientation.
@@ -34,8 +34,8 @@ class _OCRPredictor:
         **kwargs: keyword args of `DocumentBuilder`
     """
 
-    crop_orientation_predictor: Optional[OrientationPredictor]
-    page_orientation_predictor: Optional[OrientationPredictor]
+    crop_orientation_predictor: OrientationPredictor | None
+    page_orientation_predictor: OrientationPredictor | None
 
     def __init__(
         self,
@@ -48,21 +48,27 @@ class _OCRPredictor:
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
-        self.crop_orientation_predictor = None if assume_straight_pages else crop_orientation_predictor(pretrained=True)
+        self._page_orientation_disabled = kwargs.pop("disable_page_orientation", False)
+        self._crop_orientation_disabled = kwargs.pop("disable_crop_orientation", False)
+        self.crop_orientation_predictor = (
+            None
+            if assume_straight_pages
+            else crop_orientation_predictor(pretrained=True, disabled=self._crop_orientation_disabled)
+        )
         self.page_orientation_predictor = (
-            page_orientation_predictor(pretrained=True)
+            page_orientation_predictor(pretrained=True, disabled=self._page_orientation_disabled)
             if detect_orientation or straighten_pages or not assume_straight_pages
             else None
         )
         self.doc_builder = DocumentBuilder(**kwargs)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
-        self.hooks: List[Callable] = []
+        self.hooks: list[Callable] = []
 
     def _general_page_orientations(
         self,
-        pages: List[np.ndarray],
-    ) -> List[Tuple[int, float]]:
+        pages: list[np.ndarray],
+    ) -> list[tuple[int, float]]:
         _, classes, probs = zip(self.page_orientation_predictor(pages))  # type: ignore[misc]
         # Flatten to list of tuples with (value, confidence)
         page_orientations = [
@@ -73,8 +79,8 @@ class _OCRPredictor:
         return page_orientations
 
     def _get_orientations(
-        self, pages: List[np.ndarray], seg_maps: List[np.ndarray]
-    ) -> Tuple[List[Tuple[int, float]], List[int]]:
+        self, pages: list[np.ndarray], seg_maps: list[np.ndarray]
+    ) -> tuple[list[tuple[int, float]], list[int]]:
         general_pages_orientations = self._general_page_orientations(pages)
         origin_page_orientations = [
             estimate_orientation(seq_map, general_orientation)
@@ -84,11 +90,11 @@ class _OCRPredictor:
 
     def _straighten_pages(
         self,
-        pages: List[np.ndarray],
-        seg_maps: List[np.ndarray],
-        general_pages_orientations: Optional[List[Tuple[int, float]]] = None,
-        origin_pages_orientations: Optional[List[int]] = None,
-    ) -> List[np.ndarray]:
+        pages: list[np.ndarray],
+        seg_maps: list[np.ndarray],
+        general_pages_orientations: list[tuple[int, float]] | None = None,
+        origin_pages_orientations: list[int] | None = None,
+    ) -> list[np.ndarray]:
         general_pages_orientations = (
             general_pages_orientations if general_pages_orientations else self._general_page_orientations(pages)
         )
@@ -101,34 +107,35 @@ class _OCRPredictor:
             ]
         )
         return [
-            # We exapnd if the page is wider than tall and the angle is 90 or -90
-            rotate_image(page, angle, expand=page.shape[1] > page.shape[0] and abs(angle) == 90)
+            # expand if height and width are not equal, then remove the padding
+            remove_image_padding(rotate_image(page, angle, expand=page.shape[0] != page.shape[1]))
             for page, angle in zip(pages, origin_pages_orientations)
         ]
 
     @staticmethod
     def _generate_crops(
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
-        channels_last: bool,
+        pages: list[np.ndarray],
+        loc_preds: list[np.ndarray],
         assume_straight_pages: bool = False,
-    ) -> List[List[np.ndarray]]:
-        extraction_fn = extract_crops if assume_straight_pages else extract_rcrops
-
-        crops = [
-            extraction_fn(page, _boxes[:, :4], channels_last=channels_last)  # type: ignore[operator]
-            for page, _boxes in zip(pages, loc_preds)
-        ]
+        assume_horizontal: bool = False,
+    ) -> list[list[np.ndarray]]:
+        if assume_straight_pages:
+            crops = [extract_crops(page, _boxes[:, :4]) for page, _boxes in zip(pages, loc_preds)]
+        else:
+            crops = [
+                extract_rcrops(page, _boxes[:, :4], assume_horizontal=assume_horizontal)
+                for page, _boxes in zip(pages, loc_preds)
+            ]
         return crops
 
     @staticmethod
     def _prepare_crops(
-        pages: List[np.ndarray],
-        loc_preds: List[np.ndarray],
-        channels_last: bool,
+        pages: list[np.ndarray],
+        loc_preds: list[np.ndarray],
         assume_straight_pages: bool = False,
-    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray]]:
-        crops = _OCRPredictor._generate_crops(pages, loc_preds, channels_last, assume_straight_pages)
+        assume_horizontal: bool = False,
+    ) -> tuple[list[list[np.ndarray]], list[np.ndarray]]:
+        crops = _OCRPredictor._generate_crops(pages, loc_preds, assume_straight_pages, assume_horizontal)
 
         # Avoid sending zero-sized crops
         is_kept = [[all(s > 0 for s in crop.shape) for crop in page_crops] for page_crops in crops]
@@ -142,9 +149,9 @@ class _OCRPredictor:
 
     def _rectify_crops(
         self,
-        crops: List[List[np.ndarray]],
-        loc_preds: List[np.ndarray],
-    ) -> Tuple[List[List[np.ndarray]], List[np.ndarray], List[Tuple[int, float]]]:
+        crops: list[list[np.ndarray]],
+        loc_preds: list[np.ndarray],
+    ) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[tuple[int, float]]]:
         # Work at a page level
         orientations, classes, probs = zip(*[self.crop_orientation_predictor(page_crops) for page_crops in crops])  # type: ignore[misc]
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
@@ -162,10 +169,10 @@ class _OCRPredictor:
 
     @staticmethod
     def _process_predictions(
-        loc_preds: List[np.ndarray],
-        word_preds: List[Tuple[str, float]],
-        crop_orientations: List[Dict[str, Any]],
-    ) -> Tuple[List[np.ndarray], List[List[Tuple[str, float]]], List[List[Dict[str, Any]]]]:
+        loc_preds: list[np.ndarray],
+        word_preds: list[tuple[str, float]],
+        crop_orientations: list[dict[str, Any]],
+    ) -> tuple[list[np.ndarray], list[list[tuple[str, float]]], list[list[dict[str, Any]]]]:
         text_preds = []
         crop_orientation_preds = []
         if len(loc_preds) > 0:
@@ -182,7 +189,6 @@ class _OCRPredictor:
         """Add a hook to the predictor
 
         Args:
-        ----
             hook: a callable that takes as input the `loc_preds` and returns the modified `loc_preds`
         """
         self.hooks.append(hook)
