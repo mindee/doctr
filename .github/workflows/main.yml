@@ -14,7 +14,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.10"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -34,7 +34,7 @@ jobs:
         run: |
           coverage run -m pytest tests/common/ -rs
           coverage xml -o coverage-common.xml
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: coverage-common
           path: ./coverage-common.xml
@@ -48,7 +48,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.10"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
@@ -70,7 +70,7 @@ jobs:
           coverage run -m pytest tests/pytorch/ -rs
           coverage xml -o coverage-pt.xml
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: coverage-pytorch
           path: ./coverage-pt.xml
@@ -80,8 +80,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ pytest-common, pytest-torch ]
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/download-artifact@v5
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v6
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
