@@ -10,7 +10,7 @@ jobs:
   docker-package:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Build docker image
         run: docker build -t doctr-py3.10-slim --build-arg SYSTEM=cpu .
       - name: Run docker container
@@ -23,7 +23,7 @@ jobs:
         os: [ubuntu-latest]
         python: ["3.10"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
