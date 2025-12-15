@@ -67,17 +67,17 @@ def test_recognition_models(arch_name, input_shape, train_mode, mock_vocab):
 
 
 @pytest.mark.parametrize(
-    "post_processor, input_shape",
+    "post_processor, input_shape, default_aggregation",
     [
-        [CTCPostProcessor, [2, 119, 30]],
-        [SARPostProcessor, [2, 119, 30]],
-        [ViTSTRPostProcessor, [2, 119, 30]],
-        [MASTERPostProcessor, [2, 119, 30]],
-        [PARSeqPostProcessor, [2, 119, 30]],
-        [VIPTRPostProcessor, [2, 119, 30]],
+        [CTCPostProcessor, [2, 119, 30], "min"],
+        [SARPostProcessor, [2, 119, 30], "min"],
+        [ViTSTRPostProcessor, [2, 119, 30], "mean"],
+        [MASTERPostProcessor, [2, 119, 30], "min"],
+        [PARSeqPostProcessor, [2, 119, 30], "mean"],
+        [VIPTRPostProcessor, [2, 119, 30], "min"],
     ],
 )
-def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
+def test_reco_postprocessors(post_processor, input_shape, default_aggregation, mock_vocab):
     processor = post_processor(mock_vocab)
     decoded = processor(torch.rand(*input_shape))
     assert isinstance(decoded, list)
@@ -85,7 +85,8 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert len(decoded) == input_shape[0]
     assert all(char in mock_vocab for word, _ in decoded for char in word)
     # Repr
-    assert repr(processor) == f"{post_processor.__name__}(vocab_size={len(mock_vocab)})"
+    expected_repr = f"{post_processor.__name__}(vocab_size={len(mock_vocab)}, confidence_aggregation='{default_aggregation}')"
+    assert repr(processor) == expected_repr
 
 
 @pytest.mark.parametrize(

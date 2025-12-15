@@ -17,6 +17,7 @@ from doctr.models.modules.transformer import MultiHeadAttention, PositionwiseFee
 
 from ...classification import vit_s
 from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
+from ..core import aggregate_confidence
 from .base import _PARSeq, _PARSeqPostProcessor
 
 __all__ = ["PARSeq", "parseq"]
@@ -423,6 +424,8 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: method to aggregate character-level confidence scores into word-level confidence.
+            Can be "mean", "geometric_mean", "harmonic_mean", "min", "max", or a custom callable. Defaults to "mean".
     """
 
     def __call__(
@@ -441,9 +444,11 @@ class PARSeqPostProcessor(_PARSeqPostProcessor):
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
-        # compute probabilties for each word up to the EOS token
+        # compute probabilities for each word up to the EOS token using configured aggregation method
         probs = [
-            preds_prob[i, : len(word)].numpy().clip(0, 1).mean().item() if word else 0.0
+            aggregate_confidence(preds_prob[i, : len(word)].numpy(), self.confidence_aggregation)
+            if word
+            else 0.0
             for i, word in enumerate(word_values)
         ]
 

@@ -16,7 +16,7 @@ from doctr.datasets import VOCABS, decode_sequence
 
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils.pytorch import load_pretrained_params
-from ..core import RecognitionModel, RecognitionPostProcessor
+from ..core import ConfidenceAggregation, RecognitionModel, RecognitionPostProcessor, aggregate_confidence
 
 __all__ = ["CRNN", "crnn_vgg16_bn", "crnn_mobilenet_v3_small", "crnn_mobilenet_v3_large"]
 
@@ -50,10 +50,19 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: method to aggregate character-level confidence scores into word-level confidence.
+            Can be "mean", "geometric_mean", "harmonic_mean", "min", "max", or a custom callable. Defaults to "min".
     """
 
-    @staticmethod
+    def __init__(
+        self,
+        vocab: str,
+        confidence_aggregation: ConfidenceAggregation = "min",
+    ) -> None:
+        super().__init__(vocab, confidence_aggregation)
+
     def ctc_best_path(
+        self,
         logits: torch.Tensor,
         vocab: str = VOCABS["french"],
         blank: int = 0,
@@ -69,16 +78,38 @@ class CTCPostProcessor(RecognitionPostProcessor):
         Returns:
             A list of tuples: (word, confidence)
         """
-        # Gather the most confident characters, and assign the smallest conf among those to the sequence prob
-        probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
+        # Get softmax probabilities and best path indices
+        softmax_probs = F.softmax(logits, dim=-1)
+        best_path_indices = torch.argmax(logits, dim=-1)  # N x T
+        # Get the probability of the best path at each time step
+        best_path_probs = softmax_probs.max(dim=-1).values  # N x T
 
-        # collapse best path (using itertools.groupby), map to chars, join char list to string
-        words = [
-            decode_sequence([k for k, _ in groupby(seq.tolist()) if k != blank], vocab)
-            for seq in torch.argmax(logits, dim=-1)
-        ]
+        results = []
+        for batch_idx in range(logits.size(0)):
+            seq = best_path_indices[batch_idx].tolist()
+            probs_seq = best_path_probs[batch_idx]
 
-        return list(zip(words, probs.tolist()))
+            # Collapse best path: remove blanks and repeated characters
+            # Track which positions contribute to the final word
+            char_probs = []
+            prev_char = None
+            for pos, char_idx in enumerate(seq):
+                if char_idx != blank and char_idx != prev_char:
+                    char_probs.append(probs_seq[pos].item())
+                prev_char = char_idx
+
+            # Decode the word
+            word = decode_sequence([k for k, _ in groupby(seq) if k != blank], vocab)
+
+            # Aggregate character probabilities
+            if char_probs:
+                conf = aggregate_confidence(char_probs, self.confidence_aggregation)
+            else:
+                conf = 0.0
+
+            results.append((word, conf))
+
+        return results
 
     def __call__(self, logits: torch.Tensor) -> list[tuple[str, float]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions

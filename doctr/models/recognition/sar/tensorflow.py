@@ -14,7 +14,7 @@ from doctr.utils.repr import NestedObject
 
 from ...classification import resnet31
 from ...utils.tensorflow import _bf16_to_float32, _build_model, load_pretrained_params
-from ..core import RecognitionModel, RecognitionPostProcessor
+from ..core import ConfidenceAggregation, RecognitionModel, RecognitionPostProcessor, aggregate_confidence
 
 __all__ = ["SAR", "sar_resnet31"]
 
@@ -344,7 +344,16 @@ class SARPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: method to aggregate character-level confidence scores into word-level confidence.
+            Can be "mean", "geometric_mean", "harmonic_mean", "min", "max", or a custom callable. Defaults to "min".
     """
+
+    def __init__(
+        self,
+        vocab: str,
+        confidence_aggregation: ConfidenceAggregation = "min",
+    ) -> None:
+        super().__init__(vocab, confidence_aggregation)
 
     def __call__(
         self,
@@ -353,9 +362,7 @@ class SARPostProcessor(RecognitionPostProcessor):
         # compute pred with argmax for attention models
         out_idxs = tf.math.argmax(logits, axis=2)
         # N x L
-        probs = tf.gather(tf.nn.softmax(logits, axis=-1), out_idxs, axis=-1, batch_dims=2)
-        # Take the minimum confidence of the sequence
-        probs = tf.math.reduce_min(probs, axis=1)
+        preds_prob = tf.gather(tf.nn.softmax(logits, axis=-1), out_idxs, axis=-1, batch_dims=2)
 
         # decode raw output of the model with tf_label_to_idx
         out_idxs = tf.cast(out_idxs, dtype="int32")
@@ -365,7 +372,15 @@ class SARPostProcessor(RecognitionPostProcessor):
         decoded_strings_pred = tf.sparse.to_dense(decoded_strings_pred.to_sparse(), default_value="not valid")[:, 0]
         word_values = [word.decode() for word in decoded_strings_pred.numpy().tolist()]
 
-        return list(zip(word_values, probs.numpy().clip(0, 1).tolist()))
+        # compute probabilities for each word up to the EOS token using configured aggregation method
+        probs = [
+            aggregate_confidence(preds_prob[i, : len(word)].numpy(), self.confidence_aggregation)
+            if word
+            else 0.0
+            for i, word in enumerate(word_values)
+        ]
+
+        return list(zip(word_values, probs))
 
 
 def _sar(

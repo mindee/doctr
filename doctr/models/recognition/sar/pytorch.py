@@ -16,7 +16,7 @@ from doctr.datasets import VOCABS
 
 from ...classification import resnet31
 from ...utils.pytorch import _bf16_to_float32, load_pretrained_params
-from ..core import RecognitionModel, RecognitionPostProcessor
+from ..core import ConfidenceAggregation, RecognitionModel, RecognitionPostProcessor, aggregate_confidence
 
 __all__ = ["SAR", "sar_resnet31"]
 
@@ -320,7 +320,16 @@ class SARPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: method to aggregate character-level confidence scores into word-level confidence.
+            Can be "mean", "geometric_mean", "harmonic_mean", "min", "max", or a custom callable. Defaults to "min".
     """
+
+    def __init__(
+        self,
+        vocab: str,
+        confidence_aggregation: ConfidenceAggregation = "min",
+    ) -> None:
+        super().__init__(vocab, confidence_aggregation)
 
     def __call__(
         self,
@@ -329,9 +338,7 @@ class SARPostProcessor(RecognitionPostProcessor):
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
         # N x L
-        probs = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
-        # Take the minimum confidence of the sequence
-        probs = probs.min(dim=1).values.detach().cpu()
+        preds_prob = torch.gather(torch.softmax(logits, -1), -1, out_idxs.unsqueeze(-1)).squeeze(-1)
 
         # Manual decoding
         word_values = [
@@ -339,7 +346,15 @@ class SARPostProcessor(RecognitionPostProcessor):
             for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
 
-        return list(zip(word_values, probs.numpy().clip(0, 1).tolist()))
+        # compute probabilities for each word up to the EOS token using configured aggregation method
+        probs = [
+            aggregate_confidence(preds_prob[i, : len(word)].detach().cpu().numpy(), self.confidence_aggregation)
+            if word
+            else 0.0
+            for i, word in enumerate(word_values)
+        ]
+
+        return list(zip(word_values, probs))
 
 
 def _sar(

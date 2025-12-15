@@ -8,6 +8,7 @@ import math
 
 import numpy as np
 
+from ..core import ConfidenceAggregation, aggregate_confidence
 from ..utils import merge_multi_strings
 
 __all__ = ["split_crops", "remap_preds"]
@@ -120,6 +121,7 @@ def remap_preds(
     preds: list[tuple[str, float]],
     crop_map: list[int | tuple[int, int, float]],
     overlap_ratio: float,
+    confidence_aggregation: ConfidenceAggregation = "mean",
 ) -> list[tuple[str, float]]:
     """
     Reconstruct predictions from possibly split crops.
@@ -128,6 +130,9 @@ def remap_preds(
         preds: List of (text, confidence) tuples from each crop.
         crop_map: Map returned by `split_crops`.
         overlap_ratio: Overlap ratio used during splitting.
+        confidence_aggregation: Method to aggregate confidence scores from split crops.
+            Can be "mean", "geometric_mean", "harmonic_mean", "min", "max", or a custom callable.
+            Defaults to "mean".
 
     Returns:
         List of merged (text, confidence) tuples corresponding to original crops.
@@ -140,6 +145,6 @@ def remap_preds(
             start_idx, end_idx, last_overlap = item
             text_parts, confidences = zip(*preds[start_idx:end_idx])
             merged_text = merge_multi_strings(list(text_parts), overlap_ratio, last_overlap)
-            merged_conf = sum(confidences) / len(confidences)  # average confidence
+            merged_conf = aggregate_confidence(list(confidences), confidence_aggregation)
             remapped.append((merged_text, merged_conf))
     return remapped
