@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2025, Mindee.
+# Copyright (C) 2021-2026, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -145,7 +145,8 @@ def create_shadow_mask(
 
     # Convert to absolute coords
     abs_contour: np.ndarray = (
-        np.stack(
+        np
+        .stack(
             (contour[:, 0] * target_shape[1], contour[:, 1] * target_shape[0]),
             axis=-1,
         )

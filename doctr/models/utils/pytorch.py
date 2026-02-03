@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2025, Mindee.
+# Copyright (C) 2021-2026, Mindee.
 
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
@@ -170,6 +170,7 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
         output_names=["logits"],
         dynamic_axes={"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
         export_params=True,
+        dynamo=False,
         verbose=False,
         **kwargs,
     )
