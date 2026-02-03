@@ -299,6 +299,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">textwrap</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
@@ -306,9 +307,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">huggingface_hub</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">HfApi</span><span class="p">,</span>
-    <span class="n">Repository</span><span class="p">,</span>
     <span class="n">get_token</span><span class="p">,</span>
-    <span class="n">get_token_permission</span><span class="p">,</span>
     <span class="n">hf_hub_download</span><span class="p">,</span>
     <span class="n">login</span><span class="p">,</span>
 <span class="p">)</span>
@@ -330,9 +329,9 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">login_to_hub</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Login to huggingface hub&quot;&quot;&quot;</span>
     <span class="n">access_token</span> <span class="o">=</span> <span class="n">get_token</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">access_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">get_token_permission</span><span class="p">(</span><span class="n">access_token</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">access_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Huggingface Hub token found and valid&quot;</span><span class="p">)</span>
-        <span class="n">login</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="n">access_token</span><span class="p">,</span> <span class="n">write_permission</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">login</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="n">access_token</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">login</span><span class="p">()</span>
     <span class="c1"># check if git lfs is installed</span>
@@ -456,16 +455,23 @@
 
     <span class="n">commit_message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Add </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2"> model&quot;</span>
 
-    <span class="n">local_cache_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">),</span> <span class="s2">&quot;.cache&quot;</span><span class="p">,</span> <span class="s2">&quot;huggingface&quot;</span><span class="p">,</span> <span class="s2">&quot;hub&quot;</span><span class="p">,</span> <span class="n">model_name</span><span class="p">)</span>
-    <span class="n">repo_url</span> <span class="o">=</span> <span class="n">HfApi</span><span class="p">()</span><span class="o">.</span><span class="n">create_repo</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">repo</span> <span class="o">=</span> <span class="n">Repository</span><span class="p">(</span><span class="n">local_dir</span><span class="o">=</span><span class="n">local_cache_dir</span><span class="p">,</span> <span class="n">clone_from</span><span class="o">=</span><span class="n">repo_url</span><span class="p">)</span>
+    <span class="c1"># Create repository</span>
+    <span class="n">api</span> <span class="o">=</span> <span class="n">HfApi</span><span class="p">()</span>
+    <span class="n">api</span><span class="o">.</span><span class="n">create_repo</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">repo</span><span class="o">.</span><span class="n">commit</span><span class="p">(</span><span class="n">commit_message</span><span class="p">):</span>
-        <span class="n">_save_model_and_config_for_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">repo</span><span class="o">.</span><span class="n">local_dir</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
-        <span class="n">readme_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">repo</span><span class="o">.</span><span class="n">local_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;README.md&quot;</span>
+    <span class="c1"># Save model files to a temporary directory</span>
+    <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp_dir</span><span class="p">:</span>
+        <span class="n">_save_model_and_config_for_hf_hub</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">tmp_dir</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="n">task</span><span class="p">)</span>
+        <span class="n">readme_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">)</span> <span class="o">/</span> <span class="s2">&quot;README.md&quot;</span>
         <span class="n">readme_path</span><span class="o">.</span><span class="n">write_text</span><span class="p">(</span><span class="n">readme</span><span class="p">)</span>
 
-    <span class="n">repo</span><span class="o">.</span><span class="n">git_push</span><span class="p">()</span></div>
+        <span class="c1"># Upload all files to the hub</span>
+        <span class="n">api</span><span class="o">.</span><span class="n">upload_folder</span><span class="p">(</span>
+            <span class="n">folder_path</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">,</span>
+            <span class="n">repo_id</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+            <span class="n">commit_message</span><span class="o">=</span><span class="n">commit_message</span><span class="p">,</span>
+            <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span>
+        <span class="p">)</span></div>
 
 
 
