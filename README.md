@@ -324,6 +324,13 @@ print(requests.post("http://localhost:8080/ocr", params=params, files=files).jso
 
 Looking for more illustrations of docTR features? You might want to check the [Jupyter notebooks](https://github.com/mindee/doctr/tree/main/notebooks) designed to give you a broader overview.
 
+## Supported By
+
+This project is supported by [T2K GmbH](https://www.text2knowledge.de/de),
+<p align="center">
+  <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
+</p>
+
 ## Citation
 
 If you wish to cite this project, feel free to use this [BibTeX](http://www.bibtex.org/) reference:
