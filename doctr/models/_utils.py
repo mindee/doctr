@@ -96,6 +96,7 @@ def estimate_orientation(
 
         # OpenCV version-proof normalization: force 'w' to be the long side
         # so the angle is consistently relative to the major axis.
+        # https://github.com/opencv/opencv/pull/28051/changes
         if w < h:
             w, h = h, w
             angle -= 90
