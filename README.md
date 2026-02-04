@@ -326,7 +326,7 @@ Looking for more illustrations of docTR features? You might want to check the [J
 
 ## Supported By
 
-This project is supported by [T2K GmbH](https://www.text2knowledge.de/de),
+This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
 <p align="center">
   <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
 </p>
