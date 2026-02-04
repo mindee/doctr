@@ -63,6 +63,20 @@ def test_estimate_orientation(mock_image, mock_bitmap, mock_tilted_payslip):
 
     assert estimate_orientation(mock_image, (0, 0.9)) - 30 < 1.0
 
+    # Aspect Ratio Independence (Portrait vs Landscape)
+    # Pad the tilted image to be very tall (Portrait)
+    portrait_img = cv2.copyMakeBorder(mock_tilted_payslip, 500, 500, 0, 0, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+    # Pad the tilted image to be very wide (Landscape)
+    landscape_img = cv2.copyMakeBorder(mock_tilted_payslip, 0, 0, 500, 500, cv2.BORDER_CONSTANT, value=[0, 0, 0])
+
+    assert abs(estimate_orientation(portrait_img) - (-30)) <= 1.0
+    assert abs(estimate_orientation(landscape_img) - (-30)) <= 1.0
+
+    # Perpendicular Noise Test
+    vertical_noise = np.zeros((1000, 1000, 3), dtype=np.uint8)
+    cv2.line(vertical_noise, (500, 100), (500, 900), (255, 255, 255), 10)
+    assert estimate_orientation(vertical_noise) == 0
+
 
 def test_get_lang():
     sentence = "This is a test sentence."

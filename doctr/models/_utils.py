@@ -26,6 +26,8 @@ def get_max_width_length_ratio(contour: np.ndarray) -> float:
         the maximum shape ratio
     """
     _, (w, h), _ = cv2.minAreaRect(contour)
+    if w == 0 or h == 0:
+        return 0.0
     return max(w / h, h / w)
 
 
@@ -53,7 +55,7 @@ def estimate_orientation(
         the estimated angle of the page (clockwise, negative for left side rotation, positive for right side rotation)
     """
     assert len(img.shape) == 3 and img.shape[-1] in [1, 3], f"Image shape {img.shape} not supported"
-    thresh = None
+
     # Convert image to grayscale if necessary
     if img.shape[-1] == 3:
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -62,11 +64,14 @@ def estimate_orientation(
     else:
         thresh = img.astype(np.uint8)
 
-    page_orientation, orientation_confidence = general_page_orientation or (None, 0.0)
-    if page_orientation is not None and orientation_confidence >= min_confidence:
+    page_orientation, orientation_confidence = general_page_orientation or (0, 0.0)
+    is_confident = page_orientation is not None and orientation_confidence >= min_confidence
+    base_angle = page_orientation if is_confident else 0
+
+    if is_confident:
         # We rotate the image to the general orientation which improves the detection
         # No expand needed bitmap is already padded
-        thresh = rotate_image(thresh, -page_orientation)
+        thresh = rotate_image(thresh, -base_angle)
     else:  # That's only required if we do not work on the detection models bin map
         # try to merge words in lines
         (h, w) = img.shape[:2]
@@ -88,30 +93,62 @@ def estimate_orientation(
     angles = []
     for contour in contours[:n_ct]:
         _, (w, h), angle = cv2.minAreaRect(contour)
-        if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
-            angles.append(angle)
-        elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
-            angles.append(angle - 90)
+
+        # OpenCV version-proof normalization: force 'w' to be the long side
+        # so the angle is consistently relative to the major axis.
+        if w < h:
+            w, h = h, w
+            angle -= 90
+
+        # Normalize angle to be within [-90, 90]
+        while angle <= -90:
+            angle += 180
+        while angle > 90:
+            angle -= 180
+
+        if h > 0:
+            if w / h > ratio_threshold_for_lines:  # select only contours with ratio like lines
+                angles.append(angle)
+            elif w / h < 1 / ratio_threshold_for_lines:  # if lines are vertical, substract 90 degree
+                angles.append(angle - 90)
 
     if len(angles) == 0:
-        estimated_angle = 0  # in case no angles is found
+        skew_angle = 0  # in case no angles is found
     else:
+        # median_low picks a value from the data to avoid outliers
         median = -median_low(angles)
-        estimated_angle = -round(median) if abs(median) != 0 else 0
+        skew_angle = -round(median) if abs(median) != 0 else 0
+
+        # Resolve the 90-degree flip ambiguity.
+        # If the estimation is exactly 90/-90, it's usually a vertical detection of horizontal lines.
+        if abs(skew_angle) == 90:
+            skew_angle = 0
 
     # combine with the general orientation and the estimated angle
-    if page_orientation is not None and orientation_confidence >= min_confidence:
+    # Apply the detected skew to our base orientation
+    final_angle = base_angle + skew_angle
+
+    # Standardize result to [-179, 180] range to handle wrap-around cases (e.g., 180 + -31)
+    while final_angle > 180:
+        final_angle -= 360
+    while final_angle <= -180:
+        final_angle += 360
+
+    if is_confident:
+        # If the estimated angle is perpendicular, treat it as 0 to avoid wrong flips
+        if abs(skew_angle) % 90 == 0:
+            return page_orientation
+
         # special case where the estimated angle is mostly wrong:
         # case 1: - and + swapped
         # case 2: estimated angle is completely wrong
         # so in this case we prefer the general page orientation
-        if abs(estimated_angle) == abs(page_orientation):
+        if abs(skew_angle) == abs(page_orientation) and page_orientation != 0:
             return page_orientation
-        estimated_angle = estimated_angle if page_orientation == 0 else page_orientation + estimated_angle
-        if estimated_angle > 180:
-            estimated_angle -= 360
 
-    return estimated_angle  # return the clockwise angle (negative - left side rotation, positive - right side rotation)
+    return int(
+        final_angle
+    )  # return the clockwise angle (negative - left side rotation, positive - right side rotation)
 
 
 def rectify_crops(
