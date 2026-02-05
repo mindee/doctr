@@ -1,0 +1,52 @@
+/* Version control */
+
+.version-button {
+    color: white;
+    border: none;
+    padding: 5px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.version-button:hover, .version-button:focus {
+    background-color: #5eb2e6;
+}
+
+.version-dropdown {
+    display: none;
+    min-width: 160px;
+    overflow: auto;
+    font-size: 15px;
+}
+
+.version-dropdown a {
+    color: white;
+    padding: 3px 4px;
+    text-decoration: none;
+    display: block;
+}
+
+.version-dropdown a:hover {
+    background-color: #5eb2e6;
+}
+
+.version-show {
+    display: block;
+}
+
+h1 {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+    /* style fix for headline that it fits into one line */
+    font-size: 240%;
+}
+
+h1, h2, h3, h4, h5, .caption-text {
+    font-family: "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Github button */
+
+.github-repo {
+    display: flex;
+    justify-content: center;
+}
