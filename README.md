@@ -24,7 +24,7 @@ As such, you can select the architecture used for [text detection](https://minde
 ```python
 from doctr.models import ocr_predictor
 
-model = ocr_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
+model = ocr_predictor(det_arch="db_resnet50", reco_arch="crnn_vgg16_bn", pretrained=True)
 ```
 
 ### Reading files
@@ -33,6 +33,7 @@ Documents can be interpreted from PDF or images:
 
 ```python
 from doctr.io import DocumentFile
+
 # PDF
 pdf_doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 # Image
@@ -87,7 +88,9 @@ Or even rebuild the original document from its predictions:
 import matplotlib.pyplot as plt
 
 synthetic_pages = result.synthesize()
-plt.imshow(synthetic_pages[0]); plt.axis('off'); plt.show()
+plt.imshow(synthetic_pages[0])
+plt.axis("off")
+plt.show()
 ```
 
 ![Synthesis sample](https://github.com/mindee/doctr/raw/main/docs/images/synthesized_sample.png)
@@ -112,7 +115,7 @@ from doctr.io import DocumentFile
 from doctr.models import kie_predictor
 
 # Model
-model = kie_predictor(det_arch='db_resnet50', reco_arch='crnn_vgg16_bn', pretrained=True)
+model = kie_predictor(det_arch="db_resnet50", reco_arch="crnn_vgg16_bn", pretrained=True)
 # PDF
 doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 # Analyze
@@ -313,7 +316,7 @@ import requests
 
 params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn"}
 
-with open('/path/to/your/doc.jpg', 'rb') as f:
+with open("/path/to/your/doc.jpg", "rb") as f:
     files = [  # application/pdf, image/jpeg, image/png supported
         ("files", ("doc.jpg", f.read(), "image/jpeg")),
     ]

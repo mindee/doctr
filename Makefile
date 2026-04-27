@@ -13,6 +13,7 @@ style:
 test:
 	coverage run -m pytest tests/common/ -rs
 	coverage run -m pytest tests/pytorch/ -rs
+	coverage report --fail-under=80 --show-missing
 
 test-common:
 	coverage run -m pytest tests/common/ -rs

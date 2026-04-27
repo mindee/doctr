@@ -14,6 +14,7 @@ from .common_types import BoundingBox, Polygon4P
 __all__ = [
     "bbox_to_polygon",
     "polygon_to_bbox",
+    "order_points",
     "resolve_enclosing_bbox",
     "resolve_enclosing_rbbox",
     "rotate_boxes",
@@ -52,6 +53,48 @@ def polygon_to_bbox(polygon: Polygon4P) -> BoundingBox:
     """
     x, y = zip(*polygon)
     return (min(x), min(y)), (max(x), max(y))
+
+
+def order_points(pts: np.ndarray) -> np.ndarray:
+    """Order points in the following order: top-left, top-right, bottom-right, bottom-left
+
+    Args:
+        pts: array of shape (4, 2) or (4,) with the coordinates of the points
+
+    Returns:
+        ordered points in the following order: top-left, top-right, bottom-right, bottom-left
+    """
+    pts = np.asarray(pts)
+
+    # (xmin, ymin, xmax, ymax)
+    if pts.shape == (4,):
+        xmin, ymin, xmax, ymax = pts
+        return np.array(
+            [
+                [xmin, ymin],  # top-left
+                [xmax, ymin],  # top-right
+                [xmax, ymax],  # bottom-right
+                [xmin, ymax],  # bottom-left
+            ],
+            dtype=pts.dtype,
+        )
+
+    # (4, 2) quadrangle
+    if pts.shape == (4, 2):
+        x_sorted = pts[np.argsort(pts[:, 0])]
+
+        left = x_sorted[:2]
+        right = x_sorted[2:]
+
+        left = left[np.argsort(left[:, 1])]
+        tl, bl = left
+
+        right = right[np.argsort(right[:, 1])]
+        tr, br = right
+
+        return np.array([tl, tr, br, bl], dtype=pts.dtype)
+
+    raise ValueError(f"Unsupported shape {pts.shape}, expected (4,) or (4,2)")
 
 
 def detach_scores(boxes: list[np.ndarray]) -> tuple[list[np.ndarray], list[np.ndarray]]:

@@ -11,6 +11,8 @@ import numpy as np
 import pyclipper
 from shapely.geometry import Polygon
 
+from doctr.utils import order_points
+
 from ..core import DetectionPostProcessor
 
 __all__ = ["DBPostProcessor"]
@@ -80,7 +82,7 @@ class DBPostProcessor(DetectionPostProcessor):
         return (
             cv2.boundingRect(expanded_points)  # type: ignore[return-value]
             if self.assume_straight_pages
-            else np.roll(cv2.boxPoints(cv2.minAreaRect(expanded_points)), -1, axis=0)
+            else order_points(cv2.boxPoints(cv2.minAreaRect(expanded_points)))
         )
 
     def bitmap_to_boxes(

@@ -16,6 +16,47 @@ def test_polygon_to_bbox():
     assert geometry.polygon_to_bbox(((0, 0), (1, 0), (0, 1), (1, 1))) == ((0, 0), (1, 1))
 
 
+def test_order_points():
+    # bbox format (xmin, ymin, xmax, ymax)
+    bbox = np.array([1, 2, 5, 6])
+    expected_bbox = np.array([
+        [1, 2],  # top-left
+        [5, 2],  # top-right
+        [5, 6],  # bottom-right
+        [1, 6],  # bottom-left
+    ])
+    out_bbox = geometry.order_points(bbox)
+    assert np.all(out_bbox == expected_bbox)
+
+    # quadrangle (unordered)
+    quad = np.array([
+        [5, 6],  # br
+        [1, 2],  # tl
+        [1, 6],  # bl
+        [5, 2],  # tr
+    ])
+    expected_quad = expected_bbox
+    out_quad = geometry.order_points(quad)
+    assert np.all(out_quad == expected_quad)
+
+    # already ordered quad
+    ordered_quad = expected_bbox.copy()
+    out_ordered = geometry.order_points(ordered_quad)
+    assert np.all(out_ordered == expected_bbox)
+
+    # float inputs
+    quad_float = quad.astype(np.float32)
+    out_float = geometry.order_points(quad_float)
+    assert out_float.dtype == quad_float.dtype
+    assert np.allclose(out_float, expected_quad)
+
+    with pytest.raises(ValueError):
+        geometry.order_points(np.array([1, 2, 3]))  # wrong shape
+
+    with pytest.raises(ValueError):
+        geometry.order_points(np.zeros((5, 2)))  # too many points
+
+
 def test_detach_scores():
     # box test
     boxes = np.array([[0.1, 0.1, 0.2, 0.2, 0.9], [0.15, 0.15, 0.2, 0.2, 0.8]])
