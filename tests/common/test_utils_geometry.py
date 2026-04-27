@@ -85,13 +85,13 @@ def test_resolve_enclosing_bbox():
 
 
 def test_resolve_enclosing_rbbox():
-    pred = geometry.resolve_enclosing_rbbox([
-        np.asarray([[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]]),
-        np.asarray([[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]]),
-    ])
-    target1 = np.asarray([[0.55, 0.65], [0.05, 0.15], [0.1, 0.1], [0.6, 0.6]])
-    target2 = np.asarray([[0.05, 0.15], [0.1, 0.1], [0.6, 0.6], [0.55, 0.65]])
-    assert np.all(target1 - pred <= 1e-3) or np.all(target2 - pred <= 1e-3)
+    box1 = np.asarray([[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]])
+    box2 = np.asarray([[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]])
+
+    pred = geometry.resolve_enclosing_rbbox([box1, box2])
+    expected_raw = np.asarray([[0.05, 0.15], [0.1, 0.1], [0.6, 0.6], [0.55, 0.65]])
+    target = geometry.order_points(expected_raw)
+    assert np.allclose(pred, target, atol=1e-3)
 
 
 def test_remap_boxes():
