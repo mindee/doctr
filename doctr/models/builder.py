@@ -317,10 +317,8 @@ class DocumentBuilder(NestedObject):
         ) != len(crop_orientations) != len(objectness_scores):
             raise ValueError("All arguments are expected to be lists of the same size")
 
-        _orientations = (
-            orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
-        )
-        _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
+        _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
+        _languages = languages if isinstance(languages, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
@@ -402,10 +400,8 @@ class KIEDocumentBuilder(DocumentBuilder):
             page_shapes
         ) != len(crop_orientations) != len(objectness_scores):
             raise ValueError("All arguments are expected to be lists of the same size")
-        _orientations = (
-            orientations if isinstance(orientations, list) else [None] * len(boxes)  # type: ignore[list-item]
-        )
-        _languages = languages if isinstance(languages, list) else [None] * len(boxes)  # type: ignore[list-item]
+        _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
+        _languages = languages if isinstance(languages, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if next(iter(boxes[0].values())).ndim == 3:
