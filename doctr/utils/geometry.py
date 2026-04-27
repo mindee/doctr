@@ -81,18 +81,26 @@ def order_points(pts: np.ndarray) -> np.ndarray:
 
     # (4, 2) quadrangle
     if pts.shape == (4, 2):
-        x_sorted = pts[np.argsort(pts[:, 0])]
+        c = pts.mean(axis=0)
 
-        left = x_sorted[:2]
-        right = x_sorted[2:]
+        # compute angle of each point around centroid
+        angles = np.arctan2(pts[:, 1] - c[1], pts[:, 0] - c[0])
 
-        left = left[np.argsort(left[:, 1])]
-        tl, bl = left
+        # sort by angle (counter-clockwise ordering)
+        pts = pts[np.argsort(angles)]
 
-        right = right[np.argsort(right[:, 1])]
-        tr, br = right
+        # ensure consistent starting point (top-left)
+        start_idx = np.argmin(pts.sum(axis=1))
+        pts = np.roll(pts, -start_idx, axis=0)
 
-        return np.array([tl, tr, br, bl], dtype=pts.dtype)
+        # ensure order is TL, TR, BR, BL (clockwise)
+        def area(poly):
+            return 0.5 * np.sum(poly[:, 0] * np.roll(poly[:, 1], -1) - poly[:, 1] * np.roll(poly[:, 0], -1))
+
+        if area(pts) < 0:
+            pts = np.roll(pts[::-1], 1, axis=0)
+
+        return pts.astype(pts.dtype)
 
     raise ValueError(f"Unsupported shape {pts.shape}, expected (4,) or (4,2)")
 
