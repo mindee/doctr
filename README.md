@@ -132,7 +132,7 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ### If you are looking for support from the Mindee team
 
-[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/raw/main/docs/images/doctr-need-help.png)](https://mindee.com/product/doctr)
+[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/raw/main/docs/images/doctr-t2k-need-help.png)](https://mindee.com/product/doctr)
 
 ## Installation
 
