@@ -132,7 +132,14 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ### If you are looking for support from the Mindee team
 
-[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/raw/main/docs/images/doctr-t2k-need-help.png)](https://mindee.com/product/doctr)
+[![Bad OCR test detection image asking the developer if they need help](https://github.com/t2kgrosse-boelting/doctr/raw/chore/readme/docs/images/doctr-t2k-need-help.png)](https://mindee.com/product/doctr)
+
+## Supported By
+
+This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
+<p align="center">
+  <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
+</p>
 
 ## Installation
 
@@ -327,12 +334,6 @@ print(requests.post("http://localhost:8080/ocr", params=params, files=files).jso
 
 Looking for more illustrations of docTR features? You might want to check the [Jupyter notebooks](https://github.com/mindee/doctr/tree/main/notebooks) designed to give you a broader overview.
 
-## Supported By
-
-This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
-<p align="center">
-  <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
-</p>
 
 ## Citation
 
