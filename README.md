@@ -130,9 +130,15 @@ for class_name in predictions.keys():
 
 The KIE predictor results per page are in a dictionary format with each key representing a class name and it's value are the predictions for that class.
 
-### If you are looking for support from the Mindee team
+### docTR has received support from Mindee. It is now actively being developed by [t2k GmbH](https://www.text2knowledge.de/de)
 
-[![Bad OCR test detection image asking the developer if they need help](https://github.com/mindee/doctr/raw/main/docs/images/doctr-need-help.png)](https://mindee.com/product/doctr)
+[![Bad OCR test detection image asking the developer if they need help](docs/images/doctr-t2k-need-help.png)](https://mindee.com/product/doctr)
+
+
+This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
+<p align="center">
+  <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
+</p>
 
 ## Installation
 
@@ -327,12 +333,6 @@ print(requests.post("http://localhost:8080/ocr", params=params, files=files).jso
 
 Looking for more illustrations of docTR features? You might want to check the [Jupyter notebooks](https://github.com/mindee/doctr/tree/main/notebooks) designed to give you a broader overview.
 
-## Supported By
-
-This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
-<p align="center">
-  <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
-</p>
 
 ## Citation
 
