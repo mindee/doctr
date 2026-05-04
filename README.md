@@ -132,7 +132,7 @@ The KIE predictor results per page are in a dictionary format with each key repr
 
 ### docTR has received support from Mindee. It is now actively being developed by [t2k GmbH](https://www.text2knowledge.de/de)
 
-[![Bad OCR test detection image asking the developer if they need help](https://github.com/t2kgrosse-boelting/doctr/raw/chore/readme/docs/images/doctr-t2k-need-help.png)](https://mindee.com/product/doctr)
+[![Bad OCR test detection image asking the developer if they need help](docs/images/doctr-t2k-need-help.png)](https://mindee.com/product/doctr)
 
 
 This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
