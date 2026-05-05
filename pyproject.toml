@@ -54,6 +54,9 @@ dependencies = [
     "tqdm>=4.30.0",
 ]
 
+[project.scripts]
+doctr-cli = "doctr.cli.main:main"
+
 [project.optional-dependencies]
 html = [
     "weasyprint>=55.0",
