@@ -17,6 +17,7 @@ __all__ = [
     "LocalizationConfusion",
     "OCRMetric",
     "DetectionMetric",
+    "ObjectDetectionMetric",
 ]
 
 
@@ -549,3 +550,190 @@ class DetectionMetric:
         self.num_preds = 0
         self.tot_iou = 0.0
         self.num_matches = 0
+
+
+class ObjectDetectionMetric:
+    r"""Implements a COCO-style object detection metric (mAP@[.5:.95]).
+
+    The aggregated metrics are computed as follows:
+
+    .. math::
+        \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
+        \forall (\hat{B}, \hat{C}, S) \in \mathcal{B}^M \times \mathcal{C}^M \times \mathbb{R}^M, \\
+
+        AP_t(C) = \int_0^1 Precision_t(r, C)\, dr \\
+
+        mAP@[.5:.95] = \frac{1}{T} \sum\limits_{t \in \mathcal{T}} \frac{1}{|\mathcal{C}|}
+        \sum\limits_{c \in \mathcal{C}} AP_t(c)
+
+    where:
+        - :math:`\mathcal{B}` is the set of possible bounding boxes,
+        - :math:`\mathcal{C}` is the set of possible class indices,
+        - :math:`S` are confidence scores associated to predictions,
+        - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
+        - :math:`AP_t(c)` is the Average Precision for class :math:`c` at IoU threshold :math:`t`.
+
+    For a given class and IoU threshold, predictions are sorted by decreasing confidence score.
+    Each prediction is greedily matched to the ground truth with the highest IoU, provided that:
+        - the IoU is greater than or equal to the threshold,
+        - the ground truth has not already been matched.
+
+    True positives and false positives are accumulated to build a precision-recall curve,
+    and the Average Precision is computed as the area under this curve.
+
+    >>> import numpy as np
+    >>> from doctr.utils import ObjectDetectionMetric
+    >>> metric = ObjectDetectionMetric()
+    >>> metric.update(
+    ...     np.asarray([[0, 0, 100, 100]]),
+    ...     np.asarray([[0, 0, 80, 80], [120, 120, 200, 200]]),
+    ...     np.asarray([0]),
+    ...     np.asarray([0, 1]),
+    ...     np.asarray([0.9, 0.3])
+    ... )
+    >>> metric.summary()
+
+    Args:
+        iou_thresholds: sequence of IoU thresholds used to compute the metric
+            (defaults to np.arange(0.5, 1.0, 0.05))
+        num_classes: total number of classes. If None, inferred from data
+        use_polygons: if set to True, predictions and targets will be expected
+            to have rotated format
+    """
+
+    def __init__(
+        self,
+        iou_thresholds: np.ndarray | None = None,
+        num_classes: int | None = None,
+        use_polygons: bool = False,
+    ) -> None:
+        self.iou_thresholds = iou_thresholds if iou_thresholds is not None else np.arange(0.5, 1.0, 0.05)
+        self.num_classes = num_classes
+        self.use_polygons = use_polygons
+        self.reset()
+
+    def update(
+        self,
+        gt_boxes: np.ndarray,
+        pred_boxes: np.ndarray,
+        gt_labels: np.ndarray,
+        pred_labels: np.ndarray,
+        pred_scores: np.ndarray,
+    ) -> None:
+        if (
+            gt_boxes.shape[0] != gt_labels.shape[0]
+            or pred_boxes.shape[0] != pred_labels.shape[0]
+            or pred_boxes.shape[0] != pred_scores.shape[0]
+        ):
+            raise AssertionError("Mismatch between boxes, labels, scores")
+
+        self._gts.append({"boxes": gt_boxes, "labels": gt_labels})
+        self._preds.append({"boxes": pred_boxes, "labels": pred_labels, "scores": pred_scores})
+
+    def summary(self):
+        if len(self._gts) == 0:
+            raise AssertionError("No samples added")
+
+        # determine classes
+        if self.num_classes is None:
+            labels = []
+            for g in self._gts:
+                labels.extend(g["labels"].tolist())
+            for p in self._preds:
+                labels.extend(p["labels"].tolist())
+            classes = np.unique(labels)
+        else:
+            classes = np.arange(self.num_classes)
+
+        ap_per_iou = []
+
+        for iou_thresh in self.iou_thresholds:
+            aps = []
+
+            for c in classes:
+                tp_all = []
+                fp_all = []
+                total_gt = 0
+
+                for gt, pred in zip(self._gts, self._preds):
+                    gt_mask = gt["labels"] == c
+                    pred_mask = pred["labels"] == c
+
+                    gt_boxes = gt["boxes"][gt_mask]
+                    pred_boxes = pred["boxes"][pred_mask]
+                    pred_scores = pred["scores"][pred_mask]
+
+                    total_gt += len(gt_boxes)
+
+                    if len(pred_boxes) == 0:
+                        continue
+
+                    # sort by confidence
+                    order = np.argsort(-pred_scores)
+                    pred_boxes = pred_boxes[order]
+
+                    if len(gt_boxes) == 0:
+                        tp_all.extend([0] * len(pred_boxes))
+                        fp_all.extend([1] * len(pred_boxes))
+                        continue
+
+                    # IoU
+                    if self.use_polygons:
+                        iou_mat = polygon_iou(gt_boxes, pred_boxes)
+                    else:
+                        iou_mat = box_iou(gt_boxes, pred_boxes)
+
+                    matched_gt = set()
+
+                    for i in range(len(pred_boxes)):
+                        ious = iou_mat[:, i]
+                        best_gt = np.argmax(ious)
+                        best_iou = ious[best_gt]
+
+                        if best_iou >= iou_thresh and best_gt not in matched_gt:
+                            tp_all.append(1)
+                            fp_all.append(0)
+                            matched_gt.add(best_gt)
+                        else:
+                            tp_all.append(0)
+                            fp_all.append(1)
+
+                if total_gt == 0:
+                    continue
+
+                tp = np.array(tp_all)
+                fp = np.array(fp_all)
+
+                tp_cum = np.cumsum(tp)
+                fp_cum = np.cumsum(fp)
+
+                recall = tp_cum / total_gt
+                precision = tp_cum / (tp_cum + fp_cum + 1e-8)
+
+                aps.append(self._compute_ap(recall, precision))
+
+            if aps:
+                ap_per_iou.append(np.mean(aps))
+
+        map = float(np.mean(ap_per_iou)) if ap_per_iou else 0.0
+
+        return {
+            "mAP@[.5:.95]": map,
+            "AP@[.5]": ap_per_iou[0] if len(ap_per_iou) > 0 else None,
+            "AP@[.75]": ap_per_iou[5] if len(ap_per_iou) > 5 else None,
+            "AP_per_IoU": dict(zip(self.iou_thresholds.tolist(), ap_per_iou)),
+        }
+
+    def _compute_ap(self, recall, precision):
+        recall = np.concatenate(([0.0], recall, [1.0]))
+        precision = np.concatenate(([0.0], precision, [0.0]))
+
+        for i in range(len(precision) - 1, 0, -1):
+            precision[i - 1] = max(precision[i - 1], precision[i])
+
+        idx = np.where(recall[1:] != recall[:-1])[0]
+        return float(np.sum((recall[idx + 1] - recall[idx]) * precision[idx + 1]))
+
+    def reset(self):
+        self._gts = []
+        self._preds = []
