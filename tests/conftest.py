@@ -133,6 +133,37 @@ def mock_detection_label(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
+def mock_layout_label(tmpdir_factory):
+    folder = tmpdir_factory.mktemp("labels")
+
+    labels = {}
+    for idx in range(5):
+        labels[f"mock_image_file_{idx}.jpeg"] = {
+            "img_dimensions": [800, 600],
+            "img_hash": "dummy_hash",
+            "polygons": [
+                [[1, 2], [1, 3], [2, 1], [2, 3]],
+                [[10, 20], [10, 30], [20, 10], [20, 30]],
+                [[3, 2], [3, 3], [4, 1], [4, 3]],
+                [[30, 20], [30, 30], [40, 10], [40, 30]],
+            ],
+            "class_names": [
+                "Table",
+                "Header",
+                "Footer",
+                "Text",
+            ],
+        }
+
+    labels_path = folder.join("labels.json")
+
+    with open(labels_path, "w") as f:
+        json.dump(labels, f)
+
+    return str(labels_path)
+
+
+@pytest.fixture(scope="session")
 def mock_recognition_label(tmpdir_factory):
     label_file = tmpdir_factory.mktemp("labels").join("labels.json")
     label = {
