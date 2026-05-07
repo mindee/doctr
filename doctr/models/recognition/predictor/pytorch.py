@@ -70,7 +70,7 @@ class RecognitionPredictor(nn.Module):
 
         # Forward it
         _params = next(self.model.parameters())
-        self.model, processed_batches = set_device_and_dtype(
+        self.model, processed_batches = set_device_and_dtype(  # type: ignore[assignment]
             self.model, processed_batches, _params.device, _params.dtype
         )
         raw = [self.model(batch, return_preds=True, **kwargs)["preds"] for batch in processed_batches]

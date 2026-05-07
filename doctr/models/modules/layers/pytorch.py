@@ -3,12 +3,11 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-
 import numpy as np
 import torch
 import torch.nn as nn
 
-__all__ = ["FASTConvLayer", "DropPath", "AdaptiveAvgPool2d"]
+__all__ = ["FASTConvLayer", "DropPath", "AdaptiveAvgPool2d", "ChannelLayerNorm"]
 
 
 class DropPath(nn.Module):
@@ -36,7 +35,6 @@ class DropPath(nn.Module):
 class AdaptiveAvgPool2d(nn.Module):
     """
     Custom AdaptiveAvgPool2d implementation which is ONNX and `torch.compile` compatible.
-
     """
 
     def __init__(self, output_size):
@@ -57,6 +55,29 @@ class AdaptiveAvgPool2d(nn.Module):
                 # average over the window
                 out[:, :, oh, ow] = x[:, :, start_h:end_h, start_w:end_w].mean(dim=(-2, -1))
         return out
+
+
+class ChannelLayerNorm(nn.Module):
+    """
+    A LayerNorm variant, popularized by Transformers, that performs point-wise mean and
+    variance normalization over the channel dimension for inputs that have shape
+    (batch_size, channels, height, width).
+    https://github.com/facebookresearch/ConvNeXt/blob/d1fa8f6fef0a165b27399986cc2bdacc92777e40/models/convnext.py#L119
+    """
+
+    def __init__(self, normalized_shape: int, eps: float = 1e-6):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(normalized_shape))
+        self.bias = nn.Parameter(torch.zeros(normalized_shape))
+        self.eps = eps
+        self.normalized_shape = (normalized_shape,)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        u = x.mean(1, keepdim=True)
+        s = (x - u).pow(2).mean(1, keepdim=True)
+        x = (x - u) / torch.sqrt(s + self.eps)
+        x = self.weight[:, None, None] * x + self.bias[:, None, None]
+        return x
 
 
 class FASTConvLayer(nn.Module):

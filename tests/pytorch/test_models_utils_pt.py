@@ -58,11 +58,40 @@ def test_conv_sequence():
 def test_set_device_and_dtype():
     model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))
     batches = [torch.rand(8) for _ in range(2)]
+
     model, batches = set_device_and_dtype(model, batches, device="cpu", dtype=torch.float32)
     assert model[0].weight.device == torch.device("cpu")
     assert model[0].weight.dtype == torch.float32
     assert batches[0].device == torch.device("cpu")
     assert batches[0].dtype == torch.float32
+    # FP16 check
     model, batches = set_device_and_dtype(model, batches, device="cpu", dtype=torch.float16)
     assert model[0].weight.dtype == torch.float16
     assert batches[0].dtype == torch.float16
+
+    img_batches = [torch.rand(8) for _ in range(2)]
+    mask_batches = [torch.ones(8, dtype=torch.bool) for _ in range(2)]
+
+    model, batch = set_device_and_dtype(
+        model,
+        (img_batches, mask_batches),
+        device="cpu",
+        dtype=torch.float32,
+    )
+
+    assert model[0].weight.device == torch.device("cpu")
+    assert model[0].weight.dtype == torch.float32
+
+    assert isinstance(batch, list)
+    new_imgs = [img for img, _ in batch]
+    new_masks = [mask for _, mask in batch]
+
+    # image checks
+    assert all(isinstance(t, torch.Tensor) for t in new_imgs)
+    assert all(t.dtype == torch.float32 for t in new_imgs)
+    assert all(t.device == torch.device("cpu") for t in new_imgs)
+
+    # mask checks (should be bool)
+    assert all(isinstance(t, torch.Tensor) for t in new_masks)
+    assert all(t.dtype == torch.bool for t in new_masks)
+    assert all(t.device == torch.device("cpu") for t in new_masks)
