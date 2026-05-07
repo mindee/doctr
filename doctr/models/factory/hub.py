@@ -97,7 +97,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     if run_config is None and arch is None:
         raise ValueError("run_config or arch must be specified")
-    if task not in ["classification", "detection", "recognition"]:
+    if task not in ["classification", "detection", "recognition", "layout"]:
         raise ValueError("task must be one of classification, detection, recognition, layout")
 
     # default readme
