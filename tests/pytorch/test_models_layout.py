@@ -116,8 +116,8 @@ def test_layout_zoo(arch_name):
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
-        ["lw_detr_s", (3, 1024, 1024)],
-        ["lw_detr_m", (3, 1024, 1024)],
+        ["lw_detr_s", (3, 512, 512)],
+        ["lw_detr_m", (3, 512, 512)],
     ],
 )
 def test_models_onnx_export(arch_name, input_shape):
