@@ -83,6 +83,7 @@ Supported datasets
    using_doctr/using_model_export
    using_doctr/custom_models_training
    using_doctr/running_on_aws
+   using_doctr/using_cli
 
 
 .. toctree::
