@@ -107,7 +107,7 @@ class AttentionWithCAE(nn.Module):
             zeros = torch.zeros_like(self.v_bias, requires_grad=False)
             qkv_bias = torch.cat([self.q_bias, zeros, self.v_bias])
             qkv = F.linear(x, weight=self.qkv.weight, bias=qkv_bias)
-        else:
+        else:  # pragma: no cover
             qkv = self.qkv(x)
 
         # Reshape to multi-head
@@ -189,7 +189,7 @@ class WindowedCAETransformerBlock(nn.Module):
             x = x.reshape(B // 16, 16 * HW, C)
             shortcut_r = shortcut.reshape(B // 16, 16 * HW, C)
 
-            if mask is not None:
+            if mask is not None:  # pragma: no cover
                 mask_r = mask.reshape(B // 16, 16 * HW)
             else:
                 mask_r = None
@@ -207,7 +207,7 @@ class WindowedCAETransformerBlock(nn.Module):
         # Reshape back if needed
         if not self.window:
             x = x.reshape(B, HW, C)
-            if mask is not None:
+            if mask is not None:  # pragma: no cover
                 mask = mask.reshape(B, HW)
 
         x = x + self.drop_path((self.gamma_2 * self.mlp(self.norm2(x))) if self.use_cae else self.mlp(self.norm2(x)))

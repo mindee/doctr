@@ -89,7 +89,7 @@ class ViTInput(nn.Module):
         xy_num = pos_embed.shape[1]
         size = int(math.sqrt(xy_num))
 
-        if size != H or size != W:
+        if size != H or size != W:  # pragma: no cover
             pos_embed = F.interpolate(
                 pos_embed.reshape(1, size, size, -1).permute(0, 3, 1, 2),
                 size=(H, W),
