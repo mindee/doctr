@@ -30,6 +30,7 @@ AVAILABLE_ARCHS = {
     "classification": models.classification.zoo.ARCHS + models.classification.zoo.ORIENTATION_ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
+    "layout": models.layout.zoo.ARCHS,
 }
 
 
@@ -97,7 +98,7 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
     if run_config is None and arch is None:
         raise ValueError("run_config or arch must be specified")
     if task not in ["classification", "detection", "recognition"]:
-        raise ValueError("task must be one of classification, detection, recognition")
+        raise ValueError("task must be one of classification, detection, recognition, layout")
 
     # default readme
     readme = textwrap.dedent(
@@ -208,6 +209,8 @@ def from_hub(repo_id: str, **kwargs: Any):
         model = models.detection.__dict__[arch](pretrained=False)
     elif task == "recognition":
         model = models.recognition.__dict__[arch](pretrained=False, input_shape=cfg["input_shape"], vocab=cfg["vocab"])
+    elif task == "layout":
+        model = models.layout.__dict__[arch](pretrained=False, class_names=cfg["class_names"])
 
     # update model cfg
     model.cfg = cfg
