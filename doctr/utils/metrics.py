@@ -620,7 +620,7 @@ class ObjectDetectionMetric:
         num_classes: int | None = None,
         use_polygons: bool = False,
     ) -> None:
-        self.iou_thresholds = iou_thresholds if iou_thresholds is not None else np.arange(0.5, 1.0, 0.05)
+        self.iou_thresholds = iou_thresholds if iou_thresholds is not None else np.round(np.arange(0.5, 1.0, 0.05), 2)
         self.num_classes = num_classes
         self.use_polygons = use_polygons
         self.reset()
