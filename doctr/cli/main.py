@@ -22,7 +22,6 @@ def main(argv=None):
         det_arch=args.det_arch,
         reco_arch=args.reco_arch,
         pretrained=True,
-        pretrained_backbone=True,
         assume_straight_pages=args.assume_straight_pages,
         preserve_aspect_ratio=args.preserve_aspect_ratio,
         symmetric_pad=args.symmetric_pad,
