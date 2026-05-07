@@ -7,7 +7,7 @@
 import numpy as np
 from anyascii import anyascii
 from scipy.optimize import linear_sum_assignment
-from shapely.geometry import Polygon
+from shapely import area, intersection, polygons
 
 __all__ = [
     "TextMatch",
@@ -165,18 +165,24 @@ def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
     if polys_1.ndim != 3 or polys_2.ndim != 3:
         raise AssertionError("expects boxes to be in format (N, 4, 2)")
 
-    iou_mat = np.zeros((polys_1.shape[0], polys_2.shape[0]), dtype=np.float32)
+    n, m = polys_1.shape[0], polys_2.shape[0]
+    if n == 0 or m == 0:
+        return np.zeros((n, m), dtype=np.float32)
 
-    shapely_polys_1 = [Polygon(poly) for poly in polys_1]
-    shapely_polys_2 = [Polygon(poly) for poly in polys_2]
+    geoms_1 = polygons(polys_1)
+    geoms_2 = polygons(polys_2)
+    grid_1 = np.repeat(geoms_1, m)
+    grid_2 = np.tile(geoms_2, n)
 
-    for i, poly1 in enumerate(shapely_polys_1):
-        for j, poly2 in enumerate(shapely_polys_2):
-            intersection_area = poly1.intersection(poly2).area
-            union_area = poly1.area + poly2.area - intersection_area
-            iou_mat[i, j] = intersection_area / union_area
+    # Compute intersections and areas
+    intersections = area(intersection(grid_1, grid_2))
+    areas_1 = area(grid_1)
+    areas_2 = area(grid_2)
 
-    return iou_mat
+    # Compute IoU
+    unions = areas_1 + areas_2 - intersections
+    iou_flat = np.divide(intersections, unions, out=np.zeros_like(intersections), where=unions > 0)
+    return iou_flat.reshape(n, m).astype(np.float32)
 
 
 def nms(boxes: np.ndarray, thresh: float = 0.5) -> list[int]:
