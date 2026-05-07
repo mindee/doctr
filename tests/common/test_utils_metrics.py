@@ -425,13 +425,14 @@ def test_object_detection_metric_cases():
     metric = metrics.ObjectDetectionMetric()
     metric.update(
         np.asarray([[0, 0, 1, 1]], dtype=float),
-        np.asarray([[0, 0, 1, 1], [0.5, 0.5, 0.7, 0.7]], dtype=float),
+        np.asarray([[0.5, 0.5, 0.7, 0.7], [0, 0, 1, 1]], dtype=float),
         np.asarray([0], dtype=np.int64),
         np.asarray([0, 0], dtype=np.int64),
         np.asarray([0.9, 0.8], dtype=float),
     )
     summary = metric.summary()
     assert summary["mAP@[.5:.95]"] < 1.0
+    assert summary["AP@[.5]"] < 1.0
 
     # Test with polygons
     metric = metrics.ObjectDetectionMetric(use_polygons=True)
@@ -445,3 +446,23 @@ def test_object_detection_metric_cases():
     summary = metric.summary()
     assert summary["mAP@[.5:.95]"] == pytest.approx(1.0, abs=1e-6)
     assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
+
+    # False positives should reduce mAP even with perfect localization and class match
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.2], dtype=float),
+    )
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0.5, 0.5, 0.7, 0.7]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.9], dtype=float),
+    )
+    summary = metric.summary()
+    # Global ranking should place FP before TP therefore AP must be < 1
+    assert summary["mAP@[.5:.95]"] < 1.0

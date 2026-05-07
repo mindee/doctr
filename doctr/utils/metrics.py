@@ -553,17 +553,23 @@ class DetectionMetric:
 
 
 class ObjectDetectionMetric:
-    r"""Implements a COCO-style object detection metric (mAP@[.5:.95]).
-
+    r"""Implements a COCO-style object detection metric (mAP@[.5:.95]) inspired by the COCO evaluation protocol.
     The aggregated metrics are computed as follows:
 
     .. math::
+
         \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
         \forall (\hat{B}, \hat{C}, S) \in \mathcal{B}^M \times \mathcal{C}^M \times \mathbb{R}^M, \\
 
-        AP_t(C) = \int_0^1 Precision_t(r, C)\, dr \\
+        AP_t(C) =
+        \frac{1}{101}
+        \sum\limits_{r \in \{0, 0.01, \dots, 1.0\}}
+        \max_{\tilde{r} \geq r} Precision_t(\tilde{r}, C) \\
 
-        mAP@[.5:.95] = \frac{1}{T} \sum\limits_{t \in \mathcal{T}} \frac{1}{|\mathcal{C}|}
+        mAP@[.5:.95] =
+        \frac{1}{|\mathcal{T}|}
+        \sum\limits_{t \in \mathcal{T}}
+        \frac{1}{|\mathcal{C}|}
         \sum\limits_{c \in \mathcal{C}} AP_t(c)
 
     where:
@@ -571,15 +577,22 @@ class ObjectDetectionMetric:
         - :math:`\mathcal{C}` is the set of possible class indices,
         - :math:`S` are confidence scores associated to predictions,
         - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
-        - :math:`AP_t(c)` is the Average Precision for class :math:`c` at IoU threshold :math:`t`.
+        - :math:`AP_t(c)` is the Average Precision for class :math:`c`
+        at IoU threshold :math:`t`.
 
-    For a given class and IoU threshold, predictions are sorted by decreasing confidence score.
-    Each prediction is greedily matched to the ground truth with the highest IoU, provided that:
+    For a given class and IoU threshold, predictions from all images are
+    aggregated and sorted globally by decreasing confidence score.
+
+    Each prediction is greedily matched to the unmatched ground-truth box
+    with the highest IoU, provided that:
         - the IoU is greater than or equal to the threshold,
-        - the ground truth has not already been matched.
+        - the ground-truth box has not already been matched.
 
-    True positives and false positives are accumulated to build a precision-recall curve,
-    and the Average Precision is computed as the area under this curve.
+    True positives and false positives are accumulated to build a
+    precision-recall curve.
+
+    Average Precision is computed using the COCO 101-point interpolated
+    precision-recall curve.
 
     >>> import numpy as np
     >>> from doctr.utils import ObjectDetectionMetric
@@ -634,7 +647,7 @@ class ObjectDetectionMetric:
         if len(self._gts) == 0:
             raise AssertionError("No samples added")
 
-        # determine classes
+        # Determine classes
         if self.num_classes is None:
             labels = []
             for g in self._gts:
@@ -645,94 +658,135 @@ class ObjectDetectionMetric:
         else:
             classes = np.arange(self.num_classes)
 
-        ap_per_iou = []
+        ap_per_iou = {}
 
         for iou_thresh in self.iou_thresholds:
-            aps = []
+            class_aps = []
 
             for c in classes:
-                tp_all = []
-                fp_all = []
+                # Collect GTs per image
+                gt_by_image = {}
                 total_gt = 0
 
-                for gt, pred in zip(self._gts, self._preds):
-                    gt_mask = gt["labels"] == c
-                    pred_mask = pred["labels"] == c
+                for img_idx, gt in enumerate(self._gts):
+                    mask = gt["labels"] == c
+                    gt_boxes = gt["boxes"][mask]
 
-                    gt_boxes = gt["boxes"][gt_mask]
-                    pred_boxes = pred["boxes"][pred_mask]
-                    pred_scores = pred["scores"][pred_mask]
+                    gt_by_image[img_idx] = {
+                        "boxes": gt_boxes,
+                        "matched": np.zeros(len(gt_boxes), dtype=bool),
+                    }
 
                     total_gt += len(gt_boxes)
-
-                    if len(pred_boxes) == 0:
-                        continue
-
-                    # sort by confidence
-                    order = np.argsort(-pred_scores)
-                    pred_boxes = pred_boxes[order]
-
-                    if len(gt_boxes) == 0:
-                        tp_all.extend([0] * len(pred_boxes))
-                        fp_all.extend([1] * len(pred_boxes))
-                        continue
-
-                    # IoU
-                    if self.use_polygons:
-                        iou_mat = polygon_iou(gt_boxes, pred_boxes)
-                    else:
-                        iou_mat = box_iou(gt_boxes, pred_boxes)
-
-                    matched_gt = set()
-
-                    for i in range(len(pred_boxes)):
-                        ious = iou_mat[:, i]
-                        best_gt = np.argmax(ious)
-                        best_iou = ious[best_gt]
-
-                        if best_iou >= iou_thresh and best_gt not in matched_gt:
-                            tp_all.append(1)
-                            fp_all.append(0)
-                            matched_gt.add(best_gt)
-                        else:
-                            tp_all.append(0)
-                            fp_all.append(1)
 
                 if total_gt == 0:
                     continue
 
-                tp = np.array(tp_all)
-                fp = np.array(fp_all)
+                # Collect all detections globally
+                detections = []
 
+                for img_idx, pred in enumerate(self._preds):
+                    mask = pred["labels"] == c
+
+                    pred_boxes = pred["boxes"][mask]
+                    pred_scores = pred["scores"][mask]
+
+                    for box, score in zip(pred_boxes, pred_scores):
+                        detections.append({
+                            "image_id": img_idx,
+                            "box": box,
+                            "score": float(score),
+                        })
+
+                if len(detections) == 0:
+                    class_aps.append(0.0)
+                    continue
+
+                # Global sorting COCO-style
+                detections.sort(key=lambda x: -x["score"])
+
+                tp = np.zeros(len(detections))
+                fp = np.zeros(len(detections))
+
+                # Evaluate detections
+                for det_idx, det in enumerate(detections):
+                    img_idx = det["image_id"]
+                    pred_box = det["box"]
+
+                    gt_data = gt_by_image[img_idx]
+                    gt_boxes = gt_data["boxes"]
+
+                    if len(gt_boxes) == 0:
+                        fp[det_idx] = 1
+                        continue
+
+                    # Compute IoUs
+                    if self.use_polygons:
+                        iou_mat = polygon_iou(
+                            gt_boxes,
+                            np.expand_dims(pred_box, axis=0),
+                        )
+                    else:
+                        iou_mat = box_iou(
+                            gt_boxes,
+                            np.expand_dims(pred_box, axis=0),
+                        )
+
+                    ious = iou_mat[:, 0]
+
+                    best_gt = np.argmax(ious)
+                    best_iou = ious[best_gt]
+
+                    if best_iou >= iou_thresh and not gt_data["matched"][best_gt]:
+                        tp[det_idx] = 1
+                        gt_data["matched"][best_gt] = True
+                    else:
+                        fp[det_idx] = 1
+
+                # Precision / Recall
                 tp_cum = np.cumsum(tp)
                 fp_cum = np.cumsum(fp)
 
                 recall = tp_cum / total_gt
-                precision = tp_cum / (tp_cum + fp_cum + 1e-8)
+                precision = tp_cum / np.maximum(tp_cum + fp_cum, 1e-8)
 
-                aps.append(self._compute_ap(recall, precision))
+                ap = self._compute_ap(recall, precision)
+                class_aps.append(ap)
 
-            if aps:
-                ap_per_iou.append(np.mean(aps))
+            ap_per_iou[float(iou_thresh)] = float(np.mean(class_aps)) if len(class_aps) > 0 else 0.0
 
-        map = float(np.mean(ap_per_iou)) if ap_per_iou else 0.0
+        map_value = float(np.mean(list(ap_per_iou.values())))
+        ap50 = ap_per_iou.get(0.5)
+        ap75 = ap_per_iou.get(0.75)
 
         return {
-            "mAP@[.5:.95]": map,
-            "AP@[.5]": ap_per_iou[0] if len(ap_per_iou) > 0 else None,
-            "AP@[.75]": ap_per_iou[5] if len(ap_per_iou) > 5 else None,
-            "AP_per_IoU": dict(zip(self.iou_thresholds.tolist(), ap_per_iou)),
+            "mAP@[.5:.95]": map_value,
+            "AP@[.5]": ap50,
+            "AP@[.75]": ap75,
+            "AP_per_IoU": ap_per_iou,
         }
 
-    def _compute_ap(self, recall, precision):
-        recall = np.concatenate(([0.0], recall, [1.0]))
-        precision = np.concatenate(([0.0], precision, [0.0]))
+    def _compute_ap(self, recall: np.ndarray, precision: np.ndarray) -> float:
+        """Computes the Average Precision using the 101-point interpolation method from COCO
 
-        for i in range(len(precision) - 1, 0, -1):
-            precision[i - 1] = max(precision[i - 1], precision[i])
+        Args:
+            recall: array of recall values
+            precision: array of precision values
 
-        idx = np.where(recall[1:] != recall[:-1])[0]
-        return float(np.sum((recall[idx + 1] - recall[idx]) * precision[idx + 1]))
+        Returns:
+            the Average Precision score
+        """
+        # 101-point interpolation as per COCO
+        precision = np.maximum.accumulate(precision[::-1])[::-1]
+
+        recall_levels = np.linspace(0, 1, 101)
+        precisions = np.zeros_like(recall_levels)
+
+        for i, r in enumerate(recall_levels):
+            p = precision[recall >= r]
+            precisions[i] = np.max(p) if p.size > 0 else 0.0
+
+        return float(np.mean(precisions))
 
     def reset(self):
         self._gts = []
