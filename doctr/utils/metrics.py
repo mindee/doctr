@@ -156,8 +156,6 @@ def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
     Args:
         polys_1: rotated bounding boxes of shape (N, 4, 2)
         polys_2: rotated bounding boxes of shape (M, 4, 2)
-        mask_shape: spatial shape of the intermediate masks
-        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory
 
     Returns:
         the IoU matrix of shape (N, M)
