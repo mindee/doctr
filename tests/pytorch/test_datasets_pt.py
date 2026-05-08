@@ -1,3 +1,4 @@
+import json
 import os
 from shutil import move
 
@@ -229,6 +230,65 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
             label_path=mock_layout_label,
         )
     move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
+
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(
+            img_folder=mock_image_folder,
+            label_path="/tmp/does_not_exist.json",
+        )
+
+    with open(mock_layout_label) as f:
+        original_labels = json.load(f)
+    first_key = next(iter(original_labels))
+
+    test_cases = [
+        (
+            {"class_names": ["Text"]},
+            KeyError,
+            "missing 'polygons'",
+        ),
+        (
+            {"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]]]},
+            KeyError,
+            "missing 'class_names'",
+        ),
+        (
+            {
+                "polygons": [
+                    [[0, 0], [1, 0], [1, 1], [0, 1]],
+                    [[0, 0], [1, 0], [1, 1], [0, 1]],
+                ],
+                "class_names": ["Text"],
+            },
+            ValueError,
+            "number of polygons",
+        ),
+        (
+            {
+                "polygons": [[[0, 0], [1, 0], [1, 1]]],  # only 3 points
+                "class_names": ["Text"],
+            },
+            ValueError,
+            "polygons are expected to have shape",
+        ),
+    ]
+
+    for sample, exc_type, match in test_cases:
+        broken_labels = dict(original_labels)
+        broken_labels[first_key] = sample
+
+        with open(mock_layout_label, "w") as f:
+            json.dump(broken_labels, f)
+
+        with pytest.raises(exc_type, match=match):
+            datasets.LayoutDataset(
+                img_folder=mock_image_folder,
+                label_path=mock_layout_label,
+            )
+
+    # Restore original labels
+    with open(mock_layout_label, "w") as f:
+        json.dump(original_labels, f)
 
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):
