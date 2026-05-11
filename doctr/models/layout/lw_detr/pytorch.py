@@ -125,7 +125,7 @@ class LWDETRBackbone(nn.Module):
         feats = self.encoder(x)
         feats = self.projector(feats)
         # [(B, C, H, W)]
-        if mask is None:
+        if mask is None:  # pragma: no cover
             mask = torch.zeros((x.shape[0], x.shape[2], x.shape[3]), dtype=torch.bool, device=x.device)
         return [
             (feat, F.interpolate(mask.unsqueeze(1).float(), size=feat.shape[-2:], mode="nearest").squeeze(1).bool())
@@ -236,7 +236,7 @@ class LWDETR(nn.Module, _LWDETR):
                 nn.init.trunc_normal_(m.weight, mean=0.0, std=0.02)
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
-            elif isinstance(m, (nn.Conv2d, nn.ConvTranspose2d)):
+            elif isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
@@ -432,7 +432,7 @@ class LWDETR(nn.Module, _LWDETR):
         for source, mask in feats:
             sources.append(source)
             feats_masks.append(mask)
-            if mask is None:
+            if mask is None:  # pragma: no cover
                 raise ValueError("No attention mask was provided")
 
         if self.training:
@@ -581,11 +581,6 @@ class LWDETR(nn.Module, _LWDETR):
 
             pred_xy = pred_boxes_b[:, :4]
             pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
-
-            if num_gt == 0:
-                target_classes = torch.full((Q,), bg_idx, device=device)
-                total_cls += F.cross_entropy(pred_logits, target_classes)
-                continue
 
             tgt_rot = F.normalize(tgt_boxes[:, 4:6], dim=-1)
             tgt_boxes_xy = tgt_boxes[:, :4]

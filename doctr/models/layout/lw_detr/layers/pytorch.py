@@ -232,7 +232,6 @@ class LWDETRMultiscaleDeformableAttention(nn.Module):
         encoder_hidden_states=None,
         position_embeddings: torch.Tensor | None = None,
         reference_points=None,
-        spatial_shapes=None,
         spatial_shapes_list=None,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         # add position embeddings to the hidden states before projecting to queries and keys
