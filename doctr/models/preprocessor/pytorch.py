@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any, cast, overload
+from typing import Any, overload
 
 import numpy as np
 import torch
@@ -70,9 +70,7 @@ class PreProcessor(nn.Module):
         num_batches = int(math.ceil(len(samples) / self.batch_size))
 
         if isinstance(samples[0], tuple):
-            tuple_samples = cast(list[tuple[torch.Tensor, torch.Tensor]], samples)
-
-            imgs, masks = zip(*tuple_samples)
+            imgs, masks = zip(*samples)
 
             img_batches = [
                 torch.stack(imgs[idx * self.batch_size : min((idx + 1) * self.batch_size, len(imgs))], dim=0)
@@ -86,11 +84,9 @@ class PreProcessor(nn.Module):
 
             return img_batches, mask_batches
 
-        tensor_samples = cast(list[torch.Tensor], samples)
-
         return [
             torch.stack(
-                tensor_samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(tensor_samples))],
+                samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))],
                 dim=0,
             )
             for idx in range(num_batches)
