@@ -298,7 +298,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">anyascii</span><span class="w"> </span><span class="kn">import</span> <span class="n">anyascii</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">linear_sum_assignment</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely</span><span class="w"> </span><span class="kn">import</span> <span class="n">area</span><span class="p">,</span> <span class="n">intersection</span><span class="p">,</span> <span class="n">polygons</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
     <span class="s2">&quot;TextMatch&quot;</span><span class="p">,</span>
@@ -308,6 +308,7 @@
     <span class="s2">&quot;LocalizationConfusion&quot;</span><span class="p">,</span>
     <span class="s2">&quot;OCRMetric&quot;</span><span class="p">,</span>
     <span class="s2">&quot;DetectionMetric&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ObjectDetectionMetric&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -455,8 +456,6 @@
 <span class="sd">    Args:</span>
 <span class="sd">        polys_1: rotated bounding boxes of shape (N, 4, 2)</span>
 <span class="sd">        polys_2: rotated bounding boxes of shape (M, 4, 2)</span>
-<span class="sd">        mask_shape: spatial shape of the intermediate masks</span>
-<span class="sd">        use_broadcasting: if set to True, leverage broadcasting speedup by consuming more memory</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the IoU matrix of shape (N, M)</span>
@@ -464,18 +463,24 @@
     <span class="k">if</span> <span class="n">polys_1</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;expects boxes to be in format (N, 4, 2)&quot;</span><span class="p">)</span>
 
-    <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">polys_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">polys_1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">polys_2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">m</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-    <span class="n">shapely_polys_1</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span> <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">polys_1</span><span class="p">]</span>
-    <span class="n">shapely_polys_2</span> <span class="o">=</span> <span class="p">[</span><span class="n">Polygon</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span> <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">polys_2</span><span class="p">]</span>
+    <span class="n">geoms_1</span> <span class="o">=</span> <span class="n">polygons</span><span class="p">(</span><span class="n">polys_1</span><span class="p">)</span>
+    <span class="n">geoms_2</span> <span class="o">=</span> <span class="n">polygons</span><span class="p">(</span><span class="n">polys_2</span><span class="p">)</span>
+    <span class="n">grid_1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">geoms_1</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+    <span class="n">grid_2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">geoms_2</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">poly1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shapely_polys_1</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">poly2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">shapely_polys_2</span><span class="p">):</span>
-            <span class="n">intersection_area</span> <span class="o">=</span> <span class="n">poly1</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">poly2</span><span class="p">)</span><span class="o">.</span><span class="n">area</span>
-            <span class="n">union_area</span> <span class="o">=</span> <span class="n">poly1</span><span class="o">.</span><span class="n">area</span> <span class="o">+</span> <span class="n">poly2</span><span class="o">.</span><span class="n">area</span> <span class="o">-</span> <span class="n">intersection_area</span>
-            <span class="n">iou_mat</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">intersection_area</span> <span class="o">/</span> <span class="n">union_area</span>
+    <span class="c1"># Compute intersections and areas</span>
+    <span class="n">intersections</span> <span class="o">=</span> <span class="n">area</span><span class="p">(</span><span class="n">intersection</span><span class="p">(</span><span class="n">grid_1</span><span class="p">,</span> <span class="n">grid_2</span><span class="p">))</span>
+    <span class="n">areas_1</span> <span class="o">=</span> <span class="n">area</span><span class="p">(</span><span class="n">grid_1</span><span class="p">)</span>
+    <span class="n">areas_2</span> <span class="o">=</span> <span class="n">area</span><span class="p">(</span><span class="n">grid_2</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">iou_mat</span>
+    <span class="c1"># Compute IoU</span>
+    <span class="n">unions</span> <span class="o">=</span> <span class="n">areas_1</span> <span class="o">+</span> <span class="n">areas_2</span> <span class="o">-</span> <span class="n">intersections</span>
+    <span class="n">iou_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">intersections</span><span class="p">,</span> <span class="n">unions</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">intersections</span><span class="p">),</span> <span class="n">where</span><span class="o">=</span><span class="n">unions</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">iou_flat</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">nms</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
@@ -875,6 +880,261 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot_iou</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="ObjectDetectionMetric">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.ObjectDetectionMetric">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ObjectDetectionMetric</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements a COCO-style object detection metric (mAP@[.5:.95]) inspired by the COCO evaluation protocol.</span>
+<span class="sd">    The aggregated metrics are computed as follows:</span>
+
+<span class="sd">    .. math::</span>
+
+<span class="sd">        \forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,</span>
+<span class="sd">        \forall (\hat{B}, \hat{C}, S) \in \mathcal{B}^M \times \mathcal{C}^M \times \mathbb{R}^M, \\</span>
+
+<span class="sd">        AP_t(C) =</span>
+<span class="sd">        \frac{1}{101}</span>
+<span class="sd">        \sum\limits_{r \in \{0, 0.01, \dots, 1.0\}}</span>
+<span class="sd">        \max_{\tilde{r} \geq r} Precision_t(\tilde{r}, C) \\</span>
+
+<span class="sd">        mAP@[.5:.95] =</span>
+<span class="sd">        \frac{1}{|\mathcal{T}|}</span>
+<span class="sd">        \sum\limits_{t \in \mathcal{T}}</span>
+<span class="sd">        \frac{1}{|\mathcal{C}|}</span>
+<span class="sd">        \sum\limits_{c \in \mathcal{C}} AP_t(c)</span>
+
+<span class="sd">    where:</span>
+<span class="sd">        - :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">        - :math:`\mathcal{C}` is the set of possible class indices,</span>
+<span class="sd">        - :math:`S` are confidence scores associated to predictions,</span>
+<span class="sd">        - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,</span>
+<span class="sd">        - :math:`AP_t(c)` is the Average Precision for class :math:`c`</span>
+<span class="sd">        at IoU threshold :math:`t`.</span>
+
+<span class="sd">    For a given class and IoU threshold, predictions from all images are</span>
+<span class="sd">    aggregated and sorted globally by decreasing confidence score.</span>
+
+<span class="sd">    Each prediction is greedily matched to the unmatched ground-truth box</span>
+<span class="sd">    with the highest IoU, provided that:</span>
+<span class="sd">        - the IoU is greater than or equal to the threshold,</span>
+<span class="sd">        - the ground-truth box has not already been matched.</span>
+
+<span class="sd">    True positives and false positives are accumulated to build a</span>
+<span class="sd">    precision-recall curve.</span>
+
+<span class="sd">    Average Precision is computed using the COCO 101-point interpolated</span>
+<span class="sd">    precision-recall curve.</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import ObjectDetectionMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = ObjectDetectionMetric()</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(</span>
+<span class="sd">    ...     np.asarray([[0, 0, 100, 100]]),</span>
+<span class="sd">    ...     np.asarray([[0, 0, 80, 80], [120, 120, 200, 200]]),</span>
+<span class="sd">    ...     np.asarray([0]),</span>
+<span class="sd">    ...     np.asarray([0, 1]),</span>
+<span class="sd">    ...     np.asarray([0.9, 0.3])</span>
+<span class="sd">    ... )</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        iou_thresholds: sequence of IoU thresholds used to compute the metric</span>
+<span class="sd">            (defaults to np.arange(0.5, 1.0, 0.05))</span>
+<span class="sd">        num_classes: total number of classes. If None, inferred from data</span>
+<span class="sd">        use_polygons: if set to True, predictions and targets will be expected</span>
+<span class="sd">            to have rotated format</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iou_thresholds</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_classes</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresholds</span> <span class="o">=</span> <span class="n">iou_thresholds</span> <span class="k">if</span> <span class="n">iou_thresholds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="n">num_classes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span> <span class="o">=</span> <span class="n">use_polygons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ObjectDetectionMetric.update">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.ObjectDetectionMetric.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gt_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gt_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_labels</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_scores</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">gt_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">gt_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_labels</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="ow">or</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Mismatch between boxes, labels, scores&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gts</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;boxes&quot;</span><span class="p">:</span> <span class="n">gt_boxes</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">gt_labels</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_preds</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">&quot;boxes&quot;</span><span class="p">:</span> <span class="n">pred_boxes</span><span class="p">,</span> <span class="s2">&quot;labels&quot;</span><span class="p">:</span> <span class="n">pred_labels</span><span class="p">,</span> <span class="s2">&quot;scores&quot;</span><span class="p">:</span> <span class="n">pred_scores</span><span class="p">})</span></div>
+
+
+<div class="viewcode-block" id="ObjectDetectionMetric.summary">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.ObjectDetectionMetric.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the aggregated metrics</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a dictionary with the mAP@[.5:.95], AP@[.5], AP@[.75] and AP per IoU threshold</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;No samples added&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Determine classes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gts</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_preds</span><span class="p">:</span>
+                <span class="n">labels</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+            <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">classes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+
+        <span class="n">ap_per_iou</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">iou_thresh</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresholds</span><span class="p">:</span>
+            <span class="n">class_aps</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">classes</span><span class="p">:</span>
+                <span class="c1"># Collect GTs per image</span>
+                <span class="n">gt_by_image</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">total_gt</span> <span class="o">=</span> <span class="mi">0</span>
+
+                <span class="k">for</span> <span class="n">img_idx</span><span class="p">,</span> <span class="n">gt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gts</span><span class="p">):</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">gt</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">c</span>
+                    <span class="n">gt_boxes</span> <span class="o">=</span> <span class="n">gt</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+
+                    <span class="n">gt_by_image</span><span class="p">[</span><span class="n">img_idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;boxes&quot;</span><span class="p">:</span> <span class="n">gt_boxes</span><span class="p">,</span>
+                        <span class="s2">&quot;matched&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span>
+                    <span class="p">}</span>
+
+                    <span class="n">total_gt</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">total_gt</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Collect all detections globally</span>
+                <span class="n">detections</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">for</span> <span class="n">img_idx</span><span class="p">,</span> <span class="n">pred</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_preds</span><span class="p">):</span>
+                    <span class="n">mask</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s2">&quot;labels&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="n">c</span>
+
+                    <span class="n">pred_boxes</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+                    <span class="n">pred_scores</span> <span class="o">=</span> <span class="n">pred</span><span class="p">[</span><span class="s2">&quot;scores&quot;</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+
+                    <span class="k">for</span> <span class="n">box</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pred_boxes</span><span class="p">,</span> <span class="n">pred_scores</span><span class="p">):</span>
+                        <span class="n">detections</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                            <span class="s2">&quot;image_id&quot;</span><span class="p">:</span> <span class="n">img_idx</span><span class="p">,</span>
+                            <span class="s2">&quot;box&quot;</span><span class="p">:</span> <span class="n">box</span><span class="p">,</span>
+                            <span class="s2">&quot;score&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">score</span><span class="p">),</span>
+                        <span class="p">})</span>
+
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">detections</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">class_aps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Global sorting COCO-style</span>
+                <span class="n">detections</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="o">-</span><span class="n">x</span><span class="p">[</span><span class="s2">&quot;score&quot;</span><span class="p">])</span>
+
+                <span class="n">tp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">detections</span><span class="p">))</span>
+                <span class="n">fp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">detections</span><span class="p">))</span>
+
+                <span class="c1"># Evaluate detections</span>
+                <span class="k">for</span> <span class="n">det_idx</span><span class="p">,</span> <span class="n">det</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">detections</span><span class="p">):</span>
+                    <span class="n">img_idx</span> <span class="o">=</span> <span class="n">det</span><span class="p">[</span><span class="s2">&quot;image_id&quot;</span><span class="p">]</span>
+                    <span class="n">pred_box</span> <span class="o">=</span> <span class="n">det</span><span class="p">[</span><span class="s2">&quot;box&quot;</span><span class="p">]</span>
+
+                    <span class="n">gt_data</span> <span class="o">=</span> <span class="n">gt_by_image</span><span class="p">[</span><span class="n">img_idx</span><span class="p">]</span>
+                    <span class="n">gt_boxes</span> <span class="o">=</span> <span class="n">gt_data</span><span class="p">[</span><span class="s2">&quot;boxes&quot;</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">gt_boxes</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">fp</span><span class="p">[</span><span class="n">det_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">continue</span>
+
+                    <span class="c1"># Compute IoUs</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+                        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span>
+                            <span class="n">gt_boxes</span><span class="p">,</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">pred_box</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                        <span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span>
+                            <span class="n">gt_boxes</span><span class="p">,</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">pred_box</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+                        <span class="p">)</span>
+
+                    <span class="n">ious</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+                    <span class="n">best_gt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">ious</span><span class="p">)</span>
+                    <span class="n">best_iou</span> <span class="o">=</span> <span class="n">ious</span><span class="p">[</span><span class="n">best_gt</span><span class="p">]</span>
+
+                    <span class="k">if</span> <span class="n">best_iou</span> <span class="o">&gt;=</span> <span class="n">iou_thresh</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gt_data</span><span class="p">[</span><span class="s2">&quot;matched&quot;</span><span class="p">][</span><span class="n">best_gt</span><span class="p">]:</span>
+                        <span class="n">tp</span><span class="p">[</span><span class="n">det_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="n">gt_data</span><span class="p">[</span><span class="s2">&quot;matched&quot;</span><span class="p">][</span><span class="n">best_gt</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">fp</span><span class="p">[</span><span class="n">det_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+                <span class="c1"># Precision / Recall</span>
+                <span class="n">tp_cum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+                <span class="n">fp_cum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+
+                <span class="n">recall</span> <span class="o">=</span> <span class="n">tp_cum</span> <span class="o">/</span> <span class="n">total_gt</span>
+                <span class="n">precision</span> <span class="o">=</span> <span class="n">tp_cum</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">tp_cum</span> <span class="o">+</span> <span class="n">fp_cum</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">)</span>
+
+                <span class="n">ap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compute_ap</span><span class="p">(</span><span class="n">recall</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
+                <span class="n">class_aps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ap</span><span class="p">)</span>
+
+            <span class="n">ap_per_iou</span><span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">iou_thresh</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">class_aps</span><span class="p">))</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_aps</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="n">map_value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">ap_per_iou</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+        <span class="n">ap50</span> <span class="o">=</span> <span class="n">ap_per_iou</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="n">ap75</span> <span class="o">=</span> <span class="n">ap_per_iou</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;mAP@[.5:.95]&quot;</span><span class="p">:</span> <span class="n">map_value</span><span class="p">,</span>
+            <span class="s2">&quot;AP@[.5]&quot;</span><span class="p">:</span> <span class="n">ap50</span><span class="p">,</span>
+            <span class="s2">&quot;AP@[.75]&quot;</span><span class="p">:</span> <span class="n">ap75</span><span class="p">,</span>
+            <span class="s2">&quot;AP_per_IoU&quot;</span><span class="p">:</span> <span class="n">ap_per_iou</span><span class="p">,</span>
+        <span class="p">}</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_compute_ap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recall</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">precision</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Computes the Average Precision using the 101-point interpolation method from COCO</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            recall: array of recall values</span>
+<span class="sd">            precision: array of precision values</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            the Average Precision score</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 101-point interpolation as per COCO</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="o">.</span><span class="n">accumulate</span><span class="p">(</span><span class="n">precision</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">])[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">recall_levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+        <span class="n">precisions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">recall_levels</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">recall_levels</span><span class="p">):</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">precision</span><span class="p">[</span><span class="n">recall</span> <span class="o">&gt;=</span> <span class="n">r</span><span class="p">]</span>
+            <span class="n">precisions</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">precisions</span><span class="p">))</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_preds</span> <span class="o">=</span> <span class="p">[]</span></div>
 
 </pre></div>
         </article>

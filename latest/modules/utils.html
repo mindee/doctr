@@ -636,6 +636,93 @@ h_{B,C}(b, c) = \left\{
 
 </dd></dl>
 
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.utils.metrics.ObjectDetectionMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.utils.metrics.</span></span><span class="sig-name descname"><span class="pre">ObjectDetectionMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iou_thresholds</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_classes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#ObjectDetectionMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.ObjectDetectionMetric" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a COCO-style object detection metric (mAP&#64;[.5:.95]) inspired by the COCO evaluation protocol.
+The aggregated metrics are computed as follows:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[ \begin{align}\begin{aligned}\begin{split}\forall (B, C) \in \mathcal{B}^N \times \mathcal{C}^N,
+\forall (\hat{B}, \hat{C}, S) \in \mathcal{B}^M \times \mathcal{C}^M \times \mathbb{R}^M, \\\end{split}\\\begin{split}AP_t(C) =
+\frac{1}{101}
+\sum\limits_{r \in \{0, 0.01, \dots, 1.0\}}
+\max_{\tilde{r} \geq r} Precision_t(\tilde{r}, C) \\\end{split}\\mAP&#64;[.5:.95] =
+\frac{1}{|\mathcal{T}|}
+\sum\limits_{t \in \mathcal{T}}
+\frac{1}{|\mathcal{C}|}
+\sum\limits_{c \in \mathcal{C}} AP_t(c)\end{aligned}\end{align} \]</div>
+</div>
+<dl>
+<dt>where:</dt><dd><ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(\mathcal{B}\)</span> is the set of possible bounding boxes,</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{C}\)</span> is the set of possible class indices,</p></li>
+<li><p><span class="math notranslate nohighlight">\(S\)</span> are confidence scores associated to predictions,</p></li>
+<li><p><span class="math notranslate nohighlight">\(\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}\)</span> is the set of IoU thresholds,</p></li>
+<li><p><span class="math notranslate nohighlight">\(AP_t(c)\)</span> is the Average Precision for class <span class="math notranslate nohighlight">\(c\)</span></p></li>
+</ul>
+<p>at IoU threshold <span class="math notranslate nohighlight">\(t\)</span>.</p>
+</dd>
+</dl>
+<p>For a given class and IoU threshold, predictions from all images are
+aggregated and sorted globally by decreasing confidence score.</p>
+<p>Each prediction is greedily matched to the unmatched ground-truth box
+with the highest IoU, provided that:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>the IoU is greater than or equal to the threshold,</p></li>
+<li><p>the ground-truth box has not already been matched.</p></li>
+</ul>
+</div></blockquote>
+<p>True positives and false positives are accumulated to build a
+precision-recall curve.</p>
+<p>Average Precision is computed using the COCO 101-point interpolated
+precision-recall curve.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectDetectionMetric</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">ObjectDetectionMetric</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+<span class="gp">... </span>    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span><span class="p">]]),</span>
+<span class="gp">... </span>    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="mi">80</span><span class="p">],</span> <span class="p">[</span><span class="mi">120</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">]]),</span>
+<span class="gp">... </span>    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+<span class="gp">... </span>    <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.3</span><span class="p">])</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresholds</strong> – sequence of IoU thresholds used to compute the metric
+(defaults to np.arange(0.5, 1.0, 0.05))</p></li>
+<li><p><strong>num_classes</strong> – total number of classes. If None, inferred from data</p></li>
+<li><p><strong>use_polygons</strong> – if set to True, predictions and targets will be expected
+to have rotated format</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.utils.metrics.ObjectDetectionMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gt_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gt_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_scores</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#ObjectDetectionMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.ObjectDetectionMetric.update" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.utils.metrics.ObjectDetectionMetric.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#ObjectDetectionMetric.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.ObjectDetectionMetric.summary" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the aggregated metrics</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>.95], AP&#64;[.5], AP&#64;[.75] and AP per IoU threshold</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>a dictionary with the mAP&#64;[.5</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
 </section>
 </section>
 
@@ -722,6 +809,11 @@ h_{B,C}(b, c) = \left\{
 <li><a class="reference internal" href="#doctr.utils.metrics.DetectionMetric"><code class="docutils literal notranslate"><span class="pre">DetectionMetric</span></code></a><ul>
 <li><a class="reference internal" href="#doctr.utils.metrics.DetectionMetric.update"><code class="docutils literal notranslate"><span class="pre">DetectionMetric.update()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.utils.metrics.DetectionMetric.summary"><code class="docutils literal notranslate"><span class="pre">DetectionMetric.summary()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.utils.metrics.ObjectDetectionMetric"><code class="docutils literal notranslate"><span class="pre">ObjectDetectionMetric</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.utils.metrics.ObjectDetectionMetric.update"><code class="docutils literal notranslate"><span class="pre">ObjectDetectionMetric.update()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.utils.metrics.ObjectDetectionMetric.summary"><code class="docutils literal notranslate"><span class="pre">ObjectDetectionMetric.summary()</span></code></a></li>
 </ul>
 </li>
 </ul>

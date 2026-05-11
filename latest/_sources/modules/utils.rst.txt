@@ -49,3 +49,8 @@ Implementations of task-specific metrics to easily assess your model performance
 
    .. automethod:: update
    .. automethod:: summary
+
+.. autoclass:: ObjectDetectionMetric
+
+   .. automethod:: update
+   .. automethod:: summary
