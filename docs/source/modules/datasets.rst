@@ -50,6 +50,8 @@ Custom dataset loader
 
 .. autoclass:: DetectionDataset
 
+.. autoclass:: LayoutDataset
+
 .. autoclass:: RecognitionDataset
 
 .. autoclass:: OCRDataset

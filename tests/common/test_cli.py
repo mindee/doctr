@@ -61,16 +61,16 @@ def test_parse_args_custom_values():
     assert args.output == "output.json"
 
 
-def test_main_with_image(mock_image_path):
-    output_path = "results.json"
-    cli.main(["--input_path", mock_image_path, "--output", output_path])
+def test_main_with_image(mock_image_path, tmp_path):
+    output_path = tmp_path / "results.json"
+    cli.main(["--input_path", mock_image_path, "--output", str(output_path)])
 
     assert Path(output_path).exists()
 
 
-def test_main_with_pdf(mock_pdf):
-    output_path = "results.json"
-    cli.main(["--input_path", mock_pdf, "--output", output_path])
+def test_main_with_pdf(mock_pdf, tmp_path):
+    output_path = tmp_path / "results.json"
+    cli.main(["--input_path", mock_pdf, "--output", str(output_path)])
 
     assert Path(output_path).exists()
 

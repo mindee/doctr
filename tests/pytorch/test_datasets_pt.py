@@ -1,3 +1,4 @@
+import json
 import os
 from shutil import move
 
@@ -175,6 +176,119 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     with pytest.raises(FileNotFoundError):
         datasets.DetectionDataset(mock_image_folder, mock_detection_label)
     move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
+
+
+@pytest.mark.parametrize(
+    "use_polygons",
+    [False, True],
+)
+def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
+    input_size = (1024, 1024)
+
+    ds = datasets.LayoutDataset(
+        img_folder=mock_image_folder,
+        label_path=mock_layout_label,
+        img_transforms=Resize(input_size),
+        use_polygons=use_polygons,
+    )
+
+    assert len(ds) == 5
+    img, target_dict = ds[0]
+    assert isinstance(img, torch.Tensor)
+    assert img.dtype == torch.float32
+    assert img.shape[-2:] == input_size
+    assert isinstance(target_dict, dict)
+    expected_classes = {"Table", "Header", "Footer", "Text"}
+    assert set(target_dict.keys()) == expected_classes
+    for class_name, target in target_dict.items():
+        assert isinstance(target, np.ndarray)
+        assert target.dtype == np.float32
+        if use_polygons:
+            assert target.ndim == 3
+            assert target.shape[1:] == (4, 2)
+        else:
+            assert target.ndim == 2
+            assert target.shape[1:] == (4,)
+        assert np.all(np.logical_and(target >= 0, target <= 1))
+    assert ds.class_names == sorted(expected_classes)
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor)
+    assert images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list)
+    assert all(isinstance(target, dict) for target in targets)
+    for target in targets:
+        assert set(target.keys()) == expected_classes
+        assert all(isinstance(v, np.ndarray) for v in target.values())
+
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(
+            img_folder=mock_image_folder,
+            label_path=mock_layout_label,
+        )
+    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
+
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(
+            img_folder=mock_image_folder,
+            label_path="/tmp/does_not_exist.json",
+        )
+
+    with open(mock_layout_label) as f:
+        original_labels = json.load(f)
+    first_key = next(iter(original_labels))
+
+    test_cases = [
+        (
+            {"class_names": ["Text"]},
+            KeyError,
+            "missing 'polygons'",
+        ),
+        (
+            {"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]]]},
+            KeyError,
+            "missing 'class_names'",
+        ),
+        (
+            {
+                "polygons": [
+                    [[0, 0], [1, 0], [1, 1], [0, 1]],
+                    [[0, 0], [1, 0], [1, 1], [0, 1]],
+                ],
+                "class_names": ["Text"],
+            },
+            ValueError,
+            "number of polygons",
+        ),
+        (
+            {
+                "polygons": [[[0, 0], [1, 0], [1, 1]]],  # only 3 points
+                "class_names": ["Text"],
+            },
+            ValueError,
+            "polygons are expected to have shape",
+        ),
+    ]
+
+    for sample, exc_type, match in test_cases:
+        broken_labels = dict(original_labels)
+        broken_labels[first_key] = sample
+
+        with open(mock_layout_label, "w") as f:
+            json.dump(broken_labels, f)
+
+        with pytest.raises(exc_type, match=match):
+            datasets.LayoutDataset(
+                img_folder=mock_image_folder,
+                label_path=mock_layout_label,
+            )
+
+    # Restore original labels
+    with open(mock_layout_label, "w") as f:
+        json.dump(original_labels, f)
 
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):

@@ -2,6 +2,7 @@ from .generator import *
 from .coco_text import *
 from .cord import *
 from .detection import *
+from .layout import *
 from .doc_artefacts import *
 from .funsd import *
 from .ic03 import *
