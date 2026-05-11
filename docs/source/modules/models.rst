@@ -76,6 +76,14 @@ doctr.models.detection
 .. autofunction:: doctr.models.detection.detection_predictor
 
 
+doctr.models.layout
+-------------------
+
+.. autofunction:: doctr.models.layout.lw_detr_s
+
+.. autofunction:: doctr.models.layout.lw_detr_m
+
+
 doctr.models.recognition
 ------------------------
 
