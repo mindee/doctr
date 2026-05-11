@@ -334,6 +334,7 @@
 <span class="sd">            if True, the image will be resized to fit within the target size while maintaining its aspect ratio</span>
 <span class="sd">        symmetric_pad: whether to symmetrically pad the image to the target size,</span>
 <span class="sd">            if True, the image will be padded equally on both sides to fit the target size</span>
+<span class="sd">        return_padding_mask: whether to return a padding mask indicating the padded areas of the image</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -342,25 +343,43 @@
         <span class="n">interpolation</span><span class="o">=</span><span class="n">F</span><span class="o">.</span><span class="n">InterpolationMode</span><span class="o">.</span><span class="n">BILINEAR</span><span class="p">,</span>
         <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">return_padding_mask</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">size</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span> <span class="k">else</span> <span class="p">(</span><span class="n">size</span><span class="p">,</span> <span class="n">size</span><span class="p">),</span> <span class="n">interpolation</span><span class="p">,</span> <span class="n">antialias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span> <span class="o">=</span> <span class="n">preserve_aspect_ratio</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">symmetric_pad</span> <span class="o">=</span> <span class="n">symmetric_pad</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span> <span class="o">=</span> <span class="n">return_padding_mask</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">img</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">target</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+        <span class="o">|</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span>
+    <span class="p">):</span>
         <span class="n">target_ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">actual_ratio</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">preserve_aspect_ratio</span> <span class="ow">or</span> <span class="p">(</span><span class="n">target_ratio</span> <span class="o">==</span> <span class="n">actual_ratio</span><span class="p">):</span>
             <span class="c1"># If we don&#39;t preserve the aspect ratio or the wanted aspect ratio is the same than the original one</span>
             <span class="c1"># We can use with the regular resize</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span><span class="p">:</span>
+                <span class="n">padding_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">img</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">img</span><span class="p">),</span> <span class="n">target</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">padding_mask</span>
+                <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">padding_mask</span>
+
+            <span class="k">return</span> <span class="n">img</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Resize</span>
             <span class="k">if</span> <span class="n">actual_ratio</span> <span class="o">&gt;</span> <span class="n">target_ratio</span><span class="p">:</span>
@@ -379,6 +398,13 @@
                     <span class="n">_pad</span> <span class="o">=</span> <span class="p">(</span><span class="n">half_pad</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">_pad</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">half_pad</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">half_pad</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">_pad</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">half_pad</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
                 <span class="c1"># Pad image</span>
                 <span class="n">img</span> <span class="o">=</span> <span class="n">pad</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">_pad</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span><span class="p">:</span>
+                    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span>
+                    <span class="n">padding_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">w</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">img</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+                    <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">top</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">=</span> <span class="n">_pad</span>
+                    <span class="n">padding_mask</span><span class="p">[</span><span class="n">top</span> <span class="p">:</span> <span class="n">h</span> <span class="o">-</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">left</span> <span class="p">:</span> <span class="n">w</span> <span class="o">-</span> <span class="n">right</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
             <span class="c1"># In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)</span>
             <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -404,7 +430,14 @@
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)&quot;</span><span class="p">)</span>
 
-                <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">padding_mask</span>
+                    <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">target</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_padding_mask</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">img</span><span class="p">,</span> <span class="n">padding_mask</span>
 
             <span class="k">return</span> <span class="n">img</span>
 
