@@ -144,7 +144,7 @@ class PreProcessor(nn.Module):
 
             if self.resize.return_padding_mask:
                 h, w = self.resize.size
-                mask = torch.ones((x.shape[0], h, w), dtype=torch.bool)
+                mask = torch.zeros((x.shape[0], h, w), dtype=torch.bool)
                 mask_batches = [mask]
 
         elif isinstance(x, list) and all(isinstance(sample, np.ndarray) for sample in x):
