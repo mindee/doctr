@@ -29,6 +29,14 @@ def test_resize():
     assert out.shape[-2:] == output_size
     assert repr(transfo) == "Resize(output_size=(32, 32), interpolation='bilinear')"
 
+    # Test return_padding_mask without aspect ratio
+    transfo = Resize(output_size, return_padding_mask=True)
+    out, mask = transfo(input_t)
+    assert out.shape[-2:] == output_size
+    assert mask.shape == output_size
+    assert mask.dtype == torch.bool
+    assert torch.all(mask == 0)
+
     # Test with preserve_aspect_ratio
     output_size = (32, 32)
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
@@ -40,11 +48,29 @@ def test_resize():
     assert not torch.all(out == 1)
     assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 1)
 
+    # Asymmetric padding mask
+    transfo = Resize(output_size, preserve_aspect_ratio=True, return_padding_mask=True)
+    out, mask = transfo(input_t)
+    assert mask.shape == output_size
+    assert mask.dtype == torch.bool
+    assert mask.any()
+    assert torch.any(mask[:, -5:])
+    assert torch.any(mask[:, 5:])
+
     # Symmetric padding
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
     out = transfo(input_t)
     assert out.shape[-2:] == output_size
     assert torch.all(out[:, 0] == 0) and torch.all(out[:, -1] == 0)
+
+    # Symmetric padding mask
+    transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True, return_padding_mask=True)
+    out, mask = transfo(input_t)
+    assert mask.shape == output_size
+    assert mask.dtype == torch.bool
+    assert mask.any()
+    assert torch.any(mask[:, :5])
+    assert torch.any(mask[:, -5:])
 
     expected = "Resize(output_size=(32, 32), interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
     assert repr(transfo) == expected
@@ -70,26 +96,30 @@ def test_resize():
     for symmetric_pad in padding:
         # Test with target boxes
         target_boxes = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
-        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
         input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-        out, new_target = transfo(input_t, target_boxes)
+        out, new_target, mask = transfo(input_t, target_boxes)
 
         assert out.shape[-2:] == (64, 64)
         assert new_target.shape == target_boxes.shape
         assert np.all((0 <= new_target) & (new_target <= 1))
+        assert mask.shape == (64, 64)
+        assert mask.dtype == torch.bool
 
         # Test with target polygons
         target_boxes = np.array([
             [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]],
             [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
         ])
-        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad)
+        transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
         input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-        out, new_target = transfo(input_t, target_boxes)
+        out, new_target, mask = transfo(input_t, target_boxes)
 
         assert out.shape[-2:] == (64, 64)
         assert new_target.shape == target_boxes.shape
         assert np.all((0 <= new_target) & (new_target <= 1))
+        assert mask.shape == (64, 64)
+        assert mask.dtype == torch.bool
 
     # Test with invalid target shape
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
