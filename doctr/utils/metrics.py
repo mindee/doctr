@@ -647,7 +647,12 @@ class ObjectDetectionMetric:
         self._gts.append({"boxes": gt_boxes, "labels": gt_labels})
         self._preds.append({"boxes": pred_boxes, "labels": pred_labels, "scores": pred_scores})
 
-    def summary(self):
+    def summary(self) -> dict[str, float | dict[float, float]]:
+        """Computes the aggregated metrics
+
+        Returns:
+            a dictionary with the mAP@[.5:.95], AP@[.5], AP@[.75] and AP per IoU threshold
+        """
         if len(self._gts) == 0:
             raise AssertionError("No samples added")
 
@@ -760,8 +765,8 @@ class ObjectDetectionMetric:
             ap_per_iou[float(iou_thresh)] = float(np.mean(class_aps)) if len(class_aps) > 0 else 0.0
 
         map_value = float(np.mean(list(ap_per_iou.values())))
-        ap50 = ap_per_iou.get(0.5)
-        ap75 = ap_per_iou.get(0.75)
+        ap50 = ap_per_iou.get(0.5, 0.0)
+        ap75 = ap_per_iou.get(0.75, 0.0)
 
         return {
             "mAP@[.5:.95]": map_value,
