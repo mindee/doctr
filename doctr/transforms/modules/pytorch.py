@@ -41,6 +41,7 @@ class Resize(T.Resize):
             if True, the image will be resized to fit within the target size while maintaining its aspect ratio
         symmetric_pad: whether to symmetrically pad the image to the target size,
             if True, the image will be padded equally on both sides to fit the target size
+        return_padding_mask: whether to return a padding mask indicating the padded areas of the image
     """
 
     def __init__(
@@ -49,25 +50,43 @@ class Resize(T.Resize):
         interpolation=F.InterpolationMode.BILINEAR,
         preserve_aspect_ratio: bool = False,
         symmetric_pad: bool = False,
+        return_padding_mask: bool = False,
     ) -> None:
         super().__init__(size if isinstance(size, (list, tuple)) else (size, size), interpolation, antialias=True)
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
+        self.return_padding_mask = return_padding_mask
 
     def forward(
         self,
         img: torch.Tensor,
         target: np.ndarray | None = None,
-    ) -> torch.Tensor | tuple[torch.Tensor, np.ndarray]:
+    ) -> (
+        torch.Tensor
+        | tuple[torch.Tensor, np.ndarray]
+        | tuple[torch.Tensor, np.ndarray, torch.Tensor]
+        | tuple[torch.Tensor, torch.Tensor]
+    ):
         target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
 
         if not self.preserve_aspect_ratio or (target_ratio == actual_ratio):
             # If we don't preserve the aspect ratio or the wanted aspect ratio is the same than the original one
             # We can use with the regular resize
+            img = super().forward(img)
+
+            if self.return_padding_mask:
+                padding_mask = torch.zeros(self.size, dtype=torch.bool, device=img.device)
+
             if target is not None:
-                return super().forward(img), target
-            return super().forward(img)
+                if self.return_padding_mask:
+                    return img, target, padding_mask
+                return img, target
+
+            if self.return_padding_mask:
+                return img, padding_mask
+
+            return img
         else:
             # Resize
             if actual_ratio > target_ratio:
@@ -86,6 +105,13 @@ class Resize(T.Resize):
                     _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
                 # Pad image
                 img = pad(img, _pad)
+
+                if self.return_padding_mask:
+                    h, w = self.size
+                    padding_mask = torch.zeros((h, w), dtype=torch.bool, device=img.device)
+
+                    left, right, top, bottom = _pad
+                    padding_mask[top : h - bottom, left : w - right] = True
 
             # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
             if target is not None:
@@ -111,7 +137,14 @@ class Resize(T.Resize):
                     else:
                         raise AssertionError("Boxes should be in the format (n_boxes, 4, 2) or (n_boxes, 4)")
 
-                return img, np.clip(target, 0, 1)
+                    target = np.clip(target, 0, 1)
+
+                    if self.return_padding_mask:
+                        return img, target, padding_mask
+                    return img, target
+
+            if self.return_padding_mask:
+                return img, padding_mask
 
             return img
 
