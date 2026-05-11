@@ -475,12 +475,15 @@ class LWDETRDecoder(nn.Module):
 
     def get_reference(self, reference_points, valid_ratios):
         obj_center = reference_points[..., :4]
-        reference_points_inputs = obj_center[:, :, None] * torch.cat([valid_ratios, valid_ratios], -1)[:, None]
-        # DETR positional encoding
-        query_sine_embed = gen_sine_position_embeddings(reference_points_inputs[:, :, 0, :], self.d_model)
-        base_query_pos = self.ref_point_head(query_sine_embed)
-        # angle embedding
+        spatial_inputs = obj_center[:, :, None] * torch.cat([valid_ratios, valid_ratios], -1)[:, None]
+        # Extract angles
         angle = reference_points[..., 4:6]  # (sin, cos)
+        angle_expanded = angle[:, :, None]
+        reference_points_inputs = torch.cat([spatial_inputs, angle_expanded], dim=-1)
+        # DETR positional encoding
+        query_sine_embed = gen_sine_position_embeddings(spatial_inputs[:, :, 0, :], self.d_model)
+        base_query_pos = self.ref_point_head(query_sine_embed)
+        # Angle embedding
         angle_emb = self.angle_proj(angle)
         # Combine
         query_pos = base_query_pos + angle_emb
