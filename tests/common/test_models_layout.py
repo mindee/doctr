@@ -51,11 +51,11 @@ def test_lwdetr_postprocessor():
     assert isinstance(scores, list)
     assert isinstance(bboxes, np.ndarray)
 
-    # straight pages → (K, 4)
+    # straight pages: (K, 4)
     assert bboxes.ndim == 2
     assert bboxes.shape[1] == 4
 
-    # rotated pages → (K, 4, 2)
+    # rotated pages: (K, 4, 2)
     assert isinstance(r_bboxes, np.ndarray)
     assert r_bboxes.ndim == 3
     assert r_bboxes.shape[2] == 2

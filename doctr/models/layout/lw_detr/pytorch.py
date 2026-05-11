@@ -177,7 +177,7 @@ class LWDETR(nn.Module, _LWDETR):
     ) -> None:
         super().__init__()
 
-        self.class_names = ["__background__"] + class_names
+        self.class_names: list[str] = ["__background__"] + class_names
         self.num_classes = len(self.class_names)
         self.cfg = cfg
         self.exportable = exportable
@@ -426,11 +426,12 @@ class LWDETR(nn.Module, _LWDETR):
     ) -> dict[str, Any]:
         feats = self.feat_extractor(input, masks)
 
-        sources = []
-        masks = []
+        sources: list[torch.Tensor] = []
+        feats_masks: list[torch.Tensor] = []
+
         for source, mask in feats:
             sources.append(source)
-            masks.append(mask)
+            feats_masks.append(mask)
             if mask is None:
                 raise ValueError("No attention mask was provided")
 
@@ -443,20 +444,20 @@ class LWDETR(nn.Module, _LWDETR):
             query_feat = self.query_feat.weight[: self.num_queries]
 
         # Prepare encoder inputs (by flattening)
-        source_flatten: list[torch.Tensor] | torch.Tensor = []
-        mask_flatten: list[torch.Tensor] | torch.Tensor = []
+        source_flatten_list: list[torch.Tensor] = []
+        mask_flatten_list: list[torch.Tensor] = []
         spatial_shapes_list: list[tuple[int, int]] = []
-        for source, mask in zip(sources, masks):
+        for source, mask in zip(sources, feats_masks):
             batch_size, num_channels, height, width = source.shape
             spatial_shape = (height, width)
             spatial_shapes_list.append(spatial_shape)
             source = source.flatten(2).transpose(1, 2)
             mask = mask.flatten(1)
-            source_flatten.append(source)
-            mask_flatten.append(mask)
-        source_flatten = torch.cat(source_flatten, 1)
-        mask_flatten = torch.cat(mask_flatten, 1)
-        valid_ratios = torch.stack([self.get_valid_ratio(m, dtype=source_flatten.dtype) for m in masks], 1)
+            source_flatten_list.append(source)
+            mask_flatten_list.append(mask)
+        source_flatten = torch.cat(source_flatten_list, 1)
+        mask_flatten = torch.cat(mask_flatten_list, 1)
+        valid_ratios = torch.stack([self.get_valid_ratio(m, dtype=source_flatten.dtype) for m in feats_masks], 1)
 
         tgt = query_feat.unsqueeze(0).expand(batch_size, -1, -1)
         reference_points = reference_points.unsqueeze(0).expand(batch_size, -1, -1)
@@ -467,9 +468,8 @@ class LWDETR(nn.Module, _LWDETR):
 
         group_detr = self.group_detr if self.training else 1
         topk = self.num_queries
-        topk_coords_logits = []
-        topk_coords_logits_undetach = []
-        object_query_undetach = []
+
+        topk_coords_logits_list: list[torch.Tensor] = []
 
         # For each group, predict class logits and bbox deltas from the object query embeddings,
         # and select the top-k proposals based on the predicted class logits.
@@ -489,17 +489,9 @@ class LWDETR(nn.Module, _LWDETR):
                 group_topk_proposals.unsqueeze(-1).repeat(1, 1, 6),
             )
             group_topk_coords_logits = group_topk_coords_logits_undetach.detach()
-            group_object_query_undetach = torch.gather(
-                group_object_query, 1, group_topk_proposals.unsqueeze(-1).repeat(1, 1, self.d_model)
-            )
+            topk_coords_logits_list.append(group_topk_coords_logits)
 
-            topk_coords_logits.append(group_topk_coords_logits)
-            topk_coords_logits_undetach.append(group_topk_coords_logits_undetach)
-            object_query_undetach.append(group_object_query_undetach)
-
-        topk_coords_logits = torch.cat(topk_coords_logits, 1)
-        topk_coords_logits_undetach = torch.cat(topk_coords_logits_undetach, 1)
-        object_query_undetach = torch.cat(object_query_undetach, 1)
+        topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
 
         reference_points = self.refine_bboxes(topk_coords_logits, reference_points)
 
@@ -629,22 +621,22 @@ class LWDETR(nn.Module, _LWDETR):
                 dynamic_k = torch.clamp(topk_iou.sum(0).int(), min=1)
 
             pos_mask = torch.zeros(Q, dtype=torch.bool, device=device)
-            gt_indices = []
+            gt_indices_list: list[torch.Tensor] = []
 
             # SimOTA assignment
             for gt_idx in range(num_gt):
-                k = dynamic_k[gt_idx].item()
+                k = int(dynamic_k[gt_idx].item())
 
                 _, query_idx = torch.topk(-cost[:, gt_idx], k=k)
                 pos_mask[query_idx] = True
 
-                gt_indices.append(torch.full((k,), gt_idx, device=device, dtype=torch.long))
+                gt_indices_list.append(torch.full((k,), gt_idx, device=device, dtype=torch.long))
 
             if pos_mask.any():
                 pos_idx = pos_mask.nonzero(as_tuple=False).squeeze(1)
 
                 # map each positive query to a GT (best-effort stable assignment)
-                gt_indices = torch.cat(gt_indices)[: len(pos_idx)]
+                gt_indices = torch.cat(gt_indices_list)[: len(pos_idx)]
 
                 target_classes = torch.full((Q,), bg_idx, device=device)
                 target_classes[pos_idx] = tgt_cls[gt_indices]

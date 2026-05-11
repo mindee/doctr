@@ -52,7 +52,7 @@ class LayoutPredictor(nn.Module):
 
         processed_batches = self.pre_processor(pages)
         _params = next(self.model.parameters())
-        self.model, processed_batches = set_device_and_dtype(
+        self.model, processed_batches = set_device_and_dtype(  # type: ignore[assignment]
             self.model, processed_batches, _params.device, _params.dtype
         )
         predicted_batches = [
@@ -61,7 +61,9 @@ class LayoutPredictor(nn.Module):
         ]
         # remap idx to class names
         class_names = [
-            [self.model.class_names[int(i)] for i in pred[0]] for batch in predicted_batches for pred in batch["preds"]
+            [self.model.class_names[int(i)] for i in pred[0]]  # type: ignore[index]
+            for batch in predicted_batches
+            for pred in batch["preds"]
         ]
         boxes = [pred[1] for batch in predicted_batches for pred in batch["preds"]]
         scores = [pred[2] for batch in predicted_batches for pred in batch["preds"]]
@@ -75,6 +77,6 @@ class LayoutPredictor(nn.Module):
             assume_straight_pages=assume_straight_pages,  # type: ignore[arg-type]
         )
         return [
-            {"class_names": class_name, "boxes": pred["pred"], "scores": score}
+            {"class_names": class_name, "boxes": pred["pred"], "scores": score}  # type: ignore[dict-item]
             for class_name, pred, score in zip(class_names, preds, scores)
         ]

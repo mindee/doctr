@@ -489,15 +489,16 @@ class LWDETRDecoder(nn.Module):
 
     def forward(
         self,
-        inputs_embeds: torch.Tensor | None = None,
-        reference_points: torch.Tensor | None = None,
-        spatial_shapes_list: torch.Tensor | None = None,
-        valid_ratios: torch.Tensor | None = None,
-        encoder_hidden_states: torch.Tensor | None = None,
+        inputs_embeds: torch.Tensor | None,
+        reference_points: torch.Tensor,
+        spatial_shapes_list: torch.Tensor,
+        valid_ratios: torch.Tensor,
+        encoder_hidden_states: torch.Tensor,
         encoder_attention_mask: torch.Tensor | None = None,
     ):
-        intermediate = ()
-        intermediate_reference_points = (reference_points,)
+        intermediate: list[torch.Tensor] = []
+
+        intermediate_reference_points: list[torch.Tensor] = [reference_points]
 
         if inputs_embeds is not None:
             hidden_states = inputs_embeds
@@ -513,14 +514,16 @@ class LWDETRDecoder(nn.Module):
                 reference_points=reference_points_inputs,
                 spatial_shapes_list=spatial_shapes_list,
             )
+
             intermediate_hidden_states = self.layernorm(hidden_states)
-            intermediate += (intermediate_hidden_states,)
+            intermediate.append(intermediate_hidden_states)
 
-        intermediate = torch.stack(intermediate)
-        last_hidden_state = intermediate[-1]
-        intermediate_reference_points = torch.stack(intermediate_reference_points)
+        intermediate_stack = torch.stack(intermediate)
+        last_hidden_state = intermediate_stack[-1]
 
-        return last_hidden_state, intermediate, intermediate_reference_points
+        intermediate_reference_points_stack = torch.stack(intermediate_reference_points)
+
+        return last_hidden_state, intermediate_stack, intermediate_reference_points_stack
 
 
 class MultiScaleProjector(nn.Module):
