@@ -5,4 +5,5 @@ from .magc_resnet import *
 from .vit import *
 from .textnet import *
 from .vip import *
+from .vit_det import *
 from .zoo import *

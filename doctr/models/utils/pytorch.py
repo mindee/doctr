@@ -86,8 +86,9 @@ def load_pretrained_params(
 def conv_sequence_pt(
     in_channels: int,
     out_channels: int,
-    relu: bool = False,
+    act: bool = False,
     bn: bool = False,
+    activation: nn.Module = nn.ReLU(inplace=True),
     **kwargs: Any,
 ) -> list[nn.Module]:
     """Builds a convolutional-based layer sequence
@@ -99,8 +100,9 @@ def conv_sequence_pt(
     Args:
         in_channels: number of input channels
         out_channels: number of output channels
-        relu: whether ReLU should be used
+        act: should an activation layer be added
         bn: should a batch normalization layer be added
+        activation: the activation layer to be added if act is True
         **kwargs: additional arguments to be passed to the convolutional layer
 
     Returns:
@@ -114,15 +116,18 @@ def conv_sequence_pt(
     if bn:
         conv_seq.append(nn.BatchNorm2d(out_channels))
 
-    if relu:
-        conv_seq.append(nn.ReLU(inplace=True))
+    if act:
+        conv_seq.append(activation)
 
     return conv_seq
 
 
 def set_device_and_dtype(
-    model: Any, batches: list[torch.Tensor], device: str | torch.device, dtype: torch.dtype
-) -> tuple[Any, list[torch.Tensor]]:
+    model: Any,
+    batches: list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]],
+    device: str | torch.device,
+    dtype: torch.dtype,
+) -> tuple[Any, list[torch.Tensor] | list[tuple[torch.Tensor, torch.Tensor]]]:
     """Set the device and dtype of a model and its batches
 
     >>> import torch
@@ -141,10 +146,18 @@ def set_device_and_dtype(
     Returns:
         the model and batches set
     """
-    return model.to(device=device, dtype=dtype), [batch.to(device=device, dtype=dtype) for batch in batches]
+    model = model.to(device=device, dtype=dtype)
+    if isinstance(batches, tuple):
+        return model, [
+            (img.to(device=device, dtype=dtype), mask.to(device=device, dtype=torch.bool))
+            for img, mask in zip(*batches)
+        ]
+    return model, [batch.to(device=device, dtype=dtype) for batch in batches]
 
 
-def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.Tensor, **kwargs: Any) -> str:
+def export_model_to_onnx(
+    model: nn.Module, model_name: str, dummy_input: torch.Tensor | tuple[torch.Tensor, torch.Tensor], **kwargs: Any
+) -> str:
     """Export model to ONNX format.
 
     >>> import torch
@@ -166,9 +179,16 @@ def export_model_to_onnx(model: nn.Module, model_name: str, dummy_input: torch.T
         model,
         dummy_input,  # type: ignore[arg-type]
         f"{model_name}.onnx",
-        input_names=["input"],
-        output_names=["logits"],
-        dynamic_axes={"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
+        input_names=["input", "masks"] if isinstance(dummy_input, tuple) else ["input"],
+        output_names=["logits", "pred_boxes"] if isinstance(dummy_input, tuple) else ["logits"],
+        dynamic_axes={
+            "input": {0: "batch_size"},
+            "masks": {0: "batch_size"},
+            "logits": {0: "batch_size"},
+            "pred_boxes": {0: "batch_size"},
+        }
+        if isinstance(dummy_input, tuple)
+        else {"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
         export_params=True,
         dynamo=False,
         verbose=False,

@@ -63,7 +63,7 @@ class TextNet(nn.Sequential):
     ) -> None:
         _layers: list[nn.Module] = [
             *conv_sequence_pt(
-                in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
+                in_channels=3, out_channels=64, act=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
             ),
             *[
                 nn.Sequential(*[
