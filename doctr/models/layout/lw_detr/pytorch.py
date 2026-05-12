@@ -304,8 +304,8 @@ class LWDETR(nn.Module, _LWDETR):
         cy' = cy + delta_cy * h
         w' = w * exp(delta_w)
         h' = h * exp(delta_h)
-        sinθ' = sinθ * cos(delta_θ) + cosθ * sin(delta_θ)
-        cosθ' = cosθ * cos(delta_θ) - sinθ * sin(delta_θ)
+        sinθ' = sinθ * cosΔ + cosθ * sinΔ
+        cosθ' = cosθ * cosΔ - sinθ * sinΔ
 
         Args:
             reference_points: (N, S, 6) tensor containing the reference points
