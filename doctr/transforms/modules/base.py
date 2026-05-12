@@ -112,7 +112,9 @@ class OneOf(NestedObject):
     def __init__(self, transforms: list[Callable[[Any], Any]]) -> None:
         self.transforms = transforms
 
-    def __call__(self, img: Any, target: np.ndarray | None = None) -> Any | tuple[Any, np.ndarray]:
+    def __call__(
+        self, img: Any, target: np.ndarray | dict[str, np.ndarray] | None = None
+    ) -> Any | tuple[Any, np.ndarray | dict[str, np.ndarray]]:
         # Pick transformation
         transfo = self.transforms[int(random.random() * len(self.transforms))]
         # Apply
@@ -141,7 +143,11 @@ class RandomApply(NestedObject):
     def extra_repr(self) -> str:
         return f"transform={self.transform}, p={self.p}"
 
-    def __call__(self, img: Any, target: np.ndarray | None = None) -> Any | tuple[Any, np.ndarray]:
+    def __call__(
+        self,
+        img: Any,
+        target: np.ndarray | dict[str, np.ndarray] | None = None,
+    ) -> Any | tuple[Any, np.ndarray | dict[str, np.ndarray]]:
         if random.random() < self.p:
             return self.transform(img) if target is None else self.transform(img, target)  # type: ignore[call-arg]
         return img if target is None else (img, target)
@@ -165,12 +171,46 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> tuple[Any, np.ndarray]:
-        angle = random.uniform(-self.max_angle, self.max_angle)
+    def _rotate_array(self, img: Any, target: np.ndarray, angle: float) -> tuple[Any, np.ndarray]:
+        """Rotate the image and the target, and keep only boxes with at least partial visibility after rotation"""
+        is_polygon = target.shape[1:] == (4, 2)
+
         r_img, r_polys = F.rotate_sample(img, target, angle, self.expand)
-        # Removes deleted boxes
+
         is_kept = (r_polys.max(1) > r_polys.min(1)).sum(1) == 2
-        return r_img, r_polys[is_kept]
+        r_polys = r_polys[is_kept]
+
+        # convert back if input was boxes
+        if not is_polygon:
+            # (N, 4, 2) -> (N, 4)
+            x1y1 = r_polys.min(axis=1)
+            x2y2 = r_polys.max(axis=1)
+            r_boxes = np.concatenate([x1y1, x2y2], axis=1)
+            return r_img, r_boxes
+
+        return r_img, r_polys
+
+    def __call__(
+        self, img: Any, target: np.ndarray | dict[str, np.ndarray]
+    ) -> tuple[Any, np.ndarray | dict[str, np.ndarray]]:
+        angle = random.uniform(-self.max_angle, self.max_angle)
+
+        if isinstance(target, dict):
+            rotated_targets = {}
+            rotated_img = None
+
+            for cls_name, arr in target.items():
+                if len(arr) == 0:
+                    rotated_targets[cls_name] = arr.copy()
+                    continue
+
+                r_img, r_arr = self._rotate_array(img, arr, angle)
+                if rotated_img is None:
+                    rotated_img = r_img
+                rotated_targets[cls_name] = r_arr
+            return rotated_img if rotated_img is not None else img, rotated_targets
+
+        return self._rotate_array(img, target, angle)
 
 
 class RandomCrop(NestedObject):
@@ -188,7 +228,61 @@ class RandomCrop(NestedObject):
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> tuple[Any, np.ndarray]:
+    def _crop_array(
+        self,
+        img: Any,
+        target: np.ndarray,
+        crop_box: tuple[float, float, float, float],
+    ) -> tuple[Any, np.ndarray]:
+        is_polygon = target.shape[1:] == (4, 2)
+        # For polygons, we need to reproject the coordinates into the cropped frame,
+        # and keep only those with at least partial visibility
+        if is_polygon:
+            cropped_img, _ = F.crop_detection(
+                img,
+                np.concatenate(
+                    (
+                        np.min(target, axis=1),
+                        np.max(target, axis=1),
+                    ),
+                    axis=1,
+                ),
+                crop_box,
+            )
+
+            cropped_polys = target.copy()
+
+            crop_w = crop_box[2] - crop_box[0]
+            crop_h = crop_box[3] - crop_box[1]
+
+            # Reproject coordinates into cropped frame
+            cropped_polys[..., 0] = (cropped_polys[..., 0] - crop_box[0]) / crop_w
+            cropped_polys[..., 1] = (cropped_polys[..., 1] - crop_box[1]) / crop_h
+
+            # Keep polygons with at least partial visibility
+            poly_min = np.min(cropped_polys, axis=1)
+            poly_max = np.max(cropped_polys, axis=1)
+            is_kept = (poly_max[:, 0] > 0) & (poly_min[:, 0] < 1) & (poly_max[:, 1] > 0) & (poly_min[:, 1] < 1)
+            cropped_polys = cropped_polys[is_kept]
+
+            if cropped_polys.shape[0] == 0:
+                return img, target
+
+            return cropped_img, np.clip(cropped_polys, 0, 1)
+
+        # For detection boxes, we can directly crop and clip them
+        cropped_img, crop_boxes = F.crop_detection(img, target, crop_box)
+
+        if crop_boxes.shape[0] == 0:
+            return img, target
+
+        return cropped_img, np.clip(crop_boxes, 0, 1)
+
+    def __call__(
+        self,
+        img: Any,
+        target: np.ndarray | dict[str, np.ndarray],
+    ) -> tuple[Any, np.ndarray | dict[str, np.ndarray]]:
         scale = random.uniform(self.scale[0], self.scale[1])
         ratio = random.uniform(self.ratio[0], self.ratio[1])
 
@@ -208,19 +302,29 @@ class RandomCrop(NestedObject):
         x = random.randint(0, width - crop_width)
         y = random.randint(0, height - crop_height)
 
-        # relative crop box
-        crop_box = (x / width, y / height, (x + crop_width) / width, (y + crop_height) / height)
-        if target.shape[1:] == (4, 2):
-            min_xy = np.min(target, axis=1)
-            max_xy = np.max(target, axis=1)
-            _target = np.concatenate((min_xy, max_xy), axis=1)
-        else:
-            _target = target
+        crop_box = (
+            x / width,
+            y / height,
+            (x + crop_width) / width,
+            (y + crop_height) / height,
+        )
 
-        # Crop image and targets
-        croped_img, crop_boxes = F.crop_detection(img, _target, crop_box)
-        # hard fallback if no box is kept
-        if crop_boxes.shape[0] == 0:
-            return img, target
-        # clip boxes
-        return croped_img, np.clip(crop_boxes, 0, 1)
+        if isinstance(target, dict):
+            cropped_targets = {}
+            cropped_img = None
+
+            for cls_name, arr in target.items():
+                if len(arr) == 0:
+                    cropped_targets[cls_name] = arr.copy()
+                    continue
+
+                c_img, c_arr = self._crop_array(img, arr, crop_box)
+
+                if cropped_img is None:
+                    cropped_img = c_img
+
+                cropped_targets[cls_name] = c_arr
+
+            return cropped_img if cropped_img is not None else img, cropped_targets
+
+        return self._crop_array(img, target, crop_box)
