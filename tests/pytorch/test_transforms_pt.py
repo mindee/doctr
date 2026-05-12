@@ -342,16 +342,12 @@ def test_random_crop(target):
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
 
     img, target = cropper(input_t, target)
-
     # Check the scale
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
-
     # Check aspect ratio
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
-
     # Check the target
     assert np.all(target >= 0)
-
     if target.ndim == 2:
         assert np.all(target[:, [0, 2]] <= img.shape[-1]) and np.all(target[:, [1, 3]] <= img.shape[-2])
     else:
@@ -362,29 +358,21 @@ def test_random_crop(target):
         "boxes": np.array([[15, 20, 35, 30]]),
         "polygons": np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]]),
     }
-
     img, cropped_targets = cropper(input_t, dict_target)
-
     assert isinstance(cropped_targets, dict)
     assert set(cropped_targets.keys()) == {"boxes", "polygons"}
-
     assert isinstance(cropped_targets["boxes"], np.ndarray)
     assert isinstance(cropped_targets["polygons"], np.ndarray)
-
     # Check cropped image properties
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
-
     # Check boxes
     assert np.all(cropped_targets["boxes"] >= 0)
-
     if len(cropped_targets["boxes"]) > 0:
         assert np.all(cropped_targets["boxes"][:, [0, 2]] <= img.shape[-1])
         assert np.all(cropped_targets["boxes"][:, [1, 3]] <= img.shape[-2])
-
     # Check polygons
     assert np.all(cropped_targets["polygons"] >= 0)
-
     if len(cropped_targets["polygons"]) > 0:
         assert np.all(cropped_targets["polygons"][..., 0] <= img.shape[-1])
         assert np.all(cropped_targets["polygons"][..., 1] <= img.shape[-2])
@@ -519,16 +507,12 @@ def test_randomhorizontalflip(p, target):
     }
 
     transformed, _target = transform(input_t, dict_target)
-
     assert isinstance(_target, dict)
     assert set(_target.keys()) == {"boxes", "polygons"}
-
     assert _target["boxes"].dtype == np.float32
     assert _target["polygons"].dtype == np.float32
-
     if p == 1:
         assert np.all(_target["boxes"] == np.array([[0.7, 0.1, 0.9, 0.4]], dtype=np.float32))
-
         assert np.all(
             _target["polygons"]
             == np.array(
@@ -536,10 +520,8 @@ def test_randomhorizontalflip(p, target):
                 dtype=np.float32,
             )
         )
-
     elif p == 0:
         assert np.all(_target["boxes"] == np.array([[0.1, 0.1, 0.3, 0.4]], dtype=np.float32))
-
         assert np.all(
             _target["polygons"]
             == np.array(
