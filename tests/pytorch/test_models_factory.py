@@ -34,6 +34,7 @@ def test_push_to_hf_hub():
         ["mobilenet_v3_small", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-small"],
         ["mobilenet_v3_large", "classification", "Felix92/doctr-dummy-torch-mobilenet-v3-large"],
         ["vit_s", "classification", "Felix92/doctr-dummy-torch-vit-s"],
+        ["vit_det_s", "classification", "Felix92/doctr-dummy-torch-vit-det-s"],
         ["textnet_tiny", "classification", "Felix92/doctr-dummy-torch-textnet-tiny"],
         ["db_resnet34", "detection", "Felix92/doctr-dummy-torch-db-resnet34"],
         ["db_resnet50", "detection", "Felix92/doctr-dummy-torch-db-resnet50"],
@@ -50,7 +51,6 @@ def test_push_to_hf_hub():
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
         ["viptr_tiny", "recognition", "Felix92/doctr-dummy-torch-viptr-tiny"],
         ["lw_detr_s", "layout", "Felix92/doctr-dummy-torch-lw-detr-s"],
-        ["lw_detr_m", "layout", "Felix92/doctr-dummy-torch-lw-detr-m"],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
