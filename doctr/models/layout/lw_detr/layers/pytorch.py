@@ -469,9 +469,14 @@ class LWDETRDecoder(nn.Module):
             for i in range(num_layers)
         ])
         self.layernorm = nn.LayerNorm(self.d_model)
+        self.bbox_embed = None
 
         self.ref_point_head = LWDETRHead(2 * self.d_model, self.d_model, self.d_model, num_layers=2)
-        self.angle_proj = nn.Linear(2, self.d_model)
+        self.angle_proj = nn.Sequential(
+            nn.Linear(4, self.d_model),
+            nn.ReLU(),
+            nn.Linear(self.d_model, self.d_model),
+        )
 
     def get_reference(self, reference_points, valid_ratios):
         obj_center = reference_points[..., :4]
@@ -484,10 +489,55 @@ class LWDETRDecoder(nn.Module):
         query_sine_embed = gen_sine_position_embeddings(spatial_inputs[:, :, 0, :], self.d_model)
         base_query_pos = self.ref_point_head(query_sine_embed)
         # Angle embedding
-        angle_emb = self.angle_proj(angle)
+        sin_t = angle[..., 0:1]
+        cos_t = angle[..., 1:2]
+
+        angle_feat = torch.cat(
+            [
+                sin_t,
+                cos_t,
+                2 * sin_t * cos_t,
+                cos_t**2 - sin_t**2,
+            ],
+            dim=-1,
+        )
+
+        angle_emb = self.angle_proj(angle_feat)
         # Combine
         query_pos = base_query_pos + angle_emb
         return reference_points_inputs, query_pos
+
+    def refine_boxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
+        """Refine the reference points using the predicted deltas.
+
+        Args:
+            reference_points: (batch_size, num_queries, 6)
+                tensor containing the current reference points in the format (cx, cy, w, h, sinθ, cosθ)
+            deltas: (batch_size, num_queries, 6)
+                tensor containing the predicted deltas for the reference points in the same format as reference_points
+
+        Returns:
+            refined_reference_points: (batch_size, num_queries, 6)
+                tensor containing the refined reference points in the same format as reference_points
+        """
+        cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
+
+        wh = deltas[..., 2:4].exp() * reference_points[..., 2:4]
+
+        delta_rot = F.normalize(deltas[..., 4:6], dim=-1)
+
+        sin_delta = delta_rot[..., 0:1]
+        cos_delta = delta_rot[..., 1:2]
+
+        sin_ref = reference_points[..., 4:5]
+        cos_ref = reference_points[..., 5:6]
+
+        sin_new = sin_ref * cos_delta + cos_ref * sin_delta
+        cos_new = cos_ref * cos_delta - sin_ref * sin_delta
+
+        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1)
+
+        return torch.cat((cxcy, wh, rot), dim=-1)
 
     def forward(
         self,
@@ -507,7 +557,7 @@ class LWDETRDecoder(nn.Module):
 
         reference_points_inputs, query_pos = self.get_reference(reference_points, valid_ratios)
 
-        for decoder_layer in self.layers:
+        for lid, decoder_layer in enumerate(self.layers):
             hidden_states = decoder_layer(
                 hidden_states,
                 encoder_hidden_states=encoder_hidden_states,
@@ -517,8 +567,25 @@ class LWDETRDecoder(nn.Module):
                 spatial_shapes_list=spatial_shapes_list,
             )
 
-            intermediate_hidden_states = self.layernorm(hidden_states)
-            intermediate.append(intermediate_hidden_states)
+            hidden_states_norm = self.layernorm(hidden_states)
+
+            # iterative refinement
+            if self.bbox_embed is not None:
+                delta = self.bbox_embed(hidden_states_norm)
+
+                reference_points = self.refine_boxes(
+                    reference_points.squeeze(2),
+                    delta,
+                )
+
+                intermediate_reference_points.append(reference_points)
+
+                reference_points_inputs, query_pos = self.get_reference(
+                    reference_points,
+                    valid_ratios,
+                )
+
+            intermediate.append(hidden_states_norm)
 
         intermediate_stack = torch.stack(intermediate)
         last_hidden_state = intermediate_stack[-1]

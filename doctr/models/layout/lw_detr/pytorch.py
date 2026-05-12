@@ -5,6 +5,7 @@
 
 import math
 from collections.abc import Callable
+from copy import deepcopy
 from typing import Any
 
 import numpy as np
@@ -219,6 +220,7 @@ class LWDETR(nn.Module, _LWDETR):
         ])
         self.class_embed = nn.Linear(self.d_model, self.num_classes)
         self.bbox_embed = LWDETRHead(self.d_model, self.d_model, 6, num_layers=3)
+        self.decoder.bbox_embed = self.bbox_embed  # type: ignore[assignment]
 
         self.postprocessor = LWDETRPostProcessor(
             num_classes=self.num_classes,
@@ -317,20 +319,20 @@ class LWDETR(nn.Module, _LWDETR):
         cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
         # size
         wh = deltas[..., 2:4].exp() * reference_points[..., 2:4]
-        # rotation (sin, cos)
+        # normalize predicted delta rotation
+        delta_rot = F.normalize(deltas[..., 4:6], dim=-1)
+        sin_delta = delta_rot[..., 0:1]
+        cos_delta = delta_rot[..., 1:2]
         sin_ref = reference_points[..., 4:5]
         cos_ref = reference_points[..., 5:6]
-        sin_delta = deltas[..., 4:5]
-        cos_delta = deltas[..., 5:6]
-        # compose rotations (like adding angles)
+
+        # compose rotations
         sin_new = sin_ref * cos_delta + cos_ref * sin_delta
         cos_new = cos_ref * cos_delta - sin_ref * sin_delta
-        # normalize
-        norm = torch.sqrt(sin_new**2 + cos_new**2 + 1e-6)
-        sin_new = sin_new / norm
-        cos_new = cos_new / norm
+        # normalize final rotation
+        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1)
 
-        return torch.cat((cxcy, wh, sin_new, cos_new), dim=-1)
+        return torch.cat((cxcy, wh, rot), dim=-1)
 
     def get_valid_ratio(self, mask: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """Get the valid ratio of all feature maps.
@@ -343,8 +345,8 @@ class LWDETR(nn.Module, _LWDETR):
             valid_ratio: (N, 2) tensor containing the valid ratio of width and height for each image in the batch
         """
         _, height, width = mask.shape
-        valid_height = torch.sum(mask[:, :, 0], 1)
-        valid_width = torch.sum(mask[:, 0, :], 1)
+        valid_height = torch.sum(~mask[:, :, 0], 1)
+        valid_width = torch.sum(~mask[:, 0, :], 1)
         valid_ratio_height = valid_height.to(dtype) / height
         valid_ratio_width = valid_width.to(dtype) / width
         valid_ratio = torch.stack([valid_ratio_width, valid_ratio_height], -1)
@@ -558,97 +560,168 @@ class LWDETR(nn.Module, _LWDETR):
         Returns:
             loss: the computed loss value
         """
+
+        def _sigmoid_focal_loss(
+            inputs: torch.Tensor, targets: torch.Tensor, alpha: float = 0.25, gamma: float = 2.0
+        ) -> torch.Tensor:
+            """Compute the sigmoid focal loss between `inputs` and `targets`."""
+            prob = inputs.sigmoid()
+            ce_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction="none")
+            p_t = prob * targets + (1 - prob) * (1 - targets)
+            loss = ce_loss * ((1 - p_t) ** gamma)
+
+            if alpha >= 0:
+                alpha_t = alpha * targets + (1 - alpha) * (1 - targets)
+                loss = alpha_t * loss
+
+            return loss.sum(-1).mean()
+
+        def rotated_boxes_to_gaussian(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+            """
+            Convert rotated boxes in (cx, cy, w, h, sinθ, cosθ) format to Gaussian distribution parameters
+            (mean and covariance).
+            """
+            cxcy = boxes[..., :2]
+
+            w = boxes[..., 2].clamp(min=1e-6)
+            h = boxes[..., 3].clamp(min=1e-6)
+
+            sin = boxes[..., 4]
+            cos = boxes[..., 5]
+
+            R = torch.stack(
+                [
+                    torch.stack([cos, -sin], dim=-1),
+                    torch.stack([sin, cos], dim=-1),
+                ],
+                dim=-2,
+            )
+
+            sx = (w / 2) ** 2
+            sy = (h / 2) ** 2
+
+            S = torch.zeros((*boxes.shape[:-1], 2, 2), device=boxes.device)
+
+            S[..., 0, 0] = sx
+            S[..., 1, 1] = sy
+
+            covariance = R @ S @ R.transpose(-1, -2)
+            return cxcy, covariance
+
+        def _probiou_loss(pred_boxes: torch.Tensor, tgt_boxes: torch.Tensor) -> torch.Tensor:
+            """Compute the ProbIoU loss between predicted boxes and target boxes."""
+            mu1, sigma1 = rotated_boxes_to_gaussian(pred_boxes)
+            mu2, sigma2 = rotated_boxes_to_gaussian(tgt_boxes)
+
+            delta = (mu1 - mu2).unsqueeze(-1)
+
+            sigma = (sigma1 + sigma2) * 0.5
+
+            sigma_inv = torch.linalg.inv(sigma)
+
+            mahalanobis = (delta.transpose(-1, -2) @ sigma_inv @ delta).squeeze(-1).squeeze(-1)
+
+            det_sigma = torch.linalg.det(sigma).clamp(min=1e-6)
+            det_sigma1 = torch.linalg.det(sigma1).clamp(min=1e-6)
+            det_sigma2 = torch.linalg.det(sigma2).clamp(min=1e-6)
+
+            bhattacharyya = 0.125 * mahalanobis + 0.5 * torch.log(det_sigma / torch.sqrt(det_sigma1 * det_sigma2))
+
+            probiou = torch.exp(-bhattacharyya)
+
+            return 1 - probiou
+
         device = logits.device
         B, Q, C = logits.shape
-
+        # Build targets
         targets = self.build_target(target)
-        bg_idx = 0
 
-        total_cls, total_box, total_rot = (
-            torch.tensor(0.0, device=device),
-            torch.tensor(0.0, device=device),
-            torch.tensor(0.0, device=device),
-        )
+        total_cls = torch.tensor(0.0, device=device)
+        total_box = torch.tensor(0.0, device=device)
+        total_rot = torch.tensor(0.0, device=device)
 
         for b in range(B):
-            tgt_boxes = torch.as_tensor(targets[b]["boxes"], device=device)
-            tgt_cls = torch.as_tensor(targets[b]["labels"], device=device)
-
-            num_gt = len(tgt_cls)
-
             pred_logits = logits[b]
             pred_boxes_b = pred_boxes[b]
 
-            pred_xy = pred_boxes_b[:, :4]
-            pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
+            tgt_boxes = torch.as_tensor(
+                targets[b]["boxes"],
+                device=device,
+                dtype=pred_boxes.dtype,
+            )
+            tgt_cls = torch.as_tensor(
+                targets[b]["labels"],
+                device=device,
+                dtype=torch.long,
+            )
 
+            num_gt = len(tgt_cls)
+            if num_gt == 0:
+                target_onehot = torch.zeros_like(pred_logits)
+                total_cls += _sigmoid_focal_loss(pred_logits, target_onehot)
+                continue
+
+            pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
             tgt_rot = F.normalize(tgt_boxes[:, 4:6], dim=-1)
-            tgt_boxes_xy = tgt_boxes[:, :4]
 
             with torch.no_grad():
-                prob = pred_logits.softmax(-1)
-
-                cost_cls = -prob[:, tgt_cls]  # (Q, G)
-                cost_box = torch.cdist(pred_xy, tgt_boxes_xy, p=1)
-                cost_rot = 1 - pred_rot @ tgt_rot.T
-
-                cost = cost_cls + cost_box + 0.5 * cost_rot
-
-                # IoU for dynamic k
-                def box_iou(a, b):
-                    a = torch.cat([a[:, :2] - a[:, 2:] / 2, a[:, :2] + a[:, 2:] / 2], -1)
-                    b = torch.cat([b[:, :2] - b[:, 2:] / 2, b[:, :2] + b[:, 2:] / 2], -1)
-
-                    lt = torch.max(a[:, None, :2], b[:, :2])
-                    rb = torch.min(a[:, None, 2:], b[:, 2:])
-                    wh = (rb - lt).clamp(min=0)
-                    inter = wh[..., 0] * wh[..., 1]
-
-                    area_a = (a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1])
-                    area_b = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
-
-                    union = area_a[:, None] + area_b - inter + 1e-6
-                    return inter / union
-
-                iou = box_iou(pred_xy, tgt_boxes_xy)
-
-                topk_iou, _ = torch.topk(iou, k=min(10, Q), dim=0)
-                dynamic_k = torch.clamp(topk_iou.sum(0).int(), min=1)
-
-            pos_mask = torch.zeros(Q, dtype=torch.bool, device=device)
-            gt_indices_list: list[torch.Tensor] = []
-
-            # SimOTA assignment
-            for gt_idx in range(num_gt):
-                k = int(dynamic_k[gt_idx].item())
-
-                _, query_idx = torch.topk(-cost[:, gt_idx], k=k)
-                pos_mask[query_idx] = True
-
-                gt_indices_list.append(torch.full((k,), gt_idx, device=device, dtype=torch.long))
-
-            if pos_mask.any():
-                pos_idx = pos_mask.nonzero(as_tuple=False).squeeze(1)
-
-                # map each positive query to a GT (best-effort stable assignment)
-                gt_indices = torch.cat(gt_indices_list)[: len(pos_idx)]
-
-                target_classes = torch.full((Q,), bg_idx, device=device)
-                target_classes[pos_idx] = tgt_cls[gt_indices]
-
-                total_cls += F.cross_entropy(pred_logits, target_classes)
-
-                total_box += F.smooth_l1_loss(
-                    pred_xy[pos_idx],
-                    tgt_boxes_xy[gt_indices],
+                cls_prob = pred_logits.sigmoid()
+                cost_cls = -torch.log(cls_prob[:, tgt_cls].clamp(min=1e-6))
+                cost_l1 = torch.cdist(
+                    pred_boxes_b[:, :4],
+                    tgt_boxes[:, :4],
+                    p=1,
+                )
+                cost_rot = 1 - (pred_rot @ tgt_rot.T).abs()
+                total_cost = 2.0 * cost_cls + 5.0 * cost_l1 + 2.0 * cost_rot
+                matching_matrix = torch.zeros(
+                    (Q, num_gt),
+                    dtype=torch.bool,
+                    device=device,
                 )
 
-                total_rot += (1 - (pred_rot[pos_idx] * tgt_rot[gt_indices]).sum(-1)).mean()
-            else:
-                target_classes = torch.full((Q,), bg_idx, device=device)
-                total_cls += F.cross_entropy(pred_logits, target_classes)
+                iou_like = 1 - cost_l1  # proxy
+                dynamic_k = (iou_like.sum(0).int() + 1).clamp(min=5, max=20)
 
-        return torch.as_tensor((total_cls + 5.0 * total_box + total_rot) / B, device=device)
+                for gt_idx in range(num_gt):
+                    _, candidate_idx = torch.topk(-total_cost[:, gt_idx], k=int(dynamic_k[gt_idx].item()))
+                    matching_matrix[candidate_idx, gt_idx] = True
+
+                # resolve duplicate matches
+                multiple_match_mask = matching_matrix.sum(1) > 1
+
+                if multiple_match_mask.any():
+                    duplicate_idx = multiple_match_mask.nonzero(as_tuple=False).squeeze(1)
+                    min_cost_idx = total_cost[duplicate_idx].argmin(dim=1)
+                    # Set all matches to False for the duplicate indices,
+                    # then set the match with the lowest cost to True
+                    matching_matrix[duplicate_idx] = False
+                    matching_matrix[duplicate_idx, min_cost_idx] = True
+
+                pos_idx, gt_indices = matching_matrix.nonzero(as_tuple=True)
+
+            target_onehot = torch.zeros_like(pred_logits)
+            if len(pos_idx) > 0:
+                target_onehot[pos_idx, tgt_cls[gt_indices]] = 1
+
+            total_cls += _sigmoid_focal_loss(pred_logits, target_onehot)
+
+            if len(pos_idx) == 0:
+                continue
+
+            pred_sel = pred_boxes_b[pos_idx]
+            tgt_sel = tgt_boxes[gt_indices]
+            # L1 loss on (cx, cy, w, h)
+            l1_loss = F.smooth_l1_loss(pred_sel[:, :4], tgt_sel[:, :4])
+            # ProbIoU loss on the whole box (including rotation)
+            probiou_loss = _probiou_loss(pred_sel, tgt_sel).mean()
+            total_box += 2.0 * l1_loss + 0.5 * probiou_loss
+            # Rotation loss
+            cos_sim = (pred_rot[pos_idx] * tgt_rot[gt_indices]).sum(-1).abs()
+            rot_loss = (1 - cos_sim).mean()
+            total_rot += 0.5 * rot_loss
+        # Average the loss over the batch
+        return (total_cls + total_box + total_rot) / B
 
 
 def _lw_detr(
@@ -658,6 +731,12 @@ def _lw_detr(
     ignore_keys: list[str] | None = None,
     **kwargs: Any,
 ) -> LWDETR:
+    # Patch the config
+    kwargs["class_names"] = kwargs.get("class_names", default_cfgs[arch].get("class_names", []))
+
+    _cfg = deepcopy(default_cfgs[arch])
+    _cfg["class_names"] = kwargs["class_names"]
+    kwargs.pop("class_names")
 
     # Build the feature extractor
     backbone = backbone_fn(  # type: ignore[call-arg]
@@ -671,19 +750,15 @@ def _lw_detr(
     # Build the model
     model = LWDETR(
         feat_extractor,
-        cfg=default_cfgs[arch],
-        class_names=kwargs.get("class_names", default_cfgs[arch].get("class_names", "")),
+        cfg=_cfg,
+        class_names=_cfg["class_names"],
         **kwargs,
     )
     # Load pretrained parameters
     if pretrained:
         # The number of class_names is not the same as the number of classes in the pretrained model =>
         # remove the layer weights
-        _ignore_keys = (
-            ignore_keys
-            if kwargs.get("class_names", default_cfgs[arch].get("class_names")) != default_cfgs[arch].get("class_names")
-            else None
-        )
+        _ignore_keys = ignore_keys if _cfg["class_names"] != default_cfgs[arch].get("class_names") else None
         model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model
