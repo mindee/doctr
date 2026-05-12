@@ -321,6 +321,7 @@
     <span class="s2">&quot;classification&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span> <span class="o">+</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ORIENTATION_ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;detection&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;recognition&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
+    <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -392,14 +393,19 @@
 
     <span class="k">if</span> <span class="n">run_config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">arch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;run_config or arch must be specified&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">,</span> <span class="s2">&quot;detection&quot;</span><span class="p">,</span> <span class="s2">&quot;recognition&quot;</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">,</span> <span class="s2">&quot;detection&quot;</span><span class="p">,</span> <span class="s2">&quot;recognition&quot;</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition, layout&quot;</span><span class="p">)</span>
 
     <span class="c1"># default readme</span>
     <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
-
+        <span class="sa">f</span><span class="s2">&quot;&quot;&quot;---</span>
 <span class="s2">    language: en</span>
+<span class="s2">    tags:</span>
+<span class="s2">    - ocr</span>
+<span class="s2">    - pytorch</span>
+<span class="s2">    - doctr</span>
+<span class="s2">    - </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
+<span class="s2">    ---</span>
 
 
 <span class="s2">    &lt;p align=&quot;center&quot;&gt;</span>
@@ -457,7 +463,8 @@
 
     <span class="c1"># Create repository</span>
     <span class="n">api</span> <span class="o">=</span> <span class="n">HfApi</span><span class="p">()</span>
-    <span class="n">api</span><span class="o">.</span><span class="n">create_repo</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">repo_url</span> <span class="o">=</span> <span class="n">api</span><span class="o">.</span><span class="n">create_repo</span><span class="p">(</span><span class="n">model_name</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span> <span class="n">repo_type</span><span class="o">=</span><span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">full_repo_id</span> <span class="o">=</span> <span class="n">repo_url</span><span class="o">.</span><span class="n">repo_id</span>
 
     <span class="c1"># Save model files to a temporary directory</span>
     <span class="k">with</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tmp_dir</span><span class="p">:</span>
@@ -468,7 +475,8 @@
         <span class="c1"># Upload all files to the hub</span>
         <span class="n">api</span><span class="o">.</span><span class="n">upload_folder</span><span class="p">(</span>
             <span class="n">folder_path</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">,</span>
-            <span class="n">repo_id</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+            <span class="n">repo_id</span><span class="o">=</span><span class="n">full_repo_id</span><span class="p">,</span>
+            <span class="n">repo_type</span><span class="o">=</span><span class="s2">&quot;model&quot;</span><span class="p">,</span>
             <span class="n">commit_message</span><span class="o">=</span><span class="n">commit_message</span><span class="p">,</span>
             <span class="n">token</span><span class="o">=</span><span class="n">get_token</span><span class="p">(),</span>
         <span class="p">)</span></div>
@@ -507,6 +515,8 @@
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;recognition&quot;</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">],</span> <span class="n">vocab</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;layout&quot;</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">])</span>
 
     <span class="c1"># update model cfg</span>
     <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>

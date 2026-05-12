@@ -1093,6 +1093,57 @@ running the detection model on it</p></li>
 </dd></dl>
 
 </section>
+<section id="doctr-models-layout">
+<h2>doctr.models.layout<a class="headerlink" href="#doctr-models-layout" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.layout.lw_detr_s">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.layout.</span></span><span class="sig-name descname"><span class="pre">lw_detr_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LWDETR</span></span></span><a class="reference internal" href="../_modules/doctr/models/layout/lw_detr/pytorch.html#lw_detr_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.layout.lw_detr_s" title="Link to this definition">¶</a></dt>
+<dd><p>LW-DETR as described in <a class="reference external" href="https://arxiv.org/pdf/2406.03459v1">“LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">lw_detr_s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">lw_detr_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>text detection architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.layout.lw_detr_m">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.layout.</span></span><span class="sig-name descname"><span class="pre">lw_detr_m</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LWDETR</span></span></span><a class="reference internal" href="../_modules/doctr/models/layout/lw_detr/pytorch.html#lw_detr_m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.layout.lw_detr_m" title="Link to this definition">¶</a></dt>
+<dd><p>LW-DETR as described in <a class="reference external" href="https://arxiv.org/pdf/2406.03459v1">“LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">lw_detr_m</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">lw_detr_m</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>text detection architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="doctr-models-recognition">
 <h2>doctr.models.recognition<a class="headerlink" href="#doctr-models-recognition" title="Link to this heading">¶</a></h2>
 <dl class="py function">
@@ -1588,6 +1639,11 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><a class="reference internal" href="#doctr.models.detection.fast_small"><code class="docutils literal notranslate"><span class="pre">fast_small()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.fast_base"><code class="docutils literal notranslate"><span class="pre">fast_base()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.detection_predictor"><code class="docutils literal notranslate"><span class="pre">detection_predictor()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr-models-layout">doctr.models.layout</a><ul>
+<li><a class="reference internal" href="#doctr.models.layout.lw_detr_s"><code class="docutils literal notranslate"><span class="pre">lw_detr_s()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.layout.lw_detr_m"><code class="docutils literal notranslate"><span class="pre">lw_detr_m()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#doctr-models-recognition">doctr.models.recognition</a><ul>
