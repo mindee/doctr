@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
+from collections.abc import Sequence
 
 import numpy as np
 import torch
@@ -59,12 +60,13 @@ class Resize(T.Resize):
 
     def _resize_target(
         self,
-        target,
-        raw_shape,
-        final_shape,
-        symmetric_pad=False,
-        offset=(0, 0),
-    ):
+        target: np.ndarray,
+        raw_shape: Sequence[int],
+        final_shape: Sequence[int],
+        symmetric_pad: bool = False,
+        offset: tuple[int, int] = (0, 0),
+    ) -> np.ndarray:
+        """Resize the target boxes according to the resizing of the image and the padding if needed"""
         target = target.copy()
 
         if target.shape[1:] == (4,):
