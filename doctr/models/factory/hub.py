@@ -30,6 +30,7 @@ AVAILABLE_ARCHS = {
     "classification": models.classification.zoo.ARCHS + models.classification.zoo.ORIENTATION_ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
+    "layout": models.layout.zoo.ARCHS,
 }
 
 
@@ -96,14 +97,19 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     if run_config is None and arch is None:
         raise ValueError("run_config or arch must be specified")
-    if task not in ["classification", "detection", "recognition"]:
-        raise ValueError("task must be one of classification, detection, recognition")
+    if task not in ["classification", "detection", "recognition", "layout"]:
+        raise ValueError("task must be one of classification, detection, recognition, layout")
 
     # default readme
     readme = textwrap.dedent(
-        f"""
-
+        f"""---
     language: en
+    tags:
+    - ocr
+    - pytorch
+    - doctr
+    - {task}
+    ---
 
 
     <p align="center">
@@ -161,7 +167,8 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     # Create repository
     api = HfApi()
-    api.create_repo(model_name, token=get_token(), exist_ok=False)
+    repo_url = api.create_repo(model_name, token=get_token(), repo_type="model", exist_ok=False)
+    full_repo_id = repo_url.repo_id
 
     # Save model files to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -172,7 +179,8 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
         # Upload all files to the hub
         api.upload_folder(
             folder_path=tmp_dir,
-            repo_id=model_name,
+            repo_id=full_repo_id,
+            repo_type="model",
             commit_message=commit_message,
             token=get_token(),
         )
@@ -208,6 +216,8 @@ def from_hub(repo_id: str, **kwargs: Any):
         model = models.detection.__dict__[arch](pretrained=False)
     elif task == "recognition":
         model = models.recognition.__dict__[arch](pretrained=False, input_shape=cfg["input_shape"], vocab=cfg["vocab"])
+    elif task == "layout":
+        model = models.layout.__dict__[arch](pretrained=False, class_names=cfg["class_names"])
 
     # update model cfg
     model.cfg = cfg
