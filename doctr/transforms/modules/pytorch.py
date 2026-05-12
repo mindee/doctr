@@ -155,7 +155,7 @@ class Resize(T.Resize):
                     offset = (0, 0)
 
                 if isinstance(target, dict):
-                    target = {  # type: ignore[assignment]
+                    target = {
                         cls_name: self._resize_target(
                             arr,
                             raw_shape,
