@@ -17,7 +17,7 @@ __all__ = ["MultiScaleProjector", "C2fBottleneck", "LWDETRHead", "LWDETRDecoder"
 
 class LWDETRHead(nn.Module):
     """
-    Simple MLP used to predict the normalized center coordinates, height and width of a bounding box w.r.t. an image.
+    Simple MLP used as the reference point head in LW-DETR.
 
     Args:
         input_dim: number of input features
@@ -285,7 +285,7 @@ class LWDETRMultiscaleDeformableAttention(nn.Module):
 
             sampling_locations = center + rotated_offsets
         else:
-            raise ValueError(f"Last dim of reference_points must be 2 or 4, but got {reference_points.shape[-1]}")
+            raise ValueError(f"Last dim of reference_points must be 4 or 6, but got {reference_points.shape[-1]}")
 
         output = self.attn(
             value,
@@ -354,8 +354,8 @@ class LWDETRDecoderLayer(nn.Module):
         self,
         hidden_states: torch.Tensor,
         position_embeddings: torch.Tensor | None = None,
-        reference_points=None,
-        spatial_shapes_list=None,
+        reference_points: torch.Tensor | None = None,
+        spatial_shapes_list: list[tuple] | None = None,
         encoder_hidden_states: torch.Tensor | None = None,
         encoder_attention_mask: torch.Tensor | None = None,
     ) -> torch.Tensor:
@@ -478,7 +478,26 @@ class LWDETRDecoder(nn.Module):
             nn.Linear(self.d_model, self.d_model),
         )
 
-    def get_reference(self, reference_points, valid_ratios):
+    def get_reference(
+        self, reference_points: torch.Tensor, valid_ratios: torch.Tensor
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+        """This function computes the reference point inputs and positional embeddings for the decoder layers.
+
+        Args:
+            reference_points: (batch_size, num_queries, 6)
+                tensor containing the current reference points in the format (cx, cy, w, h, sinθ, cosθ)
+            valid_ratios: (batch_size, num_levels, 2)
+                tensor containing the valid ratios for each level of the input feature maps
+
+        Returns:
+            reference_points_inputs: (batch_size, num_queries, 1, num_levels, 4)
+                tensor containing the reference point inputs for the decoder layers,
+                which are the normalized center coordinates,
+                width and height of the bounding boxes w.r.t. the valid ratios of the input feature maps
+            query_pos: (batch_size, num_queries, d_model)
+                tensor containing the positional embeddings for the decoder layers,
+                which are computed from the reference points using sine and cosine functions and a linear projection
+        """
         obj_center = reference_points[..., :4]
         spatial_inputs = obj_center[:, :, None] * torch.cat([valid_ratios, valid_ratios], -1)[:, None]
         # Extract angles
@@ -640,7 +659,7 @@ class MultiScaleProjector(nn.Module):
 
 
 class C2fBottleneck(nn.Module):
-    """Faster implementation of CSP bottleneck with 2 convolutions and 1 residual connection
+    """Faster implementation of CSP bottleneck with 2 convolutions and 1 residual connection.
 
     Args:
         input_dim: number of input channels

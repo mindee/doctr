@@ -3,6 +3,8 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from typing import Any
+
 import cv2
 import numpy as np
 
@@ -112,7 +114,6 @@ class LWDETRPostProcessor:
         return keep
 
     def __call__(self, logits: np.ndarray, boxes: np.ndarray) -> list[tuple[list[int], np.ndarray, list[float]]]:
-
         logits = np.asarray(logits)
         boxes = np.asarray(boxes)
 
@@ -194,8 +195,19 @@ class _LWDETR(BaseModel):
     def build_target(
         self,
         target: list[tuple[list[int], np.ndarray]],
-    ):
+    ) -> list[dict[str, Any]]:
+        """Build the target for LW-DETR training
 
+        Args:
+            target: list of tuples (class_ids, boxes) where class_ids is a list of class ids for the boxes
+                and boxes is an array of shape (num_boxes, 8) containing the coordinates of the 4 corners of the box
+                in the format (x1, y1, x2, y2, x3, y3, x4, y4)
+
+        Returns:
+            list of dictionaries with keys "boxes" and "labels" where "boxes" is an array of shape (num_boxes, 6)
+                containing the box parameters in OBB format (cx, cy, w, h, sin(theta), cos(theta))
+                and "labels" is an array of shape (num_boxes,) containing the class labels
+        """
         targets = []
 
         def _quad_to_obb(poly: np.ndarray):
