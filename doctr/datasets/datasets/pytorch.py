@@ -50,7 +50,7 @@ class AbstractDataset(_AbstractDataset):
     @staticmethod
     def collate_fn(
         samples: list[tuple[torch.Tensor, Any]] | list[tuple[tuple[torch.Tensor, torch.Tensor], Any]],
-    ) -> tuple[torch.Tensor, list[Any]]:
+    ) -> tuple[torch.Tensor | tuple[torch.Tensor, torch.Tensor], list[Any]]:
         images, targets = zip(*samples)
         if isinstance(images[0], tuple):
             images, padding_masks = zip(*images)
@@ -60,7 +60,7 @@ class AbstractDataset(_AbstractDataset):
         else:
             images = torch.stack(images, dim=0)  # type: ignore[assignment]
 
-        return images, list(targets)  # type: ignore[return-value]
+        return images, list(targets)
 
 
 class VisionDataset(AbstractDataset, _VisionDataset):  # noqa: D101
