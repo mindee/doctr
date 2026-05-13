@@ -39,12 +39,8 @@ default_cfgs: dict[str, dict[str, Any]] = {
             "Table",
             "Text",
             "Title",
-            "Document Index",
-            "Code",
             "Checkbox-Selected",
             "Checkbox-Unselected",
-            "Form",
-            "Key-Value Region",
         ],
         "url": None,
     },
@@ -64,12 +60,8 @@ default_cfgs: dict[str, dict[str, Any]] = {
             "Table",
             "Text",
             "Title",
-            "Document Index",
-            "Code",
             "Checkbox-Selected",
             "Checkbox-Unselected",
-            "Form",
-            "Key-Value Region",
         ],
         "url": None,
     },
@@ -735,7 +727,7 @@ def _lw_detr(
     kwargs["class_names"] = kwargs.get("class_names", default_cfgs[arch].get("class_names", []))
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg["class_names"] = kwargs["class_names"]
+    _cfg["class_names"] = sorted(kwargs["class_names"])
     kwargs.pop("class_names")
 
     # Build the feature extractor
@@ -758,7 +750,7 @@ def _lw_detr(
     if pretrained:
         # The number of class_names is not the same as the number of classes in the pretrained model =>
         # remove the layer weights
-        _ignore_keys = ignore_keys if _cfg["class_names"] != default_cfgs[arch].get("class_names") else None
+        _ignore_keys = ignore_keys if _cfg["class_names"] != sorted(default_cfgs[arch].get("class_names", [])) else None
         model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model

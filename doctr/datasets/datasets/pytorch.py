@@ -48,9 +48,17 @@ class AbstractDataset(_AbstractDataset):
         return img, deepcopy(target)
 
     @staticmethod
-    def collate_fn(samples: list[tuple[torch.Tensor, Any]]) -> tuple[torch.Tensor, list[Any]]:
+    def collate_fn(
+        samples: list[tuple[torch.Tensor, Any]] | list[tuple[tuple[torch.Tensor, torch.Tensor], Any]],
+    ) -> tuple[torch.Tensor, list[Any]]:
         images, targets = zip(*samples)
-        images = torch.stack(images, dim=0)  # type: ignore[assignment]
+        if isinstance(images[0], tuple):
+            images, padding_masks = zip(*images)
+            images = torch.stack(images, dim=0)  # type: ignore[assignment]
+            padding_masks = torch.stack(padding_masks, dim=0)  # type: ignore[assignment]
+            images = (images, padding_masks)
+        else:
+            images = torch.stack(images, dim=0)  # type: ignore[assignment]
 
         return images, list(targets)  # type: ignore[return-value]
 

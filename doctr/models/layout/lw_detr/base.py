@@ -9,6 +9,7 @@ import cv2
 import numpy as np
 
 from doctr.models.core import BaseModel
+from doctr.utils import order_points
 
 __all__ = ["_LWDETR", "LWDETRPostProcessor"]
 
@@ -57,7 +58,7 @@ class LWDETRPostProcessor:
         for i in range(len(boxes)):
             rect = ((float(cx[i]), float(cy[i])), (float(w[i]), float(h[i])), float(np.degrees(angles[i])))
 
-            poly = cv2.boxPoints(rect)
+            poly = order_points(cv2.boxPoints(rect))
             polys.append(poly)
 
         return np.asarray(polys, dtype=np.float32), angles
@@ -237,7 +238,7 @@ class _LWDETR(BaseModel):
                 continue
 
             for cls_id, box in zip(np.asarray(class_ids), np.asarray(boxes)):
-                poly = box.reshape(4, 2)
+                poly = order_points(box.reshape(4, 2))
                 obb = _quad_to_obb(poly)
 
                 if obb[2] <= 1e-3 or obb[3] <= 1e-3:

@@ -61,17 +61,17 @@ class LayoutDataset(AbstractDataset):
                 raise FileNotFoundError(f"unable to locate {img_path}")
 
             polygons = label.get("polygons")
-            class_names = label.get("class_names")
+            class_names = label.get("classes")
 
             if polygons is None:
                 raise KeyError(f"missing 'polygons' for image: {img_name}")
             if class_names is None:
-                raise KeyError(f"missing 'class_names' for image: {img_name}")
+                raise KeyError(f"missing 'classes' for image: {img_name}")
 
             if len(polygons) != len(class_names):
                 raise ValueError(
                     f"number of polygons ({len(polygons)}) does not match "
-                    f"number of class_names ({len(class_names)}) for image: {img_name}"
+                    f"number of classes ({len(class_names)}) for image: {img_name}"
                 )
 
             geoms, polygon_classes = self.format_polygons(

@@ -188,15 +188,20 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
     ds = datasets.LayoutDataset(
         img_folder=mock_image_folder,
         label_path=mock_layout_label,
-        img_transforms=Resize(input_size),
+        img_transforms=Resize(input_size, return_padding_mask=True),
         use_polygons=use_polygons,
     )
 
     assert len(ds) == 5
-    img, target_dict = ds[0]
+    inputs, target_dict = ds[0]
+    assert isinstance(inputs, tuple) and len(inputs) == 2
+    img, padding_mask = inputs
     assert isinstance(img, torch.Tensor)
     assert img.dtype == torch.float32
     assert img.shape[-2:] == input_size
+    assert isinstance(padding_mask, torch.Tensor)
+    assert padding_mask.dtype == torch.bool
+    assert padding_mask.shape == input_size
     assert isinstance(target_dict, dict)
     expected_classes = {"Table", "Header", "Footer", "Text"}
     assert set(target_dict.keys()) == expected_classes
@@ -213,8 +218,12 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
     assert ds.class_names == sorted(expected_classes)
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
-    assert isinstance(images, torch.Tensor)
-    assert images.shape == (2, 3, *input_size)
+    assert isinstance(images, tuple) and len(images) == 2
+    img, padding_mask = images
+    assert isinstance(img, torch.Tensor)
+    assert img.shape == (2, 3, *input_size)
+    assert isinstance(padding_mask, torch.Tensor)
+    assert padding_mask.shape == (2, *input_size)
     assert isinstance(targets, list)
     assert all(isinstance(target, dict) for target in targets)
     for target in targets:
@@ -243,14 +252,14 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
 
     test_cases = [
         (
-            {"class_names": ["Text"]},
+            {"classes": ["Text"]},
             KeyError,
             "missing 'polygons'",
         ),
         (
             {"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]]]},
             KeyError,
-            "missing 'class_names'",
+            "missing 'classes'",
         ),
         (
             {
@@ -258,7 +267,7 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
                     [[0, 0], [1, 0], [1, 1], [0, 1]],
                     [[0, 0], [1, 0], [1, 1], [0, 1]],
                 ],
-                "class_names": ["Text"],
+                "classes": ["Text"],
             },
             ValueError,
             "number of polygons",
@@ -266,7 +275,7 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
         (
             {
                 "polygons": [[[0, 0], [1, 0], [1, 1]]],  # only 3 points
-                "class_names": ["Text"],
+                "classes": ["Text"],
             },
             ValueError,
             "polygons are expected to have shape",
