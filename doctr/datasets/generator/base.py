@@ -10,6 +10,7 @@ from typing import Any
 from PIL import Image, ImageDraw
 
 from doctr.io.image import tensor_from_pil
+from doctr.utils import Sample
 from doctr.utils.fonts import get_font
 
 from ..datasets import AbstractDataset
@@ -62,7 +63,7 @@ class _CharacterGenerator(AbstractDataset):
         cache_samples: bool = False,
         font_family: str | list[str] | None = None,
         img_transforms: Callable[[Any], Any] | None = None,
-        sample_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
+        sample_transforms: Callable[[Sample], Sample] | None = None,
     ) -> None:
         self.vocab = vocab
         self._num_samples = num_samples
@@ -111,7 +112,7 @@ class _WordGenerator(AbstractDataset):
         cache_samples: bool = False,
         font_family: str | list[str] | None = None,
         img_transforms: Callable[[Any], Any] | None = None,
-        sample_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
+        sample_transforms: Callable[[Sample], Sample] | None = None,
     ) -> None:
         self.vocab = vocab
         self.wordlen_range = (min_chars, max_chars)

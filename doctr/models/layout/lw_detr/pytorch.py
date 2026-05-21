@@ -413,7 +413,7 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         input: torch.Tensor,
         masks: torch.Tensor,
-        target: list[tuple[list[int], np.ndarray]] | None = None,
+        target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
@@ -526,7 +526,7 @@ class LWDETR(nn.Module, _LWDETR):
         return out
 
     def compute_loss(
-        self, logits: torch.Tensor, pred_boxes: torch.Tensor, target: list[tuple[list[int], np.ndarray]]
+        self, logits: torch.Tensor, pred_boxes: torch.Tensor, target: list[dict[str, np.ndarray]]
     ) -> torch.Tensor:
         """
         Compute the loss for LW-DETR. The loss consists of three components:
@@ -543,11 +543,9 @@ class LWDETR(nn.Module, _LWDETR):
         Args:
             logits: (B, Q, C) tensor containing the predicted class logits for each query
             pred_boxes: (B, Q, 6) tensor containing the predicted boxes for each query
-            target: list of length B, where each element is a tuple of (classes, boxes)
-                for the corresponding image in the batch.
-                - classes: list of length N_i containing the class indices of the N_i ground truth boxes in the image
-                - boxes: (N_i, 4. 2) array containing the ground truth boxes
-                    in the format [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]
+            target: list of dictionaries where each dictionary corresponds to a sample and has keys corresponding
+                to class names and values corresponding to lists of boxes in either polygon format (4, 2)
+                or bounding box format (4,) (xmin, ymin, xmax, ymax)
 
         Returns:
             loss: the computed loss value
@@ -626,7 +624,7 @@ class LWDETR(nn.Module, _LWDETR):
         device = logits.device
         B, Q, C = logits.shape
         # Build targets
-        targets = self.build_target(target)
+        targets = self.build_target(target, self.class_names)
 
         total_cls = torch.tensor(0.0, device=device)
         total_box = torch.tensor(0.0, device=device)

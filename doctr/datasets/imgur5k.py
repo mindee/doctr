@@ -34,10 +34,12 @@ class IMGUR5K(AbstractDataset):
     >>> from doctr.datasets import IMGUR5K
     >>> train_set = IMGUR5K(train=True, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
     >>>                     label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
     >>> test_set = IMGUR5K(train=False, img_folder="/path/to/IMGUR5K-Handwriting-Dataset/images",
     >>>                    label_path="/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json")
-    >>> img, target = test_set[0]
+    >>> sample = test_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: folder with all the images of the dataset

@@ -31,7 +31,7 @@ from doctr import transforms as T
 from doctr.datasets import LayoutDataset
 from doctr.models import layout, login_to_hub, push_to_hf_hub
 from doctr.utils.metrics import ObjectDetectionMetric
-from utils import EarlyStopper, plot_recorder, plot_samples
+from utils import EarlyStopper, convert_target, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -177,15 +177,16 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
         # Compute metric
         loc_preds = out["preds"]
         for target, pred in zip(targets, loc_preds):
-            assert pred["boxes"].shape[0] == pred["scores"].shape[0]
-            assert pred["boxes"].shape[0] == pred["labels"].shape[0]
-
+            target_boxes, target_labels = convert_target(target, model.class_names)
+            pred_labels = np.asarray(pred[0], dtype=np.int64)
+            pred_boxes = np.asarray(pred[1], dtype=np.float32)
+            pred_scores = np.asarray(pred[2], dtype=np.float32)
             val_metric.update(
-                gt_boxes=target["boxes"],
-                pred_boxes=pred["boxes"],
-                gt_labels=target["labels"],
-                pred_labels=pred["labels"],
-                pred_scores=pred["scores"],
+                gt_boxes=target_boxes,
+                pred_boxes=pred_boxes,
+                gt_labels=target_labels,
+                pred_labels=pred_labels,
+                pred_scores=pred_scores,
             )
 
         pbar.set_description(f"Validation loss: {out['loss'].item():.6f}")
@@ -282,7 +283,9 @@ def main(args):
                 )
                 + (
                     [
-                        T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                        T.Resize(
+                            args.input_size, preserve_aspect_ratio=True, return_padding_mask=True
+                        ),  # This does not pad
                         T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
                         T.Resize(
                             (args.input_size, args.input_size),
@@ -369,9 +372,9 @@ def main(args):
             T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-            RandomGrayscale(p=0.15),
+            T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
         ]),
-        RandomPhotometricDistort(p=0.3),
+        T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
         lambda x: x,  # Identity no transformation
     ])
     # Image + target augmentations
@@ -383,7 +386,12 @@ def main(args):
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
-                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                T.Resize(
+                    (args.input_size, args.input_size),
+                    preserve_aspect_ratio=True,
+                    symmetric_pad=True,
+                    return_padding_mask=True,
+                ),
             ]
             if not args.rotation
             else [
@@ -393,7 +401,7 @@ def main(args):
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
-                T.Resize(args.input_size, preserve_aspect_ratio=True),
+                T.Resize(args.input_size, preserve_aspect_ratio=True, return_padding_mask=True),
                 T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
                 # Important to return padding masks for layout models
                 T.Resize(
@@ -447,7 +455,8 @@ def main(args):
 
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        img, masks = x
+        plot_samples(img, target, masks)
         return
 
     # Backbone freezing

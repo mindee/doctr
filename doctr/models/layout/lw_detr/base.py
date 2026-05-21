@@ -195,14 +195,16 @@ class _LWDETR(BaseModel):
 
     def build_target(
         self,
-        target: list[tuple[list[int], np.ndarray]],
+        target: list[dict[str, np.ndarray]],
+        class_names: list[str],
     ) -> list[dict[str, Any]]:
         """Build the target for LW-DETR training
 
         Args:
-            target: list of tuples (class_ids, boxes) where class_ids is a list of class ids for the boxes
-                and boxes is an array of shape (num_boxes, 8) containing the coordinates of the 4 corners of the box
-                in the format (x1, y1, x2, y2, x3, y3, x4, y4)
+            target: list of dictionaries where each dictionary corresponds to a sample and has keys corresponding
+                to class names and values corresponding to lists of boxes in either polygon format (4, 2)
+                or bounding box format (4,) (xmin, ymin, xmax, ymax)
+            class_names: list of class names
 
         Returns:
             list of dictionaries with keys "boxes" and "labels" where "boxes" is an array of shape (num_boxes, 6)
@@ -211,41 +213,88 @@ class _LWDETR(BaseModel):
         """
         targets = []
 
+        class_to_id = {name: i for i, name in enumerate(class_names)}
+
         def _quad_to_obb(poly: np.ndarray):
-            p1, p2, p3, p4 = poly
+            poly = np.asarray(poly, dtype=np.float32)
 
             cx, cy = np.mean(poly, axis=0)
 
-            w = (np.linalg.norm(p2 - p1) + np.linalg.norm(p3 - p4)) / 2
-            h = (np.linalg.norm(p3 - p2) + np.linalg.norm(p4 - p1)) / 2
+            edges = np.stack([
+                poly[1] - poly[0],
+                poly[2] - poly[1],
+                poly[3] - poly[2],
+                poly[0] - poly[3],
+            ])
 
-            theta = np.arctan2(*(p2 - p1)[::-1])
+            lengths = np.linalg.norm(edges, axis=1)
+            i = np.argmax(lengths)
+            dx, dy = edges[i]
+
+            theta = np.arctan2(dy, dx)
+
+            w = np.mean([lengths[0], lengths[2]])
+            h = np.mean([lengths[1], lengths[3]])
 
             return np.array(
                 [cx, cy, w, h, np.sin(theta), np.cos(theta)],
                 dtype=np.float32,
             )
 
-        for class_ids, boxes in target:
+        def to_quad(box: np.ndarray):
+            box = np.asarray(box, dtype=np.float32)
+
+            if box.shape == (4,):
+                x1, y1, x2, y2 = box
+                return np.array(
+                    [
+                        [x1, y1],
+                        [x2, y1],
+                        [x2, y2],
+                        [x1, y2],
+                    ],
+                    dtype=np.float32,
+                )
+
+            if box.shape == (8,):
+                return box.reshape(4, 2)
+
+            if box.shape == (4, 2):
+                return box.astype(np.float32)
+
+            raise ValueError(f"Unsupported box shape: {box.shape}")
+
+        for sample in target:
             boxes_all = []
             labels_all = []
 
-            if len(boxes) == 0:
+            if not sample:
                 targets.append({
                     "boxes": np.zeros((0, 6), dtype=np.float32),
                     "labels": np.zeros((0,), dtype=np.int64),
                 })
                 continue
 
-            for cls_id, box in zip(np.asarray(class_ids), np.asarray(boxes)):
-                poly = order_points(box.reshape(4, 2))
-                obb = _quad_to_obb(poly)
+            for class_name, boxes in sample.items():
+                if class_name not in class_to_id:
+                    raise ValueError(f"Unknown class name: {class_name}")
 
-                if obb[2] <= 1e-3 or obb[3] <= 1e-3:
-                    continue
+                cls_id = class_to_id[class_name]
 
-                boxes_all.append(obb)
-                labels_all.append(cls_id + 1)  # background = 0
+                boxes = np.asarray(boxes)
+
+                if boxes.ndim == 1:
+                    boxes = boxes[None, :]
+
+                for box in boxes:
+                    poly = to_quad(box)
+                    obb = _quad_to_obb(poly)
+
+                    if obb[2] <= 1e-3 or obb[3] <= 1e-3:
+                        continue
+
+                    boxes_all.append(obb)
+                    labels_all.append(cls_id)
 
             targets.append({
                 "boxes": np.asarray(boxes_all, dtype=np.float32),

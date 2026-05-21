@@ -7,6 +7,7 @@ import multiprocessing as mp
 import os
 import time
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader, SequentialSampler
 from torchvision.transforms import Normalize
@@ -20,6 +21,7 @@ from doctr import transforms as T
 from doctr.datasets import LayoutDataset
 from doctr.models import layout
 from doctr.utils.metrics import ObjectDetectionMetric
+from utils import convert_target
 
 
 @torch.inference_mode()
@@ -44,14 +46,16 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
         # Compute metric
         loc_preds = out["preds"]
         for target, pred in zip(targets, loc_preds):
-            assert pred["boxes"].shape[0] == pred["scores"].shape[0]
-            assert pred["boxes"].shape[0] == pred["labels"].shape[0]
+            target_boxes, target_labels = convert_target(target, model.class_names)
+            pred_labels = np.asarray(pred[0], dtype=np.int64)
+            pred_boxes = np.asarray(pred[1], dtype=np.float32)
+            pred_scores = np.asarray(pred[2], dtype=np.float32)
             val_metric.update(
-                gt_boxes=target["boxes"],
-                pred_boxes=pred["boxes"],
-                gt_labels=target["labels"],
-                pred_labels=pred["labels"],
-                pred_scores=pred["scores"],
+                gt_boxes=target_boxes,
+                pred_boxes=pred_boxes,
+                gt_labels=target_labels,
+                pred_labels=pred_labels,
+                pred_scores=pred_scores,
             )
 
         val_loss += out["loss"].item()

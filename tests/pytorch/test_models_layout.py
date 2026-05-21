@@ -13,6 +13,7 @@ from doctr.models.utils import _CompiledModule, export_model_to_onnx
 
 
 @pytest.mark.parametrize("train_mode", [True, False])
+@pytest.mark.parametrize("use_polygons", [True, False])
 @pytest.mark.parametrize(
     "arch_name, input_shape",
     [
@@ -20,38 +21,42 @@ from doctr.models.utils import _CompiledModule, export_model_to_onnx
         ["lw_detr_m", (3, 1024, 1024)],
     ],
 )
-def test_layout_models(arch_name, input_shape, train_mode):
+def test_layout_models(arch_name, input_shape, train_mode, use_polygons):
     batch_size = 2
     model = layout.__dict__[arch_name](pretrained=True)
     model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
     input_masks = torch.ones((batch_size, input_shape[1], input_shape[2]), dtype=torch.bool)
+
+    class_names = model.class_names
+
     target = []
     for _ in range(batch_size):
+        sample_target = {}
         num_boxes = 5
-
-        class_ids = torch.randint(0, 10, (num_boxes,)).tolist()
-
-        # random boxes in normalized-ish space
-        boxes = []
         for _ in range(num_boxes):
-            cx, cy = torch.rand(2) * 0.8 + 0.1
-            w, h = torch.rand(2) * 0.2 + 0.05
+            cls_name = np.random.choice(class_names)
+            x1, y1 = torch.rand(2) * 0.8
+            if use_polygons:
+                w, h = 0.1, 0.1
 
-            x1, y1 = cx - w / 2, cy - h / 2
-            x2, y2 = cx + w / 2, cy - h / 2
-            x3, y3 = cx + w / 2, cy + h / 2
-            x4, y4 = cx - w / 2, cy + h / 2
+                box = np.array(
+                    [
+                        [x1, y1],
+                        [x1 + w, y1],
+                        [x1 + w, y1 + h],
+                        [x1, y1 + h],
+                    ],
+                    dtype=np.float32,
+                )  # (4,2)
+            else:
+                x2, y2 = x1 + 0.1, y1 + 0.1
+                box = np.array([x1, y1, x2, y2], dtype=np.float32)  # (4,)
+            sample_target.setdefault(cls_name, [])
+            sample_target[cls_name].append(box)
+        target.append(sample_target)
 
-            boxes.append([
-                [x1, y1],
-                [x2, y2],
-                [x3, y3],
-                [x4, y4],
-            ])
-
-        target.append((class_ids, torch.tensor(boxes, dtype=torch.float32)))
     if torch.cuda.is_available():
         model.cuda()
         input_tensor = input_tensor.cuda()

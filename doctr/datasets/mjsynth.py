@@ -23,11 +23,13 @@ class MJSynth(AbstractDataset):
     >>> train_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",
     >>>                     label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt",
     >>>                     train=True)
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
     >>> test_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",
     >>>                    label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt")
     >>>                    train=False)
-    >>> img, target = test_set[0]
+    >>> sample = test_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: folder with all the images of the dataset

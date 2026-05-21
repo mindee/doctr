@@ -4,13 +4,14 @@ import random
 import numpy as np
 import pytest
 import torch
+from torchvision.transforms.v2 import RandomGrayscale
 
 from doctr.transforms import (
     ChannelShuffle,
     ColorInversion,
     GaussianBlur,
     GaussianNoise,
-    ImageTransform,
+    ImageTorchvisionTransform,
     OneOf,
     RandomApply,
     RandomCrop,
@@ -22,13 +23,14 @@ from doctr.transforms import (
     SampleCompose,
 )
 from doctr.transforms.functional import crop_detection, rotate_sample
+from doctr.utils import Sample
 
 
 def test_resize():
     output_size = (32, 32)
     transfo = Resize(output_size)
-    input_t = torch.ones((3, 64, 64), dtype=torch.float32)
-    out = transfo(input_t)
+    input_t = Sample(image=torch.ones((3, 64, 64), dtype=torch.float32))
+    out = transfo(input_t).image
 
     assert torch.all(out == 1)
     assert out.shape[-2:] == output_size
@@ -36,7 +38,8 @@ def test_resize():
 
     # Test return_padding_mask without aspect ratio
     transfo = Resize(output_size, return_padding_mask=True)
-    out, mask = transfo(input_t)
+    data = transfo(input_t)
+    out, mask = data.image, data.mask
     assert out.shape[-2:] == output_size
     assert mask.shape == output_size
     assert mask.dtype == torch.bool
@@ -44,18 +47,19 @@ def test_resize():
 
     # Test with preserve_aspect_ratio
     output_size = (32, 32)
-    input_t = torch.ones((3, 32, 64), dtype=torch.float32)
+    input_t = Sample(image=torch.ones((3, 32, 64), dtype=torch.float32))
 
     # Asymmetric padding
     transfo = Resize(output_size, preserve_aspect_ratio=True)
-    out = transfo(input_t)
+    out = transfo(input_t).image
     assert out.shape[-2:] == output_size
     assert not torch.all(out == 1)
     assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 1)
 
     # Asymmetric padding mask
     transfo = Resize(output_size, preserve_aspect_ratio=True, return_padding_mask=True)
-    out, mask = transfo(input_t)
+    data = transfo(input_t)
+    out, mask = data.image, data.mask
     assert mask.shape == output_size
     assert mask.dtype == torch.bool
     assert mask.any()
@@ -64,13 +68,14 @@ def test_resize():
 
     # Symmetric padding
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
-    out = transfo(input_t)
+    out = transfo(input_t).image
     assert out.shape[-2:] == output_size
     assert torch.all(out[:, 0] == 0) and torch.all(out[:, -1] == 0)
 
     # Symmetric padding mask
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True, return_padding_mask=True)
-    out, mask = transfo(input_t)
+    data = transfo(input_t)
+    out, mask = data.image, data.mask
     assert mask.shape == output_size
     assert mask.dtype == torch.bool
     assert mask.any()
@@ -81,20 +86,20 @@ def test_resize():
     assert repr(transfo) == expected
 
     # Test with inverse resize
-    input_t = torch.ones((3, 64, 32), dtype=torch.float32)
+    input_t = Sample(image=torch.ones((3, 64, 32), dtype=torch.float32))
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
-    out = transfo(input_t)
+    out = transfo(input_t).image
     assert out.shape[-2:] == (32, 32)
 
     # Test resize with same ratio
     transfo = Resize((32, 128), preserve_aspect_ratio=True)
-    out = transfo(torch.ones((3, 16, 64), dtype=torch.float32))
+    out = transfo(Sample(image=torch.ones((3, 16, 64), dtype=torch.float32))).image
     assert out.shape[-2:] == (32, 128)
 
     # Test with fp16 input
     transfo = Resize((32, 128), preserve_aspect_ratio=True)
-    input_t = torch.ones((3, 64, 64), dtype=torch.float16)
-    out = transfo(input_t)
+    input_t = Sample(image=torch.ones((3, 64, 64), dtype=torch.float16))
+    out = transfo(input_t).image
     assert out.dtype == torch.float16
 
     padding = [True, False]
@@ -102,8 +107,9 @@ def test_resize():
         # Test with target boxes
         target_boxes = np.array([[0.1, 0.1, 0.3, 0.4], [0.2, 0.2, 0.8, 0.8]])
         transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
-        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-        out, new_target, mask = transfo(input_t, target_boxes)
+        input_t = Sample(image=torch.ones((3, 32, 64), dtype=torch.float32), target=target_boxes)
+        data = transfo(input_t)
+        out, mask, new_target = data.image, data.mask, data.target
 
         assert out.shape[-2:] == (64, 64)
         assert new_target.shape == target_boxes.shape
@@ -117,8 +123,9 @@ def test_resize():
             [[0.2, 0.2], [0.8, 0.2], [0.8, 0.8], [0.2, 0.8]],
         ])
         transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=symmetric_pad, return_padding_mask=True)
-        input_t = torch.ones((3, 32, 64), dtype=torch.float32)
-        out, new_target, mask = transfo(input_t, target_boxes)
+        input_t = Sample(image=torch.ones((3, 32, 64), dtype=torch.float32), target=target_boxes)
+        data = transfo(input_t)
+        out, mask, new_target = data.image, data.mask, data.target
 
         assert out.shape[-2:] == (64, 64)
         assert new_target.shape == target_boxes.shape
@@ -132,7 +139,7 @@ def test_resize():
 
     transfo = Resize((64, 64), preserve_aspect_ratio=True)
     with pytest.raises(AssertionError):
-        transfo(input_t, target)
+        transfo(Sample(image=input_t, target=target))
 
     # Test dict targets
     target_dict = {
@@ -144,7 +151,7 @@ def test_resize():
         preserve_aspect_ratio=True,
         symmetric_pad=True,
     )
-    _, new_target = transfo(input_t, target_dict)
+    new_target = transfo(Sample(image=input_t, target=target_dict)).target
     assert isinstance(new_target, dict)
     assert set(new_target.keys()) == {"boxes", "polygons"}
     assert new_target["boxes"].shape == (1, 4)
@@ -152,18 +159,21 @@ def test_resize():
 
     # Test return type combinations
     transfo = Resize((32, 32))
-    out = transfo(input_t)
+    out = transfo(Sample(image=input_t)).image
     assert isinstance(out, torch.Tensor)
 
     transfo = Resize((32, 32), return_padding_mask=True)
-    out = transfo(input_t)
-    assert isinstance(out, tuple)
-    assert len(out) == 2
+    out = transfo(Sample(image=input_t))
+    assert isinstance(out, Sample)
+    assert hasattr(out, "image") and hasattr(out, "mask")
+    assert out.image.shape[-2:] == (32, 32)
+    assert out.mask.shape[-2:] == (32, 32)
 
     transfo = Resize((32, 32), preserve_aspect_ratio=True)
-    out = transfo(input_t, target_boxes)
-    assert isinstance(out, tuple)
-    assert len(out) == 2
+    out = transfo(Sample(image=input_t, target=target_boxes))
+    assert isinstance(out, Sample)
+    assert hasattr(out, "image") and hasattr(out, "target")
+    assert out.image.shape[-2:] == (32, 32)
 
     transfo = Resize(
         (32, 32),
@@ -171,9 +181,11 @@ def test_resize():
         return_padding_mask=True,
     )
 
-    out = transfo(input_t, target_boxes)
-    assert isinstance(out, tuple)
-    assert len(out) == 3
+    out = transfo(Sample(image=input_t, target=target_boxes))
+    assert isinstance(out, Sample)
+    assert hasattr(out, "image") and hasattr(out, "mask") and hasattr(out, "target")
+    assert out.image.shape[-2:] == (32, 32)
+    assert out.mask.shape[-2:] == (32, 32)
 
 
 @pytest.mark.parametrize(
@@ -186,20 +198,22 @@ def test_resize():
 )
 def test_invert_colorize(rgb_min):
     transfo = ColorInversion(min_val=rgb_min)
-    input_t = torch.ones((8, 3, 32, 32), dtype=torch.float32)
-    out = transfo(input_t)
+    input_t = Sample(image=torch.ones((8, 3, 32, 32), dtype=torch.float32))
+    out = transfo(input_t).image
     assert torch.all(out <= 1 - rgb_min + 1e-4)
     assert torch.all(out >= 0)
 
-    input_t = torch.full((8, 3, 32, 32), 255, dtype=torch.uint8)
-    out = transfo(input_t)
+    input_t = Sample(image=torch.full((8, 3, 32, 32), 255, dtype=torch.uint8))
+    out = transfo(input_t).image
     assert torch.all(out <= int(math.ceil(255 * (1 - rgb_min + 1e-4))))
     assert torch.all(out >= 0)
 
     # FP16
-    input_t = torch.ones((8, 3, 32, 32), dtype=torch.float16)
-    out = transfo(input_t)
+    input_t = Sample(image=torch.ones((8, 3, 32, 32), dtype=torch.float16))
+    out = transfo(input_t).image
     assert out.dtype == torch.float16
+
+    assert repr(transfo) == f"ColorInversion(min_val={rgb_min})"
 
 
 def test_rotate_sample():
@@ -254,19 +268,24 @@ def test_random_rotate():
     rotator = RandomRotate(max_angle=10.0, expand=False)
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
     boxes = np.array([[15, 20, 35, 30]])
-    r_img, _r_boxes = rotator(input_t, boxes)
+    data = rotator(Sample(image=input_t, target=boxes))
+    r_img = data.image
     assert r_img.shape == input_t.shape
 
     rotator = RandomRotate(max_angle=10.0, expand=True)
-    r_img, _r_boxes = rotator(input_t, boxes)
+    data = rotator(Sample(image=input_t, target=boxes))
+    r_img = data.image
     assert r_img.shape != input_t.shape
+
+    assert repr(rotator) == "RandomRotate(max_angle=10.0, expand=True)"
 
     # Test dict targets
     dict_target = {
         "boxes": np.array([[15, 20, 35, 30]]),
         "polygons": np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]]),
     }
-    r_img, r_targets = rotator(input_t, dict_target)
+    data = rotator(Sample(image=input_t, target=dict_target))
+    r_img, r_targets = data.image, data.target
     assert isinstance(r_targets, dict)
     assert set(r_targets.keys()) == {"boxes", "polygons"}
     assert isinstance(r_targets["boxes"], np.ndarray)
@@ -287,7 +306,8 @@ def test_random_rotate():
         "boxes": np.zeros((0, 4), dtype=np.float32),
         "polygons": np.zeros((0, 4, 2), dtype=np.float32),
     }
-    r_img, r_targets = rotator(input_t, empty_targets)
+    data = rotator(Sample(image=input_t, target=empty_targets))
+    r_img, r_targets = data.image, data.target
     assert isinstance(r_targets, dict)
     assert r_targets["boxes"].shape == (0, 4)
     assert r_targets["polygons"].shape == (0, 4, 2)
@@ -295,7 +315,8 @@ def test_random_rotate():
     # FP16 (only on GPU)
     if torch.cuda.is_available():
         input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
-        r_img, _ = rotator(input_t, boxes)
+        data = rotator(Sample(image=input_t, target=boxes))
+        r_img = data.image
         assert r_img.dtype == torch.float16
 
 
@@ -339,9 +360,11 @@ def test_crop_detection():
 )
 def test_random_crop(target):
     cropper = RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
+    assert repr(cropper) == "RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))"
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
 
-    img, target = cropper(input_t, target)
+    sample = cropper(Sample(image=input_t, target=target))
+    img, target = sample.image, sample.target
     # Check the scale
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
@@ -358,7 +381,8 @@ def test_random_crop(target):
         "boxes": np.array([[15, 20, 35, 30]]),
         "polygons": np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]]),
     }
-    img, cropped_targets = cropper(input_t, dict_target)
+    sample = cropper(Sample(image=input_t, target=dict_target))
+    img, cropped_targets = sample.image, sample.target
     assert isinstance(cropped_targets, dict)
     assert set(cropped_targets.keys()) == {"boxes", "polygons"}
     assert isinstance(cropped_targets["boxes"], np.ndarray)
@@ -387,20 +411,20 @@ def test_random_crop(target):
 )
 def test_channel_shuffle(input_dtype, input_size):
     transfo = ChannelShuffle()
-    input_t = torch.rand(input_size, dtype=torch.float32)
+    input_t = Sample(image=torch.rand(input_size, dtype=torch.float32))
     if input_dtype == torch.uint8:
-        input_t = (255 * input_t).round()
-    input_t = input_t.to(dtype=input_dtype)
-    out = transfo(input_t)
+        input_t.image = (255 * input_t.image).round()
+    input_t.image = input_t.image.to(dtype=input_dtype)
+    out = transfo(input_t).image
     assert isinstance(out, torch.Tensor)
     assert out.shape == input_size
     assert out.dtype == input_dtype
     # Ensure that nothing has changed apart from channel order
     if input_dtype == torch.uint8:
-        assert torch.all(input_t.sum(0) == out.sum(0))
+        assert torch.all(input_t.image.sum(0) == out.sum(0))
     else:
         # Float approximation
-        assert (input_t.sum(0) - out.sum(0)).abs().mean() < 1e-7
+        assert (input_t.image.sum(0) - out.sum(0)).abs().mean() < 1e-7
 
 
 @pytest.mark.parametrize(
@@ -412,15 +436,15 @@ def test_channel_shuffle(input_dtype, input_size):
 )
 def test_gaussian_noise(input_dtype, input_shape):
     transform = GaussianNoise(0.0, 1.0)
-    input_t = torch.rand(input_shape, dtype=torch.float32)
+    input_t = Sample(image=torch.rand(input_shape, dtype=torch.float32))
     if input_dtype == torch.uint8:
-        input_t = (255 * input_t).round()
-    input_t = input_t.to(dtype=input_dtype)
-    transformed = transform(input_t)
+        input_t.image = (255 * input_t.image).round()
+    input_t.image = input_t.image.to(dtype=input_dtype)
+    transformed = transform(input_t).image
     assert isinstance(transformed, torch.Tensor)
     assert transformed.shape == input_shape
     assert transformed.dtype == input_dtype
-    assert torch.any(transformed != input_t)
+    assert torch.any(transformed != input_t.image)
     assert torch.all(transformed >= 0)
     if input_dtype == torch.uint8:
         assert torch.all(transformed <= 255)
@@ -439,23 +463,22 @@ def test_gaussian_blur(input_dtype, input_shape):
     sigma_range = (0.5, 1.5)
     transform = GaussianBlur(sigma=sigma_range)
 
-    input_t = torch.rand(input_shape, dtype=torch.float32)
+    input_t = Sample(image=torch.rand(input_shape, dtype=torch.float32))
 
     if input_dtype == torch.uint8:
-        input_t = (255 * input_t).round().to(dtype=torch.uint8)
+        input_t.image = (255 * input_t.image).round().to(dtype=torch.uint8)
 
-    blurred = transform(input_t)
-
+    blurred = transform(input_t).image
     assert isinstance(blurred, torch.Tensor)
     assert blurred.shape == input_shape
     assert blurred.dtype == input_dtype
 
     if input_dtype == torch.uint8:
-        assert torch.any(blurred != input_t)
+        assert torch.any(blurred != input_t.image)
         assert torch.all(blurred <= 255)
         assert torch.all(blurred >= 0)
     else:
-        assert torch.any(blurred != input_t)
+        assert torch.any(blurred != input_t.image)
         assert torch.all(blurred <= 1.0)
         assert torch.all(blurred >= 0.0)
 
@@ -475,7 +498,8 @@ def test_randomhorizontalflip(p, target):
     input_t = torch.ones((3, 32, 32), dtype=torch.float32)
     input_t[..., :16] = 0
 
-    transformed, _target = transform(input_t, target)
+    data = transform(Sample(image=input_t, target=target))
+    transformed, _target = data.image, data.target
     assert isinstance(transformed, torch.Tensor)
     assert transformed.shape == input_t.shape
     assert transformed.dtype == input_t.dtype
@@ -506,7 +530,8 @@ def test_randomhorizontalflip(p, target):
         ),
     }
 
-    transformed, _target = transform(input_t, dict_target)
+    data = transform(Sample(image=input_t, target=dict_target))
+    _target = data.target
     assert isinstance(_target, dict)
     assert set(_target.keys()) == {"boxes", "polygons"}
     assert _target["boxes"].dtype == np.float32
@@ -542,16 +567,16 @@ def test_randomhorizontalflip(p, target):
 )
 def test_random_shadow(input_dtype, input_shape):
     transform = RandomShadow((0.2, 0.8))
-    input_t = torch.ones(input_shape, dtype=torch.float32)
+    input_t = Sample(image=torch.ones(input_shape, dtype=torch.float32))
     if input_dtype == torch.uint8:
-        input_t = (255 * input_t).round()
-    input_t = input_t.to(dtype=input_dtype)
-    transformed = transform(input_t)
+        input_t.image = (255 * input_t.image).round()
+    input_t.image = input_t.image.to(dtype=input_dtype)
+    transformed = transform(input_t).image
     assert isinstance(transformed, torch.Tensor)
     assert transformed.shape == input_shape
     assert transformed.dtype == input_dtype
     # The shadow will darken the picture
-    assert input_t.float().mean() >= transformed.float().mean()
+    assert input_t.image.float().mean() >= transformed.float().mean()
     assert torch.all(transformed >= 0)
     if input_dtype == torch.uint8:
         assert torch.all(transformed <= 255)
@@ -581,7 +606,8 @@ def test_random_resize(p, preserve_aspect_ratio, symmetric_pad, target):
 
     img = torch.rand((3, 64, 64))
     # Apply the transformation
-    out_img, out_target = transfo(img, target)
+    data = transfo(Sample(image=img, target=target))
+    out_img, out_target = data.image, data.target
     assert isinstance(out_img, torch.Tensor)
     assert isinstance(out_target, np.ndarray)
     # Resize is already well tested
@@ -605,15 +631,16 @@ def _make_pipeline():
             symmetric_pad=True,
             p=1.0,
         ),
-        ImageTransform(ColorInversion(min_val=0.7)),
-        ImageTransform(GaussianNoise(mean=0.0, std=0.1)),
-        ImageTransform(ChannelShuffle()),
-        ImageTransform(RandomShadow((0.2, 0.8))),
+        ColorInversion(min_val=0.7),
+        GaussianNoise(mean=0.0, std=0.1),
+        ChannelShuffle(),
+        RandomShadow((0.2, 0.8)),
         RandomApply(RandomHorizontalFlip(p=1.0), p=1.0),
         OneOf([
             RandomRotate(max_angle=5.0, expand=False),
             RandomCrop(scale=(0.9, 1.0), ratio=(0.95, 1.05)),
         ]),
+        ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
     ])
 
 
@@ -634,7 +661,8 @@ def test_samplecompose_end_to_end_boxes():
     }
 
     transforms = _make_pipeline()
-    out_img, out_targets = transforms(input_t, targets)
+    data = transforms(Sample(image=input_t, target=targets))
+    out_img, out_targets = data.image, data.target
 
     # image checks
     assert isinstance(out_img, torch.Tensor)
@@ -688,7 +716,8 @@ def test_samplecompose_end_to_end_polygons():
     }
 
     transforms = _make_pipeline()
-    out_img, out_targets = transforms(input_t, targets)
+    data = transforms(Sample(image=input_t, target=targets))
+    out_img, out_targets = data.image, data.target
 
     # image checks
     assert isinstance(out_img, torch.Tensor)

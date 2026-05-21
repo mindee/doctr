@@ -322,9 +322,9 @@ def main(args):
             T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-            RandomGrayscale(p=0.15),
+            T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
         ]),
-        RandomPhotometricDistort(p=0.3),
+        T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
         lambda x: x,  # Identity no transformation
     ])
     # Image + target augmentations

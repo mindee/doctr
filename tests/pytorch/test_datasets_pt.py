@@ -14,7 +14,8 @@ from doctr.transforms import Resize
 
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
     # Fetch one sample
-    img, target = ds[0]
+    sample = ds[0]
+    img, target = sample.image, sample.target
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -50,7 +51,8 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
 
 def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     # Fetch one sample
-    img, label = ds[0]
+    sample = ds[0]
+    img, label = sample.image, sample.target
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -75,7 +77,8 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
 
 def _validate_dataset_detection_part(ds, input_size, batch_size=2, is_polygons=False):
     # Fetch one sample
-    img, target = ds[0]
+    sample = ds[0]
+    img, target = sample.image, sample.target
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -118,7 +121,8 @@ def test_rotation_dataset(mock_image_folder):
 
     ds = datasets.OrientationDataset(img_folder=mock_image_folder, img_transforms=Resize(input_size))
     assert len(ds) == 5
-    img, target = ds[0]
+    sample = ds[0]
+    img, target = sample.image, sample.target
     assert isinstance(img, torch.Tensor)
     assert img.dtype == torch.float32
     assert img.shape[-2:] == input_size
@@ -143,7 +147,8 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     )
 
     assert len(ds) == 5
-    img, target_dict = ds[0]
+    sample = ds[0]
+    img, target_dict = sample.image, sample.target
     target = target_dict[CLASS_NAME]
     assert isinstance(img, torch.Tensor)
     assert img.dtype == torch.float32
@@ -167,7 +172,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
         img_transforms=Resize(input_size),
         use_polygons=True,
     )
-    _, r_target = rotated_ds[0]
+    r_target = rotated_ds[0].target
     assert r_target[CLASS_NAME].shape[1:] == (4, 2)
 
     # File existence check
@@ -193,9 +198,8 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
     )
 
     assert len(ds) == 5
-    inputs, target_dict = ds[0]
-    assert isinstance(inputs, tuple) and len(inputs) == 2
-    img, padding_mask = inputs
+    sample = ds[0]
+    img, padding_mask, target_dict = sample.image, sample.mask, sample.target
     assert isinstance(img, torch.Tensor)
     assert img.dtype == torch.float32
     assert img.shape[-2:] == input_size
@@ -308,7 +312,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
         img_transforms=Resize(input_size, preserve_aspect_ratio=True),
     )
     assert len(ds) == 5
-    image, label = ds[0]
+    sample = ds[0]
+    image, label = sample.image, sample.target
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32
@@ -363,7 +368,8 @@ def test_charactergenerator():
     )
 
     assert len(ds) == 10
-    image, label = ds[0]
+    sample = ds[0]
+    image, label = sample.image, sample.target
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32
@@ -372,8 +378,8 @@ def test_charactergenerator():
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
-    assert targets.dtype == torch.int64
+    assert isinstance(targets, list) and len(targets) == 2
+    assert all(isinstance(t, int) for t in targets)
 
 
 def test_wordgenerator():
@@ -391,7 +397,8 @@ def test_wordgenerator():
     )
 
     assert len(ds) == 10
-    image, target = ds[0]
+    sample = ds[0]
+    image, target = sample.image, sample.target
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32

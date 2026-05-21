@@ -4,19 +4,58 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+from typing import Any
+
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_samples(images, targets: list[dict[str, np.ndarray]]) -> None:
-    # Unnormalize image
-    nb_samples = min(len(images), 4)
-    _, axes = plt.subplots(2, nb_samples, figsize=(20, 5))
+def convert_target(target: dict[str, list], class_names: list[str]) -> tuple[np.ndarray, np.ndarray]:
+    """Convert the target from the dataset format to the format expected by the metric
+
+    Args:
+        target: dictionary containing the target boxes and labels for a single sample
+        class_names: list of class names
+
+    Returns:
+        tuple of (boxes, labels) where boxes is an array of shape (N, 4) or (N, 4, 2) depending on the use of polygons,
+            and labels is an array of shape (N,) containing the class indices.
+    """
+    boxes = []
+    labels = []
+
+    class_to_idx = {name: idx for idx, name in enumerate(class_names)}
+
+    for class_name, class_boxes in target.items():
+        if len(class_boxes) == 0:
+            continue
+
+        boxes.extend(class_boxes)
+        labels.extend([class_to_idx[class_name]] * len(class_boxes))
+
+    return np.asarray(boxes, dtype=np.float32), np.asarray(labels, dtype=np.int64)
+
+
+def plot_samples(
+    images: list[Any],
+    targets: list[dict[str, np.ndarray]],
+    padding_masks: list[Any] | None = None,
+    max_samples: int = 4,
+) -> None:
+    nb_samples = min(len(images), max_samples)
+    _, axes = plt.subplots(3, nb_samples, figsize=(20, 8))
+
+    if nb_samples == 1:
+        axes = np.expand_dims(axes, axis=1)
+
     for idx in range(nb_samples):
-        img = (255 * images[idx].numpy()).round().clip(0, 255).astype(np.uint8)
+        img = (255 * images[idx].detach().cpu().numpy()).round().clip(0, 255).astype(np.uint8)
         if img.shape[0] == 3 and img.shape[2] != 3:
             img = img.transpose(1, 2, 0)
+
+        axes[0][idx].imshow(img)
+        axes[0][idx].set_title("Image")
 
         target = np.zeros(img.shape[:2], np.uint8)
         tgts = targets[idx].copy()
@@ -24,22 +63,26 @@ def plot_samples(images, targets: list[dict[str, np.ndarray]]) -> None:
             boxes[:, [0, 2]] = boxes[:, [0, 2]] * img.shape[1]
             boxes[:, [1, 3]] = boxes[:, [1, 3]] * img.shape[0]
             boxes[:, :4] = boxes[:, :4].round().astype(int)
-
             for box in boxes:
                 if boxes.ndim == 3:
                     cv2.fillPoly(target, [np.intp(box)], 1)
                 else:
                     target[int(box[1]) : int(box[3]) + 1, int(box[0]) : int(box[2]) + 1] = 1
-        if nb_samples > 1:
-            axes[0][idx].imshow(img)
-            axes[1][idx].imshow(target.astype(bool))
-        else:
-            axes[0].imshow(img)
-            axes[1].imshow(target.astype(bool))
 
-    # Disable axis
+        axes[1][idx].imshow(target.astype(bool), cmap="gray")
+        axes[1][idx].set_title("GT Boxes")
+
+        if padding_masks is not None and padding_masks[idx] is not None:
+            pm = padding_masks[idx].detach().cpu().numpy()
+            pm = pm.squeeze().astype(bool)
+            axes[2][idx].imshow(pm, cmap="gray")
+            axes[2][idx].set_title("Padding Mask")
+        else:
+            axes[2][idx].text(0.5, 0.5, "No mask", ha="center", va="center")
+            axes[2][idx].set_title("Padding Mask")
     for ax in axes.ravel():
         ax.axis("off")
+    plt.tight_layout()
     plt.show()
 
 

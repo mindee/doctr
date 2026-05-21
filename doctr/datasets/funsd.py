@@ -26,7 +26,8 @@ class FUNSD(VisionDataset):
 
     >>> from doctr.datasets import FUNSD
     >>> train_set = FUNSD(train=True, download=True)
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         train: whether the subset should be the training one

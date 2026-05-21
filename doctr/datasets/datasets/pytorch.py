@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 from doctr.io import read_img_as_tensor, tensor_from_numpy
+from doctr.utils import Sample
 
 from .base import _AbstractDataset, _VisionDataset
 
@@ -49,18 +50,19 @@ class AbstractDataset(_AbstractDataset):
 
     @staticmethod
     def collate_fn(
-        samples: list[tuple[torch.Tensor, Any]] | list[tuple[tuple[torch.Tensor, torch.Tensor], Any]],
-    ) -> tuple[torch.Tensor | tuple[torch.Tensor, torch.Tensor], list[Any]]:
-        images, targets = zip(*samples)
-        if isinstance(images[0], tuple):
-            images, padding_masks = zip(*images)
-            images = torch.stack(images, dim=0)  # type: ignore[assignment]
-            padding_masks = torch.stack(padding_masks, dim=0)  # type: ignore[assignment]
-            images = (images, padding_masks)
-        else:
-            images = torch.stack(images, dim=0)  # type: ignore[assignment]
+        samples: list[Sample],
+    ) -> tuple[torch.Tensor, list[Any]] | tuple[tuple[torch.Tensor, torch.Tensor], list[Any]]:
+        _images = [s.image for s in samples]
+        targets = [s.target for s in samples]
 
-        return images, list(targets)
+        _masks = [s.mask for s in samples if s.mask is not None]
+
+        images = torch.stack(_images, dim=0)
+        if _masks:
+            masks = torch.stack(_masks, dim=0)
+            return (images, masks), targets
+
+        return images, targets
 
 
 class VisionDataset(AbstractDataset, _VisionDataset):  # noqa: D101

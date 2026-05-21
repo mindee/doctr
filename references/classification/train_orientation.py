@@ -33,19 +33,20 @@ from doctr import transforms as T
 from doctr.datasets import OrientationDataset
 from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_model_to_onnx
+from doctr.utils import Sample
 from utils import EarlyStopper, plot_recorder, plot_samples
 
 CLASSES = [0, -90, 180, 90]
 
 
-def rnd_rotate(img: torch.Tensor, target):
+def rnd_rotate(sample: Sample) -> Sample:
     angle = int(np.random.choice(CLASSES))
     idx = CLASSES.index(angle)
     # augment the angle randomly with a probability of 0.5
     if np.random.rand() < 0.5:
         angle += float(np.random.choice(np.arange(-25, 25, 5)))
-    rotated_img = F.rotate(img, angle=-angle, fill=0, expand=angle not in CLASSES)[:3]
-    return rotated_img, idx
+    rotated_img = F.rotate(sample.image, angle=-angle, fill=0, expand=angle not in CLASSES)[:3]
+    return Sample(image=rotated_img, target=idx)
 
 
 def record_lr(
@@ -80,6 +81,7 @@ def record_lr(
         scaler = torch.cuda.amp.GradScaler()
 
     for batch_idx, (images, targets) in enumerate(train_loader):
+        targets = torch.tensor(targets)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = targets.cuda()
@@ -127,6 +129,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     epoch_train_loss, batch_cnt = 0.0, 0.0
     pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
+        targets = torch.tensor(targets)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = targets.cuda()
@@ -169,6 +172,7 @@ def evaluate(model, val_loader, batch_transforms, amp=False, log=None):
     val_loss, correct, samples, batch_cnt = 0.0, 0.0, 0.0, 0.0
     pbar = tqdm(val_loader, dynamic_ncols=True)
     for images, targets in pbar:
+        targets = torch.tensor(targets)
         images = batch_transforms(images)
 
         if torch.cuda.is_available():
@@ -225,7 +229,7 @@ def main(args):
             T.Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True),
         ]),
         sample_transforms=T.SampleCompose([
-            lambda x, y: rnd_rotate(x, y),
+            rnd_rotate,
             T.Resize(input_size),
         ]),
     )
@@ -236,6 +240,7 @@ def main(args):
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
         pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
     )
     pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
 
@@ -280,12 +285,12 @@ def main(args):
             T.RandomApply(T.GaussianNoise(mean=0.1, std=0.1), 0.1),
             T.RandomApply(T.RandomShadow(), 0.2),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-            RandomPhotometricDistort(p=0.1),
-            RandomGrayscale(p=0.1),
-            RandomPerspective(distortion_scale=0.1, p=0.3),
+            T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.1)),
+            T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
+            T.ImageTorchvisionTransform(RandomPerspective(distortion_scale=0.1, p=0.3)),
         ]),
         sample_transforms=T.SampleCompose([
-            lambda x, y: rnd_rotate(x, y),
+            rnd_rotate,
             T.Resize(input_size),
         ]),
     )
@@ -297,6 +302,7 @@ def main(args):
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
         pin_memory=torch.cuda.is_available(),
+        collate_fn=train_set.collate_fn,
     )
     pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 

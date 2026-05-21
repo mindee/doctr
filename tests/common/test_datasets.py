@@ -26,41 +26,61 @@ def test_abstractdataset(mock_image_path):
     # Check target format
     with pytest.raises(AssertionError):
         ds.data = [(path.name, 0)]
-        img, target = ds[0]
+        _ = ds[0]
     with pytest.raises(AssertionError):
         ds.data = [(path.name, dict(boxes=np.array([[0, 0, 1, 1]])))]
-        img, target = ds[0]
+        _ = ds[0]
     with pytest.raises(AssertionError):
-        ds.data = [(ds.data[0][0], {"label": "A"})]
-        img, target = ds[0]
+        ds.data = [(path.name, {"label": "A"})]
+        _ = ds[0]
 
     # Patch some data
     ds.data = [(path.name, np.array([0]))]
 
     # Fetch the img
-    img, target = ds[0]
-    assert isinstance(target, np.ndarray) and target == np.array([0])
+    sample = ds[0]
+    img, target = sample.image, sample.target
+    assert isinstance(target, np.ndarray)
+    assert np.array_equal(target, np.array([0]))
 
     # Check img_transforms
-    ds.img_transforms = lambda x: 1 - x
-    img2, target2 = ds[0]
+    def img_transform(sample):
+        sample.image = 1 - sample.image
+        return sample
+
+    ds.img_transforms = img_transform
+
+    sample2 = ds[0]
+    img2, target2 = sample2.image, sample2.target
+
     assert np.all(img2.numpy() == 1 - img.numpy())
-    assert target == target2
+    assert np.array_equal(target, target2)
 
     # Check sample_transforms
     ds.img_transforms = None
-    ds.sample_transforms = lambda x, y: (x, y + 1)
-    img3, target3 = ds[0]
-    assert np.all(img3.numpy() == img.numpy()) and (target3 == (target + 1))
+
+    def sample_transform(sample):
+        sample.target = sample.target + 1
+        return sample
+
+    ds.sample_transforms = sample_transform
+
+    sample3 = ds[0]
+    img3, target3 = sample3.image, sample3.target
+
+    assert np.all(img3.numpy() == img.numpy())
+    assert np.array_equal(target3, target + 1)
 
     # Check inplace modifications
     ds.data = [(ds.data[0][0], "A")]
 
-    def inplace_transfo(x, target):
-        target += "B"
-        return x, target
+    def inplace_transfo(sample):
+        sample.target += "B"
+        return sample
 
     ds.sample_transforms = inplace_transfo
-    _, t = ds[0]
-    _, t = ds[0]
+
+    t = ds[0].target
+    t = ds[0].target
+
     assert t == "AB"
