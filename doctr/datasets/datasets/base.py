@@ -44,7 +44,8 @@ class _AbstractDataset:
     def __getitem__(self, index: int) -> Sample:
         # Read image
         img, target = self._read_sample(index)
-        mask = None  # FIX: always defined
+        mask = None
+
         # Pre-transforms (format conversion at run-time etc.)
         if self._pre_transforms is not None:
             img, target = self._pre_transforms(img, target)
