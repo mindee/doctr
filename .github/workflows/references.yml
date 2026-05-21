@@ -281,9 +281,9 @@ jobs:
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
-          wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_layout_set-c79b4e69.zip
+          wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_layout_set-c930013e.zip
           sudo apt-get update && sudo apt-get install unzip -y
-          unzip toy_layout_set-c79b4e69.zip -d layout_set
+          unzip toy_layout_set-c930013e.zip -d layout_set
       - name: Train for a short epoch
         run: python references/layout/train.py lw_detr_s --train_path ./layout_set --val_path ./layout_set -b 2 --epochs 1
 
@@ -313,9 +313,9 @@ jobs:
           pip install -r references/requirements.txt
       - name: Download and extract toy set
         run: |
-          wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_layout_set-c79b4e69.zip
+          wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_layout_set-c930013e.zip
           sudo apt-get update && sudo apt-get install unzip -y
-          unzip toy_layout_set-c79b4e69.zip -d layout_set
+          unzip toy_layout_set-c930013e.zip -d layout_set
       - name: Evaluate layout analysis
         run: python references/layout/evaluate.py lw_detr_s ./layout_set
 

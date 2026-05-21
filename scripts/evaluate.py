@@ -11,6 +11,7 @@ from tqdm import tqdm
 from doctr import datasets
 from doctr import transforms as T
 from doctr.models import ocr_predictor
+from doctr.utils import Sample
 from doctr.utils.geometry import extract_crops, extract_rcrops
 from doctr.utils.metrics import LocalizationConfusion, OCRMetric, TextMatch
 
@@ -27,12 +28,13 @@ def main(args):
 
     # We define a transformation function which does transform the annotation
     # to the required format for the Resize transformation
-    def _transform(img, target):
-        boxes = target["boxes"]
-        transformed_img, transformed_boxes = T.Resize(
-            input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
-        )(img, boxes)
-        return transformed_img, {"boxes": transformed_boxes, "labels": target["labels"]}
+    def _transform(sample: Sample) -> Sample:
+        boxes, labels = sample.target["boxes"], sample.target["labels"]
+        sample = T.Resize(input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad)(
+            Sample(image=sample.image, target=boxes)
+        )
+        sample.target = {"labels": labels, "boxes": sample.target}
+        return sample
 
     predictor = ocr_predictor(
         args.detection,
@@ -78,7 +80,8 @@ def main(args):
     extraction_fn = extract_crops if args.eval_straight else extract_rcrops
 
     for dataset in sets:
-        for page, target in tqdm(dataset):
+        for data in tqdm(dataset):
+            page, target = data.image, data.target
             if isinstance(page, torch.Tensor):
                 page = np.transpose(page.numpy(), (1, 2, 0))
             # GT
