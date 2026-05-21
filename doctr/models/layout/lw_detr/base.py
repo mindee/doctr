@@ -233,8 +233,10 @@ class _LWDETR(BaseModel):
 
             theta = np.arctan2(dy, dx)
 
-            w = np.mean([lengths[0], lengths[2]])
-            h = np.mean([lengths[1], lengths[3]])
+            # w should always be the length of the edge aligned with theta
+            w = np.mean([lengths[i], lengths[(i + 2) % 4]])
+            # h is the perpendicular edge
+            h = np.mean([lengths[(i + 1) % 4], lengths[(i + 3) % 4]])
 
             return np.array(
                 [cx, cy, w, h, np.sin(theta), np.cos(theta)],

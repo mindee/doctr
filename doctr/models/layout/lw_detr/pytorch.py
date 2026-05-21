@@ -156,8 +156,8 @@ class LWDETR(nn.Module, _LWDETR):
         score_thresh: float = 0.3,
         iou_thresh: float = 0.5,
         d_model: int = 256,
-        num_queries: int = 300,
-        group_detr: int = 13,
+        num_queries: int = 50,
+        group_detr: int = 1,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
         ca_num_heads: int = 16,
@@ -310,7 +310,8 @@ class LWDETR(nn.Module, _LWDETR):
         # center
         cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
         # size
-        wh = deltas[..., 2:4].exp() * reference_points[..., 2:4]
+        # Clamp deltas to prevent exp() from shooting to Infinity during early training
+        wh = torch.clamp(deltas[..., 2:4], min=-10.0, max=10.0).exp() * reference_points[..., 2:4]
         # normalize predicted delta rotation
         delta_rot = F.normalize(deltas[..., 4:6], dim=-1)
         sin_delta = delta_rot[..., 0:1]
@@ -399,7 +400,9 @@ class LWDETR(nn.Module, _LWDETR):
             proposals.append(proposal)
             _cur += height * width
         output_proposals = torch.cat(proposals, 1)
-        output_proposals_valid = ((output_proposals > 0.01) & (output_proposals < 0.99)).all(-1, keepdim=True)
+
+        spatial_valid = ((output_proposals[..., :4] > 0.01) & (output_proposals[..., :4] < 0.99)).all(-1, keepdim=True)
+        output_proposals_valid = spatial_valid
         invalid_mask = padding_mask | ~output_proposals_valid.squeeze(-1)
         invalid_mask = padding_mask.unsqueeze(-1) | ~output_proposals_valid
         output_proposals = output_proposals.masked_fill(invalid_mask, float(0))
@@ -482,7 +485,7 @@ class LWDETR(nn.Module, _LWDETR):
                 1,
                 group_topk_proposals.unsqueeze(-1).repeat(1, 1, 6),
             )
-            group_topk_coords_logits = group_topk_coords_logits_undetach.detach()
+            group_topk_coords_logits = group_topk_coords_logits_undetach  # .detach()
             topk_coords_logits_list.append(group_topk_coords_logits)
 
         topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
@@ -656,7 +659,7 @@ class LWDETR(nn.Module, _LWDETR):
 
             with torch.no_grad():
                 cls_prob = pred_logits.sigmoid()
-                cost_cls = -torch.log(cls_prob[:, tgt_cls].clamp(min=1e-6))
+                cost_cls = -cls_prob[:, tgt_cls]
                 cost_l1 = torch.cdist(
                     pred_boxes_b[:, :4],
                     tgt_boxes[:, :4],
@@ -670,8 +673,14 @@ class LWDETR(nn.Module, _LWDETR):
                     device=device,
                 )
 
-                iou_like = 1 - cost_l1  # proxy
-                dynamic_k = (iou_like.sum(0).int() + 1).clamp(min=5, max=20)
+                center_dist = torch.cdist(
+                    pred_boxes_b[:, :2],
+                    tgt_boxes[:, :2],
+                    p=2,
+                )
+
+                iou_like = torch.exp(-center_dist)
+                dynamic_k = iou_like.sum(0).int().clamp(min=1, max=10)
 
                 for gt_idx in range(num_gt):
                     _, candidate_idx = torch.topk(-total_cost[:, gt_idx], k=int(dynamic_k[gt_idx].item()))
@@ -690,11 +699,16 @@ class LWDETR(nn.Module, _LWDETR):
 
                 pos_idx, gt_indices = matching_matrix.nonzero(as_tuple=True)
 
-            target_onehot = torch.zeros_like(pred_logits)
-            if len(pos_idx) > 0:
-                target_onehot[pos_idx, tgt_cls[gt_indices]] = 1
+            target_classes = torch.zeros(
+                (Q,),
+                dtype=torch.long,
+                device=device,
+            )
 
-            total_cls += _sigmoid_focal_loss(pred_logits, target_onehot)
+            # background = 0
+            target_classes[pos_idx] = tgt_cls[gt_indices]
+
+            total_cls += F.cross_entropy(pred_logits, target_classes)
 
             if len(pos_idx) == 0:
                 continue

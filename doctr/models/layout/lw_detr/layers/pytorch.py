@@ -527,34 +527,24 @@ class LWDETRDecoder(nn.Module):
         return reference_points_inputs, query_pos
 
     def refine_boxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
-        """Refine the reference points using the predicted deltas.
-
-        Args:
-            reference_points: (batch_size, num_queries, 6)
-                tensor containing the current reference points in the format (cx, cy, w, h, sinθ, cosθ)
-            deltas: (batch_size, num_queries, 6)
-                tensor containing the predicted deltas for the reference points in the same format as reference_points
-
-        Returns:
-            refined_reference_points: (batch_size, num_queries, 6)
-                tensor containing the refined reference points in the same format as reference_points
-        """
+        reference_points = reference_points.to(deltas.device)
         cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
 
-        wh = deltas[..., 2:4].exp() * reference_points[..., 2:4]
+        # Clamp deltas to prevent exp() from shooting to Infinity during early training
+        wh = torch.clamp(deltas[..., 2:4], min=-10.0, max=10.0).exp() * reference_points[..., 2:4]
 
-        delta_rot = F.normalize(deltas[..., 4:6], dim=-1)
-
+        # Add eps=1e-6 to avoid division-by-zero NaN creation
+        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
         sin_delta = delta_rot[..., 0:1]
         cos_delta = delta_rot[..., 1:2]
-
         sin_ref = reference_points[..., 4:5]
         cos_ref = reference_points[..., 5:6]
 
         sin_new = sin_ref * cos_delta + cos_ref * sin_delta
         cos_new = cos_ref * cos_delta - sin_ref * sin_delta
 
-        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1)
+        # Add eps=1e-6 here too
+        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
 
         return torch.cat((cxcy, wh, rot), dim=-1)
 
