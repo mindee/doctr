@@ -147,7 +147,7 @@ def mock_layout_label(tmpdir_factory):
                 [[3, 2], [3, 3], [4, 1], [4, 3]],
                 [[30, 20], [30, 30], [40, 10], [40, 30]],
             ],
-            "class_names": [
+            "classes": [
                 "Table",
                 "Header",
                 "Footer",

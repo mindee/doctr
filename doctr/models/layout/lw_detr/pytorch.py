@@ -39,12 +39,8 @@ default_cfgs: dict[str, dict[str, Any]] = {
             "Table",
             "Text",
             "Title",
-            "Document Index",
-            "Code",
             "Checkbox-Selected",
             "Checkbox-Unselected",
-            "Form",
-            "Key-Value Region",
         ],
         "url": None,
     },
@@ -64,12 +60,8 @@ default_cfgs: dict[str, dict[str, Any]] = {
             "Table",
             "Text",
             "Title",
-            "Document Index",
-            "Code",
             "Checkbox-Selected",
             "Checkbox-Unselected",
-            "Form",
-            "Key-Value Region",
         ],
         "url": None,
     },
@@ -164,8 +156,8 @@ class LWDETR(nn.Module, _LWDETR):
         score_thresh: float = 0.3,
         iou_thresh: float = 0.5,
         d_model: int = 256,
-        num_queries: int = 300,
-        group_detr: int = 13,
+        num_queries: int = 130,
+        group_detr: int = 1,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
         ca_num_heads: int = 16,
@@ -178,8 +170,8 @@ class LWDETR(nn.Module, _LWDETR):
     ) -> None:
         super().__init__()
 
-        self.class_names: list[str] = ["__background__"] + class_names
-        self.num_classes = len(self.class_names)
+        self.class_names: list[str] = class_names
+        self.num_classes = len(self.class_names) + 1  # +1 for background class
         self.cfg = cfg
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -198,6 +190,9 @@ class LWDETR(nn.Module, _LWDETR):
 
         self.query_feat = nn.Embedding(self.num_queries * self.group_detr, self.d_model)
 
+        self.class_embed = nn.Linear(self.d_model, self.num_classes)
+        self.bbox_embed = LWDETRHead(self.d_model, self.d_model, 6, num_layers=3)
+
         self.decoder = LWDETRDecoder(
             num_layers=dec_layers,
             d_model=d_model,
@@ -207,6 +202,7 @@ class LWDETR(nn.Module, _LWDETR):
             dec_n_points=dec_n_points,
             group_detr=group_detr,
             dropout_prob=dropout_prob,
+            bbox_embed=self.bbox_embed,
         )
 
         self.enc_output = nn.ModuleList([nn.Linear(self.d_model, self.d_model) for _ in range(self.group_detr)])
@@ -218,9 +214,6 @@ class LWDETR(nn.Module, _LWDETR):
         self.enc_out_class_embed = nn.ModuleList([
             nn.Linear(self.d_model, self.num_classes) for _ in range(self.group_detr)
         ])
-        self.class_embed = nn.Linear(self.d_model, self.num_classes)
-        self.bbox_embed = LWDETRHead(self.d_model, self.d_model, 6, num_layers=3)
-        self.decoder.bbox_embed = self.bbox_embed  # type: ignore[assignment]
 
         self.postprocessor = LWDETRPostProcessor(
             num_classes=self.num_classes,
@@ -285,6 +278,8 @@ class LWDETR(nn.Module, _LWDETR):
                 if isinstance(last, nn.Linear):
                     nn.init.zeros_(last.weight)
                     nn.init.zeros_(last.bias)
+                    if last.bias.shape[0] == 6:
+                        nn.init.constant_(last.bias[5], 1.0)
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
         """Load pretrained parameters onto the model
@@ -318,9 +313,9 @@ class LWDETR(nn.Module, _LWDETR):
         # center
         cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
         # size
-        wh = deltas[..., 2:4].exp() * reference_points[..., 2:4]
-        # normalize predicted delta rotation
-        delta_rot = F.normalize(deltas[..., 4:6], dim=-1)
+        wh = torch.clamp(deltas[..., 2:4], min=-4.0, max=2.0).exp() * reference_points[..., 2:4]
+        # rotation
+        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
         sin_delta = delta_rot[..., 0:1]
         cos_delta = delta_rot[..., 1:2]
         sin_ref = reference_points[..., 4:5]
@@ -329,8 +324,7 @@ class LWDETR(nn.Module, _LWDETR):
         # compose rotations
         sin_new = sin_ref * cos_delta + cos_ref * sin_delta
         cos_new = cos_ref * cos_delta - sin_ref * sin_delta
-        # normalize final rotation
-        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1)
+        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
 
         return torch.cat((cxcy, wh, rot), dim=-1)
 
@@ -407,7 +401,9 @@ class LWDETR(nn.Module, _LWDETR):
             proposals.append(proposal)
             _cur += height * width
         output_proposals = torch.cat(proposals, 1)
-        output_proposals_valid = ((output_proposals > 0.01) & (output_proposals < 0.99)).all(-1, keepdim=True)
+
+        spatial_valid = ((output_proposals[..., :4] > 0.01) & (output_proposals[..., :4] < 0.99)).all(-1, keepdim=True)
+        output_proposals_valid = spatial_valid
         invalid_mask = padding_mask | ~output_proposals_valid.squeeze(-1)
         invalid_mask = padding_mask.unsqueeze(-1) | ~output_proposals_valid
         output_proposals = output_proposals.masked_fill(invalid_mask, float(0))
@@ -421,7 +417,7 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         input: torch.Tensor,
         masks: torch.Tensor,
-        target: list[tuple[list[int], np.ndarray]] | None = None,
+        target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
         **kwargs: Any,
@@ -473,28 +469,35 @@ class LWDETR(nn.Module, _LWDETR):
 
         topk_coords_logits_list: list[torch.Tensor] = []
 
-        # For each group, predict class logits and bbox deltas from the object query embeddings,
-        # and select the top-k proposals based on the predicted class logits.
+        # encoder predictions for auxiliary losses
+        all_group_enc_logits: list[torch.Tensor] = []
+        all_group_enc_coords: list[torch.Tensor] = []
+
         for group_id in range(group_detr):
             group_object_query = self.enc_output[group_id](object_query_embedding)
             group_object_query = self.enc_output_norm[group_id](group_object_query)
 
             group_enc_outputs_class = self.enc_out_class_embed[group_id](group_object_query)
-            group_enc_outputs_class = group_enc_outputs_class.masked_fill(invalid_mask, float("-inf"))
+            all_group_enc_logits.append(group_enc_outputs_class)
+
+            group_enc_outputs_class_masked = group_enc_outputs_class.masked_fill(invalid_mask, float("-inf"))
+
             group_delta_bbox = self.enc_out_bbox_embed[group_id](group_object_query)
             group_enc_outputs_coord = self.refine_bboxes(output_proposals, group_delta_bbox)
 
-            group_topk_proposals = torch.topk(group_enc_outputs_class.max(-1)[0], topk, dim=1)[1]
+            all_group_enc_coords.append(group_enc_outputs_coord)
+
+            group_topk_proposals = torch.topk(group_enc_outputs_class_masked.max(-1)[0], topk, dim=1)[1]
+
             group_topk_coords_logits_undetach = torch.gather(
                 group_enc_outputs_coord,
                 1,
                 group_topk_proposals.unsqueeze(-1).repeat(1, 1, 6),
             )
-            group_topk_coords_logits = group_topk_coords_logits_undetach.detach()
+            group_topk_coords_logits = group_topk_coords_logits_undetach
             topk_coords_logits_list.append(group_topk_coords_logits)
 
         topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
-
         reference_points = self.refine_bboxes(topk_coords_logits, reference_points)
 
         last_hidden_states, intermediate, intermediate_reference_points = self.decoder(
@@ -528,13 +531,44 @@ class LWDETR(nn.Module, _LWDETR):
             out["preds"] = _postprocess(logits.detach().cpu().numpy(), pred_boxes.detach().cpu().numpy())
 
         if target is not None:
-            loss = self.compute_loss(logits, pred_boxes, target)
+            # Build target
+            processed_targets = self.build_target(target, self.class_names)
+
+            # Main loss from final decoder layer (group DETR)
+            split_logits = logits.chunk(group_detr, dim=1)
+            split_boxes = pred_boxes.chunk(group_detr, dim=1)
+
+            main_loss: float | torch.Tensor = 0.0
+            for g_logits, g_boxes in zip(split_logits, split_boxes):
+                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
+            loss = main_loss / group_detr
+
+            # Auxiliary losses from intermediate decoder layers
+            for i in range(intermediate.shape[0] - 1):
+                aux_logits = self.class_embed(intermediate[i])
+                aux_boxes_delta = self.bbox_embed(intermediate[i])
+                aux_boxes = self.refine_bboxes(intermediate_reference_points[i], aux_boxes_delta)
+
+                split_aux_logits = aux_logits.chunk(group_detr, dim=1)
+                split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
+
+                aux_loss: float | torch.Tensor = 0.0
+                for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
+                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
+                loss += 0.5 * (aux_loss / group_detr)
+
+            # Auxiliary losses for encoder proposals
+            enc_loss: float | torch.Tensor = 0.0
+            for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
+                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets)
+            loss += 0.1 * (enc_loss / group_detr)
+
             out["loss"] = loss
 
         return out
 
     def compute_loss(
-        self, logits: torch.Tensor, pred_boxes: torch.Tensor, target: list[tuple[list[int], np.ndarray]]
+        self, logits: torch.Tensor, pred_boxes: torch.Tensor, targets: list[dict[str, np.ndarray]]
     ) -> torch.Tensor:
         """
         Compute the loss for LW-DETR. The loss consists of three components:
@@ -551,30 +585,13 @@ class LWDETR(nn.Module, _LWDETR):
         Args:
             logits: (B, Q, C) tensor containing the predicted class logits for each query
             pred_boxes: (B, Q, 6) tensor containing the predicted boxes for each query
-            target: list of length B, where each element is a tuple of (classes, boxes)
-                for the corresponding image in the batch.
-                - classes: list of length N_i containing the class indices of the N_i ground truth boxes in the image
-                - boxes: (N_i, 4. 2) array containing the ground truth boxes
-                    in the format [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]
+            targets: list of dictionaries where each dictionary corresponds to a sample and has keys corresponding
+                to class names and values corresponding to lists of boxes in either polygon format (4, 2)
+                or bounding box format (4,) (xmin, ymin, xmax, ymax)
 
         Returns:
             loss: the computed loss value
         """
-
-        def _sigmoid_focal_loss(
-            inputs: torch.Tensor, targets: torch.Tensor, alpha: float = 0.25, gamma: float = 2.0
-        ) -> torch.Tensor:
-            """Compute the sigmoid focal loss between `inputs` and `targets`."""
-            prob = inputs.sigmoid()
-            ce_loss = F.binary_cross_entropy_with_logits(inputs, targets, reduction="none")
-            p_t = prob * targets + (1 - prob) * (1 - targets)
-            loss = ce_loss * ((1 - p_t) ** gamma)
-
-            if alpha >= 0:
-                alpha_t = alpha * targets + (1 - alpha) * (1 - targets)
-                loss = alpha_t * loss
-
-            return loss.sum(-1).mean()
 
         def rotated_boxes_to_gaussian(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
             """
@@ -614,27 +631,29 @@ class LWDETR(nn.Module, _LWDETR):
             mu2, sigma2 = rotated_boxes_to_gaussian(tgt_boxes)
 
             delta = (mu1 - mu2).unsqueeze(-1)
-
             sigma = (sigma1 + sigma2) * 0.5
 
-            sigma_inv = torch.linalg.inv(sigma)
+            eps = 1e-6
+            eye = torch.eye(2, device=sigma.device) * eps
+            sigma_safe = sigma + eye
+            sigma1_safe = sigma1 + eye
+            sigma2_safe = sigma2 + eye
+
+            sigma_inv = torch.linalg.inv(sigma_safe)
 
             mahalanobis = (delta.transpose(-1, -2) @ sigma_inv @ delta).squeeze(-1).squeeze(-1)
 
-            det_sigma = torch.linalg.det(sigma).clamp(min=1e-6)
-            det_sigma1 = torch.linalg.det(sigma1).clamp(min=1e-6)
-            det_sigma2 = torch.linalg.det(sigma2).clamp(min=1e-6)
+            det_sigma = torch.linalg.det(sigma_safe).clamp(min=eps)
+            det_sigma1 = torch.linalg.det(sigma1_safe).clamp(min=eps)
+            det_sigma2 = torch.linalg.det(sigma2_safe).clamp(min=eps)
 
             bhattacharyya = 0.125 * mahalanobis + 0.5 * torch.log(det_sigma / torch.sqrt(det_sigma1 * det_sigma2))
 
             probiou = torch.exp(-bhattacharyya)
-
             return 1 - probiou
 
         device = logits.device
         B, Q, C = logits.shape
-        # Build targets
-        targets = self.build_target(target)
 
         total_cls = torch.tensor(0.0, device=device)
         total_box = torch.tensor(0.0, device=device)
@@ -656,32 +675,41 @@ class LWDETR(nn.Module, _LWDETR):
             )
 
             num_gt = len(tgt_cls)
-            if num_gt == 0:
-                target_onehot = torch.zeros_like(pred_logits)
-                total_cls += _sigmoid_focal_loss(pred_logits, target_onehot)
-                continue
 
             pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
             tgt_rot = F.normalize(tgt_boxes[:, 4:6], dim=-1)
 
             with torch.no_grad():
                 cls_prob = pred_logits.sigmoid()
-                cost_cls = -torch.log(cls_prob[:, tgt_cls].clamp(min=1e-6))
+                alpha = 0.25
+                gamma = 2.0
+
+                neg_cost = (1 - alpha) * (cls_prob**gamma) * (-(1 - cls_prob + 1e-8).log())
+
+                pos_cost = alpha * ((1 - cls_prob) ** gamma) * (-(cls_prob + 1e-8).log())
+
+                cost_cls = pos_cost[:, tgt_cls] - neg_cost[:, tgt_cls]
                 cost_l1 = torch.cdist(
                     pred_boxes_b[:, :4],
                     tgt_boxes[:, :4],
                     p=1,
                 )
                 cost_rot = 1 - (pred_rot @ tgt_rot.T).abs()
-                total_cost = 2.0 * cost_cls + 5.0 * cost_l1 + 2.0 * cost_rot
+                total_cost = 5.0 * cost_cls + 2.0 * cost_l1 + 1.0 * cost_rot
                 matching_matrix = torch.zeros(
                     (Q, num_gt),
                     dtype=torch.bool,
                     device=device,
                 )
 
-                iou_like = 1 - cost_l1  # proxy
-                dynamic_k = (iou_like.sum(0).int() + 1).clamp(min=5, max=20)
+                center_dist = torch.cdist(
+                    pred_boxes_b[:, :2],
+                    tgt_boxes[:, :2],
+                    p=2,
+                )
+
+                iou_like = torch.exp(-center_dist)
+                dynamic_k = iou_like.sum(0).int().clamp(min=1, max=10)
 
                 for gt_idx in range(num_gt):
                     _, candidate_idx = torch.topk(-total_cost[:, gt_idx], k=int(dynamic_k[gt_idx].item()))
@@ -700,11 +728,12 @@ class LWDETR(nn.Module, _LWDETR):
 
                 pos_idx, gt_indices = matching_matrix.nonzero(as_tuple=True)
 
-            target_onehot = torch.zeros_like(pred_logits)
-            if len(pos_idx) > 0:
-                target_onehot[pos_idx, tgt_cls[gt_indices]] = 1
+            target_classes = torch.zeros((Q,), dtype=torch.long, device=device)
 
-            total_cls += _sigmoid_focal_loss(pred_logits, target_onehot)
+            # background = 0
+            target_classes[pos_idx] = tgt_cls[gt_indices]
+
+            total_cls += F.cross_entropy(pred_logits, target_classes)
 
             if len(pos_idx) == 0:
                 continue
@@ -735,7 +764,7 @@ def _lw_detr(
     kwargs["class_names"] = kwargs.get("class_names", default_cfgs[arch].get("class_names", []))
 
     _cfg = deepcopy(default_cfgs[arch])
-    _cfg["class_names"] = kwargs["class_names"]
+    _cfg["class_names"] = sorted(kwargs["class_names"])
     kwargs.pop("class_names")
 
     # Build the feature extractor
@@ -758,7 +787,7 @@ def _lw_detr(
     if pretrained:
         # The number of class_names is not the same as the number of classes in the pretrained model =>
         # remove the layer weights
-        _ignore_keys = ignore_keys if _cfg["class_names"] != default_cfgs[arch].get("class_names") else None
+        _ignore_keys = ignore_keys if _cfg["class_names"] != sorted(default_cfgs[arch].get("class_names", [])) else None
         model.from_pretrained(default_cfgs[arch]["url"], ignore_keys=_ignore_keys)
 
     return model

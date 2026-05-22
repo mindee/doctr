@@ -19,7 +19,8 @@ class RecognitionDataset(AbstractDataset):
     >>> from doctr.datasets import RecognitionDataset
     >>> train_set = RecognitionDataset(img_folder="/path/to/images",
     >>>                                labels_path="/path/to/labels.json")
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: path to the images folder

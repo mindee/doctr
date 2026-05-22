@@ -9,12 +9,8 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-import numpy as np
-
 from doctr.io.image import get_img_shape
-from doctr.utils.data import download_from_url
-
-from ...models.utils import _copy_tensor
+from doctr.utils import Sample, download_from_url
 
 __all__ = ["_AbstractDataset", "_VisionDataset"]
 
@@ -26,8 +22,8 @@ class _AbstractDataset:
     def __init__(
         self,
         root: str | Path,
-        img_transforms: Callable[[Any], Any] | None = None,
-        sample_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
+        img_transforms: Callable[[Sample], Sample] | None = None,
+        sample_transforms: Callable[[Sample], Sample] | None = None,
         pre_transforms: Callable[[Any, Any], tuple[Any, Any]] | None = None,
     ) -> None:
         if not Path(root).is_dir():
@@ -45,32 +41,24 @@ class _AbstractDataset:
     def _read_sample(self, index: int) -> tuple[Any, Any]:
         raise NotImplementedError
 
-    def __getitem__(self, index: int) -> tuple[Any, Any]:
+    def __getitem__(self, index: int) -> Sample:
         # Read image
         img, target = self._read_sample(index)
+        mask = None
+
         # Pre-transforms (format conversion at run-time etc.)
         if self._pre_transforms is not None:
             img, target = self._pre_transforms(img, target)
 
+        sample = Sample(image=img, mask=mask, target=target)
+
         if self.img_transforms is not None:
-            # typing issue cf. https://github.com/python/mypy/issues/5485
-            img = self.img_transforms(img)
+            sample = self.img_transforms(sample)
 
         if self.sample_transforms is not None:
-            # Conditions to assess it is detection model with multiple classes and avoid confusion with other tasks.
-            if (
-                isinstance(target, dict)
-                and all(isinstance(item, np.ndarray) for item in target.values())
-                and set(target.keys()) != {"boxes", "labels"}  # avoid confusion with obj detection target
-            ):
-                img_transformed = _copy_tensor(img)
-                for class_name, bboxes in target.items():
-                    img_transformed, target[class_name] = self.sample_transforms(img, bboxes)
-                img = img_transformed
-            else:
-                img, target = self.sample_transforms(img, target)
+            sample = self.sample_transforms(sample)
 
-        return img, target
+        return sample
 
     def extra_repr(self) -> str:
         return ""

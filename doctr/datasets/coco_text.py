@@ -27,10 +27,12 @@ class COCOTEXT(AbstractDataset):
     >>> from doctr.datasets import COCOTEXT
     >>> train_set = COCOTEXT(train=True, img_folder="/path/to/coco_text/train2014/",
     >>>                     label_path="/path/to/coco_text/cocotext.v2.json")
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
     >>> test_set = COCOTEXT(train=False, img_folder="/path/to/coco_text/train2014/",
     >>> label_path = "/path/to/coco_text/cocotext.v2.json")
-    >>> img, target = test_set[0]
+    >>> sample = test_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: folder with all the images of the dataset

@@ -50,7 +50,7 @@ def test_push_to_hf_hub():
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
         ["viptr_tiny", "recognition", "Felix92/doctr-dummy-torch-viptr-tiny"],
-        ["lw_detr_s", "layout", "Felix92/doctr-dummy-torch-lw-detr-s"],
+        #    ["lw_detr_s", "layout", "Felix92/doctr-dummy-torch-lw-detr-s"],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):

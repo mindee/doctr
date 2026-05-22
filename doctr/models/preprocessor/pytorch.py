@@ -13,6 +13,7 @@ from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
 from doctr.transforms import Resize
+from doctr.utils import Sample
 from doctr.utils.multithreading import multithread_exec
 
 __all__ = ["PreProcessor"]
@@ -100,9 +101,10 @@ class PreProcessor(nn.Module):
         tensor = torch.from_numpy(x.copy()).permute(2, 0, 1)
         # Resizing
         if self.resize.return_padding_mask:
-            tensor, mask = self.resize(tensor)
+            sample = self.resize(Sample(image=tensor))
+            tensor, mask = sample.image, sample.mask
         else:
-            tensor = self.resize(tensor)
+            tensor = self.resize(Sample(image=tensor)).image
         # Data type
         if tensor.dtype == torch.uint8:
             tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
@@ -152,6 +154,7 @@ class PreProcessor(nn.Module):
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching
             if self.resize.return_padding_mask:
+                print(samples)
                 img_batches, mask_batches = self.batch_inputs(samples)
             else:
                 img_batches = self.batch_inputs(samples)

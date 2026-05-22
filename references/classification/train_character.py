@@ -69,6 +69,7 @@ def record_lr(
         scaler = torch.cuda.amp.GradScaler()
 
     for batch_idx, (images, targets) in enumerate(train_loader):
+        targets = torch.tensor(targets)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = targets.cuda()
@@ -116,6 +117,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     epoch_train_loss, batch_cnt = 0.0, 0.0
     pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
+        targets = torch.tensor(targets)
         if torch.cuda.is_available():
             images = images.cuda()
             targets = targets.cuda()
@@ -158,6 +160,7 @@ def evaluate(model, val_loader, batch_transforms, amp=False, log=None):
     val_loss, correct, samples, batch_cnt = 0, 0, 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True)
     for images, targets in pbar:
+        targets = torch.tensor(targets)
         images = batch_transforms(images)
 
         if torch.cuda.is_available():
@@ -228,6 +231,7 @@ def main(args):
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
         pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
     )
     pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
 
@@ -273,13 +277,13 @@ def main(args):
             T.Resize((args.input_size, args.input_size)),
             # Augmentations
             T.RandomApply(T.ColorInversion(), 0.9),
-            RandomGrayscale(p=0.1),
-            RandomPhotometricDistort(p=0.1),
+            T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
+            T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.1)),
             T.RandomApply(T.RandomShadow(), p=0.4),
             T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-            RandomPerspective(distortion_scale=0.2, p=0.3),
-            RandomRotation(15, interpolation=InterpolationMode.BILINEAR),
+            T.ImageTorchvisionTransform(RandomPerspective(distortion_scale=0.2, p=0.3)),
+            T.ImageTorchvisionTransform(RandomRotation(15, interpolation=InterpolationMode.BILINEAR)),
         ]),
         font_family=fonts,
     )
@@ -291,6 +295,7 @@ def main(args):
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
         pin_memory=torch.cuda.is_available(),
+        collate_fn=train_set.collate_fn,
     )
     pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
 

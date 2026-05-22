@@ -28,10 +28,10 @@ else:
     from tqdm.auto import tqdm
 
 from doctr import transforms as T
-from doctr.datasets import DetectionDataset
-from doctr.models import detection, login_to_hub, push_to_hf_hub
-from doctr.utils.metrics import LocalizationConfusion
-from utils import EarlyStopper, plot_recorder, plot_samples
+from doctr.datasets import LayoutDataset
+from doctr.models import layout, login_to_hub, push_to_hf_hub
+from doctr.utils.metrics import ObjectDetectionMetric
+from utils import EarlyStopper, convert_target, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -66,16 +66,19 @@ def record_lr(
         scaler = torch.cuda.amp.GradScaler()
 
     for batch_idx, (images, targets) in enumerate(train_loader):
-        if torch.cuda.is_available():
-            images = images.cuda()
+        imgs, padding_masks = images
 
-        images = batch_transforms(images)
+        if torch.cuda.is_available():
+            imgs = imgs.cuda()
+            padding_masks = padding_masks.cuda()
+
+        imgs = batch_transforms(imgs)
 
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
-                train_loss = model(images, targets)["loss"]
+                train_loss = model(imgs, padding_masks, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
@@ -84,7 +87,7 @@ def record_lr(
             scaler.step(optimizer)
             scaler.update()
         else:
-            train_loss = model(images, targets)["loss"]
+            train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -114,14 +117,16 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     epoch_train_loss, batch_cnt = 0, 0
     pbar = tqdm(train_loader, dynamic_ncols=True, disable=(rank != 0))
     for images, targets in pbar:
+        imgs, padding_masks = images
         if torch.cuda.is_available():
-            images = images.cuda()
-        images = batch_transforms(images)
+            imgs = imgs.cuda()
+            padding_masks = padding_masks.cuda()
+        imgs = batch_transforms(imgs)
 
         optimizer.zero_grad()
         if amp:
             with torch.cuda.amp.autocast():
-                train_loss = model(images, targets)["loss"]
+                train_loss = model(imgs, padding_masks, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
@@ -130,7 +135,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
             scaler.step(optimizer)
             scaler.update()
         else:
-            train_loss = model(images, targets)["loss"]
+            train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
             optimizer.step()
@@ -138,7 +143,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
         scheduler.step()
         last_lr = scheduler.get_last_lr()[0]
 
-        pbar.set_description(f"Training loss: {train_loss.item():.6} | LR: {last_lr:.6}")
+        pbar.set_description(f"Training loss: {train_loss.item():.6f} | LR: {last_lr:.6f}")
         if log:
             log(train_loss=train_loss.item(), lr=last_lr)
 
@@ -150,7 +155,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
 
 
 @torch.no_grad()
-def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, log=None):
+def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=None):
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -159,24 +164,32 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
     val_loss, batch_cnt = 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True)
     for images, targets in pbar:
+        imgs, padding_masks = images
         if torch.cuda.is_available():
-            images = images.cuda()
-        images = batch_transforms(images)
+            imgs = imgs.cuda()
+            padding_masks = padding_masks.cuda()
+        imgs = batch_transforms(imgs)
         if amp:
             with torch.cuda.amp.autocast():
-                out = model(images, targets, return_preds=True)
+                out = model(imgs, padding_masks, targets, return_preds=True)
         else:
-            out = model(images, targets, return_preds=True)
+            out = model(imgs, padding_masks, targets, return_preds=True)
         # Compute metric
         loc_preds = out["preds"]
-        for target, loc_pred in zip(targets, loc_preds):
-            for boxes_gt, boxes_pred in zip(target.values(), loc_pred.values()):
-                if args.rotation and args.eval_straight:
-                    # Convert pred to boxes [xmin, ymin, xmax, ymax]  N, 5, 2 (with scores) --> N, 4
-                    boxes_pred = np.concatenate((boxes_pred[:, :4].min(axis=1), boxes_pred[:, :4].max(axis=1)), axis=-1)
-                val_metric.update(gts=boxes_gt, preds=boxes_pred[:, :4])
+        for target, pred in zip(targets, loc_preds):
+            target_boxes, target_labels = convert_target(target, model.class_names)
+            pred_labels = np.asarray(pred[0], dtype=np.int64)
+            pred_boxes = np.asarray(pred[1], dtype=np.float32)
+            pred_scores = np.asarray(pred[2], dtype=np.float32)
+            val_metric.update(
+                gt_boxes=target_boxes,
+                pred_boxes=pred_boxes,
+                gt_labels=target_labels,
+                pred_labels=pred_labels,
+                pred_scores=pred_scores,
+            )
 
-        pbar.set_description(f"Validation loss: {out['loss'].item():.6}")
+        pbar.set_description(f"Validation loss: {out['loss'].item():.6f}")
         if log:
             log(val_loss=out["loss"].item())
 
@@ -184,8 +197,13 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
         batch_cnt += 1
 
     val_loss /= batch_cnt
-    recall, precision, mean_iou = val_metric.summary()
-    return val_loss, recall, precision, mean_iou
+    metrics = val_metric.summary()
+    return (
+        val_loss,
+        metrics["mAP@[.5:.95]"],
+        metrics["AP@[.5]"],
+        metrics["AP@[.75]"],
+    )
 
 
 def main(args):
@@ -200,7 +218,6 @@ def main(args):
         dist.init_process_group(backend=args.backend)
         device = torch.device("cuda", rank)
         torch.cuda.set_device(device)
-
     else:
         # single process
         rank = 0
@@ -233,25 +250,49 @@ def main(args):
         args.workers = min(16, multiprocessing.cpu_count())
 
     torch.backends.cudnn.benchmark = True
+
+    # Temporary model to recover configuration
+    tmp_model = layout.__dict__[args.arch](
+        pretrained=False,
+        assume_straight_pages=not args.rotation,
+    )
+
+    mean, std = tmp_model.cfg["mean"], tmp_model.cfg["std"]
+
     # placeholder for class names
     cls_container = [None]
     if rank == 0:
         # validation dataset related code
         st = time.time()
-        val_set = DetectionDataset(
+        val_set = LayoutDataset(
             img_folder=os.path.join(args.val_path, "images"),
             label_path=os.path.join(args.val_path, "labels.json"),
             sample_transforms=T.SampleCompose(
                 (
-                    [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                    # Important to return padding masks for layout models
+                    [
+                        T.Resize(
+                            (args.input_size, args.input_size),
+                            preserve_aspect_ratio=True,
+                            symmetric_pad=True,
+                            return_padding_mask=True,
+                        )
+                    ]
                     if not args.rotation or args.eval_straight
                     else []
                 )
                 + (
                     [
-                        T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                        T.Resize(
+                            args.input_size, preserve_aspect_ratio=True, return_padding_mask=True
+                        ),  # This does not pad
                         T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                        T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                        T.Resize(
+                            (args.input_size, args.input_size),
+                            preserve_aspect_ratio=True,
+                            symmetric_pad=True,
+                            return_padding_mask=True,
+                        ),
                     ]
                     if args.rotation and not args.eval_straight
                     else []
@@ -269,7 +310,7 @@ def main(args):
             collate_fn=val_set.collate_fn,
         )
         pbar.write(
-            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
+            f"Validation set loaded in {time.time() - st:.4f}s ({len(val_set)} samples in {len(val_loader)} batches)"
         )
         with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
             val_hash = hashlib.sha256(f.read()).hexdigest()
@@ -281,10 +322,10 @@ def main(args):
     # unpack class names on all ranks
     class_names = cls_container[0]
 
-    batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
+    batch_transforms = Normalize(mean=mean, std=std)
 
     # Load docTR model
-    model = detection.__dict__[args.arch](
+    model = layout.__dict__[args.arch](
         pretrained=args.pretrained,
         assume_straight_pages=not args.rotation,
         class_names=class_names,
@@ -297,16 +338,25 @@ def main(args):
 
     if rank == 0:
         # Metrics
-        val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
+        val_metric = ObjectDetectionMetric(
+            num_classes=len(class_names),
+            use_polygons=args.rotation and not args.eval_straight,
+        )
 
     if rank == 0 and args.test_only:
         pbar.write("Running evaluation")
-        val_loss, recall, precision, mean_iou = evaluate(
-            model, val_loader, batch_transforms, val_metric, args, amp=args.amp
+        val_loss, map5095, ap50, ap75 = evaluate(
+            model,
+            val_loader,
+            batch_transforms,
+            val_metric,
+            amp=args.amp,
         )
         pbar.write(
-            f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
-            f"Mean IoU: {mean_iou:.2%})"
+            f"Validation loss: {val_loss:.6f} | "
+            f"mAP@[.5:.95]: {map5095:.2%} | "
+            f"AP@[.5]: {ap50:.2%} | "
+            f"AP@[.75]: {ap75:.2%}"
         )
         return
 
@@ -336,7 +386,12 @@ def main(args):
                     T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
-                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                T.Resize(
+                    (args.input_size, args.input_size),
+                    preserve_aspect_ratio=True,
+                    symmetric_pad=True,
+                    return_padding_mask=True,
+                ),
             ]
             if not args.rotation
             else [
@@ -346,15 +401,21 @@ def main(args):
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
-                T.Resize(args.input_size, preserve_aspect_ratio=True),
+                T.Resize(args.input_size, preserve_aspect_ratio=True, return_padding_mask=True),
                 T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                # Important to return padding masks for layout models
+                T.Resize(
+                    (args.input_size, args.input_size),
+                    preserve_aspect_ratio=True,
+                    symmetric_pad=True,
+                    return_padding_mask=True,
+                ),
             ]
         )
     )
 
     # Load both train and val data generators
-    train_set = DetectionDataset(
+    train_set = LayoutDataset(
         img_folder=os.path.join(args.train_path, "images"),
         label_path=os.path.join(args.train_path, "labels.json"),
         img_transforms=img_transforms,
@@ -376,9 +437,17 @@ def main(args):
         pin_memory=torch.cuda.is_available(),
         collate_fn=train_set.collate_fn,
     )
+
+    # Sanity class names check between train and val sets
+    if set(class_names) != set(train_set.class_names):
+        raise ValueError(
+            "Class names mismatch between train and val sets. "
+            f"Train classes: {train_set.class_names}, Val classes: {class_names}"
+        )
+
     if rank == 0:
         pbar.write(
-            f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
+            f"Train set loaded in {time.time() - st:.4f}s ({len(train_set)} samples in {len(train_loader)} batches)"
         )
 
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
@@ -386,7 +455,8 @@ def main(args):
 
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        img, masks = x
+        plot_samples(img, target, masks)
         return
 
     # Backbone freezing
@@ -401,6 +471,7 @@ def main(args):
     if distributed:
         # construct DDP model
         model = DDP(model, device_ids=[rank])
+
     # Optimizer
     if args.optim == "adam":
         optimizer = torch.optim.Adam(
@@ -410,6 +481,7 @@ def main(args):
             eps=1e-6,
             weight_decay=args.weight_decay,
         )
+
     elif args.optim == "adamw":
         optimizer = torch.optim.AdamW(
             [p for p in model.parameters() if p.requires_grad],
@@ -462,7 +534,7 @@ def main(args):
     if args.wb:
         import wandb
 
-        run = wandb.init(name=exp_name, project="text-detection", config=config)
+        run = wandb.init(name=exp_name, project="layout-detection", config=config)
 
         def wandb_log_at_step(train_loss=None, val_loss=None, lr=None):
             wandb.log({
@@ -475,11 +547,12 @@ def main(args):
     if args.clearml:
         from clearml import Logger, Task
 
-        task = Task.init(project_name="docTR/text-detection", task_name=exp_name, reuse_last_task_id=False)
+        task = Task.init(project_name="docTR/layout-detection", task_name=exp_name, reuse_last_task_id=False)
         task.upload_artifact("config", config)
 
         def clearml_log_at_step(train_loss=None, val_loss=None, lr=None):
             logger = Logger.current_logger()
+
             if train_loss is not None:
                 logger.report_scalar(
                     title="Training Step Loss",
@@ -519,29 +592,41 @@ def main(args):
     # Training loop
     for epoch in range(args.epochs):
         train_loss, actual_lr = fit_one_epoch(
-            model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
+            model,
+            train_loader,
+            batch_transforms,
+            optimizer,
+            scheduler,
+            amp=args.amp,
+            log=log_at_step,
+            rank=rank,
         )
+
         if rank == 0:
-            pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
+            pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6f} | LR: {actual_lr:.6f}")
 
             # Validation loop at the end of each epoch
-            val_loss, recall, precision, mean_iou = evaluate(
-                model, val_loader, batch_transforms, val_metric, args, amp=args.amp, log=log_at_step
+            val_loss, map5095, ap50, ap75 = evaluate(
+                model,
+                val_loader,
+                batch_transforms,
+                val_metric,
+                amp=args.amp,
+                log=log_at_step,
             )
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
-                pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
+                pbar.write(f"Validation loss decreased {min_loss:.6f} --> {val_loss:.6f}: saving state...")
                 torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
                 min_loss = val_loss
             if args.save_interval_epoch:
                 pbar.write(f"Saving state at epoch: {epoch + 1}")
                 torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
-
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
-            if any(val is None for val in (recall, precision, mean_iou)):
+            if any(val is None for val in (map5095, ap50, ap75)):
                 log_msg += "(Undefined metric value, caused by empty GTs or predictions)"
             else:
-                log_msg += f"(Recall: {recall:.2%} | Precision: {precision:.2%} | Mean IoU: {mean_iou:.2%})"
+                log_msg += f"| mAP@[.5:.95]: {map5095:.2%} | AP@[.5]: {ap50:.2%} | AP@[.75]: {ap75:.2%}"
             pbar.write(log_msg)
             # W&B
             if args.wb:
@@ -549,9 +634,9 @@ def main(args):
                     "train_loss": train_loss,
                     "val_loss": val_loss,
                     "learning_rate": actual_lr,
-                    "recall": recall,
-                    "precision": precision,
-                    "mean_iou": mean_iou,
+                    "mAP@[.5:.95]": map5095,
+                    "AP@[.5]": ap50,
+                    "AP@[.75]": ap75,
                 })
 
             # ClearML
@@ -562,9 +647,9 @@ def main(args):
                 logger.report_scalar(title="Training Loss", series="train_loss", value=train_loss, iteration=epoch)
                 logger.report_scalar(title="Validation Loss", series="val_loss", value=val_loss, iteration=epoch)
                 logger.report_scalar(title="Learning Rate", series="lr", value=actual_lr, iteration=epoch)
-                logger.report_scalar(title="Recall", series="recall", value=recall, iteration=epoch)
-                logger.report_scalar(title="Precision", series="precision", value=precision, iteration=epoch)
-                logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
+                logger.report_scalar(title="mAP@[.5:.95]", series="mAP@[.5:.95]", value=map5095, iteration=epoch)
+                logger.report_scalar(title="AP@[.5]", series="AP@[.5]", value=ap50, iteration=epoch)
+                logger.report_scalar(title="AP@[.75]", series="AP@[.75]", value=ap75, iteration=epoch)
 
             if args.early_stop and early_stopper.early_stop(val_loss):
                 pbar.write("Training halted early due to reaching patience limit.")
@@ -575,14 +660,14 @@ def main(args):
             run.finish()
 
         if args.push_to_hub:
-            push_to_hf_hub(model, exp_name, task="detection", run_config=args)
+            push_to_hf_hub(model, exp_name, task="layout", run_config=args)
 
 
 def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="DocTR training script for text detection (PyTorch)",
+        description="DocTR training script for layout detection (PyTorch)",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -631,9 +716,9 @@ def parse_args():
         action="store_true",
         help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
-    parser.add_argument("--optim", type=str, default="adam", choices=["adam", "adamw"], help="optimizer to use")
+    parser.add_argument("--optim", type=str, default="adamw", choices=["adam", "adamw"], help="optimizer to use")
     parser.add_argument(
-        "--sched", type=str, default="poly", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
+        "--sched", type=str, default="cosine", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")

@@ -8,11 +8,12 @@ from collections.abc import Sequence
 
 import numpy as np
 import torch
-from PIL.Image import Image
 from scipy.ndimage import gaussian_filter
 from torch.nn.functional import pad
 from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
+
+from doctr.utils import Sample
 
 from ..functional import random_shadow
 
@@ -32,8 +33,9 @@ class Resize(T.Resize):
 
     >>> import torch
     >>> from doctr.transforms import Resize
+    >>> from doctr.utils import Sample
     >>> transfo = Resize((64, 64), preserve_aspect_ratio=True, symmetric_pad=True)
-    >>> out = transfo(torch.rand((3, 64, 64)))
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 64))))
 
     Args:
         size: output size in pixels, either a tuple (height, width) or a single integer for square images
@@ -92,14 +94,18 @@ class Resize(T.Resize):
 
     def forward(
         self,
-        img: torch.Tensor,
-        target: np.ndarray | None = None,
-    ) -> (
-        torch.Tensor
-        | tuple[torch.Tensor, np.ndarray]
-        | tuple[torch.Tensor, np.ndarray, torch.Tensor]
-        | tuple[torch.Tensor, torch.Tensor]
-    ):
+        sample: Sample,
+    ) -> Sample:
+        img = sample.image
+        target = sample.target
+        mask = sample.mask
+
+        # Resize mask alongside image if provided
+        # Masks should use nearest interpolation to preserve label integrity
+        resize_mask = mask is not None
+        if resize_mask and mask is not None and mask.ndim == 2:
+            mask = mask.unsqueeze(0)
+
         target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
 
@@ -108,18 +114,25 @@ class Resize(T.Resize):
             # We can use with the regular resize
             img = super().forward(img)
 
+            if resize_mask:
+                mask = F.resize(
+                    mask,
+                    self.size,
+                    interpolation=F.InterpolationMode.NEAREST,
+                    antialias=False,
+                ).squeeze(0)
+
             if self.return_padding_mask:
                 padding_mask = torch.zeros(self.size, dtype=torch.bool, device=img.device)
 
             if target is not None:
                 if self.return_padding_mask:
-                    return img, target, padding_mask
-                return img, target
-
+                    return sample.replace(image=img, target=target, mask=mask if resize_mask else padding_mask)
+                return sample.replace(image=img, target=target, mask=mask if resize_mask else sample.mask)
             if self.return_padding_mask:
-                return img, padding_mask
+                return sample.replace(image=img, mask=mask if resize_mask else padding_mask)
+            return sample.replace(image=img, mask=mask if resize_mask else sample.mask)
 
-            return img
         else:
             # Resize
             if actual_ratio > target_ratio:
@@ -129,20 +142,33 @@ class Resize(T.Resize):
 
             # Scale image
             img = F.resize(img, tmp_size, self.interpolation, antialias=True)
+
+            if resize_mask:
+                mask = F.resize(
+                    mask,
+                    tmp_size,
+                    interpolation=F.InterpolationMode.NEAREST,
+                    antialias=False,
+                ).squeeze(0)
+
             raw_shape = img.shape[-2:]
+
             if isinstance(self.size, (tuple, list)):
                 # Pad (inverted in pytorch)
                 _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
+
                 if self.symmetric_pad:
                     half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
                     _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
                 # Pad image
                 img = pad(img, _pad)
 
+                if resize_mask and mask is not None:
+                    mask = pad(mask, _pad)
+
                 if self.return_padding_mask:
                     h, w = self.size
                     padding_mask = torch.zeros((h, w), dtype=torch.bool, device=img.device)
-
                     left, right, top, bottom = _pad
                     padding_mask[top : h - bottom, left : w - right] = True
 
@@ -156,7 +182,10 @@ class Resize(T.Resize):
                 else:
                     offset = (0, 0)
 
-                if isinstance(target, dict):
+                if isinstance(target, str) or (isinstance(target, np.ndarray) and target.shape == (1,)):
+                    # Special case for orientation targets and other non-box targets, which should not be resized
+                    pass
+                elif isinstance(target, dict):
                     target = {
                         cls_name: self._resize_target(
                             arr,
@@ -175,15 +204,14 @@ class Resize(T.Resize):
                         symmetric_pad=self.symmetric_pad,
                         offset=offset,
                     )
+
             if target is not None:
                 if self.return_padding_mask:
-                    return img, target, padding_mask
-                return img, target
-
+                    return sample.replace(image=img, target=target, mask=mask if resize_mask else padding_mask)
+                return sample.replace(image=img, target=target, mask=mask if resize_mask else sample.mask)
             if self.return_padding_mask:
-                return img, padding_mask
-
-            return img
+                return sample.replace(image=img, mask=mask if resize_mask else padding_mask)
+            return sample.replace(image=img, mask=mask if resize_mask else sample.mask)
 
     def __repr__(self) -> str:
         interpolate_str = self.interpolation.value
@@ -198,8 +226,9 @@ class GaussianNoise(torch.nn.Module):
 
     >>> import torch
     >>> from doctr.transforms import GaussianNoise
+    >>> from doctr.utils import Sample
     >>> transfo = GaussianNoise(0., 1.)
-    >>> out = transfo(torch.rand((3, 224, 224)))
+    >>> out = transfo(Sample(image=torch.rand((3, 224, 224))))
 
     Args:
         mean : mean of the gaussian distribution
@@ -211,13 +240,14 @@ class GaussianNoise(torch.nn.Module):
         self.std = std
         self.mean = mean
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Reshape the distribution
+    def forward(self, sample: Sample) -> Sample:
+        x = sample.image
         noise = self.mean + 2 * self.std * torch.rand(x.shape, device=x.device) - self.std
         if x.dtype == torch.uint8:
-            return (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)
+            image = (x + 255 * noise).round().clamp(0, 255).to(dtype=torch.uint8)
         else:
-            return (x + noise.to(dtype=x.dtype)).clamp(0, 1)
+            image = (x + noise.to(dtype=x.dtype)).clamp(0, 1)
+        return sample.replace(image=image)
 
     def extra_repr(self) -> str:
         return f"mean={self.mean}, std={self.std}"
@@ -228,7 +258,9 @@ class GaussianBlur(torch.nn.Module):
 
     >>> import torch
     >>> from doctr.transforms import GaussianBlur
+    >>> from doctr.utils import Sample
     >>> transfo = GaussianBlur(sigma=(0.0, 1.0))
+    >>> out = transfo(Sample(image=torch.rand((3, 224, 224))))
 
     Args:
         sigma : standard deviation range for the gaussian kernel
@@ -238,38 +270,52 @@ class GaussianBlur(torch.nn.Module):
         super().__init__()
         self.sigma_range = sigma
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, sample: Sample) -> Sample:
         # Sample a random sigma value within the specified range
         sigma = torch.empty(1).uniform_(*self.sigma_range).item()
 
         # Apply Gaussian blur along spatial dimensions only
         blurred = torch.tensor(
             gaussian_filter(
-                x.numpy(),
+                sample.image.numpy(),
                 sigma=sigma,
                 mode="reflect",
                 truncate=4.0,
             ),
-            dtype=x.dtype,
-            device=x.device,
+            dtype=sample.image.dtype,
+            device=sample.image.device,
         )
-        return blurred
+        return sample.replace(image=blurred)
 
 
 class ChannelShuffle(torch.nn.Module):
-    """Randomly shuffle channel order of a given image"""
+    """Randomly shuffle channel order of a given image
+
+    >>> import torch
+    >>> from doctr.transforms import ChannelShuffle
+    >>> from doctr.utils import Sample
+    >>> transfo = ChannelShuffle()
+    >>> out = transfo(Sample(image=torch.rand((3, 224, 224))))
+    """
 
     def __init__(self):
         super().__init__()
 
-    def forward(self, img: torch.Tensor) -> torch.Tensor:
+    def forward(self, sample: Sample) -> Sample:
         # Get a random order
-        chan_order = torch.rand(img.shape[0]).argsort()
-        return img[chan_order]
+        chan_order = torch.rand(sample.image.shape[0]).argsort()
+        return sample.replace(image=sample.image[chan_order])
 
 
 class RandomHorizontalFlip(T.RandomHorizontalFlip):
-    """Randomly flip the input image horizontally"""
+    """Randomly flip the input image horizontally
+
+    >>> import torch
+    >>> from doctr.transforms import RandomHorizontalFlip
+    >>> from doctr.utils import Sample
+    >>> transfo = RandomHorizontalFlip(p=1.0)
+    >>> out = transfo(Sample(image=torch.rand((3, 224, 224)), target=np.array([[0.1, 0.2, 0.3, 0.4]])))
+    """
 
     def _flip_array(self, target):
         _target = target.copy()
@@ -278,24 +324,23 @@ class RandomHorizontalFlip(T.RandomHorizontalFlip):
             _target[:, ::2] = 1 - target[:, [2, 0]]
         else:
             _target[..., 0] = 1 - target[..., 0]
-
         return _target
 
-    def forward(
-        self,
-        img: torch.Tensor | Image,
-        target: np.ndarray | dict[str, np.ndarray],
-    ) -> tuple[torch.Tensor | Image, np.ndarray | dict[str, np.ndarray]]:
-
+    def forward(self, sample: Sample) -> Sample:
         if torch.rand(1) < self.p:
-            _img = F.hflip(img)
+            img = F.hflip(sample.image)
+            mask = F.hflip(sample.mask) if sample.mask is not None else None
 
-            if isinstance(target, dict):
-                return _img, {cls_name: self._flip_array(arr) for cls_name, arr in target.items()}
+            target = sample.target
+            if target is not None:
+                if isinstance(target, dict):
+                    target = {k: self._flip_array(v) for k, v in target.items()}
+                else:
+                    target = self._flip_array(target)
 
-            return _img, self._flip_array(target)
+            return sample.replace(image=img, mask=mask, target=target)
 
-        return img, target
+        return sample
 
 
 class RandomShadow(torch.nn.Module):
@@ -303,8 +348,9 @@ class RandomShadow(torch.nn.Module):
 
     >>> import torch
     >>> from doctr.transforms import RandomShadow
+    >>> from doctr.utils import Sample
     >>> transfo = RandomShadow((0., 1.))
-    >>> out = transfo(torch.rand((3, 64, 64)))
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 64))))
 
     Args:
         opacity_range : minimum and maximum opacity of the shade
@@ -314,15 +360,15 @@ class RandomShadow(torch.nn.Module):
         super().__init__()
         self.opacity_range = opacity_range if isinstance(opacity_range, tuple) else (0.2, 0.8)
 
-    def __call__(self, x: torch.Tensor) -> torch.Tensor:
+    def __call__(self, sample: Sample) -> Sample:
         # Reshape the distribution
         try:
-            if x.dtype == torch.uint8:
-                return (
+            if sample.image.dtype == torch.uint8:
+                shadowed_image = (
                     (
                         255
                         * random_shadow(
-                            x.to(dtype=torch.float32) / 255,
+                            sample.image.to(dtype=torch.float32) / 255,
                             self.opacity_range,
                         )
                     )
@@ -330,10 +376,12 @@ class RandomShadow(torch.nn.Module):
                     .clip(0, 255)
                     .to(dtype=torch.uint8)
                 )
+                return sample.replace(image=shadowed_image)
             else:
-                return random_shadow(x, self.opacity_range).clip(0, 1)
+                shadowed_image = random_shadow(sample.image, self.opacity_range).clip(0, 1)
+                return sample.replace(image=shadowed_image)
         except ValueError:
-            return x
+            return sample
 
     def extra_repr(self) -> str:
         return f"opacity_range={self.opacity_range}"
@@ -344,8 +392,9 @@ class RandomResize(torch.nn.Module):
 
     >>> import torch
     >>> from doctr.transforms import RandomResize
+    >>> from doctr.utils import Sample
     >>> transfo = RandomResize((0.3, 0.9), preserve_aspect_ratio=True, symmetric_pad=True, p=0.5)
-    >>> out = transfo(torch.rand((3, 64, 64)))
+    >>> out = transfo(Sample(image=torch.rand((3, 64, 64))))
 
     Args:
         scale_range: range of the resizing factor for width and height (independently)
@@ -372,15 +421,14 @@ class RandomResize(torch.nn.Module):
 
     def forward(
         self,
-        img: torch.Tensor,
-        target: np.ndarray | dict[str, np.ndarray],
-    ) -> tuple[torch.Tensor, np.ndarray | dict[str, np.ndarray]]:
+        sample: Sample,
+    ) -> Sample:
         if torch.rand(1) < self.p:
             scale_h = np.random.uniform(*self.scale_range)
             scale_w = np.random.uniform(*self.scale_range)
-            new_size = (int(img.shape[-2] * scale_h), int(img.shape[-1] * scale_w))
+            new_size = (int(sample.image.shape[-2] * scale_h), int(sample.image.shape[-1] * scale_w))
 
-            _img, _target = self._resize(
+            res = self._resize(
                 new_size,
                 preserve_aspect_ratio=self.preserve_aspect_ratio
                 if isinstance(self.preserve_aspect_ratio, bool)
@@ -388,10 +436,9 @@ class RandomResize(torch.nn.Module):
                 symmetric_pad=self.symmetric_pad
                 if isinstance(self.symmetric_pad, bool)
                 else bool(torch.rand(1) <= self.symmetric_pad),
-            )(img, target)
-
-            return _img, _target
-        return img, target
+            )(sample)
+            return res
+        return sample
 
     def extra_repr(self) -> str:
         return f"scale_range={self.scale_range}, preserve_aspect_ratio={self.preserve_aspect_ratio}, symmetric_pad={self.symmetric_pad}, p={self.p}"  # noqa: E501
