@@ -284,39 +284,31 @@ class RandomCrop(NestedObject):
 
             cropped_polys = target.copy()
 
-            # pixel-space crop box for coordinate transform
-            x0, y0, x1, y1 = (
-                int(crop_box[0] * img.shape[-1]),
-                int(crop_box[1] * img.shape[-2]),
-                int(crop_box[2] * img.shape[-1]),
-                int(crop_box[3] * img.shape[-2]),
-            )
+            crop_w = crop_box[2] - crop_box[0]
+            crop_h = crop_box[3] - crop_box[1]
 
-            crop_w = x1 - x0
-            crop_h = y1 - y0
+            # Reproject coordinates into cropped frame
+            cropped_polys[..., 0] = (cropped_polys[..., 0] - crop_box[0]) / crop_w
+            cropped_polys[..., 1] = (cropped_polys[..., 1] - crop_box[1]) / crop_h
 
-            # shift polygons into cropped pixel frame
-            cropped_polys[..., 0] -= x0
-            cropped_polys[..., 1] -= y0
-
-            # visibility check in pixel space
+            # Keep polygons with at least partial visibility
             poly_min = np.min(cropped_polys, axis=1)
             poly_max = np.max(cropped_polys, axis=1)
-
-            is_kept = (
-                (poly_max[:, 0] > 0) & (poly_min[:, 0] < crop_w) & (poly_max[:, 1] > 0) & (poly_min[:, 1] < crop_h)
-            )
-
+            is_kept = (poly_max[:, 0] > 0) & (poly_min[:, 0] < 1) & (poly_max[:, 1] > 0) & (poly_min[:, 1] < 1)
             cropped_polys = cropped_polys[is_kept]
 
             if cropped_polys.shape[0] == 0:
                 return img, target
 
-            # final clipping in pixel space
-            cropped_polys[..., 0] = np.clip(cropped_polys[..., 0], 0, crop_w)
-            cropped_polys[..., 1] = np.clip(cropped_polys[..., 1], 0, crop_h)
+            return cropped_img, np.clip(cropped_polys, 0, 1)
 
-            return cropped_img, cropped_polys
+        # For detection boxes, we can directly crop and clip them
+        cropped_img, crop_boxes = F.crop_detection(img, target, crop_box)
+
+        if crop_boxes.shape[0] == 0:
+            return img, target
+
+        return cropped_img, np.clip(crop_boxes, 0, 1)
 
     def __call__(self, sample: Sample) -> Sample:
         scale = random.uniform(self.scale[0], self.scale[1])
