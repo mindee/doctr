@@ -312,7 +312,8 @@
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import RecognitionDataset</span>
 <span class="sd">    &gt;&gt;&gt; train_set = RecognitionDataset(img_folder=&quot;/path/to/images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                                labels_path=&quot;/path/to/labels.json&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: path to the images folder</span>

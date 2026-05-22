@@ -318,11 +318,13 @@
 <span class="sd">    &gt;&gt;&gt; train_set = IIITHWS(img_folder=&quot;/path/to/iiit-hws/Images_90K_Normalized&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                     label_path=&quot;/path/to/IIIT-HWS-90K.txt&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                     train=True)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 <span class="sd">    &gt;&gt;&gt; test_set = IIITHWS(img_folder=&quot;/path/to/iiit-hws/Images_90K_Normalized&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                    label_path=&quot;/path/to/IIIT-HWS-90K.txt&quot;)</span>
 <span class="sd">    &gt;&gt;&gt;                    train=False)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>

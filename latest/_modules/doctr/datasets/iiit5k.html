@@ -321,7 +321,8 @@
 <span class="sd">    &gt;&gt;&gt; # NOTE: this dataset is for character-level localization</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import IIIT5K</span>
 <span class="sd">    &gt;&gt;&gt; train_set = IIIT5K(train=True, download=True)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>

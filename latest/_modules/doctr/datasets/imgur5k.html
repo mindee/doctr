@@ -327,10 +327,12 @@
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import IMGUR5K</span>
 <span class="sd">    &gt;&gt;&gt; train_set = IMGUR5K(train=True, img_folder=&quot;/path/to/IMGUR5K-Handwriting-Dataset/images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                     label_path=&quot;/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 <span class="sd">    &gt;&gt;&gt; test_set = IMGUR5K(train=False, img_folder=&quot;/path/to/IMGUR5K-Handwriting-Dataset/images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                    label_path=&quot;/path/to/IMGUR5K-Handwriting-Dataset/dataset_info/imgur5k_annotations.json&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>

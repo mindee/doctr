@@ -330,12 +330,8 @@
             <span class="s2">&quot;Table&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Text&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Title&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Document Index&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Code&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Checkbox-Selected&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Checkbox-Unselected&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Form&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Key-Value Region&quot;</span><span class="p">,</span>
         <span class="p">],</span>
         <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
@@ -355,12 +351,8 @@
             <span class="s2">&quot;Table&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Text&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Title&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Document Index&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Code&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Checkbox-Selected&quot;</span><span class="p">,</span>
             <span class="s2">&quot;Checkbox-Unselected&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Form&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;Key-Value Region&quot;</span><span class="p">,</span>
         <span class="p">],</span>
         <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">},</span>
@@ -455,8 +447,8 @@
         <span class="n">score_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.3</span><span class="p">,</span>
         <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">256</span><span class="p">,</span>
-        <span class="n">num_queries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">300</span><span class="p">,</span>
-        <span class="n">group_detr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span>
+        <span class="n">num_queries</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">130</span><span class="p">,</span>
+        <span class="n">group_detr</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
         <span class="n">dec_layers</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
         <span class="n">sa_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
         <span class="n">ca_num_heads</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
@@ -469,8 +461,8 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;__background__&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">class_names</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">class_names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># +1 for background class</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span> <span class="o">=</span> <span class="n">exportable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">assume_straight_pages</span> <span class="o">=</span> <span class="n">assume_straight_pages</span>
@@ -489,6 +481,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">query_feat</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_queries</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">group_detr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">class_embed</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bbox_embed</span> <span class="o">=</span> <span class="n">LWDETRHead</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span> <span class="o">=</span> <span class="n">LWDETRDecoder</span><span class="p">(</span>
             <span class="n">num_layers</span><span class="o">=</span><span class="n">dec_layers</span><span class="p">,</span>
             <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
@@ -498,6 +493,7 @@
             <span class="n">dec_n_points</span><span class="o">=</span><span class="n">dec_n_points</span><span class="p">,</span>
             <span class="n">group_detr</span><span class="o">=</span><span class="n">group_detr</span><span class="p">,</span>
             <span class="n">dropout_prob</span><span class="o">=</span><span class="n">dropout_prob</span><span class="p">,</span>
+            <span class="n">bbox_embed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bbox_embed</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">enc_output</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">group_detr</span><span class="p">)])</span>
@@ -509,9 +505,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">enc_out_class_embed</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">([</span>
             <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">group_detr</span><span class="p">)</span>
         <span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">class_embed</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">bbox_embed</span> <span class="o">=</span> <span class="n">LWDETRHead</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">bbox_embed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bbox_embed</span>  <span class="c1"># type: ignore[assignment]</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">LWDETRPostProcessor</span><span class="p">(</span>
             <span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_classes</span><span class="p">,</span>
@@ -576,6 +569,8 @@
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">last</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
                     <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
                     <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">zeros_</span><span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                        <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">constant_</span><span class="p">(</span><span class="n">last</span><span class="o">.</span><span class="n">bias</span><span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="mf">1.0</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pretrained parameters onto the model</span>
@@ -609,9 +604,9 @@
         <span class="c1"># center</span>
         <span class="n">cxcy</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">reference_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">reference_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="c1"># size</span>
-        <span class="n">wh</span> <span class="o">=</span> <span class="n">deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span> <span class="o">*</span> <span class="n">reference_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
-        <span class="c1"># normalize predicted delta rotation</span>
-        <span class="n">delta_rot</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">wh</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="n">deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">],</span> <span class="nb">min</span><span class="o">=-</span><span class="mf">4.0</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span><span class="o">.</span><span class="n">exp</span><span class="p">()</span> <span class="o">*</span> <span class="n">reference_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
+        <span class="c1"># rotation</span>
+        <span class="n">delta_rot</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">deltas</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
         <span class="n">sin_delta</span> <span class="o">=</span> <span class="n">delta_rot</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">cos_delta</span> <span class="o">=</span> <span class="n">delta_rot</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">sin_ref</span> <span class="o">=</span> <span class="n">reference_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">5</span><span class="p">]</span>
@@ -620,8 +615,7 @@
         <span class="c1"># compose rotations</span>
         <span class="n">sin_new</span> <span class="o">=</span> <span class="n">sin_ref</span> <span class="o">*</span> <span class="n">cos_delta</span> <span class="o">+</span> <span class="n">cos_ref</span> <span class="o">*</span> <span class="n">sin_delta</span>
         <span class="n">cos_new</span> <span class="o">=</span> <span class="n">cos_ref</span> <span class="o">*</span> <span class="n">cos_delta</span> <span class="o">-</span> <span class="n">sin_ref</span> <span class="o">*</span> <span class="n">sin_delta</span>
-        <span class="c1"># normalize final rotation</span>
-        <span class="n">rot</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">sin_new</span><span class="p">,</span> <span class="n">cos_new</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">rot</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">sin_new</span><span class="p">,</span> <span class="n">cos_new</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">((</span><span class="n">cxcy</span><span class="p">,</span> <span class="n">wh</span><span class="p">,</span> <span class="n">rot</span><span class="p">),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
@@ -698,7 +692,9 @@
             <span class="n">proposals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">proposal</span><span class="p">)</span>
             <span class="n">_cur</span> <span class="o">+=</span> <span class="n">height</span> <span class="o">*</span> <span class="n">width</span>
         <span class="n">output_proposals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">proposals</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">output_proposals_valid</span> <span class="o">=</span> <span class="p">((</span><span class="n">output_proposals</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">output_proposals</span> <span class="o">&lt;</span> <span class="mf">0.99</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">spatial_valid</span> <span class="o">=</span> <span class="p">((</span><span class="n">output_proposals</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">output_proposals</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">4</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.99</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdim</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">output_proposals_valid</span> <span class="o">=</span> <span class="n">spatial_valid</span>
         <span class="n">invalid_mask</span> <span class="o">=</span> <span class="n">padding_mask</span> <span class="o">|</span> <span class="o">~</span><span class="n">output_proposals_valid</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">invalid_mask</span> <span class="o">=</span> <span class="n">padding_mask</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="o">~</span><span class="n">output_proposals_valid</span>
         <span class="n">output_proposals</span> <span class="o">=</span> <span class="n">output_proposals</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">invalid_mask</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
@@ -712,7 +708,7 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="nb">input</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">masks</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
-        <span class="n">target</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">target</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">return_model_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">return_preds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
@@ -764,28 +760,35 @@
 
         <span class="n">topk_coords_logits_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="c1"># For each group, predict class logits and bbox deltas from the object query embeddings,</span>
-        <span class="c1"># and select the top-k proposals based on the predicted class logits.</span>
+        <span class="c1"># encoder predictions for auxiliary losses</span>
+        <span class="n">all_group_enc_logits</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_group_enc_coords</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">for</span> <span class="n">group_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">group_detr</span><span class="p">):</span>
             <span class="n">group_object_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_output</span><span class="p">[</span><span class="n">group_id</span><span class="p">](</span><span class="n">object_query_embedding</span><span class="p">)</span>
             <span class="n">group_object_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_output_norm</span><span class="p">[</span><span class="n">group_id</span><span class="p">](</span><span class="n">group_object_query</span><span class="p">)</span>
 
             <span class="n">group_enc_outputs_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_out_class_embed</span><span class="p">[</span><span class="n">group_id</span><span class="p">](</span><span class="n">group_object_query</span><span class="p">)</span>
-            <span class="n">group_enc_outputs_class</span> <span class="o">=</span> <span class="n">group_enc_outputs_class</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">invalid_mask</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">))</span>
+            <span class="n">all_group_enc_logits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_enc_outputs_class</span><span class="p">)</span>
+
+            <span class="n">group_enc_outputs_class_masked</span> <span class="o">=</span> <span class="n">group_enc_outputs_class</span><span class="o">.</span><span class="n">masked_fill</span><span class="p">(</span><span class="n">invalid_mask</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">))</span>
+
             <span class="n">group_delta_bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_out_bbox_embed</span><span class="p">[</span><span class="n">group_id</span><span class="p">](</span><span class="n">group_object_query</span><span class="p">)</span>
             <span class="n">group_enc_outputs_coord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">refine_bboxes</span><span class="p">(</span><span class="n">output_proposals</span><span class="p">,</span> <span class="n">group_delta_bbox</span><span class="p">)</span>
 
-            <span class="n">group_topk_proposals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">group_enc_outputs_class</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">topk</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">all_group_enc_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_enc_outputs_coord</span><span class="p">)</span>
+
+            <span class="n">group_topk_proposals</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="n">group_enc_outputs_class_masked</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">topk</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
             <span class="n">group_topk_coords_logits_undetach</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span>
                 <span class="n">group_enc_outputs_coord</span><span class="p">,</span>
                 <span class="mi">1</span><span class="p">,</span>
                 <span class="n">group_topk_proposals</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
             <span class="p">)</span>
-            <span class="n">group_topk_coords_logits</span> <span class="o">=</span> <span class="n">group_topk_coords_logits_undetach</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+            <span class="n">group_topk_coords_logits</span> <span class="o">=</span> <span class="n">group_topk_coords_logits_undetach</span>
             <span class="n">topk_coords_logits_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">group_topk_coords_logits</span><span class="p">)</span>
 
         <span class="n">topk_coords_logits</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">topk_coords_logits_list</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-
         <span class="n">reference_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">refine_bboxes</span><span class="p">(</span><span class="n">topk_coords_logits</span><span class="p">,</span> <span class="n">reference_points</span><span class="p">)</span>
 
         <span class="n">last_hidden_states</span><span class="p">,</span> <span class="n">intermediate</span><span class="p">,</span> <span class="n">intermediate_reference_points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="p">(</span>
@@ -819,13 +822,44 @@
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;preds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">logits</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+            <span class="c1"># Build target</span>
+            <span class="n">processed_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_names</span><span class="p">)</span>
+
+            <span class="c1"># Main loss from final decoder layer (group DETR)</span>
+            <span class="n">split_logits</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">group_detr</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">split_boxes</span> <span class="o">=</span> <span class="n">pred_boxes</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">group_detr</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="n">main_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">g_logits</span><span class="p">,</span> <span class="n">g_boxes</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">split_logits</span><span class="p">,</span> <span class="n">split_boxes</span><span class="p">):</span>
+                <span class="n">main_loss</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">g_logits</span><span class="p">,</span> <span class="n">g_boxes</span><span class="p">,</span> <span class="n">processed_targets</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">main_loss</span> <span class="o">/</span> <span class="n">group_detr</span>
+
+            <span class="c1"># Auxiliary losses from intermediate decoder layers</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">intermediate</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">aux_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">class_embed</span><span class="p">(</span><span class="n">intermediate</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">aux_boxes_delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bbox_embed</span><span class="p">(</span><span class="n">intermediate</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">aux_boxes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">refine_bboxes</span><span class="p">(</span><span class="n">intermediate_reference_points</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">aux_boxes_delta</span><span class="p">)</span>
+
+                <span class="n">split_aux_logits</span> <span class="o">=</span> <span class="n">aux_logits</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">group_detr</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">split_aux_boxes</span> <span class="o">=</span> <span class="n">aux_boxes</span><span class="o">.</span><span class="n">chunk</span><span class="p">(</span><span class="n">group_detr</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+                <span class="n">aux_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">for</span> <span class="n">g_logits</span><span class="p">,</span> <span class="n">g_boxes</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">split_aux_logits</span><span class="p">,</span> <span class="n">split_aux_boxes</span><span class="p">):</span>
+                    <span class="n">aux_loss</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">g_logits</span><span class="p">,</span> <span class="n">g_boxes</span><span class="p">,</span> <span class="n">processed_targets</span><span class="p">)</span>
+                <span class="n">loss</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">aux_loss</span> <span class="o">/</span> <span class="n">group_detr</span><span class="p">)</span>
+
+            <span class="c1"># Auxiliary losses for encoder proposals</span>
+            <span class="n">enc_loss</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span> <span class="o">=</span> <span class="mf">0.0</span>
+            <span class="k">for</span> <span class="n">group_logits</span><span class="p">,</span> <span class="n">group_coords</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">all_group_enc_logits</span><span class="p">,</span> <span class="n">all_group_enc_coords</span><span class="p">):</span>
+                <span class="n">enc_loss</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">group_logits</span><span class="p">,</span> <span class="n">group_coords</span><span class="p">,</span> <span class="n">processed_targets</span><span class="p">)</span>
+            <span class="n">loss</span> <span class="o">+=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="p">(</span><span class="n">enc_loss</span> <span class="o">/</span> <span class="n">group_detr</span><span class="p">)</span>
+
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
 
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">compute_loss</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">target</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">logits</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">pred_boxes</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute the loss for LW-DETR. The loss consists of three components:</span>
@@ -842,30 +876,13 @@
 <span class="sd">        Args:</span>
 <span class="sd">            logits: (B, Q, C) tensor containing the predicted class logits for each query</span>
 <span class="sd">            pred_boxes: (B, Q, 6) tensor containing the predicted boxes for each query</span>
-<span class="sd">            target: list of length B, where each element is a tuple of (classes, boxes)</span>
-<span class="sd">                for the corresponding image in the batch.</span>
-<span class="sd">                - classes: list of length N_i containing the class indices of the N_i ground truth boxes in the image</span>
-<span class="sd">                - boxes: (N_i, 4. 2) array containing the ground truth boxes</span>
-<span class="sd">                    in the format [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]</span>
+<span class="sd">            targets: list of dictionaries where each dictionary corresponds to a sample and has keys corresponding</span>
+<span class="sd">                to class names and values corresponding to lists of boxes in either polygon format (4, 2)</span>
+<span class="sd">                or bounding box format (4,) (xmin, ymin, xmax, ymax)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            loss: the computed loss value</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">def</span><span class="w"> </span><span class="nf">_sigmoid_focal_loss</span><span class="p">(</span>
-            <span class="n">inputs</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">targets</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.25</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">2.0</span>
-        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Compute the sigmoid focal loss between `inputs` and `targets`.&quot;&quot;&quot;</span>
-            <span class="n">prob</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">()</span>
-            <span class="n">ce_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
-            <span class="n">p_t</span> <span class="o">=</span> <span class="n">prob</span> <span class="o">*</span> <span class="n">targets</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">prob</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span>
-            <span class="n">loss</span> <span class="o">=</span> <span class="n">ce_loss</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_t</span><span class="p">)</span> <span class="o">**</span> <span class="n">gamma</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">alpha</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">alpha_t</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">targets</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">targets</span><span class="p">)</span>
-                <span class="n">loss</span> <span class="o">=</span> <span class="n">alpha_t</span> <span class="o">*</span> <span class="n">loss</span>
-
-            <span class="k">return</span> <span class="n">loss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
 
         <span class="k">def</span><span class="w"> </span><span class="nf">rotated_boxes_to_gaussian</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
 <span class="w">            </span><span class="sd">&quot;&quot;&quot;</span>
@@ -905,27 +922,29 @@
             <span class="n">mu2</span><span class="p">,</span> <span class="n">sigma2</span> <span class="o">=</span> <span class="n">rotated_boxes_to_gaussian</span><span class="p">(</span><span class="n">tgt_boxes</span><span class="p">)</span>
 
             <span class="n">delta</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu1</span> <span class="o">-</span> <span class="n">mu2</span><span class="p">)</span><span class="o">.</span><span class="n">unsqueeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-
             <span class="n">sigma</span> <span class="o">=</span> <span class="p">(</span><span class="n">sigma1</span> <span class="o">+</span> <span class="n">sigma2</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.5</span>
 
-            <span class="n">sigma_inv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
+            <span class="n">eps</span> <span class="o">=</span> <span class="mf">1e-6</span>
+            <span class="n">eye</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">sigma</span><span class="o">.</span><span class="n">device</span><span class="p">)</span> <span class="o">*</span> <span class="n">eps</span>
+            <span class="n">sigma_safe</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">+</span> <span class="n">eye</span>
+            <span class="n">sigma1_safe</span> <span class="o">=</span> <span class="n">sigma1</span> <span class="o">+</span> <span class="n">eye</span>
+            <span class="n">sigma2_safe</span> <span class="o">=</span> <span class="n">sigma2</span> <span class="o">+</span> <span class="n">eye</span>
+
+            <span class="n">sigma_inv</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">sigma_safe</span><span class="p">)</span>
 
             <span class="n">mahalanobis</span> <span class="o">=</span> <span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span> <span class="o">@</span> <span class="n">sigma_inv</span> <span class="o">@</span> <span class="n">delta</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
-            <span class="n">det_sigma</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
-            <span class="n">det_sigma1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">sigma1</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
-            <span class="n">det_sigma2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">sigma2</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+            <span class="n">det_sigma</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">sigma_safe</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+            <span class="n">det_sigma1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">sigma1_safe</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
+            <span class="n">det_sigma2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">sigma2_safe</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="n">eps</span><span class="p">)</span>
 
             <span class="n">bhattacharyya</span> <span class="o">=</span> <span class="mf">0.125</span> <span class="o">*</span> <span class="n">mahalanobis</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">det_sigma</span> <span class="o">/</span> <span class="n">torch</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">det_sigma1</span> <span class="o">*</span> <span class="n">det_sigma2</span><span class="p">))</span>
 
             <span class="n">probiou</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">bhattacharyya</span><span class="p">)</span>
-
             <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">probiou</span>
 
         <span class="n">device</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">device</span>
         <span class="n">B</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span>
-        <span class="c1"># Build targets</span>
-        <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
 
         <span class="n">total_cls</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
         <span class="n">total_box</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
@@ -947,32 +966,41 @@
             <span class="p">)</span>
 
             <span class="n">num_gt</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tgt_cls</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">num_gt</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">target_onehot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_logits</span><span class="p">)</span>
-                <span class="n">total_cls</span> <span class="o">+=</span> <span class="n">_sigmoid_focal_loss</span><span class="p">(</span><span class="n">pred_logits</span><span class="p">,</span> <span class="n">target_onehot</span><span class="p">)</span>
-                <span class="k">continue</span>
 
             <span class="n">pred_rot</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">pred_boxes_b</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">tgt_rot</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">tgt_boxes</span><span class="p">[:,</span> <span class="mi">4</span><span class="p">:</span><span class="mi">6</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
                 <span class="n">cls_prob</span> <span class="o">=</span> <span class="n">pred_logits</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">()</span>
-                <span class="n">cost_cls</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">cls_prob</span><span class="p">[:,</span> <span class="n">tgt_cls</span><span class="p">]</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">))</span>
+                <span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.25</span>
+                <span class="n">gamma</span> <span class="o">=</span> <span class="mf">2.0</span>
+
+                <span class="n">neg_cost</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">cls_prob</span><span class="o">**</span><span class="n">gamma</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cls_prob</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>
+
+                <span class="n">pos_cost</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">cls_prob</span><span class="p">)</span> <span class="o">**</span> <span class="n">gamma</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">cls_prob</span> <span class="o">+</span> <span class="mf">1e-8</span><span class="p">)</span><span class="o">.</span><span class="n">log</span><span class="p">())</span>
+
+                <span class="n">cost_cls</span> <span class="o">=</span> <span class="n">pos_cost</span><span class="p">[:,</span> <span class="n">tgt_cls</span><span class="p">]</span> <span class="o">-</span> <span class="n">neg_cost</span><span class="p">[:,</span> <span class="n">tgt_cls</span><span class="p">]</span>
                 <span class="n">cost_l1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span>
                     <span class="n">pred_boxes_b</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">],</span>
                     <span class="n">tgt_boxes</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">4</span><span class="p">],</span>
                     <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                 <span class="p">)</span>
                 <span class="n">cost_rot</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">pred_rot</span> <span class="o">@</span> <span class="n">tgt_rot</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span>
-                <span class="n">total_cost</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">cost_cls</span> <span class="o">+</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">cost_l1</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">cost_rot</span>
+                <span class="n">total_cost</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">cost_cls</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">cost_l1</span> <span class="o">+</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">cost_rot</span>
                 <span class="n">matching_matrix</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
                     <span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">num_gt</span><span class="p">),</span>
                     <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span>
                     <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
                 <span class="p">)</span>
 
-                <span class="n">iou_like</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">cost_l1</span>  <span class="c1"># proxy</span>
-                <span class="n">dynamic_k</span> <span class="o">=</span> <span class="p">(</span><span class="n">iou_like</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">int</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+                <span class="n">center_dist</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cdist</span><span class="p">(</span>
+                    <span class="n">pred_boxes_b</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="n">tgt_boxes</span><span class="p">[:,</span> <span class="p">:</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                <span class="p">)</span>
+
+                <span class="n">iou_like</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">center_dist</span><span class="p">)</span>
+                <span class="n">dynamic_k</span> <span class="o">=</span> <span class="n">iou_like</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">int</span><span class="p">()</span><span class="o">.</span><span class="n">clamp</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
 
                 <span class="k">for</span> <span class="n">gt_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_gt</span><span class="p">):</span>
                     <span class="n">_</span><span class="p">,</span> <span class="n">candidate_idx</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">topk</span><span class="p">(</span><span class="o">-</span><span class="n">total_cost</span><span class="p">[:,</span> <span class="n">gt_idx</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">dynamic_k</span><span class="p">[</span><span class="n">gt_idx</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()))</span>
@@ -991,11 +1019,12 @@
 
                 <span class="n">pos_idx</span><span class="p">,</span> <span class="n">gt_indices</span> <span class="o">=</span> <span class="n">matching_matrix</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">as_tuple</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-            <span class="n">target_onehot</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_logits</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">target_onehot</span><span class="p">[</span><span class="n">pos_idx</span><span class="p">,</span> <span class="n">tgt_cls</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">target_classes</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">Q</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">long</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
 
-            <span class="n">total_cls</span> <span class="o">+=</span> <span class="n">_sigmoid_focal_loss</span><span class="p">(</span><span class="n">pred_logits</span><span class="p">,</span> <span class="n">target_onehot</span><span class="p">)</span>
+            <span class="c1"># background = 0</span>
+            <span class="n">target_classes</span><span class="p">[</span><span class="n">pos_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">tgt_cls</span><span class="p">[</span><span class="n">gt_indices</span><span class="p">]</span>
+
+            <span class="n">total_cls</span> <span class="o">+=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">pred_logits</span><span class="p">,</span> <span class="n">target_classes</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos_idx</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -1026,7 +1055,7 @@
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[]))</span>
 
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">])</span>
     <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">)</span>
 
     <span class="c1"># Build the feature extractor</span>
@@ -1049,7 +1078,7 @@
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="c1"># The number of class_names is not the same as the number of classes in the pretrained model =&gt;</span>
         <span class="c1"># remove the layer weights</span>
-        <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[]))</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>

@@ -320,10 +320,12 @@
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import IC13</span>
 <span class="sd">    &gt;&gt;&gt; train_set = IC13(img_folder=&quot;/path/to/Challenge2_Training_Task12_Images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                  label_folder=&quot;/path/to/Challenge2_Training_Task1_GT&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 <span class="sd">    &gt;&gt;&gt; test_set = IC13(img_folder=&quot;/path/to/Challenge2_Test_Task12_Images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                 label_folder=&quot;/path/to/Challenge2_Test_Task1_GT&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>

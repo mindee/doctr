@@ -294,8 +294,6 @@
 <span class="c1"># This program is licensed under the Apache License 2.0.</span>
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">torch.utils.data._utils.collate</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_collate</span>
-
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_CharacterGenerator</span><span class="p">,</span> <span class="n">_WordGenerator</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CharacterGenerator&quot;</span><span class="p">,</span> <span class="s2">&quot;WordGenerator&quot;</span><span class="p">]</span>
@@ -308,7 +306,8 @@
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import CharacterGenerator</span>
 <span class="sd">    &gt;&gt;&gt; ds = CharacterGenerator(vocab=&#39;abdef&#39;, num_samples=100)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = ds[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = ds[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        vocab: vocabulary to take the character from</span>
@@ -320,8 +319,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;collate_fn&quot;</span><span class="p">,</span> <span class="n">default_collate</span><span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 
@@ -332,7 +330,8 @@
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import WordGenerator</span>
 <span class="sd">    &gt;&gt;&gt; ds = WordGenerator(vocab=&#39;abdef&#39;, min_chars=1, max_chars=32, num_samples=100)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = ds[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = ds[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        vocab: vocabulary to take the character from</span>

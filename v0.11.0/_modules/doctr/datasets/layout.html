@@ -316,7 +316,8 @@
 <span class="sd">    &gt;&gt;&gt;     img_folder=&quot;/path/to/images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;     label_path=&quot;/path/to/labels.json&quot;,</span>
 <span class="sd">    &gt;&gt;&gt; )</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder containing the dataset images</span>
@@ -354,17 +355,17 @@
                 <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="n">polygons</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;polygons&quot;</span><span class="p">)</span>
-            <span class="n">class_names</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">)</span>
+            <span class="n">class_names</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">polygons</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missing &#39;polygons&#39; for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">class_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missing &#39;class_names&#39; for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missing &#39;classes&#39; for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                     <span class="sa">f</span><span class="s2">&quot;number of polygons (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span><span class="si">}</span><span class="s2">) does not match &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;number of class_names (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;number of classes (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span>
                 <span class="p">)</span>
 
             <span class="n">geoms</span><span class="p">,</span> <span class="n">polygon_classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_polygons</span><span class="p">(</span>

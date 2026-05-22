@@ -323,10 +323,12 @@
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import WILDRECEIPT</span>
 <span class="sd">    &gt;&gt;&gt; train_set = WILDRECEIPT(train=True, img_folder=&quot;/path/to/wildreceipt/&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                     label_path=&quot;/path/to/wildreceipt/train.txt&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 <span class="sd">    &gt;&gt;&gt; test_set = WILDRECEIPT(train=False, img_folder=&quot;/path/to/wildreceipt/&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                    label_path=&quot;/path/to/wildreceipt/test.txt&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = test_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the images of the dataset</span>

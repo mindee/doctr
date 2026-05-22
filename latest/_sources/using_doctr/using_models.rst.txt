@@ -174,6 +174,66 @@ Recognition predictors
     out = model([dummy_img])
 
 
+Layout Analysis
+---------------
+
+The task consists of localizing and classifying visual elements in a given image.
+This is a more general task than text detection, as it can be used to detect and classify any type of visual element in a document, such as tables, figures, headers, footers, etc.
+Our latest layout models works with rotated and skewed documents!
+
+Available architectures
+^^^^^^^^^^^^^^^^^^^^^^^
+
+The following architectures are currently supported:
+
+* :py:meth:`lw_detr_s <doctr.models.layout.lw_detr_s>`
+* :py:meth:`lw_detr_m <doctr.models.layout.lw_detr_m>`
+
+For a comprehensive comparison, we have compiled a detailed benchmark:
+
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+|                                                  |                 |               |                  |             |              |                    |
++==================================================+=================+===============+==================+=============+==============+====================+
+| **Architecture**                                 | **Input shape** | **# params**  | **mAP@[.5:.95]** | **AP@[.5]** | **AP@[.75]** | **sec/it (B: 1)**  |
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+| lw_detr_s                                        | (1024, 1024, 3) | 15.1 M        |                  |             |              | 0.5                |
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+| lw_detr_m                                        | (1024, 1024, 3) | 29.5 M        |                  |             |              | 0.7                |
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+
+
+Explanations about the metrics being used are available in :ref:`metrics`.
+
+Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
+
+
+Layout predictors
+^^^^^^^^^^^^^^^^^
+
+:py:meth:`layout_predictor <doctr.models.layout.layout_predictor>` wraps your layout model to make it easily useable with your favorite deep learning framework seamlessly.
+
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import layout_predictor
+    model = layout_predictor('lw_detr_s')
+    dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
+    out = model([dummy_img])
+
+You can pass specific boolean arguments to the predictor:
+* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, setting `pretrained=True` this will load the corresponding weights. If `pretrained=False`, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
+* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
+
+For instance, this snippet will instantiates a layout predictor able to detect text on rotated documents while preserving the aspect ratio:
+
+.. code:: python3
+
+    from doctr.models import layout_predictor
+    predictor = layout_predictor('lw_detr_s', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+
+
 End-to-End OCR
 --------------
 

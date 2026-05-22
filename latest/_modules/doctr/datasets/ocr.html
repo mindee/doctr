@@ -314,7 +314,8 @@
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import OCRDataset</span>
 <span class="sd">    &gt;&gt;&gt; train_set = OCRDataset(img_folder=&quot;/path/to/images&quot;,</span>
 <span class="sd">    &gt;&gt;&gt;                        label_file=&quot;/path/to/labels.json&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: local path to image folder (all jpg at the root)</span>
