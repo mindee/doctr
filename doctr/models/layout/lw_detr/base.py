@@ -86,32 +86,54 @@ class LWDETRPostProcessor:
 
         return inter / (area1 + area2 - inter + 1e-6)
 
-    def _nms(self, polys: np.ndarray, scores: np.ndarray) -> list[int]:
-        """Perform NMS on the predicted polygons
+    def _nms(self, polys: np.ndarray, scores: np.ndarray, labels: np.ndarray) -> list[int]:
+        """
+        Class-wise greedy NMS for rotated polygons.
 
         Args:
-            polys: array of predicted polygons (N, 4, 2)
-            scores: array of predicted scores (N,)
+            polys: (N, 4, 2)
+            scores: (N,)
+            labels: (N,)
 
         Returns:
-            list of indices of the polygons to keep after NMS
+            indices kept after NMS (global indices)
         """
-        idxs = np.argsort(scores)[::-1]
-        keep = []
+        if len(polys) == 0:
+            return []
 
-        while idxs.size > 0:
-            i = idxs[0]
-            keep.append(i)
+        keep: list[int] = []
 
-            if idxs.size == 1:
-                break
+        # Process each class independently
+        for cls in np.unique(labels):
+            cls_idxs = np.where(labels == cls)[0]
+            if len(cls_idxs) == 0:
+                continue
 
-            rest = idxs[1:]
+            cls_scores = scores[cls_idxs]
+            cls_polys = polys[cls_idxs]
 
-            ious = np.array([self._iou(polys[i], polys[j]) for j in rest])
+            # sort by confidence
+            order = np.argsort(cls_scores)[::-1]
+            cls_idxs = cls_idxs[order]
+            cls_polys = cls_polys[order]
+            cls_scores = cls_scores[order]
 
-            idxs = rest[ious < self.iou_thresh]
+            suppressed = np.zeros(len(cls_idxs), dtype=bool)
 
+            for i in range(len(cls_idxs)):
+                if suppressed[i]:
+                    continue
+
+                keep.append(cls_idxs[i])
+
+                # compare current box with the rest
+                for j in range(i + 1, len(cls_idxs)):
+                    if suppressed[j]:
+                        continue
+
+                    iou = self._iou(cls_polys[i], cls_polys[j])
+                    if iou >= self.iou_thresh:
+                        suppressed[j] = True
         return keep
 
     def __call__(self, logits: np.ndarray, boxes: np.ndarray) -> list[tuple[list[int], np.ndarray, list[float]]]:
@@ -125,8 +147,9 @@ class LWDETRPostProcessor:
             exp = np.exp(logits[b] - logits[b].max(axis=-1, keepdims=True))
             prob = exp / exp.sum(axis=-1, keepdims=True)
 
-            scores = prob[:, 1:].max(axis=-1)
-            labels = prob[:, 1:].argmax(axis=-1) + 1
+            prob_fg = prob[:, :-1]  # exclude background
+            scores = prob_fg.max(axis=-1)
+            labels = prob_fg.argmax(axis=-1)
 
             # Keep only topk predictions before NMS
             if self.topk is not None and len(scores) > self.topk:
@@ -153,7 +176,7 @@ class LWDETRPostProcessor:
                 )
             )
 
-            keep = self._nms(polys, scores_b) if len(polys) > 0 else []
+            keep = self._nms(polys, scores_b, labels_b) if len(polys) > 0 else []
 
             final_labels = []
             final_boxes = []
@@ -212,12 +235,12 @@ class _LWDETR(BaseModel):
                 and "labels" is an array of shape (num_boxes,) containing the class labels
         """
         targets = []
-
         class_to_id = {name: i for i, name in enumerate(class_names)}
 
         def _quad_to_obb(poly: np.ndarray):
             poly = np.asarray(poly, dtype=np.float32)
 
+            # Center point is simply the average of the relative vertices
             cx, cy = np.mean(poly, axis=0)
 
             edges = np.stack([
@@ -233,56 +256,40 @@ class _LWDETR(BaseModel):
 
             theta = np.arctan2(dy, dx)
 
-            # w should always be the length of the edge aligned with theta
+            # Width and height remain cleanly in relative coordinate space [0, 1]
             w = np.mean([lengths[i], lengths[(i + 2) % 4]])
-            # h is the perpendicular edge
             h = np.mean([lengths[(i + 1) % 4], lengths[(i + 3) % 4]])
 
+            # Enforce strict unit-length normal vectors for rotation
+            sin_t = np.sin(theta)
+            cos_t = np.cos(theta)
+            norm = np.sqrt(sin_t**2 + cos_t**2) + 1e-8
+
             return np.array(
-                [cx, cy, w, h, np.sin(theta), np.cos(theta)],
+                [cx, cy, w, h, sin_t / norm, cos_t / norm],
                 dtype=np.float32,
             )
 
         def to_quad(box: np.ndarray):
             box = np.asarray(box, dtype=np.float32)
-
             if box.shape == (4,):
                 x1, y1, x2, y2 = box
-                return np.array(
-                    [
-                        [x1, y1],
-                        [x2, y1],
-                        [x2, y2],
-                        [x1, y2],
-                    ],
-                    dtype=np.float32,
-                )
-
+                return np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
             if box.shape == (8,):
                 return box.reshape(4, 2)
-
             if box.shape == (4, 2):
                 return box.astype(np.float32)
-
             raise ValueError(f"Unsupported box shape: {box.shape}")
 
         for sample in target:
             boxes_all = []
             labels_all = []
 
-            if not sample:
-                targets.append({
-                    "boxes": np.zeros((0, 6), dtype=np.float32),
-                    "labels": np.zeros((0,), dtype=np.int64),
-                })
-                continue
-
             for class_name, boxes in sample.items():
                 if class_name not in class_to_id:
                     raise ValueError(f"Unknown class name: {class_name}")
 
                 cls_id = class_to_id[class_name]
-
                 boxes = np.asarray(boxes)
 
                 if boxes.ndim == 1:
@@ -292,7 +299,8 @@ class _LWDETR(BaseModel):
                     poly = to_quad(box)
                     obb = _quad_to_obb(poly)
 
-                    if obb[2] <= 1e-3 or obb[3] <= 1e-3:
+                    # filter out degenerate boxes
+                    if obb[2] <= 1e-5 or obb[3] <= 1e-5:
                         continue
 
                     boxes_all.append(obb)
