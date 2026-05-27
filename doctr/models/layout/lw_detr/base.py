@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 
 from doctr.models.core import BaseModel
-from doctr.utils import order_points
 
 __all__ = ["_LWDETR", "LWDETRPostProcessor"]
 
@@ -39,29 +38,36 @@ class LWDETRPostProcessor:
         self.topk = topk
         self.assume_straight_pages = assume_straight_pages
 
-    def _decode_boxes(self, boxes: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-        """Decode the predicted boxes from OBB format to polygon format
-
-        Args:
-            boxes: array of predicted boxes in OBB format (N, 6) (cx, cy, w, h, sin(theta), cos(theta))
-
-        Returns:
-            tuple of (polys, angles) where polys is an array of decoded polygons (N, 4, 2)
-                and angles is an array of angles in radians (N,)
+    def _decode_boxes(self, boxes: np.ndarray) -> np.ndarray:
         """
-        cx, cy, w, h = boxes[:, 0], boxes[:, 1], boxes[:, 2], boxes[:, 3]
-        sin, cos = boxes[:, 4], boxes[:, 5]
-
-        angles = np.arctan2(sin, cos)
+        Decode cxcywh -> polygons (axis-aligned rectangles)
+        """
+        cx = boxes[:, 0]
+        cy = boxes[:, 1]
+        w = boxes[:, 2]
+        h = boxes[:, 3]
 
         polys = []
-        for i in range(len(boxes)):
-            rect = ((float(cx[i]), float(cy[i])), (float(w[i]), float(h[i])), float(np.degrees(angles[i])))
 
-            poly = order_points(cv2.boxPoints(rect))
+        for i in range(len(boxes)):
+            x1 = cx[i] - w[i] / 2
+            y1 = cy[i] - h[i] / 2
+            x2 = cx[i] + w[i] / 2
+            y2 = cy[i] + h[i] / 2
+
+            poly = np.array(
+                [
+                    [x1, y1],
+                    [x2, y1],
+                    [x2, y2],
+                    [x1, y2],
+                ],
+                dtype=np.float32,
+            )
+
             polys.append(poly)
 
-        return np.asarray(polys, dtype=np.float32), angles
+        return np.asarray(polys, dtype=np.float32)
 
     def _iou(self, poly1: np.ndarray, poly2: np.ndarray) -> float:
         """Compute the IoU between two polygons
@@ -136,22 +142,21 @@ class LWDETRPostProcessor:
                         suppressed[j] = True
         return keep
 
-    def __call__(self, logits: np.ndarray, boxes: np.ndarray) -> list[tuple[list[int], np.ndarray, list[float]]]:
+    def __call__(self, logits: np.ndarray, boxes: np.ndarray):
+
         logits = np.asarray(logits)
         boxes = np.asarray(boxes)
 
-        results: list[tuple[list[int], np.ndarray, list[float]]] = []
+        results = []
 
         for b in range(boxes.shape[0]):
-            # Convert logits to probabilities and get scores and labels
             exp = np.exp(logits[b] - logits[b].max(axis=-1, keepdims=True))
             prob = exp / exp.sum(axis=-1, keepdims=True)
 
-            prob_fg = prob[:, :-1]  # exclude background
+            prob_fg = prob[:, :-1]
             scores = prob_fg.max(axis=-1)
             labels = prob_fg.argmax(axis=-1)
 
-            # Keep only topk predictions before NMS
             if self.topk is not None and len(scores) > self.topk:
                 idxs = np.argsort(scores)[::-1][: self.topk]
             else:
@@ -167,44 +172,36 @@ class LWDETRPostProcessor:
             scores_b = scores_b[mask]
             labels_b = labels_b[mask]
 
-            polys, _ = (
-                self._decode_boxes(bboxes)
-                if len(bboxes) > 0
-                else (
-                    np.zeros((0, 4, 2), dtype=np.float32),
-                    np.zeros((0,), dtype=np.float32),
-                )
-            )
+            polys = self._decode_boxes(bboxes) if len(bboxes) > 0 else np.zeros((0, 4, 2), dtype=np.float32)
 
             keep = self._nms(polys, scores_b, labels_b) if len(polys) > 0 else []
 
-            final_labels = []
             final_boxes = []
+            final_labels = []
             final_scores = []
 
             for idx in keep:
-                poly = polys[idx].reshape(-1).tolist()
+                poly = polys[idx]
+
                 if self.assume_straight_pages:
-                    x_coords = poly[0::2]
-                    y_coords = poly[1::2]
-                    xmin, xmax = min(x_coords), max(x_coords)
-                    ymin, ymax = min(y_coords), max(y_coords)
+                    # 👉 COCO-style axis aligned box from polygon
+                    xmin = float(np.min(poly[:, 0]))
+                    xmax = float(np.max(poly[:, 0]))
+                    ymin = float(np.min(poly[:, 1]))
+                    ymax = float(np.max(poly[:, 1]))
+
                     final_boxes.append([xmin, ymin, xmax, ymax])
                 else:
-                    final_boxes.append(poly)
+                    final_boxes.append(poly.reshape(-1).tolist())
 
                 final_labels.append(int(labels_b[idx]))
                 final_scores.append(float(scores_b[idx]))
 
-            final_boxes_arr = (
-                np.asarray(final_boxes, dtype=np.float32).reshape(-1, 4, 2)
-                if not self.assume_straight_pages
-                else np.asarray(final_boxes, dtype=np.float32).reshape(-1, 4)
-            )
+            final_boxes_arr = np.asarray(final_boxes, dtype=np.float32)
 
             results.append((
                 final_labels,
-                final_boxes_arr,
+                final_boxes_arr,  # <- NOW ALWAYS CLEAN FORMAT
                 final_scores,
             ))
 
@@ -221,54 +218,11 @@ class _LWDETR(BaseModel):
         target: list[dict[str, np.ndarray]],
         class_names: list[str],
     ) -> list[dict[str, Any]]:
-        """Build the target for LW-DETR training
-
-        Args:
-            target: list of dictionaries where each dictionary corresponds to a sample and has keys corresponding
-                to class names and values corresponding to lists of boxes in either polygon format (4, 2)
-                or bounding box format (4,) (xmin, ymin, xmax, ymax)
-            class_names: list of class names
-
-        Returns:
-            list of dictionaries with keys "boxes" and "labels" where "boxes" is an array of shape (num_boxes, 6)
-                containing the box parameters in OBB format (cx, cy, w, h, sin(theta), cos(theta))
-                and "labels" is an array of shape (num_boxes,) containing the class labels
+        """
+        Build targets in COCO format: [xmin, ymin, w, h]
         """
         targets = []
         class_to_id = {name: i for i, name in enumerate(class_names)}
-
-        def _quad_to_obb(poly: np.ndarray):
-            poly = np.asarray(poly, dtype=np.float32)
-
-            # Center point is simply the average of the relative vertices
-            cx, cy = np.mean(poly, axis=0)
-
-            edges = np.stack([
-                poly[1] - poly[0],
-                poly[2] - poly[1],
-                poly[3] - poly[2],
-                poly[0] - poly[3],
-            ])
-
-            lengths = np.linalg.norm(edges, axis=1)
-            i = np.argmax(lengths)
-            dx, dy = edges[i]
-
-            theta = np.arctan2(dy, dx)
-
-            # Width and height remain cleanly in relative coordinate space [0, 1]
-            w = np.mean([lengths[i], lengths[(i + 2) % 4]])
-            h = np.mean([lengths[(i + 1) % 4], lengths[(i + 3) % 4]])
-
-            # Enforce strict unit-length normal vectors for rotation
-            sin_t = np.sin(theta)
-            cos_t = np.cos(theta)
-            norm = np.sqrt(sin_t**2 + cos_t**2) + 1e-8
-
-            return np.array(
-                [cx, cy, w, h, sin_t / norm, cos_t / norm],
-                dtype=np.float32,
-            )
 
         def to_quad(box: np.ndarray):
             box = np.asarray(box, dtype=np.float32)
@@ -280,6 +234,19 @@ class _LWDETR(BaseModel):
             if box.shape == (4, 2):
                 return box.astype(np.float32)
             raise ValueError(f"Unsupported box shape: {box.shape}")
+
+        def quad_to_coco(poly: np.ndarray) -> np.ndarray:
+            xmin = float(np.min(poly[:, 0]))
+            xmax = float(np.max(poly[:, 0]))
+            ymin = float(np.min(poly[:, 1]))
+            ymax = float(np.max(poly[:, 1]))
+
+            w = xmax - xmin
+            h = ymax - ymin
+            cx = xmin + w / 2.0
+            cy = ymin + h / 2.0
+
+            return np.array([cx, cy, w, h], dtype=np.float32)
 
         for sample in target:
             boxes_all = []
@@ -295,20 +262,29 @@ class _LWDETR(BaseModel):
                 if boxes.ndim == 1:
                     boxes = boxes[None, :]
 
+                # sanity check normalized coords
+                flat = boxes.ravel()
+                coord_vals = flat[flat > 0]
+                if len(coord_vals) > 0 and coord_vals.max() > 1.5:
+                    raise ValueError("build_target expects normalized [0,1] coordinates.")
+
                 for box in boxes:
                     poly = to_quad(box)
-                    obb = _quad_to_obb(poly)
+                    coco_box = quad_to_coco(poly)
 
-                    # filter out degenerate boxes
-                    if obb[2] <= 1e-5 or obb[3] <= 1e-5:
+                    if coco_box[2] <= 1e-5 or coco_box[3] <= 1e-5:
                         continue
 
-                    boxes_all.append(obb)
+                    boxes_all.append(coco_box)
                     labels_all.append(cls_id)
 
+            if len(boxes_all) == 0:
+                boxes_all = np.zeros((0, 4), dtype=np.float32)
+                labels_all = np.zeros((0,), dtype=np.int64)
+
             targets.append({
-                "boxes": np.asarray(boxes_all, dtype=np.float32),
-                "labels": np.asarray(labels_all, dtype=np.int64),
+                "boxes": np.asarray(boxes_all, dtype=np.float32),  # (N, 4)
+                "class_labels": np.asarray(labels_all, dtype=np.int64),
             })
 
         return targets
