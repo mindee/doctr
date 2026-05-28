@@ -605,10 +605,7 @@ class LWDETRDecoder(nn.Module):
             if self.bbox_embed is not None:
                 delta = self.bbox_embed(hidden_states_norm)
 
-                reference_points = self.refine_boxes(
-                    reference_points.squeeze(2),
-                    delta,
-                )
+                reference_points = self.refine_boxes(reference_points, delta)
                 intermediate_reference_points.append(reference_points)
 
                 reference_points_inputs, query_pos = self.get_reference(

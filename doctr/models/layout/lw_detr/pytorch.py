@@ -154,11 +154,11 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         feat_extractor: LWDETRBackbone,
         class_names: list[str],
-        score_thresh: float = 0.05,
-        iou_thresh: float = 0.05,
+        score_thresh: float = 0.3,
+        iou_thresh: float = 0.5,
         d_model: int = 256,
-        num_queries: int = 50,
-        group_detr: int = 1,
+        num_queries: int = 300,
+        group_detr: int = 13,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
         ca_num_heads: int = 16,
@@ -403,7 +403,7 @@ class LWDETR(nn.Module, _LWDETR):
             _cur += height * width
         output_proposals = torch.cat(proposals, 1)
 
-        spatial_valid = ((output_proposals > 0.01) & (output_proposals < 0.99)).all(-1, keepdim=True)
+        spatial_valid = ((output_proposals[..., :4] > 0.01) & (output_proposals[..., :4] < 0.99)).all(-1, keepdim=True)
         output_proposals_valid = spatial_valid
         invalid_mask = padding_mask.unsqueeze(-1) | ~output_proposals_valid
         output_proposals = output_proposals.masked_fill(invalid_mask, float(0))
@@ -507,12 +507,8 @@ class LWDETR(nn.Module, _LWDETR):
             topk_content_list.append(group_topk_content)
 
         topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
-        reference_points = topk_coords_logits
 
-        topk_content = torch.cat(topk_content_list, 1).detach()
-        tgt = tgt + topk_content
-
-        encoder_attention_mask = mask_flatten
+        reference_points = self.refine_bboxes(topk_coords_logits, reference_points)
 
         last_hidden_states, intermediate, intermediate_reference_points = self.decoder(
             inputs_embeds=tgt,
@@ -520,12 +516,11 @@ class LWDETR(nn.Module, _LWDETR):
             spatial_shapes_list=spatial_shapes_list,
             valid_ratios=valid_ratios,
             encoder_hidden_states=source_flatten,
-            encoder_attention_mask=encoder_attention_mask,
+            encoder_attention_mask=mask_flatten,
         )
 
         logits = self.class_embed(last_hidden_states)
-        pred_boxes_delta = self.bbox_embed(last_hidden_states)
-        pred_boxes = self.refine_bboxes(intermediate_reference_points[-1], pred_boxes_delta)
+        pred_boxes = intermediate_reference_points[-1]
 
         out: dict[str, Any] = {}
 
@@ -561,8 +556,7 @@ class LWDETR(nn.Module, _LWDETR):
             # Auxiliary losses from intermediate decoder layers (group DETR)
             for i in range(intermediate.shape[0] - 1):
                 aux_logits = self.class_embed(intermediate[i])
-                aux_boxes_delta = self.bbox_embed(intermediate[i])
-                aux_boxes = self.refine_bboxes(intermediate_reference_points[i + 1], aux_boxes_delta)
+                aux_boxes = intermediate_reference_points[i + 1]
 
                 split_aux_logits = aux_logits.chunk(group_detr, dim=1)
                 split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
@@ -570,13 +564,13 @@ class LWDETR(nn.Module, _LWDETR):
                 aux_loss: float | torch.Tensor = 0.0
                 for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
                     aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
-                loss += aux_loss
+                loss += aux_loss / group_detr
 
             # Auxiliary losses for encoder proposals
             enc_loss: float | torch.Tensor = 0.0
             for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
                 enc_loss += self.compute_loss(group_logits, group_coords, processed_targets)
-            loss += enc_loss
+            loss += enc_loss / group_detr
 
             out["loss"] = loss
 
@@ -588,6 +582,18 @@ class LWDETR(nn.Module, _LWDETR):
         pred_boxes: torch.Tensor,
         targets: list[dict[str, np.ndarray]],
     ) -> torch.Tensor:
+        """Compute the loss between predicted logits and boxes and target labels and boxes.
+
+        Args:
+            logits: (N, S, C) tensor containing the predicted class logits for each query
+            pred_boxes: (N, S, 6) tensor containing the predicted boxes in (cx, cy, w, h, sinθ, cosθ) format
+            targets: list of length N, where each element is a dict with keys "labels" and "boxes",
+                containing the ground truth labels and boxes for each image in the batch.
+                The boxes are in (cx, cy, w, h, sinθ, cosθ) format.
+
+        Returns:
+            A scalar tensor containing the computed loss.
+        """
 
         def _rotated_boxes_to_gaussian(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
             """Convert rotated boxes in (cx, cy, w, h, sinθ, cosθ) format
@@ -631,6 +637,17 @@ class LWDETR(nn.Module, _LWDETR):
             return cxcy, covariance
 
         def _probiou_loss(pred_boxes: torch.Tensor, tgt_boxes: torch.Tensor) -> torch.Tensor:
+            """Compute the ProbIoU loss between predicted and target boxes,
+                where boxes are represented as Gaussian distributions.
+                The ProbIoU loss is defined as 1 - exp(-Bhattacharyya distance),
+                where the Bhattacharyya distance is computed between the two Gaussian distributions.
+
+            Args:
+                pred_boxes: (N, S, 6) tensor containing the predicted boxes in (cx, cy, w, h, sinθ, cosθ) format
+                tgt_boxes: (N, S, 6) tensor containing the target boxes in (cx, cy, w, h, sinθ, cosθ) format
+            Returns:
+                A (N, S) tensor containing the ProbIoU loss for each pair of predicted and target boxes
+            """
             mu1, sigma1 = _rotated_boxes_to_gaussian(pred_boxes)
             mu2, sigma2 = _rotated_boxes_to_gaussian(tgt_boxes)
 
@@ -664,9 +681,6 @@ class LWDETR(nn.Module, _LWDETR):
         total_cls = torch.tensor(0.0, device=device)
         total_box = torch.tensor(0.0, device=device)
 
-        # FIX (issue #7): track total matched boxes across the batch for proper normalisation.
-        # Classification loss is still normalised by B (it covers all Q queries per image),
-        # but box/rotation losses are normalised by the actual number of matched pairs.
         num_matched_total = 0
 
         for b in range(B):
@@ -694,7 +708,7 @@ class LWDETR(nn.Module, _LWDETR):
             with torch.no_grad():
                 out_logprob = pred_logits.log_softmax(-1)
 
-                cost_cls = -out_logprob[:, tgt_cls]  # stable
+                cost_cls = -out_logprob[:, tgt_cls]
                 cost_l1 = torch.cdist(pred_boxes_b[:, :4], tgt_boxes[:, :4], p=1)
                 cost_rot = 1.0 - torch.abs(pred_rot @ tgt_rot.T)
 
@@ -712,7 +726,7 @@ class LWDETR(nn.Module, _LWDETR):
             target_classes[pos_idx] = tgt_cls[gt_idx]
 
             cls_weights = torch.ones(self.num_classes, device=device)
-            cls_weights[background_idx] = 1.0
+            cls_weights[background_idx] = 0.1
 
             total_cls += F.cross_entropy(pred_logits, target_classes, weight=cls_weights)
 
@@ -724,20 +738,11 @@ class LWDETR(nn.Module, _LWDETR):
             pred_sel = pred_boxes_b[pos_idx]
             tgt_sel = tgt_boxes[gt_idx]
 
-            # Smooth L1 (Huber) loss with beta=0.1: behaves like L2 for large errors early in
-            # training (gentle, stable gradient) and like L1 for small errors later (sharp
-            # localisation). Raw L1 with a large weight causes loss explosion when predictions
-            # are far from targets (e.g. 5 * 2.2 = 11.0 per pair vs cls ~2.0).
             l1_loss = F.smooth_l1_loss(pred_sel[:, :4], tgt_sel[:, :4], reduction="sum", beta=0.1)
             probiou_loss = _probiou_loss(pred_sel, tgt_sel).sum()
             total_box += 5.0 * l1_loss + 2.0 * probiou_loss
 
-        # FIX (issue #7): normalise box loss by total matched boxes (min 1), not by batch size.
-        # This prevents images with many GT boxes from dominating over images with few.
-        # Normalise box loss by total matched boxes, with a floor of 1 to keep
-        # the box/cls loss ratio stable even when images have very few GT boxes.
         num_matched_total = max(num_matched_total, 1)
-
         loss_cls = total_cls / B
         loss_box = total_box / num_matched_total
 
