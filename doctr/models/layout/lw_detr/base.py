@@ -301,17 +301,6 @@ class _LWDETR(BaseModel):
                 if boxes.ndim == 1:
                     boxes = boxes[None, :]
 
-                # Sanity check: coordinates must be in [0, 1] normalized space.
-                # Values > 1.5 almost certainly indicate pixel coordinates were passed in.
-                flat = boxes.ravel()
-                coord_vals = flat[flat > 0]
-                if len(coord_vals) > 0 and coord_vals.max() > 1.5:
-                    raise ValueError(
-                        f"build_target expects normalized [0, 1] box coordinates, "
-                        f"but found values up to {coord_vals.max():.1f} for class '{class_name}'. "
-                        f"Divide your coordinates by image width/height before calling build_target."
-                    )
-
                 for box in boxes:
                     poly = to_quad(box)
                     obb = _quad_to_obb(poly)

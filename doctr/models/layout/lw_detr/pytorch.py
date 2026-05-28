@@ -244,7 +244,6 @@ class LWDETR(nn.Module, _LWDETR):
                 if hasattr(m, "bias") and m.bias is not None:
                     nn.init.zeros_(m.bias)
             elif isinstance(m, nn.Embedding):
-                # Don't overwrite the carefully seeded reference point embedding
                 if m is not self.reference_point_embed:
                     nn.init.normal_(m.weight, std=0.02)
             elif isinstance(m, LWDETRMultiscaleDeformableAttention):
