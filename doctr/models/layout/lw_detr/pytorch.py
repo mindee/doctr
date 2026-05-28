@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import torch
+from scipy.optimize import linear_sum_assignment
 from torch import nn
 from torch.nn import functional as F
 
@@ -18,7 +19,6 @@ from doctr.models.classification import vit_det_m, vit_det_s
 from ...utils import load_pretrained_params
 from .base import _LWDETR, LWDETRPostProcessor
 from .layers import LWDETRDecoder, LWDETRHead, LWDETRMultiscaleDeformableAttention, MultiScaleProjector
-from .loss import lw_detr_for_object_detection_loss
 
 __all__ = ["LWDETR", "lw_detr_s", "lw_detr_m"]
 
@@ -154,10 +154,10 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         feat_extractor: LWDETRBackbone,
         class_names: list[str],
-        score_thresh: float = 0.0,
-        iou_thresh: float = 0.1,
+        score_thresh: float = 0.05,
+        iou_thresh: float = 0.05,
         d_model: int = 256,
-        num_queries: int = 130,
+        num_queries: int = 50,
         group_detr: int = 1,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
@@ -172,7 +172,7 @@ class LWDETR(nn.Module, _LWDETR):
         super().__init__()
 
         self.class_names: list[str] = class_names
-        self.num_classes = len(self.class_names) + 1  # +1 for background class (NO OBJECT)
+        self.num_classes = len(self.class_names) + 1  # +1 for background class
         self.cfg = cfg
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -182,13 +182,22 @@ class LWDETR(nn.Module, _LWDETR):
         self.group_detr = group_detr
         self.num_queries = num_queries
         self.d_model = d_model
-        self.dec_layers = dec_layers
 
-        self.reference_point_embed = nn.Embedding(self.num_queries * self.group_detr, 4)
+        self.reference_point_embed = nn.Embedding(self.num_queries * self.group_detr, 6)
+        # Initialize angle to (sin=0, cos=1)
+        with torch.no_grad():
+            self.reference_point_embed.weight[:, 0:2].uniform_(0.05, 0.95)
+            self.reference_point_embed.weight[:, 2:4].fill_(0.1)
+            self.reference_point_embed.weight[:, 4].zero_()
+            self.reference_point_embed.weight[:, 5].fill_(1.0)
+
         self.query_feat = nn.Embedding(self.num_queries * self.group_detr, self.d_model)
 
+        self.class_embed = nn.Linear(self.d_model, self.num_classes)
+        self.bbox_embed = LWDETRHead(self.d_model, self.d_model, 6, num_layers=3)
+
         self.decoder = LWDETRDecoder(
-            num_layers=self.dec_layers,
+            num_layers=dec_layers,
             d_model=d_model,
             sa_num_heads=sa_num_heads,
             ca_num_heads=ca_num_heads,
@@ -196,20 +205,18 @@ class LWDETR(nn.Module, _LWDETR):
             dec_n_points=dec_n_points,
             group_detr=group_detr,
             dropout_prob=dropout_prob,
+            bbox_embed=self.bbox_embed,
         )
 
         self.enc_output = nn.ModuleList([nn.Linear(self.d_model, self.d_model) for _ in range(self.group_detr)])
         self.enc_output_norm = nn.ModuleList([nn.LayerNorm(self.d_model) for _ in range(self.group_detr)])
 
         self.enc_out_bbox_embed = nn.ModuleList([
-            LWDETRHead(self.d_model, self.d_model, 4, num_layers=3) for _ in range(self.group_detr)
+            LWDETRHead(self.d_model, self.d_model, 6, num_layers=3) for _ in range(self.group_detr)
         ])
         self.enc_out_class_embed = nn.ModuleList([
             nn.Linear(self.d_model, self.num_classes) for _ in range(self.group_detr)
         ])
-
-        self.class_embed = nn.Linear(self.d_model, self.num_classes)
-        self.bbox_embed = LWDETRHead(self.d_model, self.d_model, 4, num_layers=3)
 
         self.postprocessor = LWDETRPostProcessor(
             num_classes=self.num_classes,
@@ -222,9 +229,28 @@ class LWDETR(nn.Module, _LWDETR):
             # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
                 continue
-            if isinstance(m, LWDETRMultiscaleDeformableAttention):
+
+            if isinstance(m, nn.Linear):
+                nn.init.trunc_normal_(m.weight, mean=0.0, std=0.02)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, (nn.LayerNorm, nn.BatchNorm2d)):
+                if hasattr(m, "weight") and m.weight is not None:
+                    nn.init.ones_(m.weight)
+                if hasattr(m, "bias") and m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Embedding):
+                # Don't overwrite the carefully seeded reference point embedding
+                if m is not self.reference_point_embed:
+                    nn.init.normal_(m.weight, std=0.02)
+            elif isinstance(m, LWDETRMultiscaleDeformableAttention):
                 nn.init.constant_(m.sampling_offsets.weight, 0.0)
-                thetas = torch.arange(m.n_heads, dtype=torch.int64).float() * (2.0 * math.pi / m.n_heads)
+
+                thetas = torch.arange(m.n_heads, dtype=torch.float32) * (2.0 * math.pi / m.n_heads)
                 grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
                 grid_init = (
                     (grid_init / grid_init.abs().max(-1, keepdim=True)[0])
@@ -235,21 +261,29 @@ class LWDETR(nn.Module, _LWDETR):
                     grid_init[:, :, i, :] *= i + 1
                 with torch.no_grad():
                     m.sampling_offsets.bias.copy_(grid_init.view(-1))
+
                 nn.init.constant_(m.attention_weights.weight, 0.0)
                 nn.init.constant_(m.attention_weights.bias, 0.0)
                 nn.init.xavier_uniform_(m.value_proj.weight)
-                nn.init.constant_(m.value_proj.bias, 0.0)
+                nn.init.zeros_(m.value_proj.bias)
                 nn.init.xavier_uniform_(m.output_proj.weight)
-                nn.init.constant_(m.output_proj.bias, 0.0)
-            if hasattr(m, "refpoint_embed") and m.refpoint_embed is not None:
-                nn.init.constant_(m.refpoint_embed.weight, 0)
-            if hasattr(m, "class_embed") and m.class_embed is not None:
-                prior_prob = 0.01
-                bias_value = -math.log((1 - prior_prob) / prior_prob)
-                nn.init.constant_(m.class_embed.bias, bias_value)
-            if hasattr(m, "bbox_embed") and m.bbox_embed is not None:
-                nn.init.constant_(m.bbox_embed.layers[-1].weight, 0)
-                nn.init.constant_(m.bbox_embed.layers[-1].bias, 0)
+                nn.init.zeros_(m.output_proj.bias)
+            if isinstance(m, nn.Linear) and m.out_features == self.num_classes:
+                if m.bias is not None:
+                    with torch.no_grad():
+                        # Focal-loss prior: foreground starts with low confidence (~0.01),
+                        # preventing background from dominating gradients at the start of training.
+                        prior_prob = 0.01
+                        bias_value = -math.log((1 - prior_prob) / prior_prob)
+                        nn.init.constant_(m.bias, 0.0)
+                        m.bias[:-1].fill_(bias_value)
+            if isinstance(m, LWDETRHead):
+                last = m.layers[-1]
+                if isinstance(last, nn.Linear):
+                    nn.init.zeros_(last.weight)
+                    nn.init.zeros_(last.bias)
+                    if last.bias.shape[0] == 6:
+                        nn.init.constant_(last.bias[5], 1.0)
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
         """Load pretrained parameters onto the model
@@ -260,39 +294,76 @@ class LWDETR(nn.Module, _LWDETR):
         """
         load_pretrained_params(self, path_or_url, **kwargs)
 
-    def refine_bboxes(self, reference_points, deltas):
-        reference_points = reference_points.to(deltas.device)
-        new_reference_points_cxcy = deltas[..., :2] * reference_points[..., 2:] + reference_points[..., :2]
-        new_reference_points_wh = deltas[..., 2:].exp() * reference_points[..., 2:]
-        new_reference_points = torch.cat((new_reference_points_cxcy, new_reference_points_wh), -1)
-        return new_reference_points
+    def refine_bboxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
+        """Refine bounding boxes by applying the predicted deltas to the reference points.
+        The reference points are in the format (cx, cy, w, h, sinθ, cosθ), and the deltas are in the same format.
+        The refined boxes are computed as follows:
 
-    def get_valid_ratio(self, mask, dtype=torch.float32):
-        """Get the valid ratio of all feature maps."""
+        cx' = cx + delta_cx * w
+        cy' = cy + delta_cy * h
+        w' = w * exp(delta_w)
+        h' = h * exp(delta_h)
+        sinθ' = sinθ * cosΔ + cosθ * sinΔ
+        cosθ' = cosθ * cosΔ - sinθ * sinΔ
+
+        Args:
+            reference_points: (N, S, 6) tensor containing the reference points
+            deltas: (N, S, 6) tensor containing the predicted deltas
+
+        Returns:
+            refined_boxes: (N, S, 6) tensor containing the refined bounding boxes
+        """
+        reference_points = reference_points.to(deltas.device)
+        cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
+        # size
+        wh = torch.clamp(deltas[..., 2:4], min=-10.0, max=10.0).exp() * reference_points[..., 2:4]
+        # rotation
+        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
+        sin_delta = delta_rot[..., 0:1]
+        cos_delta = delta_rot[..., 1:2]
+        sin_ref = reference_points[..., 4:5]
+        cos_ref = reference_points[..., 5:6]
+        # compose rotations
+        sin_new = sin_ref * cos_delta + cos_ref * sin_delta
+        cos_new = cos_ref * cos_delta - sin_ref * sin_delta
+        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
+        return torch.cat((cxcy, wh, rot), dim=-1)
+
+    def get_valid_ratio(self, mask: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
+        """Get the valid ratio of all feature maps.
+
+        Args:
+            mask: (N, H, W) binary tensor containing 1 on padded pixels
+            dtype: the desired data type of the output tensor
+
+        Returns:
+            valid_ratio: (N, 2) tensor containing the valid ratio of width and height for each image in the batch
+        """
         _, height, width = mask.shape
-        valid_height = torch.sum(mask[:, :, 0], 1)
-        valid_width = torch.sum(mask[:, 0, :], 1)
+        valid_height = torch.sum(~mask[:, :, 0], 1)
+        valid_width = torch.sum(~mask[:, 0, :], 1)
         valid_ratio_height = valid_height.to(dtype) / height
         valid_ratio_width = valid_width.to(dtype) / width
         valid_ratio = torch.stack([valid_ratio_width, valid_ratio_height], -1)
         return valid_ratio
 
-    def gen_encoder_output_proposals(self, enc_output, padding_mask, spatial_shapes):
+    def gen_encoder_output_proposals(
+        self, enc_output: torch.Tensor, padding_mask: torch.Tensor, spatial_shapes: list[tuple[int, int]]
+    ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Generate the encoder output proposals from encoded enc_output.
 
         Args:
-            enc_output (Tensor[batch_size, sequence_length, hidden_size]): Output of the encoder.
-            padding_mask (Tensor[batch_size, sequence_length]): Padding mask for `enc_output`.
-            spatial_shapes (list[tuple[int, int]]): Spatial shapes of the feature maps.
+            enc_output: Output of the encoder
+            padding_mask: Padding mask for `enc_output`
+            spatial_shapes: Spatial shapes of the feature maps
 
         Returns:
-            `tuple(torch.FloatTensor)`: A tuple of feature map and bbox prediction.
-                - object_query (Tensor[batch_size, sequence_length, hidden_size]): Object query features. Later used to
-                  directly predict a bounding box. (without the need of a decoder)
-                - output_proposals (Tensor[batch_size, sequence_length, 4]): Normalized proposals in [0, 1] space.
-                  Invalid positions (padding or out-of-bounds) are filled with 0.
-                - invalid_mask (Tensor[batch_size, sequence_length, 1]): Boolean mask that is True for invalid positions
-                  (padded pixels or proposals whose coordinates fall outside (0.01, 0.99)).
+            A tuple of feature map and bbox prediction.
+            - object_query: Object query features. Later used to directly predict a bounding box.
+            - output_proposals: Normalized proposals in [0, 1] space.
+                Invalid positions (padding or out-of-bounds) are filled with 0.
+            - invalid_mask: Boolean mask that is True for invalid positions
+                (padded pixels or proposals whose coordinates fall outside (0.01, 0.99)).
         """
         batch_size = enc_output.shape[0]
         proposals = []
@@ -324,17 +395,23 @@ class LWDETR(nn.Module, _LWDETR):
             scale = torch.cat([valid_width.unsqueeze(-1), valid_height.unsqueeze(-1)], 1).view(batch_size, 1, 1, 2)
             grid = (grid.unsqueeze(0).expand(batch_size, -1, -1, -1) + 0.5) / scale
             width_height = torch.ones_like(grid) * 0.05 * (2.0**level)
-            proposal = torch.cat((grid, width_height), -1).view(batch_size, -1, 4)
+            # add default rotation (sin=0, cos=1)
+            sin = torch.zeros_like(grid[..., :1])
+            cos = torch.ones_like(grid[..., :1])
+            proposal = torch.cat((grid, width_height, sin, cos), -1).view(batch_size, -1, 6)
             proposals.append(proposal)
             _cur += height * width
         output_proposals = torch.cat(proposals, 1)
-        output_proposals_valid = ((output_proposals > 0.01) & (output_proposals < 0.99)).all(-1, keepdim=True)
+
+        spatial_valid = ((output_proposals > 0.01) & (output_proposals < 0.99)).all(-1, keepdim=True)
+        output_proposals_valid = spatial_valid
         invalid_mask = padding_mask.unsqueeze(-1) | ~output_proposals_valid
         output_proposals = output_proposals.masked_fill(invalid_mask, float(0))
 
         # assign each pixel as an object query
         object_query = enc_output
-        object_query = object_query.masked_fill(invalid_mask, float(0))
+        object_query = object_query.masked_fill(invalid_mask, 0.0)
+
         return object_query, output_proposals, invalid_mask
 
     def forward(
@@ -379,7 +456,6 @@ class LWDETR(nn.Module, _LWDETR):
             mask_flatten_list.append(mask)
         source_flatten = torch.cat(source_flatten_list, 1)
         mask_flatten = torch.cat(mask_flatten_list, 1)
-        spatial_shapes = torch.as_tensor(spatial_shapes_list, dtype=torch.long, device=source_flatten.device)
         valid_ratios = torch.stack([self.get_valid_ratio(m, dtype=source_flatten.dtype) for m in feats_masks], 1)
 
         tgt = query_feat.unsqueeze(0).expand(batch_size, -1, -1)
@@ -392,72 +468,64 @@ class LWDETR(nn.Module, _LWDETR):
         group_detr = self.group_detr if self.training else 1
         topk = self.num_queries
 
-        topk_coords_logits = []
-        topk_coords_logits_undetach = []
-        object_query_undetach = []
+        topk_coords_logits_list: list[torch.Tensor] = []
+        topk_content_list: list[torch.Tensor] = []
+
+        # encoder predictions for auxiliary losses
+        all_group_enc_logits: list[torch.Tensor] = []
+        all_group_enc_coords: list[torch.Tensor] = []
 
         for group_id in range(group_detr):
             group_object_query = self.enc_output[group_id](object_query_embedding)
             group_object_query = self.enc_output_norm[group_id](group_object_query)
 
             group_enc_outputs_class = self.enc_out_class_embed[group_id](group_object_query)
-            group_enc_outputs_class = group_enc_outputs_class.masked_fill(invalid_mask, float("-inf"))
+            all_group_enc_logits.append(group_enc_outputs_class)
+
+            group_enc_outputs_class_masked = group_enc_outputs_class.masked_fill(invalid_mask, float("-inf"))
+
             group_delta_bbox = self.enc_out_bbox_embed[group_id](group_object_query)
             group_enc_outputs_coord = self.refine_bboxes(output_proposals, group_delta_bbox)
 
-            group_topk_proposals = torch.topk(group_enc_outputs_class.max(-1)[0], topk, dim=1)[1]
+            all_group_enc_coords.append(group_enc_outputs_coord)
+
+            scores = group_enc_outputs_class_masked[..., :-1].max(-1).values
+            group_topk_proposals = torch.topk(scores, topk, dim=1)[1]
+
             group_topk_coords_logits_undetach = torch.gather(
                 group_enc_outputs_coord,
                 1,
-                group_topk_proposals.unsqueeze(-1).repeat(1, 1, 4),
+                group_topk_proposals.unsqueeze(-1).repeat(1, 1, 6),
             )
             group_topk_coords_logits = group_topk_coords_logits_undetach.detach()
-            group_object_query_undetach = torch.gather(
-                group_object_query, 1, group_topk_proposals.unsqueeze(-1).repeat(1, 1, self.d_model)
+            topk_coords_logits_list.append(group_topk_coords_logits)
+            group_topk_content = torch.gather(
+                group_object_query,
+                1,
+                group_topk_proposals.unsqueeze(-1).repeat(1, 1, self.d_model),
             )
+            topk_content_list.append(group_topk_content)
 
-            topk_coords_logits.append(group_topk_coords_logits)
-            topk_coords_logits_undetach.append(group_topk_coords_logits_undetach)
-            object_query_undetach.append(group_object_query_undetach)
+        topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
+        reference_points = topk_coords_logits
 
-        topk_coords_logits = torch.cat(topk_coords_logits, 1)
-        topk_coords_logits_undetach = torch.cat(topk_coords_logits_undetach, 1)
-        object_query_undetach = torch.cat(object_query_undetach, 1)
+        topk_content = torch.cat(topk_content_list, 1).detach()
+        tgt = tgt + topk_content
 
-        enc_outputs_class_logits = object_query_undetach
-        enc_outputs_boxes_logits = topk_coords_logits_undetach
+        encoder_attention_mask = mask_flatten
 
-        reference_points = self.refine_bboxes(topk_coords_logits, reference_points)
-
-        init_reference_points = reference_points
-        last_hidden_state, intermediate, intermediate_reference_points = self.decoder(
+        last_hidden_states, intermediate, intermediate_reference_points = self.decoder(
             inputs_embeds=tgt,
             reference_points=reference_points,
-            spatial_shapes=spatial_shapes,
             spatial_shapes_list=spatial_shapes_list,
             valid_ratios=valid_ratios,
             encoder_hidden_states=source_flatten,
-            encoder_attention_mask=mask_flatten,
+            encoder_attention_mask=encoder_attention_mask,
         )
 
-        logits = self.class_embed(last_hidden_state)
-        pred_boxes_delta = self.bbox_embed(last_hidden_state)
+        logits = self.class_embed(last_hidden_states)
+        pred_boxes_delta = self.bbox_embed(last_hidden_states)
         pred_boxes = self.refine_bboxes(intermediate_reference_points[-1], pred_boxes_delta)
-
-        enc_outputs_class_logits_list = enc_outputs_class_logits.split(self.num_queries, dim=1)
-        pred_class = []
-        group_detr = self.group_detr if self.training else 1
-        for group_index in range(group_detr):
-            group_pred_class = self.enc_out_class_embed[group_index](enc_outputs_class_logits_list[group_index])
-            pred_class.append(group_pred_class)
-        enc_outputs_class_logits = torch.cat(pred_class, dim=1)
-
-        if target is not None:
-            outputs_class, outputs_coord = None, None
-            intermediate_hidden_states = intermediate
-            outputs_coord_delta = self.bbox_embed(intermediate_hidden_states)
-            outputs_coord = self.refine_bboxes(intermediate_reference_points, outputs_coord_delta)
-            outputs_class = self.class_embed(intermediate_hidden_states)
 
         out: dict[str, Any] = {}
 
@@ -480,44 +548,200 @@ class LWDETR(nn.Module, _LWDETR):
         if target is not None:
             # Build target
             processed_targets = self.build_target(target, self.class_names)
-            out["loss"] = self.compute_loss(
-                logits,
-                processed_targets,
-                pred_boxes,
-                outputs_class,
-                outputs_coord,
-                enc_outputs_class_logits,
-                enc_outputs_boxes_logits,
-            )
+
+            # Main loss from final decoder layer (group DETR)
+            split_logits = logits.chunk(group_detr, dim=1)
+            split_boxes = pred_boxes.chunk(group_detr, dim=1)
+
+            main_loss: float | torch.Tensor = 0.0
+            for g_logits, g_boxes in zip(split_logits, split_boxes):
+                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
+            loss = main_loss / group_detr
+
+            # Auxiliary losses from intermediate decoder layers (group DETR)
+            for i in range(intermediate.shape[0] - 1):
+                aux_logits = self.class_embed(intermediate[i])
+                aux_boxes_delta = self.bbox_embed(intermediate[i])
+                aux_boxes = self.refine_bboxes(intermediate_reference_points[i + 1], aux_boxes_delta)
+
+                split_aux_logits = aux_logits.chunk(group_detr, dim=1)
+                split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
+
+                aux_loss: float | torch.Tensor = 0.0
+                for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
+                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
+                loss += aux_loss
+
+            # Auxiliary losses for encoder proposals
+            enc_loss: float | torch.Tensor = 0.0
+            for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
+                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets)
+            loss += enc_loss
+
+            out["loss"] = loss
 
         return out
 
     def compute_loss(
         self,
-        logits,
-        targets,
-        pred_boxes,
-        outputs_class,
-        outputs_coord,
-        enc_outputs_class_logits,
-        enc_outputs_boxes_logits,
-    ):
+        logits: torch.Tensor,
+        pred_boxes: torch.Tensor,
+        targets: list[dict[str, np.ndarray]],
+    ) -> torch.Tensor:
 
-        loss_calc = lw_detr_for_object_detection_loss(
-            logits=logits,
-            device=logits.device,
-            labels=targets,
-            pred_boxes=pred_boxes,
-            outputs_class=outputs_class,
-            outputs_coord=outputs_coord,
-            enc_outputs_class=enc_outputs_class_logits,
-            enc_outputs_coord=enc_outputs_boxes_logits,
-            use_aux_loss=True,
-            group_detr=self.group_detr,
-            num_decoder_layers=self.dec_layers,
-            num_labels=self.num_classes,
-        )
-        return loss_calc[0]
+        def _rotated_boxes_to_gaussian(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+            """Convert rotated boxes in (cx, cy, w, h, sinθ, cosθ) format
+                to Gaussian distributions (mean and covariance).
+                The mean is simply (cx, cy), and the covariance is computed from the width, height, and rotation angle.
+
+            Args:
+                boxes: (N, S, 6) tensor containing the rotated boxes in (cx, cy, w, h, sinθ, cosθ) format
+            Returns:
+                A tuple of (mean, covariance) where:
+                - mean is a (N, S, 2) tensor containing the mean (cx, cy) of the Gaussian distributions
+                - covariance is a (N, S, 2, 2) tensor containing the covariance matrices of the Gaussian distributions
+            """
+            cxcy = boxes[..., :2]
+
+            w = boxes[..., 2].clamp(min=1e-6)
+            h = boxes[..., 3].clamp(min=1e-6)
+
+            sin = boxes[..., 4]
+            cos = boxes[..., 5]
+
+            R = torch.stack(
+                [
+                    torch.stack([cos, -sin], dim=-1),
+                    torch.stack([sin, cos], dim=-1),
+                ],
+                dim=-2,
+            )
+
+            # Variance for a box half-width/half-height: σ² = (w/2)²
+            # Using w²/12 (uniform distribution) produces ~8x smaller variance,
+            # which collapses Bhattacharyya distance to the clamp ceiling and kills gradients.
+            sx = (w / 2) ** 2
+            sy = (h / 2) ** 2
+
+            S = torch.zeros((*boxes.shape[:-1], 2, 2), device=boxes.device)
+            S[..., 0, 0] = sx
+            S[..., 1, 1] = sy
+
+            covariance = R @ S @ R.transpose(-1, -2)
+            return cxcy, covariance
+
+        def _probiou_loss(pred_boxes: torch.Tensor, tgt_boxes: torch.Tensor) -> torch.Tensor:
+            mu1, sigma1 = _rotated_boxes_to_gaussian(pred_boxes)
+            mu2, sigma2 = _rotated_boxes_to_gaussian(tgt_boxes)
+
+            delta = (mu1 - mu2).unsqueeze(-1)
+            sigma = (sigma1 + sigma2) * 0.5
+
+            eps = 1e-6
+            eye = torch.eye(2, device=sigma.device) * eps
+
+            sigma_safe = sigma + eye
+            sigma1_safe = sigma1 + eye
+            sigma2_safe = sigma2 + eye
+
+            sigma_inv = torch.linalg.inv(sigma_safe)
+
+            mahalanobis = (delta.transpose(-1, -2) @ sigma_inv @ delta).squeeze(-1).squeeze(-1)
+
+            det_sigma = torch.linalg.det(sigma_safe).clamp(min=eps)
+            det_sigma1 = torch.linalg.det(sigma1_safe).clamp(min=eps)
+            det_sigma2 = torch.linalg.det(sigma2_safe).clamp(min=eps)
+
+            bhattacharyya = 0.125 * mahalanobis + 0.5 * torch.log(det_sigma / torch.sqrt(det_sigma1 * det_sigma2))
+
+            bhattacharyya = torch.clamp(bhattacharyya, min=0.0, max=10.0)
+            probiou = torch.exp(-bhattacharyya)
+            return 1 - probiou
+
+        device = logits.device
+        B, Q, C = logits.shape
+
+        total_cls = torch.tensor(0.0, device=device)
+        total_box = torch.tensor(0.0, device=device)
+
+        # FIX (issue #7): track total matched boxes across the batch for proper normalisation.
+        # Classification loss is still normalised by B (it covers all Q queries per image),
+        # but box/rotation losses are normalised by the actual number of matched pairs.
+        num_matched_total = 0
+
+        for b in range(B):
+            pred_logits = logits[b]
+            pred_boxes_b = pred_boxes[b]
+
+            boxes = targets[b]["boxes"]
+
+            if len(boxes) == 0:
+                # Penalize the model for any foreground boxes it guessed on this empty image
+                background_idx = self.num_classes - 1
+                target_classes = torch.full((Q,), background_idx, device=device, dtype=torch.long)
+                total_cls += F.cross_entropy(pred_logits, target_classes)
+                continue
+
+            tgt_boxes = torch.as_tensor(boxes, device=device, dtype=pred_boxes.dtype)
+            tgt_cls = torch.as_tensor(targets[b]["labels"], device=device, dtype=torch.long)
+
+            if tgt_boxes.ndim == 1:
+                tgt_boxes = tgt_boxes.unsqueeze(0)
+
+            pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
+            tgt_rot = F.normalize(tgt_boxes[:, 4:6], dim=-1)
+
+            with torch.no_grad():
+                out_logprob = pred_logits.log_softmax(-1)
+
+                cost_cls = -out_logprob[:, tgt_cls]  # stable
+                cost_l1 = torch.cdist(pred_boxes_b[:, :4], tgt_boxes[:, :4], p=1)
+                cost_rot = 1.0 - torch.abs(pred_rot @ tgt_rot.T)
+
+                total_cost = 2.0 * cost_cls + 5.0 * cost_l1 + 2.0 * cost_rot
+
+                cost_np = total_cost.detach().cpu().numpy()
+                row_ind, col_ind = linear_sum_assignment(cost_np)
+
+                pos_idx = torch.as_tensor(row_ind, device=device)
+                gt_idx = torch.as_tensor(col_ind, device=device)
+
+            background_idx = self.num_classes - 1
+
+            target_classes = torch.full((Q,), background_idx, device=device, dtype=torch.long)
+            target_classes[pos_idx] = tgt_cls[gt_idx]
+
+            cls_weights = torch.ones(self.num_classes, device=device)
+            cls_weights[background_idx] = 1.0
+
+            total_cls += F.cross_entropy(pred_logits, target_classes, weight=cls_weights)
+
+            if pos_idx.numel() == 0:
+                continue
+
+            num_matched_total += pos_idx.numel()
+
+            pred_sel = pred_boxes_b[pos_idx]
+            tgt_sel = tgt_boxes[gt_idx]
+
+            # Smooth L1 (Huber) loss with beta=0.1: behaves like L2 for large errors early in
+            # training (gentle, stable gradient) and like L1 for small errors later (sharp
+            # localisation). Raw L1 with a large weight causes loss explosion when predictions
+            # are far from targets (e.g. 5 * 2.2 = 11.0 per pair vs cls ~2.0).
+            l1_loss = F.smooth_l1_loss(pred_sel[:, :4], tgt_sel[:, :4], reduction="sum", beta=0.1)
+            probiou_loss = _probiou_loss(pred_sel, tgt_sel).sum()
+            total_box += 5.0 * l1_loss + 2.0 * probiou_loss
+
+        # FIX (issue #7): normalise box loss by total matched boxes (min 1), not by batch size.
+        # This prevents images with many GT boxes from dominating over images with few.
+        # Normalise box loss by total matched boxes, with a floor of 1 to keep
+        # the box/cls loss ratio stable even when images have very few GT boxes.
+        num_matched_total = max(num_matched_total, 1)
+
+        loss_cls = total_cls / B
+        loss_box = total_box / num_matched_total
+
+        return loss_cls + loss_box
 
 
 def _lw_detr(
