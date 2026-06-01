@@ -37,6 +37,9 @@ class OrientationPredictor(nn.Module):
         self,
         inputs: list[np.ndarray],
     ) -> list[list[int] | list[float]]:
+        if len(inputs) == 0:
+            return [[], [], []]
+
         # Dimension check
         if any(input.ndim != 3 for input in inputs):
             raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")
