@@ -76,7 +76,7 @@ def test_layout_models(arch_name, input_shape, train_mode, use_polygons):
             assert isinstance(results[1], np.ndarray) and results[1].shape == (len(results[0]), 4)
             assert isinstance(results[2], list) and all(isinstance(scores, float) for scores in results[2])
             # Check class idxs are in the model's num_classes
-            assert all(0 <= idx < model.num_classes for idx in results[0])
+            assert all(0 <= idx < len(model.class_names) for idx in results[0])
             # Check scores are between 0 and 1
             assert all(0 <= score <= 1 for score in results[2])
             # Check that the number of boxes, labels and scores are the same

@@ -146,8 +146,11 @@ class LWDETRPostProcessor:
             # Convert logits to probabilities and get scores and labels
             prob = 1.0 / (1.0 + np.exp(-logits[b]))
 
-            scores = prob.max(axis=-1)
-            labels = prob.argmax(axis=-1)
+            # Remove background class
+            prob_fg = prob[:, :-1]
+
+            scores = prob_fg.max(axis=-1)
+            labels = prob_fg.argmax(axis=-1)
 
             # Keep only topk predictions before NMS
             if self.topk is not None and len(scores) > self.topk:
