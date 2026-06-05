@@ -754,7 +754,12 @@ class LWDETR(nn.Module, _LWDETR):
         bhat_loss = _bhattacharyya_distance(mu1_l, sig1_l, mu2_l, sig2_l)
         loss_probiou = (1.0 - torch.exp(-bhat_loss)).to(dtype).sum() / num_boxes
 
-        return class_weight * loss_ce + bbox_weight * loss_bbox + probiou_weight * loss_probiou
+        # Rotation Loss
+        pred_rot = F.normalize(src_boxes[:, 4:6], dim=-1, eps=1e-6)
+        tgt_rot = F.normalize(target_boxes_matched[:, 4:6], dim=-1, eps=1e-6)
+        loss_rot = (1.0 - torch.abs((pred_rot * tgt_rot).sum(dim=-1))).sum() / num_boxes
+
+        return class_weight * loss_ce + bbox_weight * loss_bbox + probiou_weight * loss_probiou + rot_weight * loss_rot
 
 
 def _lw_detr(
