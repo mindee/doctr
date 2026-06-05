@@ -38,7 +38,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
                 images = images.cuda()
             images = batch_transforms(images)
             if amp:
-                with torch.cuda.amp.autocast():
+                with torch.amp.autocast("cuda"):
                     out = model(images, targets, return_preds=True)
             else:
                 out = model(images, targets, return_preds=True)

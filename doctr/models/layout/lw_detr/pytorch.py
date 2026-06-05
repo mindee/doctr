@@ -157,7 +157,7 @@ class LWDETR(nn.Module, _LWDETR):
         score_thresh: float = 0.5,
         iou_thresh: float = 0.5,
         d_model: int = 256,
-        num_queries: int = 100,
+        num_queries: int = 195,  # This is different from the paper which uses 300 queries, but 195 queries is sufficient for document layout analysis)  # noqa: E501
         group_detr: int = 13,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
@@ -507,21 +507,25 @@ class LWDETR(nn.Module, _LWDETR):
             # Build target
             processed_targets = self.build_target(target, self.class_names)
 
-            # Main loss from final decoder layer
-            loss = self.compute_loss(logits, pred_boxes, processed_targets)
+            # Disable mixed precision for loss computation to ensure numerical stability,
+            # especially for the Bhattacharyya distance which involves
+            # logarithms and determinants of covariance matrices.
+            with torch.autocast(device_type=logits.device.type, enabled=False):
+                # Main loss from final decoder layer
+                loss = self.compute_loss(logits.float(), pred_boxes.float(), processed_targets)
 
-            # Auxiliary losses from intermediate decoder layers
-            for i in range(intermediate.shape[0] - 1):
-                aux_logits = self.class_embed(intermediate[i])
-                aux_boxes = intermediate_reference_points[i + 1]
-                loss += self.compute_loss(aux_logits, aux_boxes, processed_targets)
+                # Auxiliary losses from intermediate decoder layers
+                for i in range(intermediate.shape[0] - 1):
+                    aux_logits = self.class_embed(intermediate[i]).float()
+                    aux_boxes = intermediate_reference_points[i + 1].float()
+                    loss += self.compute_loss(aux_logits, aux_boxes, processed_targets)
 
-            # Auxiliary losses for encoder proposals
-            enc_logits = torch.cat(all_group_enc_logits, dim=1)
-            enc_coords = torch.cat(all_group_enc_coords, dim=1)
-            loss += 0.2 * self.compute_loss(enc_logits, enc_coords, processed_targets)
+                # Auxiliary losses for encoder proposals
+                enc_logits = torch.cat(all_group_enc_logits, dim=1).float()
+                enc_coords = torch.cat(all_group_enc_coords, dim=1).float()
+                loss += 0.2 * self.compute_loss(enc_logits, enc_coords, processed_targets)
 
-            out["loss"] = loss
+                out["loss"] = loss
 
         return out
 
@@ -738,7 +742,6 @@ class LWDETR(nn.Module, _LWDETR):
         pos_weights[pos_ind] = pos_quality
         neg_weights[pos_ind] = 1 - pos_quality
 
-        # AMP safety for log computation
         prob_safe = prob.clamp(min=eps, max=1.0 - eps)
         loss_ce = -pos_weights * prob_safe.log() - neg_weights * (1.0 - prob_safe).log()
         loss_ce = loss_ce.sum() / num_boxes
