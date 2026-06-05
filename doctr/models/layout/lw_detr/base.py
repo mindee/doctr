@@ -144,17 +144,10 @@ class LWDETRPostProcessor:
 
         for b in range(boxes.shape[0]):
             # Convert logits to probabilities and get scores and labels
-            exp = np.exp(logits[b] - logits[b].max(axis=-1, keepdims=True))
-            prob = exp / exp.sum(axis=-1, keepdims=True)
+            prob = 1.0 / (1.0 + np.exp(-logits[b]))
 
             scores = prob.max(axis=-1)
             labels = prob.argmax(axis=-1)
-
-            # treat background as invalid prediction
-            bg = self.num_classes - 1
-            valid = labels != bg
-
-            scores = scores * valid
 
             # Keep only topk predictions before NMS
             if self.topk is not None and len(scores) > self.topk:
@@ -167,11 +160,11 @@ class LWDETRPostProcessor:
             labels_b = labels[idxs]
             bboxes = boxes[b][idxs]
 
-            mask = scores_b > self.score_thresh
-
-            bboxes = bboxes[mask]
-            scores_b = scores_b[mask]
-            labels_b = labels_b[mask]
+            # Filter by score threshold
+            thresh_mask = scores_b >= self.score_thresh
+            scores_b = scores_b[thresh_mask]
+            labels_b = labels_b[thresh_mask]
+            bboxes = bboxes[thresh_mask]
 
             polys, _ = (
                 self._decode_boxes(bboxes)

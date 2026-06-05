@@ -154,17 +154,17 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         feat_extractor: LWDETRBackbone,
         class_names: list[str],
-        score_thresh: float = 0.3,
+        score_thresh: float = 0.5,
         iou_thresh: float = 0.5,
         d_model: int = 256,
-        num_queries: int = 300,
+        num_queries: int = 100,
         group_detr: int = 13,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
         ca_num_heads: int = 16,
         ff_dim: int = 2048,
         dec_n_points: int = 2,
-        dropout_prob: float = 0.0,
+        dropout_prob: float = 0.1,
         assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
@@ -186,10 +186,11 @@ class LWDETR(nn.Module, _LWDETR):
         self.reference_point_embed = nn.Embedding(self.num_queries * self.group_detr, 6)
         # Initialize angle to (sin=0, cos=1)
         with torch.no_grad():
-            self.reference_point_embed.weight[:, 0:2].uniform_(0.05, 0.95)
-            self.reference_point_embed.weight[:, 2:4].fill_(0.1)
-            self.reference_point_embed.weight[:, 4].zero_()
-            self.reference_point_embed.weight[:, 5].fill_(1.0)
+            self.reference_point_embed.weight[:, 0:2].uniform_(0.05, 0.95)  # cx, cy
+            self.reference_point_embed.weight[:, 2].uniform_(0.1, 0.6)  # w
+            self.reference_point_embed.weight[:, 3].uniform_(0.02, 0.3)  # h
+            self.reference_point_embed.weight[:, 4].zero_()  # sinθ
+            self.reference_point_embed.weight[:, 5].fill_(1.0)  # cosθ
 
         self.query_feat = nn.Embedding(self.num_queries * self.group_detr, self.d_model)
 
@@ -281,8 +282,6 @@ class LWDETR(nn.Module, _LWDETR):
                 if isinstance(last, nn.Linear):
                     nn.init.zeros_(last.weight)
                     nn.init.zeros_(last.bias)
-                    if last.bias.shape[0] == 6:
-                        nn.init.constant_(last.bias[5], 1.0)
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
         """Load pretrained parameters onto the model
@@ -292,41 +291,6 @@ class LWDETR(nn.Module, _LWDETR):
             **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
         """
         load_pretrained_params(self, path_or_url, **kwargs)
-
-    def refine_bboxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
-        """Refine bounding boxes by applying the predicted deltas to the reference points.
-        The reference points are in the format (cx, cy, w, h, sinθ, cosθ), and the deltas are in the same format.
-        The refined boxes are computed as follows:
-
-        cx' = cx + delta_cx * w
-        cy' = cy + delta_cy * h
-        w' = w * exp(delta_w)
-        h' = h * exp(delta_h)
-        sinθ' = sinθ * cosΔ + cosθ * sinΔ
-        cosθ' = cosθ * cosΔ - sinθ * sinΔ
-
-        Args:
-            reference_points: (N, S, 6) tensor containing the reference points
-            deltas: (N, S, 6) tensor containing the predicted deltas
-
-        Returns:
-            refined_boxes: (N, S, 6) tensor containing the refined bounding boxes
-        """
-        reference_points = reference_points.to(deltas.device)
-        cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
-        # size
-        wh = torch.clamp(deltas[..., 2:4], min=-10.0, max=10.0).exp() * reference_points[..., 2:4]
-        # rotation
-        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
-        sin_delta = delta_rot[..., 0:1]
-        cos_delta = delta_rot[..., 1:2]
-        sin_ref = reference_points[..., 4:5]
-        cos_ref = reference_points[..., 5:6]
-        # compose rotations
-        sin_new = sin_ref * cos_delta + cos_ref * sin_delta
-        cos_new = cos_ref * cos_delta - sin_ref * sin_delta
-        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
-        return torch.cat((cxcy, wh, rot), dim=-1)
 
     def get_valid_ratio(self, mask: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         """Get the valid ratio of all feature maps.
@@ -402,7 +366,7 @@ class LWDETR(nn.Module, _LWDETR):
             _cur += height * width
         output_proposals = torch.cat(proposals, 1)
 
-        spatial_valid = ((output_proposals[..., :4] > 0.01) & (output_proposals[..., :4] < 0.99)).all(-1, keepdim=True)
+        spatial_valid = ((output_proposals[..., :2] > 0.01) & (output_proposals[..., :2] < 0.99)).all(-1, keepdim=True)
         output_proposals_valid = spatial_valid
         invalid_mask = padding_mask.unsqueeze(-1) | ~output_proposals_valid
         output_proposals = output_proposals.masked_fill(invalid_mask, float(0))
@@ -484,7 +448,7 @@ class LWDETR(nn.Module, _LWDETR):
             group_enc_outputs_class_masked = group_enc_outputs_class.masked_fill(invalid_mask, float("-inf"))
 
             group_delta_bbox = self.enc_out_bbox_embed[group_id](group_object_query)
-            group_enc_outputs_coord = self.refine_bboxes(output_proposals, group_delta_bbox)
+            group_enc_outputs_coord = self.decoder.refine_bboxes(output_proposals, group_delta_bbox)
 
             all_group_enc_coords.append(group_enc_outputs_coord)
 
@@ -507,7 +471,7 @@ class LWDETR(nn.Module, _LWDETR):
 
         topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
 
-        reference_points = self.refine_bboxes(topk_coords_logits, reference_points)
+        reference_points = self.decoder.refine_bboxes(topk_coords_logits, reference_points)
 
         last_hidden_states, intermediate, intermediate_reference_points = self.decoder(
             inputs_embeds=tgt,
@@ -543,33 +507,19 @@ class LWDETR(nn.Module, _LWDETR):
             # Build target
             processed_targets = self.build_target(target, self.class_names)
 
-            # Main loss from final decoder layer (group DETR)
-            split_logits = logits.chunk(group_detr, dim=1)
-            split_boxes = pred_boxes.chunk(group_detr, dim=1)
+            # Main loss from final decoder layer
+            loss = self.compute_loss(logits, pred_boxes, processed_targets)
 
-            main_loss: float | torch.Tensor = 0.0
-            for g_logits, g_boxes in zip(split_logits, split_boxes):
-                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
-            loss = main_loss / group_detr
-
-            # Auxiliary losses from intermediate decoder layers (group DETR)
+            # Auxiliary losses from intermediate decoder layers
             for i in range(intermediate.shape[0] - 1):
                 aux_logits = self.class_embed(intermediate[i])
                 aux_boxes = intermediate_reference_points[i + 1]
-
-                split_aux_logits = aux_logits.chunk(group_detr, dim=1)
-                split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
-
-                aux_loss: float | torch.Tensor = 0.0
-                for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
-                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
-                loss += aux_loss / group_detr
+                loss += self.compute_loss(aux_logits, aux_boxes, processed_targets)
 
             # Auxiliary losses for encoder proposals
-            enc_loss: float | torch.Tensor = 0.0
-            for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
-                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets)
-            loss += enc_loss / group_detr
+            enc_logits = torch.cat(all_group_enc_logits, dim=1)
+            enc_coords = torch.cat(all_group_enc_coords, dim=1)
+            loss += 0.2 * self.compute_loss(enc_logits, enc_coords, processed_targets)
 
             out["loss"] = loss
 
@@ -581,36 +531,41 @@ class LWDETR(nn.Module, _LWDETR):
         pred_boxes: torch.Tensor,
         targets: list[dict[str, np.ndarray]],
     ) -> torch.Tensor:
-        """Compute the loss between predicted logits and boxes and target labels and boxes.
+        """Compute the loss using Grouped Hungarian Matching
+        and consistent ProbIoU semantics for rotated bounding boxes.
 
         Args:
-            logits: (N, S, C) tensor containing the predicted class logits for each query
-            pred_boxes: (N, S, 6) tensor containing the predicted boxes in (cx, cy, w, h, sinθ, cosθ) format
-            targets: list of length N, where each element is a dict with keys "labels" and "boxes",
+            logits: (B, Q, C) tensor containing the predicted class logits for each query
+            pred_boxes: (B, Q, 6) tensor containing the predicted boxes in (cx, cy, w, h, sinθ, cosθ) format
+            targets: list of length B, where each element is a dict with keys "labels" and "boxes",
                 containing the ground truth labels and boxes for each image in the batch.
-                The boxes are in (cx, cy, w, h, sinθ, cosθ) format.
 
         Returns:
             A scalar tensor containing the computed loss.
         """
+        device = logits.device
+        dtype = logits.dtype
+        B, Q, C = logits.shape
+
+        # Consistent coefficients across matcher and loss components
+        class_weight = 2.0
+        bbox_weight = 5.0
+        probiou_weight = 2.0
+        rot_weight = 0.5
+
+        # Focal Loss Params
+        alpha = 0.25
+        gamma = 2.0
+        eps = 1e-7
+
+        group_detr = getattr(self, "group_detr", 1)
 
         def _rotated_boxes_to_gaussian(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-            """Convert rotated boxes in (cx, cy, w, h, sinθ, cosθ) format
-                to Gaussian distributions (mean and covariance).
-                The mean is simply (cx, cy), and the covariance is computed from the width, height, and rotation angle.
-
-            Args:
-                boxes: (N, S, 6) tensor containing the rotated boxes in (cx, cy, w, h, sinθ, cosθ) format
-            Returns:
-                A tuple of (mean, covariance) where:
-                - mean is a (N, S, 2) tensor containing the mean (cx, cy) of the Gaussian distributions
-                - covariance is a (N, S, 2, 2) tensor containing the covariance matrices of the Gaussian distributions
-            """
+            """Convert rotated boxes to Gaussian distributions using the true
+            variance of a uniform continuous rectangle (w^2 / 12)."""
             cxcy = boxes[..., :2]
-
             w = boxes[..., 2].clamp(min=1e-6)
             h = boxes[..., 3].clamp(min=1e-6)
-
             sin = boxes[..., 4]
             cos = boxes[..., 5]
 
@@ -622,130 +577,184 @@ class LWDETR(nn.Module, _LWDETR):
                 dim=-2,
             )
 
-            # Variance for a box half-width/half-height: σ² = (w/2)²
-            # Using w²/12 (uniform distribution) produces ~8x smaller variance,
-            # which collapses Bhattacharyya distance to the clamp ceiling and kills gradients.
-            sx = (w / 2) ** 2
-            sy = (h / 2) ** 2
+            sx = (w**2) / 12.0
+            sy = (h**2) / 12.0
 
-            S = torch.zeros((*boxes.shape[:-1], 2, 2), device=boxes.device)
+            S = torch.zeros((*boxes.shape[:-1], 2, 2), device=boxes.device, dtype=boxes.dtype)
             S[..., 0, 0] = sx
             S[..., 1, 1] = sy
 
             covariance = R @ S @ R.transpose(-1, -2)
             return cxcy, covariance
 
-        def _probiou_loss(pred_boxes: torch.Tensor, tgt_boxes: torch.Tensor) -> torch.Tensor:
-            """Compute the ProbIoU loss between predicted and target boxes,
-                where boxes are represented as Gaussian distributions.
-                The ProbIoU loss is defined as 1 - exp(-Bhattacharyya distance),
-                where the Bhattacharyya distance is computed between the two Gaussian distributions.
-
-            Args:
-                pred_boxes: (N, S, 6) tensor containing the predicted boxes in (cx, cy, w, h, sinθ, cosθ) format
-                tgt_boxes: (N, S, 6) tensor containing the target boxes in (cx, cy, w, h, sinθ, cosθ) format
-            Returns:
-                A (N, S) tensor containing the ProbIoU loss for each pair of predicted and target boxes
-            """
-            mu1, sigma1 = _rotated_boxes_to_gaussian(pred_boxes)
-            mu2, sigma2 = _rotated_boxes_to_gaussian(tgt_boxes)
-
+        def _bhattacharyya_distance(
+            mu1: torch.Tensor, sigma1: torch.Tensor, mu2: torch.Tensor, sigma2: torch.Tensor
+        ) -> torch.Tensor:
+            """Compute Bhattacharyya distance with broadcast support."""
             delta = (mu1 - mu2).unsqueeze(-1)
             sigma = (sigma1 + sigma2) * 0.5
 
-            eps = 1e-6
-            eye = torch.eye(2, device=sigma.device) * eps
-
+            eye = torch.eye(2, device=sigma.device, dtype=sigma.dtype) * 1e-6
             sigma_safe = sigma + eye
             sigma1_safe = sigma1 + eye
             sigma2_safe = sigma2 + eye
 
-            sigma_inv = torch.linalg.inv(sigma_safe)
+            L = torch.linalg.cholesky(sigma_safe)
+            sigma_inv = torch.cholesky_inverse(L)
 
             mahalanobis = (delta.transpose(-1, -2) @ sigma_inv @ delta).squeeze(-1).squeeze(-1)
 
-            det_sigma = torch.linalg.det(sigma_safe).clamp(min=eps)
-            det_sigma1 = torch.linalg.det(sigma1_safe).clamp(min=eps)
-            det_sigma2 = torch.linalg.det(sigma2_safe).clamp(min=eps)
+            det_sigma = torch.linalg.det(sigma_safe).clamp(min=1e-6)
+            det_sigma1 = torch.linalg.det(sigma1_safe).clamp(min=1e-6)
+            det_sigma2 = torch.linalg.det(sigma2_safe).clamp(min=1e-6)
 
             bhattacharyya = 0.125 * mahalanobis + 0.5 * torch.log(det_sigma / torch.sqrt(det_sigma1 * det_sigma2))
+            return bhattacharyya.clamp(min=0.0)
 
-            bhattacharyya = torch.clamp(bhattacharyya, min=0.0, max=10.0)
-            probiou = torch.exp(-bhattacharyya)
-            return 1 - probiou
+        # Prepare targets for matching
+        target_labels = []
+        target_boxes = []
+        sizes = []
+        for t in targets:
+            lbls = torch.as_tensor(t["labels"], device=device, dtype=torch.long)
+            bxs = torch.as_tensor(t["boxes"], device=device, dtype=pred_boxes.dtype)
+            if bxs.ndim == 1 and bxs.numel() > 0:
+                bxs = bxs.unsqueeze(0)
+            target_labels.append(lbls)
+            target_boxes.append(bxs)
+            sizes.append(len(lbls))
 
-        device = logits.device
-        B, Q, C = logits.shape
+        # Unified formulation for empty batches
+        if sum(sizes) == 0:
+            prob = logits.sigmoid()
+            prob_safe = prob.clamp(min=eps, max=1.0 - eps)
+            neg_weights = prob.pow(gamma)
+            loss_ce = -neg_weights * (1.0 - prob_safe).log()
+            return class_weight * (loss_ce.sum() / (B * Q))
 
-        total_cls = torch.tensor(0.0, device=device)
-        total_box = torch.tensor(0.0, device=device)
+        tgt_ids = torch.cat(target_labels)
+        tgt_bbox = torch.cat(target_boxes)
 
-        num_matched_total = 0
+        # Matcher: Grouped Hungarian Assignment with a balanced cost matrix
+        with torch.no_grad():
+            out_prob = logits.flatten(0, 1).sigmoid()
+            out_bbox = pred_boxes.flatten(0, 1)
 
-        for b in range(B):
-            pred_logits = logits[b]
-            pred_boxes_b = pred_boxes[b]
+            # Classification Cost (Focal Loss based)
+            neg_cost_class = (1 - alpha) * (out_prob**gamma) * (-(1 - out_prob + eps).log())
+            pos_cost_class = alpha * ((1 - out_prob) ** gamma) * (-(out_prob + eps).log())
+            class_cost = pos_cost_class[:, tgt_ids] - neg_cost_class[:, tgt_ids]
 
-            boxes = targets[b]["boxes"]
+            # Box L1 Cost
+            out_bbox_f = out_bbox.to(torch.float32)
+            tgt_bbox_f = tgt_bbox.to(torch.float32)
+            bbox_cost = torch.cdist(out_bbox_f[:, :4], tgt_bbox_f[:, :4], p=1).to(dtype)
 
-            if len(boxes) == 0:
-                # Penalize the model for any foreground boxes it guessed on this empty image
-                background_idx = self.num_classes - 1
-                target_classes = torch.full((Q,), background_idx, device=device, dtype=torch.long)
-                total_cls += F.cross_entropy(pred_logits, target_classes)
-                continue
+            # ProbIoU Cost
+            mu_pred, sig_pred = _rotated_boxes_to_gaussian(out_bbox_f)
+            mu_tgt, sig_tgt = _rotated_boxes_to_gaussian(tgt_bbox_f)
 
-            tgt_boxes = torch.as_tensor(boxes, device=device, dtype=pred_boxes.dtype)
-            tgt_cls = torch.as_tensor(targets[b]["labels"], device=device, dtype=torch.long)
+            bhat_dist = _bhattacharyya_distance(
+                mu_pred.unsqueeze(1), sig_pred.unsqueeze(1), mu_tgt.unsqueeze(0), sig_tgt.unsqueeze(0)
+            )
+            probiou_cost = (1.0 - torch.exp(-bhat_dist)).to(dtype)
 
-            if tgt_boxes.ndim == 1:
-                tgt_boxes = tgt_boxes.unsqueeze(0)
+            # Rotation Cost
+            pred_rot = F.normalize(out_bbox_f[:, 4:6], dim=-1)
+            tgt_rot = F.normalize(tgt_bbox_f[:, 4:6], dim=-1)
+            rot_cost = (1.0 - torch.abs(pred_rot @ tgt_rot.T)).to(dtype)
 
-            pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
-            tgt_rot = F.normalize(tgt_boxes[:, 4:6], dim=-1)
+            # Total balanced Cost Matrix
+            cost_matrix = (
+                class_weight * class_cost
+                + bbox_weight * bbox_cost
+                + probiou_weight * probiou_cost
+                + rot_weight * rot_cost
+            )
+            cost_matrix = cost_matrix.view(B, Q, -1).cpu()
 
-            with torch.no_grad():
-                out_logprob = pred_logits.log_softmax(-1)
+            # Grouped Hungarian Assignment
+            indices = []
+            group_num_queries = Q // group_detr
+            cost_matrix_groups = cost_matrix.split(group_num_queries, dim=1)
 
-                cost_cls = -out_logprob[:, tgt_cls]
-                cost_l1 = torch.cdist(pred_boxes_b[:, :4], tgt_boxes[:, :4], p=1)
-                cost_rot = 1.0 - torch.abs(pred_rot @ tgt_rot.T)
+            for group_id in range(group_detr):
+                group_cost_matrix = cost_matrix_groups[group_id]
 
-                total_cost = 2.0 * cost_cls + 5.0 * cost_l1 + 2.0 * cost_rot
+                # Split targets per batch element
+                group_indices = []
+                for i, c in enumerate(group_cost_matrix.split(sizes, -1)):
+                    if sizes[i] == 0:
+                        group_indices.append((np.array([], dtype=np.int64), np.array([], dtype=np.int64)))
+                    else:
+                        row_ind, col_ind = linear_sum_assignment(c[i].numpy())
+                        group_indices.append((row_ind, col_ind))
 
-                cost_np = total_cost.detach().cpu().numpy()
-                row_ind, col_ind = linear_sum_assignment(cost_np)
+                if group_id == 0:
+                    indices = group_indices
+                else:
+                    indices = [
+                        (
+                            np.concatenate([idx1[0], idx2[0] + group_num_queries * group_id]),
+                            np.concatenate([idx1[1], idx2[1]]),
+                        )
+                        for idx1, idx2 in zip(indices, group_indices)
+                    ]
 
-                pos_idx = torch.as_tensor(row_ind, device=device)
-                gt_idx = torch.as_tensor(col_ind, device=device)
+        # Image lovel loss normalization: scale by the number of matched boxes,
+        # and the number of active groups in group DETR
+        # Scale denominator by the number of active assignment groups
+        num_boxes = max(sum(sizes) * group_detr, 1)
 
-            background_idx = self.num_classes - 1
+        batch_idx = torch.cat([torch.full((len(src),), i, dtype=torch.long) for i, (src, _) in enumerate(indices)])
+        src_idx = torch.cat([torch.as_tensor(src, dtype=torch.long) for (src, _) in indices])
 
-            target_classes = torch.full((Q,), background_idx, device=device, dtype=torch.long)
-            target_classes[pos_idx] = tgt_cls[gt_idx]
+        flat_tgt_idx_list = []
+        offset = 0
+        for i, (_, tgt) in enumerate(indices):
+            flat_tgt_idx_list.append(torch.as_tensor(tgt, dtype=torch.long) + offset)
+            offset += sizes[i]
+        flat_tgt_idx = torch.cat(flat_tgt_idx_list)
 
-            cls_weights = torch.ones(self.num_classes, device=device)
-            cls_weights[background_idx] = 0.1
+        target_classes_o = tgt_ids[flat_tgt_idx]
+        src_boxes = pred_boxes[batch_idx, src_idx]
+        target_boxes_matched = tgt_bbox[flat_tgt_idx]
 
-            total_cls += F.cross_entropy(pred_logits, target_classes, weight=cls_weights)
+        # Label Loss with Quality Mapping
+        prob = logits.sigmoid()
 
-            if pos_idx.numel() == 0:
-                continue
+        mu1, sig1 = _rotated_boxes_to_gaussian(src_boxes.detach().to(torch.float32))
+        mu2, sig2 = _rotated_boxes_to_gaussian(target_boxes_matched.detach().to(torch.float32))
+        bhat_matched = _bhattacharyya_distance(mu1, sig1, mu2, sig2)
+        pos_ious = torch.exp(-bhat_matched).clamp(min=0.0, max=1.0).to(dtype)
 
-            num_matched_total += pos_idx.numel()
+        pos_weights = torch.zeros_like(logits)
+        neg_weights = prob.pow(gamma)
+        pos_ind = (batch_idx, src_idx, target_classes_o)
 
-            pred_sel = pred_boxes_b[pos_idx]
-            tgt_sel = tgt_boxes[gt_idx]
+        pos_quality = prob[pos_ind].pow(alpha) * pos_ious.pow(1 - alpha)
+        pos_quality = torch.clamp(pos_quality, 0.01).detach()
 
-            l1_loss = F.smooth_l1_loss(pred_sel[:, :4], tgt_sel[:, :4], reduction="sum", beta=0.1)
-            probiou_loss = _probiou_loss(pred_sel, tgt_sel).sum()
-            total_box += 5.0 * l1_loss + 2.0 * probiou_loss
+        pos_weights[pos_ind] = pos_quality
+        neg_weights[pos_ind] = 1 - pos_quality
 
-        num_matched_total = max(num_matched_total, 1)
-        loss_cls = total_cls / B
-        loss_box = total_box / num_matched_total
+        # AMP safety for log computation
+        prob_safe = prob.clamp(min=eps, max=1.0 - eps)
+        loss_ce = -pos_weights * prob_safe.log() - neg_weights * (1.0 - prob_safe).log()
+        loss_ce = loss_ce.sum() / num_boxes
 
-        return loss_cls + loss_box
+        # Bounding Box Loss
+        loss_bbox = (
+            F.smooth_l1_loss(src_boxes[:, :4], target_boxes_matched[:, :4], reduction="sum", beta=0.1) / num_boxes
+        )
+
+        # ProbIoU Loss
+        mu1_l, sig1_l = _rotated_boxes_to_gaussian(src_boxes.to(torch.float32))
+        mu2_l, sig2_l = _rotated_boxes_to_gaussian(target_boxes_matched.to(torch.float32))
+        bhat_loss = _bhattacharyya_distance(mu1_l, sig1_l, mu2_l, sig2_l)
+        loss_probiou = (1.0 - torch.exp(-bhat_loss)).to(dtype).sum() / num_boxes
+
+        return class_weight * loss_ce + bbox_weight * loss_bbox + probiou_weight * loss_probiou
 
 
 def _lw_detr(

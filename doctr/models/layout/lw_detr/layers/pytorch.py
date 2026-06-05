@@ -293,6 +293,8 @@ class LWDETRMultiscaleDeformableAttention(nn.Module):
         else:
             raise ValueError(f"Last dim of reference_points must be 4 or 6, but got {reference_points.shape[-1]}")
 
+        # clamp sampling locations to keep them within the valid range [0, 1] for grid sampling
+        sampling_locations = sampling_locations.clamp(0.0, 1.0)
         output = self.attn(
             value,
             spatial_shapes_list,
@@ -482,11 +484,7 @@ class LWDETRDecoder(nn.Module):
         self.bbox_embed = bbox_embed
 
         self.ref_point_head = LWDETRHead(2 * self.d_model, self.d_model, self.d_model, num_layers=2)
-        self.angle_proj = nn.Sequential(
-            nn.Linear(4, self.d_model),
-            nn.ReLU(),
-            nn.Linear(self.d_model, self.d_model),
-        )
+        self.angle_proj = nn.Linear(2, self.d_model)
 
     def get_reference(
         self, reference_points: torch.Tensor, valid_ratios: torch.Tensor
@@ -517,26 +515,13 @@ class LWDETRDecoder(nn.Module):
         # DETR positional encoding
         query_sine_embed = gen_sine_position_embeddings(spatial_inputs[:, :, 0, :], self.d_model)
         base_query_pos = self.ref_point_head(query_sine_embed)
-        # Angle embedding
-        sin_t = angle[..., 0:1]
-        cos_t = angle[..., 1:2]
 
-        angle_feat = torch.cat(
-            [
-                sin_t,
-                cos_t,
-                2 * sin_t * cos_t,
-                cos_t**2 - sin_t**2,
-            ],
-            dim=-1,
-        )
-
-        angle_emb = self.angle_proj(angle_feat)
+        angle_emb = self.angle_proj(angle)
         # Combine
         query_pos = base_query_pos + angle_emb
         return reference_points_inputs, query_pos
 
-    def refine_boxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
+    def refine_bboxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
         """Refine bounding boxes by applying the predicted deltas to the reference points.
         The reference points are in the format (cx, cy, w, h, sinθ, cosθ), and the deltas are in the same format.
         The refined boxes are computed as follows:
@@ -556,11 +541,20 @@ class LWDETRDecoder(nn.Module):
             refined_boxes: (N, S, 6) tensor containing the refined bounding boxes
         """
         reference_points = reference_points.to(deltas.device)
-        cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
         # size
-        wh = torch.clamp(deltas[..., 2:4], min=-10.0, max=10.0).exp() * reference_points[..., 2:4]
+        wh = torch.clamp(deltas[..., 2:4], min=-4.0, max=4.0).exp() * reference_points[..., 2:4]
+        wh = wh.clamp(min=1e-4, max=1.0)
+        # center
+        raw_cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
+        half_wh = wh / 2
+        cxcy = raw_cxcy.clamp(
+            min=half_wh,
+            max=1.0 - half_wh,
+        )
         # rotation
-        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
+        sin_d = deltas[..., 4:5]
+        cos_d = deltas[..., 5:6] + 1.0
+        delta_rot = F.normalize(torch.cat([sin_d, cos_d], dim=-1), dim=-1, eps=1e-6)
         sin_delta = delta_rot[..., 0:1]
         cos_delta = delta_rot[..., 1:2]
         sin_ref = reference_points[..., 4:5]
@@ -605,7 +599,7 @@ class LWDETRDecoder(nn.Module):
             if self.bbox_embed is not None:
                 delta = self.bbox_embed(hidden_states_norm)
 
-                reference_points = self.refine_boxes(reference_points, delta)
+                reference_points = self.refine_bboxes(reference_points, delta)
                 intermediate_reference_points.append(reference_points)
 
                 reference_points_inputs, query_pos = self.get_reference(
