@@ -17,7 +17,14 @@ import torch
 # The following import is required for DDP
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
+from torch.optim.lr_scheduler import (
+    CosineAnnealingLR,
+    LinearLR,
+    MultiplicativeLR,
+    OneCycleLR,
+    PolynomialLR,
+    SequentialLR,
+)
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
@@ -82,14 +89,14 @@ def record_lr(
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
             optimizer.step()
         # Update LR
         scheduler.step()
@@ -130,14 +137,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
             optimizer.step()
 
         scheduler.step()
@@ -472,20 +479,29 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
+    backbone_params = [p for n, p in model.named_parameters() if n.startswith("feat_extractor.") and p.requires_grad]
+    decoder_params = [p for n, p in model.named_parameters() if not n.startswith("feat_extractor.") and p.requires_grad]
+
     # Optimizer
     if args.optim == "adam":
         optimizer = torch.optim.Adam(
-            [p for p in model.parameters() if p.requires_grad],
-            args.lr,
-            betas=(0.95, 0.999),
+            [
+                {"params": backbone_params, "lr": 1e-5, "weight_decay": args.weight_decay or 1e-4},
+                {"params": decoder_params, "lr": args.lr, "weight_decay": args.weight_decay or 1e-4},
+            ],
+            lr=args.lr,
+            betas=(0.9, 0.999),
             eps=1e-6,
-            weight_decay=args.weight_decay,
+            weight_decay=args.weight_decay or 1e-4,
         )
 
     elif args.optim == "adamw":
         optimizer = torch.optim.AdamW(
-            [p for p in model.parameters() if p.requires_grad],
-            args.lr,
+            [
+                {"params": backbone_params, "lr": 1e-5, "weight_decay": args.weight_decay or 1e-4},
+                {"params": decoder_params, "lr": args.lr, "weight_decay": args.weight_decay or 1e-4},
+            ],
+            lr=args.lr,
             betas=(0.9, 0.999),
             eps=1e-6,
             weight_decay=args.weight_decay or 1e-4,
@@ -498,12 +514,55 @@ def main(args):
         return
 
     # Scheduler
+    total_steps = args.epochs * len(train_loader)
+    warmup_steps = min(1000, max(200, total_steps // 20))
+
     if args.sched == "cosine":
-        scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
+        warmup = LinearLR(
+            optimizer,
+            start_factor=0.01,
+            end_factor=1.0,
+            total_iters=warmup_steps,
+        )
+        cosine = CosineAnnealingLR(
+            optimizer,
+            T_max=total_steps - warmup_steps,
+            eta_min=args.lr * 0.01,
+        )
+        scheduler = SequentialLR(
+            optimizer,
+            schedulers=[warmup, cosine],
+            milestones=[warmup_steps],
+        )
+
     elif args.sched == "onecycle":
-        scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(train_loader))
+        scheduler = OneCycleLR(
+            optimizer,
+            max_lr=[g["lr"] for g in optimizer.param_groups],
+            total_steps=total_steps,
+            pct_start=warmup_steps / total_steps,
+            div_factor=100,
+            final_div_factor=100,
+            anneal_strategy="cos",
+        )
+
     elif args.sched == "poly":
-        scheduler = PolynomialLR(optimizer, args.epochs * len(train_loader))
+        warmup = LinearLR(
+            optimizer,
+            start_factor=0.01,
+            end_factor=1.0,
+            total_iters=warmup_steps,
+        )
+        poly = PolynomialLR(
+            optimizer,
+            total_iters=total_steps - warmup_steps,
+            power=1.0,
+        )
+        scheduler = SequentialLR(
+            optimizer,
+            schedulers=[warmup, poly],
+            milestones=[warmup_steps],
+        )
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -690,8 +749,8 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
-    parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
+    parser.add_argument("--lr", type=float, default=4e-4, help="learning rate for the optimizer (Adam or AdamW)")
+    parser.add_argument("--wd", "--weight-decay", default=1e-4, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
