@@ -272,6 +272,12 @@ def test_extract_crops(mock_pdf):
     # Identity
     assert np.all(doc_img == geometry.extract_crops(doc_img, np.array([[0, 0, 1, 1]], dtype=np.float32))[0])
 
+    # Identical boxes must yield identical crops regardless of their position in the batch
+    gradient_img = np.tile(np.arange(100, dtype=np.uint8).reshape(100, 1, 1), (1, 100, 3))
+    same_box = [0.1, 0.1, 0.2, 0.2]
+    identical_crops = geometry.extract_crops(gradient_img, np.array([same_box, same_box, same_box], dtype=np.float32))
+    assert all(np.array_equal(crop, identical_crops[0]) for crop in identical_crops)
+
     # No box
     assert geometry.extract_crops(doc_img, np.zeros((0, 4))) == []
 
