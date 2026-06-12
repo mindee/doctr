@@ -363,7 +363,7 @@ def main(args):
     )
 
     if distributed:
-        sampler = DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True)
+        sampler = DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
     else:
         sampler = RandomSampler(train_set)
 
@@ -518,6 +518,8 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
+        if distributed:
+            sampler.set_epoch(epoch)
         train_loss, actual_lr = fit_one_epoch(
             model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
         )

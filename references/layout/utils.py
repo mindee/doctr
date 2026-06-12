@@ -86,6 +86,44 @@ def plot_samples(
     plt.show()
 
 
+def build_param_groups(model: Any, lr: float, backbone_lr: float, weight_decay: float):
+    """Build parameter groups for the optimizer, separating backbone and non-backbone parameters,
+    and applying weight decay only to non-bias and non-norm parameters.
+
+    Args:
+        model: the model containing the parameters
+        lr: learning rate for non-backbone parameters
+        backbone_lr: learning rate for backbone parameters
+        weight_decay: weight decay to apply to non-bias and non-norm parameters
+
+    Returns:
+        a list of parameter groups to be passed to the optimizer
+    """
+    no_decay_keys = ("bias", "norm", ".bn", "embed")  # Embedding, LayerNorm, BN
+
+    def is_backbone(name: str) -> bool:
+        return name.removeprefix("module.").startswith("feat_extractor.")
+
+    groups: dict[tuple[bool, bool], list[Any]] = {
+        (False, True): [],
+        (False, False): [],
+        (True, True): [],
+        (True, False): [],
+    }
+    for n, p in model.named_parameters():
+        if not p.requires_grad:
+            continue
+        decay = not (p.ndim <= 1 or any(k in n.lower() for k in no_decay_keys))
+        groups[(is_backbone(n), decay)].append(p)
+
+    return [
+        {"params": groups[(False, True)], "lr": lr, "weight_decay": weight_decay},
+        {"params": groups[(False, False)], "lr": lr, "weight_decay": 0.0},
+        {"params": groups[(True, True)], "lr": backbone_lr, "weight_decay": weight_decay},
+        {"params": groups[(True, False)], "lr": backbone_lr, "weight_decay": 0.0},
+    ]
+
+
 def plot_recorder(lr_recorder, loss_recorder, beta: float = 0.95, **kwargs) -> None:
     """Display the results of the LR grid search.
     Adapted from https://github.com/frgfm/Holocron/blob/master/holocron/trainer/core.py

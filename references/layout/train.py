@@ -38,7 +38,7 @@ from doctr import transforms as T
 from doctr.datasets import LayoutDataset
 from doctr.models import layout, login_to_hub, push_to_hf_hub
 from doctr.utils.metrics import ObjectDetectionMetric
-from utils import EarlyStopper, convert_target, plot_recorder, plot_samples
+from utils import EarlyStopper, build_param_groups, convert_target, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -431,7 +431,7 @@ def main(args):
     )
 
     if distributed:
-        sampler = DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True)
+        sampler = DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
     else:
         sampler = RandomSampler(train_set)
 
@@ -483,37 +483,18 @@ def main(args):
         name = name.removeprefix("module.")
         return name.startswith("feat_extractor.")
 
-    backbone_params = [p for n, p in model.named_parameters() if is_backbone_param(n) and p.requires_grad]
-
-    decoder_params = [p for n, p in model.named_parameters() if not is_backbone_param(n) and p.requires_grad]
-
-    backbone_lr = args.lr if not args.pretrained else args.lr * 0.1
-    decoder_lr = args.lr
+    param_groups = build_param_groups(
+        model,
+        lr=args.lr,
+        backbone_lr=args.lr if not args.pretrained else args.lr * 0.1,
+        weight_decay=args.weight_decay or 1e-4,
+    )
 
     # Optimizer
     if args.optim == "adam":
-        optimizer = torch.optim.Adam(
-            [
-                {"params": backbone_params, "lr": backbone_lr, "weight_decay": args.weight_decay or 1e-4},
-                {"params": decoder_params, "lr": decoder_lr, "weight_decay": args.weight_decay or 1e-4},
-            ],
-            lr=args.lr,
-            betas=(0.9, 0.999),
-            eps=1e-6,
-            weight_decay=args.weight_decay or 1e-4,
-        )
-
+        optimizer = torch.optim.Adam(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
     elif args.optim == "adamw":
-        optimizer = torch.optim.AdamW(
-            [
-                {"params": backbone_params, "lr": backbone_lr, "weight_decay": args.weight_decay or 1e-4},
-                {"params": decoder_params, "lr": decoder_lr, "weight_decay": args.weight_decay or 1e-4},
-            ],
-            lr=args.lr,
-            betas=(0.9, 0.999),
-            eps=1e-6,
-            weight_decay=args.weight_decay or 1e-4,
-        )
+        optimizer = torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
 
     # LR Finder
     if rank == 0 and args.find_lr:
@@ -523,7 +504,7 @@ def main(args):
 
     # Scheduler
     total_steps = args.epochs * len(train_loader)
-    warmup_steps = max(1, min(1000, int(0.05 * total_steps)))
+    warmup_steps = max(1, min(2000, int(0.05 * total_steps)))
 
     if args.sched == "cosine":
         warmup = LinearLR(
@@ -658,6 +639,8 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
+        if distributed:
+            sampler.set_epoch(epoch)
         train_loss, actual_lr = fit_one_epoch(
             model,
             train_loader,

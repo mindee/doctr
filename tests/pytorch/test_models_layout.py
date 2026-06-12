@@ -27,7 +27,7 @@ def test_layout_models(arch_name, input_shape, train_mode, use_polygons):
     model = model.train() if train_mode else model.eval()
     assert isinstance(model, torch.nn.Module)
     input_tensor = torch.rand((batch_size, *input_shape))
-    input_masks = torch.ones((batch_size, input_shape[1], input_shape[2]), dtype=torch.bool)
+    input_masks = torch.zeros((batch_size, input_shape[1], input_shape[2]), dtype=torch.bool)
 
     class_names = model.class_names
 
@@ -130,7 +130,7 @@ def test_models_onnx_export(arch_name, input_shape):
     batch_size = 2
     model = layout.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
-    dummy_masks = torch.ones((batch_size, input_shape[1], input_shape[2]), dtype=torch.bool)
+    dummy_masks = torch.zeros((batch_size, input_shape[1], input_shape[2]), dtype=torch.bool)
     pt = model(dummy_input, dummy_masks)
     pt_logits = pt["logits"].detach().cpu().numpy()
     pt_boxes = pt["pred_boxes"].detach().cpu().numpy()

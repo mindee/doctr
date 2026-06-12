@@ -559,6 +559,8 @@ def main(args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     # Training loop
     for epoch in range(args.epochs):
+        if distributed:
+            sampler.set_epoch(epoch)
         train_loss, actual_lr = fit_one_epoch(
             model,
             device,

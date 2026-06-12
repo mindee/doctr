@@ -198,23 +198,12 @@ class LWDETRBackbone(nn.Module):
             mask = mask.bool()
 
         valid = (~mask).float().unsqueeze(1)  # True/1 = valid pixels
-
-        if (valid.flatten(1).sum(dim=1) == 0).any():
-            bad = torch.where(valid.flatten(1).sum(dim=1) == 0)[0].tolist()
-            raise RuntimeError(f"Input masks are fully padded before resizing: {bad}")
-
-        valid_resized = (
-            F.interpolate(
-                valid,
-                size=size,
-                mode="area",
-            )
-            > 0
-        )
-
+        valid_resized = F.interpolate(valid, size=size, mode="area") > 0
         resized_mask = ~valid_resized.squeeze(1)
 
-        if resized_mask.flatten(1).all(dim=1).any():
+        # Sanity check: no feature should be fully padded after resizing,
+        # otherwise it would cause NaNs in the attention weights
+        if self.training and resized_mask.flatten(1).all(dim=1).any():  # pragma: no cover
             bad = torch.where(resized_mask.flatten(1).all(dim=1))[0].tolist()
             raise RuntimeError(f"Feature masks became fully padded after resizing: {bad}")
 
@@ -268,7 +257,7 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         feat_extractor: LWDETRBackbone,
         class_names: list[str],
-        score_thresh: float = 0.1,
+        score_thresh: float = 0.25,
         iou_thresh: float = 0.5,
         d_model: int = 256,
         num_queries: int = 195,
