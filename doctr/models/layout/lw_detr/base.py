@@ -143,31 +143,26 @@ class LWDETRPostProcessor:
         results: list[tuple[list[int], np.ndarray, list[float]]] = []
 
         for b in range(boxes.shape[0]):
-            # Convert logits to probabilities and get scores and labels
-            prob = 1.0 / (1.0 + np.exp(-logits[b]))
+            # Sigmoid scores (the model is trained with a sigmoid-based (IA-BCE) loss without
+            # a background class, as in LW-DETR)
+            prob = 1.0 / (1.0 + np.exp(-logits[b]))  # (num_queries, num_classes)
+            num_classes = prob.shape[-1]
 
-            # Remove background class
-            prob_fg = prob[:, :-1]
+            # Keep only the topk (query, class) pairs before NMS
+            flat_prob = prob.reshape(-1)
+            topk = min(self.topk, flat_prob.size) if self.topk is not None else flat_prob.size
+            topk_idxs = np.argsort(flat_prob)[::-1][:topk]
 
-            scores = prob_fg.max(axis=-1)
-            labels = prob_fg.argmax(axis=-1)
+            scores_b = flat_prob[topk_idxs]
+            labels_b = topk_idxs % num_classes
+            query_idxs = topk_idxs // num_classes
+            bboxes = boxes[b][query_idxs]
 
-            # Keep only topk predictions before NMS
-            if self.topk is not None and len(scores) > self.topk:
-                idxs = np.argpartition(-scores, self.topk)[: self.topk]
-                idxs = idxs[np.argsort(-scores[idxs])]
-            else:
-                idxs = np.arange(len(scores))
+            mask = scores_b > self.score_thresh
 
-            scores_b = scores[idxs]
-            labels_b = labels[idxs]
-            bboxes = boxes[b][idxs]
-
-            # Filter by score threshold
-            thresh_mask = scores_b >= self.score_thresh
-            scores_b = scores_b[thresh_mask]
-            labels_b = labels_b[thresh_mask]
-            bboxes = bboxes[thresh_mask]
+            bboxes = bboxes[mask]
+            scores_b = scores_b[mask]
+            labels_b = labels_b[mask]
 
             polys, _ = (
                 self._decode_boxes(bboxes)
@@ -309,7 +304,7 @@ class _LWDETR(BaseModel):
                     labels_all.append(cls_id)
 
             targets.append({
-                "boxes": np.asarray(boxes_all, dtype=np.float32),
+                "boxes": np.asarray(boxes_all, dtype=np.float32) if boxes_all else np.zeros((0, 6), dtype=np.float32),
                 "labels": np.asarray(labels_all, dtype=np.int64),
             })
 

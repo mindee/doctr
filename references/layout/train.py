@@ -89,14 +89,14 @@ def record_lr(
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             optimizer.step()
         # Update LR
         scheduler.step()
@@ -137,14 +137,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=0.1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             optimizer.step()
 
         scheduler.step()
@@ -390,8 +390,8 @@ def main(args):
             [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.85, 1.15), scale=(0.75, 1.0)), 0.15),
+                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.15),
                 ]),
                 T.Resize(
                     (args.input_size, args.input_size),
@@ -404,8 +404,8 @@ def main(args):
             else [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
-                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.85, 1.15), scale=(0.75, 1.0)), 0.15),
+                    T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.15),
                 ]),
                 # Rotation augmentation
                 T.Resize(args.input_size, preserve_aspect_ratio=True, return_padding_mask=True),
@@ -479,15 +479,23 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
-    backbone_params = [p for n, p in model.named_parameters() if n.startswith("feat_extractor.") and p.requires_grad]
-    decoder_params = [p for n, p in model.named_parameters() if not n.startswith("feat_extractor.") and p.requires_grad]
+    def is_backbone_param(name: str) -> bool:
+        name = name.removeprefix("module.")
+        return name.startswith("feat_extractor.")
+
+    backbone_params = [p for n, p in model.named_parameters() if is_backbone_param(n) and p.requires_grad]
+
+    decoder_params = [p for n, p in model.named_parameters() if not is_backbone_param(n) and p.requires_grad]
+
+    backbone_lr = args.lr if not args.pretrained else args.lr * 0.1
+    decoder_lr = args.lr
 
     # Optimizer
     if args.optim == "adam":
         optimizer = torch.optim.Adam(
             [
-                {"params": backbone_params, "lr": 1e-5, "weight_decay": args.weight_decay or 1e-4},
-                {"params": decoder_params, "lr": args.lr, "weight_decay": args.weight_decay or 1e-4},
+                {"params": backbone_params, "lr": backbone_lr, "weight_decay": args.weight_decay or 1e-4},
+                {"params": decoder_params, "lr": decoder_lr, "weight_decay": args.weight_decay or 1e-4},
             ],
             lr=args.lr,
             betas=(0.9, 0.999),
@@ -498,8 +506,8 @@ def main(args):
     elif args.optim == "adamw":
         optimizer = torch.optim.AdamW(
             [
-                {"params": backbone_params, "lr": 1e-5, "weight_decay": args.weight_decay or 1e-4},
-                {"params": decoder_params, "lr": args.lr, "weight_decay": args.weight_decay or 1e-4},
+                {"params": backbone_params, "lr": backbone_lr, "weight_decay": args.weight_decay or 1e-4},
+                {"params": decoder_params, "lr": decoder_lr, "weight_decay": args.weight_decay or 1e-4},
             ],
             lr=args.lr,
             betas=(0.9, 0.999),
@@ -515,7 +523,7 @@ def main(args):
 
     # Scheduler
     total_steps = args.epochs * len(train_loader)
-    warmup_steps = min(1000, max(200, total_steps // 20))
+    warmup_steps = max(1, min(1000, int(0.05 * total_steps)))
 
     if args.sched == "cosine":
         warmup = LinearLR(
@@ -526,7 +534,7 @@ def main(args):
         )
         cosine = CosineAnnealingLR(
             optimizer,
-            T_max=total_steps - warmup_steps,
+            T_max=max(1, total_steps - warmup_steps),
             eta_min=args.lr * 0.01,
         )
         scheduler = SequentialLR(
@@ -749,7 +757,7 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=4e-4, help="learning rate for the optimizer (Adam or AdamW)")
+    parser.add_argument("--lr", type=float, default=1e-4, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--wd", "--weight-decay", default=1e-4, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
