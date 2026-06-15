@@ -300,7 +300,6 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">tempfile</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">textwrap</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
@@ -397,61 +396,62 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition, layout&quot;</span><span class="p">)</span>
 
     <span class="c1"># default readme</span>
-    <span class="n">readme</span> <span class="o">=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;&quot;&quot;---</span>
-<span class="s2">    language: en</span>
-<span class="s2">    tags:</span>
-<span class="s2">    - ocr</span>
-<span class="s2">    - pytorch</span>
-<span class="s2">    - doctr</span>
-<span class="s2">    - </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
-<span class="s2">    ---</span>
+    <span class="n">readme</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;---</span>
+<span class="s2">language: en</span>
+<span class="s2">tags:</span>
+<span class="s2">- ocr</span>
+<span class="s2">- pytorch</span>
+<span class="s2">- doctr</span>
+<span class="s2">- </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
+<span class="s2">---</span>
 
 
-<span class="s2">    &lt;p align=&quot;center&quot;&gt;</span>
-<span class="s2">    &lt;img src=&quot;https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&amp;src=0&quot; width=&quot;60%&quot;&gt;</span>
-<span class="s2">    &lt;/p&gt;</span>
+<span class="s2">&lt;p align=&quot;center&quot;&gt;</span>
+<span class="s2">&lt;img src=&quot;https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&amp;src=0&quot; width=&quot;60%&quot;&gt;</span>
+<span class="s2">&lt;/p&gt;</span>
 
-<span class="s2">    **Optical Character Recognition made seamless &amp; accessible to anyone, powered by PyTorch**</span>
+<span class="s2">**Optical Character Recognition made seamless &amp; accessible to anyone, powered by PyTorch**</span>
 
-<span class="s2">    ## Task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
+<span class="s2">## Task: </span><span class="si">{</span><span class="n">task</span><span class="si">}</span>
 
-<span class="s2">    https://github.com/mindee/doctr</span>
+<span class="s2">https://github.com/mindee/doctr</span>
 
-<span class="s2">    ### Example usage:</span>
+<span class="s2">### Example usage:</span>
 
-<span class="s2">    ```python</span>
-<span class="s2">    &gt;&gt;&gt; from doctr.io import DocumentFile</span>
-<span class="s2">    &gt;&gt;&gt; from doctr.models import ocr_predictor, from_hub</span>
+<span class="s2">```python</span>
+<span class="s2">&gt;&gt;&gt; from doctr.io import DocumentFile</span>
+<span class="s2">&gt;&gt;&gt; from doctr.models import ocr_predictor, from_hub</span>
 
-<span class="s2">    &gt;&gt;&gt; img = DocumentFile.from_images([&#39;&lt;image_path&gt;&#39;])</span>
-<span class="s2">    &gt;&gt;&gt; # Load your model from the hub</span>
-<span class="s2">    &gt;&gt;&gt; model = from_hub(&#39;mindee/my-model&#39;)</span>
+<span class="s2">&gt;&gt;&gt; img = DocumentFile.from_images([&#39;&lt;image_path&gt;&#39;])</span>
+<span class="s2">&gt;&gt;&gt; # Load your model from the hub</span>
+<span class="s2">&gt;&gt;&gt; model = from_hub(&#39;mindee/my-model&#39;)</span>
 
-<span class="s2">    &gt;&gt;&gt; # Pass it to the predictor</span>
-<span class="s2">    &gt;&gt;&gt; # If your model is a recognition model:</span>
-<span class="s2">    &gt;&gt;&gt; predictor = ocr_predictor(det_arch=&#39;db_mobilenet_v3_large&#39;,</span>
-<span class="s2">    &gt;&gt;&gt;                           reco_arch=model,</span>
-<span class="s2">    &gt;&gt;&gt;                           pretrained=True)</span>
+<span class="s2">&gt;&gt;&gt; # Pass it to the predictor</span>
+<span class="s2">&gt;&gt;&gt; # If your model is a recognition model:</span>
+<span class="s2">&gt;&gt;&gt; predictor = ocr_predictor(det_arch=&#39;db_mobilenet_v3_large&#39;,</span>
+<span class="s2">&gt;&gt;&gt;                           reco_arch=model,</span>
+<span class="s2">&gt;&gt;&gt;                           pretrained=True)</span>
 
-<span class="s2">    &gt;&gt;&gt; # If your model is a detection model:</span>
-<span class="s2">    &gt;&gt;&gt; predictor = ocr_predictor(det_arch=model,</span>
-<span class="s2">    &gt;&gt;&gt;                           reco_arch=&#39;crnn_mobilenet_v3_small&#39;,</span>
-<span class="s2">    &gt;&gt;&gt;                           pretrained=True)</span>
+<span class="s2">&gt;&gt;&gt; # If your model is a detection model:</span>
+<span class="s2">&gt;&gt;&gt; predictor = ocr_predictor(det_arch=model,</span>
+<span class="s2">&gt;&gt;&gt;                           reco_arch=&#39;crnn_mobilenet_v3_small&#39;,</span>
+<span class="s2">&gt;&gt;&gt;                           pretrained=True)</span>
 
-<span class="s2">    &gt;&gt;&gt; # Get your predictions</span>
-<span class="s2">    &gt;&gt;&gt; res = predictor(img)</span>
-<span class="s2">    ```</span>
-<span class="s2">    &quot;&quot;&quot;</span>
-    <span class="p">)</span>
+<span class="s2">&gt;&gt;&gt; # Get your predictions</span>
+<span class="s2">&gt;&gt;&gt; res = predictor(img)</span>
+<span class="s2">```</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
     <span class="c1"># add run configuration to readme if available</span>
     <span class="k">if</span> <span class="n">run_config</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">arch</span> <span class="o">=</span> <span class="n">run_config</span><span class="o">.</span><span class="n">arch</span>
-        <span class="n">readme</span> <span class="o">+=</span> <span class="n">textwrap</span><span class="o">.</span><span class="n">dedent</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;&quot;&quot;### Run Configuration</span>
-<span class="s2">                                  </span><span class="se">\n</span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span>
-        <span class="p">)</span>
+        <span class="n">readme</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">### Run Configuration</span>
+
+<span class="s2">```json</span>
+<span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">run_config</span><span class="p">),</span><span class="w"> </span><span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">ensure_ascii</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="si">}</span>
+<span class="s2">```</span>
+<span class="s2">&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AVAILABLE_ARCHS</span><span class="p">[</span><span class="n">task</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
