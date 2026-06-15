@@ -133,6 +133,21 @@ def test_resize():
         assert mask.shape == (64, 64)
         assert mask.dtype == torch.bool
 
+        # Test with included mask in input sample
+        input_t = Sample(
+            image=torch.ones((3, 32, 64), dtype=torch.float32),
+            mask=torch.zeros((32, 64), dtype=torch.bool),
+            target=target_boxes,
+        )
+        data = transfo(input_t)
+        out, mask, new_target = data.image, data.mask, data.target
+
+        assert out.shape[-2:] == (64, 64)
+        assert new_target.shape == target_boxes.shape
+        assert np.all((0 <= new_target) & (new_target <= 1))
+        assert mask.shape == (64, 64)
+        assert mask.dtype == torch.bool
+
     # Test with invalid target shape
     input_t = torch.ones((3, 32, 64), dtype=torch.float32)
     target = np.ones((2, 5))  # Invalid shape
@@ -312,6 +327,18 @@ def test_random_rotate():
     assert r_targets["boxes"].shape == (0, 4)
     assert r_targets["polygons"].shape == (0, 4, 2)
 
+    # Test with mask in input sample
+    input_m = torch.zeros((50, 50), dtype=torch.bool)
+    data = rotator(Sample(image=input_t, mask=input_m, target=boxes))
+    r_img, r_mask = data.image, data.mask
+    assert r_img.ndim == input_t.ndim
+    assert r_mask.ndim - 1 == input_m.ndim  # Mask should be 2D
+
+    # Test without target
+    data = rotator(Sample(image=input_t))
+    r_img = data.image
+    assert r_img.ndim == input_t.ndim
+
     # FP16 (only on GPU)
     if torch.cuda.is_available():
         input_t = torch.ones((3, 50, 50), dtype=torch.float16).cuda()
@@ -354,8 +381,8 @@ def test_crop_detection():
 @pytest.mark.parametrize(
     "target",
     [
-        np.array([[15, 20, 35, 30]]),  # box
-        np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]]),  # polygon
+        np.array([[15, 20, 35, 30]], dtype=np.float32),  # box
+        np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]], dtype=np.float32),  # polygon
     ],
 )
 def test_random_crop(target):
@@ -363,23 +390,28 @@ def test_random_crop(target):
     assert repr(cropper) == "RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))"
     input_t = torch.ones((3, 50, 50), dtype=torch.float32)
 
-    sample = cropper(Sample(image=input_t, target=target))
-    img, target = sample.image, sample.target
+    original_target = target.copy()
+
+    sample = cropper(Sample(image=input_t, target=original_target.copy()))
+    img, cropped_target = sample.image, sample.target
+
     # Check the scale
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     # Check aspect ratio
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
     # Check the target
-    assert np.all(target >= 0)
-    if target.ndim == 2:
-        assert np.all(target[:, [0, 2]] <= img.shape[-1]) and np.all(target[:, [1, 3]] <= img.shape[-2])
+    assert np.all(cropped_target >= 0)
+    if cropped_target.ndim == 2:
+        assert np.all(cropped_target[:, [0, 2]] <= img.shape[-1])
+        assert np.all(cropped_target[:, [1, 3]] <= img.shape[-2])
     else:
-        assert np.all(target[..., 0] <= img.shape[-1]) and np.all(target[..., 1] <= img.shape[-2])
+        assert np.all(cropped_target[..., 0] <= img.shape[-1])
+        assert np.all(cropped_target[..., 1] <= img.shape[-2])
 
     # Test dict targets
     dict_target = {
-        "boxes": np.array([[15, 20, 35, 30]]),
-        "polygons": np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]]),
+        "boxes": np.array([[15, 20, 35, 30]], dtype=np.float32),
+        "polygons": np.array([[[15, 20], [35, 20], [35, 30], [15, 30]]], dtype=np.float32),
     }
     sample = cropper(Sample(image=input_t, target=dict_target))
     img, cropped_targets = sample.image, sample.target
@@ -400,6 +432,22 @@ def test_random_crop(target):
     if len(cropped_targets["polygons"]) > 0:
         assert np.all(cropped_targets["polygons"][..., 0] <= img.shape[-1])
         assert np.all(cropped_targets["polygons"][..., 1] <= img.shape[-2])
+
+    # Test with mask in input sample
+    input_m = torch.ones((50, 50), dtype=torch.bool)
+    sample = cropper(Sample(image=input_t, mask=input_m, target=original_target.copy()))
+    img, mask, cropped_target = sample.image, sample.mask, sample.target
+
+    assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
+    assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
+    assert mask.shape == img.shape[-2:]
+    assert mask.dtype == torch.bool
+
+    # Test without target
+    sample = cropper(Sample(image=input_t))
+    img = sample.image
+    assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
+    assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
 
 
 @pytest.mark.parametrize(
@@ -450,6 +498,7 @@ def test_gaussian_noise(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.0)
+    assert repr(transform) == "GaussianNoise(mean=0.0, std=1.0)"
 
 
 @pytest.mark.parametrize(

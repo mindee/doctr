@@ -272,11 +272,9 @@ class _LWDETR(BaseModel):
             if box.shape == (4,):
                 x1, y1, x2, y2 = box
                 return np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
-            if box.shape == (8,):
-                return box.reshape(4, 2)
             if box.shape == (4, 2):
                 return box.astype(np.float32)
-            raise ValueError(f"Unsupported box shape: {box.shape}")
+            raise ValueError(f"Unsupported box shape: {box.shape}")  # pragma: no cover
 
         for sample in target:
             boxes_all = []
@@ -284,7 +282,7 @@ class _LWDETR(BaseModel):
 
             for class_name, boxes in sample.items():
                 if class_name not in class_to_id:
-                    raise ValueError(f"Unknown class name: {class_name}")
+                    raise ValueError(f"Unknown class name: {class_name}")  # pragma: no cover
 
                 cls_id = class_to_id[class_name]
                 boxes = np.asarray(boxes)

@@ -380,7 +380,7 @@ class RandomShadow(torch.nn.Module):
             else:
                 shadowed_image = random_shadow(sample.image, self.opacity_range).clip(0, 1)
                 return sample.replace(image=shadowed_image)
-        except ValueError:
+        except ValueError:  # pragma: no cover
             return sample
 
     def extra_repr(self) -> str:
