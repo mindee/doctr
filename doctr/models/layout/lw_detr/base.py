@@ -144,7 +144,7 @@ class LWDETRPostProcessor:
 
         for b in range(boxes.shape[0]):
             # Sigmoid scores (the model is trained with a sigmoid-based (IA-BCE) loss without
-            # a background class, as in LW-DETR)
+            # a background class)
             prob = 1.0 / (1.0 + np.exp(-logits[b]))  # (num_queries, num_classes)
             num_classes = prob.shape[-1]
 

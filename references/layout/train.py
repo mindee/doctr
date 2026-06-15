@@ -479,10 +479,6 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
-    def is_backbone_param(name: str) -> bool:
-        name = name.removeprefix("module.")
-        return name.startswith("feat_extractor.")
-
     param_groups = build_param_groups(
         model,
         lr=args.lr,
