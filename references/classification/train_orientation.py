@@ -78,7 +78,7 @@ def record_lr(
     loss_recorder = []
 
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     for batch_idx, (images, targets) in enumerate(train_loader):
         targets = torch.tensor(targets)
@@ -91,7 +91,7 @@ def record_lr(
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(images)
                 train_loss = cross_entropy(out, targets)
             scaler.scale(train_loss).backward()
@@ -122,7 +122,7 @@ def record_lr(
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None):
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     model.train()
     # Iterate over the batches of the dataset
@@ -138,7 +138,7 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
 
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(images)
                 train_loss = cross_entropy(out, targets)
             scaler.scale(train_loss).backward()
@@ -180,7 +180,7 @@ def evaluate(model, val_loader, batch_transforms, amp=False, log=None):
             targets = targets.cuda()
 
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(images)
                 loss = cross_entropy(out, targets)
         else:

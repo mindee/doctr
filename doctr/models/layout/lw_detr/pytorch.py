@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 import torch
+from scipy.optimize import linear_sum_assignment
 from torch import nn
 from torch.nn import functional as F
 
@@ -17,7 +18,12 @@ from doctr.models.classification import vit_det_m, vit_det_s
 
 from ...utils import load_pretrained_params
 from .base import _LWDETR, LWDETRPostProcessor
-from .layers import LWDETRDecoder, LWDETRHead, LWDETRMultiscaleDeformableAttention, MultiScaleProjector
+from .layers import (
+    LWDETRDecoder,
+    LWDETRHead,
+    MultiScaleProjector,
+    refine_obb_boxes,
+)
 
 __all__ = ["LWDETR", "lw_detr_s", "lw_detr_m"]
 
@@ -68,6 +74,82 @@ default_cfgs: dict[str, dict[str, Any]] = {
 }
 
 
+def _obb_covariance_components(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Compute the components (a, b, c) of the Gaussian covariance matrix [[a, c], [c, b]] associated with
+    oriented boxes in (cx, cy, w, h, sinθ, cosθ) format, following ProbIoU (https://arxiv.org/abs/2106.06072).
+
+    Args:
+        boxes: (..., 6) tensor of oriented boxes
+
+    Returns:
+        a, b, c: (...,) tensors of covariance components
+    """
+    w = boxes[..., 2].clamp(min=1e-6)
+    h = boxes[..., 3].clamp(min=1e-6)
+    rot = F.normalize(boxes[..., 4:6], dim=-1, eps=1e-6)
+    sin, cos = rot[..., 0], rot[..., 1]
+
+    var_w = w.pow(2) / 12.0
+    var_h = h.pow(2) / 12.0
+    cos2 = cos.pow(2)
+    sin2 = sin.pow(2)
+
+    a = var_w * cos2 + var_h * sin2
+    b = var_w * sin2 + var_h * cos2
+    c = (var_w - var_h) * cos * sin
+    return a, b, c
+
+
+def _probiou(
+    boxes1: torch.Tensor,
+    boxes2: torch.Tensor,
+    pairwise: bool = False,
+    scale: float = 1.0,
+    eps: float = 1e-7,
+) -> torch.Tensor:
+    """Compute the probabilistic IoU between oriented boxes in (cx, cy, w, h, sinθ, cosθ) format,
+    as described in `"Gaussian Bounding Boxes and Probabilistic IoU" <https://arxiv.org/abs/2106.06072>`_.
+
+    Args:
+        boxes1: (N, 6) tensor of oriented boxes
+        boxes2: (M, 6) tensor of oriented boxes (M = N if `pairwise` is False)
+        pairwise: if True, return the (N, M) matrix of IoUs, otherwise the element-wise (N,) IoUs
+        scale: factor applied to the spatial components (cx, cy, w, h) before computing the IoU.
+            ProbIoU is mathematically scale-invariant, but the stabilizing `eps` terms are not: in
+            normalized [0, 1] coordinates the covariance terms of small boxes (e.g. checkboxes) fall
+            below `eps` and the result degenerates (non-overlapping small boxes can score ~1).
+        eps: small value for numerical stability
+
+    Returns:
+        probiou: (N,) or (N, M) tensor of IoU-like similarities in [0, 1]
+    """
+    if scale != 1.0:
+        boxes1 = torch.cat([boxes1[..., :4] * scale, boxes1[..., 4:]], dim=-1)
+        boxes2 = torch.cat([boxes2[..., :4] * scale, boxes2[..., 4:]], dim=-1)
+
+    x1, y1 = boxes1[..., 0], boxes1[..., 1]
+    x2, y2 = boxes2[..., 0], boxes2[..., 1]
+    a1, b1, c1 = _obb_covariance_components(boxes1)
+    a2, b2, c2 = _obb_covariance_components(boxes2)
+
+    if pairwise:
+        x1, y1, a1, b1, c1 = (t.unsqueeze(-1) for t in (x1, y1, a1, b1, c1))  # (N, 1)
+        x2, y2, a2, b2, c2 = (t.unsqueeze(-2) for t in (x2, y2, a2, b2, c2))  # (1, M)
+
+    denom = (a1 + a2) * (b1 + b2) - (c1 + c2).pow(2) + eps
+    t1 = ((a1 + a2) * (y1 - y2).pow(2) + (b1 + b2) * (x1 - x2).pow(2)) / denom * 0.25
+    t2 = ((c1 + c2) * (x2 - x1) * (y1 - y2)) / denom * 0.5
+    t3 = (
+        ((a1 + a2) * (b1 + b2) - (c1 + c2).pow(2)).clamp(min=eps)
+        / (4 * ((a1 * b1 - c1.pow(2)).clamp(min=eps) * (a2 * b2 - c2.pow(2)).clamp(min=eps)).sqrt() + eps)
+        + eps
+    ).log() * 0.5
+
+    bhattacharyya = (t1 + t2 + t3).clamp(min=eps, max=100.0)
+    hellinger = (1.0 - (-bhattacharyya).exp() + eps).sqrt()
+    return 1.0 - hellinger
+
+
 class LWDETRBackbone(nn.Module):
     """Backbone of LW-DETR, based on a ViT Det architecture. The backbone is used as feature extractor.
 
@@ -102,6 +184,45 @@ class LWDETRBackbone(nn.Module):
             num_blocks=num_blocks,
         )
 
+    def _resize_padding_mask(self, mask: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
+        """Resize padding mask to feature-map size
+
+        Args:
+            mask: a binary mask of shape [batch_size x H x W], containing 1 on padded pixels
+            size: the target size (H', W') for the resized mask
+
+        Returns:
+            resized_mask: a binary mask of shape [batch_size x H' x W'], containing 1 on padded pixels
+        """
+        if mask.dtype != torch.bool:
+            mask = mask.bool()
+
+        valid = (~mask).float().unsqueeze(1)  # True/1 = valid pixels
+
+        # Data-dependent sanity checks
+        if self.training:  # pragma: no cover
+            if (valid.flatten(1).sum(dim=1) == 0).any():
+                bad = torch.where(valid.flatten(1).sum(dim=1) == 0)[0].tolist()
+                raise RuntimeError(f"Input masks are fully padded before resizing: {bad}")
+
+        # Use max pooling to resize the valid mask:
+        # a pixel in the resized mask is valid if at least one pixel
+        # in the corresponding window in the input mask is valid
+        h_in, w_in = int(mask.shape[-2]), int(mask.shape[-1])
+        h_out, w_out = int(size[0]), int(size[1])
+        kh, kw = h_in // h_out, w_in // w_out
+        valid_resized = F.max_pool2d(valid, kernel_size=(kh, kw), stride=(kh, kw)) > 0
+
+        resized_mask = ~valid_resized.squeeze(1)
+
+        # Data-dependent sanity checks
+        if self.training:  # pragma: no cover
+            if resized_mask.flatten(1).all(dim=1).any():
+                bad = torch.where(resized_mask.flatten(1).all(dim=1))[0].tolist()
+                raise RuntimeError(f"Feature masks became fully padded after resizing: {bad}")
+
+        return resized_mask
+
     def forward(self, x: torch.Tensor, mask: torch.Tensor | None = None) -> list[tuple[torch.Tensor, torch.Tensor]]:
         """Forward pass of the backbone.
 
@@ -120,10 +241,7 @@ class LWDETRBackbone(nn.Module):
         # [(B, C, H, W)]
         if mask is None:  # pragma: no cover
             mask = torch.zeros((x.shape[0], x.shape[2], x.shape[3]), dtype=torch.bool, device=x.device)
-        return [
-            (feat, F.interpolate(mask.unsqueeze(1).float(), size=feat.shape[-2:], mode="nearest").squeeze(1).bool())
-            for feat in feats
-        ]
+        return [(feat, self._resize_padding_mask(mask, feat.shape[2:])) for feat in feats]
 
 
 class LWDETR(nn.Module, _LWDETR):
@@ -153,11 +271,11 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         feat_extractor: LWDETRBackbone,
         class_names: list[str],
-        score_thresh: float = 0.3,
+        score_thresh: float = 0.25,
         iou_thresh: float = 0.5,
         d_model: int = 256,
-        num_queries: int = 130,
-        group_detr: int = 1,
+        num_queries: int = 195,
+        group_detr: int = 13,
         dec_layers: int = 3,
         sa_num_heads: int = 8,
         ca_num_heads: int = 16,
@@ -171,7 +289,8 @@ class LWDETR(nn.Module, _LWDETR):
         super().__init__()
 
         self.class_names: list[str] = class_names
-        self.num_classes = len(self.class_names) + 1  # +1 for background class
+        # No background class: the model is trained with a sigmoid-based (IA-BCE) loss
+        self.num_classes = len(self.class_names)
         self.cfg = cfg
         self.exportable = exportable
         self.assume_straight_pages = assume_straight_pages
@@ -183,10 +302,6 @@ class LWDETR(nn.Module, _LWDETR):
         self.d_model = d_model
 
         self.reference_point_embed = nn.Embedding(self.num_queries * self.group_detr, 6)
-        # Initialize angle to (sin=0, cos=1)
-        with torch.no_grad():
-            self.reference_point_embed.weight[:, 4] = 0.0  # sinθ
-            self.reference_point_embed.weight[:, 5] = 1.0  # cosθ
 
         self.query_feat = nn.Embedding(self.num_queries * self.group_detr, self.d_model)
 
@@ -242,44 +357,25 @@ class LWDETR(nn.Module, _LWDETR):
                     nn.init.zeros_(m.bias)
             elif isinstance(m, nn.Embedding):
                 nn.init.normal_(m.weight, std=0.02)
-            elif isinstance(m, LWDETRMultiscaleDeformableAttention):
-                nn.init.constant_(m.sampling_offsets.weight, 0.0)
-
-                thetas = torch.arange(m.n_heads, dtype=torch.float32) * (2.0 * math.pi / m.n_heads)
-                grid_init = torch.stack([thetas.cos(), thetas.sin()], -1)
-                grid_init = (
-                    (grid_init / grid_init.abs().max(-1, keepdim=True)[0])
-                    .view(m.n_heads, 1, 1, 2)
-                    .repeat(1, m.n_levels, m.n_points, 1)
-                )
-
-                for i in range(m.n_points):
-                    grid_init[:, :, i, :] *= i + 1
-
-                with torch.no_grad():
-                    m.sampling_offsets.bias.copy_(grid_init.view(-1))
-
-                nn.init.constant_(m.attention_weights.weight, 0.0)
-                nn.init.constant_(m.attention_weights.bias, 0.0)
-
-                nn.init.xavier_uniform_(m.value_proj.weight)
-                nn.init.zeros_(m.value_proj.bias)
-
-                nn.init.xavier_uniform_(m.output_proj.weight)
-                nn.init.zeros_(m.output_proj.bias)
 
             if isinstance(m, nn.Linear) and m.out_features == self.num_classes:
                 prior_prob = 0.01
                 bias_value = -math.log((1 - prior_prob) / prior_prob)
                 if m.bias is not None:
                     nn.init.constant_(m.bias, bias_value)
-            if isinstance(m, LWDETRHead):
-                last = m.layers[-1]
-                if isinstance(last, nn.Linear):
-                    nn.init.zeros_(last.weight)
-                    nn.init.zeros_(last.bias)
-                    if last.bias.shape[0] == 6:
-                        nn.init.constant_(last.bias[5], 1.0)
+
+        # Initialize the iterative refinement heads to predict zero deltas (i.e. identity refinement)
+        # at the start of training, to stabilize training in the early stages when the encoder proposals are still noisy
+        with torch.no_grad():
+            for head in [self.bbox_embed, *self.enc_out_bbox_embed]:
+                last = head.layers[-1]
+                last.weight.zero_()
+                last.bias.zero_()
+                last.bias[5] = 1.0  # cosθ of the rotation delta -> identity rotation
+
+            # The reference point embedding acts as a learned delta composed with the encoder proposals
+            self.reference_point_embed.weight.zero_()
+            self.reference_point_embed.weight[:, 5] = 1.0  # cosθ
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
         """Load pretrained parameters onto the model
@@ -289,62 +385,6 @@ class LWDETR(nn.Module, _LWDETR):
             **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`
         """
         load_pretrained_params(self, path_or_url, **kwargs)
-
-    def refine_bboxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
-        """Refine bounding boxes by applying the predicted deltas to the reference points.
-        The reference points are in the format (cx, cy, w, h, sinθ, cosθ), and the deltas are in the same format.
-        The refined boxes are computed as follows:
-
-        cx' = cx + delta_cx * w
-        cy' = cy + delta_cy * h
-        w' = w * exp(delta_w)
-        h' = h * exp(delta_h)
-        sinθ' = sinθ * cosΔ + cosθ * sinΔ
-        cosθ' = cosθ * cosΔ - sinθ * sinΔ
-
-        Args:
-            reference_points: (N, S, 6) tensor containing the reference points
-            deltas: (N, S, 6) tensor containing the predicted deltas
-
-        Returns:
-            refined_boxes: (N, S, 6) tensor containing the refined bounding boxes
-        """
-        reference_points = reference_points.to(deltas.device)
-        # center
-        cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
-        # size
-        wh = torch.clamp(deltas[..., 2:4], min=-4.0, max=2.0).exp() * reference_points[..., 2:4]
-        # rotation
-        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
-        sin_delta = delta_rot[..., 0:1]
-        cos_delta = delta_rot[..., 1:2]
-        sin_ref = reference_points[..., 4:5]
-        cos_ref = reference_points[..., 5:6]
-
-        # compose rotations
-        sin_new = sin_ref * cos_delta + cos_ref * sin_delta
-        cos_new = cos_ref * cos_delta - sin_ref * sin_delta
-        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
-
-        return torch.cat((cxcy, wh, rot), dim=-1)
-
-    def get_valid_ratio(self, mask: torch.Tensor, dtype: torch.dtype = torch.float32) -> torch.Tensor:
-        """Get the valid ratio of all feature maps.
-
-        Args:
-            mask: (N, H, W) binary tensor containing 1 on padded pixels
-            dtype: the desired data type of the output tensor
-
-        Returns:
-            valid_ratio: (N, 2) tensor containing the valid ratio of width and height for each image in the batch
-        """
-        _, height, width = mask.shape
-        valid_height = torch.sum(~mask[:, :, 0], 1)
-        valid_width = torch.sum(~mask[:, 0, :], 1)
-        valid_ratio_height = valid_height.to(dtype) / height
-        valid_ratio_width = valid_width.to(dtype) / width
-        valid_ratio = torch.stack([valid_ratio_width, valid_ratio_height], -1)
-        return valid_ratio
 
     def gen_encoder_output_proposals(
         self, enc_output: torch.Tensor, padding_mask: torch.Tensor, spatial_shapes: list[tuple[int, int]]
@@ -367,56 +407,48 @@ class LWDETR(nn.Module, _LWDETR):
         batch_size = enc_output.shape[0]
         proposals = []
         _cur = 0
-        for level, (height, width) in enumerate(spatial_shapes):
-            mask_flatten_ = padding_mask[:, _cur : (_cur + height * width)].view(batch_size, height, width, 1)
-            valid_height = torch.sum(~mask_flatten_[:, :, 0, 0], 1)
-            valid_width = torch.sum(~mask_flatten_[:, 0, :, 0], 1)
 
+        for level, (height, width) in enumerate(spatial_shapes):
             grid_y, grid_x = torch.meshgrid(
-                torch.linspace(
-                    0,
-                    height - 1,
-                    height,
-                    dtype=enc_output.dtype,
-                    device=enc_output.device,
-                ),
-                torch.linspace(
-                    0,
-                    width - 1,
-                    width,
-                    dtype=enc_output.dtype,
-                    device=enc_output.device,
-                ),
+                torch.arange(height, dtype=enc_output.dtype, device=enc_output.device),
+                torch.arange(width, dtype=enc_output.dtype, device=enc_output.device),
                 indexing="ij",
             )
-            grid = torch.cat([grid_x.unsqueeze(-1), grid_y.unsqueeze(-1)], -1)
 
-            scale = torch.cat([valid_width.unsqueeze(-1), valid_height.unsqueeze(-1)], 1).view(batch_size, 1, 1, 2)
-            grid = (grid.unsqueeze(0).expand(batch_size, -1, -1, -1) + 0.5) / scale
+            grid = torch.stack([grid_x, grid_y], dim=-1)
+            grid = grid.unsqueeze(0).expand(batch_size, -1, -1, -1)
+
+            scale = torch.tensor(
+                [width, height],
+                dtype=enc_output.dtype,
+                device=enc_output.device,
+            ).view(1, 1, 1, 2)
+
+            # Canvas-normalized center coordinates
+            grid = (grid + 0.5) / scale
             width_height = torch.ones_like(grid) * 0.05 * (2.0**level)
-            # add default rotation (sin=0, cos=1)
             sin = torch.zeros_like(grid[..., :1])
             cos = torch.ones_like(grid[..., :1])
-            proposal = torch.cat((grid, width_height, sin, cos), -1).view(batch_size, -1, 6)
+            proposal = torch.cat((grid, width_height, sin, cos), dim=-1).view(batch_size, -1, 6)
             proposals.append(proposal)
             _cur += height * width
-        output_proposals = torch.cat(proposals, 1)
 
-        spatial_valid = ((output_proposals[..., :4] > 0.01) & (output_proposals[..., :4] < 0.99)).all(-1, keepdim=True)
-        output_proposals_valid = spatial_valid
-        invalid_mask = padding_mask | ~output_proposals_valid.squeeze(-1)
-        invalid_mask = padding_mask.unsqueeze(-1) | ~output_proposals_valid
-        output_proposals = output_proposals.masked_fill(invalid_mask, float(0))
+        output_proposals = torch.cat(proposals, dim=1)
 
-        # assign each pixel as an object query
-        object_query = enc_output
-        object_query = object_query.masked_fill(invalid_mask, float(0))
+        spatial_valid = ((output_proposals[..., :4] > 0.01) & (output_proposals[..., :4] < 0.99)).all(
+            dim=-1, keepdim=True
+        )
+        invalid_mask = padding_mask.unsqueeze(-1) | ~spatial_valid
+
+        output_proposals = output_proposals.masked_fill(invalid_mask, 0.0)
+        object_query = enc_output.masked_fill(invalid_mask, 0.0)
+
         return object_query, output_proposals, invalid_mask
 
     def forward(
         self,
         input: torch.Tensor,
-        masks: torch.Tensor,
+        masks: torch.Tensor | None = None,
         target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
@@ -455,7 +487,6 @@ class LWDETR(nn.Module, _LWDETR):
             mask_flatten_list.append(mask)
         source_flatten = torch.cat(source_flatten_list, 1)
         mask_flatten = torch.cat(mask_flatten_list, 1)
-        valid_ratios = torch.stack([self.get_valid_ratio(m, dtype=source_flatten.dtype) for m in feats_masks], 1)
 
         tgt = query_feat.unsqueeze(0).expand(batch_size, -1, -1)
         reference_points = reference_points.unsqueeze(0).expand(batch_size, -1, -1)
@@ -469,7 +500,7 @@ class LWDETR(nn.Module, _LWDETR):
 
         topk_coords_logits_list: list[torch.Tensor] = []
 
-        # encoder predictions for auxiliary losses
+        # encoder predictions on the selected top-k proposals, kept undetached for the auxiliary loss
         all_group_enc_logits: list[torch.Tensor] = []
         all_group_enc_coords: list[torch.Tensor] = []
 
@@ -478,14 +509,11 @@ class LWDETR(nn.Module, _LWDETR):
             group_object_query = self.enc_output_norm[group_id](group_object_query)
 
             group_enc_outputs_class = self.enc_out_class_embed[group_id](group_object_query)
-            all_group_enc_logits.append(group_enc_outputs_class)
 
             group_enc_outputs_class_masked = group_enc_outputs_class.masked_fill(invalid_mask, float("-inf"))
 
             group_delta_bbox = self.enc_out_bbox_embed[group_id](group_object_query)
-            group_enc_outputs_coord = self.refine_bboxes(output_proposals, group_delta_bbox)
-
-            all_group_enc_coords.append(group_enc_outputs_coord)
+            group_enc_outputs_coord = refine_obb_boxes(output_proposals, group_delta_bbox)
 
             group_topk_proposals = torch.topk(group_enc_outputs_class_masked.max(-1)[0], topk, dim=1)[1]
 
@@ -494,23 +522,33 @@ class LWDETR(nn.Module, _LWDETR):
                 1,
                 group_topk_proposals.unsqueeze(-1).repeat(1, 1, 6),
             )
-            group_topk_coords_logits = group_topk_coords_logits_undetach
-            topk_coords_logits_list.append(group_topk_coords_logits)
+            # the auxiliary loss supervises only the selected proposals,
+            # so gather the matching class logits as well
+            group_topk_logits_undetach = torch.gather(
+                group_enc_outputs_class,
+                1,
+                group_topk_proposals.unsqueeze(-1).repeat(1, 1, self.num_classes),
+            )
+            all_group_enc_logits.append(group_topk_logits_undetach)
+            all_group_enc_coords.append(group_topk_coords_logits_undetach)
+
+            # the decoder consumes detached proposals as initial reference points
+            topk_coords_logits_list.append(group_topk_coords_logits_undetach.detach())
 
         topk_coords_logits = torch.cat(topk_coords_logits_list, 1)
-        reference_points = self.refine_bboxes(topk_coords_logits, reference_points)
+        reference_points = refine_obb_boxes(topk_coords_logits, reference_points)
 
         last_hidden_states, intermediate, intermediate_reference_points = self.decoder(
             inputs_embeds=tgt,
             reference_points=reference_points,
             spatial_shapes_list=spatial_shapes_list,
-            valid_ratios=valid_ratios,
             encoder_hidden_states=source_flatten,
+            encoder_attention_mask=mask_flatten,
         )
 
         logits = self.class_embed(last_hidden_states)
         pred_boxes_delta = self.bbox_embed(last_hidden_states)
-        pred_boxes = self.refine_bboxes(intermediate_reference_points[-1], pred_boxes_delta)
+        pred_boxes = refine_obb_boxes(intermediate_reference_points[-1], pred_boxes_delta)
 
         out: dict[str, Any] = {}
 
@@ -534,223 +572,163 @@ class LWDETR(nn.Module, _LWDETR):
             # Build target
             processed_targets = self.build_target(target, self.class_names)
 
-            # Main loss from final decoder layer (group DETR)
+            # ProbIoU is computed in pixel coordinates
+            box_scale = float(max(input.shape[-2], input.shape[-1]))
+
+            # Main loss from final decoder layer (group DETR: each group is matched independently)
             split_logits = logits.chunk(group_detr, dim=1)
             split_boxes = pred_boxes.chunk(group_detr, dim=1)
 
             main_loss: float | torch.Tensor = 0.0
             for g_logits, g_boxes in zip(split_logits, split_boxes):
-                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
+                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
             loss = main_loss / group_detr
 
             # Auxiliary losses from intermediate decoder layers
+            # (`intermediate_reference_points[i]` is the reference INPUT to decoder layer i)
             for i in range(intermediate.shape[0] - 1):
                 aux_logits = self.class_embed(intermediate[i])
                 aux_boxes_delta = self.bbox_embed(intermediate[i])
-                aux_boxes = self.refine_bboxes(intermediate_reference_points[i], aux_boxes_delta)
+                aux_boxes = refine_obb_boxes(intermediate_reference_points[i], aux_boxes_delta)
 
                 split_aux_logits = aux_logits.chunk(group_detr, dim=1)
                 split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
 
                 aux_loss: float | torch.Tensor = 0.0
                 for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
-                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets)
-                loss += 0.5 * (aux_loss / group_detr)
+                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
+                loss += aux_loss / group_detr
 
-            # Auxiliary losses for encoder proposals
+            # Auxiliary losses for the selected encoder proposals
             enc_loss: float | torch.Tensor = 0.0
             for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
-                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets)
-            loss += 0.1 * (enc_loss / group_detr)
+                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets, box_scale=box_scale)
+            loss += enc_loss / group_detr
 
             out["loss"] = loss
 
         return out
 
     def compute_loss(
-        self, logits: torch.Tensor, pred_boxes: torch.Tensor, targets: list[dict[str, np.ndarray]]
+        self,
+        logits: torch.Tensor,
+        pred_boxes: torch.Tensor,
+        targets: list[dict[str, np.ndarray]],
+        cls_loss_weight: float = 1.0,
+        l1_loss_weight: float = 5.0,
+        iou_loss_weight: float = 2.0,
+        box_scale: float = 1024.0,
     ) -> torch.Tensor:
-        """
-        Compute the loss for LW-DETR. The loss consists of three components:
-        classification loss, box regression loss, and rotation loss.
-        The classification loss is a cross-entropy loss between the predicted class logits and the target classes.
-        The box regression loss is a Smooth L1 loss between the predicted boxes and the target boxes,
-            computed only on the positive samples.
-        The rotation loss is computed as 1 - cosine similarity between the predicted rotation and the target rotation,
-            averaged over the positive samples.
-        The positive samples are determined using a SimOTA-like assignment strategy, where for each ground truth box,
-            we select the top-k queries with the lowest cost
-            (combination of classification cost, box regression cost, and rotation cost).
+        """Compute the LW-DETR loss for oriented bounding boxes.
+
+        Predictions are matched one-to-one to the ground truth boxes with Hungarian matching,
+        using a cost combining a focal-style classification cost, an L1 box cost
+        and a (negated) ProbIoU cost. The loss then consists of:
+
+        - an IoU-aware binary cross-entropy (IA-BCE) classification loss, as described in the LW-DETR paper,
+          where the target of a matched (query, class) pair is `p**alpha * IoU**(1 - alpha)` and the rotated
+          ProbIoU is used as IoU measure
+        - an L1 regression loss on the normalized (cx, cy, w, h) of the matched pairs
+        - a ProbIoU loss (1 - ProbIoU) on the matched oriented boxes, computed in absolute pixel
+          coordinates (as in O2-RT-DETR). The box rotation is supervised solely through this term:
+          ProbIoU is differentiable w.r.t. the angle even for non-overlapping boxes.
+
+        All terms are normalized by the number of ground truth boxes in the batch.
 
         Args:
             logits: (B, Q, C) tensor containing the predicted class logits for each query
-            pred_boxes: (B, Q, 6) tensor containing the predicted boxes for each query
-            targets: list of dictionaries where each dictionary corresponds to a sample and has keys corresponding
-                to class names and values corresponding to lists of boxes in either polygon format (4, 2)
-                or bounding box format (4,) (xmin, ymin, xmax, ymax)
+            pred_boxes: (B, Q, 6) tensor containing the predicted boxes (cx, cy, w, h, sinθ, cosθ) for each query
+            targets: list of B dictionaries with keys "boxes" ((N, 6) array in OBB format)
+                and "labels" ((N,) array of class indices)
+            cls_loss_weight: weight of the classification loss
+            l1_loss_weight: weight of the L1 box regression loss
+            iou_loss_weight: weight of the ProbIoU loss
+            box_scale: image size used to rescale normalized boxes to pixel coordinates for ProbIoU computation
 
         Returns:
             loss: the computed loss value
         """
-
-        def rotated_boxes_to_gaussian(boxes: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
-            """
-            Convert rotated boxes in (cx, cy, w, h, sinθ, cosθ) format to Gaussian distribution parameters
-            (mean and covariance).
-            """
-            cxcy = boxes[..., :2]
-
-            w = boxes[..., 2].clamp(min=1e-6)
-            h = boxes[..., 3].clamp(min=1e-6)
-
-            sin = boxes[..., 4]
-            cos = boxes[..., 5]
-
-            R = torch.stack(
-                [
-                    torch.stack([cos, -sin], dim=-1),
-                    torch.stack([sin, cos], dim=-1),
-                ],
-                dim=-2,
-            )
-
-            sx = (w / 2) ** 2
-            sy = (h / 2) ** 2
-
-            S = torch.zeros((*boxes.shape[:-1], 2, 2), device=boxes.device)
-
-            S[..., 0, 0] = sx
-            S[..., 1, 1] = sy
-
-            covariance = R @ S @ R.transpose(-1, -2)
-            return cxcy, covariance
-
-        def _probiou_loss(pred_boxes: torch.Tensor, tgt_boxes: torch.Tensor) -> torch.Tensor:
-            """Compute the ProbIoU loss between predicted boxes and target boxes."""
-            mu1, sigma1 = rotated_boxes_to_gaussian(pred_boxes)
-            mu2, sigma2 = rotated_boxes_to_gaussian(tgt_boxes)
-
-            delta = (mu1 - mu2).unsqueeze(-1)
-            sigma = (sigma1 + sigma2) * 0.5
-
-            eps = 1e-6
-            eye = torch.eye(2, device=sigma.device) * eps
-            sigma_safe = sigma + eye
-            sigma1_safe = sigma1 + eye
-            sigma2_safe = sigma2 + eye
-
-            sigma_inv = torch.linalg.inv(sigma_safe)
-
-            mahalanobis = (delta.transpose(-1, -2) @ sigma_inv @ delta).squeeze(-1).squeeze(-1)
-
-            det_sigma = torch.linalg.det(sigma_safe).clamp(min=eps)
-            det_sigma1 = torch.linalg.det(sigma1_safe).clamp(min=eps)
-            det_sigma2 = torch.linalg.det(sigma2_safe).clamp(min=eps)
-
-            bhattacharyya = 0.125 * mahalanobis + 0.5 * torch.log(det_sigma / torch.sqrt(det_sigma1 * det_sigma2))
-
-            probiou = torch.exp(-bhattacharyya)
-            return 1 - probiou
-
+        alpha, gamma, eps = 0.25, 2.0, 1e-8
         device = logits.device
-        B, Q, C = logits.shape
+        batch_size = logits.shape[0]
 
-        total_cls = torch.tensor(0.0, device=device)
-        total_box = torch.tensor(0.0, device=device)
-        total_rot = torch.tensor(0.0, device=device)
-
-        for b in range(B):
-            pred_logits = logits[b]
-            pred_boxes_b = pred_boxes[b]
-
-            tgt_boxes = torch.as_tensor(
-                targets[b]["boxes"],
-                device=device,
-                dtype=pred_boxes.dtype,
+        tgt_boxes_list: list[torch.Tensor] = []
+        tgt_labels_list: list[torch.Tensor] = []
+        for sample in targets:
+            tgt_boxes_list.append(
+                torch.as_tensor(sample["boxes"], device=device, dtype=pred_boxes.dtype).reshape(-1, 6)
             )
-            tgt_cls = torch.as_tensor(
-                targets[b]["labels"],
-                device=device,
-                dtype=torch.long,
-            )
+            tgt_labels_list.append(torch.as_tensor(sample["labels"], device=device, dtype=torch.long).reshape(-1))
 
-            num_gt = len(tgt_cls)
+        # Number of target boxes in the batch, for loss normalization
+        num_boxes = max(sum(int(labels.numel()) for labels in tgt_labels_list), 1)
 
-            pred_rot = F.normalize(pred_boxes_b[:, 4:6], dim=-1)
-            tgt_rot = F.normalize(tgt_boxes[:, 4:6], dim=-1)
+        # Hungarian matching (one-to-one), performed independently for each sample
+        indices: list[tuple[torch.Tensor, torch.Tensor]] = []
+        with torch.no_grad():
+            prob = logits.sigmoid()
+            for b in range(batch_size):
+                tgt_boxes, tgt_labels = tgt_boxes_list[b], tgt_labels_list[b]
+                if tgt_labels.numel() == 0:
+                    empty = torch.empty(0, dtype=torch.long, device=device)
+                    indices.append((empty, empty))
+                    continue
 
+                out_prob = prob[b]
+                out_boxes = pred_boxes[b]
+
+                # Focal-style classification cost
+                neg_cost = (1 - alpha) * out_prob.pow(gamma) * (-(1 - out_prob + eps).log())
+                pos_cost = alpha * (1 - out_prob).pow(gamma) * (-(out_prob + eps).log())
+                cost_class = pos_cost[:, tgt_labels] - neg_cost[:, tgt_labels]
+
+                # L1 cost on normalized (cx, cy, w, h)
+                cost_bbox = torch.cdist(out_boxes[:, :4], tgt_boxes[:, :4], p=1)
+
+                # Rotated IoU cost, computed in pixel coordinates
+                # this term also carries the angle signal for the matching
+                cost_iou = -_probiou(out_boxes, tgt_boxes, pairwise=True, scale=box_scale)
+
+                cost = 2.0 * cost_class + 5.0 * cost_bbox + 2.0 * cost_iou
+
+                query_idx, tgt_idx = linear_sum_assignment(cost.cpu().numpy())
+                indices.append((
+                    torch.as_tensor(query_idx, dtype=torch.long, device=device),
+                    torch.as_tensor(tgt_idx, dtype=torch.long, device=device),
+                ))
+
+        # Flatten the matched pairs across the batch
+        batch_idx = torch.cat([torch.full_like(src, b) for b, (src, _) in enumerate(indices)])
+        query_idx = torch.cat([src for (src, _) in indices])
+        matched_tgt_boxes = torch.cat([tgt_boxes_list[b][tgt] for b, (_, tgt) in enumerate(indices)])
+        matched_tgt_labels = torch.cat([tgt_labels_list[b][tgt] for b, (_, tgt) in enumerate(indices)])
+        matched_pred_boxes = pred_boxes[batch_idx, query_idx]
+
+        prob = logits.sigmoid()
+
+        # IoU-aware BCE classification loss (IA-BCE)
+        pos_weights = torch.zeros_like(logits)
+        neg_weights = prob.pow(gamma)
+        if len(batch_idx) > 0:
             with torch.no_grad():
-                cls_prob = pred_logits.sigmoid()
-                alpha = 0.25
-                gamma = 2.0
+                ious = _probiou(matched_pred_boxes, matched_tgt_boxes, scale=box_scale).clamp(min=0.0, max=1.0)
+                t = prob[batch_idx, query_idx, matched_tgt_labels].pow(alpha) * ious.pow(1 - alpha)
+                t = t.clamp(min=0.01)
+            pos_weights[batch_idx, query_idx, matched_tgt_labels] = t
+            neg_weights[batch_idx, query_idx, matched_tgt_labels] = 1 - t
 
-                neg_cost = (1 - alpha) * (cls_prob**gamma) * (-(1 - cls_prob + 1e-8).log())
+        cls_loss = -(pos_weights * (prob + eps).log() + neg_weights * (1 - prob + eps).log())
+        loss = cls_loss_weight * cls_loss.sum() / num_boxes
 
-                pos_cost = alpha * ((1 - cls_prob) ** gamma) * (-(cls_prob + 1e-8).log())
+        if len(batch_idx) == 0:
+            return loss
 
-                cost_cls = pos_cost[:, tgt_cls] - neg_cost[:, tgt_cls]
-                cost_l1 = torch.cdist(
-                    pred_boxes_b[:, :4],
-                    tgt_boxes[:, :4],
-                    p=1,
-                )
-                cost_rot = 1 - (pred_rot @ tgt_rot.T).abs()
-                total_cost = 5.0 * cost_cls + 2.0 * cost_l1 + 1.0 * cost_rot
-                matching_matrix = torch.zeros(
-                    (Q, num_gt),
-                    dtype=torch.bool,
-                    device=device,
-                )
+        # L1 loss on normalized (cx, cy, w, h)
+        l1_loss = F.l1_loss(matched_pred_boxes[:, :4], matched_tgt_boxes[:, :4], reduction="sum") / num_boxes
+        # ProbIoU loss on the whole oriented box (position, size and rotation), in pixel coordinates
+        probiou_loss = (1 - _probiou(matched_pred_boxes, matched_tgt_boxes, scale=box_scale)).sum() / num_boxes
 
-                center_dist = torch.cdist(
-                    pred_boxes_b[:, :2],
-                    tgt_boxes[:, :2],
-                    p=2,
-                )
-
-                iou_like = torch.exp(-center_dist)
-                dynamic_k = iou_like.sum(0).int().clamp(min=1, max=10)
-
-                for gt_idx in range(num_gt):
-                    _, candidate_idx = torch.topk(-total_cost[:, gt_idx], k=int(dynamic_k[gt_idx].item()))
-                    matching_matrix[candidate_idx, gt_idx] = True
-
-                # resolve duplicate matches
-                multiple_match_mask = matching_matrix.sum(1) > 1
-
-                if multiple_match_mask.any():
-                    duplicate_idx = multiple_match_mask.nonzero(as_tuple=False).squeeze(1)
-                    min_cost_idx = total_cost[duplicate_idx].argmin(dim=1)
-                    # Set all matches to False for the duplicate indices,
-                    # then set the match with the lowest cost to True
-                    matching_matrix[duplicate_idx] = False
-                    matching_matrix[duplicate_idx, min_cost_idx] = True
-
-                pos_idx, gt_indices = matching_matrix.nonzero(as_tuple=True)
-
-            target_classes = torch.zeros((Q,), dtype=torch.long, device=device)
-
-            # background = 0
-            target_classes[pos_idx] = tgt_cls[gt_indices]
-
-            total_cls += F.cross_entropy(pred_logits, target_classes)
-
-            if len(pos_idx) == 0:
-                continue
-
-            pred_sel = pred_boxes_b[pos_idx]
-            tgt_sel = tgt_boxes[gt_indices]
-            # L1 loss on (cx, cy, w, h)
-            l1_loss = F.smooth_l1_loss(pred_sel[:, :4], tgt_sel[:, :4])
-            # ProbIoU loss on the whole box (including rotation)
-            probiou_loss = _probiou_loss(pred_sel, tgt_sel).mean()
-            total_box += 2.0 * l1_loss + 0.5 * probiou_loss
-            # Rotation loss
-            cos_sim = (pred_rot[pos_idx] * tgt_rot[gt_indices]).sum(-1).abs()
-            rot_loss = (1 - cos_sim).mean()
-            total_rot += 0.5 * rot_loss
-        # Average the loss over the batch
-        return (total_cls + total_box + total_rot) / B
+        return loss + l1_loss_weight * l1_loss + iou_loss_weight * probiou_loss
 
 
 def _lw_detr(
@@ -772,7 +750,7 @@ def _lw_detr(
         False,
         include_top=False,
         input_shape=default_cfgs[arch]["input_shape"],
-        patch_size=kwargs.get("patch_size", (16, 16)),
+        patch_size=kwargs.pop("patch_size", (16, 16)),
     )
     feat_extractor = LWDETRBackbone(encoder_fn=backbone)
 

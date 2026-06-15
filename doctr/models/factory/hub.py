@@ -9,7 +9,6 @@ import json
 import logging
 import subprocess
 import tempfile
-import textwrap
 from pathlib import Path
 from typing import Any
 
@@ -101,61 +100,62 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
         raise ValueError("task must be one of classification, detection, recognition, layout")
 
     # default readme
-    readme = textwrap.dedent(
-        f"""---
-    language: en
-    tags:
-    - ocr
-    - pytorch
-    - doctr
-    - {task}
-    ---
+    readme = f"""---
+language: en
+tags:
+- ocr
+- pytorch
+- doctr
+- {task}
+---
 
 
-    <p align="center">
-    <img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
-    </p>
+<p align="center">
+<img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
+</p>
 
-    **Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
+**Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
 
-    ## Task: {task}
+## Task: {task}
 
-    https://github.com/mindee/doctr
+https://github.com/mindee/doctr
 
-    ### Example usage:
+### Example usage:
 
-    ```python
-    >>> from doctr.io import DocumentFile
-    >>> from doctr.models import ocr_predictor, from_hub
+```python
+>>> from doctr.io import DocumentFile
+>>> from doctr.models import ocr_predictor, from_hub
 
-    >>> img = DocumentFile.from_images(['<image_path>'])
-    >>> # Load your model from the hub
-    >>> model = from_hub('mindee/my-model')
+>>> img = DocumentFile.from_images(['<image_path>'])
+>>> # Load your model from the hub
+>>> model = from_hub('mindee/my-model')
 
-    >>> # Pass it to the predictor
-    >>> # If your model is a recognition model:
-    >>> predictor = ocr_predictor(det_arch='db_mobilenet_v3_large',
-    >>>                           reco_arch=model,
-    >>>                           pretrained=True)
+>>> # Pass it to the predictor
+>>> # If your model is a recognition model:
+>>> predictor = ocr_predictor(det_arch='db_mobilenet_v3_large',
+>>>                           reco_arch=model,
+>>>                           pretrained=True)
 
-    >>> # If your model is a detection model:
-    >>> predictor = ocr_predictor(det_arch=model,
-    >>>                           reco_arch='crnn_mobilenet_v3_small',
-    >>>                           pretrained=True)
+>>> # If your model is a detection model:
+>>> predictor = ocr_predictor(det_arch=model,
+>>>                           reco_arch='crnn_mobilenet_v3_small',
+>>>                           pretrained=True)
 
-    >>> # Get your predictions
-    >>> res = predictor(img)
-    ```
-    """
-    )
+>>> # Get your predictions
+>>> res = predictor(img)
+```
+"""
 
     # add run configuration to readme if available
     if run_config is not None:
         arch = run_config.arch
-        readme += textwrap.dedent(
-            f"""### Run Configuration
-                                  \n{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}"""
-        )
+        readme += f"""
+### Run Configuration
+
+```json
+{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}
+```
+"""
 
     if arch not in AVAILABLE_ARCHS[task]:
         raise ValueError(

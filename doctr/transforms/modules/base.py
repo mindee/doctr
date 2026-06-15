@@ -272,7 +272,14 @@ class RandomCrop(NestedObject):
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def _crop_array(self, img: Any, target: np.ndarray, crop_box):
+    def _crop_image_only(self, img: Any, crop_box: tuple[float, float, float, float]) -> Any:
+        dummy_box = np.array([[0, 0, 1, 1]], dtype=np.float32)
+        cropped_img, _ = F.crop_detection(img, dummy_box, crop_box)
+        return cropped_img
+
+    def _crop_array(
+        self, img: Any, target: np.ndarray, crop_box: tuple[float, float, float, float]
+    ) -> tuple[Any, np.ndarray]:
         is_polygon = target.shape[1:] == (4, 2)
 
         if is_polygon:
@@ -339,17 +346,15 @@ class RandomCrop(NestedObject):
             (y + crop_h) / h,
         )
 
-        r_mask = None
-        if mask is not None:
-            r_mask, _ = self._crop_array(mask, np.zeros((0, 4)), crop_box)
-
         if target is None:
-            r_img, _ = self._crop_array(img, np.zeros((0, 4)), crop_box)
+            r_img = self._crop_image_only(img, crop_box)
+            r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
             return sample.replace(image=r_img, mask=r_mask)
 
         if isinstance(target, dict):
             cropped_targets = {}
             cropped_img = None
+            crop_rejected = False
 
             for cls_name, arr in target.items():
                 if len(arr) == 0:
@@ -358,13 +363,29 @@ class RandomCrop(NestedObject):
 
                 c_img, c_arr = self._crop_array(img, arr, crop_box)
 
+                if c_img is img:
+                    crop_rejected = True
+                    break
+
                 if cropped_img is None:
                     cropped_img = c_img
 
                 cropped_targets[cls_name] = c_arr
 
-            final_img = cropped_img if cropped_img is not None else img
-            return sample.replace(image=final_img, mask=r_mask, target=cropped_targets)
+            if crop_rejected or cropped_img is None:
+                return sample.replace(
+                    image=img,
+                    mask=mask,
+                    target={key: value.copy() for key, value in target.items()},
+                )
+
+            r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
+            return sample.replace(image=cropped_img, mask=r_mask, target=cropped_targets)
 
         c_img, c_target = self._crop_array(img, target, crop_box)
+        if c_img is img:
+            r_mask = mask
+        else:
+            r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
+
         return sample.replace(image=c_img, mask=r_mask, target=c_target)

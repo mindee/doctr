@@ -12,7 +12,55 @@ from torch import nn
 from doctr.models.modules import ChannelLayerNorm
 from doctr.models.utils import conv_sequence_pt
 
-__all__ = ["MultiScaleProjector", "C2fBottleneck", "LWDETRHead", "LWDETRDecoder", "LWDETRMultiscaleDeformableAttention"]
+__all__ = [
+    "MultiScaleProjector",
+    "C2fBottleneck",
+    "LWDETRHead",
+    "LWDETRDecoder",
+    "LWDETRMultiscaleDeformableAttention",
+    "refine_obb_boxes",
+]
+
+
+def refine_obb_boxes(reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
+    """Refine oriented bounding boxes by applying predicted deltas to reference points.
+    Both reference points and deltas are in the format (cx, cy, w, h, sinθ, cosθ).
+
+    cx' = cx + delta_cx * w
+    cy' = cy + delta_cy * h
+    w' = w * exp(delta_w)
+    h' = h * exp(delta_h)
+    (sinθ', cosθ') = rotation composition of (sinθ, cosθ) with the normalized delta rotation
+
+    Args:
+        reference_points: (..., 6) tensor containing the reference points
+        deltas: (..., 6) tensor containing the predicted deltas
+
+    Returns:
+        refined_boxes: (..., 6) tensor containing the refined bounding boxes
+    """
+    reference_points = reference_points.to(deltas.device)
+    # center
+    cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
+    # size: clamp deltas to prevent exp() from overflowing during early training.
+    # NOTE: the upper bound must allow the encoder proposals (w = h = 0.05) to reach full-page boxes
+    # in a single refinement step: exp(3.5) * 0.05 ~= 1.66, so boxes up to (and beyond) the full canvas
+    # remain reachable. A tighter bound (e.g. 2.0 -> 0.05 * exp(2) ~= 0.37) silently caps the size of the
+    # encoder proposals and creates an irreducible loss floor for large layout items (tables, pictures).
+    wh = torch.clamp(deltas[..., 2:4], min=-5.0, max=3.5).exp() * reference_points[..., 2:4]
+    # rotation (eps avoids division-by-zero NaN creation)
+    delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
+    sin_delta = delta_rot[..., 0:1]
+    cos_delta = delta_rot[..., 1:2]
+    sin_ref = reference_points[..., 4:5]
+    cos_ref = reference_points[..., 5:6]
+
+    # compose rotations
+    sin_new = sin_ref * cos_delta + cos_ref * sin_delta
+    cos_new = cos_ref * cos_delta - sin_ref * sin_delta
+    rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
+
+    return torch.cat((cxcy, wh, rot), dim=-1)
 
 
 class LWDETRHead(nn.Module):
@@ -109,7 +157,7 @@ class LWDETRAttention(nn.Module):
             # Crash prevention: ensure seq_len is perfectly divisible
             assert seq_len % self.group_detr == 0, (
                 f"Seq len {seq_len} must be divisible by group_detr {self.group_detr}"
-            )  # noqa: E501
+            )
 
         hidden_states_original = hidden_states
         if position_embeddings is not None:
@@ -249,8 +297,8 @@ class LWDETRMultiscaleDeformableAttention(nn.Module):
 
         value = self.value_proj(encoder_hidden_states)
         if attention_mask is not None:
-            # we invert the attention_mask
-            value = value.masked_fill(~attention_mask[..., None], float(0))
+            # attention_mask contains True on padded positions -> zero-out the padded values
+            value = value.masked_fill(attention_mask[..., None], float(0))
         value = value.view(batch_size, sequence_length, self.n_heads, self.d_model // self.n_heads)
         sampling_offsets = self.sampling_offsets(hidden_states).view(
             batch_size, num_queries, self.n_heads, self.n_levels, self.n_points, 2
@@ -487,38 +535,39 @@ class LWDETRDecoder(nn.Module):
         )
 
     def get_reference(
-        self, reference_points: torch.Tensor, valid_ratios: torch.Tensor
+        self,
+        reference_points: torch.Tensor,
+        num_levels: int,
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """This function computes the reference point inputs and positional embeddings for the decoder layers.
 
         Args:
             reference_points: (batch_size, num_queries, 6)
                 tensor containing the current reference points in the format (cx, cy, w, h, sinθ, cosθ)
-            valid_ratios: (batch_size, num_levels, 2)
-                tensor containing the valid ratios for each level of the input feature maps
+            num_levels: number of feature levels used in the decoder (1 for LW-DETR small and medium)
 
         Returns:
-            reference_points_inputs: (batch_size, num_queries, 1, num_levels, 4)
-                tensor containing the reference point inputs for the decoder layers,
-                which are the normalized center coordinates,
-                width and height of the bounding boxes w.r.t. the valid ratios of the input feature maps
+            reference_points_inputs: (batch_size, num_queries, num_levels, 6)
+                tensor containing the reference point inputs for the decoder layers
             query_pos: (batch_size, num_queries, d_model)
                 tensor containing the positional embeddings for the decoder layers,
                 which are computed from the reference points using sine and cosine functions and a linear projection
         """
-        obj_center = reference_points[..., :4]
-        spatial_inputs = obj_center[:, :, None] * torch.cat([valid_ratios, valid_ratios], -1)[:, None]
-        # Extract angles
-        angle = reference_points[..., 4:6]  # (sin, cos)
-        angle_expanded = angle[:, :, None]
+        ref_xywh = reference_points[..., :4]
+        angle = reference_points[..., 4:6]
+
+        spatial_inputs = ref_xywh[:, :, None].expand(-1, -1, num_levels, -1)
+        angle_expanded = angle[:, :, None].expand(-1, -1, num_levels, -1)
+
         reference_points_inputs = torch.cat([spatial_inputs, angle_expanded], dim=-1)
-        # DETR positional encoding
-        query_sine_embed = gen_sine_position_embeddings(spatial_inputs[:, :, 0, :], self.d_model)
+        # generate sine positional embeddings from the reference points and
+        # project them to get the final query positional embeddings
+        query_sine_embed = gen_sine_position_embeddings(ref_xywh, self.d_model)
         base_query_pos = self.ref_point_head(query_sine_embed)
-        # Angle embedding
+        # Angle embedding: use the same sine/cosine encoding scheme as for the spatial coordinates,
+        # but with a separate linear projection.
         sin_t = angle[..., 0:1]
         cos_t = angle[..., 1:2]
-
         angle_feat = torch.cat(
             [
                 sin_t,
@@ -528,51 +577,45 @@ class LWDETRDecoder(nn.Module):
             ],
             dim=-1,
         )
-
         angle_emb = self.angle_proj(angle_feat)
         # Combine
         query_pos = base_query_pos + angle_emb
         return reference_points_inputs, query_pos
 
-    def refine_boxes(self, reference_points: torch.Tensor, deltas: torch.Tensor) -> torch.Tensor:
-        reference_points = reference_points.to(deltas.device)
-        cxcy = deltas[..., :2] * reference_points[..., 2:4] + reference_points[..., :2]
-
-        # Clamp deltas to prevent exp() from shooting to Infinity during early training
-        wh = torch.clamp(deltas[..., 2:4], min=-4.0, max=2.0).exp() * reference_points[..., 2:4]
-
-        # Add eps=1e-6 to avoid division-by-zero NaN creation
-        delta_rot = F.normalize(deltas[..., 4:6], dim=-1, eps=1e-6)
-        sin_delta = delta_rot[..., 0:1]
-        cos_delta = delta_rot[..., 1:2]
-        sin_ref = reference_points[..., 4:5]
-        cos_ref = reference_points[..., 5:6]
-
-        sin_new = sin_ref * cos_delta + cos_ref * sin_delta
-        cos_new = cos_ref * cos_delta - sin_ref * sin_delta
-
-        # Add eps=1e-6 here too
-        rot = F.normalize(torch.cat([sin_new, cos_new], dim=-1), dim=-1, eps=1e-6)
-
-        return torch.cat((cxcy, wh, rot), dim=-1)
-
     def forward(
         self,
         inputs_embeds: torch.Tensor | None,
         reference_points: torch.Tensor,
-        spatial_shapes_list: torch.Tensor,
-        valid_ratios: torch.Tensor,
+        spatial_shapes_list: list[tuple[int, int]],
         encoder_hidden_states: torch.Tensor,
         encoder_attention_mask: torch.Tensor | None = None,
     ):
+        """Forward pass of the decoder with iterative (per-layer) box refinement.
+
+        Returns:
+            last_hidden_state: (B, Q, d_model) normalized hidden states of the last decoder layer
+            intermediate: (num_layers, B, Q, d_model) normalized hidden states of every decoder layer
+            intermediate_reference_points: (num_layers, B, Q, 6) the reference points used as INPUT to each
+                decoder layer. Box predictions for layer i must be computed as
+                `refine_obb_boxes(intermediate_reference_points[i], bbox_embed(intermediate[i]))`.
+                Following LW-DETR, the refined reference points are detached before being fed to the next
+                layer, while the undetached versions are kept in the returned stack so that gradients can
+                flow one extra refinement step when computing the auxiliary losses.
+        """
         intermediate: list[torch.Tensor] = []
 
+        # reference points fed to each decoder layer (input of layer i at index i)
         intermediate_reference_points: list[torch.Tensor] = [reference_points]
 
         if inputs_embeds is not None:
             hidden_states = inputs_embeds
 
-        reference_points_inputs, query_pos = self.get_reference(reference_points, valid_ratios)
+        num_levels = len(spatial_shapes_list)
+
+        reference_points_inputs, query_pos = self.get_reference(
+            reference_points,
+            num_levels=num_levels,
+        )
 
         for lid, decoder_layer in enumerate(self.layers):
             hidden_states = decoder_layer(
@@ -585,24 +628,22 @@ class LWDETRDecoder(nn.Module):
             )
 
             hidden_states_norm = self.layernorm(hidden_states)
+            intermediate.append(hidden_states_norm)
 
             # iterative refinement
-            if self.bbox_embed is not None:
+            if self.bbox_embed is not None and lid < len(self.layers) - 1:
                 delta = self.bbox_embed(hidden_states_norm)
+                new_reference_points = refine_obb_boxes(reference_points, delta)
 
-                reference_points = self.refine_boxes(
-                    reference_points.squeeze(2),
-                    delta,
-                )
+                # keep the undetached version for the auxiliary losses ("look forward" supervision)
+                intermediate_reference_points.append(new_reference_points)
 
-                intermediate_reference_points.append(reference_points)
-
+                # the next layer consumes detached reference points
+                reference_points = new_reference_points.detach()
                 reference_points_inputs, query_pos = self.get_reference(
                     reference_points,
-                    valid_ratios,
+                    num_levels=num_levels,
                 )
-
-            intermediate.append(hidden_states_norm)
 
         intermediate_stack = torch.stack(intermediate)
         last_hidden_state = intermediate_stack[-1]

@@ -39,7 +39,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
             padding_masks = padding_masks.cuda()
         imgs = batch_transforms(imgs)
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(imgs, padding_masks, targets, return_preds=True)
         else:
             out = model(imgs, padding_masks, targets, return_preds=True)

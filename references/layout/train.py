@@ -17,7 +17,14 @@ import torch
 # The following import is required for DDP
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiplicativeLR, OneCycleLR, PolynomialLR
+from torch.optim.lr_scheduler import (
+    CosineAnnealingLR,
+    LinearLR,
+    MultiplicativeLR,
+    OneCycleLR,
+    PolynomialLR,
+    SequentialLR,
+)
 from torch.utils.data import DataLoader, RandomSampler, SequentialSampler
 from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms.v2 import Compose, Normalize, RandomGrayscale, RandomPhotometricDistort
@@ -31,7 +38,7 @@ from doctr import transforms as T
 from doctr.datasets import LayoutDataset
 from doctr.models import layout, login_to_hub, push_to_hf_hub
 from doctr.utils.metrics import ObjectDetectionMetric
-from utils import EarlyStopper, convert_target, plot_recorder, plot_samples
+from utils import EarlyStopper, build_param_groups, convert_target, plot_recorder, plot_samples
 
 
 def record_lr(
@@ -63,7 +70,7 @@ def record_lr(
     loss_recorder = []
 
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     for batch_idx, (images, targets) in enumerate(train_loader):
         imgs, padding_masks = images
@@ -77,19 +84,19 @@ def record_lr(
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 train_loss = model(imgs, padding_masks, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             optimizer.step()
         # Update LR
         scheduler.step()
@@ -110,7 +117,7 @@ def record_lr(
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     model.train()
     # Iterate over the batches of the dataset
@@ -125,19 +132,19 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
 
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 train_loss = model(imgs, padding_masks, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             optimizer.step()
 
         scheduler.step()
@@ -170,7 +177,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
             padding_masks = padding_masks.cuda()
         imgs = batch_transforms(imgs)
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(imgs, padding_masks, targets, return_preds=True)
         else:
             out = model(imgs, padding_masks, targets, return_preds=True)
@@ -383,7 +390,7 @@ def main(args):
             [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.85, 1.15), scale=(0.75, 1.0)), 0.25),
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 T.Resize(
@@ -397,7 +404,7 @@ def main(args):
             else [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.85, 1.15), scale=(0.75, 1.0)), 0.25),
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
@@ -424,7 +431,7 @@ def main(args):
     )
 
     if distributed:
-        sampler = DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True)
+        sampler = DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
     else:
         sampler = RandomSampler(train_set)
 
@@ -472,24 +479,18 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
+    param_groups = build_param_groups(
+        model,
+        lr=args.lr,
+        backbone_lr=args.lr if not args.pretrained else args.lr * 0.1,
+        weight_decay=args.weight_decay or 1e-4,
+    )
+
     # Optimizer
     if args.optim == "adam":
-        optimizer = torch.optim.Adam(
-            [p for p in model.parameters() if p.requires_grad],
-            args.lr,
-            betas=(0.95, 0.999),
-            eps=1e-6,
-            weight_decay=args.weight_decay,
-        )
-
+        optimizer = torch.optim.Adam(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
     elif args.optim == "adamw":
-        optimizer = torch.optim.AdamW(
-            [p for p in model.parameters() if p.requires_grad],
-            args.lr,
-            betas=(0.9, 0.999),
-            eps=1e-6,
-            weight_decay=args.weight_decay or 1e-4,
-        )
+        optimizer = torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
 
     # LR Finder
     if rank == 0 and args.find_lr:
@@ -498,12 +499,55 @@ def main(args):
         return
 
     # Scheduler
+    total_steps = args.epochs * len(train_loader)
+    warmup_steps = max(1, min(2000, int(0.05 * total_steps)))
+
     if args.sched == "cosine":
-        scheduler = CosineAnnealingLR(optimizer, args.epochs * len(train_loader), eta_min=args.lr / 25e4)
+        warmup = LinearLR(
+            optimizer,
+            start_factor=0.01,
+            end_factor=1.0,
+            total_iters=warmup_steps,
+        )
+        cosine = CosineAnnealingLR(
+            optimizer,
+            T_max=max(1, total_steps - warmup_steps),
+            eta_min=args.lr * 0.01,
+        )
+        scheduler = SequentialLR(
+            optimizer,
+            schedulers=[warmup, cosine],
+            milestones=[warmup_steps],
+        )
+
     elif args.sched == "onecycle":
-        scheduler = OneCycleLR(optimizer, args.lr, args.epochs * len(train_loader))
+        scheduler = OneCycleLR(
+            optimizer,
+            max_lr=[g["lr"] for g in optimizer.param_groups],
+            total_steps=total_steps,
+            pct_start=warmup_steps / total_steps,
+            div_factor=100,
+            final_div_factor=100,
+            anneal_strategy="cos",
+        )
+
     elif args.sched == "poly":
-        scheduler = PolynomialLR(optimizer, args.epochs * len(train_loader))
+        warmup = LinearLR(
+            optimizer,
+            start_factor=0.01,
+            end_factor=1.0,
+            total_iters=warmup_steps,
+        )
+        poly = PolynomialLR(
+            optimizer,
+            total_iters=total_steps - warmup_steps,
+            power=1.0,
+        )
+        scheduler = SequentialLR(
+            optimizer,
+            schedulers=[warmup, poly],
+            milestones=[warmup_steps],
+        )
 
     # Training monitoring
     current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -591,6 +635,8 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
+        if distributed:
+            sampler.set_epoch(epoch)
         train_loss, actual_lr = fit_one_epoch(
             model,
             train_loader,
@@ -690,8 +736,8 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
-    parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
+    parser.add_argument("--lr", type=float, default=1e-4, help="learning rate for the optimizer (Adam or AdamW)")
+    parser.add_argument("--wd", "--weight-decay", default=1e-4, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
     parser.add_argument("--test-only", dest="test_only", action="store_true", help="Run the validation loop")
