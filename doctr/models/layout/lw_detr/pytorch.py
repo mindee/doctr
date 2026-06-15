@@ -198,14 +198,28 @@ class LWDETRBackbone(nn.Module):
             mask = mask.bool()
 
         valid = (~mask).float().unsqueeze(1)  # True/1 = valid pixels
-        valid_resized = F.interpolate(valid, size=size, mode="area") > 0
+
+        # Data-dependent sanity checks
+        if self.training:  # pragma: no cover
+            if (valid.flatten(1).sum(dim=1) == 0).any():
+                bad = torch.where(valid.flatten(1).sum(dim=1) == 0)[0].tolist()
+                raise RuntimeError(f"Input masks are fully padded before resizing: {bad}")
+
+        # Use max pooling to resize the valid mask:
+        # a pixel in the resized mask is valid if at least one pixel
+        # in the corresponding window in the input mask is valid
+        h_in, w_in = int(mask.shape[-2]), int(mask.shape[-1])
+        h_out, w_out = int(size[0]), int(size[1])
+        kh, kw = h_in // h_out, w_in // w_out
+        valid_resized = F.max_pool2d(valid, kernel_size=(kh, kw), stride=(kh, kw)) > 0
+
         resized_mask = ~valid_resized.squeeze(1)
 
-        # Sanity check: no feature should be fully padded after resizing,
-        # otherwise it would cause NaNs in the attention weights
-        if self.training and resized_mask.flatten(1).all(dim=1).any():  # pragma: no cover
-            bad = torch.where(resized_mask.flatten(1).all(dim=1))[0].tolist()
-            raise RuntimeError(f"Feature masks became fully padded after resizing: {bad}")
+        # Data-dependent sanity checks
+        if self.training:  # pragma: no cover
+            if resized_mask.flatten(1).all(dim=1).any():
+                bad = torch.where(resized_mask.flatten(1).all(dim=1))[0].tolist()
+                raise RuntimeError(f"Feature masks became fully padded after resizing: {bad}")
 
         return resized_mask
 
