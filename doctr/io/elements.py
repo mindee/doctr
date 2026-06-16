@@ -66,7 +66,7 @@ class Word(Element):
         value: the text string of the word
         confidence: the confidence associated with the text prediction
         geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
-        the page's size
+            the page's size
         objectness_score: the objectness score of the detection
         crop_orientation: the general orientation of the crop in degrees and its confidence
     """
@@ -140,8 +140,8 @@ class LayoutElement(Element):
     Args:
         layout_type: the predicted region class (e.g. 'Title', 'Text', 'Table', 'Page-header')
         confidence: the confidence of the region prediction
-        geometry: bounding box of the region in format ((xmin, ymin), (xmax, ymax)) for straight pages
-            or a (4, 2) array of points for rotated pages, with coordinates relative to the page's size
+        geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
+            the page's size
     """
 
     _exported_keys: list[str] = ["geometry", "type", "confidence"]
