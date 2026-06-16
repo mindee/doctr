@@ -4,10 +4,6 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from typing import Any
-
-from defusedxml import defuse_stdlib
-
-defuse_stdlib()
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement
 from xml.etree.ElementTree import SubElement
@@ -26,7 +22,7 @@ try:  # optional dependency for visualization
 except ModuleNotFoundError:
     pass
 
-__all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page", "KIEPage", "Document"]
+__all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page", "KIEPage", "Document", "LayoutElement"]
 
 
 class Element(NestedObject):
@@ -126,8 +122,8 @@ class Artefact(Element):
         self.confidence = confidence
 
     def render(self) -> str:
-        """Renders the full text of the element"""
-        return f"[{self.type.upper()}]"
+        """Renders the region as a tag"""
+        return f"<[{self.type.upper()}]>"
 
     def extra_repr(self) -> str:
         return f"type='{self.type}', confidence={self.confidence:.2}"
@@ -136,6 +132,38 @@ class Artefact(Element):
     def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         return cls(**kwargs)
+
+
+class LayoutElement(Element):
+    """Implements a layout region predicted by a layout detection model
+
+    Args:
+        layout_type: the predicted region class (e.g. 'Title', 'Text', 'Table', 'Page-header')
+        confidence: the confidence of the region prediction
+        geometry: bounding box of the region in format ((xmin, ymin), (xmax, ymax)) for straight pages
+            or a (4, 2) array of points for rotated pages, with coordinates relative to the page's size
+    """
+
+    _exported_keys: list[str] = ["geometry", "type", "confidence"]
+    _children_names: list[str] = []
+
+    def __init__(self, layout_type: str, confidence: float, geometry: BoundingBox | np.ndarray) -> None:
+        super().__init__()
+        self.geometry = geometry
+        self.type = layout_type
+        self.confidence = confidence
+
+    def render(self) -> str:
+        """Renders the region as a tag"""
+        return f"<[{self.type.upper()}]>"
+
+    def extra_repr(self) -> str:
+        return f"type='{self.type}', confidence={self.confidence:.2}"
+
+    @classmethod
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        return cls(layout_type=kwargs["type"], confidence=kwargs["confidence"], geometry=kwargs["geometry"])
 
 
 class Line(Element):
@@ -258,11 +286,13 @@ class Page(Element):
         dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
         language: a dictionary with the language value and confidence of the prediction
+        layout: optional list of layout regions detected on the page
     """
 
     _exported_keys: list[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: list[str] = ["blocks"]
+    _children_names: list[str] = ["blocks", "layout"]
     blocks: list[Block] = []
+    layout: list[LayoutElement] = []
 
     def __init__(
         self,
@@ -272,8 +302,9 @@ class Page(Element):
         dimensions: tuple[int, int],
         orientation: dict[str, Any] | None = None,
         language: dict[str, Any] | None = None,
+        layout: list[LayoutElement] | None = None,
     ) -> None:
-        super().__init__(blocks=blocks)
+        super().__init__(blocks=blocks, layout=layout if layout is not None else [])
         self.page = page
         self.page_idx = page_idx
         self.dimensions = dimensions
@@ -294,12 +325,20 @@ class Page(Element):
             interactive: whether the display should be interactive
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
+                (e.g. ``display_layout=False`` to hide detected layout regions)
         """
         requires_package("matplotlib", "`.show()` requires matplotlib & mplcursors installed")
         requires_package("mplcursors", "`.show()` requires matplotlib & mplcursors installed")
         import matplotlib.pyplot as plt
 
-        visualize_page(self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio)
+        show_kwargs = {k: kwargs.pop(k) for k in ("words_only", "display_artefacts", "display_layout") if k in kwargs}
+        visualize_page(
+            self.export(),
+            self.page,
+            interactive=interactive,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            **show_kwargs,
+        )
         plt.show(**kwargs)
 
     def synthesize(self, **kwargs) -> np.ndarray:
@@ -420,7 +459,10 @@ class Page(Element):
     @classmethod
     def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({"blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]]})
+        kwargs.update({
+            "blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]],
+            "layout": [LayoutElement.from_dict(region_dict) for region_dict in save_dict.get("layout", [])],
+        })
         return cls(**kwargs)
 
 
@@ -434,11 +476,13 @@ class KIEPage(Element):
         dimensions: the page size in pixels in format (height, width)
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
         language: a dictionary with the language value and confidence of the prediction
+        layout: optional list of layout regions detected on the page
     """
 
     _exported_keys: list[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: list[str] = ["predictions"]
+    _children_names: list[str] = ["predictions", "layout"]
     predictions: dict[str, list[Prediction]] = {}
+    layout: list[LayoutElement] = []
 
     def __init__(
         self,
@@ -448,8 +492,9 @@ class KIEPage(Element):
         dimensions: tuple[int, int],
         orientation: dict[str, Any] | None = None,
         language: dict[str, Any] | None = None,
+        layout: list[LayoutElement] | None = None,
     ) -> None:
-        super().__init__(predictions=predictions)
+        super().__init__(predictions=predictions, layout=layout if layout is not None else [])
         self.page = page
         self.page_idx = page_idx
         self.dimensions = dimensions
@@ -477,8 +522,13 @@ class KIEPage(Element):
         requires_package("mplcursors", "`.show()` requires matplotlib & mplcursors installed")
         import matplotlib.pyplot as plt
 
+        show_kwargs = {k: kwargs.pop(k) for k in ("words_only", "display_artefacts", "display_layout") if k in kwargs}
         visualize_kie_page(
-            self.export(), self.page, interactive=interactive, preserve_aspect_ratio=preserve_aspect_ratio
+            self.export(),
+            self.page,
+            interactive=interactive,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            **show_kwargs,
         )
         plt.show(**kwargs)
 
@@ -593,7 +643,11 @@ class KIEPage(Element):
     def from_dict(cls, save_dict: dict[str, Any], **kwargs):
         kwargs = {k: save_dict[k] for k in cls._exported_keys}
         kwargs.update({
-            "predictions": [Prediction.from_dict(predictions_dict) for predictions_dict in save_dict["predictions"]]
+            "predictions": {
+                class_name: [Prediction.from_dict(pred) for pred in preds]
+                for class_name, preds in save_dict["predictions"].items()
+            },
+            "layout": [LayoutElement.from_dict(region_dict) for region_dict in save_dict.get("layout", [])],
         })
         return cls(**kwargs)
 

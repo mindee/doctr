@@ -40,6 +40,13 @@ def _mock_artefacts(size=(1, 1), offset=(0, 0), confidence=0.8):
     ]
 
 
+def _mock_layout():
+    return [
+        elements.LayoutElement("Title", 0.95, ((0.1, 0.05), (0.9, 0.15))),
+        elements.LayoutElement("Text", 0.88, ((0.1, 0.2), (0.9, 0.9))),
+    ]
+
+
 def _mock_lines(size=(1, 1), offset=(0, 0)):
     sub_size = (size[0] / 2, size[1] / 2)
     return [
@@ -229,13 +236,39 @@ def test_artefact():
     assert artefact.geometry == geom
 
     # Render
-    assert artefact.render() == "[QR_CODE]"
+    assert artefact.render() == "<[QR_CODE]>"
 
     # Export
     assert artefact.export() == {"type": artefact_type, "confidence": conf, "geometry": geom}
 
     # Repr
     assert artefact.__repr__() == f"Artefact(type='{artefact_type}', confidence={conf:.2})"
+
+
+def test_layout_element():
+    layout_type = "Title"
+    conf = 0.9
+    geom = ((0, 0), (1, 1))
+    region = elements.LayoutElement(layout_type, conf, geom)
+
+    # Attribute checks
+    assert region.type == layout_type
+    assert region.confidence == conf
+    assert region.geometry == geom
+
+    # Render
+    assert region.render() == "<[TITLE]>"
+
+    # Export
+    assert region.export() == {"type": layout_type, "confidence": conf, "geometry": geom}
+
+    # Repr
+    assert region.__repr__() == f"LayoutElement(type='{layout_type}', confidence={conf:.2})"
+
+    # Class method
+    state_dict = {"geometry": ((0, 0), (0.5, 0.5)), "type": "Table", "confidence": 0.7}
+    region = elements.LayoutElement.from_dict(state_dict)
+    assert region.export() == state_dict
 
 
 def test_prediction():
@@ -314,11 +347,14 @@ def test_page():
     orientation = {"value": 0.0, "confidence": 0.0}
     language = {"value": "EN", "confidence": 0.8}
     blocks = _mock_blocks()
-    page = elements.Page(page, blocks, page_idx, page_size, orientation, language)
+    layout = _mock_layout()
+    page = elements.Page(page, blocks, page_idx, page_size, orientation, language, layout=layout)
 
     # Attribute checks
     assert len(page.blocks) == len(blocks)
     assert all(isinstance(b, elements.Block) for b in page.blocks)
+    assert len(page.layout) == len(layout)
+    assert all(isinstance(r, elements.LayoutElement) for r in page.layout)
     assert isinstance(page.page, np.ndarray)
     assert page.page_idx == page_idx
     assert page.dimensions == page_size
@@ -335,6 +371,7 @@ def test_page():
         "dimensions": page_size,
         "orientation": orientation,
         "language": language,
+        "layout": [r.export() for r in layout],
     }
 
     # Export XML
@@ -356,6 +393,15 @@ def test_page():
     assert img.shape == (*page_size, 3)
 
 
+def test_page_without_layout():
+    # Backward compatibility: layout defaults to an empty list
+    page = np.zeros((300, 200, 3), dtype=np.uint8)
+    page = elements.Page(page, _mock_blocks(), 0, (300, 200))
+
+    assert page.layout == []
+    assert page.export()["layout"] == []
+
+
 def test_kiepage():
     page = np.zeros((300, 200, 3), dtype=np.uint8)
     page_idx = 0
@@ -363,11 +409,14 @@ def test_kiepage():
     orientation = {"value": 0.0, "confidence": 0.0}
     language = {"value": "EN", "confidence": 0.8}
     predictions = {CLASS_NAME: _mock_prediction()}
-    kie_page = elements.KIEPage(page, predictions, page_idx, page_size, orientation, language)
+    layout = _mock_layout()
+    kie_page = elements.KIEPage(page, predictions, page_idx, page_size, orientation, language, layout=layout)
 
     # Attribute checks
     assert len(kie_page.predictions) == len(predictions)
     assert all(isinstance(b, elements.Prediction) for b in kie_page.predictions[CLASS_NAME])
+    assert len(kie_page.layout) == len(layout)
+    assert all(isinstance(r, elements.LayoutElement) for r in kie_page.layout)
     assert isinstance(kie_page.page, np.ndarray)
     assert kie_page.page_idx == page_idx
     assert kie_page.dimensions == page_size
@@ -384,6 +433,7 @@ def test_kiepage():
         "dimensions": page_size,
         "orientation": orientation,
         "language": language,
+        "layout": [r.export() for r in layout],
     }
 
     # Export XML
