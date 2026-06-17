@@ -310,7 +310,7 @@ Additional arguments which can be passed to the `ocr_predictor` are:
 * `straighten_pages`: If you want to straighten the pages before sending them to the detection model, set it to True.
 * `detect_orientation`: If you want to estimate the general page orientation and add it to each page, set it to True.
 * `detect_language`: If you want to predict the language of the text on each page, set it to True.
-* `detect_layout`: If you want to run a layout detection model on each page and attach the detected regions to each page, set it to True (default: False). See :ref:`layout_aware_ocr` below.
+* `detect_layout`: If you want to run a layout detection model on each page and attach the detected regions to each page, set it to True (default: False).
 * `layout_arch`: The layout architecture name (e.g. ``'lw_detr_s'``, ``'lw_detr_m'``) or your own (fine-tuned) layout model instance to use when ``detect_layout=True``.
 
 For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
