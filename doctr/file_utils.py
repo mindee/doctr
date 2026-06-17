@@ -22,7 +22,7 @@ def requires_package(name: str, extra_message: str | None = None) -> None:  # pr
     """
     try:
         _pkg_version = importlib.metadata.version(name)
-        logging.info(f"{name} version {_pkg_version} available.")
+        logging.getLogger(__name__).info(f"{name} version {_pkg_version} available.")
     except importlib.metadata.PackageNotFoundError:
         raise ImportError(
             f"\n\n{extra_message if extra_message is not None else ''} "
