@@ -3,7 +3,7 @@ import pytest
 
 from doctr.file_utils import CLASS_NAME
 from doctr.io import Document
-from doctr.io.elements import KIEDocument
+from doctr.io.elements import KIEDocument, LayoutElement
 from doctr.models import builder
 
 words_per_page = 10
@@ -182,6 +182,110 @@ def test_kiedocumentbuilder():
         repr(doc_builder) == "KIEDocumentBuilder(resolve_lines=True, "
         "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False)"
     )
+
+
+def test_documentbuilder_layout():
+
+    doc_builder = builder.DocumentBuilder()
+    boxes = np.array([[0.1, 0.1, 0.2, 0.2], [0.3, 0.3, 0.4, 0.4]])
+    objectness_scores = np.array([0.9, 0.9])
+    regions = [
+        {
+            "boxes": np.array([[0.05, 0.02, 0.95, 0.08], [0.05, 0.2, 0.95, 0.5]], dtype=np.float32),
+            "class_names": ["Title", "Text"],
+            "scores": [0.95, 0.88],
+        }
+    ]
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [objectness_scores],
+        [[("hello", 0.99), ("world", 0.99)]],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 2],
+        regions=regions,
+    )
+    page = out.pages[0]
+    # Layout regions are attached as LayoutElement and exported
+    assert len(page.layout) == 2
+    assert all(isinstance(region, LayoutElement) for region in page.layout)
+    assert [region.type for region in page.layout] == ["Title", "Text"]
+    assert page.layout[0].confidence == pytest.approx(0.95)
+    assert np.allclose(np.array(page.layout[0].geometry), [[0.05, 0.02], [0.95, 0.08]], atol=1e-6)
+    assert page.export()["layout"] == [region.export() for region in page.layout]
+
+    # no regions -> empty layout
+    out_no_layout = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [objectness_scores],
+        [[("hello", 0.99), ("world", 0.99)]],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 2],
+    )
+    assert out_no_layout.pages[0].layout == []
+    assert out_no_layout.pages[0].export()["layout"] == []
+
+    # Rotated layout polygons (4, 2) are converted to a 4-point geometry
+    rotated_regions = [
+        {
+            "boxes": np.array([[[0.1, 0.1], [0.4, 0.12], [0.39, 0.3], [0.09, 0.28]]], dtype=np.float32),
+            "class_names": ["Table"],
+            "scores": [0.7],
+        }
+    ]
+    out_rot = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [objectness_scores],
+        [[("hello", 0.99), ("world", 0.99)]],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 2],
+        regions=rotated_regions,
+    )
+    region = out_rot.pages[0].layout[0]
+    assert region.type == "Table"
+    assert isinstance(region.geometry, tuple) and len(region.geometry) == 4
+
+
+def test_kiedocumentbuilder_layout():
+    from doctr.io.elements import LayoutElement
+
+    doc_builder = builder.KIEDocumentBuilder()
+    predictions = {CLASS_NAME: np.array([[0.1, 0.1, 0.2, 0.2], [0.3, 0.3, 0.4, 0.4]])}
+    objectness_scores = {CLASS_NAME: np.array([0.9, 0.9])}
+    regions = [
+        {
+            "boxes": np.array([[0.05, 0.02, 0.95, 0.08], [0.05, 0.2, 0.95, 0.5]], dtype=np.float32),
+            "class_names": ["Title", "Text"],
+            "scores": [0.95, 0.88],
+        }
+    ]
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [predictions],
+        [objectness_scores],
+        [{CLASS_NAME: [("hello", 0.99), ("world", 0.99)]}],
+        [(100, 100)],
+        [{CLASS_NAME: [{"value": 0, "confidence": None}] * 2}],
+        regions=regions,
+    )
+    page = out.pages[0]
+    assert len(page.layout) == 2
+    assert all(isinstance(region, LayoutElement) for region in page.layout)
+    assert [region.type for region in page.layout] == ["Title", "Text"]
+    assert page.export()["layout"] == [region.export() for region in page.layout]
+
+    # no regions -> empty layout
+    out_no_layout = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [predictions],
+        [objectness_scores],
+        [{CLASS_NAME: [("hello", 0.99), ("world", 0.99)]}],
+        [(100, 100)],
+        [{CLASS_NAME: [{"value": 0, "confidence": None}] * 2}],
+    )
+    assert out_no_layout.pages[0].layout == []
 
 
 @pytest.mark.parametrize(

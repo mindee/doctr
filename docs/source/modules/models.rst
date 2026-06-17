@@ -83,6 +83,8 @@ doctr.models.layout
 
 .. autofunction:: doctr.models.layout.lw_detr_m
 
+.. autofunction:: doctr.models.layout.layout_predictor
+
 
 doctr.models.recognition
 ------------------------

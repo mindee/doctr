@@ -12,6 +12,7 @@ from torch import nn
 from doctr.io.elements import Document
 from doctr.models._utils import get_language, invert_data_structure
 from doctr.models.detection.predictor import DetectionPredictor
+from doctr.models.layout.predictor import LayoutPredictor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.utils.geometry import detach_scores
 
@@ -35,6 +36,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        layout_predictor: optional layout detection module
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -48,6 +50,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,
+        layout_predictor: LayoutPredictor | None = None,
         **kwargs: Any,
     ) -> None:
         nn.Module.__init__(self)
@@ -64,6 +67,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         )
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
+        self.layout_predictor = layout_predictor.eval() if layout_predictor is not None else None
 
     @torch.inference_mode()
     def forward(
@@ -164,6 +168,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         else:
             languages_dict = None
 
+        # Detect layout regions on the (possibly straightened) pages
+        regions = self.layout_predictor(pages, **kwargs) if self.layout_predictor is not None else None
+
         out = self.doc_builder(
             pages,
             boxes_per_page,
@@ -173,6 +180,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             crop_orientations_per_page,
             orientations,
             languages_dict,
+            regions,
         )
         return out
 

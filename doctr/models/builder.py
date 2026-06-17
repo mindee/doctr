@@ -9,7 +9,7 @@ from typing import Any
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
-from doctr.io.elements import Block, Document, KIEDocument, KIEPage, Line, Page, Prediction, Word
+from doctr.io.elements import Block, Document, KIEDocument, KIEPage, LayoutElement, Line, Page, Prediction, Word
 from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
@@ -211,6 +211,33 @@ class DocumentBuilder(NestedObject):
 
         return blocks
 
+    @staticmethod
+    def _build_layout_elements(regions: dict[str, Any] | None) -> list[LayoutElement]:
+        """Convert a raw layout prediction into exportable ``LayoutElement`` objects.
+
+        Args:
+            regions: a layout prediction ``{"boxes": (R, 4) | (R, 4, 2), "class_names": [...], "scores": [...]}``
+                as returned by a ``LayoutPredictor``, or None.
+
+        Returns:
+            list of ``LayoutElement`` (empty if no layout was provided).
+        """
+        if regions is None or len(regions.get("boxes", [])) == 0:
+            return []
+        boxes = np.asarray(regions["boxes"])
+        class_names = regions.get("class_names") or ["" for _ in range(len(boxes))]
+        scores = regions.get("scores")
+        scores = scores if scores is not None else [1.0 for _ in range(len(boxes))]
+
+        elements: list[LayoutElement] = []
+        for box, cname, score in zip(boxes, class_names, scores):
+            if box.ndim == 2:  # rotated polygon (4, 2)
+                geometry: Any = tuple(tuple(float(c) for c in pt) for pt in box.tolist())
+            else:  # straight (x1, y1, x2, y2)
+                geometry = ((float(box[0]), float(box[1])), (float(box[2]), float(box[3])))
+            elements.append(LayoutElement(layout_type=str(cname), confidence=float(score), geometry=geometry))
+        return elements
+
     def _build_blocks(
         self,
         boxes: np.ndarray,
@@ -292,6 +319,7 @@ class DocumentBuilder(NestedObject):
         crop_orientations: list[dict[str, Any]],
         orientations: list[dict[str, Any]] | None = None,
         languages: list[dict[str, Any]] | None = None,
+        regions: list[dict[str, Any] | None] | None = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -308,6 +336,8 @@ class DocumentBuilder(NestedObject):
                 where each element is a dictionary containing the orientation (orientation + confidence)
             languages: optional, list of N elements,
                 where each element is a dictionary containing the language (language + confidence)
+            regions: optional, list of N elements, where each element is a layout prediction
+                ``{"boxes": (R, 4|4x2), "class_names": [...], "scores": [...]}`` attached to each page
 
         Returns:
             document object
@@ -319,6 +349,7 @@ class DocumentBuilder(NestedObject):
 
         _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)
+        _regions = regions if isinstance(regions, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
@@ -338,8 +369,9 @@ class DocumentBuilder(NestedObject):
                 shape,
                 orientation,
                 language,
+                self._build_layout_elements(page_regions),
             )
-            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language in zip(  # noqa: E501
+            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language, page_regions in zip(  # noqa: E501
                 pages,
                 range(len(boxes)),
                 page_shapes,
@@ -349,6 +381,7 @@ class DocumentBuilder(NestedObject):
                 crop_orientations,
                 _orientations,
                 _languages,
+                _regions,
             )
         ]
 
@@ -376,6 +409,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         crop_orientations: list[dict[str, list[dict[str, Any]]]],
         orientations: list[dict[str, Any]] | None = None,
         languages: list[dict[str, Any]] | None = None,
+        regions: list[dict[str, Any] | None] | None = None,
     ) -> KIEDocument:
         """Re-arrange detected words into structured predictions
 
@@ -392,6 +426,8 @@ class KIEDocumentBuilder(DocumentBuilder):
                 where each element is a dictionary containing the orientation (orientation + confidence)
             languages: optional, list of N elements,
                 where each element is a dictionary containing the language (language + confidence)
+            regions: optional, list of N elements, where each element is a layout prediction
+                ``{"boxes": (R, 4|4x2), "class_names": [...], "scores": [...]}`` attached to each page
 
         Returns:
             document object
@@ -402,6 +438,7 @@ class KIEDocumentBuilder(DocumentBuilder):
             raise ValueError("All arguments are expected to be lists of the same size")
         _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)
+        _regions = regions if isinstance(regions, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if next(iter(boxes[0].values())).ndim == 3:
@@ -431,8 +468,9 @@ class KIEDocumentBuilder(DocumentBuilder):
                 shape,
                 orientation,
                 language,
+                self._build_layout_elements(page_regions),
             )
-            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language in zip(  # noqa: E501
+            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language, page_regions in zip(  # noqa: E501
                 pages,
                 range(len(boxes)),
                 page_shapes,
@@ -442,6 +480,7 @@ class KIEDocumentBuilder(DocumentBuilder):
                 crop_orientations,
                 _orientations,
                 _languages,
+                _regions,
             )
         ]
 

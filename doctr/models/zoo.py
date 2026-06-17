@@ -7,6 +7,7 @@ from typing import Any
 
 from .detection.zoo import detection_predictor
 from .kie_predictor import KIEPredictor
+from .layout.zoo import layout_predictor
 from .predictor import OCRPredictor
 from .recognition.zoo import recognition_predictor
 
@@ -26,6 +27,8 @@ def _predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_layout: bool = False,
+    layout_arch: Any = "lw_detr_s",
     **kwargs,
 ) -> OCRPredictor:
     # Detection
@@ -47,6 +50,20 @@ def _predictor(
         batch_size=reco_bs,
     )
 
+    # Layout - optional
+    layout_pred = (
+        layout_predictor(
+            layout_arch,
+            pretrained=pretrained,
+            assume_straight_pages=assume_straight_pages,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            symmetric_pad=symmetric_pad,
+            batch_size=det_bs,
+        )
+        if detect_layout
+        else None
+    )
+
     return OCRPredictor(
         det_predictor,
         reco_predictor,
@@ -56,6 +73,7 @@ def _predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        layout_predictor=layout_pred,
         **kwargs,
     )
 
@@ -72,6 +90,8 @@ def ocr_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_layout: bool = False,
+    layout_arch: Any = "lw_detr_s",
     **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -104,6 +124,10 @@ def ocr_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_layout: if True, a layout detection model is run on each page and the detected regions are attached
+            to each page.
+            Doing so will slightly deteriorate the overall latency.
+        layout_arch: name of the layout architecture or the model itself to use.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -121,6 +145,8 @@ def ocr_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        detect_layout=detect_layout,
+        layout_arch=layout_arch,
         **kwargs,
     )
 
@@ -138,6 +164,8 @@ def _kie_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_layout: bool = False,
+    layout_arch: Any = "lw_detr_s",
     **kwargs,
 ) -> KIEPredictor:
     # Detection
@@ -159,6 +187,20 @@ def _kie_predictor(
         batch_size=reco_bs,
     )
 
+    # Layout - optional
+    layout_pred = (
+        layout_predictor(
+            layout_arch,
+            pretrained=pretrained,
+            assume_straight_pages=assume_straight_pages,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            symmetric_pad=symmetric_pad,
+            batch_size=det_bs,
+        )
+        if detect_layout
+        else None
+    )
+
     return KIEPredictor(
         det_predictor,
         reco_predictor,
@@ -168,6 +210,7 @@ def _kie_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        layout_predictor=layout_pred,
         **kwargs,
     )
 
@@ -184,6 +227,8 @@ def kie_predictor(
     detect_orientation: bool = False,
     straighten_pages: bool = False,
     detect_language: bool = False,
+    detect_layout: bool = False,
+    layout_arch: Any = "lw_detr_s",
     **kwargs: Any,
 ) -> KIEPredictor:
     """End-to-end KIE architecture using one model for localization, and another for text recognition.
@@ -216,6 +261,10 @@ def kie_predictor(
             Doing so will improve performances for documents with page-uniform rotations.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        detect_layout: if True, a layout detection model is run on each page and the detected regions are attached
+            to each page.
+            Doing so will slightly deteriorate the overall latency.
+        layout_arch: name of the layout architecture or the model itself to use.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -233,5 +282,7 @@ def kie_predictor(
         detect_orientation=detect_orientation,
         straighten_pages=straighten_pages,
         detect_language=detect_language,
+        detect_layout=detect_layout,
+        layout_arch=layout_arch,
         **kwargs,
     )

@@ -308,6 +308,10 @@ Additional arguments which can be passed to the `ocr_predictor` are:
 
 * `export_as_straight_boxes`: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.
 * `straighten_pages`: If you want to straighten the pages before sending them to the detection model, set it to True.
+* `detect_orientation`: If you want to estimate the general page orientation and add it to each page, set it to True.
+* `detect_language`: If you want to predict the language of the text on each page, set it to True.
+* `detect_layout`: If you want to run a layout detection model on each page and attach the detected regions to each page, set it to True (default: False). See :ref:`layout_aware_ocr` below.
+* `layout_arch`: The layout architecture name (e.g. ``'lw_detr_s'``, ``'lw_detr_m'``) or your own (fine-tuned) layout model instance to use when ``detect_layout=True``.
 
 For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
 
@@ -319,7 +323,7 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
 
 Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
 
-* `det_bs`: batch size for the detection model (default: 2)
+* `det_bs`: batch size for the detection model (default: 2) - will also be used for the layout model if ``detect_layout=True``
 * `reco_bs`: batch size for the recognition model (default: 128)
 
 .. code:: python3
@@ -339,6 +343,34 @@ For example to disable the automatic grouping of lines into blocks:
 
     from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, resolve_blocks=False)
+
+
+Detecting the document layout
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to running the :py:meth:`layout_predictor <doctr.models.layout.layout_predictor>` standalone, you can plug a layout detection model directly into the end-to-end pipeline by setting ``detect_layout=True``. The detected regions (e.g. Title, Text, Table, Page-header, Page-footer) are attached to every :class:`Page <doctr.io.Page>` and can be accessed through ``page.layout``, exported alongside the rest of the page, and rendered with :py:meth:`show <doctr.io.Page.show>`.
+
+.. code:: python3
+
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor
+
+    model = ocr_predictor(pretrained=True, detect_layout=True)
+    doc = DocumentFile.from_images("path/to/your/doc.jpg")
+    result = model(doc)
+
+    # Access the detected layout regions of the first page
+    for region in result.pages[0].layout:
+        print(region.type, region.confidence, region.geometry)
+
+    # The layout is part of the exported representation
+    export = result.pages[0].export()
+    print(export["layout"])
+
+    # Overlay both text and layout regions (use display_layout=False to hide the regions)
+    result.pages[0].show()
+
+The same ``detect_layout`` / ``layout_arch`` arguments are available for the :py:meth:`kie_predictor <doctr.models.kie_predictor>`.
 
 
 Running the predictors on GPU
@@ -369,6 +401,7 @@ The same approach applies to all standalone predictors:
 * `detection_predictor`
 * `crop_orientation_predictor`
 * `page_orientation_predictor`
+* `layout_predictor`
 
 Just create the predictor instance and move it to the appropriate device.
 To enable **half-precision inference**, you can append `.half()` after moving the predictor to the device.
@@ -378,6 +411,7 @@ What should I do with the output?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
+When ``detect_layout=True`` was passed, each `Page` additionally carries a list of `LayoutElement` regions under ``page.layout``.
 To get a better understanding of our document model, check our :ref:`document_structure` section
 
 Here is a typical `Document` layout::

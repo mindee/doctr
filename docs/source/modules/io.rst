@@ -33,6 +33,13 @@ An Artefact is a non-textual element (e.g. QR code, picture, chart, signature, l
 
 .. autoclass:: Artefact
 
+LayoutElement
+^^^^^^^^^^^^^
+
+A LayoutElement is a region predicted by a layout detection model (e.g. Title, Text, Table, Page-header, Page-footer). Layout regions are attached to a :class:`Page` when the ``ocr_predictor`` / ``kie_predictor`` is run with ``detect_layout=True``.
+
+.. autoclass:: LayoutElement
+
 Block
 ^^^^^
 A Block is a collection of Lines (e.g. an address written on several lines) and Artefacts (e.g. a graph with its title underneath).
