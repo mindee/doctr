@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit as st
 import torch
-from backend.pytorch import DET_ARCHS, RECO_ARCHS, forward_image, load_predictor
+from backend.pytorch import DET_ARCHS, LAYOUT_ARCHS, RECO_ARCHS, forward_image, load_predictor
 
 from doctr.io import DocumentFile
 from doctr.utils.visualization import visualize_page
@@ -16,7 +16,7 @@ from doctr.utils.visualization import visualize_page
 forward_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
-def main(det_archs, reco_archs):
+def main(det_archs, reco_archs, layout_archs):
     """Build a streamlit layout"""
     # Wide mode
     st.set_page_config(layout="wide")
@@ -67,6 +67,9 @@ def main(det_archs, reco_archs):
     straighten_pages = st.sidebar.checkbox("Straighten pages", value=False)
     # Export as straight boxes
     export_straight_boxes = st.sidebar.checkbox("Export as straight boxes", value=False)
+    # Layout detection
+    detect_layout = st.sidebar.checkbox("Detect layout", value=False)
+    layout_arch = st.sidebar.selectbox("Layout detection model", layout_archs, disabled=not detect_layout)
     st.sidebar.write("\n")
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
@@ -92,6 +95,8 @@ def main(det_archs, reco_archs):
                     bin_thresh=bin_thresh,
                     box_thresh=box_thresh,
                     device=forward_device,
+                    detect_layout=detect_layout,
+                    layout_arch=layout_arch,
                 )
 
             with st.spinner("Analyzing..."):
@@ -123,4 +128,4 @@ def main(det_archs, reco_archs):
 
 
 if __name__ == "__main__":
-    main(DET_ARCHS, RECO_ARCHS)
+    main(DET_ARCHS, RECO_ARCHS, LAYOUT_ARCHS)
