@@ -20,7 +20,6 @@ __all__ = [
     "set_device_and_dtype",
     "export_model_to_onnx",
     "add_whitelist",
-    "WhitelistHandle",
     "_copy_tensor",
     "_bf16_to_float32",
     "_CompiledModule",
