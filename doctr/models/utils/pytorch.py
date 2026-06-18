@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import logging
+from collections.abc import Iterable
 from typing import Any
 
 import torch
@@ -17,6 +18,7 @@ __all__ = [
     "conv_sequence_pt",
     "set_device_and_dtype",
     "export_model_to_onnx",
+    "add_whitelist",
     "_copy_tensor",
     "_bf16_to_float32",
     "_CompiledModule",
@@ -196,3 +198,146 @@ def export_model_to_onnx(
     )
     logging.info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx"
+
+
+# Location of the final vocabulary-projection layer for each recognition architecture.
+_RECOGNITION_PROJECTIONS: dict[str, str] = {
+    "CRNN": "linear",
+    "SAR": "decoder.output_dense",
+    "MASTER": "linear",
+    "ViTSTR": "head",
+    "PARSeq": "head",
+    "VIPTR": "head",
+}
+
+
+class WhitelistHandle:
+    """Removable registration returned by :func:`add_whitelist`.
+
+    Call :meth:`remove` to restore the model's original, unconstrained decoding. The
+    handle can also be used as a context manager, in which case the whitelist is removed
+    on exit.
+    """
+
+    def __init__(self, handles: list[torch.utils.hooks.RemovableHandle]) -> None:
+        self._handles = handles
+
+    def remove(self) -> None:
+        """Remove the whitelist and restore the model's unconstrained decoding."""
+        for handle in self._handles:
+            handle.remove()
+        self._handles = []
+
+    def __enter__(self) -> "WhitelistHandle":
+        return self
+
+    def __exit__(self, *_: Any) -> None:
+        self.remove()
+
+
+def _recognition_models(model: nn.Module) -> list[nn.Module]:
+    # Accept an ocr_predictor / kie_predictor / recognition_predictor or a recognition model
+    if hasattr(model, "vocab") and hasattr(model, "postprocessor"):
+        return [model]
+    reco_predictor = getattr(model, "reco_predictor", model)
+    reco_model = getattr(reco_predictor, "model", None)
+    if reco_model is None:
+        raise TypeError(
+            "Expected an ocr_predictor, kie_predictor, recognition_predictor or a recognition "
+            f"model, but could not find a recognition model on {type(model).__name__}."
+        )
+    return [reco_model]
+
+
+def _vocab_projections(model: nn.Module, vocab_size: int) -> list[nn.Linear]:
+    path = _RECOGNITION_PROJECTIONS.get(type(model).__name__)
+    if path is not None:
+        layer: Any = model
+        for part in path.split("."):
+            layer = getattr(layer, part)
+        if isinstance(layer, nn.Linear):
+            return [layer]
+    # Fallback for unknown architectures: any Linear projecting to the vocab (+ up to 3 specials)
+    candidates = [
+        module
+        for module in model.modules()
+        if isinstance(module, nn.Linear) and module.out_features in {vocab_size + 1, vocab_size + 2, vocab_size + 3}
+    ]
+    if not candidates:
+        raise RuntimeError(f"Could not locate the vocabulary projection layer of {type(model).__name__}.")
+    return candidates
+
+
+def add_whitelist(
+    model: nn.Module,
+    vocabs: str | Iterable[str],
+    *,
+    verbose: bool = False,
+) -> WhitelistHandle:
+    """Restrict a recognition model so it can only predict a subset of its vocabulary.
+
+    The whitelist is enforced by masking, at the model's final projection layer, the logits
+    of every vocabulary character that is not whitelisted (setting them to ``-inf``) before
+    the decoding ``argmax``. Because the projection is the single point every logit flows
+    through, this also constrains the autoregressive decoding loop of SAR, MASTER and PARSeq,
+    so a forbidden character can never be produced -- not even fed back mid-word. The
+    sequence terminator (CTC ``blank`` / attention ``<eos>``) is always kept so decoding
+    still terminates. It works with every recognition architecture and with any predictor
+    wrapping one (`ocr_predictor`, `kie_predictor`, `recognition_predictor`).
+
+    A whitelist can only restrict a model to characters it already knows: characters that
+    are not part of the model's own vocabulary are silently ignored.
+
+    >>> from doctr.datasets import VOCABS
+    >>> from doctr.models import ocr_predictor
+    >>> from doctr.models.utils import add_whitelist
+    >>> predictor = ocr_predictor(pretrained=True)
+    >>> handle = add_whitelist(predictor, [VOCABS["polish"], VOCABS["german"]])
+    >>> # ... run the predictor - only Polish/German characters can be predicted ...
+    >>> handle.remove()  # restore the original, unconstrained decoding
+
+    Args:
+        model: an `ocr_predictor`, `kie_predictor`, `recognition_predictor`, or a recognition model.
+        vocabs: a vocabulary string (e.g. ``VOCABS["german"]``) or an iterable of vocabulary
+            strings (e.g. ``[VOCABS["polish"], VOCABS["german"]]``) whose characters are allowed.
+        verbose: if True, log how many characters were kept and forbidden for each model.
+
+    Returns:
+        a :class:`WhitelistHandle`; call its :meth:`~WhitelistHandle.remove` method to restore
+        the original, unconstrained decoding.
+    """
+    allowed = set(vocabs) if isinstance(vocabs, str) else {char for vocab in vocabs for char in vocab}
+
+    handles: list[torch.utils.hooks.RemovableHandle] = []
+    for reco_model in _recognition_models(model):
+        vocab: str = reco_model.vocab  # type: ignore[assignment]
+        vocab_size = len(vocab)
+        if not any(char in allowed for char in vocab):
+            raise ValueError(
+                "The whitelist shares no character with the model's vocabulary; the model would "
+                "be unable to predict anything."
+            )
+
+        for projection in _vocab_projections(reco_model, vocab_size):
+            # Keep whitelisted characters and the sequence terminator (index == vocab_size);
+            # forbid every other character and any trailing special token (e.g. <sos> / <pad>).
+            keep = torch.zeros(projection.out_features, dtype=torch.bool)
+            for idx, char in enumerate(vocab):
+                keep[idx] = char in allowed
+            keep[vocab_size] = True
+
+            def _mask_logits(_module: nn.Module, _inputs: Any, output: torch.Tensor, keep: torch.Tensor = keep):
+                output = output.clone()
+                output[..., ~keep.to(output.device)] = float("-inf")
+                return output
+
+            handles.append(projection.register_forward_hook(_mask_logits))
+
+        if verbose:
+            kept = sum(char in allowed for char in vocab)
+            logging.info(
+                f"add_whitelist: {type(reco_model).__name__} - kept {kept}/{vocab_size} vocabulary "
+                f"characters, forbade {vocab_size - kept}."
+            )
+
+    return WhitelistHandle(handles)

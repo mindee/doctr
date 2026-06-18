@@ -4,9 +4,12 @@ import pytest
 import torch
 from torch import nn
 
+from doctr.datasets import VOCABS
+from doctr.models import recognition
 from doctr.models.utils import (
     _bf16_to_float32,
     _copy_tensor,
+    add_whitelist,
     conv_sequence_pt,
     load_pretrained_params,
     set_device_and_dtype,
@@ -95,3 +98,104 @@ def test_set_device_and_dtype():
     assert all(isinstance(t, torch.Tensor) for t in new_masks)
     assert all(t.dtype == torch.bool for t in new_masks)
     assert all(t.device == torch.device("cpu") for t in new_masks)
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
+        "sar_resnet31",
+        "master",
+        "vitstr_small",
+        "vitstr_base",
+        "parseq",
+        "viptr_tiny",
+    ],
+)
+def test_add_whitelist(arch_name):
+    # A test vocab containing the full whitelist plus extra forbiddable characters, kept small
+    # enough to fit every architecture (SAR's feedback embedding caps at 512 entries).
+    _whitelist = [VOCABS["polish"], VOCABS["german"]]
+    _allowed = "".join(dict.fromkeys("".join(_whitelist)))  # ordered-unique characters
+    _extra = "".join(c for c in VOCABS["multilingual"] if c not in set(_allowed))[:200]
+    _test_vocab = _allowed + _extra
+
+    model = recognition.__dict__[arch_name](pretrained=True, vocab=_test_vocab).eval()
+    allowed = set(_allowed)
+    # every whitelisted character is part of the model vocab (nothing is dropped)
+    assert allowed.issubset(set(model.vocab))
+
+    forbidden_idx = [i for i, c in enumerate(model.vocab) if c not in allowed]
+    allowed_idx = [i for i, c in enumerate(model.vocab) if c in allowed]
+    terminator_idx = len(model.vocab)
+    assert len(forbidden_idx) > 0
+
+    samples = torch.rand(4, 3, 32, 128)
+
+    handle = add_whitelist(model, _whitelist)
+    with torch.inference_mode():
+        out = model(samples, return_model_output=True, return_preds=True)
+    logits = out["out_map"]
+
+    # forbidden characters are masked out, while whitelisted characters and the terminator stay finite
+    assert torch.isneginf(logits[..., forbidden_idx]).all()
+    assert torch.isfinite(logits[..., allowed_idx]).all()
+    assert torch.isfinite(logits[..., terminator_idx]).all()
+    # the decoded output only contains whitelisted characters (and no leaked special tokens)
+    for word, _ in out["preds"]:
+        assert all(char in allowed for char in word)
+
+    # remove() restores the original, unconstrained decoding
+    handle.remove()
+    with torch.inference_mode():
+        restored = model(samples, return_model_output=True)["out_map"]
+    assert torch.isfinite(restored).all()
+
+    # Test biased model:
+    # Even when the model is biased toward forbidden characters, the whitelist must win
+    # (this also exercises the autoregressive feedback loop).
+    model = recognition.parseq(pretrained=True, vocab=_test_vocab).eval()
+    allowed = set(VOCABS["german"])
+    forbidden_idx = torch.tensor([i for i, c in enumerate(model.vocab) if c not in allowed])
+
+    def bias_forbidden(module, inputs, output):
+        output = output.clone()
+        output[..., forbidden_idx] += 1e4
+        return output
+
+    bias_handle = model.head.register_forward_hook(bias_forbidden)  # runs before the whitelist hook
+    samples = torch.rand(4, 3, 32, 128)
+    with torch.inference_mode():
+        attacked = model(samples, return_preds=True)["preds"]
+    assert any(char not in allowed for word, _ in attacked for char in word)
+
+    whitelist_handle = add_whitelist(model, VOCABS["german"])  # registered after -> overrides the bias
+    with torch.inference_mode():
+        defended = model(samples, return_preds=True)["preds"]
+    assert all(char in allowed for word, _ in defended for char in word)
+
+    whitelist_handle.remove()
+    bias_handle.remove()
+
+    # Test as context manager and on a predictor
+    model = recognition.crnn_vgg16_bn(pretrained=True, vocab=_test_vocab).eval()
+    samples = torch.rand(2, 3, 32, 128)
+    with add_whitelist(model, VOCABS["german"]):
+        with torch.inference_mode():
+            masked = model(samples, return_model_output=True)["out_map"]
+        assert torch.isneginf(masked).any()
+    # outside the context the whitelist has been removed
+    with torch.inference_mode():
+        restored = model(samples, return_model_output=True)["out_map"]
+    assert torch.isfinite(restored).all()
+
+    # test whitelist error cases
+    model = recognition.crnn_vgg16_bn(pretrained=True, vocab="abc123").eval()
+    # a whitelist disjoint from the model vocabulary is rejected
+    with pytest.raises(ValueError):
+        add_whitelist(model, "XYZ")
+    # an object that is not a recognition model / predictor is rejected
+    with pytest.raises(TypeError):
+        add_whitelist(nn.Linear(8, 8), "abc")

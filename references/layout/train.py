@@ -89,14 +89,14 @@ def record_lr(
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
             optimizer.step()
         # Update LR
         scheduler.step()
@@ -137,14 +137,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
             optimizer.step()
 
         scheduler.step()
@@ -479,10 +479,11 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
+    backbone_lr = args.lr * 0.1 if args.pretrained or args.resume is not None else args.lr
     param_groups = build_param_groups(
         model,
         lr=args.lr,
-        backbone_lr=args.lr if not args.pretrained else args.lr * 0.1,
+        backbone_lr=backbone_lr,
         weight_decay=args.weight_decay or 1e-4,
     )
 
@@ -556,6 +557,7 @@ def main(args):
     if rank == 0:
         config = {
             "learning_rate": args.lr,
+            "backbone_learning_rate": backbone_lr,
             "epochs": args.epochs,
             "weight_decay": args.weight_decay,
             "batch_size": args.batch_size,
