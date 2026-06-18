@@ -199,3 +199,67 @@ def test_add_whitelist(arch_name):
     # an object that is not a recognition model / predictor is rejected
     with pytest.raises(TypeError):
         add_whitelist(nn.Linear(8, 8), "abc")
+
+
+# Forbidden characters whose visual base (via anyascii) is part of the German whitelist.
+_NEAREST_VOCAB = "".join(dict.fromkeys(VOCABS["german"] + "ąóńł"))
+_NEAREST_FOLDS = {"ą": "a", "ó": "o", "ń": "n", "ł": "l"}
+
+
+def _force_and_decode(model, target_char, **whitelist_kwargs):
+    """Bias the model to prefer ``target_char``, apply the whitelist, return the decoded word."""
+    from doctr.models.utils.pytorch import _vocab_projections, add_whitelist
+
+    forbidden_idx = model.vocab.index(target_char)
+    projection = _vocab_projections(model, len(model.vocab))[0]
+
+    def bias(module, inputs, output, idx=forbidden_idx):
+        output = output.clone()
+        output[..., idx] += 1e4
+        return output
+
+    bias_handle = projection.register_forward_hook(bias)  # runs before the whitelist hook
+    whitelist_handle = add_whitelist(model, VOCABS["german"], **whitelist_kwargs)
+    with torch.inference_mode():
+        word = model(torch.rand(2, 3, 32, 128), return_preds=True)["preds"][0][0]
+    whitelist_handle.remove()
+    bias_handle.remove()
+    return word
+
+
+@pytest.mark.parametrize("arch_name", ["crnn_vgg16_bn", "sar_resnet31", "master", "parseq", "viptr_tiny"])
+def test_add_whitelist_nearest_folds_to_base(arch_name):
+    model = recognition.__dict__[arch_name](pretrained=True, vocab=_NEAREST_VOCAB).eval()
+    for forbidden_char, base_char in _NEAREST_FOLDS.items():
+        word = _force_and_decode(model, forbidden_char, strategy="nearest")
+        # the forbidden character is folded onto its allowed visual base (CTC collapses repeats)
+        assert word and set(word) == {base_char}
+
+
+def test_add_whitelist_nearest_custom_mapping():
+    model = recognition.parseq(pretrained=True, vocab=_NEAREST_VOCAB).eval()
+    # an explicit mapping overrides the default transliteration (ą would otherwise fold to "a")
+    word = _force_and_decode(model, "ą", strategy="nearest", mapping={"ą": "z"})
+    assert word and set(word) == {"z"}
+
+
+def test_add_whitelist_nearest_weights_stays_within_whitelist():
+    model = recognition.crnn_vgg16_bn(pretrained=True, vocab=_NEAREST_VOCAB).eval()
+    allowed = set(VOCABS["german"])
+    handle = add_whitelist(model, VOCABS["german"], strategy="nearest", mapping="weights")
+    with torch.inference_mode():
+        preds = model(torch.rand(3, 3, 32, 128), return_preds=True)["preds"]
+    handle.remove()
+    assert all(char in allowed for word, _ in preds for char in word)
+
+
+def test_add_whitelist_strategy_errors():
+    model = recognition.crnn_vgg16_bn(pretrained=True, vocab=_NEAREST_VOCAB).eval()
+    with pytest.raises(ValueError):  # mapping is meaningless without strategy="nearest"
+        add_whitelist(model, VOCABS["german"], mapping={"ą": "a"})
+    with pytest.raises(ValueError):  # unknown strategy
+        add_whitelist(model, VOCABS["german"], strategy="drop")
+    with pytest.raises(ValueError):  # unknown mapping keyword
+        add_whitelist(model, VOCABS["german"], strategy="nearest", mapping="closest")
+    with pytest.raises(ValueError):  # unsupported mapping type
+        add_whitelist(model, VOCABS["german"], strategy="nearest", mapping=123)

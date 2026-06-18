@@ -598,3 +598,22 @@ The returned handle can also be used as a context manager, in which case the whi
     with add_whitelist(predictor, VOCABS["german"]):
         out = predictor(input_page)  # only German characters can be predicted here
     # the whitelist is automatically removed outside of the ``with`` block
+
+By default forbidden characters are dropped (``strategy="mask"``), so decoding falls back to the highest-scoring
+allowed character. Alternatively, ``strategy="nearest"`` folds each forbidden character onto the closest allowed
+one (e.g. ``ä`` -> ``a``, ``ł`` -> ``l``), which is useful to normalize accents/diacritics onto a base alphabet.
+The mapping is built by transliteration by default; pass ``mapping="weights"`` to derive it from the model's own
+learned confusions, or a ``{forbidden_char: allowed_char}`` dict to override specific characters.
+
+.. code:: python3
+
+    from doctr.datasets import VOCABS
+    from doctr.models import ocr_predictor
+    from doctr.models.utils import add_whitelist
+
+    predictor = ocr_predictor(pretrained=True)
+
+    # Fold any non-ASCII character onto its closest ASCII letter (e.g. é -> e, ł -> l)
+    handle = add_whitelist(predictor, VOCABS["latin"], strategy="nearest")
+    out = predictor(input_page)
+    handle.remove()
