@@ -304,7 +304,7 @@ def _weights_nearest_map(vocab: str, allowed: set[str], projection: nn.Linear) -
 
     This uses the model's own learned representation: the nearest allowed character is the one
     the model most confuses the forbidden character with (cosine similarity of the projection
-    weight rows). Only meaningful for a trained model.
+    weight rows).
     """
     vocab_size = len(vocab)
     rows = nn.functional.normalize(projection.weight.detach()[:vocab_size], dim=1)
