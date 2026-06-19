@@ -562,3 +562,58 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
     # You can also add multiple hooks which will be executed sequentially
     for hook in [my_hook, my_hook, my_hook]:
         predictor.add_hook(hook)
+
+
+* Restrict the recognition model to a subset of its vocabulary.
+
+If you only expect text from one or more known languages, you can whitelist the corresponding vocabs so the
+recognition model can no longer predict any character outside of them. This works with every recognition
+architecture and with any predictor wrapping one (`ocr_predictor`, `kie_predictor`, `recognition_predictor`).
+A whitelist can only restrict a model to characters it already knows: characters that are not part of the
+model's own vocabulary are silently ignored, so make sure the model was trained on a vocab that covers the
+languages you need (e.g. a multilingual model).
+
+.. code:: python3
+
+    from doctr.datasets import VOCABS
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor
+    from doctr.models.utils import add_whitelist
+
+    predictor = ocr_predictor(pretrained=True)
+
+    # The recognition model can now only predict Polish/German characters
+    handle = add_whitelist(predictor, [VOCABS["polish"], VOCABS["german"]])
+
+    input_page = DocumentFile.from_images("path/to/your/image.png")
+    out = predictor(input_page)
+
+    # Restore the original, unconstrained decoding
+    handle.remove()
+
+The returned handle can also be used as a context manager, in which case the whitelist is removed on exit:
+
+.. code:: python3
+
+    with add_whitelist(predictor, VOCABS["german"]):
+        out = predictor(input_page)  # only German characters can be predicted here
+    # the whitelist is automatically removed outside of the ``with`` block
+
+By default forbidden characters are dropped (``strategy="mask"``), so decoding falls back to the highest-scoring
+allowed character. Alternatively, ``strategy="nearest"`` folds each forbidden character onto the closest allowed
+one (e.g. ``ä`` -> ``a``, ``ł`` -> ``l``), which is useful to normalize accents/diacritics onto a base alphabet.
+The mapping is built by transliteration by default; pass ``mapping="weights"`` to derive it from the model's own
+learned confusions, or a ``{forbidden_char: allowed_char}`` dict to override specific characters.
+
+.. code:: python3
+
+    from doctr.datasets import VOCABS
+    from doctr.models import ocr_predictor
+    from doctr.models.utils import add_whitelist
+
+    predictor = ocr_predictor(pretrained=True)
+
+    # Fold any non-ASCII character onto its closest ASCII letter (e.g. é -> e, ł -> l)
+    handle = add_whitelist(predictor, VOCABS["latin"], strategy="nearest")
+    out = predictor(input_page)
+    handle.remove()
