@@ -1,11 +1,12 @@
 import os
 
+import numpy as np
 import pytest
 import torch
 from torch import nn
 
 from doctr.datasets import VOCABS
-from doctr.models import recognition
+from doctr.models import recognition, recognition_predictor
 from doctr.models.utils import (
     _bf16_to_float32,
     _copy_tensor,
@@ -14,6 +15,7 @@ from doctr.models.utils import (
     load_pretrained_params,
     set_device_and_dtype,
 )
+from doctr.models.utils.pytorch import _vocab_projections
 
 
 def test_copy_tensor():
@@ -199,6 +201,71 @@ def test_add_whitelist(arch_name):
     # an object that is not a recognition model / predictor is rejected
     with pytest.raises(TypeError):
         add_whitelist(nn.Linear(8, 8), "abc")
+
+
+@pytest.mark.parametrize(
+    "arch_name",
+    [
+        "crnn_vgg16_bn",
+        "crnn_mobilenet_v3_small",
+        "crnn_mobilenet_v3_large",
+        "sar_resnet31",
+        "master",
+        "vitstr_small",
+        "vitstr_base",
+        "parseq",
+        "viptr_tiny",
+    ],
+)
+def test_end_to_end_add_whitelist(arch_name):
+    vocab = "abcXYZ"
+    allowed = set("abc")
+    model = recognition.__dict__[arch_name](pretrained=False, vocab=vocab).eval()
+    predictor = recognition_predictor(model, batch_size=2)
+
+    forbidden_idx = model.vocab.index("X")
+    allowed_idx = model.vocab.index("a")
+    projection = _vocab_projections(model, len(model.vocab))[0]
+
+    def bias_forbidden(_module, _inputs, output):
+        output = output.clone()
+        output[..., forbidden_idx] += 1e4
+        output[..., allowed_idx] += 5e3
+        return output
+
+    bias_handle = projection.register_forward_hook(bias_forbidden)
+    crops = [(255 * np.random.rand(32, 128, 3)).astype(np.uint8) for _ in range(2)]
+
+    try:
+        unconstrained = predictor(crops)
+        assert all("X" in word for word, _ in unconstrained)
+        with add_whitelist(predictor, "abc"):
+            constrained = predictor(crops)
+        assert all(word and all(char in allowed for char in word) for word, _ in constrained)
+        restored = predictor(crops)
+        assert all("X" in word for word, _ in restored)
+    finally:
+        bias_handle.remove()
+
+
+def test_vocab_projections_fallback_candidates():
+    from doctr.models.utils.pytorch import _vocab_projections
+
+    vocab_size = 6
+
+    class UnknownRecognitionModel(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.hidden = nn.Linear(4, vocab_size + 4)
+            self.projection = nn.Linear(vocab_size + 4, vocab_size + 1)
+            self.aux_projection = nn.Linear(vocab_size + 4, vocab_size + 3)
+            self.unrelated = nn.Linear(vocab_size + 4, vocab_size + 4)
+
+    model = UnknownRecognitionModel()
+    assert _vocab_projections(model, vocab_size) == [model.projection, model.aux_projection]
+
+    with pytest.raises(RuntimeError, match="Could not locate the vocabulary projection layer"):
+        _vocab_projections(nn.Linear(4, 4), vocab_size)
 
 
 # Forbidden characters whose visual base (via anyascii) is part of the German whitelist.

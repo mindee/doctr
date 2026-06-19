@@ -89,14 +89,14 @@ def record_lr(
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             optimizer.step()
         # Update LR
         scheduler.step()
@@ -137,14 +137,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
             scaler.scale(train_loss).backward()
             # Gradient clipping
             scaler.unscale_(optimizer)
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             # Update the params
             scaler.step(optimizer)
             scaler.update()
         else:
             train_loss = model(imgs, padding_masks, targets)["loss"]
             train_loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
             optimizer.step()
 
         scheduler.step()

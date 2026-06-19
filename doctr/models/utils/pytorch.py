@@ -236,10 +236,10 @@ class WhitelistHandle:
         self.remove()
 
 
-def _recognition_models(model: nn.Module) -> list[nn.Module]:
+def _recognition_model(model: nn.Module) -> nn.Module:
     # Accept an ocr_predictor / kie_predictor / recognition_predictor or a recognition model
     if hasattr(model, "vocab") and hasattr(model, "postprocessor"):
-        return [model]
+        return model
     reco_predictor = getattr(model, "reco_predictor", model)
     reco_model = getattr(reco_predictor, "model", None)
     if reco_model is None:
@@ -247,7 +247,7 @@ def _recognition_models(model: nn.Module) -> list[nn.Module]:
             "Expected an ocr_predictor, kie_predictor, recognition_predictor or a recognition "
             f"model, but could not find a recognition model on {type(model).__name__}."
         )
-    return [reco_model]
+    return reco_model
 
 
 def _vocab_projections(model: nn.Module, vocab_size: int) -> list[nn.Linear]:
@@ -403,58 +403,58 @@ def add_whitelist(
     allowed = set(vocabs) if isinstance(vocabs, str) else {char for vocab in vocabs for char in vocab}
 
     handles: list[torch.utils.hooks.RemovableHandle] = []
-    for reco_model in _recognition_models(model):
-        vocab: str = reco_model.vocab  # type: ignore[assignment]
-        vocab_size = len(vocab)
-        if not any(char in allowed for char in vocab):
-            raise ValueError(
-                "The whitelist shares no character with the model's vocabulary; the model would "
-                "be unable to predict anything."
-            )
+    reco_model = _recognition_model(model)
+    vocab: str = reco_model.vocab  # type: ignore[assignment]
+    vocab_size = len(vocab)
+    if not any(char in allowed for char in vocab):
+        raise ValueError(
+            "The whitelist shares no character with the model's vocabulary; the model would "
+            "be unable to predict anything."
+        )
 
-        # A vocab-level character map (shared by every projection); the weight-based map is
-        # derived per projection further down.
-        base_map: dict[str, str] = {}
-        if strategy == "nearest" and mapping != "weights":
-            base_map = _anyascii_nearest_map(vocab, allowed)
-            if isinstance(mapping, dict):
-                base_map = {**base_map, **mapping}
+    # A vocab-level character map (shared by every projection); the weight-based map is
+    # derived per projection further down.
+    base_map: dict[str, str] = {}
+    if strategy == "nearest" and mapping != "weights":
+        base_map = _anyascii_nearest_map(vocab, allowed)
+        if isinstance(mapping, dict):
+            base_map = {**base_map, **mapping}
 
-        reassigned = 0
-        for projection in _vocab_projections(reco_model, vocab_size):
-            char_map = (
-                _weights_nearest_map(vocab, allowed, projection)
-                if strategy == "nearest" and mapping == "weights"
-                else base_map
-            )
-            keep, src, dst = _keep_and_reassign(vocab, allowed, projection.out_features, char_map)
-            reassigned = max(reassigned, src.numel())
+    reassigned = 0
+    for projection in _vocab_projections(reco_model, vocab_size):
+        char_map = (
+            _weights_nearest_map(vocab, allowed, projection)
+            if strategy == "nearest" and mapping == "weights"
+            else base_map
+        )
+        keep, src, dst = _keep_and_reassign(vocab, allowed, projection.out_features, char_map)
+        reassigned = max(reassigned, src.numel())
 
-            def _constrain_logits(
-                _module: nn.Module,
-                _inputs: Any,
-                output: torch.Tensor,
-                keep: torch.Tensor = keep,
-                src: torch.Tensor = src,
-                dst: torch.Tensor = dst,
-            ):
-                output = output.clone()
-                if src.numel():
-                    # move each forbidden character's score onto its nearest allowed character
-                    values = output[..., src.to(output.device)]
-                    index = dst.to(output.device).view(*([1] * (output.dim() - 1)), -1).expand(*output.shape[:-1], -1)
-                    output.scatter_reduce_(-1, index, values, reduce="amax", include_self=True)
-                output[..., ~keep.to(output.device)] = float("-inf")
-                return output
+        def _constrain_logits(
+            _module: nn.Module,
+            _inputs: Any,
+            output: torch.Tensor,
+            keep: torch.Tensor = keep,
+            src: torch.Tensor = src,
+            dst: torch.Tensor = dst,
+        ):
+            output = output.clone()
+            if src.numel():
+                # move each forbidden character's score onto its nearest allowed character
+                values = output[..., src.to(output.device)]
+                index = dst.to(output.device).view(*([1] * (output.dim() - 1)), -1).expand(*output.shape[:-1], -1)
+                output.scatter_reduce_(-1, index, values, reduce="amax", include_self=True)
+            output[..., ~keep.to(output.device)] = float("-inf")
+            return output
 
-            handles.append(projection.register_forward_hook(_constrain_logits))
+        handles.append(projection.register_forward_hook(_constrain_logits))
 
-        if verbose:
-            kept = sum(char in allowed for char in vocab)
-            logging.info(
-                f"add_whitelist: {type(reco_model).__name__} - kept {kept}/{vocab_size} vocabulary "
-                f"characters, forbade {vocab_size - kept}"
-                + (f", reassigned {reassigned} to a nearest allowed character." if strategy == "nearest" else ".")
-            )
+    if verbose:  # pragma: no cover
+        kept = sum(char in allowed for char in vocab)
+        logging.info(
+            f"add_whitelist: {type(reco_model).__name__} - kept {kept}/{vocab_size} vocabulary "
+            f"characters, forbade {vocab_size - kept}"
+            + (f", reassigned {reassigned} to a nearest allowed character." if strategy == "nearest" else ".")
+        )
 
     return WhitelistHandle(handles)
