@@ -1023,6 +1023,55 @@ To get a better understanding of our document model, check our <a class="referen
     <span class="n">predictor</span><span class="o">.</span><span class="n">add_hook</span><span class="p">(</span><span class="n">hook</span><span class="p">)</span>
 </pre></div>
 </div>
+<ul class="simple">
+<li><p>Restrict the recognition model to a subset of its vocabulary.</p></li>
+</ul>
+<p>If you only expect text from one or more known languages, you can whitelist the corresponding vocabs so the
+recognition model can no longer predict any character outside of them. This works with every recognition
+architecture and with any predictor wrapping one (<cite>ocr_predictor</cite>, <cite>kie_predictor</cite>, <cite>recognition_predictor</cite>).
+A whitelist can only restrict a model to characters it already knows: characters that are not part of the
+model’s own vocabulary are silently ignored, so make sure the model was trained on a vocab that covers the
+languages you need (e.g. a multilingual model).</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_whitelist</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># The recognition model can now only predict Polish/German characters</span>
+<span class="n">handle</span> <span class="o">=</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="p">[</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;polish&quot;</span><span class="p">],</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;german&quot;</span><span class="p">]])</span>
+
+<span class="n">input_page</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">&quot;path/to/your/image.png&quot;</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">input_page</span><span class="p">)</span>
+
+<span class="c1"># Restore the original, unconstrained decoding</span>
+<span class="n">handle</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The returned handle can also be used as a context manager, in which case the whitelist is removed on exit:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;german&quot;</span><span class="p">]):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">input_page</span><span class="p">)</span>  <span class="c1"># only German characters can be predicted here</span>
+<span class="c1"># the whitelist is automatically removed outside of the ``with`` block</span>
+</pre></div>
+</div>
+<p>By default forbidden characters are dropped (<code class="docutils literal notranslate"><span class="pre">strategy=&quot;mask&quot;</span></code>), so decoding falls back to the highest-scoring
+allowed character. Alternatively, <code class="docutils literal notranslate"><span class="pre">strategy=&quot;nearest&quot;</span></code> folds each forbidden character onto the closest allowed
+one (e.g. <code class="docutils literal notranslate"><span class="pre">ä</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">a</span></code>, <code class="docutils literal notranslate"><span class="pre">ł</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">l</span></code>), which is useful to normalize accents/diacritics onto a base alphabet.
+The mapping is built by transliteration by default; pass <code class="docutils literal notranslate"><span class="pre">mapping=&quot;weights&quot;</span></code> to derive it from the model’s own
+learned confusions, or a <code class="docutils literal notranslate"><span class="pre">{forbidden_char:</span> <span class="pre">allowed_char}</span></code> dict to override specific characters.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_whitelist</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Fold any non-ASCII character onto its closest ASCII letter (e.g. é -&gt; e, ł -&gt; l)</span>
+<span class="n">handle</span> <span class="o">=</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;latin&quot;</span><span class="p">],</span> <span class="n">strategy</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">)</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">input_page</span><span class="p">)</span>
+<span class="n">handle</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+</pre></div>
+</div>
 </section>
 </section>
 </section>
