@@ -69,6 +69,17 @@ Load a custom layout analysis model trained on another set of classes as the def
 
     predictor = layout_predictor(layout_arch=layout_model, pretrained=True)
 
+Load a custom trained KIE detection model:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import kie_predictor, db_resnet50
+
+    det_model = db_resnet50(pretrained=False, pretrained_backbone=False, class_names=['total', 'date'])
+    det_model.from_pretrained('<path_to_pt>')
+    kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
+
 Load a model with customized Preprocessor:
 
 .. code:: python3
