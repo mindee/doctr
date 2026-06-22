@@ -59,20 +59,3 @@ Visualise on screen (requires the ``viz`` extra: ``pip install "python-doctr[viz
 
     result.pages[0].show()
 
-
-Key Information Extraction (KIE)
-=================================
-
-If you need to extract specific named fields (e.g. ``date``, ``total``) use
-:py:meth:`kie_predictor <doctr.models.kie_predictor>` instead:
-
-.. code:: python3
-
-    from doctr.io import DocumentFile
-    from doctr.models import kie_predictor
-
-    doc = DocumentFile.from_images("path/to/invoice.jpg")
-    model = kie_predictor(pretrained=True)
-    result = model(doc)
-    # Access class-specific predictions
-    print(result.pages[0].predictions)

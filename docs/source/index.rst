@@ -18,7 +18,6 @@ Main Features
 -------------
 
 * |:robot:| Robust 2-stage (detection + recognition) OCR predictors with pretrained parameters
-* |:key:| Key Information Extraction (KIE) predictor for class-aware text detection
 * |:page_facing_up:| Layout analysis predictor for detecting document regions (tables, figures, headers, …)
 * |:zap:| User-friendly, 3 lines of code to load a document and extract text with a predictor
 * |:rocket:| State-of-the-art performance on public document datasets, comparable with GoogleVision/AWS Textract

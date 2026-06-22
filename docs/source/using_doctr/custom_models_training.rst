@@ -1,3 +1,5 @@
+.. _custom_models_training:
+
 Train your own model
 ====================
 
