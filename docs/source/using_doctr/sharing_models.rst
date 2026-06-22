@@ -8,7 +8,7 @@ To make it easy for you, we have integrated an interface to the Hugging Face Hub
 
 
 Loading from Hugging Face Hub
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This section shows how you can easily load a pretrained model from the Hugging Face Hub.
 
@@ -27,7 +27,7 @@ This section shows how you can easily load a pretrained model from the Hugging F
 
 
 Pushing to the Hugging Face Hub
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can also push your trained model to the Hugging Face Hub.
 You need only to provide the task type (classification, detection, recognition or obj_detection), a name for your trained model (NOTE:

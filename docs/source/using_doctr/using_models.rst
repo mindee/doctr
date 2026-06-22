@@ -12,6 +12,27 @@ For a given task, docTR provides a Predictor, which is composed of 2 components:
 * Model: a deep learning model, implemented with all supported deep learning backends (PyTorch) along with its specific post-processor to make outputs structured and reusable.
 
 
+Which predictor should I use?
+------------------------------
+
+.. list-table::
+   :widths: 60 40
+   :header-rows: 1
+
+   * - I want to…
+     - Use
+   * - Extract all text (words, lines, layout hierarchy) from a document
+     - :py:meth:`ocr_predictor <doctr.models.ocr_predictor>`
+   * - Detect document regions by type (tables, figures, headers, …)
+     - :py:meth:`layout_predictor <doctr.models.layout_predictor>`
+   * - Get word bounding-boxes only, without recognition
+     - :py:meth:`detection_predictor <doctr.models.detection_predictor>`
+   * - Transcribe pre-cropped word images to strings
+     - :py:meth:`recognition_predictor <doctr.models.recognition_predictor>`
+
+For :doc:`custom model loading <custom_models_training>` or sharing models, see the dedicated pages.
+
+
 Text Detection
 --------------
 
@@ -19,12 +40,11 @@ The task consists of localizing textual elements in a given image.
 While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don't).
 Our latest detection models works with rotated and skewed documents!
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available detection architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following architectures are currently supported:
 
-* :py:meth:`linknet_resnet18 <doctr.models.detection.linknet_resnet18>`
 * :py:meth:`linknet_resnet34 <doctr.models.detection.linknet_resnet34>`
 * :py:meth:`linknet_resnet50 <doctr.models.detection.linknet_resnet50>`
 * :py:meth:`db_resnet50 <doctr.models.detection.db_resnet50>`
@@ -83,12 +103,11 @@ Detection predictors
     out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
-* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, setting `pretrained=True` this will load the corresponding weights. If `pretrained=False`, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
-* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
-* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
-* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
-For instance, this snippet instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
+* ``pretrained``: if you want to use a model that has been pretrained on a specific dataset, setting ``pretrained=True`` will load the corresponding weights. If ``pretrained=False`` (the default), the model is randomly initialized and will produce no useful results.
+* ``assume_straight_pages``: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* ``preserve_aspect_ratio``: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* ``symmetric_pad``: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
 .. code:: python3
 
@@ -102,8 +121,8 @@ Text Recognition
 The task consists of transcribing the character sequence in a given image.
 
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available recognition architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following architectures are currently supported:
 
@@ -183,8 +202,8 @@ The task consists of localizing and classifying visual elements in a given image
 This is a more general task than text detection, as it can be used to detect and classify any type of visual element in a document, such as tables, figures, headers, footers, etc.
 Our latest layout models works with rotated and skewed documents!
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available layout architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following architectures are currently supported:
 
@@ -223,10 +242,11 @@ Layout predictors
     out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
-* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, setting `pretrained=True` this will load the corresponding weights. If `pretrained=False`, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
-* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
-* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
-* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
+
+* ``pretrained``: if you want to use a model that has been pretrained on a specific dataset, setting ``pretrained=True`` will load the corresponding weights. If ``pretrained=False`` (the default), the model is randomly initialized and will produce no useful results.
+* ``assume_straight_pages``: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* ``preserve_aspect_ratio``: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* ``symmetric_pad``: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
 For instance, this snippet instantiates a layout predictor able to detect text on rotated documents while preserving the aspect ratio:
 
@@ -241,8 +261,8 @@ End-to-End OCR
 
 The task consists of both localizing and transcribing textual elements in a given image.
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available OCR architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can use any combination of detection and recognition models supported by docTR.
 

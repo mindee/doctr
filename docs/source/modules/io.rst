@@ -22,7 +22,7 @@ A Word is an uninterrupted sequence of characters.
 
 Prediction
 ^^^^^^^^^^
-A Prediction is a Word with an additional crop-orientation field (indicating the detected text rotation angle), used by the KIE predictor.
+A Prediction is a Word with an additional crop-orientation field indicating the detected text rotation angle.
 
 .. autoclass:: Prediction
 
