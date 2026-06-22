@@ -261,7 +261,7 @@ def viptr_tiny(pretrained: bool = False, **kwargs: Any) -> VIPTR:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        pretrained: If True, returns a model pre-trained on our text recognition dataset
         **kwargs: keyword arguments of the VIPTR architecture
 
     Returns:

@@ -247,7 +247,7 @@ def resnet18(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
@@ -274,7 +274,7 @@ def resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
@@ -306,7 +306,7 @@ def resnet34(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
@@ -332,7 +332,7 @@ def resnet34_wide(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:
@@ -364,7 +364,7 @@ def resnet50(pretrained: bool = False, **kwargs: Any) -> TVResNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:

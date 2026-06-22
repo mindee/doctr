@@ -20,12 +20,11 @@ def merge_strings(a: str, b: str, overlap_ratio: float) -> str:
     Returns:
         A merged character sequence.
 
-    Example::
-        >>> from doctr.models.recognition.utils import merge_strings
-        >>> merge_strings('abcd', 'cdefgh', 0.5)
-        'abcdefgh'
-        >>> merge_strings('abcdi', 'cdefgh', 0.5)
-        'abcdefgh'
+    >>> from doctr.models.recognition.utils import merge_strings
+    >>> merge_strings('abcd', 'cdefgh', 0.5)
+    'abcdefgh'
+    >>> merge_strings('abcdi', 'cdefgh', 0.5)
+    'abcdefgh'
     """
     seq_len = min(len(a), len(b))
     if seq_len <= 1:  # One sequence is empty or will be after cropping in next step, return both to keep data
@@ -78,10 +77,9 @@ def merge_multi_strings(seq_list: list[str], overlap_ratio: float, last_overlap_
     Returns:
         A merged character sequence
 
-    Example::
-        >>> from doctr.models.recognition.utils import merge_multi_strings
-        >>> merge_multi_strings(['abc', 'bcdef', 'difghi', 'aijkl'], 0.5, 0.1)
-        'abcdefghijkl'
+    >>> from doctr.models.recognition.utils import merge_multi_strings
+    >>> merge_multi_strings(['abc', 'bcdef', 'difghi', 'aijkl'], 0.5, 0.1)
+    'abcdefghijkl'
     """
     if not seq_list:
         return ""

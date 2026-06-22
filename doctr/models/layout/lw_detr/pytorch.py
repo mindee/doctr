@@ -789,7 +789,7 @@ def lw_detr_s(pretrained: bool = False, **kwargs: Any) -> LWDETR:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
@@ -820,7 +820,7 @@ def lw_detr_m(pretrained: bool = False, **kwargs: Any) -> LWDETR:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:

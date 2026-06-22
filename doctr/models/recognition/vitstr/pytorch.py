@@ -239,7 +239,7 @@ def vitstr_small(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        pretrained: If True, returns a model pre-trained on our text recognition dataset
         kwargs: keyword arguments of the ViTSTR architecture
 
     Returns:
@@ -268,7 +268,7 @@ def vitstr_base(pretrained: bool = False, **kwargs: Any) -> ViTSTR:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset
+        pretrained: If True, returns a model pre-trained on our text recognition dataset
         kwargs: keyword arguments of the ViTSTR architecture
 
     Returns:

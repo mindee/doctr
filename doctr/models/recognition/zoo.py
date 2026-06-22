@@ -71,12 +71,11 @@ def recognition_predictor(
 ) -> RecognitionPredictor:
     """Text recognition architecture.
 
-    Example::
-        >>> import numpy as np
-        >>> from doctr.models import recognition_predictor
-        >>> model = recognition_predictor(pretrained=True)
-        >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
-        >>> out = model([input_page])
+    >>> import numpy as np
+    >>> from doctr.models import recognition_predictor
+    >>> model = recognition_predictor(pretrained=True)
+    >>> input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)
+    >>> out = model([input_page])
 
     Args:
         arch: name of the architecture or model itself to use (e.g. 'crnn_vgg16_bn')

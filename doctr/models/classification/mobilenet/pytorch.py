@@ -137,7 +137,7 @@ def mobilenet_v3_small(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
@@ -160,7 +160,7 @@ def mobilenet_v3_small_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
@@ -187,7 +187,7 @@ def mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> mobilenetv3.M
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
@@ -213,7 +213,7 @@ def mobilenet_v3_large_r(pretrained: bool = False, **kwargs: Any) -> mobilenetv3
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
@@ -240,7 +240,7 @@ def mobilenet_v3_small_crop_orientation(pretrained: bool = False, **kwargs: Any)
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
@@ -266,7 +266,7 @@ def mobilenet_v3_small_page_orientation(pretrained: bool = False, **kwargs: Any)
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the MobileNetV3 architecture
 
     Returns:
