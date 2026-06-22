@@ -21,7 +21,7 @@ ROTATION_WARNING = False
 def _warn_rotation(entry: dict[str, Any]) -> None:  # pragma: no cover
     global ROTATION_WARNING
     if not ROTATION_WARNING and len(entry["geometry"]) == 4:
-        logging.warning("Polygons with larger rotations will lead to inaccurate rendering")
+        logging.getLogger(__name__).warning("Polygons with larger rotations will lead to inaccurate rendering")
         ROTATION_WARNING = True
 
 
@@ -84,7 +84,7 @@ def _synthesize(
             d.text((xmin, ymin), anyascii(word_text), font=font, fill=(0, 0, 0), anchor="lt")
     # Catch generic exceptions to avoid crashing the whole rendering
     except Exception:  # pragma: no cover
-        logging.warning(f"Could not render word: {word_text}")
+        logging.getLogger(__name__).warning(f"Could not render word: {word_text}")
 
     if draw_proba:
         confidence = (

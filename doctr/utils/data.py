@@ -84,7 +84,7 @@ def download_from_url(
     file_path = folder_path.joinpath(file_name)
     # Check file existence
     if file_path.is_file() and (hash_prefix is None or _check_integrity(file_path, hash_prefix)):
-        logging.info(f"Using downloaded & verified file: {file_path}")
+        logging.getLogger(__name__).info(f"Using downloaded & verified file: {file_path}")
         return file_path
 
     try:
@@ -98,7 +98,7 @@ def download_from_url(
             error_message += (
                 ". You can change default cache directory using 'DOCTR_CACHE_DIR' environment variable if needed."
             )
-        logging.error(error_message)
+        logging.getLogger(__name__).error(error_message)
         raise
     # Download the file
     try:
