@@ -22,7 +22,7 @@ try:  # optional dependency for visualization
 except ModuleNotFoundError:
     pass
 
-__all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page", "KIEPage", "Document", "LayoutElement"]
+__all__ = ["Element", "Word", "Artefact", "Line", "Prediction", "Block", "Page", "KIEPage", "KIEDocument", "Document", "LayoutElement"]
 
 
 class Element(NestedObject):

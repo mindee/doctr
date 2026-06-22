@@ -20,6 +20,12 @@ A Word is an uninterrupted sequence of characters.
 
 .. autoclass:: Word
 
+Prediction
+^^^^^^^^^^
+A Prediction is a Word with an additional crop-orientation field, used internally by the KIE predictor.
+
+.. autoclass:: Prediction
+
 Line
 ^^^^
 A Line is a collection of Words aligned spatially and meant to be read together (on a two-column page, on the same horizontal, we will consider that there are two Lines).
@@ -32,6 +38,13 @@ Artefact
 An Artefact is a non-textual element (e.g. QR code, picture, chart, signature, logo, etc.).
 
 .. autoclass:: Artefact
+
+LayoutElement
+^^^^^^^^^^^^^
+
+A LayoutElement is a region predicted by a layout detection model (e.g. Title, Text, Table, Page-header).
+
+.. autoclass:: LayoutElement
 
 Block
 ^^^^^
@@ -49,12 +62,34 @@ A Page is a collection of Blocks that were on the same physical page.
    .. automethod:: show
 
 
+KIEPage
+^^^^^^^
+
+A KIEPage is returned by the :py:meth:`kie_predictor <doctr.models.kie_predictor>`. It groups predictions by
+semantic class rather than by spatial layout.
+
+.. autoclass:: KIEPage
+
+   .. automethod:: show
+
+
 Document
 ^^^^^^^^
 
 A Document is a collection of Pages.
 
 .. autoclass:: Document
+
+   .. automethod:: show
+
+
+KIEDocument
+^^^^^^^^^^^
+
+A KIEDocument is a collection of :class:`KIEPage` elements, returned by the
+:py:meth:`kie_predictor <doctr.models.kie_predictor>`.
+
+.. autoclass:: KIEDocument
 
    .. automethod:: show
 

@@ -617,3 +617,60 @@ learned confusions, or a ``{forbidden_char: allowed_char}`` dict to override spe
     handle = add_whitelist(predictor, VOCABS["latin"], strategy="nearest")
     out = predictor(input_page)
     handle.remove()
+
+
+Key Information Extraction (KIE)
+---------------------------------
+
+Key Information Extraction (KIE) is a task that goes beyond plain OCR: in addition to localizing and
+transcribing text, it assigns each detected word a **semantic class** (e.g. ``date``, ``total``, ``invoice_number``).
+This is achieved by training the detection model to predict class-specific bounding boxes.
+
+:py:meth:`kie_predictor <doctr.models.kie_predictor>` has the same interface as :py:meth:`ocr_predictor <doctr.models.ocr_predictor>`,
+but it returns a :class:`~doctr.io.KIEDocument` whose pages are :class:`~doctr.io.KIEPage` objects.
+Each :class:`~doctr.io.KIEPage` exposes a ``predictions`` dictionary mapping every detected class name to a list of
+:class:`~doctr.io.Prediction` objects (coordinates + text).
+
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import kie_predictor
+    model = kie_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+    input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
+    out = model([input_page])
+
+The output is structured as follows::
+
+    KIEDocument(
+      (pages): [KIEPage(
+        dimensions=(600, 800)
+        (predictions): {
+          'words': [
+            Prediction(value='Invoice', confidence=0.99),
+            Prediction(value='12345', confidence=0.97),
+          ]
+        }
+      )]
+    )
+
+You can render the predictions as plain text::
+
+    text_output = out.render()
+
+Or export them as a nested dictionary suitable for JSON serialisation::
+
+    json_output = out.export()
+
+To use a detection model that was trained to predict specific classes (e.g. ``total`` and ``date``), pass it
+directly to the predictor as shown in :ref:`custom model loading <custom_models_training>`:
+
+.. code:: python3
+
+    from doctr.models import kie_predictor, db_resnet50
+
+    det_model = db_resnet50(pretrained=False, pretrained_backbone=False, class_names=['total', 'date'])
+    det_model.from_pretrained('<path_to_pt>')
+    model = kie_predictor(det_arch=det_model, reco_arch='crnn_vgg16_bn', pretrained=True)
+
+For the full list of accepted arguments, refer to the API reference:
+:py:meth:`kie_predictor <doctr.models.kie_predictor>`.

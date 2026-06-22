@@ -14,12 +14,18 @@ Easy-to-use functions to make sense of your model's predictions.
 
 .. autofunction:: visualize_page
 
+.. autofunction:: visualize_kie_page
+
+.. autofunction:: draw_boxes
+
 Reconstitution
 ---------------
 
 .. currentmodule:: doctr.utils.reconstitution
 
 .. autofunction:: synthesize_page
+
+.. autofunction:: synthesize_kie_page
 
 
 .. _metrics:
