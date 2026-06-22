@@ -70,7 +70,7 @@ Seconds per iteration (with a batch size of 1) is computed after a warmup phase 
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 
-:py:meth:`detection_predictor <doctr.models.detection.detection_predictor>` wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`detection_predictor <doctr.models.detection.detection_predictor>` wraps your detection model to make it easily usable with your favorite deep learning framework seamlessly.
 
 .. code:: python3
 
@@ -86,7 +86,7 @@ You can pass specific boolean arguments to the predictor:
 * `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
 * `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
-For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
+For instance, this snippet instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
 
 .. code:: python3
 
@@ -156,14 +156,14 @@ While most of our recognition models were trained on our french vocab (cf. :ref:
     print(predictor.model.cfg['vocab'])
 
 
-*Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combined have 30595 word-level crops which might not be representative enough of the model capabilities*
 
 Seconds per iteration (with a batch size of 64) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
-:py:meth:`recognition_predictor <doctr.models.recognition.recognition_predictor>` wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`recognition_predictor <doctr.models.recognition.recognition_predictor>` wraps your recognition model to make it easily usable with your favorite deep learning framework seamlessly.
 
 .. code:: python3
 
@@ -210,7 +210,7 @@ Seconds per iteration (with a batch size of 1) is computed after a warmup phase 
 Layout predictors
 ^^^^^^^^^^^^^^^^^
 
-:py:meth:`layout_predictor <doctr.models.layout.layout_predictor>` wraps your layout model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`layout_predictor <doctr.models.layout.layout_predictor>` wraps your layout model to make it easily usable with your favorite deep learning framework seamlessly.
 
 .. code:: python3
 
@@ -226,7 +226,7 @@ You can pass specific boolean arguments to the predictor:
 * `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
 * `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
-For instance, this snippet will instantiates a layout predictor able to detect text on rotated documents while preserving the aspect ratio:
+For instance, this snippet instantiates a layout predictor able to detect text on rotated documents while preserving the aspect ratio:
 
 .. code:: python3
 
@@ -280,7 +280,7 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-*Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
 
 Two-stage approaches
