@@ -28,20 +28,20 @@ def test_remove_padding(pages, preserve_aspect_ratio, symmetric_pad, assume_stra
                     expected = [{"words": np.array([[0.7, 0.2, 0.7, 0.4]])}]
     # non-straight pages test cases
     else:
-        loc_preds = [{"words": np.array([[[0.9, 0.1], [0.9, 0.2], [0.8, 0.2], [0.8, 0.2]]])}]
+        loc_preds = [{"words": np.array([[[0.9, 0.1], [0.9, 0.2], [0.8, 0.2], [0.8, 0.2], [0.0, 0.8]]])}]
         if h == w or not preserve_aspect_ratio:
             expected = loc_preds
         else:
             if symmetric_pad:
                 if h > w:
-                    expected = [{"words": np.array([[[1.0, 0.1], [1.0, 0.2], [1.0, 0.2], [1.0, 0.2]]])}]
+                    expected = [{"words": np.array([[[1.0, 0.1], [1.0, 0.2], [1.0, 0.2], [1.0, 0.2], [0.0, 0.8]]])}]
                 else:
-                    expected = [{"words": np.array([[[0.9, 0.0], [0.9, 0.0], [0.8, 0.0], [0.8, 0.0]]])}]
+                    expected = [{"words": np.array([[[0.9, 0.0], [0.9, 0.0], [0.8, 0.0], [0.8, 0.0], [0.0, 0.8]]])}]
             else:
                 if h > w:
-                    expected = [{"words": np.array([[[1.0, 0.1], [1.0, 0.2], [1.0, 0.2], [1.0, 0.2]]])}]
+                    expected = [{"words": np.array([[[1.0, 0.1], [1.0, 0.2], [1.0, 0.2], [1.0, 0.2], [0.0, 0.8]]])}]
                 else:
-                    expected = [{"words": np.array([[[0.9, 0.2], [0.9, 0.4], [0.8, 0.4], [0.8, 0.4]]])}]
+                    expected = [{"words": np.array([[[0.9, 0.2], [0.9, 0.4], [0.8, 0.4], [0.8, 0.4], [0.0, 0.8]]])}]
 
     result = _remove_padding(pages, loc_preds, preserve_aspect_ratio, symmetric_pad, assume_straight_pages)
     for res, exp in zip(result, expected):
