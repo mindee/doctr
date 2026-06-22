@@ -55,7 +55,7 @@ Export as a nested dictionary (JSON-serialisable)::
     import json
     print(json.dumps(result.export(), indent=2))
 
-Visualise on screen (requires the ``viz`` extra: ``pip install "python-doctr[viz]"``)::
+Visualize on screen (requires the ``viz`` extra: ``pip install "python-doctr[viz]"``)::
 
     result.pages[0].show()
 
