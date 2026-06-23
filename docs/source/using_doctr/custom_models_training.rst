@@ -69,6 +69,26 @@ Load a custom layout analysis model trained on another set of classes as the def
 
     predictor = layout_predictor(layout_arch=layout_model, pretrained=True)
 
+
+Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import ocr_predictor, lw_detr_s
+
+    # Custom layout model with your own class names
+    layout_model = lw_detr_s(pretrained=False, class_names=["heading", "paragraph", "figure", "table"])
+    layout_model.from_pretrained('<path_to_pt>')
+
+    # Pass it through `layout_arch`, exactly as for the detection / recognition models
+    predictor = ocr_predictor(pretrained=True, detect_layout=True, layout_arch=layout_model)
+
+    result = predictor(doc)
+    # The regions (with your custom class names) are available on each page
+    print([(region.type, region.confidence) for region in result.pages[0].layout])
+
+
 Load a custom trained KIE detection model:
 
 .. code:: python3

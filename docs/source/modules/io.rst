@@ -42,7 +42,7 @@ An Artefact is a non-textual element (e.g. QR code, picture, chart, signature, l
 LayoutElement
 ^^^^^^^^^^^^^
 
-A LayoutElement is a region predicted by a layout detection model (e.g. Title, Text, Table, Page-header).
+A LayoutElement is a region predicted by a layout detection model (e.g. Title, Text, Table, Page-header, Page-footer). Layout regions are attached to a :class:`Page` when the ``ocr_predictor`` / ``kie_predictor`` is run with ``detect_layout=True``.
 
 .. autoclass:: LayoutElement
 

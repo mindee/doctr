@@ -97,8 +97,7 @@ Common pitfalls
    * **HTML input** requires the ``html`` extra: ``pip install "python-doctr[html]"``.
    * **Image format**: pass file paths or NumPy ``uint8`` arrays shaped ``(H, W, C)`` in
      RGB order.  Grayscale arrays must be converted to 3-channel before use.
-   * **Pretrained weights** are downloaded on first use and cached locally by
-     Hugging Face Hub.  Subsequent calls are instantaneous.
+   * **Pretrained weights** are downloaded on first use and cached locally.  Subsequent calls are instantaneous.
    * **PDF pages are returned as images**: ``DocumentFile.from_pdf`` returns one
      NumPy array per page, so ``result.pages[i]`` corresponds to the *i*-th PDF page.
 
@@ -106,6 +105,6 @@ Common pitfalls
 Next steps
 ==========
 
-* :doc:`../using_doctr/using_models` — full predictor guide, architecture benchmarks, GPU usage.
-* :doc:`../using_doctr/custom_models_training` — train and load your own models.
-* :doc:`../using_doctr/sharing_models` — share your trained models on Hugging Face Hub.
+* :doc:`../using_doctr/using_models` - full predictor guide, architecture benchmarks, GPU usage.
+* :doc:`../using_doctr/custom_models_training` - train and load your own models.
+* :doc:`../using_doctr/sharing_models` - share your trained models on Hugging Face Hub.
