@@ -12,7 +12,7 @@
   gtag('js', new Date());
   gtag('config', 'G-40DVRMX8T4');
 </script>
-    <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="docTR Notebooks" href="../notebooks.html"><link rel="prev" title="docTR: Document Text Recognition" href="../index.html">
+    <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Quickstart" href="quickstart.html"><link rel="prev" title="docTR: Document Text Recognition" href="../index.html">
         <link rel="prefetch" href="../_static/Logo-docTR-white.png" as="image">
 
     <link rel="shortcut icon" href="../_static/favicon.ico"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul class="current">
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -310,12 +311,25 @@
 pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;python-doctr[viz,html,contrib]&quot;</span>
 </pre></div>
 </div>
+<p>Available optional extras:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">viz</span></code>: installs <cite>matplotlib</cite> and <cite>mplcursors</cite> for result visualisation (e.g. <code class="docutils literal notranslate"><span class="pre">Page.show()</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">html</span></code>: installs <cite>weasyprint</cite> for reading HTML documents via <a class="reference internal" href="../modules/io.html#doctr.io.read_html" title="doctr.io.read_html"><code class="xref py py-func docutils literal notranslate"><span class="pre">read_html()</span></code></a></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">contrib</span></code>: installs <cite>onnxruntime</cite> for the <a class="reference internal" href="../modules/contrib.html#doctr.contrib.ArtefactDetector" title="doctr.contrib.ArtefactDetector"><code class="xref py py-class docutils literal notranslate"><span class="pre">ArtefactDetector</span></code></a> contrib module</p></li>
+</ul>
 </section>
 <section id="via-git">
 <h2>Via Git<a class="headerlink" href="#via-git" title="Link to this heading">¶</a></h2>
 <p>Install the library in developer mode:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/mindee/doctr.git
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>doctr/.
+</pre></div>
+</div>
+</section>
+<section id="via-docker">
+<h2>Via Docker<a class="headerlink" href="#via-docker" title="Link to this heading">¶</a></h2>
+<p>Official Docker images are available on the <a class="reference external" href="https://github.com/mindee/doctr/pkgs/container/doctr">GitHub Container Registry</a>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>docker<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>ghcr.io/mindee/doctr:latest<span class="w"> </span>bash
 </pre></div>
 </div>
 </section>
@@ -326,12 +340,12 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
       <footer>
         
         <div class="related-pages">
-          <a class="next-page" href="../notebooks.html">
+          <a class="next-page" href="quickstart.html">
               <div class="page-info">
                 <div class="context">
                   <span>Next</span>
                 </div>
-                <div class="title">docTR Notebooks</div>
+                <div class="title">Quickstart</div>
               </div>
               <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
             </a>
@@ -379,6 +393,7 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <li><a class="reference internal" href="#">Installation</a><ul>
 <li><a class="reference internal" href="#via-python-package">Via Python Package</a></li>
 <li><a class="reference internal" href="#via-git">Via Git</a></li>
+<li><a class="reference internal" href="#via-docker">Via Docker</a></li>
 </ul>
 </li>
 </ul>

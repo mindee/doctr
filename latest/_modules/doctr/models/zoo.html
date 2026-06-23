@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -530,8 +531,8 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;End-to-end KIE architecture using one model for localization, and another for text recognition.</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">    &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
-<span class="sd">    &gt;&gt;&gt; model = ocr_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import kie_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = kie_predictor(&#39;db_resnet50&#39;, &#39;crnn_vgg16_bn&#39;, pretrained=True)</span>
 <span class="sd">    &gt;&gt;&gt; input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)</span>
 <span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 

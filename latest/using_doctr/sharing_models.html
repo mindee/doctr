@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -297,33 +298,33 @@
         <article role="main" id="furo-main-content">
           <section id="share-your-model-with-the-community">
 <h1>Share your model with the community<a class="headerlink" href="#share-your-model-with-the-community" title="Link to this heading">¶</a></h1>
-<p>docTR’s focus is on open source, so if you also feel in love with than we appreciate sharing your trained model with the community.
-To make it easy for you, we have integrated a interface to the huggingface hub.</p>
-<section id="loading-from-huggingface-hub">
-<h2>Loading from Huggingface Hub<a class="headerlink" href="#loading-from-huggingface-hub" title="Link to this heading">¶</a></h2>
-<p>This section shows how you can easily load a pretrained model from the Huggingface Hub.</p>
+<p>docTR’s focus is on open source, and if you feel the same way, we appreciate you sharing your trained model with the community.
+To make it easy for you, we have integrated an interface to the Hugging Face Hub.</p>
+<section id="loading-from-hugging-face-hub">
+<h2>Loading from Hugging Face Hub<a class="headerlink" href="#loading-from-hugging-face-hub" title="Link to this heading">¶</a></h2>
+<p>This section shows how you can easily load a pretrained model from the Hugging Face Hub.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">from_hub</span>
 <span class="n">image</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s1">&#39;data/example.jpg&#39;</span><span class="p">])</span>
-<span class="c1"># Load a custom detection model from huggingface hub</span>
+<span class="c1"># Load a custom detection model from the Hugging Face Hub</span>
 <span class="n">det_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">&#39;Felix92/doctr-torch-db-mobilenet-v3-large&#39;</span><span class="p">)</span>
-<span class="c1"># Load a custom recognition model from huggingface hub</span>
+<span class="c1"># Load a custom recognition model from the Hugging Face Hub</span>
 <span class="n">reco_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">&#39;Felix92/doctr-torch-crnn-mobilenet-v3-large-french&#39;</span><span class="p">)</span>
-<span class="c1"># You can easily plug in this models to the OCR predictor</span>
+<span class="c1"># You can easily plug these models in to the OCR predictor</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="pushing-to-the-huggingface-hub">
-<h2>Pushing to the Huggingface Hub<a class="headerlink" href="#pushing-to-the-huggingface-hub" title="Link to this heading">¶</a></h2>
-<p>You can also push your trained model to the Huggingface Hub.
+<section id="pushing-to-the-hugging-face-hub">
+<h2>Pushing to the Hugging Face Hub<a class="headerlink" href="#pushing-to-the-hugging-face-hub" title="Link to this heading">¶</a></h2>
+<p>You can also push your trained model to the Hugging Face Hub.
 You need only to provide the task type (classification, detection, recognition or obj_detection), a name for your trained model (NOTE:
 existing repositories will not be overwritten) and the model name itself.</p>
 <ul class="simple">
 <li><dl class="simple">
 <dt>Prerequisites:</dt><dd><ul>
-<li><p>Huggingface account (you can easy create one at <a class="reference external" href="https://huggingface.co/">https://huggingface.co/</a>)</p></li>
+<li><p>Hugging Face account (you can easily create one at <a class="reference external" href="https://huggingface.co/">https://huggingface.co/</a>)</p></li>
 <li><p>installed Git LFS (check installation at: <a class="reference external" href="https://git-lfs.github.com/">https://git-lfs.github.com/</a>) in the repository</p></li>
 </ul>
 </dd>
@@ -500,8 +501,8 @@ Feel free to open a pull request or issue to add your model to this list.</p>
           <div class="toc-tree">
             <ul>
 <li><a class="reference internal" href="#">Share your model with the community</a><ul>
-<li><a class="reference internal" href="#loading-from-huggingface-hub">Loading from Huggingface Hub</a></li>
-<li><a class="reference internal" href="#pushing-to-the-huggingface-hub">Pushing to the Huggingface Hub</a></li>
+<li><a class="reference internal" href="#loading-from-hugging-face-hub">Loading from Hugging Face Hub</a></li>
+<li><a class="reference internal" href="#pushing-to-the-hugging-face-hub">Pushing to the Hugging Face Hub</a></li>
 <li><a class="reference internal" href="#pretrained-community-models">Pretrained community models</a><ul>
 <li><a class="reference internal" href="#naming-conventions">Naming conventions</a></li>
 <li><a class="reference internal" href="#classification">Classification</a></li>

@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -887,6 +888,7 @@
 <a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.ObjectDetectionMetric">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ObjectDetectionMetric</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements a COCO-style object detection metric (mAP@[.5:.95]) inspired by the COCO evaluation protocol.</span>
+
 <span class="sd">    The aggregated metrics are computed as follows:</span>
 
 <span class="sd">    .. math::</span>
@@ -906,11 +908,12 @@
 <span class="sd">        \sum\limits_{c \in \mathcal{C}} AP_t(c)</span>
 
 <span class="sd">    where:</span>
-<span class="sd">        - :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
-<span class="sd">        - :math:`\mathcal{C}` is the set of possible class indices,</span>
-<span class="sd">        - :math:`S` are confidence scores associated to predictions,</span>
-<span class="sd">        - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,</span>
-<span class="sd">        - :math:`AP_t(c)` is the Average Precision for class :math:`c`</span>
+
+<span class="sd">    - :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">    - :math:`\mathcal{C}` is the set of possible class indices,</span>
+<span class="sd">    - :math:`S` are confidence scores associated to predictions,</span>
+<span class="sd">    - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,</span>
+<span class="sd">    - :math:`AP_t(c)` is the Average Precision for class :math:`c`</span>
 <span class="sd">        at IoU threshold :math:`t`.</span>
 
 <span class="sd">    For a given class and IoU threshold, predictions from all images are</span>
@@ -918,8 +921,9 @@
 
 <span class="sd">    Each prediction is greedily matched to the unmatched ground-truth box</span>
 <span class="sd">    with the highest IoU, provided that:</span>
-<span class="sd">        - the IoU is greater than or equal to the threshold,</span>
-<span class="sd">        - the ground-truth box has not already been matched.</span>
+
+<span class="sd">    - the IoU is greater than or equal to the threshold,</span>
+<span class="sd">    - the ground-truth box has not already been matched.</span>
 
 <span class="sd">    True positives and false positives are accumulated to build a</span>
 <span class="sd">    precision-recall curve.</span>

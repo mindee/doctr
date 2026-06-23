@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -356,7 +357,7 @@ This process can make inference faster and reduce memory overhead during executi
     <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 <span class="p">)</span>
 
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ocr_predictor</span><span class="p">(</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">detection_model</span><span class="p">,</span> <span class="n">recognition_model</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 <span class="c1"># NOTE: Only required for non-straight pages (`assume_straight_pages=False`) and non-disabled orientation classification</span>

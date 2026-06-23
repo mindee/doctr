@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -364,12 +365,11 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Text recognition architecture.</span>
 
-<span class="sd">    Example::</span>
-<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
-<span class="sd">        &gt;&gt;&gt; from doctr.models import recognition_predictor</span>
-<span class="sd">        &gt;&gt;&gt; model = recognition_predictor(pretrained=True)</span>
-<span class="sd">        &gt;&gt;&gt; input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)</span>
-<span class="sd">        &gt;&gt;&gt; out = model([input_page])</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.models import recognition_predictor</span>
+<span class="sd">    &gt;&gt;&gt; model = recognition_predictor(pretrained=True)</span>
+<span class="sd">    &gt;&gt;&gt; input_page = (255 * np.random.rand(32, 128, 3)).astype(np.uint8)</span>
+<span class="sd">    &gt;&gt;&gt; out = model([input_page])</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        arch: name of the architecture or model itself to use (e.g. &#39;crnn_vgg16_bn&#39;)</span>

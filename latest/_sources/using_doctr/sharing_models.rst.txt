@@ -1,40 +1,40 @@
 Share your model with the community
 ===================================
 
-docTR's focus is on open source, so if you also feel in love with than we appreciate sharing your trained model with the community.
-To make it easy for you, we have integrated a interface to the huggingface hub.
+docTR's focus is on open source, and if you feel the same way, we appreciate you sharing your trained model with the community.
+To make it easy for you, we have integrated an interface to the Hugging Face Hub.
 
 .. currentmodule:: doctr.models.factory
 
 
-Loading from Huggingface Hub
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Loading from Hugging Face Hub
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This section shows how you can easily load a pretrained model from the Huggingface Hub.
+This section shows how you can easily load a pretrained model from the Hugging Face Hub.
 
 .. code:: python3
 
     from doctr.io import DocumentFile
     from doctr.models import ocr_predictor, from_hub
     image = DocumentFile.from_images(['data/example.jpg'])
-    # Load a custom detection model from huggingface hub
+    # Load a custom detection model from the Hugging Face Hub
     det_model = from_hub('Felix92/doctr-torch-db-mobilenet-v3-large')
-    # Load a custom recognition model from huggingface hub
+    # Load a custom recognition model from the Hugging Face Hub
     reco_model = from_hub('Felix92/doctr-torch-crnn-mobilenet-v3-large-french')
-    # You can easily plug in this models to the OCR predictor
+    # You can easily plug these models in to the OCR predictor
     predictor = ocr_predictor(det_arch=det_model, reco_arch=reco_model)
     result = predictor(image)
 
 
-Pushing to the Huggingface Hub
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Pushing to the Hugging Face Hub
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can also push your trained model to the Huggingface Hub.
+You can also push your trained model to the Hugging Face Hub.
 You need only to provide the task type (classification, detection, recognition or obj_detection), a name for your trained model (NOTE:
 existing repositories will not be overwritten) and the model name itself.
 
 - Prerequisites:
-    - Huggingface account (you can easy create one at https://huggingface.co/)
+    - Hugging Face account (you can easily create one at https://huggingface.co/)
     - installed Git LFS (check installation at: https://git-lfs.github.com/) in the repository
 
 .. code:: python3

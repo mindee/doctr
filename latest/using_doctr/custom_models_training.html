@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -296,7 +297,7 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="train-your-own-model">
-<h1>Train your own model<a class="headerlink" href="#train-your-own-model" title="Link to this heading">¶</a></h1>
+<span id="custom-models-training"></span><h1>Train your own model<a class="headerlink" href="#train-your-own-model" title="Link to this heading">¶</a></h1>
 <p>If the pretrained models don’t meet your specific needs, you have the option to train your own model using the docTR library.
 For details on the training process and the necessary data and data format, refer to the following links:</p>
 <ul class="simple">
@@ -342,15 +343,20 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s1">&#39;linknet_resnet18&#39;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Load a custom layout analysis model trained on another set of classes as the default one:</p>
+<p>Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span><span class="p">,</span> <span class="n">lw_detr_s</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">lw_detr_s</span>
 
-<span class="n">layout_model</span> <span class="o">=</span> <span class="n">lw_detr_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;class_name_1&quot;</span><span class="p">,</span> <span class="s2">&quot;class_name_2&quot;</span><span class="p">,</span> <span class="o">...</span><span class="p">])</span>
+<span class="c1"># Custom layout model with your own class names</span>
+<span class="n">layout_model</span> <span class="o">=</span> <span class="n">lw_detr_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;heading&quot;</span><span class="p">,</span> <span class="s2">&quot;paragraph&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="s2">&quot;table&quot;</span><span class="p">])</span>
 <span class="n">layout_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
 
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">layout_predictor</span><span class="p">(</span><span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Pass it through `layout_arch`, exactly as for the detection / recognition models</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_model</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+<span class="c1"># The regions (with your custom class names) are available on each page</span>
+<span class="nb">print</span><span class="p">([(</span><span class="n">region</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">confidence</span><span class="p">)</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">layout</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:</p>
