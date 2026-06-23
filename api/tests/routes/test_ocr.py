@@ -11,6 +11,11 @@ def common_test(json_response, expected_response):
         and len(first_pred["dimensions"]) == 2
         and all(isinstance(dim, int) for dim in first_pred["dimensions"])
     )
+    assert isinstance(first_pred["layout"], list)
+    for region in first_pred["layout"]:
+        assert isinstance(region["type"], str)
+        assert isinstance(region["confidence"], (int, float))
+        assert isinstance(region["geometry"], (tuple, list))
     for item, expected_item in zip(first_pred["items"], expected_response["items"]):
         for block, expected_block in zip(item["blocks"], expected_item["blocks"]):
             np.testing.assert_allclose(block["geometry"], expected_block["geometry"], rtol=1e-2)
@@ -65,6 +70,27 @@ async def test_ocr_poly(test_app_asyncio, mock_detection_image, mock_ocr_respons
     expected_poly_response = mock_ocr_response["poly"]
     assert isinstance(json_response, list) and len(json_response) == 2
     common_test(json_response, expected_poly_response)
+
+
+@pytest.mark.asyncio
+async def test_ocr_layout(test_app_asyncio, mock_detection_image):
+    headers = {
+        "accept": "application/json",
+    }
+    params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn", "detect_layout": True}
+    files = [
+        ("files", ("test.jpg", mock_detection_image, "image/jpeg")),
+    ]
+    response = await test_app_asyncio.post("/ocr", params=params, files=files, headers=headers)
+    assert response.status_code == 200
+    json_response = response.json()
+
+    assert isinstance(json_response, list) and len(json_response) == 1
+    assert "layout" in json_response[0] and isinstance(json_response[0]["layout"], list)
+    for region in json_response[0]["layout"]:
+        assert isinstance(region["type"], str)
+        assert isinstance(region["confidence"], (int, float))
+        assert len(region["geometry"]) in (4, 8)
 
 
 @pytest.mark.asyncio

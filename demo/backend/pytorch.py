@@ -31,6 +31,10 @@ RECO_ARCHS = [
     "parseq",
     "viptr_tiny",
 ]
+LAYOUT_ARCHS = [
+    "lw_detr_s",
+    "lw_detr_m",
+]
 
 
 def load_predictor(
@@ -44,6 +48,8 @@ def load_predictor(
     bin_thresh: float,
     box_thresh: float,
     device: torch.device,
+    detect_layout: bool,
+    layout_arch: str,
 ) -> OCRPredictor:
     """Load a predictor from doctr.models
 
@@ -58,6 +64,8 @@ def load_predictor(
         bin_thresh: binarization threshold for the segmentation map
         box_thresh: minimal objectness score to consider a box
         device: torch.device, the device to load the predictor on
+        detect_layout: whether to run a layout detection model and attach the regions to each page
+        layout_arch: layout architecture to use when detect_layout is True
 
     Returns:
         instance of OCRPredictor
@@ -72,6 +80,8 @@ def load_predictor(
         detect_orientation=not assume_straight_pages,
         disable_page_orientation=disable_page_orientation,
         disable_crop_orientation=disable_crop_orientation,
+        detect_layout=detect_layout,
+        layout_arch=layout_arch,
     ).to(device)
     predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
     predictor.det_predictor.model.postprocessor.box_thresh = box_thresh
