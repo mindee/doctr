@@ -143,7 +143,7 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
@@ -190,7 +190,7 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
@@ -237,7 +237,7 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:

@@ -234,8 +234,8 @@ def kie_predictor(
     """End-to-end KIE architecture using one model for localization, and another for text recognition.
 
     >>> import numpy as np
-    >>> from doctr.models import ocr_predictor
-    >>> model = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+    >>> from doctr.models import kie_predictor
+    >>> model = kie_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
     >>> input_page = (255 * np.random.rand(600, 800, 3)).astype(np.uint8)
     >>> out = model([input_page])
 

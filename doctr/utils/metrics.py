@@ -558,6 +558,7 @@ class DetectionMetric:
 
 class ObjectDetectionMetric:
     r"""Implements a COCO-style object detection metric (mAP@[.5:.95]) inspired by the COCO evaluation protocol.
+
     The aggregated metrics are computed as follows:
 
     .. math::
@@ -577,11 +578,12 @@ class ObjectDetectionMetric:
         \sum\limits_{c \in \mathcal{C}} AP_t(c)
 
     where:
-        - :math:`\mathcal{B}` is the set of possible bounding boxes,
-        - :math:`\mathcal{C}` is the set of possible class indices,
-        - :math:`S` are confidence scores associated to predictions,
-        - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
-        - :math:`AP_t(c)` is the Average Precision for class :math:`c`
+
+    - :math:`\mathcal{B}` is the set of possible bounding boxes,
+    - :math:`\mathcal{C}` is the set of possible class indices,
+    - :math:`S` are confidence scores associated to predictions,
+    - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
+    - :math:`AP_t(c)` is the Average Precision for class :math:`c`
         at IoU threshold :math:`t`.
 
     For a given class and IoU threshold, predictions from all images are
@@ -589,8 +591,9 @@ class ObjectDetectionMetric:
 
     Each prediction is greedily matched to the unmatched ground-truth box
     with the highest IoU, provided that:
-        - the IoU is greater than or equal to the threshold,
-        - the ground-truth box has not already been matched.
+
+    - the IoU is greater than or equal to the threshold,
+    - the ground-truth box has not already been matched.
 
     True positives and false positives are accumulated to build a
     precision-recall curve.

@@ -247,7 +247,7 @@ def vip_tiny(pretrained: bool = False, **kwargs: Any) -> VIPNet:
     https://github.com/cxfyxl/VIPTR/blob/main/modules/VIPTRv2.py)
 
     Args:
-        pretrained: whether to load pretrained weights
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: optional arguments
 
     Returns:
@@ -276,7 +276,7 @@ def vip_base(pretrained: bool = False, **kwargs: Any) -> VIPNet:
     https://github.com/cxfyxl/VIPTR/blob/main/modules/VIPTRv2.py)
 
     Args:
-        pretrained: whether to load pretrained weights
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: optional arguments
 
     Returns:
@@ -309,7 +309,7 @@ def _vip(
 
     Args:
         arch: architecture key
-        pretrained: load pretrained weights?
+        pretrained: If True, returns a model pre-trained on our classification dataset
         ignore_keys: layer keys to ignore
         **kwargs: arguments passed to VIPNet
 

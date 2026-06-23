@@ -20,6 +20,12 @@ A Word is an uninterrupted sequence of characters.
 
 .. autoclass:: Word
 
+Prediction
+^^^^^^^^^^
+A Prediction is a Word with an additional crop orientation field indicating the detected text rotation angle.
+
+.. autoclass:: Prediction
+
 Line
 ^^^^
 A Line is a collection of Words aligned spatially and meant to be read together (on a two-column page, on the same horizontal, we will consider that there are two Lines).
@@ -56,12 +62,34 @@ A Page is a collection of Blocks that were on the same physical page.
    .. automethod:: show
 
 
+KIEPage
+^^^^^^^
+
+A KIEPage is returned by the :py:meth:`kie_predictor <doctr.models.kie_predictor>`. It groups predictions by
+semantic class rather than by spatial layout.
+
+.. autoclass:: KIEPage
+
+   .. automethod:: show
+
+
 Document
 ^^^^^^^^
 
 A Document is a collection of Pages.
 
 .. autoclass:: Document
+
+   .. automethod:: show
+
+
+KIEDocument
+^^^^^^^^^^^
+
+A KIEDocument is a collection of :class:`KIEPage` elements, returned by the
+:py:meth:`kie_predictor <doctr.models.kie_predictor>`.
+
+.. autoclass:: KIEDocument
 
    .. automethod:: show
 

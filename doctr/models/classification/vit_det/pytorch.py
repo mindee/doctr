@@ -296,7 +296,7 @@ def vit_det_s(pretrained: bool = False, **kwargs: Any) -> VisionDetectionTransfo
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the VisionDetectionTransformer architecture
 
     Returns:
@@ -328,7 +328,7 @@ def vit_det_m(pretrained: bool = False, **kwargs: Any) -> VisionDetectionTransfo
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:

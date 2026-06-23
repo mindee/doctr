@@ -1,3 +1,5 @@
+.. _custom_models_training:
+
 Train your own model
 ====================
 
@@ -54,18 +56,24 @@ Load a custom recognition model trained on another vocabulary as the default one
     predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
 
 
-Load a custom layout analysis model trained on another set of classes as the default one:
+Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:
 
 .. code:: python3
 
     import torch
-    from doctr.models import layout_predictor, lw_detr_s
-    from doctr.datasets import VOCABS
+    from doctr.models import ocr_predictor, lw_detr_s
 
-    layout_model = lw_detr_s(pretrained=False, class_names=["class_name_1", "class_name_2", ...])
+    # Custom layout model with your own class names
+    layout_model = lw_detr_s(pretrained=False, class_names=["heading", "paragraph", "figure", "table"])
     layout_model.from_pretrained('<path_to_pt>')
 
-    predictor = layout_predictor(layout_arch=layout_model, pretrained=True)
+    # Pass it through `layout_arch`, exactly as for the detection / recognition models
+    predictor = ocr_predictor(pretrained=True, detect_layout=True, layout_arch=layout_model)
+
+    result = predictor(doc)
+    # The regions (with your custom class names) are available on each page
+    print([(region.type, region.confidence) for region in result.pages[0].layout])
+
 
 
 Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:

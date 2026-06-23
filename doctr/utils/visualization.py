@@ -400,13 +400,14 @@ def visualize_kie_page(
 
 
 def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: tuple[int, int, int] | None = None, **kwargs) -> None:
-    """Draw an array of relative straight boxes on an image
+    """Draw an array of relative straight boxes on an image.
 
     Args:
-        boxes: array of relative boxes, of shape (*, 4)
+        boxes: array of relative boxes, of shape ``(*, 4)``
         image: np array, float32 or uint8
         color: color to use for bounding box edges
         **kwargs: keyword arguments from `matplotlib.pyplot.plot`
+
     """
     h, w = image.shape[:2]
     # Convert boxes to absolute coords
