@@ -431,6 +431,8 @@
 
 
 
+<div class="viewcode-block" id="LayoutElement">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.LayoutElement">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LayoutElement</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a layout region predicted by a layout detection model</span>
 
@@ -460,7 +462,8 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">layout_type</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">confidence</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">],</span> <span class="n">geometry</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">layout_type</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="n">confidence</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">],</span> <span class="n">geometry</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span></div>
+
 
 
 <div class="viewcode-block" id="Line">
