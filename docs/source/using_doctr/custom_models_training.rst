@@ -56,20 +56,6 @@ Load a custom recognition model trained on another vocabulary as the default one
     predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
 
 
-Load a custom layout analysis model trained on another set of classes as the default one:
-
-.. code:: python3
-
-    import torch
-    from doctr.models import layout_predictor, lw_detr_s
-    from doctr.datasets import VOCABS
-
-    layout_model = lw_detr_s(pretrained=False, class_names=["class_name_1", "class_name_2", ...])
-    layout_model.from_pretrained('<path_to_pt>')
-
-    predictor = layout_predictor(layout_arch=layout_model, pretrained=True)
-
-
 Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:
 
 .. code:: python3
