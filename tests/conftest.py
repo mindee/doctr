@@ -164,6 +164,29 @@ def mock_layout_label(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
+def mock_table_label(tmpdir_factory):
+    folder = tmpdir_factory.mktemp("table_labels")
+    labels = {}
+    for idx in range(5):
+        cells, logic = [], []
+        # a 2x3 grid of cells (absolute pixel quads, corner order TL, TR, BR, BL)
+        xs = [20, 120, 220, 320]
+        ys = [20, 110, 200]
+        for r in range(2):
+            for c in range(3):
+                x0, x1, y0, y1 = xs[c], xs[c + 1], ys[r], ys[r + 1]
+                cells.append([[x0, y0], [x1, y0], [x1, y1], [x0, y1]])
+                logic.append([c, c, r, r])
+        labels[f"mock_image_file_{idx}.jpeg"] = {"cells": cells, "logic": logic}
+
+    labels_path = folder.join("labels.json")
+    with open(labels_path, "w") as f:
+        json.dump(labels, f)
+
+    return str(labels_path)
+
+
+@pytest.fixture(scope="session")
 def mock_recognition_label(tmpdir_factory):
     label_file = tmpdir_factory.mktemp("labels").join("labels.json")
     label = {

@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader, RandomSampler
 
 from doctr import datasets
 from doctr.file_utils import CLASS_NAME
-from doctr.transforms import Resize
+from doctr.transforms import Resize, SampleCompose
 
 
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
@@ -302,6 +302,40 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
     # Restore original labels
     with open(mock_layout_label, "w") as f:
         json.dump(original_labels, f)
+
+
+def test_table_dataset(mock_image_folder, mock_table_label):
+    input_size = (1024, 1024)
+
+    ds = datasets.TableDataset(
+        img_folder=mock_image_folder,
+        label_path=mock_table_label,
+        sample_transforms=SampleCompose([Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True)]),
+    )
+
+    assert len(ds) == 5
+    sample = ds[0]
+    img, target = sample.image, sample.target
+    assert isinstance(img, torch.Tensor) and img.dtype == torch.float32
+    assert img.shape[-2:] == input_size
+    # Target carries relative cell polygons and integer logical coordinates
+    assert isinstance(target, dict) and set(target) == {"cells", "logic"}
+    assert isinstance(target["cells"], np.ndarray) and target["cells"].dtype == np.float32
+    assert target["cells"].ndim == 3 and target["cells"].shape[1:] == (4, 2)
+    assert np.all(np.logical_and(target["cells"] >= 0, target["cells"] <= 1))
+    assert target["logic"].shape == (target["cells"].shape[0], 4)
+
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list) and all(set(t) == {"cells", "logic"} for t in targets)
+
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(mock_image_folder, img_name), os.path.join(mock_image_folder, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.TableDataset(mock_image_folder, mock_table_label)
+    move(os.path.join(mock_image_folder, "tmp_file"), os.path.join(mock_image_folder, img_name))
 
 
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):

@@ -18,6 +18,7 @@ from .sroie import *
 from .svhn import *
 from .svt import *
 from .synthtext import *
+from .table import *
 from .utils import *
 from .vocabs import *
 from .wildreceipt import *

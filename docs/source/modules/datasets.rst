@@ -54,6 +54,8 @@ Custom dataset loader
 
 .. autoclass:: RecognitionDataset
 
+.. autoclass:: TableDataset
+
 .. autoclass:: OCRDataset
 
 Dataset utils
