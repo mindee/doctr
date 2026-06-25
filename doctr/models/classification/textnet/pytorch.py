@@ -14,7 +14,7 @@ from doctr.datasets import VOCABS
 from ...modules.layers import FASTConvLayer
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
+__all__ = ["TextNet", "textnet_tiny", "textnet_small", "textnet_base"]
 
 default_cfgs: dict[str, dict[str, Any]] = {
     "textnet_tiny": {
@@ -48,6 +48,7 @@ class TextNet(nn.Sequential):
 
     Args:
         stages (list[dict[str, list[int]]]): list of dictionaries containing the parameters of each stage.
+        input_shape (tuple[int, int, int], optional): Input shape of the model. Defaults to (3, 32, 32).
         include_top (bool, optional): Whether to include the classifier head. Defaults to True.
         num_classes (int, optional): Number of output classes. Defaults to 1000.
         cfg (dict[str, Any], optional): Additional configuration. Defaults to None.

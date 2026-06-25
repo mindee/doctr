@@ -9,12 +9,13 @@ from typing import Any
 
 from torch import nn
 from torchvision.models import vgg as tv_vgg
+from torchvision.models.vgg import VGG
 
 from doctr.datasets import VOCABS
 
 from ...utils import load_pretrained_params
 
-__all__ = ["vgg16_bn_r"]
+__all__ = ["VGG", "vgg16_bn_r"]
 
 
 default_cfgs: dict[str, dict[str, Any]] = {

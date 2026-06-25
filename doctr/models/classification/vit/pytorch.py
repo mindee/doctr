@@ -15,7 +15,7 @@ from doctr.models.modules.vision_transformer import PatchEmbedding
 
 from ...utils import load_pretrained_params
 
-__all__ = ["vit_s", "vit_b"]
+__all__ = ["VisionTransformer", "vit_s", "vit_b"]
 
 
 default_cfgs: dict[str, dict[str, Any]] = {

@@ -6,8 +6,9 @@
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
-__all__ = ["FASTConvLayer", "DropPath", "AdaptiveAvgPool2d", "ChannelLayerNorm"]
+__all__ = ["FASTConvLayer", "DropPath", "AdaptiveAvgPool2d", "ChannelLayerNorm", "DCNv2"]
 
 
 class DropPath(nn.Module):
@@ -78,6 +79,105 @@ class ChannelLayerNorm(nn.Module):
         x = (x - u) / torch.sqrt(s + self.eps)
         x = self.weight[:, None, None] * x + self.bias[:, None, None]
         return x
+
+
+def _deform_conv2d(
+    x: torch.Tensor,
+    offset: torch.Tensor,
+    weight: torch.Tensor,
+    bias: torch.Tensor,
+    stride: tuple[int, int],
+    padding: tuple[int, int],
+    dilation: tuple[int, int],
+    mask: torch.Tensor,
+) -> torch.Tensor:
+    """Modulated deformable convolution (DCNv2).
+
+    Numerically equivalent to ``torchvision.ops.deform_conv2d`` (same offset/mask channel layout and bilinear
+    convention) but built only from ``grid_sample`` + ``conv2d``, so the model is ONNX-exportable (the
+    ``torchvision::deform_conv2d`` operator has no ONNX symbolic). ``offset`` is laid out as torchvision
+    expects: for kernel position ``k = kh * Kw + kw``, ``offset[:, 2 * k]`` is the vertical offset and
+    ``offset[:, 2 * k + 1]`` the horizontal one; ``mask[:, k]`` is the modulation.
+
+    Args:
+        x: input feature map, shape (N, C, H, W)
+        offset: sampling offsets, shape (N, 2 * Kh * Kw, Ho, Wo)
+        weight: convolution weight, shape (Cout, C, Kh, Kw)
+        bias: convolution bias, shape (Cout,)
+        stride: convolution stride (sh, sw)
+        padding: convolution padding (ph, pw)
+        dilation: convolution dilation (dh, dw)
+        mask: modulation mask, shape (N, Kh * Kw, Ho, Wo)
+
+    Returns:
+        the output feature map, shape (N, Cout, Ho, Wo)
+    """
+    _, _, h, w = x.shape
+    cout, _, kh, kw = weight.shape
+    sh, sw = stride
+    ph, pw = padding
+    dh, dw = dilation
+    ho, wo = offset.shape[-2], offset.shape[-1]
+
+    # Base sampling location of each output position in the input plane (before kernel/dilation and offset)
+    base_y = (torch.arange(ho, device=x.device, dtype=x.dtype) * sh - ph).view(1, ho, 1)
+    base_x = (torch.arange(wo, device=x.device, dtype=x.dtype) * sw - pw).view(1, 1, wo)
+    norm_y, norm_x = max(h - 1, 1), max(w - 1, 1)
+
+    out = x.new_zeros((x.shape[0], cout, ho, wo))
+    for kh_i in range(kh):
+        for kw_i in range(kw):
+            k = kh_i * kw + kw_i
+            sample_y = base_y + kh_i * dh + offset[:, 2 * k, :, :]
+            sample_x = base_x + kw_i * dw + offset[:, 2 * k + 1, :, :]
+            # Normalize to [-1, 1] for grid_sample with align_corners=True (zero padding out of bounds)
+            grid = torch.stack((2.0 * sample_x / norm_x - 1.0, 2.0 * sample_y / norm_y - 1.0), dim=-1)
+            sampled = F.grid_sample(x, grid, mode="bilinear", padding_mode="zeros", align_corners=True)
+            sampled = sampled * mask[:, k : k + 1, :, :]
+            out = out + F.conv2d(sampled, weight[:, :, kh_i, kw_i].unsqueeze(-1).unsqueeze(-1))
+    return out + bias.view(1, -1, 1, 1)
+
+
+class DCNv2(nn.Module):
+    """Modulated deformable convolution (v2).
+
+    Args:
+        in_channels: number of channels in the input feature map
+        out_channels: number of channels produced by the convolution
+        kernel_size: size of the convolving kernel
+        stride: stride of the convolution
+        padding: zero-padding added to both sides of the input
+        dilation: spacing between kernel elements
+        deformable_groups: number of deformable group partitions
+    """
+
+    def __init__(
+        self,
+        in_channels: int,
+        out_channels: int,
+        kernel_size: int | tuple[int, int],
+        stride: int,
+        padding: int,
+        dilation: int = 1,
+        deformable_groups: int = 1,
+    ):
+        super().__init__()
+        self.stride = (stride, stride)
+        self.padding = (padding, padding)
+        self.dilation = (dilation, dilation)
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size, kernel_size)
+        self.weight = nn.Parameter(torch.empty(out_channels, in_channels, *kernel_size))
+        self.bias = nn.Parameter(torch.empty(out_channels))
+        channels_ = deformable_groups * 3 * kernel_size[0] * kernel_size[1]
+        self.conv_offset_mask = nn.Conv2d(in_channels, channels_, kernel_size, stride, padding, bias=True)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        out = self.conv_offset_mask(x)
+        o1, o2, mask = torch.chunk(out, 3, dim=1)
+        offset = torch.cat((o1, o2), dim=1)
+        mask = torch.sigmoid(mask)
+        return _deform_conv2d(x, offset, self.weight, self.bias, self.stride, self.padding, self.dilation, mask)
 
 
 class FASTConvLayer(nn.Module):

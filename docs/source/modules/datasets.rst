@@ -90,6 +90,9 @@ of vocabs.
    * - Name
      - size
      - characters
+   * - latex
+     - 82
+     - abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\\{}^_=+-<>()[]/.,|
    * - latin
      - 94
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
