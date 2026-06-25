@@ -727,26 +727,27 @@ h_{B,C}(b, c) = \left\{
 \frac{1}{|\mathcal{C}|}
 \sum\limits_{c \in \mathcal{C}} AP_t(c)\end{aligned}\end{align} \]</div>
 </div>
-<p>where:</p>
-<ul class="simple">
+<dl>
+<dt>where:</dt><dd><ul class="simple">
 <li><p><span class="math notranslate nohighlight">\(\mathcal{B}\)</span> is the set of possible bounding boxes,</p></li>
 <li><p><span class="math notranslate nohighlight">\(\mathcal{C}\)</span> is the set of possible class indices,</p></li>
 <li><p><span class="math notranslate nohighlight">\(S\)</span> are confidence scores associated to predictions,</p></li>
 <li><p><span class="math notranslate nohighlight">\(\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}\)</span> is the set of IoU thresholds,</p></li>
-<li><dl class="simple">
-<dt><span class="math notranslate nohighlight">\(AP_t(c)\)</span> is the Average Precision for class <span class="math notranslate nohighlight">\(c\)</span></dt><dd><p>at IoU threshold <span class="math notranslate nohighlight">\(t\)</span>.</p>
+<li><p><span class="math notranslate nohighlight">\(AP_t(c)\)</span> is the Average Precision for class <span class="math notranslate nohighlight">\(c\)</span></p></li>
+</ul>
+<p>at IoU threshold <span class="math notranslate nohighlight">\(t\)</span>.</p>
 </dd>
 </dl>
-</li>
-</ul>
 <p>For a given class and IoU threshold, predictions from all images are
 aggregated and sorted globally by decreasing confidence score.</p>
 <p>Each prediction is greedily matched to the unmatched ground-truth box
 with the highest IoU, provided that:</p>
-<ul class="simple">
+<blockquote>
+<div><ul class="simple">
 <li><p>the IoU is greater than or equal to the threshold,</p></li>
 <li><p>the ground-truth box has not already been matched.</p></li>
 </ul>
+</div></blockquote>
 <p>True positives and false positives are accumulated to build a
 precision-recall curve.</p>
 <p>Average Precision is computed using the COCO 101-point interpolated
@@ -790,6 +791,57 @@ to have rotated format</p></li>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p>a dictionary with the mAP&#64;[.5</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.utils.metrics.TableCellMetric">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.utils.metrics.</span></span><span class="sig-name descname"><span class="pre">TableCellMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iou_thresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#TableCellMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.TableCellMetric" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a table-structure-recognition metric.</p>
+<p>Predicted cells are matched to ground-truth cells by maximising the total polygon IoU (Hungarian
+assignment); a pair counts as a match when its IoU is at least <code class="docutils literal notranslate"><span class="pre">iou_thresh</span></code>. From the matches it
+reports cell-detection recall / precision / F1 and the <strong>structure accuracy</strong> (the fraction of matched
+cells whose logical coordinates <code class="docutils literal notranslate"><span class="pre">[start_col,</span> <span class="pre">end_col,</span> <span class="pre">start_row,</span> <span class="pre">end_row]</span></code> exactly equal the
+ground-truth ones).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TableCellMetric</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">TableCellMetric</span><span class="p">(</span><span class="n">iou_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]),</span> <span class="n">gt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum polygon IoU for a predicted/ground-truth cell pair to be considered a match</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.utils.metrics.TableCellMetric.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gt_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gt_logic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_cells</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pred_logic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#TableCellMetric.update"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.TableCellMetric.update" title="Link to this definition">¶</a></dt>
+<dd><p>Update the metric with one sample.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt_cells</strong> – ground-truth cell polygons, shape (N, 4, 2)</p></li>
+<li><p><strong>gt_logic</strong> – ground-truth logical coordinates, shape (N, 4)</p></li>
+<li><p><strong>pred_cells</strong> – predicted cell polygons, shape (M, 4, 2)</p></li>
+<li><p><strong>pred_logic</strong> – predicted logical coordinates, shape (M, 4)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.utils.metrics.TableCellMetric.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#TableCellMetric.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.TableCellMetric.summary" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the aggregated metrics.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>a dict with <code class="docutils literal notranslate"><span class="pre">recall</span></code>, <code class="docutils literal notranslate"><span class="pre">precision</span></code>, <code class="docutils literal notranslate"><span class="pre">f1</span></code> (cell detection) and <code class="docutils literal notranslate"><span class="pre">structure_acc</span></code></p>
 </dd>
 </dl>
 </dd></dl>
@@ -890,6 +942,11 @@ to have rotated format</p></li>
 <li><a class="reference internal" href="#doctr.utils.metrics.ObjectDetectionMetric"><code class="docutils literal notranslate"><span class="pre">ObjectDetectionMetric</span></code></a><ul>
 <li><a class="reference internal" href="#doctr.utils.metrics.ObjectDetectionMetric.update"><code class="docutils literal notranslate"><span class="pre">ObjectDetectionMetric.update()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.utils.metrics.ObjectDetectionMetric.summary"><code class="docutils literal notranslate"><span class="pre">ObjectDetectionMetric.summary()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.utils.metrics.TableCellMetric"><code class="docutils literal notranslate"><span class="pre">TableCellMetric</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.utils.metrics.TableCellMetric.update"><code class="docutils literal notranslate"><span class="pre">TableCellMetric.update()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.utils.metrics.TableCellMetric.summary"><code class="docutils literal notranslate"><span class="pre">TableCellMetric.summary()</span></code></a></li>
 </ul>
 </li>
 </ul>

@@ -838,6 +838,41 @@ The dataset includes a variety of synthetic document pages with non-textual elem
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="doctr.datasets.TableStructureDataset">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">TableStructureDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/table_structure.html#TableStructureDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.TableStructureDataset" title="Link to this definition">¶</a></dt>
+<dd><p>Table structure recognition dataset for table structure recognition.</p>
+<p>The labels file maps each image name to its cells and their logical coordinates:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;table_0.jpg&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;cells&quot;</span><span class="p">:</span> <span class="p">[[[</span><span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">],</span> <span class="p">[</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="p">[</span><span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">],</span> <span class="p">[</span><span class="n">x3</span><span class="p">,</span> <span class="n">y3</span><span class="p">]],</span> <span class="o">...</span><span class="p">],</span>   <span class="c1"># quads (TL, TR, BR, BL), abs px</span>
+        <span class="s2">&quot;logic&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="n">start_col</span><span class="p">,</span> <span class="n">end_col</span><span class="p">,</span> <span class="n">start_row</span><span class="p">,</span> <span class="n">end_row</span><span class="p">],</span> <span class="o">...</span><span class="p">]</span>      <span class="c1"># 0-indexed, per cell</span>
+    <span class="p">},</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Each sample yields the image and a <code class="docutils literal notranslate"><span class="pre">{&quot;cells&quot;:</span> <span class="pre">(N,</span> <span class="pre">4,</span> <span class="pre">2)</span> <span class="pre">relative</span> <span class="pre">polygons,</span> <span class="pre">&quot;logic&quot;:</span> <span class="pre">(N,</span> <span class="pre">4)}</span></code> target.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">TableStructureDataset</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">Resize</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">train_set</span> <span class="o">=</span> <span class="n">TableStructureDataset</span><span class="p">(</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">img_folder</span><span class="o">=</span><span class="s2">&quot;/path/to/images&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">label_path</span><span class="o">=</span><span class="s2">&quot;/path/to/labels.json&quot;</span><span class="p">,</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">img</span><span class="p">,</span> <span class="n">target</span> <span class="o">=</span> <span class="n">train_set</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>img_folder</strong> – folder with all the dataset images</p></li>
+<li><p><strong>label_path</strong> – path to the JSON labels</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments from <cite>AbstractDataset</cite> (e.g. <code class="docutils literal notranslate"><span class="pre">img_transforms</span></code>, <code class="docutils literal notranslate"><span class="pre">sample_transforms</span></code>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="doctr.datasets.OCRDataset">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.datasets.</span></span><span class="sig-name descname"><span class="pre">OCRDataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">img_folder</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/datasets/ocr.html#OCRDataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.datasets.OCRDataset" title="Link to this definition">¶</a></dt>
 <dd><p>Implements an OCR dataset</p>
@@ -1509,6 +1544,7 @@ of vocabs.</p>
 <li><a class="reference internal" href="#doctr.datasets.DetectionDataset"><code class="docutils literal notranslate"><span class="pre">DetectionDataset</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.LayoutDataset"><code class="docutils literal notranslate"><span class="pre">LayoutDataset</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.RecognitionDataset"><code class="docutils literal notranslate"><span class="pre">RecognitionDataset</span></code></a></li>
+<li><a class="reference internal" href="#doctr.datasets.TableStructureDataset"><code class="docutils literal notranslate"><span class="pre">TableStructureDataset</span></code></a></li>
 <li><a class="reference internal" href="#doctr.datasets.OCRDataset"><code class="docutils literal notranslate"><span class="pre">OCRDataset</span></code></a></li>
 </ul>
 </li>

@@ -310,6 +310,7 @@
     <span class="s2">&quot;OCRMetric&quot;</span><span class="p">,</span>
     <span class="s2">&quot;DetectionMetric&quot;</span><span class="p">,</span>
     <span class="s2">&quot;ObjectDetectionMetric&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TableCellMetric&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -624,6 +625,90 @@
 
 
 
+<div class="viewcode-block" id="TableCellMetric">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TableCellMetric">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">TableCellMetric</span><span class="p">:</span>
+<span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements a table-structure-recognition metric.</span>
+
+<span class="sd">    Predicted cells are matched to ground-truth cells by maximising the total polygon IoU (Hungarian</span>
+<span class="sd">    assignment); a pair counts as a match when its IoU is at least ``iou_thresh``. From the matches it</span>
+<span class="sd">    reports cell-detection recall / precision / F1 and the **structure accuracy** (the fraction of matched</span>
+<span class="sd">    cells whose logical coordinates ``[start_col, end_col, start_row, end_row]`` exactly equal the</span>
+<span class="sd">    ground-truth ones).</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from doctr.utils import TableCellMetric</span>
+<span class="sd">    &gt;&gt;&gt; metric = TableCellMetric(iou_thresh=0.5)</span>
+<span class="sd">    &gt;&gt;&gt; gt = np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32)</span>
+<span class="sd">    &gt;&gt;&gt; metric.update(gt, np.array([[0, 0, 0, 0]]), gt, np.array([[0, 0, 0, 0]]))</span>
+<span class="sd">    &gt;&gt;&gt; metric.summary()</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        iou_thresh: minimum polygon IoU for a predicted/ground-truth cell pair to be considered a match</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TableCellMetric.update">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TableCellMetric.update">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">gt_cells</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">gt_logic</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_cells</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">pred_logic</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the metric with one sample.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            gt_cells: ground-truth cell polygons, shape (N, 4, 2)</span>
+<span class="sd">            gt_logic: ground-truth logical coordinates, shape (N, 4)</span>
+<span class="sd">            pred_cells: predicted cell polygons, shape (M, 4, 2)</span>
+<span class="sd">            pred_logic: predicted logical coordinates, shape (M, 4)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">+=</span> <span class="n">pred_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">gt_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pred_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span><span class="n">gt_cells</span><span class="p">,</span> <span class="n">pred_cells</span><span class="p">)</span>  <span class="c1"># (N, M)</span>
+        <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gi</span><span class="p">,</span> <span class="n">pi</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gi</span><span class="p">,</span> <span class="n">pi</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gt_logic</span><span class="p">[</span><span class="n">gi</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">pred_logic</span><span class="p">[</span><span class="n">pi</span><span class="p">])):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">struct_matches</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="TableCellMetric.summary">
+<a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.TableCellMetric.summary">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">summary</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the aggregated metrics.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a dict with ``recall``, ``precision``, ``f1`` (cell detection) and ``structure_acc``</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="mi">2</span> <span class="o">*</span> <span class="n">precision</span> <span class="o">*</span> <span class="n">recall</span> <span class="o">/</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">recall</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="n">structure_acc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">struct_matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;recall&quot;</span><span class="p">:</span> <span class="n">recall</span><span class="p">,</span> <span class="s2">&quot;precision&quot;</span><span class="p">:</span> <span class="n">precision</span><span class="p">,</span> <span class="s2">&quot;f1&quot;</span><span class="p">:</span> <span class="n">f1</span><span class="p">,</span> <span class="s2">&quot;structure_acc&quot;</span><span class="p">:</span> <span class="n">structure_acc</span><span class="p">}</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">struct_matches</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+
+
 <div class="viewcode-block" id="OCRMetric">
 <a class="viewcode-back" href="../../../modules/utils.html#doctr.utils.metrics.OCRMetric">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OCRMetric</span><span class="p">:</span>
@@ -908,12 +993,11 @@
 <span class="sd">        \sum\limits_{c \in \mathcal{C}} AP_t(c)</span>
 
 <span class="sd">    where:</span>
-
-<span class="sd">    - :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
-<span class="sd">    - :math:`\mathcal{C}` is the set of possible class indices,</span>
-<span class="sd">    - :math:`S` are confidence scores associated to predictions,</span>
-<span class="sd">    - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,</span>
-<span class="sd">    - :math:`AP_t(c)` is the Average Precision for class :math:`c`</span>
+<span class="sd">        - :math:`\mathcal{B}` is the set of possible bounding boxes,</span>
+<span class="sd">        - :math:`\mathcal{C}` is the set of possible class indices,</span>
+<span class="sd">        - :math:`S` are confidence scores associated to predictions,</span>
+<span class="sd">        - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,</span>
+<span class="sd">        - :math:`AP_t(c)` is the Average Precision for class :math:`c`</span>
 <span class="sd">        at IoU threshold :math:`t`.</span>
 
 <span class="sd">    For a given class and IoU threshold, predictions from all images are</span>
@@ -922,8 +1006,8 @@
 <span class="sd">    Each prediction is greedily matched to the unmatched ground-truth box</span>
 <span class="sd">    with the highest IoU, provided that:</span>
 
-<span class="sd">    - the IoU is greater than or equal to the threshold,</span>
-<span class="sd">    - the ground-truth box has not already been matched.</span>
+<span class="sd">        - the IoU is greater than or equal to the threshold,</span>
+<span class="sd">        - the ground-truth box has not already been matched.</span>
 
 <span class="sd">    True positives and false positives are accumulated to build a</span>
 <span class="sd">    precision-recall curve.</span>
