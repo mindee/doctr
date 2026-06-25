@@ -1,0 +1,54 @@
+# Copyright (C) 2021-2026, Mindee.
+
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+
+"""Table structure recognition latency benchmark"""
+
+import argparse
+import time
+
+import numpy as np
+import torch
+
+from doctr.models import table_structure
+
+
+@torch.inference_mode()
+def main(args):
+    device = torch.device("cuda:0" if args.gpu else "cpu")
+
+    model = table_structure.__dict__[args.arch](pretrained=args.pretrained).eval().to(device=device)
+
+    img_tensor = torch.rand((1, 3, args.size, args.size)).to(device=device)
+
+    # Warmup
+    for _ in range(5):
+        _ = model(img_tensor, return_preds=True)
+
+    timings = []
+    for _ in range(args.it):
+        start_ts = time.perf_counter()
+        _ = model(img_tensor, return_preds=True)
+        timings.append(time.perf_counter() - start_ts)
+
+    _timings = np.array(timings)
+    print(f"{args.arch} ({args.it} runs on ({args.size}, {args.size}) inputs)")
+    print(f"mean {1000 * _timings.mean():.2f}ms, std {1000 * _timings.std():.2f}ms")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="docTR latency benchmark for table structure recognition (PyTorch)",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("arch", type=str, help="Architecture to use")
+    parser.add_argument("--size", type=int, default=1024, help="The image input size")
+    parser.add_argument("--gpu", dest="gpu", help="Should the benchmark be performed on GPU", action="store_true")
+    parser.add_argument("--it", type=int, default=100, help="Number of iterations to run")
+    parser.add_argument(
+        "--pretrained", dest="pretrained", help="Use pre-trained models from the modelzoo", action="store_true"
+    )
+    args = parser.parse_args()
+
+    main(args)
