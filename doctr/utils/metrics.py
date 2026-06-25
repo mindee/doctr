@@ -18,6 +18,7 @@ __all__ = [
     "OCRMetric",
     "DetectionMetric",
     "ObjectDetectionMetric",
+    "TableCellMetric",
 ]
 
 
@@ -314,6 +315,81 @@ class LocalizationConfusion:
         self.tot_iou = 0.0
 
 
+class TableCellMetric:
+    r"""Implements a table-structure-recognition metric.
+
+    Predicted cells are matched to ground-truth cells by maximising the total polygon IoU (Hungarian
+    assignment); a pair counts as a match when its IoU is at least ``iou_thresh``. From the matches it
+    reports cell-detection recall / precision / F1 and the **structure accuracy** (the fraction of matched
+    cells whose logical coordinates ``[start_col, end_col, start_row, end_row]`` exactly equal the
+    ground-truth ones).
+
+    >>> import numpy as np
+    >>> from doctr.utils import TableCellMetric
+    >>> metric = TableCellMetric(iou_thresh=0.5)
+    >>> gt = np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32)
+    >>> metric.update(gt, np.array([[0, 0, 0, 0]]), gt, np.array([[0, 0, 0, 0]]))
+    >>> metric.summary()
+
+    Args:
+        iou_thresh: minimum polygon IoU for a predicted/ground-truth cell pair to be considered a match
+    """
+
+    def __init__(self, iou_thresh: float = 0.5) -> None:
+        self.iou_thresh = iou_thresh
+        self.reset()
+
+    def update(
+        self,
+        gt_cells: np.ndarray,
+        gt_logic: np.ndarray,
+        pred_cells: np.ndarray,
+        pred_logic: np.ndarray,
+    ) -> None:
+        """Update the metric with one sample.
+
+        Args:
+            gt_cells: ground-truth cell polygons, shape (N, 4, 2)
+            gt_logic: ground-truth logical coordinates, shape (N, 4)
+            pred_cells: predicted cell polygons, shape (M, 4, 2)
+            pred_logic: predicted logical coordinates, shape (M, 4)
+        """
+        self.num_gts += gt_cells.shape[0]
+        self.num_preds += pred_cells.shape[0]
+        if gt_cells.shape[0] == 0 or pred_cells.shape[0] == 0:
+            return
+
+        iou_mat = polygon_iou(gt_cells, pred_cells)  # (N, M)
+        gt_idx, pred_idx = linear_sum_assignment(-iou_mat)
+        for gi, pi in zip(gt_idx, pred_idx):
+            if iou_mat[gi, pi] >= self.iou_thresh:
+                self.matches += 1
+                if np.array_equal(np.asarray(gt_logic[gi]), np.asarray(pred_logic[pi])):
+                    self.struct_matches += 1
+
+    def summary(self) -> dict[str, float | None]:
+        """Compute the aggregated metrics.
+
+        Returns:
+            a dict with ``recall``, ``precision``, ``f1`` (cell detection) and ``structure_acc``
+        """
+        recall = self.matches / self.num_gts if self.num_gts > 0 else None
+        precision = self.matches / self.num_preds if self.num_preds > 0 else None
+        f1 = (
+            2 * precision * recall / (precision + recall)
+            if precision is not None and recall is not None and (precision + recall) > 0
+            else None
+        )
+        structure_acc = self.struct_matches / self.matches if self.matches > 0 else None
+        return {"recall": recall, "precision": precision, "f1": f1, "structure_acc": structure_acc}
+
+    def reset(self) -> None:
+        self.num_gts = 0
+        self.num_preds = 0
+        self.matches = 0
+        self.struct_matches = 0
+
+
 class OCRMetric:
     r"""Implements an end-to-end OCR metric.
 
@@ -578,12 +654,11 @@ class ObjectDetectionMetric:
         \sum\limits_{c \in \mathcal{C}} AP_t(c)
 
     where:
-
-    - :math:`\mathcal{B}` is the set of possible bounding boxes,
-    - :math:`\mathcal{C}` is the set of possible class indices,
-    - :math:`S` are confidence scores associated to predictions,
-    - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
-    - :math:`AP_t(c)` is the Average Precision for class :math:`c`
+        - :math:`\mathcal{B}` is the set of possible bounding boxes,
+        - :math:`\mathcal{C}` is the set of possible class indices,
+        - :math:`S` are confidence scores associated to predictions,
+        - :math:`\mathcal{T} = \{0.5, 0.55, \dots, 0.95\}` is the set of IoU thresholds,
+        - :math:`AP_t(c)` is the Average Precision for class :math:`c`
         at IoU threshold :math:`t`.
 
     For a given class and IoU threshold, predictions from all images are
@@ -592,8 +667,8 @@ class ObjectDetectionMetric:
     Each prediction is greedily matched to the unmatched ground-truth box
     with the highest IoU, provided that:
 
-    - the IoU is greater than or equal to the threshold,
-    - the ground-truth box has not already been matched.
+        - the IoU is greater than or equal to the threshold,
+        - the ground-truth box has not already been matched.
 
     True positives and false positives are accumulated to build a
     precision-recall curve.

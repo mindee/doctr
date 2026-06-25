@@ -466,3 +466,38 @@ def test_object_detection_metric_cases():
     summary = metric.summary()
     # Global ranking should place FP before TP therefore AP must be < 1
     assert summary["mAP@[.5:.95]"] < 1.0
+
+
+def _square(x, y):
+    return [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]]
+
+
+def test_table_cell_metric():
+    gt_cells = np.asarray([_square(0, 0), _square(2, 0), _square(0, 2)], dtype=np.float32)
+    gt_logic = np.asarray([[0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 1]], dtype=np.int64)
+
+    # Perfect match -> everything is 1
+    metric = metrics.TableCellMetric(iou_thresh=0.5)
+    metric.update(gt_cells, gt_logic, gt_cells.copy(), gt_logic.copy())
+    res = metric.summary()
+    assert res["recall"] == 1.0 and res["precision"] == 1.0 and res["f1"] == 1.0 and res["structure_acc"] == 1.0
+
+    # One wrong logical coordinate -> geometry perfect, structure accuracy 2/3
+    bad_logic = gt_logic.copy()
+    bad_logic[1] = [5, 5, 5, 5]
+    metric = metrics.TableCellMetric(iou_thresh=0.5)
+    metric.update(gt_cells, gt_logic, gt_cells.copy(), bad_logic)
+    res = metric.summary()
+    assert res["recall"] == 1.0 and abs(res["structure_acc"] - 2 / 3) < 1e-6
+
+    # A missing prediction -> recall 2/3, precision 1
+    metric = metrics.TableCellMetric(iou_thresh=0.5)
+    metric.update(gt_cells, gt_logic, gt_cells[:2], gt_logic[:2])
+    res = metric.summary()
+    assert abs(res["recall"] - 2 / 3) < 1e-6 and res["precision"] == 1.0
+
+    # Empty edge cases
+    metric = metrics.TableCellMetric()
+    metric.update(gt_cells, gt_logic, np.zeros((0, 4, 2), np.float32), np.zeros((0, 4), np.int64))
+    res = metric.summary()
+    assert res["recall"] == 0.0 and res["precision"] is None and res["structure_acc"] is None
