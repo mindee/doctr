@@ -17,7 +17,7 @@ from doctr.datasets import VOCABS
 from ...utils import load_pretrained_params
 from .layers import PatchEmbed, WindowedCAETransformerBlock
 
-__all__ = ["vit_det_s", "vit_det_m"]
+__all__ = ["VisionDetectionTransformer", "vit_det_s", "vit_det_m"]
 
 
 default_cfgs: dict[str, dict[str, Any]] = {

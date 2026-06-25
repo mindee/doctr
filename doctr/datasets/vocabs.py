@@ -9,6 +9,8 @@ import string
 __all__ = ["VOCABS"]
 
 _BASE_VOCABS = {
+    # LaTeX
+    "latex": "".join(sorted(set("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\\{}^_=+-<>()[]/.,| "))),
     # Latin
     "digits": string.digits,
     "ascii_letters": string.ascii_letters,

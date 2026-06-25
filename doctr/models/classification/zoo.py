@@ -34,6 +34,7 @@ ARCHS: list[str] = [
     "vip_base",
     "vit_det_s",
     "vit_det_m",
+    "starnet_s3",
 ]
 
 ORIENTATION_ARCHS: list[str] = ["mobilenet_v3_small_crop_orientation", "mobilenet_v3_small_page_orientation"]
