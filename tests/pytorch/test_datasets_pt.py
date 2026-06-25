@@ -307,7 +307,7 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
 def test_table_dataset(mock_image_folder, mock_table_label):
     input_size = (1024, 1024)
 
-    ds = datasets.TableDataset(
+    ds = datasets.TableStructureDataset(
         img_folder=mock_image_folder,
         label_path=mock_table_label,
         sample_transforms=SampleCompose([Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True)]),
@@ -334,7 +334,7 @@ def test_table_dataset(mock_image_folder, mock_table_label):
     img_name, _ = ds.data[0]
     move(os.path.join(mock_image_folder, img_name), os.path.join(mock_image_folder, "tmp_file"))
     with pytest.raises(FileNotFoundError):
-        datasets.TableDataset(mock_image_folder, mock_table_label)
+        datasets.TableStructureDataset(mock_image_folder, mock_table_label)
     move(os.path.join(mock_image_folder, "tmp_file"), os.path.join(mock_image_folder, img_name))
 
 

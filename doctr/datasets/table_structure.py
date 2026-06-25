@@ -16,10 +16,10 @@ from doctr.utils.geometry import convert_to_relative_coords
 
 from .datasets import AbstractDataset
 
-__all__ = ["TableDataset"]
+__all__ = ["TableStructureDataset"]
 
 
-class TableDataset(AbstractDataset):
+class TableStructureDataset(AbstractDataset):
     """Table structure recognition dataset for table structure recognition.
 
     The labels file maps each image name to its cells and their logical coordinates::
@@ -34,9 +34,9 @@ class TableDataset(AbstractDataset):
 
     Each sample yields the image and a ``{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}`` target.
 
-    >>> from doctr.datasets import TableDataset
+    >>> from doctr.datasets import TableStructureDataset
     >>> from doctr.transforms import Resize
-    >>> train_set = TableDataset(
+    >>> train_set = TableStructureDataset(
     >>>     img_folder="/path/to/images",
     >>>     label_path="/path/to/labels.json",
     >>> )
