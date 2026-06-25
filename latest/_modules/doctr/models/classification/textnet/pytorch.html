@@ -306,7 +306,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">...modules.layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">FASTConvLayer</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">conv_sequence_pt</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;textnet_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_small&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_base&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;TextNet&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_small&quot;</span><span class="p">,</span> <span class="s2">&quot;textnet_base&quot;</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;textnet_tiny&quot;</span><span class="p">:</span> <span class="p">{</span>
@@ -340,6 +340,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        stages (list[dict[str, list[int]]]): list of dictionaries containing the parameters of each stage.</span>
+<span class="sd">        input_shape (tuple[int, int, int], optional): Input shape of the model. Defaults to (3, 32, 32).</span>
 <span class="sd">        include_top (bool, optional): Whether to include the classifier head. Defaults to True.</span>
 <span class="sd">        num_classes (int, optional): Number of output classes. Defaults to 1000.</span>
 <span class="sd">        cfg (dict[str, Any], optional): Additional configuration. Defaults to None.</span>

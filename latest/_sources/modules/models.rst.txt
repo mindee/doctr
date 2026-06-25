@@ -49,6 +49,8 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.vit_det_m
 
+.. autofunction:: doctr.models.classification.starnet_s3
+
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 .. autofunction:: doctr.models.classification.page_orientation_predictor
