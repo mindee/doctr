@@ -58,7 +58,7 @@ def load_pretrained_params(
         **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`
     """
     if path_or_url is None:
-        logging.warning("No model URL or Path provided, using default initialization.")
+        logging.getLogger(__name__).warning("No model URL or Path provided, using default initialization.")
         return
 
     archive_path = (
@@ -197,7 +197,7 @@ def export_model_to_onnx(
         verbose=False,
         **kwargs,
     )
-    logging.info(f"Model exported to {model_name}.onnx")
+    logging.getLogger(__name__).info(f"Model exported to {model_name}.onnx")
     return f"{model_name}.onnx"
 
 
@@ -451,7 +451,7 @@ def add_whitelist(
 
     if verbose:  # pragma: no cover
         kept = sum(char in allowed for char in vocab)
-        logging.info(
+        logging.getLogger(__name__).info(
             f"add_whitelist: {type(reco_model).__name__} - kept {kept}/{vocab_size} vocabulary "
             f"characters, forbade {vocab_size - kept}"
             + (f", reassigned {reassigned} to a nearest allowed character." if strategy == "nearest" else ".")

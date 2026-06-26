@@ -37,7 +37,7 @@ def login_to_hub() -> None:  # pragma: no cover
     """Login to huggingface hub"""
     access_token = get_token()
     if access_token is not None:
-        logging.info("Huggingface Hub token found and valid")
+        logging.getLogger(__name__).info("Huggingface Hub token found and valid")
         login(token=access_token)
     else:
         login()
