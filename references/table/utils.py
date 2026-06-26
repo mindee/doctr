@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def plot_samples(images: list[Any], targets: list[dict[str, np.ndarray]], max_samples: int = 4) -> None:
+def plot_samples(images: list[Any], targets: list[dict[str, np.ndarray]], max_samples: int = 2) -> None:
     """Display a few training samples with their ground-truth cells overlaid."""
     nb_samples = min(len(images), max_samples)
     _, axes = plt.subplots(2, nb_samples, figsize=(20, 6))
@@ -28,12 +28,50 @@ def plot_samples(images: list[Any], targets: list[dict[str, np.ndarray]], max_sa
 
         overlay = img.copy()
         cells = targets[idx]["cells"].copy()
+        logic = targets[idx]["logic"]
+
         cells[..., 0] *= img.shape[1]
         cells[..., 1] *= img.shape[0]
-        for quad in cells.round().astype(np.intp):
+
+        for quad, (start_col, end_col, start_row, end_row) in zip(
+            cells.round().astype(np.intp),
+            logic,
+        ):
             cv2.polylines(overlay, [quad], True, (255, 0, 0), 1)
+
+            center = quad.mean(axis=0)
+
+            # Corner order: 0=TL, 1=TR, 2=BR, 3=BL
+            for corner_idx, corner in enumerate(quad):
+                # Move the label from the corner toward the polygon center.
+                label_position = corner + 0.18 * (center - corner)
+                x, y = label_position.astype(np.intp)
+
+                cv2.putText(
+                    overlay,
+                    str(corner_idx),
+                    (x, y),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.4,
+                    (255, 0, 255),  # Pink
+                    1,
+                    cv2.LINE_AA,
+                )
+
+            center_x, center_y = center.astype(np.intp)
+            cv2.putText(
+                overlay,
+                f"C:{start_col}-{end_col} R:{start_row}-{end_row}",
+                (center_x, center_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.35,
+                (0, 100, 0),  # Dark green
+                1,
+                cv2.LINE_AA,
+            )
+
         axes[1][idx].imshow(overlay)
-        axes[1][idx].set_title("GT cells")
+        axes[1][idx].set_title("GT cells | corners: TL, TR, BR, BL")
 
     for ax in axes.ravel():
         ax.axis("off")

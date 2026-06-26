@@ -283,7 +283,6 @@ def main(args):
     ])
     # Image + geometry augmentations (letterbox to a square; the model renders the dense targets)
     sample_transforms = T.SampleCompose([
-        T.RandomHorizontalFlip(0.15),
         T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
     ])
 
