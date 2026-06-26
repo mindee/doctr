@@ -16,8 +16,8 @@ from torchvision.models._utils import IntermediateLayerGetter
 
 from ....models.classification import starnet_s3
 from ...modules.layers.pytorch import DCNv2
-from ...utils import load_pretrained_params
-from .base import TableCenterNetPostProcessor, build_target
+from ...utils import _bf16_to_float32, load_pretrained_params
+from .base import TableCenterNetPostProcessor, _TableCenterNet
 
 __all__ = ["TableCenterNet", "tablecenternet"]
 
@@ -130,12 +130,12 @@ class DLAUp(nn.Module):
 # Model
 
 
-class TableCenterNet(nn.Module):
+class TableCenterNet(nn.Module, _TableCenterNet):
     """TableCenterNet for table-structure recognition, as described in the official implementation
     `<https://github.com/dreamy-xay/TableCenterNet>`_.
 
     A StarNet backbone feeds a deformable-convolution DLA decoder, followed by six dense heads
-    (``hm``, ``reg``, ``ct2cn``, ``cn2ct``, ``lc``, ``sp``) describing cell centers, corners and their
+    (`hm`, `reg`, `ct2cn`, `cn2ct`, `lc`, `sp`) describing cell centers, corners and their
     logical coordinates.
 
     Args:
@@ -301,11 +301,13 @@ class TableCenterNet(nn.Module):
     def forward(
         self,
         x: torch.Tensor,
-        target: list[dict[str, np.ndarray]] | dict[str, torch.Tensor] | None = None,
+        target: list[dict[str, np.ndarray]] | None = None,
         return_model_output: bool = False,
         return_preds: bool = False,
     ) -> dict[str, Any]:
         heads_out = self._forward_heads(x)
+
+        heads_out = {head: _bf16_to_float32(heads_out[head]) for head in self.heads}  # cast to float32 (AMP safe-guard)
 
         out: dict[str, Any] = {}
 
@@ -313,7 +315,8 @@ class TableCenterNet(nn.Module):
             return heads_out
 
         if return_model_output:
-            out["heads_out"] = heads_out
+            # Cast to float32 (the heads can be bfloat16/float16 under autocast)
+            out["out_map"] = heads_out
 
         if target is None or return_preds:
             # Disable for torch.compile compatibility
@@ -324,11 +327,10 @@ class TableCenterNet(nn.Module):
             out["preds"] = _postprocess(heads_out)
 
         if target is not None:
-            # Build target
+            # Disable for torch.compile compatibility (the target rendering relies on numpy/scipy)
             @torch.compiler.disable
             def _compute_loss(heads_out, target):
-                processed_targets = self.build_target(target, self.class_names)
-                return self.compute_loss(heads_out, processed_targets)
+                return self.compute_loss(heads_out, target)
 
             out["loss"] = _compute_loss(heads_out, target)
 
@@ -348,10 +350,13 @@ class TableCenterNet(nn.Module):
         Returns:
             the scalar training loss
         """
-        device = output["hm"].device
         out_h, out_w = int(output["hm"].shape[-2]), int(output["hm"].shape[-1])
-        dense_np = build_target(target, (out_h, out_w), self.max_objects, self.max_corners)
+        # Render the dense targets (numpy/scipy) from the relative cell annotations
+        dense_np = self.build_target(target, (out_h, out_w))
+        device = output["hm"].device
         dense = {k: torch.from_numpy(v).to(device) for k, v in dense_np.items()}
+        # AMP safe-guard: compute the loss in float32
+        output = {k: v.float() for k, v in output.items()}
         return self._loss_from_dense(output, dense)
 
     def _loss_from_dense(self, output: dict[str, torch.Tensor], target: dict[str, torch.Tensor]) -> torch.Tensor:
@@ -382,7 +387,7 @@ class TableCenterNet(nn.Module):
         hm_loss = -neg_loss if num_pos == 0 else -(pos_loss + neg_loss) / num_pos
 
         # L1 on the sub-pixel offsets
-        reg_pred = self._transpose_and_gather_feat(output["reg"], target["reg_ind"])
+        reg_pred = _transpose_and_gather_feat(output["reg"], target["reg_ind"])
         reg_mask = target["reg_mask"].unsqueeze(2).expand_as(reg_pred).float()
         reg_loss = F.l1_loss(reg_pred * reg_mask, target["reg"] * reg_mask, reduction="sum") / (reg_mask.sum() + eps)
 

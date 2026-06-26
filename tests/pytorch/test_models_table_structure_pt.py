@@ -1,4 +1,3 @@
-import gc
 import os
 import tempfile
 
@@ -71,7 +70,6 @@ def test_table_models(arch_name, input_shape, train_mode):
     # Check loss
     assert isinstance(out["loss"], torch.Tensor)
     assert hasattr(model, "from_pretrained")
-    gc.collect()
 
 
 @pytest.mark.parametrize(
@@ -99,7 +97,6 @@ def test_table_structure_zoo(arch_name):
         assert all(np.asarray(cell["geometry"]).shape == (4, 2) for cell in page["cells"])
         assert all({"score", "row_start", "row_end", "col_start", "col_end"} <= set(cell) for cell in page["cells"])
         assert all(0 <= cell["score"] <= 1 for cell in page["cells"])
-    gc.collect()
 
 
 @pytest.mark.parametrize(

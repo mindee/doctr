@@ -63,7 +63,7 @@ class TablePredictor(nn.Module):
         for pred, rect in zip(preds, rectified):
             polygons = rect["polygons"]  # * np.array([w, h], dtype=np.float32)  # relative -> absolute pixels
             scores, logical = pred["scores"], pred["logical"]
-            cells, max_row, max_col = [], 0, 0
+            cells, max_row, max_col = [], -1, -1
             for poly, score, lc in zip(polygons, scores, logical):
                 start_col, end_col, start_row, end_row = (int(v) for v in lc)
                 max_row, max_col = max(max_row, end_row), max(max_col, end_col)
@@ -75,5 +75,6 @@ class TablePredictor(nn.Module):
                     "col_start": start_col,
                     "col_end": end_col,
                 })
-            results.append({"cells": cells, "num_rows": max_row, "num_cols": max_col})
+            # logical coordinates are 0-indexed, so the table size is the largest index + 1 (0 if no cells)
+            results.append({"cells": cells, "num_rows": max_row + 1, "num_cols": max_col + 1})
         return results

@@ -11,11 +11,9 @@ import numpy as np
 from scipy.interpolate import griddata
 from shapely.geometry import Point, Polygon
 
-__all__ = ["TableCenterNetPostProcessor"]
+from doctr.models.core import BaseModel
 
-
-# TODO: It should be organized like in LinkNet for example or LWDETR _LWDETR (which builds target)
-# TODO: and a LWDETRPostProcessor (which decodes the model's output).
+__all__ = ["_TableCenterNet", "TableCenterNetPostProcessor"]
 
 
 def _get_logic_coords(lc_logic: np.ndarray, col_span: int, row_span: int) -> tuple[int, int, int, int]:
@@ -58,8 +56,7 @@ def _get_logic_coords(lc_logic: np.ndarray, col_span: int, row_span: int) -> tup
 
 
 def _bbox_overlap_query(center_polys: np.ndarray, corner_polys: np.ndarray) -> list[np.ndarray]:
-    """For each center polygon, the indices of corner polygons whose axis-aligned bounding boxes overlap
-    (equivalent to the reference ``BoxesFinder``)."""
+    """For each center polygon, the indices of corner polygons whose axis-aligned bounding boxes overlap."""
     c_xmin, c_xmax = center_polys[:, 0::2].min(1), center_polys[:, 0::2].max(1)
     c_ymin, c_ymax = center_polys[:, 1::2].min(1), center_polys[:, 1::2].max(1)
     k_xmin, k_xmax = corner_polys[:, 0::2].min(1), corner_polys[:, 0::2].max(1)
@@ -105,7 +102,7 @@ class TableCenterNetPostProcessor:
         self.center_thresh = center_thresh
         self.corner_thresh = corner_thresh
         self.not_relocate = not_relocate
-        # Cell score decay (reference defaults): cells optimised on <= 2 corners get their score scaled.
+        # Cell score decay: cells optimised on <= 2 corners get their score scaled.
         self.cell_min_optimize_count = 2
         self.cell_decay_thresh = 0.4
 
@@ -139,7 +136,7 @@ class TableCenterNetPostProcessor:
                 cx, cy = corner_pts[j]
                 if not any(Point(p).within(center_poly) for p in corner_polys[j].reshape(4, 2)):
                     continue
-                # nearest corner index is computed on the ORIGINAL polygon (matches find_near_corner_index)
+                # nearest corner index is computed on the ORIGINAL polygon
                 idx = int(np.argmin(((origin - [cx, cy]) ** 2).sum(1)))
                 ox, oy = origin[idx]
                 px, py = cell[idx]
@@ -187,18 +184,17 @@ class TableCenterNetPostProcessor:
             cp, cs, logic = self._simple(decoded, b) if self.not_relocate else self._relocate(decoded, b)
             keep = cs >= self.center_thresh
             polys = cp[keep].reshape(-1, 4, 2) / scale  # relative coordinates
+            # _get_logic_coords reconstructs 1-indexed logical coordinates (column/row lines start at 1,
+            # mirroring the +1 offset applied when rendering the target). Shift back to the 0-indexed
+            # convention used by the dataset and TableCellMetric so predictions and GT are comparable.
             results.append({
                 "polygons": np.clip(polys.astype(np.float32), 0, 1),  # (N, 4, 2) TL, TR, BR, BL
                 "scores": cs[keep].astype(np.float32),
-                "logical": logic[keep].astype(np.int32),  # start_col, end_col, start_row, end_row
+                "logical": (logic[keep] - 1).astype(np.int32),  # start_col, end_col, start_row, end_row (0-indexed)
             })
         return results
 
 
-# ---------------------------------------------------------------------------------------------------------
-# Dense-target rendering (numpy/scipy, ported from the reference dataset/target builder).
-# Used by ``TableCenterNet.build_target`` to render the maps consumed by ``compute_loss``.
-# ---------------------------------------------------------------------------------------------------------
 def _gaussian_radius(det_size: tuple[float, float], min_overlap: float = 0.7) -> float:
     height, width = det_size
     a1, b1, c1 = 1, height + width, width * height * (1 - min_overlap) / (1 + min_overlap)
@@ -211,8 +207,8 @@ def _gaussian_radius(det_size: tuple[float, float], min_overlap: float = 0.7) ->
 
 
 def _gaussian_2d(shape: tuple[int, int], sigma: float = 1.0) -> np.ndarray:
-    m, n = ((s - 1.0) / 2.0 for s in shape)
-    y, x = np.ogrid[-m : m + 1, -n : n + 1]
+    m, n = ((s - 1) / 2 for s in shape)
+    y, x = np.ogrid[-m : m + 1, -n : n + 1]  # type: ignore[misc]
     h = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
     h[h < np.finfo(h.dtype).eps * h.max()] = 0
     return h
@@ -284,14 +280,14 @@ def _interpolate_logical_map(cells_logic_coords: list, output_size: tuple[int, i
     return lc, lc_mask
 
 
-def build_table_target(
+def _build_table_target(
     cells: np.ndarray,
     logic: np.ndarray,
     output_size: tuple[int, int],
     max_objects: int = 300,
     max_corners: int = 1200,
 ) -> dict[str, np.ndarray]:
-    """Render the dense TableCenterNet targets consumed by ``TableCenterNet.compute_loss``.
+    """Render the dense TableCenterNet targets (for a single image) consumed by ``TableCenterNet.compute_loss``.
 
     Args:
         cells: (N, 4, 2) cell quadrilaterals (corner order TL, TR, BR, BL) in **output-grid** coordinates
@@ -399,30 +395,48 @@ def build_table_target(
     }
 
 
-def build_target(
-    target: list[dict[str, np.ndarray]], output_shape: tuple[int, int], max_objects: int, max_corners: int
-) -> dict[str, np.ndarray]:
-    """Render the dense training targets for a batch from per-image cell annotations.
+class _TableCenterNet(BaseModel):
+    """TableCenterNet for table-structure recognition, as described in the official implementation
+    `<https://github.com/dreamy-xay/TableCenterNet>`_.
 
-    Args:
-        target: one ``{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}`` dict per image
-        output_shape: (H, W) of the model output grid
-        max_objects: maximum number of cells
-        max_corners: maximum number of distinct corners
-
-    Returns:
-        the batched dense target dictionary (numpy arrays)
+    This base class holds the framework-agnostic target rendering (``build_target``), mirroring the
+    organization of the detection (``_LinkNet``) and layout (``_LWDETR``) models: the dense maps consumed
+    by ``compute_loss`` are produced here, while ``TableCenterNetPostProcessor`` decodes the model output.
     """
-    out_h, out_w = output_shape
-    scale = np.array([out_w, out_h], dtype=np.float32)
-    per_image = [
-        build_table_target(
-            np.asarray(t["cells"], dtype=np.float32).reshape(-1, 4, 2) * scale,
-            np.asarray(t["logic"], dtype=np.int64).reshape(-1, 4),
-            (out_h, out_w),
-            max_objects,
-            max_corners,
-        )
-        for t in target
-    ]
-    return {k: np.stack([img[k] for img in per_image], axis=0) for k in per_image[0]}
+
+    max_objects: int = 300
+    max_corners: int = 1200
+    assume_straight_pages: bool = False
+
+    def build_target(
+        self,
+        target: list[dict[str, np.ndarray]],
+        output_shape: tuple[int, int],
+    ) -> dict[str, np.ndarray]:
+        """Render the dense training targets for a batch from per-image cell annotations.
+
+        Args:
+            target: one ``{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}`` dict per image
+            output_shape: (H, W) of the model output grid (input size // down_ratio)
+
+        Returns:
+            the batched dense target dictionary (numpy arrays) matching the reference schema
+        """
+        if any(np.asarray(t["cells"], dtype=np.float32).dtype != np.float32 for t in target):
+            raise AssertionError("the expected dtype of target 'cells' entry is 'np.float32'.")
+        if any(np.any((np.asarray(t["cells"]) > 1) | (np.asarray(t["cells"]) < 0)) for t in target):
+            raise ValueError("the 'cells' entry of the target is expected to take values between 0 & 1.")
+
+        out_h, out_w = output_shape
+        scale = np.array([out_w, out_h], dtype=np.float32)
+        per_image = [
+            _build_table_target(
+                np.asarray(t["cells"], dtype=np.float32).reshape(-1, 4, 2) * scale,
+                np.asarray(t["logic"], dtype=np.int64).reshape(-1, 4),
+                (out_h, out_w),
+                self.max_objects,
+                self.max_corners,
+            )
+            for t in target
+        ]
+        return {k: np.stack([img[k] for img in per_image], axis=0) for k in per_image[0]}

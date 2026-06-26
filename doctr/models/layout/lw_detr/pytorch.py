@@ -16,7 +16,7 @@ from torch.nn import functional as F
 
 from doctr.models.classification import vit_det_m, vit_det_s
 
-from ...utils import load_pretrained_params
+from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import _LWDETR, LWDETRPostProcessor
 from .layers import (
     LWDETRDecoder,
@@ -555,6 +555,9 @@ class LWDETR(nn.Module, _LWDETR):
         pred_boxes = refine_obb_boxes(intermediate_reference_points[-1], pred_boxes_delta)
 
         out: dict[str, Any] = {}
+
+        logits = _bf16_to_float32(logits)
+        pred_boxes = _bf16_to_float32(pred_boxes)
 
         if self.exportable:
             out["logits"] = logits
