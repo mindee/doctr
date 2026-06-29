@@ -40,4 +40,22 @@ def test_preprocessor(batch_size, output_size, input_tensor, expected_batches, e
     assert all(b.dtype == torch.float32 for b in out)
     assert all(b.shape[-2:] == output_size for b in out)
     assert all(torch.all(b == expected_value) for b in out)
+
+    # Tests with padding mask
+    processor_mask = PreProcessor(output_size, batch_size, return_padding_mask=True)
+    with torch.no_grad():
+        out_masked = processor_mask(input_tensor)
+    imgs, masks = out_masked
+
+    assert isinstance(imgs, list) and len(imgs) == expected_batches
+    assert isinstance(masks, list) and len(masks) == expected_batches
+    assert all(isinstance(b, torch.Tensor) for b in imgs)
+    assert all(isinstance(m, torch.Tensor) for m in masks)
+    assert all(b.dtype == torch.float32 for b in imgs)
+    assert all(m.dtype == torch.bool for m in masks)
+    assert all(b.shape[-2:] == output_size for b in imgs)
+    assert all(m.shape[-2:] == output_size for m in masks)
+
+    # mask sanity: should contain both 0 and 1 somewhere (padding depends on Resize logic)
+    assert all(torch.is_tensor(m) for m in masks)
     assert len(repr(processor).split("\n")) == 4

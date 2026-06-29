@@ -9,7 +9,6 @@ import json
 import logging
 import subprocess
 import tempfile
-import textwrap
 from pathlib import Path
 from typing import Any
 
@@ -30,6 +29,7 @@ AVAILABLE_ARCHS = {
     "classification": models.classification.zoo.ARCHS + models.classification.zoo.ORIENTATION_ARCHS,
     "detection": models.detection.zoo.ARCHS,
     "recognition": models.recognition.zoo.ARCHS,
+    "layout": models.layout.zoo.ARCHS,
 }
 
 
@@ -96,60 +96,66 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     if run_config is None and arch is None:
         raise ValueError("run_config or arch must be specified")
-    if task not in ["classification", "detection", "recognition"]:
-        raise ValueError("task must be one of classification, detection, recognition")
+    if task not in ["classification", "detection", "recognition", "layout"]:
+        raise ValueError("task must be one of classification, detection, recognition, layout")
 
     # default readme
-    readme = textwrap.dedent(
-        f"""
+    readme = f"""---
+language: en
+tags:
+- ocr
+- pytorch
+- doctr
+- {task}
+---
 
-    language: en
 
+<p align="center">
+<img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
+</p>
 
-    <p align="center">
-    <img src="https://doctr-static.mindee.com/models?id=v0.3.1/Logo_doctr.gif&src=0" width="60%">
-    </p>
+**Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
 
-    **Optical Character Recognition made seamless & accessible to anyone, powered by PyTorch**
+## Task: {task}
 
-    ## Task: {task}
+https://github.com/mindee/doctr
 
-    https://github.com/mindee/doctr
+### Example usage:
 
-    ### Example usage:
+```python
+>>> from doctr.io import DocumentFile
+>>> from doctr.models import ocr_predictor, from_hub
 
-    ```python
-    >>> from doctr.io import DocumentFile
-    >>> from doctr.models import ocr_predictor, from_hub
+>>> img = DocumentFile.from_images(['<image_path>'])
+>>> # Load your model from the hub
+>>> model = from_hub('mindee/my-model')
 
-    >>> img = DocumentFile.from_images(['<image_path>'])
-    >>> # Load your model from the hub
-    >>> model = from_hub('mindee/my-model')
+>>> # Pass it to the predictor
+>>> # If your model is a recognition model:
+>>> predictor = ocr_predictor(det_arch='db_mobilenet_v3_large',
+>>>                           reco_arch=model,
+>>>                           pretrained=True)
 
-    >>> # Pass it to the predictor
-    >>> # If your model is a recognition model:
-    >>> predictor = ocr_predictor(det_arch='db_mobilenet_v3_large',
-    >>>                           reco_arch=model,
-    >>>                           pretrained=True)
+>>> # If your model is a detection model:
+>>> predictor = ocr_predictor(det_arch=model,
+>>>                           reco_arch='crnn_mobilenet_v3_small',
+>>>                           pretrained=True)
 
-    >>> # If your model is a detection model:
-    >>> predictor = ocr_predictor(det_arch=model,
-    >>>                           reco_arch='crnn_mobilenet_v3_small',
-    >>>                           pretrained=True)
-
-    >>> # Get your predictions
-    >>> res = predictor(img)
-    ```
-    """
-    )
+>>> # Get your predictions
+>>> res = predictor(img)
+```
+"""
 
     # add run configuration to readme if available
     if run_config is not None:
         arch = run_config.arch
-        readme += textwrap.dedent(
-            f"""### Run Configuration
-                                  \n{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}"""
-        )
+        readme += f"""
+### Run Configuration
+
+```json
+{json.dumps(vars(run_config), indent=2, ensure_ascii=False)}
+```
+"""
 
     if arch not in AVAILABLE_ARCHS[task]:
         raise ValueError(
@@ -161,7 +167,8 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
 
     # Create repository
     api = HfApi()
-    api.create_repo(model_name, token=get_token(), exist_ok=False)
+    repo_url = api.create_repo(model_name, token=get_token(), repo_type="model", exist_ok=False)
+    full_repo_id = repo_url.repo_id
 
     # Save model files to a temporary directory
     with tempfile.TemporaryDirectory() as tmp_dir:
@@ -172,7 +179,8 @@ def push_to_hf_hub(model: Any, model_name: str, task: str, **kwargs) -> None:  #
         # Upload all files to the hub
         api.upload_folder(
             folder_path=tmp_dir,
-            repo_id=model_name,
+            repo_id=full_repo_id,
+            repo_type="model",
             commit_message=commit_message,
             token=get_token(),
         )
@@ -208,6 +216,8 @@ def from_hub(repo_id: str, **kwargs: Any):
         model = models.detection.__dict__[arch](pretrained=False)
     elif task == "recognition":
         model = models.recognition.__dict__[arch](pretrained=False, input_shape=cfg["input_shape"], vocab=cfg["vocab"])
+    elif task == "layout":
+        model = models.layout.__dict__[arch](pretrained=False, class_names=cfg["class_names"])
 
     # update model cfg
     model.cfg = cfg

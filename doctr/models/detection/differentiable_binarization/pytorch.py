@@ -353,7 +353,7 @@ def db_resnet34(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
@@ -386,7 +386,7 @@ def db_resnet50(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
@@ -419,7 +419,7 @@ def db_mobilenet_v3_large(pretrained: bool = False, **kwargs: Any) -> DBNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:

@@ -10,6 +10,11 @@ def common_test(json_response, expected_response):
         and len(first_pred["dimensions"]) == 2
         and all(isinstance(dim, int) for dim in first_pred["dimensions"])
     )
+    assert isinstance(first_pred["layout"], list)
+    for region in first_pred["layout"]:
+        assert isinstance(region["type"], str)
+        assert isinstance(region["confidence"], (int, float))
+        assert isinstance(region["geometry"], (tuple, list))
     assert isinstance(first_pred["predictions"], list)
     assert isinstance(expected_response["predictions"], list)
 
@@ -65,6 +70,27 @@ async def test_kie_poly(test_app_asyncio, mock_detection_image, mock_kie_respons
     expected_poly_response = mock_kie_response["poly"]
     assert isinstance(json_response, list) and len(json_response) == 2
     common_test(json_response, expected_poly_response)
+
+
+@pytest.mark.asyncio
+async def test_kie_layout(test_app_asyncio, mock_detection_image):
+    headers = {
+        "accept": "application/json",
+    }
+    params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn", "detect_layout": True}
+    files = [
+        ("files", ("test.jpg", mock_detection_image, "image/jpeg")),
+    ]
+    response = await test_app_asyncio.post("/kie", params=params, files=files, headers=headers)
+    assert response.status_code == 200
+    json_response = response.json()
+
+    assert isinstance(json_response, list) and len(json_response) == 1
+    assert "layout" in json_response[0] and isinstance(json_response[0]["layout"], list)
+    for region in json_response[0]["layout"]:
+        assert isinstance(region["type"], str)
+        assert isinstance(region["confidence"], (int, float))
+        assert len(region["geometry"]) in (4, 8)
 
 
 @pytest.mark.asyncio

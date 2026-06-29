@@ -1,3 +1,5 @@
+.. _custom_models_training:
+
 Train your own model
 ====================
 
@@ -6,6 +8,7 @@ For details on the training process and the necessary data and data format, refe
 
 - `detection <https://github.com/mindee/doctr/tree/main/references/detection#readme>`_
 - `recognition <https://github.com/mindee/doctr/tree/main/references/recognition#readme>`_
+- `layout <https://github.com/mindee/doctr/tree/main/references/layout#readme>`_
 
 If you’re looking for a lightweight yet efficient tool to annotate small amounts of data, especially tailored for docTR,
 check out the `docTR Labeling Tool <https://github.com/text2knowledge/docTR-Labeler>`_.
@@ -51,6 +54,46 @@ Load a custom recognition model trained on another vocabulary as the default one
     reco_model.from_pretrained('<path_to_pt>')
 
     predictor = ocr_predictor(det_arch='linknet_resnet18', reco_arch=reco_model, pretrained=True)
+
+
+Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import ocr_predictor, lw_detr_s
+
+    # Custom layout model with your own class names
+    layout_model = lw_detr_s(pretrained=False, class_names=["heading", "paragraph", "figure", "table"])
+    layout_model.from_pretrained('<path_to_pt>')
+
+    # Pass it through `layout_arch`, exactly as for the detection / recognition models
+    predictor = ocr_predictor(pretrained=True, detect_layout=True, layout_arch=layout_model)
+
+    result = predictor(doc)
+    # The regions (with your custom class names) are available on each page
+    print([(region.type, region.confidence) for region in result.pages[0].layout])
+
+
+
+Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:
+
+.. code:: python3
+
+    import torch
+    from doctr.models import ocr_predictor, lw_detr_s
+
+    # Custom layout model with your own class names
+    layout_model = lw_detr_s(pretrained=False, class_names=["heading", "paragraph", "figure", "table"])
+    layout_model.from_pretrained('<path_to_pt>')
+
+    # Pass it through `layout_arch`, exactly as for the detection / recognition models
+    predictor = ocr_predictor(pretrained=True, detect_layout=True, layout_arch=layout_model)
+
+    result = predictor(doc)
+    # The regions (with your custom class names) are available on each page
+    print([(region.type, region.confidence) for region in result.pages[0].layout])
+
 
 Load a custom trained KIE detection model:
 

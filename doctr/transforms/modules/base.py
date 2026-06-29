@@ -10,23 +10,32 @@ from typing import Any
 
 import numpy as np
 
+from doctr.utils.common_types import Sample
 from doctr.utils.repr import NestedObject
 
 from .. import functional as F
 
-__all__ = ["SampleCompose", "ImageTransform", "ColorInversion", "OneOf", "RandomApply", "RandomRotate", "RandomCrop"]
+__all__ = [
+    "SampleCompose",
+    "ImageTransform",
+    "ColorInversion",
+    "OneOf",
+    "RandomApply",
+    "RandomRotate",
+    "RandomCrop",
+    "ImageTorchvisionTransform",
+]
 
 
 class SampleCompose(NestedObject):
     """Implements a wrapper that will apply transformations sequentially on both image and target
 
-    .. code:: python
-
-        >>> import numpy as np
-        >>> import torch
-        >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
-        >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
-        >>> out, out_boxes = transfos(torch.rand(8, 64, 64, 3), np.zeros((2, 4)))
+    >>> import numpy as np
+    >>> import torch
+    >>> from doctr.transforms import SampleCompose, ImageTransform, ColorInversion, RandomRotate
+    >>> from doctr.utils import Sample
+    >>> transfos = SampleCompose([ImageTransform(ColorInversion((32, 32))), RandomRotate(30)])
+    >>> out, out_boxes = transfos(Sample(image=torch.rand(8, 64, 64, 3), target=np.zeros((2, 4))))
 
     Args:
         transforms: list of transformation modules
@@ -34,25 +43,23 @@ class SampleCompose(NestedObject):
 
     _children_names: list[str] = ["sample_transforms"]
 
-    def __init__(self, transforms: list[Callable[[Any, Any], tuple[Any, Any]]]) -> None:
+    def __init__(self, transforms: list[Callable[[Sample], Sample]]) -> None:
         self.sample_transforms = transforms
 
-    def __call__(self, x: Any, target: Any) -> tuple[Any, Any]:
+    def __call__(self, sample: Sample) -> Sample:
         for t in self.sample_transforms:
-            x, target = t(x, target)
-
-        return x, target
+            sample = t(sample)
+        return sample
 
 
 class ImageTransform(NestedObject):
     """Implements a transform wrapper to turn an image-only transformation into an image+target transform
 
-    .. code:: python
-
-        >>> import torch
-        >>> from doctr.transforms import ImageTransform, ColorInversion
-        >>> transfo = ImageTransform(ColorInversion((32, 32)))
-        >>> out, _ = transfo(torch.rand(8, 64, 64, 3), None)
+    >>> import torch
+    >>> from doctr.transforms import ImageTransform, ColorInversion
+    >>> from doctr.utils import Sample
+    >>> transfo = ImageTransform(ColorInversion((32, 32)))
+    >>> out = transfo(Sample(image=torch.rand(8, 64, 64, 3)))
 
     Args:
         transform: the image transformation module to wrap
@@ -63,21 +70,44 @@ class ImageTransform(NestedObject):
     def __init__(self, transform: Callable[[Any], Any]) -> None:
         self.img_transform = transform
 
-    def __call__(self, img: Any, target: Any) -> tuple[Any, Any]:
-        img = self.img_transform(img)
-        return img, target
+    def __call__(self, sample: Sample) -> Sample:
+        img = self.img_transform(sample)
+        return sample.replace(image=img)
+
+
+class ImageTorchvisionTransform(NestedObject):
+    """Implements a transform wrapper to turn a torchvision image-only transformation into an image+target transform
+
+    >>> import torch
+    >>> from torchvision import transforms
+    >>> from doctr.transforms import ImageTorchvisionTransform
+    >>> from doctr.utils import Sample
+    >>> transfo = ImageTorchvisionTransform(transforms.ColorJitter(brightness=0.5))
+    >>> out, _ = transfo(Sample(image=torch.rand(8, 64, 64, 3)))
+
+    Args:
+        transform: the torchvision image transformation module to wrap
+    """
+
+    _children_names: list[str] = ["img_transform"]
+
+    def __init__(self, transform: Callable[[Any], Any]) -> None:
+        self.img_transform = transform
+
+    def __call__(self, sample: Sample) -> Sample:
+        img = self.img_transform(sample.image)
+        return sample.replace(image=img)
 
 
 class ColorInversion(NestedObject):
     """Applies the following tranformation to a tensor (image or batch of images):
     convert to grayscale, colorize (shift 0-values randomly), and then invert colors
 
-    .. code:: python
-
-        >>> import torch
-        >>> from doctr.transforms import ColorInversion
-        >>> transfo = ColorInversion(min_val=0.6)
-        >>> out = transfo(torch.rand(8, 64, 64, 3))
+    >>> import torch
+    >>> from doctr.transforms import ColorInversion
+    >>> from doctr.utils import Sample
+    >>> transfo = ColorInversion(min_val=0.6)
+    >>> out = transfo(Sample(image=torch.rand(8, 64, 64, 3)))
 
     Args:
         min_val: range [min_val, 1] to colorize RGB pixels
@@ -89,19 +119,19 @@ class ColorInversion(NestedObject):
     def extra_repr(self) -> str:
         return f"min_val={self.min_val}"
 
-    def __call__(self, img: Any) -> Any:
-        return F.invert_colors(img, self.min_val)
+    def __call__(self, sample: Sample) -> Sample:
+        out = F.invert_colors(sample.image, self.min_val)
+        return sample.replace(image=out)
 
 
 class OneOf(NestedObject):
     """Randomly apply one of the input transformations
 
-    .. code:: python
-
-        >>> import torch
-        >>> from doctr.transforms import OneOf
-        >>> transfo = OneOf([JpegQuality(), Gamma()])
-        >>> out = transfo(torch.rand(1, 64, 64, 3))
+    >>> import torch
+    >>> from doctr.transforms import OneOf, JpegQuality, Gamma
+    >>> from doctr.utils import Sample
+    >>> transfo = OneOf([JpegQuality(), Gamma()])
+    >>> out = transfo(Sample(image=torch.rand(1, 64, 64, 3)))
 
     Args:
         transforms: list of transformations, one only will be picked
@@ -109,42 +139,39 @@ class OneOf(NestedObject):
 
     _children_names: list[str] = ["transforms"]
 
-    def __init__(self, transforms: list[Callable[[Any], Any]]) -> None:
+    def __init__(self, transforms: list[Callable[[Sample], Sample]]) -> None:
         self.transforms = transforms
 
-    def __call__(self, img: Any, target: np.ndarray | None = None) -> Any | tuple[Any, np.ndarray]:
-        # Pick transformation
+    def __call__(self, sample: Sample) -> Sample:
         transfo = self.transforms[int(random.random() * len(self.transforms))]
-        # Apply
-        return transfo(img) if target is None else transfo(img, target)  # type: ignore[call-arg]
+        return transfo(sample)
 
 
 class RandomApply(NestedObject):
     """Apply with a probability p the input transformation
 
-    .. code:: python
-
-        >>> import torch
-        >>> from doctr.transforms import RandomApply
-        >>> transfo = RandomApply(Gamma(), p=.5)
-        >>> out = transfo(torch.rand(1, 64, 64, 3))
+    >>> import torch
+    >>> from doctr.transforms import RandomApply, Gamma
+    >>> from doctr.utils import Sample
+    >>> transfo = RandomApply(Gamma(), p=.5)
+    >>> out = transfo(Sample(image=torch.rand(1, 64, 64, 3), target=np.array([[0.1, 0.1, 0.9, 0.9]]), mask=None))
 
     Args:
         transform: transformation to apply
         p: probability to apply
     """
 
-    def __init__(self, transform: Callable[[Any], Any], p: float = 0.5) -> None:
+    def __init__(self, transform: Callable[[Sample], Sample], p: float = 0.5) -> None:
         self.transform = transform
         self.p = p
 
     def extra_repr(self) -> str:
         return f"transform={self.transform}, p={self.p}"
 
-    def __call__(self, img: Any, target: np.ndarray | None = None) -> Any | tuple[Any, np.ndarray]:
+    def __call__(self, sample: Sample) -> Sample:
         if random.random() < self.p:
-            return self.transform(img) if target is None else self.transform(img, target)  # type: ignore[call-arg]
-        return img if target is None else (img, target)
+            return self.transform(sample)
+        return sample
 
 
 class RandomRotate(NestedObject):
@@ -152,6 +179,11 @@ class RandomRotate(NestedObject):
 
     .. image:: https://doctr-static.mindee.com/models?id=v0.4.0/rotation_illustration.png&src=0
         :align: center
+
+    >>> import torch
+    >>> from doctr.transforms import RandomRotate
+    >>> transfo = RandomRotate(max_angle=30, expand=True)
+    >>> out = transfo(Sample(image=torch.rand(1, 64, 64, 3), target=np.array([[0.1, 0.1, 0.9, 0.9]]), mask=None))
 
     Args:
         max_angle: maximum angle for rotation, in degrees. Angles will be uniformly picked in [-max_angle, max_angle]
@@ -165,16 +197,68 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> tuple[Any, np.ndarray]:
-        angle = random.uniform(-self.max_angle, self.max_angle)
+    def _rotate_array(self, img: Any, target: np.ndarray, angle: float):
+        is_polygon = target.shape[1:] == (4, 2)
+
         r_img, r_polys = F.rotate_sample(img, target, angle, self.expand)
-        # Removes deleted boxes
+
         is_kept = (r_polys.max(1) > r_polys.min(1)).sum(1) == 2
-        return r_img, r_polys[is_kept]
+        r_polys = r_polys[is_kept]
+
+        # convert back if input was boxes
+        if not is_polygon:
+            x1y1 = r_polys.min(axis=1)
+            x2y2 = r_polys.max(axis=1)
+            return r_img, np.concatenate([x1y1, x2y2], axis=1)
+
+        return r_img, r_polys
+
+    def __call__(self, sample: Sample) -> Sample:
+        angle = random.uniform(-self.max_angle, self.max_angle)
+
+        img = sample.image
+        target = sample.target
+        mask = sample.mask
+
+        r_mask = None
+        if mask is not None:
+            r_mask, _ = F.rotate_sample(
+                mask.unsqueeze(0), np.array([[0, 0, 1, 1]], dtype=np.float32), angle, self.expand
+            )
+
+        if target is None:
+            r_img, _ = F.rotate_sample(img, np.array([[0, 0, 1, 1]], dtype=np.float32), angle, self.expand)
+            return sample.replace(image=r_img, mask=r_mask)
+
+        if isinstance(target, dict):
+            rotated_targets = {}
+            rotated_img = None
+
+            for cls_name, arr in target.items():
+                if len(arr) == 0:
+                    rotated_targets[cls_name] = arr.copy()
+                    continue
+
+                r_img, r_arr = self._rotate_array(img, arr, angle)
+                if rotated_img is None:
+                    rotated_img = r_img
+                rotated_targets[cls_name] = r_arr
+
+            final_img = rotated_img if rotated_img is not None else img
+            return sample.replace(image=final_img, mask=r_mask, target=rotated_targets)
+
+        r_img, r_target = self._rotate_array(img, target, angle)
+        return sample.replace(image=r_img, mask=r_mask, target=r_target)
 
 
 class RandomCrop(NestedObject):
     """Randomly crop a tensor image and its boxes
+
+    >>> import torch
+    >>> from doctr.transforms import RandomCrop
+    >>> from doctr.utils import Sample
+    >>> transfo = RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
+    >>> out = transfo(Sample(image=torch.rand(1, 64, 64, 3), target=np.array([[0.1, 0.1, 0.9, 0.9]]), mask=None))
 
     Args:
         scale: tuple of floats, relative (min_area, max_area) of the crop
@@ -188,39 +272,120 @@ class RandomCrop(NestedObject):
     def extra_repr(self) -> str:
         return f"scale={self.scale}, ratio={self.ratio}"
 
-    def __call__(self, img: Any, target: np.ndarray) -> tuple[Any, np.ndarray]:
+    def _crop_image_only(self, img: Any, crop_box: tuple[float, float, float, float]) -> Any:
+        dummy_box = np.array([[0, 0, 1, 1]], dtype=np.float32)
+        cropped_img, _ = F.crop_detection(img, dummy_box, crop_box)
+        return cropped_img
+
+    def _crop_array(
+        self, img: Any, target: np.ndarray, crop_box: tuple[float, float, float, float]
+    ) -> tuple[Any, np.ndarray]:
+        is_polygon = target.shape[1:] == (4, 2)
+
+        if is_polygon:
+            cropped_img, _ = F.crop_detection(
+                img,
+                np.concatenate((np.min(target, axis=1), np.max(target, axis=1)), axis=1),
+                crop_box,
+            )
+
+            cropped_polys = target.copy()
+
+            crop_w = crop_box[2] - crop_box[0]
+            crop_h = crop_box[3] - crop_box[1]
+
+            # Reproject coordinates into cropped frame
+            cropped_polys[..., 0] = (cropped_polys[..., 0] - crop_box[0]) / crop_w
+            cropped_polys[..., 1] = (cropped_polys[..., 1] - crop_box[1]) / crop_h
+
+            # Keep polygons with at least partial visibility
+            poly_min = np.min(cropped_polys, axis=1)
+            poly_max = np.max(cropped_polys, axis=1)
+            is_kept = (poly_max[:, 0] > 0) & (poly_min[:, 0] < 1) & (poly_max[:, 1] > 0) & (poly_min[:, 1] < 1)
+            cropped_polys = cropped_polys[is_kept]
+
+            if cropped_polys.shape[0] == 0:
+                return img, target
+
+            return cropped_img, np.clip(cropped_polys, 0, 1)
+
+        # For detection boxes, we can directly crop and clip them
+        cropped_img, crop_boxes = F.crop_detection(img, target, crop_box)
+
+        if crop_boxes.shape[0] == 0:
+            return img, target
+
+        return cropped_img, np.clip(crop_boxes, 0, 1)
+
+    def __call__(self, sample: Sample) -> Sample:
         scale = random.uniform(self.scale[0], self.scale[1])
         ratio = random.uniform(self.ratio[0], self.ratio[1])
 
-        height, width = img.shape[-2:]
+        img = sample.image
+        target = sample.target
+        mask = sample.mask
 
-        # Calculate crop size
-        crop_area = scale * width * height
-        aspect_ratio = ratio * (width / height)
-        crop_width = int(round(math.sqrt(crop_area * aspect_ratio)))
-        crop_height = int(round(math.sqrt(crop_area / aspect_ratio)))
+        h, w = img.shape[-2:]
 
-        # Ensure crop size does not exceed image dimensions
-        crop_width = min(crop_width, width)
-        crop_height = min(crop_height, height)
+        crop_area = scale * w * h
+        aspect_ratio = ratio * (w / h)
 
-        # Randomly select crop position
-        x = random.randint(0, width - crop_width)
-        y = random.randint(0, height - crop_height)
+        crop_w = int(round(math.sqrt(crop_area * aspect_ratio)))
+        crop_h = int(round(math.sqrt(crop_area / aspect_ratio)))
 
-        # relative crop box
-        crop_box = (x / width, y / height, (x + crop_width) / width, (y + crop_height) / height)
-        if target.shape[1:] == (4, 2):
-            min_xy = np.min(target, axis=1)
-            max_xy = np.max(target, axis=1)
-            _target = np.concatenate((min_xy, max_xy), axis=1)
+        crop_w = min(crop_w, w)
+        crop_h = min(crop_h, h)
+
+        x = random.randint(0, w - crop_w)
+        y = random.randint(0, h - crop_h)
+
+        crop_box = (
+            x / w,
+            y / h,
+            (x + crop_w) / w,
+            (y + crop_h) / h,
+        )
+
+        if target is None:
+            r_img = self._crop_image_only(img, crop_box)
+            r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
+            return sample.replace(image=r_img, mask=r_mask)
+
+        if isinstance(target, dict):
+            cropped_targets = {}
+            cropped_img = None
+            crop_rejected = False
+
+            for cls_name, arr in target.items():
+                if len(arr) == 0:
+                    cropped_targets[cls_name] = arr.copy()
+                    continue
+
+                c_img, c_arr = self._crop_array(img, arr, crop_box)
+
+                if c_img is img:
+                    crop_rejected = True
+                    break
+
+                if cropped_img is None:
+                    cropped_img = c_img
+
+                cropped_targets[cls_name] = c_arr
+
+            if crop_rejected or cropped_img is None:
+                return sample.replace(
+                    image=img,
+                    mask=mask,
+                    target={key: value.copy() for key, value in target.items()},
+                )
+
+            r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
+            return sample.replace(image=cropped_img, mask=r_mask, target=cropped_targets)
+
+        c_img, c_target = self._crop_array(img, target, crop_box)
+        if c_img is img:
+            r_mask = mask
         else:
-            _target = target
+            r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
 
-        # Crop image and targets
-        croped_img, crop_boxes = F.crop_detection(img, _target, crop_box)
-        # hard fallback if no box is kept
-        if crop_boxes.shape[0] == 0:
-            return img, target
-        # clip boxes
-        return croped_img, np.clip(crop_boxes, 0, 1)
+        return sample.replace(image=c_img, mask=r_mask, target=c_target)

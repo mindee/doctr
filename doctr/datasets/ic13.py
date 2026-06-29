@@ -27,10 +27,12 @@ class IC13(AbstractDataset):
     >>> from doctr.datasets import IC13
     >>> train_set = IC13(img_folder="/path/to/Challenge2_Training_Task12_Images",
     >>>                  label_folder="/path/to/Challenge2_Training_Task1_GT")
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
     >>> test_set = IC13(img_folder="/path/to/Challenge2_Test_Task12_Images",
     >>>                 label_folder="/path/to/Challenge2_Test_Task1_GT")
-    >>> img, target = test_set[0]
+    >>> sample = test_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: folder with all the images of the dataset

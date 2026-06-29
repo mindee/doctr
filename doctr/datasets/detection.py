@@ -23,7 +23,8 @@ class DetectionDataset(AbstractDataset):
     >>> from doctr.datasets import DetectionDataset
     >>> train_set = DetectionDataset(img_folder="/path/to/images",
     >>>                              label_path="/path/to/labels.json")
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: folder with all the images of the dataset

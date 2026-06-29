@@ -289,3 +289,215 @@ def test_nms():
     ]
     to_keep = metrics.nms(np.asarray(boxes), thresh=0.2)
     assert to_keep == [0, 2]
+
+
+@pytest.mark.parametrize(
+    "gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores, expected_keys",
+    [
+        [  # Perfect single detection
+            [[[0, 0, 1, 1]]],
+            [[0]],
+            [[[0, 0, 1, 1]]],
+            [[0]],
+            [[0.9]],
+            ["mAP@[.5:.95]", "AP@[.5]", "AP@[.75]", "AP_per_IoU"],
+        ],
+        [  # Multiple predictions, one correct
+            [[[0, 0, 1, 1]]],
+            [[0]],
+            [[[0, 0, 1, 1], [0.5, 0.5, 0.7, 0.7]]],
+            [[0, 0]],
+            [[0.9, 0.2]],
+            ["mAP@[.5:.95]", "AP@[.5]", "AP@[.75]", "AP_per_IoU"],
+        ],
+        [  # No predictions
+            [[[0, 0, 1, 1]]],
+            [[0]],
+            [[]],
+            [[]],
+            [[]],
+            ["mAP@[.5:.95]", "AP@[.5]", "AP@[.75]", "AP_per_IoU"],
+        ],
+        [  # No ground truths
+            [[]],
+            [[]],
+            [[[0, 0, 1, 1]]],
+            [[0]],
+            [[0.9]],
+            ["mAP@[.5:.95]", "AP@[.5]", "AP@[.75]", "AP_per_IoU"],
+        ],
+    ],
+)
+def test_object_detection_metric_basic(gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores, expected_keys):
+    metric = metrics.ObjectDetectionMetric()
+
+    for _gboxes, _glabels, _pboxes, _plabels, _pscores in zip(
+        gt_boxes, gt_labels, pred_boxes, pred_labels, pred_scores
+    ):
+        metric.update(
+            np.asarray(_gboxes, dtype=float),
+            np.asarray(_pboxes, dtype=float),
+            np.asarray(_glabels, dtype=np.int64),
+            np.asarray(_plabels, dtype=np.int64),
+            np.asarray(_pscores, dtype=float),
+        )
+
+    summary = metric.summary()
+
+    # Key presence
+    assert all(k in summary for k in expected_keys)
+
+    # Value ranges
+    assert 0.0 <= summary["mAP@[.5:.95]"] <= 1.0
+    if summary["AP@[.5]"] is not None:
+        assert 0.0 <= summary["AP@[.5]"] <= 1.0
+
+    metric.reset()
+    assert metric._gts == []
+    assert metric._preds == []
+
+
+def test_object_detection_metric_cases():
+    # Perfect match should yield mAP of 1
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.9], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["mAP@[.5:.95]"] == pytest.approx(1.0, abs=1e-6)
+    assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
+
+    # Class mismatch should yield mAP of 0
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([1], dtype=np.int64),  # wrong class
+        np.asarray([0.9], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["mAP@[.5:.95]"] == pytest.approx(0.0, abs=1e-6)
+    assert summary["AP@[.5]"] == pytest.approx(0.0, abs=1e-6)
+
+    # Empty predictions should yield mAP of 0
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.zeros((0, 4), dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.zeros((0,), dtype=np.int64),
+        np.zeros((0,), dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["mAP@[.5:.95]"] == pytest.approx(0.0, abs=1e-6)
+    assert summary["AP@[.5]"] == pytest.approx(0.0, abs=1e-6)
+
+    # Multiple classes and samples
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1], [0.2, 0.2, 0.4, 0.4]], dtype=float),
+        np.asarray([[0, 0, 1, 1], [0.2, 0.2, 0.4, 0.4]], dtype=float),
+        np.asarray([0, 1], dtype=np.int64),
+        np.asarray([0, 1], dtype=np.int64),
+        np.asarray([0.9, 0.8], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["mAP@[.5:.95]"] == pytest.approx(1.0, abs=1e-6)
+    assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
+
+    # Shape mismatch should raise an error
+    metric = metrics.ObjectDetectionMetric()
+    with pytest.raises(AssertionError):
+        metric.update(
+            np.asarray([[0, 0, 1, 1]], dtype=float),
+            np.asarray([[0, 0, 1, 1]], dtype=float),
+            np.asarray([0], dtype=np.int64),
+            np.asarray([0, 1], dtype=np.int64),  # mismatch
+            np.asarray([0.9], dtype=float),
+        )
+
+    # False positives should reduce mAP
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0.5, 0.5, 0.7, 0.7], [0, 0, 1, 1]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0, 0], dtype=np.int64),
+        np.asarray([0.9, 0.8], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["mAP@[.5:.95]"] < 1.0
+    assert summary["AP@[.5]"] < 1.0
+
+    # Test with polygons
+    metric = metrics.ObjectDetectionMetric(use_polygons=True)
+    metric.update(
+        np.asarray([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=float),
+        np.asarray([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.9], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["mAP@[.5:.95]"] == pytest.approx(1.0, abs=1e-6)
+    assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
+
+    # False positives should reduce mAP even with perfect localization and class match
+    metric = metrics.ObjectDetectionMetric()
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.2], dtype=float),
+    )
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0.5, 0.5, 0.7, 0.7]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.9], dtype=float),
+    )
+    summary = metric.summary()
+    # Global ranking should place FP before TP therefore AP must be < 1
+    assert summary["mAP@[.5:.95]"] < 1.0
+
+
+def _square(x, y):
+    return [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]]
+
+
+def test_table_cell_metric():
+    gt_cells = np.asarray([_square(0, 0), _square(2, 0), _square(0, 2)], dtype=np.float32)
+    gt_logic = np.asarray([[0, 0, 0, 0], [1, 1, 0, 0], [0, 0, 1, 1]], dtype=np.int64)
+
+    # Perfect match -> everything is 1
+    metric = metrics.TableCellMetric(iou_thresh=0.5)
+    metric.update(gt_cells, gt_logic, gt_cells.copy(), gt_logic.copy())
+    res = metric.summary()
+    assert res["recall"] == 1.0 and res["precision"] == 1.0 and res["f1"] == 1.0 and res["structure_acc"] == 1.0
+
+    # One wrong logical coordinate -> geometry perfect, structure accuracy 2/3
+    bad_logic = gt_logic.copy()
+    bad_logic[1] = [5, 5, 5, 5]
+    metric = metrics.TableCellMetric(iou_thresh=0.5)
+    metric.update(gt_cells, gt_logic, gt_cells.copy(), bad_logic)
+    res = metric.summary()
+    assert res["recall"] == 1.0 and abs(res["structure_acc"] - 2 / 3) < 1e-6
+
+    # A missing prediction -> recall 2/3, precision 1
+    metric = metrics.TableCellMetric(iou_thresh=0.5)
+    metric.update(gt_cells, gt_logic, gt_cells[:2], gt_logic[:2])
+    res = metric.summary()
+    assert abs(res["recall"] - 2 / 3) < 1e-6 and res["precision"] == 1.0
+
+    # Empty edge cases
+    metric = metrics.TableCellMetric()
+    metric.update(gt_cells, gt_logic, np.zeros((0, 4, 2), np.float32), np.zeros((0, 4), np.int64))
+    res = metric.summary()
+    assert res["recall"] == 0.0 and res["precision"] is None and res["structure_acc"] is None

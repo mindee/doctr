@@ -50,7 +50,11 @@ Custom dataset loader
 
 .. autoclass:: DetectionDataset
 
+.. autoclass:: LayoutDataset
+
 .. autoclass:: RecognitionDataset
+
+.. autoclass:: TableStructureDataset
 
 .. autoclass:: OCRDataset
 
@@ -86,6 +90,9 @@ of vocabs.
    * - Name
      - size
      - characters
+   * - latex
+     - 82
+     - abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789\\{}^_=+-<>()[]/.,|
    * - latin
      - 94
      - 0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~

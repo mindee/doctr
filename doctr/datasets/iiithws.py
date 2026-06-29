@@ -25,11 +25,13 @@ class IIITHWS(AbstractDataset):
     >>> train_set = IIITHWS(img_folder="/path/to/iiit-hws/Images_90K_Normalized",
     >>>                     label_path="/path/to/IIIT-HWS-90K.txt",
     >>>                     train=True)
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
     >>> test_set = IIITHWS(img_folder="/path/to/iiit-hws/Images_90K_Normalized",
     >>>                    label_path="/path/to/IIIT-HWS-90K.txt")
     >>>                    train=False)
-    >>> img, target = test_set[0]
+    >>> sample = test_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: folder with all the images of the dataset

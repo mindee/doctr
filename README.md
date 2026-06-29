@@ -59,6 +59,23 @@ doc = DocumentFile.from_pdf("path/to/your/doc.pdf")
 result = model(doc)
 ```
 
+### Detecting the document layout
+
+You can additionally run a layout detection model as part of the pipeline by passing `detect_layout=True`. The detected regions (e.g. `Title`, `Text`, `Table`, `Page-header`, `Page-footer`) are attached to every page and rendered by `.show()`:
+
+```python
+from doctr.io import DocumentFile
+from doctr.models import ocr_predictor
+
+model = ocr_predictor(pretrained=True, detect_layout=True)
+doc = DocumentFile.from_images("path/to/your/doc.jpg")
+result = model(doc)
+
+# Access the detected layout regions of the first page
+for region in result.pages[0].layout:
+    print(region.type, region.confidence, region.geometry)
+```
+
 ### Dealing with rotated documents
 
 Should you use docTR on documents that include rotated pages, or pages with multiple box orientations,
@@ -133,6 +150,12 @@ The KIE predictor results per page are in a dictionary format with each key repr
 ### docTR has received support from Mindee. It is now actively being developed by [t2k GmbH](https://www.text2knowledge.de/de)
 
 [![Bad OCR test detection image asking the developer if they need help](docs/images/doctr-t2k-need-help.png)](https://www.text2knowledge.de/de/portfolio/doctr-on-prem-ocr)
+
+
+This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
+<p align="center">
+  <img src="https://github.com/mindee/doctr/raw/main/docs/images/t2k_logo.png" width="40%">
+</p>
 
 
 This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),

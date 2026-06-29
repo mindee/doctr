@@ -374,7 +374,7 @@ def fast_tiny(pretrained: bool = False, **kwargs: Any) -> FAST:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
@@ -401,7 +401,7 @@ def fast_small(pretrained: bool = False, **kwargs: Any) -> FAST:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:
@@ -428,7 +428,7 @@ def fast_base(pretrained: bool = False, **kwargs: Any) -> FAST:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the DBNet architecture
 
     Returns:

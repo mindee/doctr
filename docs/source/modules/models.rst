@@ -45,6 +45,12 @@ doctr.models.classification
 
 .. autofunction:: doctr.models.classification.vip_base
 
+.. autofunction:: doctr.models.classification.vit_det_s
+
+.. autofunction:: doctr.models.classification.vit_det_m
+
+.. autofunction:: doctr.models.classification.starnet_s3
+
 .. autofunction:: doctr.models.classification.crop_orientation_predictor
 
 .. autofunction:: doctr.models.classification.page_orientation_predictor
@@ -70,6 +76,16 @@ doctr.models.detection
 .. autofunction:: doctr.models.detection.fast_base
 
 .. autofunction:: doctr.models.detection.detection_predictor
+
+
+doctr.models.layout
+-------------------
+
+.. autofunction:: doctr.models.layout.lw_detr_s
+
+.. autofunction:: doctr.models.layout.lw_detr_m
+
+.. autofunction:: doctr.models.layout.layout_predictor
 
 
 doctr.models.recognition
@@ -112,3 +128,13 @@ doctr.models.factory
 .. autofunction:: doctr.models.factory.from_hub
 
 .. autofunction:: doctr.models.factory.push_to_hf_hub
+
+
+doctr.models.utils
+------------------
+
+.. currentmodule:: doctr.models.utils
+
+.. autofunction:: export_model_to_onnx
+
+.. autofunction:: add_whitelist

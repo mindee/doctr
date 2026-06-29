@@ -4,9 +4,9 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import os
+import xml.etree.ElementTree as ET  # nosec B405
 from typing import Any
 
-import defusedxml.ElementTree as ET
 import numpy as np
 from tqdm import tqdm
 
@@ -25,7 +25,8 @@ class IC03(VisionDataset):
 
     >>> from doctr.datasets import IC03
     >>> train_set = IC03(train=True, download=True)
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         train: whether the subset should be the training one

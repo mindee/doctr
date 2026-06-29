@@ -152,7 +152,7 @@ def magc_resnet31(pretrained: bool = False, **kwargs: Any) -> ResNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the ResNet architecture
 
     Returns:

@@ -1,3 +1,4 @@
+import json
 import os
 from shutil import move
 
@@ -8,12 +9,13 @@ from torch.utils.data import DataLoader, RandomSampler
 
 from doctr import datasets
 from doctr.file_utils import CLASS_NAME
-from doctr.transforms import Resize
+from doctr.transforms import Resize, SampleCompose
 
 
 def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_polygons=False):
     # Fetch one sample
-    img, target = ds[0]
+    sample = ds[0]
+    img, target = sample.image, sample.target
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -49,7 +51,8 @@ def _validate_dataset(ds, input_size, batch_size=2, class_indices=False, is_poly
 
 def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
     # Fetch one sample
-    img, label = ds[0]
+    sample = ds[0]
+    img, label = sample.image, sample.target
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -74,7 +77,8 @@ def _validate_dataset_recognition_part(ds, input_size, batch_size=2):
 
 def _validate_dataset_detection_part(ds, input_size, batch_size=2, is_polygons=False):
     # Fetch one sample
-    img, target = ds[0]
+    sample = ds[0]
+    img, target = sample.image, sample.target
 
     assert isinstance(img, torch.Tensor)
     assert img.shape == (3, *input_size)
@@ -117,7 +121,8 @@ def test_rotation_dataset(mock_image_folder):
 
     ds = datasets.OrientationDataset(img_folder=mock_image_folder, img_transforms=Resize(input_size))
     assert len(ds) == 5
-    img, target = ds[0]
+    sample = ds[0]
+    img, target = sample.image, sample.target
     assert isinstance(img, torch.Tensor)
     assert img.dtype == torch.float32
     assert img.shape[-2:] == input_size
@@ -142,7 +147,8 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     )
 
     assert len(ds) == 5
-    img, target_dict = ds[0]
+    sample = ds[0]
+    img, target_dict = sample.image, sample.target
     target = target_dict[CLASS_NAME]
     assert isinstance(img, torch.Tensor)
     assert img.dtype == torch.float32
@@ -166,7 +172,7 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
         img_transforms=Resize(input_size),
         use_polygons=True,
     )
-    _, r_target = rotated_ds[0]
+    r_target = rotated_ds[0].target
     assert r_target[CLASS_NAME].shape[1:] == (4, 2)
 
     # File existence check
@@ -177,6 +183,161 @@ def test_detection_dataset(mock_image_folder, mock_detection_label):
     move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
 
 
+@pytest.mark.parametrize(
+    "use_polygons",
+    [False, True],
+)
+def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
+    input_size = (1024, 1024)
+
+    ds = datasets.LayoutDataset(
+        img_folder=mock_image_folder,
+        label_path=mock_layout_label,
+        img_transforms=Resize(input_size, return_padding_mask=True),
+        use_polygons=use_polygons,
+    )
+
+    assert len(ds) == 5
+    sample = ds[0]
+    img, padding_mask, target_dict = sample.image, sample.mask, sample.target
+    assert isinstance(img, torch.Tensor)
+    assert img.dtype == torch.float32
+    assert img.shape[-2:] == input_size
+    assert isinstance(padding_mask, torch.Tensor)
+    assert padding_mask.dtype == torch.bool
+    assert padding_mask.shape == input_size
+    assert isinstance(target_dict, dict)
+    expected_classes = {"Table", "Header", "Footer", "Text"}
+    assert set(target_dict.keys()) == expected_classes
+    for class_name, target in target_dict.items():
+        assert isinstance(target, np.ndarray)
+        assert target.dtype == np.float32
+        if use_polygons:
+            assert target.ndim == 3
+            assert target.shape[1:] == (4, 2)
+        else:
+            assert target.ndim == 2
+            assert target.shape[1:] == (4,)
+        assert np.all(np.logical_and(target >= 0, target <= 1))
+    assert ds.class_names == sorted(expected_classes)
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, tuple) and len(images) == 2
+    img, padding_mask = images
+    assert isinstance(img, torch.Tensor)
+    assert img.shape == (2, 3, *input_size)
+    assert isinstance(padding_mask, torch.Tensor)
+    assert padding_mask.shape == (2, *input_size)
+    assert isinstance(targets, list)
+    assert all(isinstance(target, dict) for target in targets)
+    for target in targets:
+        assert set(target.keys()) == expected_classes
+        assert all(isinstance(v, np.ndarray) for v in target.values())
+
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(ds.root, img_name), os.path.join(ds.root, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(
+            img_folder=mock_image_folder,
+            label_path=mock_layout_label,
+        )
+    move(os.path.join(ds.root, "tmp_file"), os.path.join(ds.root, img_name))
+
+    with pytest.raises(FileNotFoundError):
+        datasets.LayoutDataset(
+            img_folder=mock_image_folder,
+            label_path="/tmp/does_not_exist.json",
+        )
+
+    with open(mock_layout_label) as f:
+        original_labels = json.load(f)
+    first_key = next(iter(original_labels))
+
+    test_cases = [
+        (
+            {"classes": ["Text"]},
+            KeyError,
+            "missing 'polygons'",
+        ),
+        (
+            {"polygons": [[[0, 0], [1, 0], [1, 1], [0, 1]]]},
+            KeyError,
+            "missing 'classes'",
+        ),
+        (
+            {
+                "polygons": [
+                    [[0, 0], [1, 0], [1, 1], [0, 1]],
+                    [[0, 0], [1, 0], [1, 1], [0, 1]],
+                ],
+                "classes": ["Text"],
+            },
+            ValueError,
+            "number of polygons",
+        ),
+        (
+            {
+                "polygons": [[[0, 0], [1, 0], [1, 1]]],  # only 3 points
+                "classes": ["Text"],
+            },
+            ValueError,
+            "polygons are expected to have shape",
+        ),
+    ]
+
+    for sample, exc_type, match in test_cases:
+        broken_labels = dict(original_labels)
+        broken_labels[first_key] = sample
+
+        with open(mock_layout_label, "w") as f:
+            json.dump(broken_labels, f)
+
+        with pytest.raises(exc_type, match=match):
+            datasets.LayoutDataset(
+                img_folder=mock_image_folder,
+                label_path=mock_layout_label,
+            )
+
+    # Restore original labels
+    with open(mock_layout_label, "w") as f:
+        json.dump(original_labels, f)
+
+
+def test_table_dataset(mock_image_folder, mock_table_label):
+    input_size = (1024, 1024)
+
+    ds = datasets.TableStructureDataset(
+        img_folder=mock_image_folder,
+        label_path=mock_table_label,
+        sample_transforms=SampleCompose([Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True)]),
+    )
+
+    assert len(ds) == 5
+    sample = ds[0]
+    img, target = sample.image, sample.target
+    assert isinstance(img, torch.Tensor) and img.dtype == torch.float32
+    assert img.shape[-2:] == input_size
+    # Target carries relative cell polygons and integer logical coordinates
+    assert isinstance(target, dict) and set(target) == {"cells", "logic"}
+    assert isinstance(target["cells"], np.ndarray) and target["cells"].dtype == np.float32
+    assert target["cells"].ndim == 3 and target["cells"].shape[1:] == (4, 2)
+    assert np.all(np.logical_and(target["cells"] >= 0, target["cells"] <= 1))
+    assert target["logic"].shape == (target["cells"].shape[0], 4)
+
+    loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
+    images, targets = next(iter(loader))
+    assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
+    assert isinstance(targets, list) and all(set(t) == {"cells", "logic"} for t in targets)
+
+    # File existence check
+    img_name, _ = ds.data[0]
+    move(os.path.join(mock_image_folder, img_name), os.path.join(mock_image_folder, "tmp_file"))
+    with pytest.raises(FileNotFoundError):
+        datasets.TableStructureDataset(mock_image_folder, mock_table_label)
+    move(os.path.join(mock_image_folder, "tmp_file"), os.path.join(mock_image_folder, img_name))
+
+
 def test_recognition_dataset(mock_image_folder, mock_recognition_label):
     input_size = (32, 128)
     ds = datasets.RecognitionDataset(
@@ -185,7 +346,8 @@ def test_recognition_dataset(mock_image_folder, mock_recognition_label):
         img_transforms=Resize(input_size, preserve_aspect_ratio=True),
     )
     assert len(ds) == 5
-    image, label = ds[0]
+    sample = ds[0]
+    image, label = sample.image, sample.target
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32
@@ -240,7 +402,8 @@ def test_charactergenerator():
     )
 
     assert len(ds) == 10
-    image, label = ds[0]
+    sample = ds[0]
+    image, label = sample.image, sample.target
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32
@@ -249,8 +412,8 @@ def test_charactergenerator():
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
-    assert isinstance(targets, torch.Tensor) and targets.shape == (2,)
-    assert targets.dtype == torch.int64
+    assert isinstance(targets, list) and len(targets) == 2
+    assert all(isinstance(t, int) for t in targets)
 
 
 def test_wordgenerator():
@@ -268,7 +431,8 @@ def test_wordgenerator():
     )
 
     assert len(ds) == 10
-    image, target = ds[0]
+    sample = ds[0]
+    image, target = sample.image, sample.target
     assert isinstance(image, torch.Tensor)
     assert image.shape[-2:] == input_size
     assert image.dtype == torch.float32

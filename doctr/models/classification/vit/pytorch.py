@@ -15,7 +15,7 @@ from doctr.models.modules.vision_transformer import PatchEmbedding
 
 from ...utils import load_pretrained_params
 
-__all__ = ["vit_s", "vit_b"]
+__all__ = ["VisionTransformer", "vit_s", "vit_b"]
 
 
 default_cfgs: dict[str, dict[str, Any]] = {
@@ -150,7 +150,7 @@ def vit_s(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:
@@ -180,7 +180,7 @@ def vit_b(pretrained: bool = False, **kwargs: Any) -> VisionTransformer:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the VisionTransformer architecture
 
     Returns:

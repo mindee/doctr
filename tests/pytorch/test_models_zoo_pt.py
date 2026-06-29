@@ -6,13 +6,15 @@ from torch import nn
 from doctr import models
 from doctr.file_utils import CLASS_NAME
 from doctr.io import Document, DocumentFile
-from doctr.io.elements import KIEDocument
-from doctr.models import detection, recognition
+from doctr.io.elements import KIEDocument, LayoutElement
+from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
 from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.detection.zoo import detection_predictor
 from doctr.models.kie_predictor import KIEPredictor
+from doctr.models.layout.predictor import LayoutPredictor
+from doctr.models.layout.zoo import layout_predictor
 from doctr.models.predictor import OCRPredictor
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
@@ -120,7 +122,141 @@ def test_ocrpredictor(
     assert out.pages[0].orientation["value"] == orientation
 
 
-def test_trained_ocr_predictor(mock_payslip):
+def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=2),
+        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, assume_straight_pages=True),
+    )
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab),
+    )
+    layout_pred = layout_predictor("lw_detr_s", pretrained=False)
+
+    doc = DocumentFile.from_pdf(mock_pdf)
+
+    # Without a layout predictor -> pages carry an empty layout
+    predictor = OCRPredictor(det_predictor, reco_predictor)
+    assert predictor.layout_predictor is None
+    out = predictor(doc)
+    assert all(page.layout == [] for page in out.pages)
+    assert all(page.export()["layout"] == [] for page in out.pages)
+
+    # With a layout predictor -> detected regions are attached to every page
+    predictor = OCRPredictor(det_predictor, reco_predictor, layout_predictor=layout_pred)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    out = predictor(doc)
+    assert isinstance(out, Document)
+    for page in out.pages:
+        assert isinstance(page.layout, list)
+        assert all(isinstance(region, LayoutElement) for region in page.layout)
+        # the layout is exported alongside the page
+        exported = page.export()
+        assert "layout" in exported
+        assert exported["layout"] == [region.export() for region in page.layout]
+
+    doc = DocumentFile.from_images(mock_payslip)
+
+    det_predictor = detection_predictor(
+        "fast_base",
+        pretrained=True,
+        batch_size=2,
+        assume_straight_pages=True,
+        symmetric_pad=True,
+        preserve_aspect_ratio=False,
+    )
+    reco_predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, batch_size=128)
+
+    predictor = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=True,
+        straighten_pages=True,
+        preserve_aspect_ratio=False,
+        resolve_blocks=True,
+        resolve_lines=True,
+    )
+
+    out = predictor(doc)
+
+    assert out.pages[0].blocks[0].lines[0].words[0].value == "Mr."
+    geometry_mr = np.array([[0.1083984375, 0.0634765625], [0.1494140625, 0.0859375]])
+    assert np.allclose(np.array(out.pages[0].blocks[0].lines[0].words[0].geometry), geometry_mr, rtol=0.05)
+
+    assert out.pages[0].blocks[1].lines[0].words[-1].value == "revised"
+    geometry_revised = np.array([[0.7548828125, 0.126953125], [0.8388671875, 0.1484375]])
+    assert np.allclose(np.array(out.pages[0].blocks[1].lines[0].words[-1].geometry), geometry_revised, rtol=0.05)
+
+    det_predictor = detection_predictor(
+        "fast_base",
+        pretrained=True,
+        batch_size=2,
+        assume_straight_pages=True,
+        preserve_aspect_ratio=True,
+        symmetric_pad=True,
+    )
+
+    predictor = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=True,
+        straighten_pages=True,
+        preserve_aspect_ratio=True,
+        symmetric_pad=True,
+        resolve_blocks=True,
+        resolve_lines=True,
+    )
+    # test hooks
+    predictor.add_hook(_DummyCallback())
+
+    out = predictor(doc)
+
+    assert out.pages[0].blocks[0].lines[0].words[0].value == "Mr."
+
+
+def test_trained_ocr_predictor(mock_pdf, mock_vocab, mock_payslip):
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=2),
+        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, assume_straight_pages=True),
+    )
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab),
+    )
+    layout_pred = layout_predictor("lw_detr_s", pretrained=True)
+
+    doc = DocumentFile.from_pdf(mock_pdf)
+
+    # Without a layout predictor -> pages carry an empty layout
+    predictor = OCRPredictor(det_predictor, reco_predictor)
+    assert predictor.layout_predictor is None
+    out = predictor(doc)
+    assert all(page.layout == [] for page in out.pages)
+    assert all(page.export()["layout"] == [] for page in out.pages)
+
+    # With a layout predictor -> detected regions are attached to every page
+    predictor = OCRPredictor(det_predictor, reco_predictor, layout_predictor=layout_pred)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    out = predictor(doc)
+    assert isinstance(out, Document)
+    for page in out.pages:
+        assert isinstance(page.layout, list)
+        assert all(isinstance(region, LayoutElement) for region in page.layout)
+        # the layout is exported alongside the page
+        exported = page.export()
+        assert "layout" in exported
+        assert exported["layout"] == [region.export() for region in page.layout]
+
+    # Test KIE
+    predictor = KIEPredictor(det_predictor, reco_predictor, layout_predictor=layout_pred)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    out = predictor(doc)
+    assert isinstance(out, KIEDocument)
+    for page in out.pages:
+        assert isinstance(page.layout, list)
+        assert all(isinstance(region, LayoutElement) for region in page.layout)
+        assert page.export()["layout"] == [region.export() for region in page.layout]
+
     doc = DocumentFile.from_images(mock_payslip)
 
     det_predictor = detection_predictor(
@@ -413,6 +549,26 @@ def test_zoo_models(det_arch, reco_arch):
     # passing detection model as recognition model
     with pytest.raises(ValueError):
         models.kie_predictor(reco_arch=det_model, pretrained=True)
+
+    # Layout-aware OCR predictor via the factory (detect_layout flag)
+    predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True, detect_layout=True)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    _test_predictor(predictor)
+
+    # passing a (fine-tuned) layout model instance, like det/reco
+    layout_model = layout.lw_detr_s(pretrained=False)
+    predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True, detect_layout=True, layout_arch=layout_model)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    assert predictor.layout_predictor.model is layout_model
+
+    # disabled by default
+    predictor = models.ocr_predictor(det_arch, reco_arch, pretrained=True)
+    assert predictor.layout_predictor is None
+
+    # Layout-aware KIE predictor via the factory
+    predictor = models.kie_predictor(det_arch, reco_arch, pretrained=True, detect_layout=True)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    _test_kiepredictor(predictor)
 
 
 @pytest.mark.parametrize(

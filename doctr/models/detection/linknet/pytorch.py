@@ -307,7 +307,7 @@ def linknet_resnet18(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
@@ -337,7 +337,7 @@ def linknet_resnet34(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:
@@ -367,7 +367,7 @@ def linknet_resnet50(pretrained: bool = False, **kwargs: Any) -> LinkNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained (bool): If True, returns a model pre-trained on our text detection dataset
+        pretrained: If True, returns a model pre-trained on our text detection dataset
         **kwargs: keyword arguments of the LinkNet architecture
 
     Returns:

@@ -18,6 +18,7 @@ Main Features
 -------------
 
 * |:robot:| Robust 2-stage (detection + recognition) OCR predictors with pretrained parameters
+* |:page_facing_up:| Layout analysis predictor for detecting document regions (tables, figures, headers, …)
 * |:zap:| User-friendly, 3 lines of code to load a document and extract text with a predictor
 * |:rocket:| State-of-the-art performance on public document datasets, comparable with GoogleVision/AWS Textract
 * |:zap:| Optimized for inference speed on both CPU & GPU
@@ -32,6 +33,7 @@ Main Features
    :hidden:
 
    getting_started/installing
+   getting_started/quickstart
    notebooks
 
 
@@ -83,6 +85,7 @@ Supported datasets
    using_doctr/using_model_export
    using_doctr/custom_models_training
    using_doctr/running_on_aws
+   using_doctr/using_cli
 
 
 .. toctree::

@@ -19,6 +19,14 @@ You can start your training in PyTorch:
 python references/recognition/train.py crnn_vgg16_bn --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
+Alternatively, instead of providing local folders you can train directly on one or several built-in datasets, which are downloaded automatically. When several are passed, the first one is loaded and extended with the others:
+
+```shell
+python references/recognition/train.py crnn_vgg16_bn --train_datasets FUNSD SVHN --val_datasets FUNSD --epochs 5
+```
+
+The available built-in datasets are `CORD`, `FUNSD`, `IC03`, `IIIT5K`, `SVHN`, `SVT` and `SynthText`. For each split use either the local path or the built-in datasets (not both): `--train_path` or `--train_datasets`, and `--val_path` or `--val_datasets`. If neither is provided, the script falls back to synthetic data generated on the fly with the `WordGenerator` (see [Using custom fonts](#using-custom-fonts)).
+
 ### Multi-GPU support
 
 We now use the built-in [`torchrun`](https://pytorch.org/docs/stable/elastic/run.html) launcher to spawn your DDP workers. `torchrun` will set all the necessary environment variables (`LOCAL_RANK`, `RANK`, etc.) for you. Arguments are the same than the ones from single GPU, except:
@@ -51,7 +59,7 @@ torchrun --nproc_per_node=2 references/recognition/train.py \
 
 ## Data format
 
-You need to provide both `train_path` and `val_path` arguments to start training.
+To train on your own data you need to provide both `train_path` and `val_path` arguments (alternatively, use the built-in datasets shown above, or the synthetic `WordGenerator`).
 Each of these paths must lead to a 2-elements folder:
 
 ```shell

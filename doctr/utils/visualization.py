@@ -157,6 +157,7 @@ def visualize_page(
     image: np.ndarray,
     words_only: bool = True,
     display_artefacts: bool = True,
+    display_layout: bool = True,
     scale: float = 10,
     interactive: bool = True,
     add_labels: bool = True,
@@ -179,6 +180,7 @@ def visualize_page(
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
         display_artefacts: whether artefacts should be displayed
+        display_layout: whether detected layout regions should be displayed
         scale: figsize of the largest windows side
         interactive: whether the plot should be interactive
         add_labels: for static plot, adds text labels on top of bounding box
@@ -198,6 +200,33 @@ def visualize_page(
 
     if interactive:
         artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+
+    # Draw layout regions first so text boxes are overlaid on top of them
+    if display_layout and page.get("layout"):
+        region_classes = sorted({region["type"] for region in page["layout"]})
+        layout_colors = {cls: color for color, cls in zip(get_colors(max(len(region_classes), 1)), region_classes)}
+        for region in page["layout"]:
+            rect = create_obj_patch(
+                region["geometry"],
+                page["dimensions"],
+                label=f"{region['type']} (confidence: {region['confidence']:.2%})",
+                color=layout_colors[region["type"]],
+                linewidth=2,
+                fill=False,
+                **kwargs,
+            )
+            ax.add_patch(rect)
+            if interactive:
+                artists.append(rect)
+            elif add_labels and len(region["geometry"]) == 2:
+                ax.text(
+                    int(page["dimensions"][1] * region["geometry"][0][0]),
+                    int(page["dimensions"][0] * region["geometry"][0][1]),
+                    region["type"],
+                    size=9,
+                    alpha=0.7,
+                    color=layout_colors[region["type"]],
+                )
 
     for block in page["blocks"]:
         if not words_only:
@@ -281,6 +310,7 @@ def visualize_kie_page(
     image: np.ndarray,
     words_only: bool = False,
     display_artefacts: bool = True,
+    display_layout: bool = True,
     scale: float = 10,
     interactive: bool = True,
     add_labels: bool = True,
@@ -303,6 +333,7 @@ def visualize_kie_page(
         image: np array of the page, needs to have the same shape than page['dimensions']
         words_only: whether only words should be displayed
         display_artefacts: whether artefacts should be displayed
+        display_layout: whether detected layout regions should be displayed
         scale: figsize of the largest windows side
         interactive: whether the plot should be interactive
         add_labels: for static plot, adds text labels on top of bounding box
@@ -322,6 +353,23 @@ def visualize_kie_page(
 
     if interactive:
         artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+
+    if display_layout and page.get("layout"):
+        region_classes = sorted({region["type"] for region in page["layout"]})
+        layout_colors = {cls: color for color, cls in zip(get_colors(max(len(region_classes), 1)), region_classes)}
+        for region in page["layout"]:
+            rect = create_obj_patch(
+                region["geometry"],
+                page["dimensions"],
+                label=f"{region['type']} (confidence: {region['confidence']:.2%})",
+                color=layout_colors[region["type"]],
+                linewidth=2,
+                fill=False,
+                **kwargs,
+            )
+            ax.add_patch(rect)
+            if interactive:
+                artists.append(rect)
 
     colors = {k: color for color, k in zip(get_colors(len(page["predictions"])), page["predictions"])}
     for key, value in page["predictions"].items():
@@ -352,13 +400,14 @@ def visualize_kie_page(
 
 
 def draw_boxes(boxes: np.ndarray, image: np.ndarray, color: tuple[int, int, int] | None = None, **kwargs) -> None:
-    """Draw an array of relative straight boxes on an image
+    """Draw an array of relative straight boxes on an image.
 
     Args:
-        boxes: array of relative boxes, of shape (*, 4)
+        boxes: array of relative boxes, of shape ``(*, 4)``
         image: np array, float32 or uint8
         color: color to use for bounding box edges
         **kwargs: keyword arguments from `matplotlib.pyplot.plot`
+
     """
     h, w = image.shape[:2]
     # Convert boxes to absolute coords

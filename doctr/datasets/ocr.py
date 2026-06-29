@@ -21,7 +21,8 @@ class OCRDataset(AbstractDataset):
     >>> from doctr.datasets import OCRDataset
     >>> train_set = OCRDataset(img_folder="/path/to/images",
     >>>                        label_file="/path/to/labels.json")
-    >>> img, target = train_set[0]
+    >>> sample = train_set[0]
+    >>> img, target = sample.image, sample.target
 
     Args:
         img_folder: local path to image folder (all jpg at the root)

@@ -37,6 +37,9 @@ class OrientationPredictor(nn.Module):
         self,
         inputs: list[np.ndarray],
     ) -> list[list[int] | list[float]]:
+        if len(inputs) == 0:
+            return [[], [], []]
+
         # Dimension check
         if any(input.ndim != 3 for input in inputs):
             raise ValueError("incorrect input shape: all inputs are expected to be multi-channel 2D images.")
@@ -47,7 +50,7 @@ class OrientationPredictor(nn.Module):
 
         processed_batches = self.pre_processor(inputs)
         _params = next(self.model.parameters())
-        self.model, processed_batches = set_device_and_dtype(
+        self.model, processed_batches = set_device_and_dtype(  # type: ignore[assignment]
             self.model, processed_batches, _params.device, _params.dtype
         )
         predicted_batches = [self.model(batch) for batch in processed_batches]

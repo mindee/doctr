@@ -68,7 +68,7 @@ def record_lr(
     loss_recorder = []
 
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     for batch_idx, (images, targets) in enumerate(train_loader):
         if torch.cuda.is_available():
@@ -79,7 +79,7 @@ def record_lr(
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 train_loss = model(images, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
@@ -112,7 +112,7 @@ def record_lr(
 
 def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     model.train()
     # Iterate over the batches of the dataset
@@ -125,7 +125,7 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
 
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 train_loss = model(images, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
@@ -167,7 +167,7 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         images = images.to(device)
         images = batch_transforms(images)
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(images, targets, return_preds=True)
         else:
             out = model(images, targets, return_preds=True)
@@ -359,12 +359,12 @@ def main(args):
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                 # Augmentations
                 T.RandomApply(T.ColorInversion(), 0.1),
-                RandomGrayscale(p=0.1),
-                RandomPhotometricDistort(p=0.1),
+                T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
+                T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.1)),
                 T.RandomApply(T.RandomShadow(), p=0.4),
                 T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
                 T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-                RandomPerspective(distortion_scale=0.2, p=0.3),
+                T.ImageTorchvisionTransform(RandomPerspective(distortion_scale=0.2, p=0.3)),
             ]),
         )
         if len(parts) > 1:
@@ -409,12 +409,12 @@ def main(args):
                 T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
                 # Ensure we have a 90% split of white-background images
                 T.RandomApply(T.ColorInversion(), 0.9),
-                RandomGrayscale(p=0.1),
-                RandomPhotometricDistort(p=0.1),
+                T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
+                T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.1)),
                 T.RandomApply(T.RandomShadow(), p=0.4),
                 T.RandomApply(T.GaussianNoise(mean=0, std=0.1), 0.1),
                 T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-                RandomPerspective(distortion_scale=0.2, p=0.3),
+                T.ImageTorchvisionTransform(RandomPerspective(distortion_scale=0.2, p=0.3)),
             ]),
         )
     if distributed:
@@ -559,6 +559,8 @@ def main(args):
         early_stopper = EarlyStopper(patience=args.early_stop_epochs, min_delta=args.early_stop_delta)
     # Training loop
     for epoch in range(args.epochs):
+        if distributed:
+            sampler.set_epoch(epoch)
         train_loss, actual_lr = fit_one_epoch(
             model,
             device,

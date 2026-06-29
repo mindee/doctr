@@ -27,11 +27,30 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from doctr import datasets
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
+from doctr.file_utils import CLASS_NAME
 from doctr.models import detection, login_to_hub, push_to_hf_hub
 from doctr.utils.metrics import LocalizationConfusion
 from utils import EarlyStopper, plot_recorder, plot_samples
+
+
+def convert_to_multiclass_targets(targets: list) -> list[dict[str, np.ndarray]]:
+    """Convert detection targets to the multi-class format expected by the models.
+
+    Built-in datasets loaded with ``detection_task=True`` yield the boxes of each sample as a
+    plain ``np.ndarray``, whereas the models expect a mapping from class name to boxes. Targets
+    coming from a :class:`~doctr.datasets.DetectionDataset` are already dictionaries and are
+    returned unchanged.
+
+    Args:
+        targets: the batch of targets to normalize
+
+    Returns:
+        the batch of targets as a list of ``{class_name: boxes}`` dictionaries
+    """
+    return [target if isinstance(target, dict) else {CLASS_NAME: target} for target in targets]
 
 
 def record_lr(
@@ -63,18 +82,19 @@ def record_lr(
     loss_recorder = []
 
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     for batch_idx, (images, targets) in enumerate(train_loader):
         if torch.cuda.is_available():
             images = images.cuda()
 
         images = batch_transforms(images)
+        targets = convert_to_multiclass_targets(targets)
 
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 train_loss = model(images, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
@@ -107,7 +127,7 @@ def record_lr(
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
     if amp:
-        scaler = torch.cuda.amp.GradScaler()
+        scaler = torch.amp.GradScaler("cuda")
 
     model.train()
     # Iterate over the batches of the dataset
@@ -117,10 +137,11 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
+        targets = convert_to_multiclass_targets(targets)
 
         optimizer.zero_grad()
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 train_loss = model(images, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
@@ -162,8 +183,9 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
         if torch.cuda.is_available():
             images = images.cuda()
         images = batch_transforms(images)
+        targets = convert_to_multiclass_targets(targets)
         if amp:
-            with torch.cuda.amp.autocast():
+            with torch.amp.autocast("cuda"):
                 out = model(images, targets, return_preds=True)
         else:
             out = model(images, targets, return_preds=True)
@@ -238,27 +260,56 @@ def main(args):
     if rank == 0:
         # validation dataset related code
         st = time.time()
-        val_set = DetectionDataset(
-            img_folder=os.path.join(args.val_path, "images"),
-            label_path=os.path.join(args.val_path, "labels.json"),
-            sample_transforms=T.SampleCompose(
-                (
-                    [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
-                    if not args.rotation or args.eval_straight
-                    else []
-                )
-                + (
-                    [
-                        T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
-                        T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                        T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-                    ]
-                    if args.rotation and not args.eval_straight
-                    else []
-                )
-            ),
-            use_polygons=args.rotation and not args.eval_straight,
+        # Validation sample transforms (shared by both data sources)
+        val_sample_transforms = T.SampleCompose(
+            (
+                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                if not args.rotation or args.eval_straight
+                else []
+            )
+            + (
+                [
+                    T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                    T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                ]
+                if args.rotation and not args.eval_straight
+                else []
+            )
         )
+        if args.val_path:
+            val_set = DetectionDataset(
+                img_folder=os.path.join(args.val_path, "images"),
+                label_path=os.path.join(args.val_path, "labels.json"),
+                sample_transforms=val_sample_transforms,
+                use_polygons=args.rotation and not args.eval_straight,
+            )
+            with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+                val_hash = hashlib.sha256(f.read()).hexdigest()
+            cls_container[0] = val_set.class_names
+        else:
+            # Built-in datasets: load the first one and extend it with the remaining ones
+            val_datasets = args.val_datasets
+            val_set = datasets.__dict__[val_datasets[0]](
+                train=False,
+                download=True,
+                use_polygons=args.rotation and not args.eval_straight,
+                detection_task=True,
+                sample_transforms=val_sample_transforms,
+            )
+            if len(val_datasets) > 1:
+                for dataset_name in val_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=False,
+                        download=True,
+                        use_polygons=args.rotation and not args.eval_straight,
+                        detection_task=True,
+                    )
+                    # Use absolute image paths so they resolve against each dataset's own root
+                    val_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
+            val_hash = None
+            # Built-in datasets only provide the default "words" class
+            cls_container[0] = [CLASS_NAME]
         val_loader = DataLoader(
             val_set,
             batch_size=args.batch_size,
@@ -271,10 +322,6 @@ def main(args):
         pbar.write(
             f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
         )
-        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-            val_hash = hashlib.sha256(f.read()).hexdigest()
-
-        cls_container[0] = val_set.class_names
     if distributed:
         # broadcast class names to all ranks
         dist.broadcast_object_list(cls_container, src=0)
@@ -322,9 +369,9 @@ def main(args):
             T.RandomApply(T.RandomShadow(), 0.3),
             T.RandomApply(T.GaussianNoise(), 0.1),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
-            RandomGrayscale(p=0.15),
+            T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
         ]),
-        RandomPhotometricDistort(p=0.3),
+        T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
         lambda x: x,  # Identity no transformation
     ])
     # Image + target augmentations
@@ -333,7 +380,7 @@ def main(args):
             [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.85, 1.15), scale=(0.75, 1.0)), 0.25),
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
@@ -342,7 +389,7 @@ def main(args):
             else [
                 T.RandomHorizontalFlip(0.15),
                 T.OneOf([
-                    T.RandomApply(T.RandomCrop(ratio=(0.6, 1.33)), 0.25),
+                    T.RandomApply(T.RandomCrop(ratio=(0.85, 1.15), scale=(0.75, 1.0)), 0.25),
                     T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
                 ]),
                 # Rotation augmentation
@@ -353,17 +400,42 @@ def main(args):
         )
     )
 
-    # Load both train and val data generators
-    train_set = DetectionDataset(
-        img_folder=os.path.join(args.train_path, "images"),
-        label_path=os.path.join(args.train_path, "labels.json"),
-        img_transforms=img_transforms,
-        sample_transforms=sample_transforms,
-        use_polygons=args.rotation,
-    )
+    # Load training data
+    if args.train_path:
+        train_set = DetectionDataset(
+            img_folder=os.path.join(args.train_path, "images"),
+            label_path=os.path.join(args.train_path, "labels.json"),
+            img_transforms=img_transforms,
+            sample_transforms=sample_transforms,
+            use_polygons=args.rotation,
+        )
+        with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
+            train_hash = hashlib.sha256(f.read()).hexdigest()
+    else:
+        # Built-in datasets: load the first one and extend it with the remaining ones
+        train_datasets = args.train_datasets
+        train_set = datasets.__dict__[train_datasets[0]](
+            train=True,
+            download=True,
+            use_polygons=args.rotation,
+            detection_task=True,
+            img_transforms=img_transforms,
+            sample_transforms=sample_transforms,
+        )
+        if len(train_datasets) > 1:
+            for dataset_name in train_datasets[1:]:
+                _ds = datasets.__dict__[dataset_name](
+                    train=True,
+                    download=True,
+                    use_polygons=args.rotation,
+                    detection_task=True,
+                )
+                # Use absolute image paths so they resolve against each dataset's own root
+                train_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
+        train_hash = None
 
     if distributed:
-        sampler = DistributedSampler(train_set, rank=rank, shuffle=False, drop_last=True)
+        sampler = DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
     else:
         sampler = RandomSampler(train_set)
 
@@ -381,12 +453,9 @@ def main(args):
             f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
         )
 
-    with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
-        train_hash = hashlib.sha256(f.read()).hexdigest()
-
     if rank == 0 and args.show_samples:
         x, target = next(iter(train_loader))
-        plot_samples(x, target)
+        plot_samples(x, convert_to_multiclass_targets(target))
         return
 
     # Backbone freezing
@@ -518,6 +587,8 @@ def main(args):
 
     # Training loop
     for epoch in range(args.epochs):
+        if distributed:
+            sampler.set_epoch(epoch)
         train_loss, actual_lr = fit_one_epoch(
             model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
         )
@@ -592,12 +663,28 @@ def parse_args():
         "--device",
         default=None,
         type=int,
-        help="Specify gpu device for single-gpu training. In destributed setting, this parameter is ignored",
+        help="Specify gpu device for single-gpu training. In distributed setting, this parameter is ignored",
     )
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
-    parser.add_argument("--train_path", type=str, required=True, help="path to training data folder")
-    parser.add_argument("--val_path", type=str, required=True, help="path to validation data folder")
+    parser.add_argument("--train_path", type=str, default=None, help="path to training data folder")
+    parser.add_argument("--val_path", type=str, default=None, help="path to validation data folder")
+    parser.add_argument(
+        "--train_datasets",
+        type=str,
+        nargs="+",
+        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
+        default=None,
+        help="Built-in datasets to use for training (downloaded automatically)",
+    )
+    parser.add_argument(
+        "--val_datasets",
+        type=str,
+        nargs="+",
+        choices=["CORD", "FUNSD", "IC03", "IIIT5K", "SVHN", "SVT", "SynthText"],
+        default=None,
+        help="Built-in datasets to use for validation (downloaded automatically)",
+    )
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
@@ -641,6 +728,12 @@ def parse_args():
     parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
     parser.add_argument("--early-stop-delta", type=float, default=0.01, help="Minimum Delta for early stopping")
     args = parser.parse_args()
+
+    # Exactly one source (a local folder or built-in datasets) must be provided for each split
+    if bool(args.train_path) == bool(args.train_datasets):
+        parser.error("Please provide either `--train_path` or `--train_datasets` (but not both).")
+    if bool(args.val_path) == bool(args.val_datasets):
+        parser.error("Please provide either `--val_path` or `--val_datasets` (but not both).")
 
     return args
 

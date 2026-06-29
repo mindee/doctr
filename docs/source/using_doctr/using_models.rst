@@ -1,3 +1,5 @@
+.. _using_models:
+
 Choosing the right model
 ========================
 
@@ -10,6 +12,27 @@ For a given task, docTR provides a Predictor, which is composed of 2 components:
 * Model: a deep learning model, implemented with all supported deep learning backends (PyTorch) along with its specific post-processor to make outputs structured and reusable.
 
 
+Which predictor should I use?
+------------------------------
+
+.. list-table::
+   :widths: 60 40
+   :header-rows: 1
+
+   * - I want to…
+     - Use
+   * - Extract all text (words, lines, layout hierarchy) from a document
+     - :py:meth:`ocr_predictor <doctr.models.ocr_predictor>`
+   * - Detect document regions by type (tables, figures, headers, …)
+     - :py:meth:`layout_predictor <doctr.models.layout_predictor>`
+   * - Get word bounding-boxes only, without recognition
+     - :py:meth:`detection_predictor <doctr.models.detection_predictor>`
+   * - Transcribe pre-cropped word images to strings
+     - :py:meth:`recognition_predictor <doctr.models.recognition_predictor>`
+
+For :doc:`custom model loading <custom_models_training>` or sharing models, see the dedicated pages.
+
+
 Text Detection
 --------------
 
@@ -17,12 +40,11 @@ The task consists of localizing textual elements in a given image.
 While those text elements can represent many things, in docTR, we will consider uninterrupted character sequences (words). Additionally, the localization can take several forms: from straight bounding boxes (delimited by the 2D coordinates of the top-left and bottom-right corner), to polygons, or binary segmentation (flagging which pixels belong to this element, and which don't).
 Our latest detection models works with rotated and skewed documents!
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available detection architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following architectures are currently supported:
 
-* :py:meth:`linknet_resnet18 <doctr.models.detection.linknet_resnet18>`
 * :py:meth:`linknet_resnet34 <doctr.models.detection.linknet_resnet34>`
 * :py:meth:`linknet_resnet50 <doctr.models.detection.linknet_resnet50>`
 * :py:meth:`db_resnet50 <doctr.models.detection.db_resnet50>`
@@ -70,7 +92,7 @@ Seconds per iteration (with a batch size of 1) is computed after a warmup phase 
 Detection predictors
 ^^^^^^^^^^^^^^^^^^^^
 
-:py:meth:`detection_predictor <doctr.models.detection.detection_predictor>` wraps your detection model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`detection_predictor <doctr.models.detection.detection_predictor>` wraps your detection model to make it easily usable with your favorite deep learning framework seamlessly.
 
 .. code:: python3
 
@@ -81,12 +103,11 @@ Detection predictors
     out = model([dummy_img])
 
 You can pass specific boolean arguments to the predictor:
-* `pretrained`: if you want to use a model that has been pretrained on a specific dataset, setting `pretrained=True` this will load the corresponding weights. If `pretrained=False`, which is the default, would otherwise lead to a random initialization and would lead to no/useless results.
-* `assume_straight_pages`: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
-* `preserve_aspect_ratio`: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
-* `symmetric_pad`: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
-For instance, this snippet will instantiates a detection predictor able to detect text on rotated documents while preserving the aspect ratio:
+* ``pretrained``: if you want to use a model that has been pretrained on a specific dataset, setting ``pretrained=True`` will load the corresponding weights. If ``pretrained=False`` (the default), the model is randomly initialized and will produce no useful results.
+* ``assume_straight_pages``: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* ``preserve_aspect_ratio``: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* ``symmetric_pad``: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
 
 .. code:: python3
 
@@ -100,8 +121,8 @@ Text Recognition
 The task consists of transcribing the character sequence in a given image.
 
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available recognition architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The following architectures are currently supported:
 
@@ -156,14 +177,14 @@ While most of our recognition models were trained on our french vocab (cf. :ref:
     print(predictor.model.cfg['vocab'])
 
 
-*Disclaimer: both FUNSD subsets combine have 30595 word-level crops which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combined have 30595 word-level crops which might not be representative enough of the model capabilities*
 
 Seconds per iteration (with a batch size of 64) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
 
 
 Recognition predictors
 ^^^^^^^^^^^^^^^^^^^^^^
-:py:meth:`recognition_predictor <doctr.models.recognition.recognition_predictor>` wraps your recognition model to make it easily useable with your favorite deep learning framework seamlessly.
+:py:meth:`recognition_predictor <doctr.models.recognition.recognition_predictor>` wraps your recognition model to make it easily usable with your favorite deep learning framework seamlessly.
 
 .. code:: python3
 
@@ -174,13 +195,74 @@ Recognition predictors
     out = model([dummy_img])
 
 
+Layout Analysis
+---------------
+
+The task consists of localizing and classifying visual elements in a given image.
+This is a more general task than text detection, as it can be used to detect and classify any type of visual element in a document, such as tables, figures, headers, footers, etc.
+Our latest layout models works with rotated and skewed documents!
+
+Available layout architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following architectures are currently supported:
+
+* :py:meth:`lw_detr_s <doctr.models.layout.lw_detr_s>`
+* :py:meth:`lw_detr_m <doctr.models.layout.lw_detr_m>`
+
+For a comprehensive comparison, we have compiled a detailed benchmark:
+
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+|                                                  |                 |               |                  |             |              |                    |
++==================================================+=================+===============+==================+=============+==============+====================+
+| **Architecture**                                 | **Input shape** | **# params**  | **mAP@[.5:.95]** | **AP@[.5]** | **AP@[.75]** | **sec/it (B: 1)**  |
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+| lw_detr_s                                        | (1024, 1024, 3) | 15.1 M        |                  |             |              | 0.5                |
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+| lw_detr_m                                        | (1024, 1024, 3) | 29.5 M        |                  |             |              | 0.7                |
++--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
+
+
+Explanations about the metrics being used are available in :ref:`metrics`.
+
+Seconds per iteration (with a batch size of 1) is computed after a warmup phase of 100 tensors, by measuring the average number of processed tensors per second over 1000 samples. Those results were obtained on a `11th Gen Intel(R) Core(TM) i7-11800H @ 2.30GHz`.
+
+
+Layout predictors
+^^^^^^^^^^^^^^^^^
+
+:py:meth:`layout_predictor <doctr.models.layout.layout_predictor>` wraps your layout model to make it easily usable with your favorite deep learning framework seamlessly.
+
+.. code:: python3
+
+    import numpy as np
+    from doctr.models import layout_predictor
+    model = layout_predictor('lw_detr_s')
+    dummy_img = (255 * np.random.rand(800, 600, 3)).astype(np.uint8)
+    out = model([dummy_img])
+
+You can pass specific boolean arguments to the predictor:
+
+* ``pretrained``: if you want to use a model that has been pretrained on a specific dataset, setting ``pretrained=True`` will load the corresponding weights. If ``pretrained=False`` (the default), the model is randomly initialized and will produce no useful results.
+* ``assume_straight_pages``: if you work with straight documents only, it will fit straight bounding boxes to the text areas.
+* ``preserve_aspect_ratio``: if you want to preserve the aspect ratio of your documents while resizing before sending them to the model.
+* ``symmetric_pad``: if you choose to preserve the aspect ratio, it will pad the image symmetrically and not from the bottom-right.
+
+For instance, this snippet instantiates a layout predictor able to detect text on rotated documents while preserving the aspect ratio:
+
+.. code:: python3
+
+    from doctr.models import layout_predictor
+    predictor = layout_predictor('lw_detr_s', pretrained=True, assume_straight_pages=False, preserve_aspect_ratio=True)
+
+
 End-to-End OCR
 --------------
 
 The task consists of both localizing and transcribing textual elements in a given image.
 
-Available architectures
-^^^^^^^^^^^^^^^^^^^^^^^
+Available OCR architectures
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can use any combination of detection and recognition models supported by docTR.
 
@@ -220,7 +302,7 @@ For a comprehensive comparison, we have compiled a detailed benchmark on publicl
 All OCR models above have been evaluated using both the training and evaluation sets of FUNSD and CORD (cf. :ref:`datasets`).
 Explanations about the metrics being used are available in :ref:`metrics`.
 
-*Disclaimer: both FUNSD subsets combine have 199 pages which might not be representative enough of the model capabilities*
+*Disclaimer: both FUNSD subsets combined have 199 pages which might not be representative enough of the model capabilities*
 
 
 Two-stage approaches
@@ -248,6 +330,10 @@ Additional arguments which can be passed to the `ocr_predictor` are:
 
 * `export_as_straight_boxes`: If you work with rotated and skewed documents but you still want to export straight bounding boxes and not polygons, set it to True.
 * `straighten_pages`: If you want to straighten the pages before sending them to the detection model, set it to True.
+* `detect_orientation`: If you want to estimate the general page orientation and add it to each page, set it to True.
+* `detect_language`: If you want to predict the language of the text on each page, set it to True.
+* `detect_layout`: If you want to run a layout detection model on each page and attach the detected regions to each page, set it to True (default: False).
+* `layout_arch`: The layout architecture name (e.g. ``'lw_detr_s'``, ``'lw_detr_m'``) or your own (fine-tuned) layout model instance to use when ``detect_layout=True``.
 
 For instance, this snippet instantiates an end-to-end ocr_predictor working with rotated documents, which preserves the aspect ratio of the documents, and returns polygons:
 
@@ -259,7 +345,7 @@ For instance, this snippet instantiates an end-to-end ocr_predictor working with
 
 Additionally, you can change the batch size of the underlying detection and recognition predictors to optimize the performance depending on your hardware:
 
-* `det_bs`: batch size for the detection model (default: 2)
+* `det_bs`: batch size for the detection model (default: 2) - will also be used for the layout model if ``detect_layout=True``
 * `reco_bs`: batch size for the recognition model (default: 128)
 
 .. code:: python3
@@ -279,6 +365,34 @@ For example to disable the automatic grouping of lines into blocks:
 
     from doctr.models import ocr_predictor
     model = ocr_predictor(pretrained=True, resolve_blocks=False)
+
+
+Detecting the document layout
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In addition to running the :py:meth:`layout_predictor <doctr.models.layout.layout_predictor>` standalone, you can plug a layout detection model directly into the end-to-end pipeline by setting ``detect_layout=True``. The detected regions (e.g. Title, Text, Table, Page-header, Page-footer) are attached to every :class:`Page <doctr.io.Page>` and can be accessed through ``page.layout``, exported alongside the rest of the page, and rendered with :py:meth:`show <doctr.io.Page.show>`.
+
+.. code:: python3
+
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor
+
+    model = ocr_predictor(pretrained=True, detect_layout=True)
+    doc = DocumentFile.from_images("path/to/your/doc.jpg")
+    result = model(doc)
+
+    # Access the detected layout regions of the first page
+    for region in result.pages[0].layout:
+        print(region.type, region.confidence, region.geometry)
+
+    # The layout is part of the exported representation
+    export = result.pages[0].export()
+    print(export["layout"])
+
+    # Overlay both text and layout regions (use display_layout=False to hide the regions)
+    result.pages[0].show()
+
+The same ``detect_layout`` / ``layout_arch`` arguments are available for the :py:meth:`kie_predictor <doctr.models.kie_predictor>`.
 
 
 Running the predictors on GPU
@@ -309,6 +423,7 @@ The same approach applies to all standalone predictors:
 * `detection_predictor`
 * `crop_orientation_predictor`
 * `page_orientation_predictor`
+* `layout_predictor`
 
 Just create the predictor instance and move it to the appropriate device.
 To enable **half-precision inference**, you can append `.half()` after moving the predictor to the device.
@@ -318,6 +433,7 @@ What should I do with the output?
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The ocr_predictor returns a `Document` object with a nested structure (with `Page`, `Block`, `Line`, `Word`, `Artefact`).
+When ``detect_layout=True`` was passed, each `Page` additionally carries a list of `LayoutElement` regions under ``page.layout``.
 To get a better understanding of our document model, check our :ref:`document_structure` section
 
 Here is a typical `Document` layout::
@@ -502,3 +618,59 @@ This will only have an effect with `assume_straight_pages=False` and/or `straigh
     # You can also add multiple hooks which will be executed sequentially
     for hook in [my_hook, my_hook, my_hook]:
         predictor.add_hook(hook)
+
+
+* Restrict the recognition model to a subset of its vocabulary.
+
+If you only expect text from one or more known languages, you can whitelist the corresponding vocabs so the
+recognition model can no longer predict any character outside of them. This works with every recognition
+architecture and with any predictor wrapping one (`ocr_predictor`, `kie_predictor`, `recognition_predictor`).
+A whitelist can only restrict a model to characters it already knows: characters that are not part of the
+model's own vocabulary are silently ignored, so make sure the model was trained on a vocab that covers the
+languages you need (e.g. a multilingual model).
+
+.. code:: python3
+
+    from doctr.datasets import VOCABS
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor
+    from doctr.models.utils import add_whitelist
+
+    predictor = ocr_predictor(pretrained=True)
+
+    # The recognition model can now only predict Polish/German characters
+    handle = add_whitelist(predictor, [VOCABS["polish"], VOCABS["german"]])
+
+    input_page = DocumentFile.from_images("path/to/your/image.png")
+    out = predictor(input_page)
+
+    # Restore the original, unconstrained decoding
+    handle.remove()
+
+The returned handle can also be used as a context manager, in which case the whitelist is removed on exit:
+
+.. code:: python3
+
+    with add_whitelist(predictor, VOCABS["german"]):
+        out = predictor(input_page)  # only German characters can be predicted here
+    # the whitelist is automatically removed outside of the ``with`` block
+
+By default forbidden characters are dropped (``strategy="mask"``), so decoding falls back to the highest-scoring
+allowed character. Alternatively, ``strategy="nearest"`` folds each forbidden character onto the closest allowed
+one (e.g. ``ä`` -> ``a``, ``ł`` -> ``l``), which is useful to normalize accents/diacritics onto a base alphabet.
+The mapping is built by transliteration by default; pass ``mapping="weights"`` to derive it from the model's own
+learned confusions, or a ``{forbidden_char: allowed_char}`` dict to override specific characters.
+
+.. code:: python3
+
+    from doctr.datasets import VOCABS
+    from doctr.models import ocr_predictor
+    from doctr.models.utils import add_whitelist
+
+    predictor = ocr_predictor(pretrained=True)
+
+    # Fold any non-ASCII character onto its closest ASCII letter (e.g. é -> e, ł -> l)
+    handle = add_whitelist(predictor, VOCABS["latin"], strategy="nearest")
+    out = predictor(input_page)
+    handle.remove()
+

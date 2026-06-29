@@ -15,6 +15,8 @@ class KIEIn(BaseModel):
     preserve_aspect_ratio: bool = Field(default=True, examples=[True])
     detect_orientation: bool = Field(default=False, examples=[False])
     detect_language: bool = Field(default=False, examples=[False])
+    detect_layout: bool = Field(default=False, examples=[False])
+    layout_arch: str = Field(default="lw_detr_s", examples=["lw_detr_s"])
     symmetric_pad: bool = Field(default=True, examples=[True])
     straighten_pages: bool = Field(default=False, examples=[False])
     det_bs: int = Field(default=2, examples=[2])
@@ -131,11 +133,21 @@ class OCRPage(BaseModel):
     )
 
 
+class LayoutElementOut(BaseModel):
+    type: str = Field(..., examples=["Title"])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    confidence: float = Field(..., examples=[0.99])
+
+
 class OCROut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
     orientation: dict[str, float | None] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
     language: dict[str, str | float | None] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
     dimensions: tuple[int, int] = Field(..., examples=[(100, 100)])
+    layout: list[LayoutElementOut] = Field(
+        default=[],
+        examples=[[{"type": "Title", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}]],
+    )
     items: list[OCRPage] = Field(
         ...,
         examples=[
@@ -183,4 +195,8 @@ class KIEOut(BaseModel):
     orientation: dict[str, float | None] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
     language: dict[str, str | float | None] = Field(..., examples=[{"value": "en", "confidence": 0.99}])
     dimensions: tuple[int, int] = Field(..., examples=[(100, 100)])
+    layout: list[LayoutElementOut] = Field(
+        default=[],
+        examples=[[{"type": "Title", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}]],
+    )
     predictions: list[KIEElement]

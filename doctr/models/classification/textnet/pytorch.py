@@ -14,7 +14,7 @@ from doctr.datasets import VOCABS
 from ...modules.layers import FASTConvLayer
 from ...utils import conv_sequence_pt, load_pretrained_params
 
-__all__ = ["textnet_tiny", "textnet_small", "textnet_base"]
+__all__ = ["TextNet", "textnet_tiny", "textnet_small", "textnet_base"]
 
 default_cfgs: dict[str, dict[str, Any]] = {
     "textnet_tiny": {
@@ -48,6 +48,7 @@ class TextNet(nn.Sequential):
 
     Args:
         stages (list[dict[str, list[int]]]): list of dictionaries containing the parameters of each stage.
+        input_shape (tuple[int, int, int], optional): Input shape of the model. Defaults to (3, 32, 32).
         include_top (bool, optional): Whether to include the classifier head. Defaults to True.
         num_classes (int, optional): Number of output classes. Defaults to 1000.
         cfg (dict[str, Any], optional): Additional configuration. Defaults to None.
@@ -63,7 +64,7 @@ class TextNet(nn.Sequential):
     ) -> None:
         _layers: list[nn.Module] = [
             *conv_sequence_pt(
-                in_channels=3, out_channels=64, relu=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
+                in_channels=3, out_channels=64, act=True, bn=True, kernel_size=3, stride=2, padding=(1, 1)
             ),
             *[
                 nn.Sequential(*[
@@ -143,7 +144,7 @@ def textnet_tiny(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
@@ -190,7 +191,7 @@ def textnet_small(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:
@@ -237,7 +238,7 @@ def textnet_base(pretrained: bool = False, **kwargs: Any) -> TextNet:
     >>> out = model(input_tensor)
 
     Args:
-        pretrained: boolean, True if model is pretrained
+        pretrained: If True, returns a model pre-trained on our classification dataset
         **kwargs: keyword arguments of the TextNet architecture
 
     Returns:

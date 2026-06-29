@@ -77,6 +77,7 @@ def mock_kie_response():
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
             "dimensions": [2339, 1654],
+            "layout": [],
             "predictions": [
                 {
                     "class_name": "words",
@@ -104,6 +105,7 @@ def mock_kie_response():
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
             "dimensions": [2339, 1654],
+            "layout": [],
             "predictions": [
                 {
                     "class_name": "words",
@@ -155,6 +157,7 @@ def mock_ocr_response():
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
             "dimensions": [2339, 1654],
+            "layout": [],
             "items": [
                 {
                     "blocks": [
@@ -203,6 +206,7 @@ def mock_ocr_response():
             "orientation": {"value": None, "confidence": None},
             "language": {"value": None, "confidence": None},
             "dimensions": [2339, 1654],
+            "layout": [],
             "items": [
                 {
                     "blocks": [

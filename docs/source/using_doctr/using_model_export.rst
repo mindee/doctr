@@ -76,7 +76,7 @@ Further information can be found in the `PyTorch documentation <https://pytorch.
         mobilenet_v3_small_page_orientation(pretrained=True).eval()
     )
 
-    predictor = models.ocr_predictor(
+    predictor = ocr_predictor(
         detection_model, recognition_model, assume_straight_pages=False
     )
     # NOTE: Only required for non-straight pages (`assume_straight_pages=False`) and non-disabled orientation classification

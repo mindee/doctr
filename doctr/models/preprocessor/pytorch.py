@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import math
-from typing import Any
+from typing import Any, overload
 
 import numpy as np
 import torch
@@ -13,6 +13,7 @@ from torchvision.transforms import functional as F
 from torchvision.transforms import transforms as T
 
 from doctr.transforms import Resize
+from doctr.utils import Sample
 from doctr.utils.multithreading import multithread_exec
 
 __all__ = ["PreProcessor"]
@@ -43,47 +44,85 @@ class PreProcessor(nn.Module):
         # Perform the division by 255 at the same time
         self.normalize = T.Normalize(mean, std)
 
-    def batch_inputs(self, samples: list[torch.Tensor]) -> list[torch.Tensor]:
+    @overload
+    def batch_inputs(
+        self,
+        samples: list[torch.Tensor],
+    ) -> list[torch.Tensor]: ...
+
+    @overload
+    def batch_inputs(
+        self,
+        samples: list[tuple[torch.Tensor, torch.Tensor]],
+    ) -> tuple[list[torch.Tensor], list[torch.Tensor]]: ...
+
+    def batch_inputs(
+        self, samples: list[torch.Tensor] | list[tuple[torch.Tensor, torch.Tensor]]
+    ) -> list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]]:
         """Gather samples into batches for inference purposes
 
         Args:
-            samples: list of samples of shape (C, H, W)
+            samples: list of samples of shape (C, H, W) or
+                list of tuples of samples and masks of shape (C, H, W) and (1, H, W) respectively
 
         Returns:
-            list of batched samples (*, C, H, W)
+            list of batched samples (*, C, H, W) or tuple of lists of batched samples and masks
         """
         num_batches = int(math.ceil(len(samples) / self.batch_size))
-        batches = [
-            torch.stack(samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))], dim=0)
-            for idx in range(int(num_batches))
+
+        if isinstance(samples[0], tuple):
+            imgs, masks = zip(*samples)
+
+            img_batches = [
+                torch.stack(imgs[idx * self.batch_size : min((idx + 1) * self.batch_size, len(imgs))], dim=0)
+                for idx in range(num_batches)
+            ]
+
+            mask_batches = [
+                torch.stack(masks[idx * self.batch_size : min((idx + 1) * self.batch_size, len(masks))], dim=0)
+                for idx in range(num_batches)
+            ]
+
+            return img_batches, mask_batches
+
+        return [
+            torch.stack(
+                samples[idx * self.batch_size : min((idx + 1) * self.batch_size, len(samples))],
+                dim=0,
+            )
+            for idx in range(num_batches)
         ]
 
-        return batches
-
-    def sample_transforms(self, x: np.ndarray) -> torch.Tensor:
+    def sample_transforms(self, x: np.ndarray) -> torch.Tensor | tuple[torch.Tensor, torch.Tensor]:
         if x.ndim != 3:
             raise AssertionError("expected list of 3D Tensors")
         if x.dtype not in (np.uint8, np.float32, np.float16):
             raise TypeError("unsupported data type for numpy.ndarray")
         tensor = torch.from_numpy(x.copy()).permute(2, 0, 1)
         # Resizing
-        tensor = self.resize(tensor)
+        if self.resize.return_padding_mask:
+            sample = self.resize(Sample(image=tensor))
+            tensor, mask = sample.image, sample.mask
+        else:
+            tensor = self.resize(Sample(image=tensor)).image
         # Data type
         if tensor.dtype == torch.uint8:
             tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
         else:
             tensor = tensor.to(dtype=torch.float32)
 
-        return tensor
+        return (tensor, mask) if self.resize.return_padding_mask else tensor
 
-    def __call__(self, x: np.ndarray | list[np.ndarray]) -> list[torch.Tensor]:
+    def __call__(
+        self, x: np.ndarray | list[np.ndarray]
+    ) -> list[torch.Tensor] | tuple[list[torch.Tensor], list[torch.Tensor]]:
         """Prepare document data for model forwarding
 
         Args:
             x: list of images (np.array) or a single image (np.array) of shape (H, W, C)
 
         Returns:
-            list of page batches (*, C, H, W) ready for model inference
+            list of page batches (*, C, H, W) or tuple of lists of page batches and padding masks
         """
         # Input type check
         if isinstance(x, np.ndarray):
@@ -103,17 +142,29 @@ class PreProcessor(nn.Module):
                 tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
             else:
                 tensor = tensor.to(dtype=torch.float32)
-            batches = [tensor]
+            img_batches = [tensor]
+
+            if self.resize.return_padding_mask:
+                h, w = self.resize.size
+                mask = torch.zeros((x.shape[0], h, w), dtype=torch.bool)
+                mask_batches = [mask]
 
         elif isinstance(x, list) and all(isinstance(sample, np.ndarray) for sample in x):
             # Sample transform (to tensor, resize)
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching
-            batches = self.batch_inputs(samples)
+            if self.resize.return_padding_mask:
+                print(samples)
+                img_batches, mask_batches = self.batch_inputs(samples)
+            else:
+                img_batches = self.batch_inputs(samples)
         else:
             raise TypeError(f"invalid input type: {type(x)}")
 
         # Batch transforms (normalize)
-        batches = list(multithread_exec(self.normalize, batches))
+        if self.resize.return_padding_mask:
+            img_batches = list(multithread_exec(self.normalize, img_batches))
+            return img_batches, mask_batches
 
-        return batches
+        img_batches = list(multithread_exec(self.normalize, img_batches))
+        return img_batches
