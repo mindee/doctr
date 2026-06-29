@@ -168,7 +168,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
         not_relocate: bool = False,
         max_objects: int = 300,
         max_corners: int = 1200,
-        assume_straight_pages: bool = False,
+        assume_straight_pages: bool = True,
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
     ) -> None:
