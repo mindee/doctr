@@ -229,7 +229,7 @@ def _gaussian_radius(det_size: tuple[float, float], min_overlap: float = 0.7) ->
 
 def _gaussian_2d(shape: tuple[int, int], sigma: float = 1.0) -> np.ndarray:
     m, n = ((s - 1) / 2 for s in shape)
-    y, x = np.ogrid[-m : m + 1, -n : n + 1]  # type: ignore[misc]
+    y, x = np.ogrid[-m : m + 1, -n : n + 1]
     h = np.exp(-(x * x + y * y) / (2 * sigma * sigma))
     h[h < np.finfo(h.dtype).eps * h.max()] = 0
     return h

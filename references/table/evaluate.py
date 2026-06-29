@@ -40,7 +40,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
         for target, pred in zip(targets, out["preds"]):
             val_metric.update(
-                np.asarray(target["cells"], dtype=np.float32).reshape(-1, 4, 2),
+                np.asarray(target["cells"], dtype=np.float32),
                 np.asarray(target["logic"], dtype=np.int64).reshape(-1, 4),
                 pred["polygons"],
                 pred["logical"],
