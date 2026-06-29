@@ -77,6 +77,31 @@ def _lookup_logic(lc_map: np.ndarray, x: float, y: float) -> np.ndarray:
     return lc_map[:, yi, xi]
 
 
+def _ensure_simple_quads(polys: np.ndarray) -> np.ndarray:
+    """Guarantee each predicted quad is a simple (non-self-intersecting) polygon.
+
+    The center decode (cell built from the ``ct2cn`` offset vectors) and the corner-relocation step can
+    occasionally yield a self-intersecting "bow-tie" quad - e.g. a mis-predicted cell whose ``TL``/``TR``
+    (or any two) corners cross over. Such polygons are invalid for shapely and make
+    :func:`doctr.utils.metrics.polygon_iou` raise a ``TopologyException`` (side location conflict) during
+    evaluation. Reordering the four points by their angle around the centroid produces the simple polygon
+    spanned by the *same four corners* (identical cell region), which is the natural recovery; quads that
+    are already valid keep their original corner order untouched.
+
+    Args:
+        polys: predicted quads, shape (N, 4, 2)
+
+    Returns:
+        the quads with every self-intersecting one reordered into a simple polygon, shape (N, 4, 2)
+    """
+    for i in range(polys.shape[0]):
+        if not Polygon(polys[i]).is_valid:
+            centroid = polys[i].mean(axis=0)
+            angles = np.arctan2(polys[i, :, 1] - centroid[1], polys[i, :, 0] - centroid[0])
+            polys[i] = polys[i][np.argsort(angles)]
+    return polys
+
+
 class TableCenterNetPostProcessor:
     """Torch-free post-processor turning the model's *decoded* key-points into table cells.
 
@@ -85,12 +110,15 @@ class TableCenterNetPostProcessor:
     it never blocks an export and can be tested without torch.
 
     The cell geometry is returned in **relative** coordinates ([0, 1] w.r.t. the model input), so the
-    predictor can undo the pre-processor's padding/resize like the other docTR predictors.
+    predictor can undo the pre-processor's padding/resize like the other docTR predictors. When
+    ``assume_straight_pages=True``, geometries are axis-aligned boxes of shape ``(N, 4)``; otherwise they
+    are quadrilaterals of shape ``(N, 4, 2)``.
 
     Args:
         center_thresh: minimum score for a cell center to be kept
         corner_thresh: minimum score for a corner to be used during relocation
         not_relocate: if True, skip the corner-relocation step (faster, less accurate)
+        assume_straight_pages: whether the pages are assumed to be straight (i.e., no rotation)
     """
 
     def __init__(
@@ -98,10 +126,12 @@ class TableCenterNetPostProcessor:
         center_thresh: float = 0.3,
         corner_thresh: float = 0.3,
         not_relocate: bool = False,
+        assume_straight_pages: bool = True,
     ) -> None:
         self.center_thresh = center_thresh
         self.corner_thresh = corner_thresh
         self.not_relocate = not_relocate
+        self.assume_straight_pages = assume_straight_pages
         # Cell score decay: cells optimised on <= 2 corners get their score scaled.
         self.cell_min_optimize_count = 2
         self.cell_decay_thresh = 0.4
@@ -184,11 +214,19 @@ class TableCenterNetPostProcessor:
             cp, cs, logic = self._simple(decoded, b) if self.not_relocate else self._relocate(decoded, b)
             keep = cs >= self.center_thresh
             polys = cp[keep].reshape(-1, 4, 2) / scale  # relative coordinates
+            # Guarantee simple (non-self-intersecting) quads so shapely-based IoU (TableCellMetric) never
+            # sees an invalid geometry. Applied after the relative rescale; logical coords are unaffected.
+            polys = _ensure_simple_quads(np.clip(polys.astype(np.float32), 0, 1))
+            cells = (
+                np.concatenate([polys.min(axis=1), polys.max(axis=1)], axis=1).astype(np.float32)
+                if self.assume_straight_pages
+                else polys
+            )
             # _get_logic_coords reconstructs 1-indexed logical coordinates (column/row lines start at 1,
             # mirroring the +1 offset applied when rendering the target). Shift back to the 0-indexed
             # convention used by the dataset and TableCellMetric so predictions and GT are comparable.
             results.append({
-                "polygons": np.clip(polys.astype(np.float32), 0, 1),  # (N, 4, 2) TL, TR, BR, BL
+                "polygons": cells,  # (N, 4) boxes or (N, 4, 2) quads in relative coordinates
                 "scores": cs[keep].astype(np.float32),
                 "logical": (logic[keep] - 1).astype(np.int32),  # start_col, end_col, start_row, end_row (0-indexed)
             })
@@ -395,6 +433,32 @@ def _build_table_target(
     }
 
 
+def _cells_to_polygons(cells: np.ndarray) -> np.ndarray:
+    """Convert table cells to quadrilaterals.
+
+    Args:
+        cells: relative axis-aligned boxes of shape ``(N, 4)`` in ``(xmin, ymin, xmax, ymax)`` format,
+            or quadrilaterals of shape ``(N, 4, 2)``.
+
+    Returns:
+        Relative quadrilaterals of shape ``(N, 4, 2)`` in TL, TR, BR, BL order.
+    """
+    if cells.ndim == 3 and cells.shape[1:] == (4, 2):
+        return cells
+    if cells.ndim == 2 and cells.shape[1:] == (4,):
+        xmin, ymin, xmax, ymax = cells.T
+        return np.stack(
+            [
+                np.stack([xmin, ymin], axis=-1),
+                np.stack([xmax, ymin], axis=-1),
+                np.stack([xmax, ymax], axis=-1),
+                np.stack([xmin, ymax], axis=-1),
+            ],
+            axis=1,
+        ).astype(np.float32, copy=False)
+    raise ValueError(f"cells are expected to have shape (N, 4) or (N, 4, 2), got {cells.shape}")
+
+
 class _TableCenterNet(BaseModel):
     """TableCenterNet for table-structure recognition, as described in the official implementation
     `<https://github.com/dreamy-xay/TableCenterNet>`_.
@@ -416,27 +480,33 @@ class _TableCenterNet(BaseModel):
         """Render the dense training targets for a batch from per-image cell annotations.
 
         Args:
-            target: one ``{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}`` dict per image
+            target: one ``{"cells": (N, 4) relative boxes or (N, 4, 2) relative polygons,
+                "logic": (N, 4)}`` dict per image
             output_shape: (H, W) of the model output grid (input size // down_ratio)
 
         Returns:
             the batched dense target dictionary (numpy arrays) matching the reference schema
         """
-        if any(np.asarray(t["cells"], dtype=np.float32).dtype != np.float32 for t in target):
-            raise AssertionError("the expected dtype of target 'cells' entry is 'np.float32'.")
-        if any(np.any((np.asarray(t["cells"]) > 1) | (np.asarray(t["cells"]) < 0)) for t in target):
-            raise ValueError("the 'cells' entry of the target is expected to take values between 0 & 1.")
+        cells_per_image: list[np.ndarray] = []
+        for t in target:
+            cells = np.asarray(t["cells"])
+            if cells.dtype != np.float32:
+                raise AssertionError("the expected dtype of target 'cells' entry is 'np.float32'.")
+            cells = _cells_to_polygons(cells)
+            if np.any((cells > 1) | (cells < 0)):
+                raise ValueError("the 'cells' entry of the target is expected to take values between 0 & 1.")
+            cells_per_image.append(cells)
 
         out_h, out_w = output_shape
         scale = np.array([out_w, out_h], dtype=np.float32)
         per_image = [
             _build_table_target(
-                np.asarray(t["cells"], dtype=np.float32).reshape(-1, 4, 2) * scale,
+                cells * scale,
                 np.asarray(t["logic"], dtype=np.int64).reshape(-1, 4),
                 (out_h, out_w),
                 self.max_objects,
                 self.max_corners,
             )
-            for t in target
+            for t, cells in zip(target, cells_per_image)
         ]
         return {k: np.stack([img[k] for img in per_image], axis=0) for k in per_image[0]}

@@ -304,13 +304,15 @@ def test_layout_dataset(mock_image_folder, mock_layout_label, use_polygons):
         json.dump(original_labels, f)
 
 
-def test_table_dataset(mock_image_folder, mock_table_label):
+@pytest.mark.parametrize("use_polygons", [False, True])
+def test_table_dataset(mock_image_folder, mock_table_label, use_polygons):
     input_size = (1024, 1024)
 
     ds = datasets.TableStructureDataset(
         img_folder=mock_image_folder,
         label_path=mock_table_label,
         sample_transforms=SampleCompose([Resize(input_size, preserve_aspect_ratio=True, symmetric_pad=True)]),
+        use_polygons=use_polygons,
     )
 
     assert len(ds) == 5
@@ -318,17 +320,25 @@ def test_table_dataset(mock_image_folder, mock_table_label):
     img, target = sample.image, sample.target
     assert isinstance(img, torch.Tensor) and img.dtype == torch.float32
     assert img.shape[-2:] == input_size
-    # Target carries relative cell polygons and integer logical coordinates
     assert isinstance(target, dict) and set(target) == {"cells", "logic"}
     assert isinstance(target["cells"], np.ndarray) and target["cells"].dtype == np.float32
-    assert target["cells"].ndim == 3 and target["cells"].shape[1:] == (4, 2)
+    if use_polygons:
+        assert target["cells"].ndim == 3 and target["cells"].shape[1:] == (4, 2)
+    else:
+        assert target["cells"].ndim == 2 and target["cells"].shape[1:] == (4,)
     assert np.all(np.logical_and(target["cells"] >= 0, target["cells"] <= 1))
+    assert target["logic"].dtype == np.int64
     assert target["logic"].shape == (target["cells"].shape[0], 4)
 
     loader = DataLoader(ds, batch_size=2, collate_fn=ds.collate_fn)
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and all(set(t) == {"cells", "logic"} for t in targets)
+    for batch_target in targets:
+        if use_polygons:
+            assert batch_target["cells"].shape[1:] == (4, 2)
+        else:
+            assert batch_target["cells"].shape[1:] == (4,)
 
     # File existence check
     img_name, _ = ds.data[0]

@@ -163,7 +163,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
         # Cells & logical coords are compared in the (relative) model-input space
         for target, pred in zip(targets, out["preds"]):
             val_metric.update(
-                np.asarray(target["cells"], dtype=np.float32).reshape(-1, 4, 2),
+                np.asarray(target["cells"], dtype=np.float32),
                 np.asarray(target["logic"], dtype=np.int64).reshape(-1, 4),
                 pred["polygons"],
                 pred["logical"],
@@ -219,19 +219,35 @@ def main(args):
     torch.backends.cudnn.benchmark = True
 
     # Temporary model to recover the configuration (mean/std)
-    tmp_model = table_structure.__dict__[args.arch](pretrained=False)
+    tmp_model = table_structure.__dict__[args.arch](pretrained=False, assume_straight_pages=not args.rotation)
     mean, std = tmp_model.cfg["mean"], tmp_model.cfg["std"]
 
     # Validation data
     val_hash = None
     if rank == 0:
         st = time.time()
+        # Validation sample transforms (shared by both data sources)
+        val_sample_transforms = T.SampleCompose(
+            (
+                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+                if not args.rotation or args.eval_straight
+                else []
+            )
+            + (
+                [
+                    T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                    T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+                ]
+                if args.rotation and not args.eval_straight
+                else []
+            )
+        )
         val_set = TableStructureDataset(
             img_folder=os.path.join(args.val_path, "images"),
             label_path=os.path.join(args.val_path, "labels.json"),
-            sample_transforms=T.SampleCompose([
-                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-            ]),
+            sample_transforms=val_sample_transforms,
+            use_polygons=args.rotation and not args.eval_straight,
         )
         val_loader = DataLoader(
             val_set,
@@ -250,13 +266,13 @@ def main(args):
 
     batch_transforms = Normalize(mean=mean, std=std)
 
-    model = table_structure.__dict__[args.arch](pretrained=args.pretrained)
+    model = table_structure.__dict__[args.arch](pretrained=args.pretrained, assume_straight_pages=not args.rotation)
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
         model.from_pretrained(args.resume)
 
     if rank == 0:
-        val_metric = TableCellMetric(iou_thresh=args.iou_thresh)
+        val_metric = TableCellMetric(iou_thresh=args.iou_thresh, use_polygons=args.rotation and not args.eval_straight)
 
     if rank == 0 and args.test_only:
         pbar.write("Running evaluation")
@@ -271,26 +287,46 @@ def main(args):
         return
 
     st = time.time()
-    # Image-only augmentations
+    # Augmentations
+    # Image augmentations
     img_transforms = T.OneOf([
         Compose([
             T.RandomApply(T.ColorInversion(), 0.3),
             T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.2),
         ]),
+        Compose([
+            T.RandomApply(T.RandomShadow(), 0.3),
+            T.RandomApply(T.GaussianNoise(), 0.1),
+            T.RandomApply(T.GaussianBlur(sigma=(0.5, 1.5)), 0.3),
+            T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
+        ]),
         T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
-        T.ImageTorchvisionTransform(RandomGrayscale(p=0.1)),
-        lambda x: x,  # identity
+        lambda x: x,  # Identity no transformation
     ])
-    # Image + geometry augmentations (letterbox to a square; the model renders the dense targets)
-    sample_transforms = T.SampleCompose([
-        T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-    ])
+    # Image + target augmentations
+    sample_transforms = T.SampleCompose(
+        (
+            [
+                T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+            if not args.rotation
+            else [
+                T.RandomResize(scale_range=(0.4, 0.9), preserve_aspect_ratio=0.5, symmetric_pad=0.5, p=0.25),
+                # Rotation augmentation
+                T.Resize(args.input_size, preserve_aspect_ratio=True),
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+        )
+    )
 
     train_set = TableStructureDataset(
         img_folder=os.path.join(args.train_path, "images"),
         label_path=os.path.join(args.train_path, "labels.json"),
         img_transforms=img_transforms,
         sample_transforms=sample_transforms,
+        use_polygons=args.rotation and not args.eval_straight,
     )
     sampler = (
         DistributedSampler(train_set, rank=rank, shuffle=True, drop_last=True)
@@ -381,6 +417,7 @@ def main(args):
             "train_hash": train_hash,
             "val_hash": val_hash,
             "pretrained": args.pretrained,
+            "rotation": args.rotation,
             "amp": args.amp,
         }
 
@@ -498,7 +535,7 @@ def parse_args():
         "--val_path", type=str, required=True, help="path to the validation data folder (images/ + labels.json)"
     )
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
-    parser.add_argument("--epochs", type=int, default=200, help="number of epochs to train the model on")
+    parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
     parser.add_argument(
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
@@ -520,6 +557,12 @@ def parse_args():
     parser.add_argument("--clearml", dest="clearml", action="store_true", help="Log to ClearML")
     parser.add_argument(
         "--pretrained", dest="pretrained", action="store_true", help="Load pretrained parameters before training"
+    )
+    parser.add_argument("--rotation", dest="rotation", action="store_true", help="train with rotated documents")
+    parser.add_argument(
+        "--eval-straight",
+        action="store_true",
+        help="metrics evaluation with straight boxes instead of polygons to save time + memory",
     )
     parser.add_argument("--optim", type=str, default="adamw", choices=["adam", "adamw"], help="optimizer to use")
     parser.add_argument(

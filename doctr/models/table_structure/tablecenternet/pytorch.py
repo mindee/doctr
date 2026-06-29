@@ -210,7 +210,10 @@ class TableCenterNet(nn.Module, _TableCenterNet):
             self.__setattr__(head, fc)
 
         self.postprocessor = TableCenterNetPostProcessor(
-            center_thresh=center_thresh, corner_thresh=corner_thresh, not_relocate=not_relocate
+            center_thresh=center_thresh,
+            corner_thresh=corner_thresh,
+            not_relocate=not_relocate,
+            assume_straight_pages=self.assume_straight_pages,
         )
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:

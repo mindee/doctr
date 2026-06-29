@@ -318,25 +318,30 @@ class LocalizationConfusion:
 class TableCellMetric:
     r"""Implements a table-structure-recognition metric.
 
-    Predicted cells are matched to ground-truth cells by maximising the total polygon IoU (Hungarian
-    assignment); a pair counts as a match when its IoU is at least ``iou_thresh``. From the matches it
-    reports cell-detection recall / precision / F1 and the **structure accuracy** (the fraction of matched
-    cells whose logical coordinates ``[start_col, end_col, start_row, end_row]`` exactly equal the
-    ground-truth ones).
+    Predicted cells are matched to ground-truth cells by maximising the total IoU (Hungarian assignment); a pair
+    counts as a match when its IoU is at least ``iou_thresh``. From the matches it reports cell-detection recall,
+    precision, F1 and the **structure accuracy** (the fraction of matched cells whose logical coordinates
+    ``[start_col, end_col, start_row, end_row]`` exactly equal the ground-truth ones).
 
     >>> import numpy as np
     >>> from doctr.utils import TableCellMetric
     >>> metric = TableCellMetric(iou_thresh=0.5)
-    >>> gt = np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32)
+    >>> gt = np.array([[0, 0, 1, 1]], dtype=np.float32)
     >>> metric.update(gt, np.array([[0, 0, 0, 0]]), gt, np.array([[0, 0, 0, 0]]))
     >>> metric.summary()
 
     Args:
-        iou_thresh: minimum polygon IoU for a predicted/ground-truth cell pair to be considered a match
+        iou_thresh: minimum IoU for a predicted/ground-truth cell pair to be considered a match
+        use_polygons: if set to True, predictions and targets will be expected to have polygon format
     """
 
-    def __init__(self, iou_thresh: float = 0.5) -> None:
+    def __init__(
+        self,
+        iou_thresh: float = 0.5,
+        use_polygons: bool = False,
+    ) -> None:
         self.iou_thresh = iou_thresh
+        self.use_polygons = use_polygons
         self.reset()
 
     def update(
@@ -349,9 +354,9 @@ class TableCellMetric:
         """Update the metric with one sample.
 
         Args:
-            gt_cells: ground-truth cell polygons, shape (N, 4, 2)
+            gt_cells: ground-truth cells, shape (N, 4) or (N, 4, 2) when ``use_polygons=True``
             gt_logic: ground-truth logical coordinates, shape (N, 4)
-            pred_cells: predicted cell polygons, shape (M, 4, 2)
+            pred_cells: predicted cells, shape (M, 4) or (M, 4, 2) when ``use_polygons=True``
             pred_logic: predicted logical coordinates, shape (M, 4)
         """
         self.num_gts += gt_cells.shape[0]
@@ -359,7 +364,10 @@ class TableCellMetric:
         if gt_cells.shape[0] == 0 or pred_cells.shape[0] == 0:
             return
 
-        iou_mat = polygon_iou(gt_cells, pred_cells)  # (N, M)
+        if self.use_polygons:
+            iou_mat = polygon_iou(gt_cells, pred_cells)
+        else:
+            iou_mat = box_iou(gt_cells, pred_cells)
         gt_idx, pred_idx = linear_sum_assignment(-iou_mat)
         for gi, pi in zip(gt_idx, pred_idx):
             if iou_mat[gi, pi] >= self.iou_thresh:

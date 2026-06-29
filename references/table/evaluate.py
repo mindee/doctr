@@ -67,7 +67,7 @@ def main(args):
 
     torch.backends.cudnn.benchmark = True
 
-    tmp_model = table_structure.__dict__[args.arch](pretrained=False)
+    tmp_model = table_structure.__dict__[args.arch](pretrained=False, assume_straight_pages=not args.rotation)
     input_shape = (args.size, args.size) if isinstance(args.size, int) else tmp_model.cfg["input_shape"][-2:]
     mean, std = tmp_model.cfg["mean"], tmp_model.cfg["std"]
 
@@ -75,6 +75,7 @@ def main(args):
     ds = TableStructureDataset(
         img_folder=os.path.join(args.dataset_path, "images"),
         label_path=os.path.join(args.dataset_path, "labels.json"),
+        use_polygons=args.rotation,
         sample_transforms=T.Resize(
             input_shape, preserve_aspect_ratio=args.keep_ratio, symmetric_pad=args.symmetric_pad
         ),
@@ -90,7 +91,9 @@ def main(args):
     )
     pbar.write(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
 
-    model = table_structure.__dict__[args.arch](pretrained=not isinstance(args.resume, str)).eval()
+    model = table_structure.__dict__[args.arch](
+        pretrained=not isinstance(args.resume, str), assume_straight_pages=not args.rotation
+    ).eval()
     batch_transforms = Normalize(mean=mean, std=std)
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
@@ -109,7 +112,7 @@ def main(args):
         torch.cuda.set_device(args.device)
         model = model.cuda()
 
-    metric = TableCellMetric(iou_thresh=args.iou_thresh)
+    metric = TableCellMetric(iou_thresh=args.iou_thresh, use_polygons=args.rotation)
     pbar.write("Running evaluation")
     val_loss, recall, precision, f1, struct = evaluate(model, test_loader, batch_transforms, metric, amp=args.amp)
     pbar.write(
@@ -133,6 +136,7 @@ def parse_args():
     parser.add_argument("--keep_ratio", action="store_true", help="keep the aspect ratio of the input image")
     parser.add_argument("--symmetric_pad", action="store_true", help="pad the image symmetrically")
     parser.add_argument("--iou_thresh", type=float, default=0.5, help="IoU threshold for cell matching")
+    parser.add_argument("--rotation", action="store_true", help="use rotation augmentation")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
