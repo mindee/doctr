@@ -85,6 +85,8 @@ doctr.models.layout
 
 .. autofunction:: doctr.models.layout.lw_detr_m
 
+.. autofunction:: doctr.models.layout.layout_predictor
+
 
 doctr.models.table_structure
 ----------------------------
@@ -134,3 +136,13 @@ doctr.models.factory
 .. autofunction:: doctr.models.factory.from_hub
 
 .. autofunction:: doctr.models.factory.push_to_hf_hub
+
+
+doctr.models.utils
+------------------
+
+.. currentmodule:: doctr.models.utils
+
+.. autofunction:: export_model_to_onnx
+
+.. autofunction:: add_whitelist

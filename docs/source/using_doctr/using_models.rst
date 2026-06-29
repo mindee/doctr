@@ -271,6 +271,21 @@ The following architectures are currently supported:
 
 * :py:meth:`tablecenternet <doctr.models.table_structure.tablecenternet>`
 
+For a comprehensive comparison, we have compiled a detailed benchmark on a publicly available dataset:
+
++--------------------------------------------------+-----------------+---------------+--------------+---------------+------------+-------------------+--------------------+
+| **Architecture**                                 | **Input shape** | **# params**  | **Recall**   | **Precision** | **F1**     | **Structure acc** | **sec/it (B: 1)**  |
++==================================================+=================+===============+==============+===============+============+===================+====================+
+| tablecenternet                                   | (1024, 1024, 3) | 7.1 M         |              |               |            |                   | 0.7                |
++--------------------------------------------------+-----------------+---------------+--------------+---------------+------------+-------------------+--------------------+
+
+.. note::
+
+    The reported metrics are produced by ``references/table/evaluate.py`` using the
+    :py:class:`TableCellMetric <doctr.utils.metrics.TableCellMetric>`: cell-detection **Recall**, **Precision** and
+    **F1** (cells matched above an IoU threshold of 0.5), and **Structure acc**, the share of matched cells whose
+    logical (row/column) coordinates are correctly predicted.
+
 Table structure predictors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
