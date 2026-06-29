@@ -18,8 +18,8 @@ __all__ = ["_TableCenterNet", "TableCenterNetPostProcessor"]
 
 def _get_logic_coords(lc_logic: np.ndarray, col_span: int, row_span: int) -> tuple[int, int, int, int]:
     """Resolve a cell's logical coordinates (start/end column and row) from the per-corner logical
-    predictions (``lc_logic`` is a (4, 2) array of [col, row] for corners TL, TR, BR, BL) and the cell span.
-    Pure numpy port of the reference ``get_logic_coords``."""
+    predictions (`lc_logic` is a (4, 2) array of [col, row] for corners TL, TR, BR, BL) and the cell span.
+    Pure numpy port of the reference `get_logic_coords`."""
     col_span = max(1, col_span)
     row_span = max(1, row_span)
     col_lc = [max(1, int(round(float(p)))) for p in lc_logic[:, 0]]
@@ -80,14 +80,6 @@ def _lookup_logic(lc_map: np.ndarray, x: float, y: float) -> np.ndarray:
 def _ensure_simple_quads(polys: np.ndarray) -> np.ndarray:
     """Guarantee each predicted quad is a simple (non-self-intersecting) polygon.
 
-    The center decode (cell built from the ``ct2cn`` offset vectors) and the corner-relocation step can
-    occasionally yield a self-intersecting "bow-tie" quad - e.g. a mis-predicted cell whose ``TL``/``TR``
-    (or any two) corners cross over. Such polygons are invalid for shapely and make
-    :func:`doctr.utils.metrics.polygon_iou` raise a ``TopologyException`` (side location conflict) during
-    evaluation. Reordering the four points by their angle around the centroid produces the simple polygon
-    spanned by the *same four corners* (identical cell region), which is the natural recovery; quads that
-    are already valid keep their original corner order untouched.
-
     Args:
         polys: predicted quads, shape (N, 4, 2)
 
@@ -103,16 +95,12 @@ def _ensure_simple_quads(polys: np.ndarray) -> np.ndarray:
 
 
 class TableCenterNetPostProcessor:
-    """Torch-free post-processor turning the model's *decoded* key-points into table cells.
-
-    All tensor-heavy operations (heat-map NMS, top-k, gather) are performed inside the model's decoder
-    (which requires torch and is skipped during ONNX export). This object only consumes numpy arrays, so
-    it never blocks an export and can be tested without torch.
+    """TableCenterNet post-processor turning the model's *decoded* key-points into table cells.
 
     The cell geometry is returned in **relative** coordinates ([0, 1] w.r.t. the model input), so the
     predictor can undo the pre-processor's padding/resize like the other docTR predictors. When
-    ``assume_straight_pages=True``, geometries are axis-aligned boxes of shape ``(N, 4)``; otherwise they
-    are quadrilaterals of shape ``(N, 4, 2)``.
+    `assume_straight_pages=True`, geometries are axis-aligned boxes of shape `(N, 4)`; otherwise they
+    are quadrilaterals of shape `(N, 4, 2)`.
 
     Args:
         center_thresh: minimum score for a cell center to be kept
@@ -214,17 +202,12 @@ class TableCenterNetPostProcessor:
             cp, cs, logic = self._simple(decoded, b) if self.not_relocate else self._relocate(decoded, b)
             keep = cs >= self.center_thresh
             polys = cp[keep].reshape(-1, 4, 2) / scale  # relative coordinates
-            # Guarantee simple (non-self-intersecting) quads so shapely-based IoU (TableCellMetric) never
-            # sees an invalid geometry. Applied after the relative rescale; logical coords are unaffected.
             polys = _ensure_simple_quads(np.clip(polys.astype(np.float32), 0, 1))
             cells = (
                 np.concatenate([polys.min(axis=1), polys.max(axis=1)], axis=1).astype(np.float32)
                 if self.assume_straight_pages
                 else polys
             )
-            # _get_logic_coords reconstructs 1-indexed logical coordinates (column/row lines start at 1,
-            # mirroring the +1 offset applied when rendering the target). Shift back to the 0-indexed
-            # convention used by the dataset and TableCellMetric so predictions and GT are comparable.
             results.append({
                 "polygons": cells,  # (N, 4) boxes or (N, 4, 2) quads in relative coordinates
                 "scores": cs[keep].astype(np.float32),
@@ -276,8 +259,7 @@ def _polygon_area(points: list[tuple[float, float]]) -> float:
 
 
 def _interpolate_polygons(polygons: list[list[tuple]], img_size: tuple[int, int]) -> tuple[np.ndarray, np.ndarray]:
-    """Fill each polygon's interior with the linear interpolation of its per-corner value (the ``"sort"``
-    variant of the reference ``interpolate_polygons``)."""
+    """Fill each polygon's interior with the linear interpolation of its per-corner value."""
     final_image = np.zeros(img_size, dtype=np.float32)
     mask = np.zeros(img_size, dtype=bool)
     areas = [_polygon_area([(x, y) for x, y, _ in poly]) for poly in polygons]
@@ -325,11 +307,11 @@ def _build_table_target(
     max_objects: int = 300,
     max_corners: int = 1200,
 ) -> dict[str, np.ndarray]:
-    """Render the dense TableCenterNet targets (for a single image) consumed by ``TableCenterNet.compute_loss``.
+    """Render the dense TableCenterNet targets (for a single image) consumed by `TableCenterNet.compute_loss`.
 
     Args:
         cells: (N, 4, 2) cell quadrilaterals (corner order TL, TR, BR, BL) in **output-grid** coordinates
-        logic: (N, 4) integer logical coordinates ``[start_col, end_col, start_row, end_row]`` (0-indexed)
+        logic: (N, 4) integer logical coordinates `[start_col, end_col, start_row, end_row]` (0-indexed)
         output_size: (H, W) of the model output grid (input size // down_ratio)
         max_objects: maximum number of cells
         max_corners: maximum number of distinct corners
@@ -437,11 +419,11 @@ def _cells_to_polygons(cells: np.ndarray) -> np.ndarray:
     """Convert table cells to quadrilaterals.
 
     Args:
-        cells: relative axis-aligned boxes of shape ``(N, 4)`` in ``(xmin, ymin, xmax, ymax)`` format,
-            or quadrilaterals of shape ``(N, 4, 2)``.
+        cells: relative axis-aligned boxes of shape `(N, 4)` in `(xmin, ymin, xmax, ymax)` format,
+            or quadrilaterals of shape `(N, 4, 2)`.
 
     Returns:
-        Relative quadrilaterals of shape ``(N, 4, 2)`` in TL, TR, BR, BL order.
+        Relative quadrilaterals of shape `(N, 4, 2)` in TL, TR, BR, BL order.
     """
     if cells.ndim == 3 and cells.shape[1:] == (4, 2):
         return cells
@@ -463,9 +445,8 @@ class _TableCenterNet(BaseModel):
     """TableCenterNet for table-structure recognition, as described in the official implementation
     `<https://github.com/dreamy-xay/TableCenterNet>`_.
 
-    This base class holds the framework-agnostic target rendering (``build_target``), mirroring the
-    organization of the detection (``_LinkNet``) and layout (``_LWDETR``) models: the dense maps consumed
-    by ``compute_loss`` are produced here, while ``TableCenterNetPostProcessor`` decodes the model output.
+    This base class holds the framework-agnostic target rendering (`build_target`): the dense maps consumed
+    by `compute_loss` are produced here, while `TableCenterNetPostProcessor` decodes the model output.
     """
 
     max_objects: int = 300
@@ -480,8 +461,8 @@ class _TableCenterNet(BaseModel):
         """Render the dense training targets for a batch from per-image cell annotations.
 
         Args:
-            target: one ``{"cells": (N, 4) relative boxes or (N, 4, 2) relative polygons,
-                "logic": (N, 4)}`` dict per image
+            target: one `{"cells": (N, 4) relative boxes or (N, 4, 2) relative polygons,
+                "logic": (N, 4)}` dict per image
             output_shape: (H, W) of the model output grid (input size // down_ratio)
 
         Returns:

@@ -5,7 +5,7 @@ from doctr.models.table_structure.tablecenternet import TableCenterNetPostProces
 
 
 def _grid_target(rows: int, cols: int, use_polygons: bool) -> dict[str, np.ndarray]:
-    """A relative-coordinate ``{"cells", "logic"}`` target for a ``rows x cols`` grid."""
+    """A relative-coordinate `{"cells", "logic"}` target for a `rows x cols` grid."""
     xs, ys = np.linspace(0.1, 0.9, cols + 1), np.linspace(0.1, 0.9, rows + 1)
     cells, logic = [], []
     for r in range(rows):

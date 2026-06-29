@@ -33,8 +33,8 @@ class TableStructureDataset(AbstractDataset):
         }
 
     Each sample yields the image and a target containing relative cells and their logical coordinates. Cells have
-    shape ``(N, 4)`` by default, or ``(N, 4, 2)`` when ``use_polygons=True``. Logical coordinates have shape
-    ``(N, 4)``.
+    shape `(N, 4)` by default, or `(N, 4, 2)` when `use_polygons=True`. Logical coordinates have shape
+    `(N, 4)`.
 
     >>> from doctr.datasets import TableStructureDataset
     >>> from doctr.transforms import Resize

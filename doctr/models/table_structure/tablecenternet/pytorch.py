@@ -203,7 +203,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
                 nn.ReLU(inplace=True),
                 nn.Conv2d(head_conv, out_ch, 1, stride=1, padding=0, bias=True),
             )
-            # Reference head initialisation: detection-style bias for heatmaps, zeroed bias otherwise.
+            # Reference head initialisation: detection-style bias for heatmaps, zeroed bias otherwise
             final = fc[2]
             if isinstance(final, nn.Conv2d) and final.bias is not None:
                 nn.init.constant_(final.bias, -2.19 if "hm" in head else 0.0)
@@ -228,7 +228,6 @@ class TableCenterNet(nn.Module, _TableCenterNet):
     def _polygons_decode(self, heatmap: torch.Tensor, vec: torch.Tensor, reg: torch.Tensor, k: int):
         """Decode key-points (cell centers or corners) into the four points of a quadrilateral."""
         batch = heatmap.size(0)
-        k = min(k, heatmap.size(2) * heatmap.size(3))  # never request more points than there are locations
         # NMS on heatmaps
         pad = (3 - 1) // 2
         hmax = F.max_pool2d(heatmap, (3, 3), stride=1, padding=pad)
@@ -286,7 +285,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
         feat_h, feat_w = hm.shape[2], hm.shape[3]
 
         def _np(t: torch.Tensor) -> np.ndarray:
-            # Cast to float32 first: numpy has no bfloat16 (relevant under autocast/AMP)
+            # Cast to float32 first: relevant under autocast/AMP
             return t.detach().float().cpu().numpy()
 
         return {
@@ -348,7 +347,7 @@ class TableCenterNet(nn.Module, _TableCenterNet):
 
         Args:
             output: the raw head maps returned by the model
-            target: one ``{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}`` dict per image
+            target: one `{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}` dict per image
 
         Returns:
             the scalar training loss

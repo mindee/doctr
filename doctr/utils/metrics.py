@@ -319,9 +319,9 @@ class TableCellMetric:
     r"""Implements a table-structure-recognition metric.
 
     Predicted cells are matched to ground-truth cells by maximising the total IoU (Hungarian assignment); a pair
-    counts as a match when its IoU is at least ``iou_thresh``. From the matches it reports cell-detection recall,
+    counts as a match when its IoU is at least `iou_thresh`. From the matches it reports cell-detection recall,
     precision, F1 and the **structure accuracy** (the fraction of matched cells whose logical coordinates
-    ``[start_col, end_col, start_row, end_row]`` exactly equal the ground-truth ones).
+    `[start_col, end_col, start_row, end_row]` exactly equal the ground-truth ones).
 
     >>> import numpy as np
     >>> from doctr.utils import TableCellMetric
@@ -354,9 +354,9 @@ class TableCellMetric:
         """Update the metric with one sample.
 
         Args:
-            gt_cells: ground-truth cells, shape (N, 4) or (N, 4, 2) when ``use_polygons=True``
+            gt_cells: ground-truth cells, shape (N, 4) or (N, 4, 2) when `use_polygons=True`
             gt_logic: ground-truth logical coordinates, shape (N, 4)
-            pred_cells: predicted cells, shape (M, 4) or (M, 4, 2) when ``use_polygons=True``
+            pred_cells: predicted cells, shape (M, 4) or (M, 4, 2) when `use_polygons=True`
             pred_logic: predicted logical coordinates, shape (M, 4)
         """
         self.num_gts += gt_cells.shape[0]
@@ -379,7 +379,7 @@ class TableCellMetric:
         """Compute the aggregated metrics.
 
         Returns:
-            a dict with ``recall``, ``precision``, ``f1`` (cell detection) and ``structure_acc``
+            a dict with `recall`, `precision`, `f1` (cell detection) and `structure_acc`
         """
         recall = self.matches / self.num_gts if self.num_gts > 0 else None
         precision = self.matches / self.num_preds if self.num_preds > 0 else None
