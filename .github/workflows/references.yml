@@ -23,7 +23,7 @@ jobs:
           architecture: x64
 
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
@@ -53,7 +53,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
@@ -94,7 +94,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
@@ -128,7 +128,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
@@ -154,7 +154,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
@@ -180,7 +180,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
@@ -214,7 +214,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
@@ -241,7 +241,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
@@ -268,7 +268,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
@@ -302,7 +302,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
@@ -334,7 +334,7 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
       - name: Cache python modules
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
