@@ -267,6 +267,40 @@ class _DBNet:
 
         return polygon, canvas, mask
 
+    def _draw_polygon_on_maps(
+        self,
+        poly: np.ndarray,
+        box: np.ndarray,
+        box_size: float,
+        idx: int,
+        class_idx: int,
+        seg_target: np.ndarray,
+        seg_mask: np.ndarray,
+        thresh_target: np.ndarray,
+        thresh_mask: np.ndarray,
+    ) -> None:
+        if box_size < self.min_size_box:
+            seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+            return
+
+        polygon = Polygon(poly)
+        distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
+        subject = [tuple(coor) for coor in poly]
+        padding = pyclipper.PyclipperOffset()
+        padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+        shrunken = padding.Execute(-distance)
+
+        if len(shrunken) == 0:
+            seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+            return
+        shrunken = np.array(shrunken[0]).reshape(-1, 2)
+        if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
+            seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
+            return
+        cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)
+
+        self.draw_thresh_map(poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx])
+
     def build_target(
         self,
         target: list[dict[str, np.ndarray]],
@@ -321,32 +355,8 @@ class _DBNet:
                     boxes_size = np.minimum(abs_boxes[:, 2] - abs_boxes[:, 0], abs_boxes[:, 3] - abs_boxes[:, 1])
 
                 for poly, box, box_size in zip(polys, abs_boxes, boxes_size):
-                    # Mask boxes that are too small
-                    if box_size < self.min_size_box:
-                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                        continue
-
-                    # Negative shrink for gt, as described in paper
-                    polygon = Polygon(poly)
-                    distance = polygon.area * (1 - np.power(self.shrink_ratio, 2)) / polygon.length
-                    subject = [tuple(coor) for coor in poly]
-                    padding = pyclipper.PyclipperOffset()
-                    padding.AddPath(subject, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-                    shrunken = padding.Execute(-distance)
-
-                    # Draw polygon on gt if it is valid
-                    if len(shrunken) == 0:
-                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                        continue
-                    shrunken = np.array(shrunken[0]).reshape(-1, 2)
-                    if shrunken.shape[0] <= 2 or not Polygon(shrunken).is_valid:
-                        seg_mask[idx, class_idx, box[1] : box[3] + 1, box[0] : box[2] + 1] = False
-                        continue
-                    cv2.fillPoly(seg_target[idx, class_idx], [shrunken.astype(np.int32)], 1.0)
-
-                    # Draw on both thresh map and thresh mask
-                    poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx] = self.draw_thresh_map(
-                        poly, thresh_target[idx, class_idx], thresh_mask[idx, class_idx]
+                    self._draw_polygon_on_maps(
+                        poly, box, box_size, idx, class_idx, seg_target, seg_mask, thresh_target, thresh_mask
                     )
 
         thresh_target = thresh_target.astype(input_dtype) * (self.thresh_max - self.thresh_min) + self.thresh_min
