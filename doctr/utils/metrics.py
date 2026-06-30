@@ -656,113 +656,16 @@ class ObjectDetectionMetric:
         if len(self._gts) == 0:
             raise AssertionError("No samples added")
 
-        # Determine classes
-        if self.num_classes is None:
-            labels = []
-            for g in self._gts:
-                labels.extend(g["labels"].tolist())
-            for p in self._preds:
-                labels.extend(p["labels"].tolist())
-            classes = np.unique(labels)
-        else:
-            classes = np.arange(self.num_classes)
-
+        classes = self._determine_classes()
         ap_per_iou = {}
 
         for iou_thresh in self.iou_thresholds:
             class_aps = []
-
             for c in classes:
-                # Collect GTs per image
-                gt_by_image = {}
-                total_gt = 0
-
-                for img_idx, gt in enumerate(self._gts):
-                    mask = gt["labels"] == c
-                    gt_boxes = gt["boxes"][mask]
-
-                    gt_by_image[img_idx] = {
-                        "boxes": gt_boxes,
-                        "matched": np.zeros(len(gt_boxes), dtype=bool),
-                    }
-
-                    total_gt += len(gt_boxes)
-
-                if total_gt == 0:
-                    continue
-
-                # Collect all detections globally
-                detections = []
-
-                for img_idx, pred in enumerate(self._preds):
-                    mask = pred["labels"] == c
-
-                    pred_boxes = pred["boxes"][mask]
-                    pred_scores = pred["scores"][mask]
-
-                    for box, score in zip(pred_boxes, pred_scores):
-                        detections.append({
-                            "image_id": img_idx,
-                            "box": box,
-                            "score": float(score),
-                        })
-
-                if len(detections) == 0:
-                    class_aps.append(0.0)
-                    continue
-
-                # Global sorting COCO-style
-                detections.sort(key=lambda x: -x["score"])
-
-                tp = np.zeros(len(detections))
-                fp = np.zeros(len(detections))
-
-                # Evaluate detections
-                for det_idx, det in enumerate(detections):
-                    img_idx = det["image_id"]
-                    pred_box = det["box"]
-
-                    gt_data = gt_by_image[img_idx]
-                    gt_boxes = gt_data["boxes"]
-
-                    if len(gt_boxes) == 0:
-                        fp[det_idx] = 1
-                        continue
-
-                    # Compute IoUs
-                    if self.use_polygons:
-                        iou_mat = polygon_iou(
-                            gt_boxes,
-                            np.expand_dims(pred_box, axis=0),
-                        )
-                    else:
-                        iou_mat = box_iou(
-                            gt_boxes,
-                            np.expand_dims(pred_box, axis=0),
-                        )
-
-                    ious = iou_mat[:, 0]
-
-                    best_gt = np.argmax(ious)
-                    best_iou = ious[best_gt]
-
-                    if best_iou >= iou_thresh and not gt_data["matched"][best_gt]:
-                        tp[det_idx] = 1
-                        gt_data["matched"][best_gt] = True
-                    else:
-                        fp[det_idx] = 1
-
-                # Precision / Recall
-                tp_cum = np.cumsum(tp)
-                fp_cum = np.cumsum(fp)
-
-                recall = tp_cum / total_gt
-                precision = tp_cum / np.maximum(tp_cum + fp_cum, 1e-8)
-
-                ap = self._compute_ap(recall, precision)
-                class_aps.append(ap)
-
-            ap_per_iou[float(iou_thresh)] = float(np.mean(class_aps)) if len(class_aps) > 0 else 0.0
+                ap = self._evaluate_class(c, iou_thresh)
+                if ap is not None:
+                    class_aps.append(ap)
+            ap_per_iou[float(iou_thresh)] = float(np.mean(class_aps)) if class_aps else 0.0
 
         map_value = float(np.mean(list(ap_per_iou.values())))
         ap50 = ap_per_iou.get(0.5, 0.0)
@@ -774,6 +677,84 @@ class ObjectDetectionMetric:
             "AP@[.75]": ap75,
             "AP_per_IoU": ap_per_iou,
         }
+
+    def _determine_classes(self) -> np.ndarray:
+        if self.num_classes is None:
+            labels = []
+            for g in self._gts:
+                labels.extend(g["labels"].tolist())
+            for p in self._preds:
+                labels.extend(p["labels"].tolist())
+            return np.unique(labels)
+        return np.arange(self.num_classes)
+
+    def _evaluate_class(self, class_label: int, iou_thresh: float) -> float | None:
+        gt_by_image = {}
+        total_gt = 0
+
+        for img_idx, gt in enumerate(self._gts):
+            mask = gt["labels"] == class_label
+            gt_boxes = gt["boxes"][mask]
+            gt_by_image[img_idx] = {
+                "boxes": gt_boxes,
+                "matched": np.zeros(len(gt_boxes), dtype=bool),
+            }
+            total_gt += len(gt_boxes)
+
+        if total_gt == 0:
+            return None
+
+        detections = []
+        for img_idx, pred in enumerate(self._preds):
+            mask = pred["labels"] == class_label
+            pred_boxes = pred["boxes"][mask]
+            pred_scores = pred["scores"][mask]
+            for box, score in zip(pred_boxes, pred_scores):
+                detections.append({
+                    "image_id": img_idx,
+                    "box": box,
+                    "score": float(score),
+                })
+
+        if len(detections) == 0:
+            return 0.0
+
+        detections.sort(key=lambda x: -x["score"])
+
+        tp = np.zeros(len(detections))
+        fp = np.zeros(len(detections))
+
+        for det_idx, det in enumerate(detections):
+            img_idx = det["image_id"]
+            pred_box = det["box"]
+            gt_data = gt_by_image[img_idx]
+            gt_boxes = gt_data["boxes"]
+
+            if len(gt_boxes) == 0:
+                fp[det_idx] = 1
+                continue
+
+            if self.use_polygons:
+                iou_mat = polygon_iou(gt_boxes, np.expand_dims(pred_box, axis=0))
+            else:
+                iou_mat = box_iou(gt_boxes, np.expand_dims(pred_box, axis=0))
+
+            ious = iou_mat[:, 0]
+            best_gt = np.argmax(ious)
+            best_iou = ious[best_gt]
+
+            if best_iou >= iou_thresh and not gt_data["matched"][best_gt]:
+                tp[det_idx] = 1
+                gt_data["matched"][best_gt] = True
+            else:
+                fp[det_idx] = 1
+
+        tp_cum = np.cumsum(tp)
+        fp_cum = np.cumsum(fp)
+        recall = tp_cum / total_gt
+        precision = tp_cum / np.maximum(tp_cum + fp_cum, 1e-8)
+
+        return self._compute_ap(recall, precision)
 
     def _compute_ap(self, recall: np.ndarray, precision: np.ndarray) -> float:
         """Computes the Average Precision using the 101-point interpolation method from COCO

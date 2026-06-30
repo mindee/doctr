@@ -152,6 +152,103 @@ def get_colors(num_colors: int) -> list[tuple[float, float, float]]:
     return colors
 
 
+def _render_layout(
+    ax,
+    page,
+    interactive,
+    add_labels,
+    artists,
+    **kwargs,
+):
+    region_classes = sorted({region["type"] for region in page["layout"]})
+    layout_colors = {cls: color for color, cls in zip(get_colors(max(len(region_classes), 1)), region_classes)}
+    for region in page["layout"]:
+        rect = create_obj_patch(
+            region["geometry"],
+            page["dimensions"],
+            label=f"{region['type']} (confidence: {region['confidence']:.2%})",
+            color=layout_colors[region["type"]],
+            linewidth=2,
+            fill=False,
+            **kwargs,
+        )
+        ax.add_patch(rect)
+        if interactive:
+            artists.append(rect)
+        elif add_labels and len(region["geometry"]) == 2:
+            ax.text(
+                int(page["dimensions"][1] * region["geometry"][0][0]),
+                int(page["dimensions"][0] * region["geometry"][0][1]),
+                region["type"],
+                size=9,
+                alpha=0.7,
+                color=layout_colors[region["type"]],
+            )
+
+
+def _render_word(
+    ax,
+    word,
+    page,
+    interactive,
+    add_labels,
+    artists,
+    **kwargs,
+):
+    rect = create_obj_patch(
+        word["geometry"],
+        page["dimensions"],
+        label=f"{word['value']} (confidence: {word['confidence']:.2%})",
+        color=(0, 0, 1),
+        **kwargs,
+    )
+    ax.add_patch(rect)
+    if interactive:
+        artists.append(rect)
+    elif add_labels:
+        if len(word["geometry"]) == 5:
+            text_loc = (
+                int(page["dimensions"][1] * (word["geometry"][0] - word["geometry"][2] / 2)),
+                int(page["dimensions"][0] * (word["geometry"][1] - word["geometry"][3] / 2)),
+            )
+        else:
+            text_loc = (
+                int(page["dimensions"][1] * word["geometry"][0][0]),
+                int(page["dimensions"][0] * word["geometry"][0][1]),
+            )
+
+        if len(word["geometry"]) == 2:
+            ax.text(
+                *text_loc,
+                word["value"],
+                size=10,
+                alpha=0.5,
+                color=(0, 0, 1),
+            )
+
+
+def _render_artefacts(
+    ax,
+    block,
+    page,
+    interactive,
+    artists,
+    **kwargs,
+):
+    for artefact in block["artefacts"]:
+        rect = create_obj_patch(
+            artefact["geometry"],
+            page["dimensions"],
+            label="artefact",
+            color=(0.5, 0.5, 0.5),
+            linewidth=1,
+            **kwargs,
+        )
+        ax.add_patch(rect)
+        if interactive:
+            artists.append(rect)
+
+
 def visualize_page(
     page: dict[str, Any],
     image: np.ndarray,
@@ -198,35 +295,13 @@ def visualize_page(
     # hide both axis
     ax.axis("off")
 
+    artists: list[patches.Patch] | None = None
     if interactive:
-        artists: list[patches.Patch] = []  # instantiate an empty list of patches (to be drawn on the page)
+        artists = []  # instantiate an empty list of patches (to be drawn on the page)
 
     # Draw layout regions first so text boxes are overlaid on top of them
     if display_layout and page.get("layout"):
-        region_classes = sorted({region["type"] for region in page["layout"]})
-        layout_colors = {cls: color for color, cls in zip(get_colors(max(len(region_classes), 1)), region_classes)}
-        for region in page["layout"]:
-            rect = create_obj_patch(
-                region["geometry"],
-                page["dimensions"],
-                label=f"{region['type']} (confidence: {region['confidence']:.2%})",
-                color=layout_colors[region["type"]],
-                linewidth=2,
-                fill=False,
-                **kwargs,
-            )
-            ax.add_patch(rect)
-            if interactive:
-                artists.append(rect)
-            elif add_labels and len(region["geometry"]) == 2:
-                ax.text(
-                    int(page["dimensions"][1] * region["geometry"][0][0]),
-                    int(page["dimensions"][0] * region["geometry"][0][1]),
-                    region["type"],
-                    size=9,
-                    alpha=0.7,
-                    color=layout_colors[region["type"]],
-                )
+        _render_layout(ax, page, interactive, add_labels, artists, **kwargs)
 
     for block in page["blocks"]:
         if not words_only:
@@ -249,51 +324,10 @@ def visualize_page(
                     artists.append(rect)
 
             for word in line["words"]:
-                rect = create_obj_patch(
-                    word["geometry"],
-                    page["dimensions"],
-                    label=f"{word['value']} (confidence: {word['confidence']:.2%})",
-                    color=(0, 0, 1),
-                    **kwargs,
-                )
-                ax.add_patch(rect)
-                if interactive:
-                    artists.append(rect)
-                elif add_labels:
-                    if len(word["geometry"]) == 5:
-                        text_loc = (
-                            int(page["dimensions"][1] * (word["geometry"][0] - word["geometry"][2] / 2)),
-                            int(page["dimensions"][0] * (word["geometry"][1] - word["geometry"][3] / 2)),
-                        )
-                    else:
-                        text_loc = (
-                            int(page["dimensions"][1] * word["geometry"][0][0]),
-                            int(page["dimensions"][0] * word["geometry"][0][1]),
-                        )
-
-                    if len(word["geometry"]) == 2:
-                        # We draw only if boxes are in straight format
-                        ax.text(
-                            *text_loc,
-                            word["value"],
-                            size=10,
-                            alpha=0.5,
-                            color=(0, 0, 1),
-                        )
+                _render_word(ax, word, page, interactive, add_labels, artists, **kwargs)
 
         if display_artefacts:
-            for artefact in block["artefacts"]:
-                rect = create_obj_patch(
-                    artefact["geometry"],
-                    page["dimensions"],
-                    label="artefact",
-                    color=(0.5, 0.5, 0.5),
-                    linewidth=1,
-                    **kwargs,
-                )
-                ax.add_patch(rect)
-                if interactive:
-                    artists.append(rect)
+            _render_artefacts(ax, block, page, interactive, artists, **kwargs)
 
     if interactive:
         import mplcursors

@@ -92,6 +92,118 @@ class Resize(T.Resize):
 
         return np.clip(target, 0, 1)
 
+    def _resize_mask(self, mask: torch.Tensor, size: tuple[int, int]) -> torch.Tensor:
+        return F.resize(
+            mask,
+            size,
+            interpolation=F.InterpolationMode.NEAREST,
+            antialias=False,
+        ).squeeze(0)
+
+    def _build_return_sample(
+        self,
+        sample: Sample,
+        img: torch.Tensor,
+        mask: torch.Tensor | None,
+        target: np.ndarray | dict | str | None,
+        padding_mask: torch.Tensor | None,
+        resize_mask: bool,
+    ) -> Sample:
+        if target is not None:
+            if self.return_padding_mask:
+                return sample.replace(image=img, target=target, mask=mask if resize_mask else padding_mask)
+            return sample.replace(image=img, target=target, mask=mask if resize_mask else sample.mask)
+        if self.return_padding_mask:
+            return sample.replace(image=img, mask=mask if resize_mask else padding_mask)
+        return sample.replace(image=img, mask=mask if resize_mask else sample.mask)
+
+    def _resize_targets(
+        self,
+        target: np.ndarray | dict | str | None,
+        raw_shape: tuple[int, int],
+        final_shape: tuple[int, int],
+        half_pad: tuple[int, int] | None,
+    ) -> np.ndarray | dict | str | None:
+        if target is None:
+            return target
+
+        if self.symmetric_pad:
+            offset = (
+                half_pad[0] / final_shape[-1],
+                half_pad[1] / final_shape[-2],
+            )
+        else:
+            offset = (0, 0)
+
+        if isinstance(target, str) or (isinstance(target, np.ndarray) and target.shape == (1,)):
+            return target
+        elif isinstance(target, dict):
+            return {
+                cls_name: self._resize_target(
+                    arr,
+                    raw_shape,
+                    final_shape,
+                    symmetric_pad=self.symmetric_pad,
+                    offset=offset,
+                )
+                for cls_name, arr in target.items()
+            }
+        else:
+            return self._resize_target(
+                target,
+                raw_shape,
+                final_shape,
+                symmetric_pad=self.symmetric_pad,
+                offset=offset,
+            )
+
+    def _resize_preserve_aspect_ratio(
+        self,
+        sample: Sample,
+        img: torch.Tensor,
+        mask: torch.Tensor | None,
+        target: np.ndarray | dict | str | None,
+        resize_mask: bool,
+    ) -> Sample:
+        target_ratio = self.size[0] / self.size[1]
+        actual_ratio = img.shape[-2] / img.shape[-1]
+
+        if actual_ratio > target_ratio:
+            tmp_size = (self.size[0], max(int(self.size[0] / actual_ratio), 1))
+        else:
+            tmp_size = (max(int(self.size[1] * actual_ratio), 1), self.size[1])
+
+        img = F.resize(img, tmp_size, self.interpolation, antialias=True)
+
+        if resize_mask:
+            mask = self._resize_mask(mask, tmp_size)
+
+        raw_shape = img.shape[-2:]
+        padding_mask = None
+        half_pad = (0, 0)
+
+        if isinstance(self.size, (tuple, list)):
+            _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
+
+            if self.symmetric_pad:
+                half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
+                _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
+
+            img = pad(img, _pad)
+
+            if resize_mask and mask is not None:
+                mask = pad(mask, _pad)
+
+            if self.return_padding_mask:
+                h, w = self.size
+                padding_mask = torch.zeros((h, w), dtype=torch.bool, device=img.device)
+                left, right, top, bottom = _pad
+                padding_mask[top : h - bottom, left : w - right] = True
+
+        target = self._resize_targets(target, raw_shape, img.shape[-2:], half_pad)
+
+        return self._build_return_sample(sample, img, mask, target, padding_mask, resize_mask)
+
     def forward(
         self,
         sample: Sample,
@@ -100,118 +212,28 @@ class Resize(T.Resize):
         target = sample.target
         mask = sample.mask
 
-        # Resize mask alongside image if provided
-        # Masks should use nearest interpolation to preserve label integrity
         resize_mask = mask is not None
-        if resize_mask and mask is not None and mask.ndim == 2:
+        if resize_mask and mask.ndim == 2:
             mask = mask.unsqueeze(0)
 
         target_ratio = self.size[0] / self.size[1]
         actual_ratio = img.shape[-2] / img.shape[-1]
 
         if not self.preserve_aspect_ratio or (target_ratio == actual_ratio):
-            # If we don't preserve the aspect ratio or the wanted aspect ratio is the same than the original one
-            # We can use with the regular resize
             img = super().forward(img)
 
             if resize_mask:
-                mask = F.resize(
-                    mask,
-                    self.size,
-                    interpolation=F.InterpolationMode.NEAREST,
-                    antialias=False,
-                ).squeeze(0)
+                mask = self._resize_mask(mask, self.size)
 
-            if self.return_padding_mask:
-                padding_mask = torch.zeros(self.size, dtype=torch.bool, device=img.device)
+            padding_mask = (
+                torch.zeros(self.size, dtype=torch.bool, device=img.device)
+                if self.return_padding_mask
+                else None
+            )
 
-            if target is not None:
-                if self.return_padding_mask:
-                    return sample.replace(image=img, target=target, mask=mask if resize_mask else padding_mask)
-                return sample.replace(image=img, target=target, mask=mask if resize_mask else sample.mask)
-            if self.return_padding_mask:
-                return sample.replace(image=img, mask=mask if resize_mask else padding_mask)
-            return sample.replace(image=img, mask=mask if resize_mask else sample.mask)
+            return self._build_return_sample(sample, img, mask, target, padding_mask, resize_mask)
 
-        else:
-            # Resize
-            if actual_ratio > target_ratio:
-                tmp_size = (self.size[0], max(int(self.size[0] / actual_ratio), 1))
-            else:
-                tmp_size = (max(int(self.size[1] * actual_ratio), 1), self.size[1])
-
-            # Scale image
-            img = F.resize(img, tmp_size, self.interpolation, antialias=True)
-
-            if resize_mask:
-                mask = F.resize(
-                    mask,
-                    tmp_size,
-                    interpolation=F.InterpolationMode.NEAREST,
-                    antialias=False,
-                ).squeeze(0)
-
-            raw_shape = img.shape[-2:]
-
-            if isinstance(self.size, (tuple, list)):
-                # Pad (inverted in pytorch)
-                _pad = (0, self.size[1] - img.shape[-1], 0, self.size[0] - img.shape[-2])
-
-                if self.symmetric_pad:
-                    half_pad = (math.ceil(_pad[1] / 2), math.ceil(_pad[3] / 2))
-                    _pad = (half_pad[0], _pad[1] - half_pad[0], half_pad[1], _pad[3] - half_pad[1])
-                # Pad image
-                img = pad(img, _pad)
-
-                if resize_mask and mask is not None:
-                    mask = pad(mask, _pad)
-
-                if self.return_padding_mask:
-                    h, w = self.size
-                    padding_mask = torch.zeros((h, w), dtype=torch.bool, device=img.device)
-                    left, right, top, bottom = _pad
-                    padding_mask[top : h - bottom, left : w - right] = True
-
-            # In case boxes are provided, resize boxes if needed (for detection task if preserve aspect ratio)
-            if target is not None:
-                if self.symmetric_pad:
-                    offset = (
-                        half_pad[0] / img.shape[-1],
-                        half_pad[1] / img.shape[-2],
-                    )
-                else:
-                    offset = (0, 0)
-
-                if isinstance(target, str) or (isinstance(target, np.ndarray) and target.shape == (1,)):
-                    # Special case for orientation targets and other non-box targets, which should not be resized
-                    pass
-                elif isinstance(target, dict):
-                    target = {
-                        cls_name: self._resize_target(
-                            arr,
-                            raw_shape,
-                            img.shape[-2:],
-                            symmetric_pad=self.symmetric_pad,
-                            offset=offset,
-                        )
-                        for cls_name, arr in target.items()
-                    }
-                else:
-                    target = self._resize_target(
-                        target,
-                        raw_shape,
-                        img.shape[-2:],
-                        symmetric_pad=self.symmetric_pad,
-                        offset=offset,
-                    )
-
-            if target is not None:
-                if self.return_padding_mask:
-                    return sample.replace(image=img, target=target, mask=mask if resize_mask else padding_mask)
-                return sample.replace(image=img, target=target, mask=mask if resize_mask else sample.mask)
-            if self.return_padding_mask:
-                return sample.replace(image=img, mask=mask if resize_mask else padding_mask)
-            return sample.replace(image=img, mask=mask if resize_mask else sample.mask)
+        return self._resize_preserve_aspect_ratio(sample, img, mask, target, resize_mask)
 
     def __repr__(self) -> str:
         interpolate_str = self.interpolation.value

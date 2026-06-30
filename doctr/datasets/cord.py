@@ -84,31 +84,7 @@ class CORD(VisionDataset):
             if not os.path.exists(os.path.join(tmp_root, img_path)):
                 raise FileNotFoundError(f"unable to locate {os.path.join(tmp_root, img_path)}")
 
-            stem = Path(img_path).stem
-            _targets = []
-            with open(os.path.join(self.root, "json", f"{stem}.json"), "rb") as f:
-                label = json.load(f)
-                for line in label["valid_line"]:
-                    for word in line["words"]:
-                        if len(word["text"]) > 0:
-                            x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
-                            y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
-                            box: list[float] | np.ndarray
-                            if use_polygons:
-                                # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                                box = np.array(
-                                    [
-                                        [x[0], y[0]],
-                                        [x[1], y[1]],
-                                        [x[2], y[2]],
-                                        [x[3], y[3]],
-                                    ],
-                                    dtype=np_dtype,
-                                )
-                            else:
-                                # Reduce 8 coords to 4 -> xmin, ymin, xmax, ymax
-                                box = [min(x), min(y), max(x), max(y)]
-                            _targets.append((word["text"], box))
+            _targets = self._process_image(img_path, tmp_root, use_polygons, np_dtype)
 
             text_targets, box_targets = zip(*_targets)
 
@@ -128,6 +104,37 @@ class CORD(VisionDataset):
                 ))
 
         self.root = tmp_root
+
+    def _process_image(
+        self,
+        img_path: str,
+        tmp_root: str,
+        use_polygons: bool,
+        np_dtype: np.dtype,
+    ) -> list[tuple[str, list[float] | np.ndarray]]:
+        stem = Path(img_path).stem
+        _targets: list[tuple[str, list[float] | np.ndarray]] = []
+        with open(os.path.join(self.root, "json", f"{stem}.json"), "rb") as f:
+            label = json.load(f)
+            for line in label["valid_line"]:
+                for word in line["words"]:
+                    if len(word["text"]) > 0:
+                        x = word["quad"]["x1"], word["quad"]["x2"], word["quad"]["x3"], word["quad"]["x4"]
+                        y = word["quad"]["y1"], word["quad"]["y2"], word["quad"]["y3"], word["quad"]["y4"]
+                        if use_polygons:
+                            box = np.array(
+                                [
+                                    [x[0], y[0]],
+                                    [x[1], y[1]],
+                                    [x[2], y[2]],
+                                    [x[3], y[3]],
+                                ],
+                                dtype=np_dtype,
+                            )
+                        else:
+                            box = [min(x), min(y), max(x), max(y)]
+                        _targets.append((word["text"], box))
+        return _targets
 
     def extra_repr(self) -> str:
         return f"train={self.train}"

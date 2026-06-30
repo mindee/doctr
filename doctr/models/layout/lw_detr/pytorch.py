@@ -341,8 +341,10 @@ class LWDETR(nn.Module, _LWDETR):
             assume_straight_pages=self.assume_straight_pages,
         )
 
+        self._init_weights()
+
+    def _init_weights(self) -> None:
         for n, m in self.named_modules():
-            # Don't override the initialization of the backbone
             if n.startswith("feat_extractor."):
                 continue
 
@@ -368,18 +370,15 @@ class LWDETR(nn.Module, _LWDETR):
                 if m.bias is not None:
                     nn.init.constant_(m.bias, bias_value)
 
-        # Initialize the iterative refinement heads to predict zero deltas (i.e. identity refinement)
-        # at the start of training, to stabilize training in the early stages when the encoder proposals are still noisy
         with torch.no_grad():
             for head in [self.bbox_embed, *self.enc_out_bbox_embed]:
                 last = head.layers[-1]
                 last.weight.zero_()
                 last.bias.zero_()
-                last.bias[5] = 1.0  # cosθ of the rotation delta -> identity rotation
+                last.bias[5] = 1.0
 
-            # The reference point embedding acts as a learned delta composed with the encoder proposals
             self.reference_point_embed.weight.zero_()
-            self.reference_point_embed.weight[:, 5] = 1.0  # cosθ
+            self.reference_point_embed.weight[:, 5] = 1.0
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
         """Load pretrained parameters onto the model
@@ -573,45 +572,56 @@ class LWDETR(nn.Module, _LWDETR):
             out["preds"] = _postprocess(logits.detach().cpu().numpy(), pred_boxes.detach().cpu().numpy())
 
         if target is not None:
-            # Build target
-            processed_targets = self.build_target(target, self.class_names)
-
-            # ProbIoU is computed in pixel coordinates
-            box_scale = float(max(input.shape[-2], input.shape[-1]))
-
-            # Main loss from final decoder layer (group DETR: each group is matched independently)
-            split_logits = logits.chunk(group_detr, dim=1)
-            split_boxes = pred_boxes.chunk(group_detr, dim=1)
-
-            main_loss: float | torch.Tensor = 0.0
-            for g_logits, g_boxes in zip(split_logits, split_boxes):
-                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
-            loss = main_loss / group_detr
-
-            # Auxiliary losses from intermediate decoder layers
-            # (`intermediate_reference_points[i]` is the reference INPUT to decoder layer i)
-            for i in range(intermediate.shape[0] - 1):
-                aux_logits = self.class_embed(intermediate[i])
-                aux_boxes_delta = self.bbox_embed(intermediate[i])
-                aux_boxes = refine_obb_boxes(intermediate_reference_points[i], aux_boxes_delta)
-
-                split_aux_logits = aux_logits.chunk(group_detr, dim=1)
-                split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
-
-                aux_loss: float | torch.Tensor = 0.0
-                for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
-                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
-                loss += aux_loss / group_detr
-
-            # Auxiliary losses for the selected encoder proposals
-            enc_loss: float | torch.Tensor = 0.0
-            for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
-                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets, box_scale=box_scale)
-            loss += enc_loss / group_detr
-
-            out["loss"] = loss
+            out["loss"] = self._compute_losses(
+                logits, pred_boxes, target, input, group_detr,
+                intermediate, intermediate_reference_points,
+                all_group_enc_logits, all_group_enc_coords,
+            )
 
         return out
+
+    def _compute_losses(
+        self,
+        logits: torch.Tensor,
+        pred_boxes: torch.Tensor,
+        target: list[dict[str, np.ndarray]],
+        input: torch.Tensor,
+        group_detr: int,
+        intermediate: torch.Tensor,
+        intermediate_reference_points: list[torch.Tensor],
+        all_group_enc_logits: list[torch.Tensor],
+        all_group_enc_coords: list[torch.Tensor],
+    ) -> torch.Tensor:
+        processed_targets = self.build_target(target, self.class_names)
+        box_scale = float(max(input.shape[-2], input.shape[-1]))
+
+        split_logits = logits.chunk(group_detr, dim=1)
+        split_boxes = pred_boxes.chunk(group_detr, dim=1)
+
+        main_loss: float | torch.Tensor = 0.0
+        for g_logits, g_boxes in zip(split_logits, split_boxes):
+            main_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
+        loss = main_loss / group_detr
+
+        for i in range(intermediate.shape[0] - 1):
+            aux_logits = self.class_embed(intermediate[i])
+            aux_boxes_delta = self.bbox_embed(intermediate[i])
+            aux_boxes = refine_obb_boxes(intermediate_reference_points[i], aux_boxes_delta)
+
+            split_aux_logits = aux_logits.chunk(group_detr, dim=1)
+            split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
+
+            aux_loss: float | torch.Tensor = 0.0
+            for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
+                aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
+            loss += aux_loss / group_detr
+
+        enc_loss: float | torch.Tensor = 0.0
+        for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
+            enc_loss += self.compute_loss(group_logits, group_coords, processed_targets, box_scale=box_scale)
+        loss += enc_loss / group_detr
+
+        return loss
 
     def compute_loss(
         self,

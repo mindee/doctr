@@ -102,40 +102,50 @@ class COCOTEXT(AbstractDataset):
 
             for annotation in annotations:
                 x, y, w, h = annotation["bbox"]
-                if use_polygons:
-                    # (x, y) coordinates of top left, top right, bottom right, bottom left corners
-                    box = np.array(
-                        [
-                            [x, y],
-                            [x + w, y],
-                            [x + w, y + h],
-                            [x, y + h],
-                        ],
-                        dtype=np_dtype,
-                    )
-                else:
-                    # (xmin, ymin, xmax, ymax) coordinates
-                    box = [x, y, x + w, y + h]
+                box = self._build_box(x, y, w, h, use_polygons, np_dtype)
                 _targets.append((annotation["utf8_string"], box))
             text_targets, box_targets = zip(*_targets)
-
-            if recognition_task:
-                crops = crop_bboxes_from_image(
-                    img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
-                )
-                for crop, label in zip(crops, list(text_targets)):
-                    if label and " " not in label:
-                        self.data.append((crop, label))
-
-            elif detection_task:
-                self.data.append((img_path, np.asarray(box_targets, dtype=int).clip(min=0)))
-            else:
-                self.data.append((
-                    img_path,
-                    dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)),
-                ))
+            self._process_task_sample(img_path, text_targets, box_targets, recognition_task, detection_task, tmp_root)
 
         self.root = tmp_root
+
+    @staticmethod
+    def _build_box(x: float, y: float, w: float, h: float, use_polygons: bool, np_dtype: type) -> list[float] | np.ndarray:
+        if use_polygons:
+            return np.array(
+                [
+                    [x, y],
+                    [x + w, y],
+                    [x + w, y + h],
+                    [x, y + h],
+                ],
+                dtype=np_dtype,
+            )
+        return [x, y, x + w, y + h]
+
+    def _process_task_sample(
+        self,
+        img_path: str,
+        text_targets: tuple[str, ...],
+        box_targets: tuple[list[float] | np.ndarray, ...],
+        recognition_task: bool,
+        detection_task: bool,
+        tmp_root: str,
+    ) -> None:
+        if recognition_task:
+            crops = crop_bboxes_from_image(
+                img_path=os.path.join(tmp_root, img_path), geoms=np.asarray(box_targets, dtype=int).clip(min=0)
+            )
+            for crop, label in zip(crops, list(text_targets)):
+                if label and " " not in label:
+                    self.data.append((crop, label))
+        elif detection_task:
+            self.data.append((img_path, np.asarray(box_targets, dtype=int).clip(min=0)))
+        else:
+            self.data.append((
+                img_path,
+                dict(boxes=np.asarray(box_targets, dtype=int).clip(min=0), labels=list(text_targets)),
+            ))
 
     def extra_repr(self) -> str:
         return f"train={self.train}"

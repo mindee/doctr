@@ -65,6 +65,57 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         self.detect_orientation = detect_orientation
         self.detect_language = detect_language
 
+    def _handle_orientation_and_straighten(
+        self,
+        pages: list[np.ndarray],
+        seg_maps: list[np.ndarray],
+        origin_page_shapes: list[tuple[int, int]],
+        **kwargs: Any,
+    ) -> tuple[list[np.ndarray], list[tuple[int, int]], Any]:
+
+        if self.detect_orientation:
+            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
+            orientations = [
+                {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
+            ]
+        else:
+            orientations = None
+            general_pages_orientations = None
+            origin_pages_orientations = None
+
+        if self.straighten_pages:
+            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
+            origin_page_shapes = [page.shape[:2] for page in pages]
+
+        return pages, origin_page_shapes, orientations
+
+    def _prepare_crops_and_orientations(
+        self,
+        pages: list[np.ndarray],
+        dict_loc_preds: dict[str, list[np.ndarray]],
+    ) -> tuple[dict, dict[str, list[np.ndarray]], Any]:
+
+        crops = {}
+        for class_name in dict_loc_preds.keys():
+            crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
+                pages,
+                dict_loc_preds[class_name],
+                assume_straight_pages=self.assume_straight_pages,
+                assume_horizontal=self._page_orientation_disabled,
+            )
+
+        crop_orientations: Any = {}
+        if not self.assume_straight_pages:
+            for class_name in dict_loc_preds.keys():
+                crops[class_name], dict_loc_preds[class_name], word_orientations = self._rectify_crops(
+                    crops[class_name], dict_loc_preds[class_name]
+                )
+                crop_orientations[class_name] = [
+                    {"value": orientation[0], "confidence": orientation[1]} for orientation in word_orientations
+                ]
+
+        return crops, dict_loc_preds, crop_orientations
+
     @torch.inference_mode()
     def forward(
         self,
@@ -87,21 +138,12 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             )
             for out_map in out_maps
         ]
-        if self.detect_orientation:
-            general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
-            orientations = [
-                {"value": orientation_page, "confidence": None} for orientation_page in origin_pages_orientations
-            ]
-        else:
-            orientations = None
-            general_pages_orientations = None
-            origin_pages_orientations = None
-        if self.straighten_pages:
-            pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
-            # update page shapes after straightening
-            origin_page_shapes = [page.shape[:2] for page in pages]
+        pages, origin_page_shapes, orientations = self._handle_orientation_and_straighten(
+            pages, seg_maps, origin_page_shapes, **kwargs
+        )
 
-            # Forward again to get predictions on straight pages
+        # Forward again to get predictions on straight pages
+        if self.straighten_pages:
             loc_preds = self.det_predictor(pages, **kwargs)
 
         dict_loc_preds: dict[str, list[np.ndarray]] = invert_data_structure(loc_preds)  # type: ignore[assignment]
@@ -117,25 +159,8 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         for hook in self.hooks:
             dict_loc_preds = hook(dict_loc_preds)
 
-        # Crop images
-        crops = {}
-        for class_name in dict_loc_preds.keys():
-            crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
-                pages,
-                dict_loc_preds[class_name],
-                assume_straight_pages=self.assume_straight_pages,
-                assume_horizontal=self._page_orientation_disabled,
-            )
-        # Rectify crop orientation
-        crop_orientations: Any = {}
-        if not self.assume_straight_pages:
-            for class_name in dict_loc_preds.keys():
-                crops[class_name], dict_loc_preds[class_name], word_orientations = self._rectify_crops(
-                    crops[class_name], dict_loc_preds[class_name]
-                )
-                crop_orientations[class_name] = [
-                    {"value": orientation[0], "confidence": orientation[1]} for orientation in word_orientations
-                ]
+        # Crop images and rectify orientation
+        crops, dict_loc_preds, crop_orientations = self._prepare_crops_and_orientations(pages, dict_loc_preds)
 
         # Identify character sequences
         word_preds = {

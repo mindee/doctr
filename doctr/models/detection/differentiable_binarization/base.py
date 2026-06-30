@@ -85,6 +85,45 @@ class DBPostProcessor(DetectionPostProcessor):
             else order_points(cv2.boxPoints(cv2.minAreaRect(expanded_points)))
         )
 
+    def _process_straight_contour(
+        self,
+        pred: np.ndarray,
+        contour: np.ndarray,
+        width: int,
+        height: int,
+        min_size_box: int,
+    ) -> list[float] | None:
+        x, y, w, h = cv2.boundingRect(contour)
+        points: np.ndarray = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
+        score = self.box_score(pred, points, assume_straight_pages=True)
+        if score < self.box_thresh:
+            return None
+        _box = self.polygon_to_box(points)
+        if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
+            return None
+        xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
+        return [xmin, ymin, xmax, ymax, score]
+
+    def _process_rotated_contour(
+        self,
+        pred: np.ndarray,
+        contour: np.ndarray,
+        width: int,
+        height: int,
+        min_size_box: int,
+    ) -> np.ndarray | None:
+        score = self.box_score(pred, contour, assume_straight_pages=False)
+        if score < self.box_thresh:
+            return None
+        _box = self.polygon_to_box(np.squeeze(contour))
+        if np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
+            return None
+        if not isinstance(_box, np.ndarray) and _box.shape == (4, 2):
+            raise AssertionError("When assume straight pages is false a box is a (4, 2) array (polygon)")
+        _box[:, 0] /= width
+        _box[:, 1] /= height
+        return np.vstack([_box, np.array([0.0, score])])
+
     def bitmap_to_boxes(
         self,
         pred: np.ndarray,
@@ -105,49 +144,16 @@ class DBPostProcessor(DetectionPostProcessor):
         height, width = bitmap.shape[:2]
         min_size_box = 2
         boxes: list[np.ndarray | list[float]] = []
-        # get contours from connected components on the bitmap
         contours, _ = cv2.findContours(bitmap.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
-            # Check whether smallest enclosing bounding box is not too small
             if np.any(contour[:, 0].max(axis=0) - contour[:, 0].min(axis=0) < min_size_box):
                 continue
-            # Compute objectness
             if self.assume_straight_pages:
-                x, y, w, h = cv2.boundingRect(contour)
-                points: np.ndarray = np.array([[x, y], [x, y + h], [x + w, y + h], [x + w, y]])
-                score = self.box_score(pred, points, assume_straight_pages=True)
+                box = self._process_straight_contour(pred, contour, width, height, min_size_box)
             else:
-                score = self.box_score(pred, contour, assume_straight_pages=False)
-
-            if score < self.box_thresh:  # remove polygons with a weak objectness
-                continue
-
-            if self.assume_straight_pages:
-                _box = self.polygon_to_box(points)
-            else:
-                _box = self.polygon_to_box(np.squeeze(contour))
-
-            # Remove too small boxes
-            if self.assume_straight_pages:
-                if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
-                    continue
-            elif np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
-                continue
-
-            if self.assume_straight_pages:
-                x, y, w, h = _box
-                # compute relative polygon to get rid of img shape
-                xmin, ymin, xmax, ymax = x / width, y / height, (x + w) / width, (y + h) / height
-                boxes.append([xmin, ymin, xmax, ymax, score])
-            else:
-                # compute relative box to get rid of img shape, in that case _box is a 4pt polygon
-                if not isinstance(_box, np.ndarray) and _box.shape == (4, 2):
-                    raise AssertionError("When assume straight pages is false a box is a (4, 2) array (polygon)")
-                _box[:, 0] /= width
-                _box[:, 1] /= height
-                # Add score to box as (0, score)
-                boxes.append(np.vstack([_box, np.array([0.0, score])]))
-
+                box = self._process_rotated_contour(pred, contour, width, height, min_size_box)
+            if box is not None:
+                boxes.append(box)
         if not self.assume_straight_pages:
             return np.clip(np.asarray(boxes), 0, 1) if len(boxes) > 0 else np.zeros((0, 5, 2), dtype=pred.dtype)
         else:
