@@ -344,3 +344,95 @@ jobs:
           pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/layout/latency.py lw_detr_s --it 5 --size 512
+
+  train-table-structure-recognition:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[viz,html] --upgrade
+          pip install -r references/requirements.txt
+      - name: Download and extract toy set
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_table_set-ea091e15.zip
+          sudo apt-get update && sudo apt-get install unzip -y
+          unzip toy_table_set-ea091e15.zip -d table_set
+      - name: Train for a short epoch
+        run: python references/table/train.py tablecenternet --train_path ./table_set --val_path ./table_set -b 2 --epochs 1
+
+  evaluate-table-structure-recognition:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[viz,html] --upgrade
+          pip install -r references/requirements.txt
+      - name: Download and extract toy set
+        run: |
+          wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_table_set-ea091e15.zip
+          sudo apt-get update && sudo apt-get install unzip -y
+          unzip toy_table_set-ea091e15.zip -d table_set
+      - name: Evaluate table structure recognition
+        run: python references/table/evaluate.py tablecenternet ./table_set
+
+  latency-table-structure-recognition:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.10"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+      - name: Cache python modules
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[viz,html] --upgrade
+      - name: Benchmark latency
+        run: python references/table/latency.py tablecenternet --it 5 --size 512

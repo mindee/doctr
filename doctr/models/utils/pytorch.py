@@ -159,7 +159,13 @@ def set_device_and_dtype(
 
 
 def export_model_to_onnx(
-    model: nn.Module, model_name: str, dummy_input: torch.Tensor | tuple[torch.Tensor, torch.Tensor], **kwargs: Any
+    model: nn.Module,
+    model_name: str,
+    dummy_input: torch.Tensor | tuple[torch.Tensor, torch.Tensor],
+    input_names: list[str] | None = None,
+    output_names: list[str] | None = None,
+    dynamic_axes: dict[str, dict[int, str]] | None = None,
+    **kwargs: Any,
 ) -> str:
     """Export model to ONNX format.
 
@@ -173,25 +179,32 @@ def export_model_to_onnx(
         model: the PyTorch model to be exported
         model_name: the name for the exported model
         dummy_input: the dummy input to the model
+        input_names: optional names for the model inputs. Defaults to ``["input"]`` (or ``["input", "masks"]``
+            when ``dummy_input`` is a tuple).
+        output_names: optional names for the model outputs. Defaults to ``["logits"]`` (or
+            ``["logits", "pred_boxes"]`` when ``dummy_input`` is a tuple). Pass the names of every output when
+            the model returns more than one tensor (e.g. a multi-head model).
+        dynamic_axes: optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.
         kwargs: additional arguments to be passed to torch.onnx.export
 
     Returns:
         the path to the exported model
     """
+    is_tuple = isinstance(dummy_input, tuple)
+    if input_names is None:
+        input_names = ["input", "masks"] if is_tuple else ["input"]
+    if output_names is None:
+        output_names = ["logits", "pred_boxes"] if is_tuple else ["logits"]
+    if dynamic_axes is None:
+        dynamic_axes = {name: {0: "batch_size"} for name in [*input_names, *output_names]}
+
     torch.onnx.export(
         model,
         dummy_input,  # type: ignore[arg-type]
         f"{model_name}.onnx",
-        input_names=["input", "masks"] if isinstance(dummy_input, tuple) else ["input"],
-        output_names=["logits", "pred_boxes"] if isinstance(dummy_input, tuple) else ["logits"],
-        dynamic_axes={
-            "input": {0: "batch_size"},
-            "masks": {0: "batch_size"},
-            "logits": {0: "batch_size"},
-            "pred_boxes": {0: "batch_size"},
-        }
-        if isinstance(dummy_input, tuple)
-        else {"input": {0: "batch_size"}, "logits": {0: "batch_size"}},
+        input_names=input_names,
+        output_names=output_names,
+        dynamic_axes=dynamic_axes,
         export_params=True,
         dynamo=False,
         verbose=False,

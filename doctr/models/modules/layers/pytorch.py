@@ -171,6 +171,21 @@ class DCNv2(nn.Module):
         self.bias = nn.Parameter(torch.empty(out_channels))
         channels_ = deformable_groups * 3 * kernel_size[0] * kernel_size[1]
         self.conv_offset_mask = nn.Conv2d(in_channels, channels_, kernel_size, stride, padding, bias=True)
+        self.reset_parameters()
+
+    def reset_parameters(self) -> None:
+        # Standard DCN initialization: the regular conv weight is initialized like a vanilla conv, while
+        # the offset/mask predictor is zero-initialized so the layer starts as a plain convolution
+        # (offsets = 0, modulation = 0.5). Without this, weight/bias keep their uninitialized
+        # torch.empty values, which makes the deformable conv explode and the loss diverge to NaN.
+        n = self.weight.shape[1]
+        for k in self.weight.shape[2:]:
+            n *= k
+        stdv = 1.0 / (n**0.5)
+        nn.init.uniform_(self.weight, -stdv, stdv)
+        nn.init.zeros_(self.bias)
+        nn.init.zeros_(self.conv_offset_mask.weight)
+        nn.init.zeros_(self.conv_offset_mask.bias)  # type: ignore[arg-type]
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         out = self.conv_offset_mask(x)

@@ -32,7 +32,9 @@ class TableStructureDataset(AbstractDataset):
             ...
         }
 
-    Each sample yields the image and a ``{"cells": (N, 4, 2) relative polygons, "logic": (N, 4)}`` target.
+    Each sample yields the image and a target containing relative cells and their logical coordinates. Cells have
+    shape `(N, 4)` by default, or `(N, 4, 2)` when `use_polygons=True`. Logical coordinates have shape
+    `(N, 4)`.
 
     >>> from doctr.datasets import TableStructureDataset
     >>> from doctr.transforms import Resize
@@ -45,10 +47,17 @@ class TableStructureDataset(AbstractDataset):
     Args:
         img_folder: folder with all the dataset images
         label_path: path to the JSON labels
+        use_polygons: whether to keep cell polygons instead of converting them to straight boxes
         **kwargs: keyword arguments from `AbstractDataset` (e.g. ``img_transforms``, ``sample_transforms``)
     """
 
-    def __init__(self, img_folder: str, label_path: str, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        img_folder: str,
+        label_path: str,
+        use_polygons: bool = False,
+        **kwargs: Any,
+    ) -> None:
         super().__init__(img_folder, **kwargs)
 
         if not os.path.exists(label_path):
@@ -69,6 +78,8 @@ class TableStructureDataset(AbstractDataset):
                 raise ValueError(f"cells are expected to have shape (N, 4, 2), got {cells.shape}")
             if logic.shape[0] != cells.shape[0] or logic.shape[1] != 4:  # pragma: no cover
                 raise ValueError(f"logic is expected to have shape (N, 4), got {logic.shape}")
+            if not use_polygons:
+                cells = np.concatenate((cells.min(axis=1), cells.max(axis=1)), axis=1)
             self.data.append((img_name, {"cells": cells, "logic": logic}))
 
     # NOTE: Override basic dataset method __getitem__ to handle table-specific targets

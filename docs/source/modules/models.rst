@@ -88,6 +88,14 @@ doctr.models.layout
 .. autofunction:: doctr.models.layout.layout_predictor
 
 
+doctr.models.table_structure
+----------------------------
+
+.. autofunction:: doctr.models.table_structure.tablecenternet
+
+.. autofunction:: doctr.models.table_structure.table_predictor
+
+
 doctr.models.recognition
 ------------------------
 
