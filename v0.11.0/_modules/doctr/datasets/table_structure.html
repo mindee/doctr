@@ -326,7 +326,9 @@
 <span class="sd">            ...</span>
 <span class="sd">        }</span>
 
-<span class="sd">    Each sample yields the image and a ``{&quot;cells&quot;: (N, 4, 2) relative polygons, &quot;logic&quot;: (N, 4)}`` target.</span>
+<span class="sd">    Each sample yields the image and a target containing relative cells and their logical coordinates. Cells have</span>
+<span class="sd">    shape `(N, 4)` by default, or `(N, 4, 2)` when `use_polygons=True`. Logical coordinates have shape</span>
+<span class="sd">    `(N, 4)`.</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import TableStructureDataset</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.transforms import Resize</span>
@@ -339,10 +341,17 @@
 <span class="sd">    Args:</span>
 <span class="sd">        img_folder: folder with all the dataset images</span>
 <span class="sd">        label_path: path to the JSON labels</span>
+<span class="sd">        use_polygons: whether to keep cell polygons instead of converting them to straight boxes</span>
 <span class="sd">        **kwargs: keyword arguments from `AbstractDataset` (e.g. ``img_transforms``, ``sample_transforms``)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">label_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">img_folder</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">label_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">):</span>
@@ -363,6 +372,8 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;cells are expected to have shape (N, 4, 2), got </span><span class="si">{</span><span class="n">cells</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">logic</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">logic</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;logic is expected to have shape (N, 4), got </span><span class="si">{</span><span class="n">logic</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">use_polygons</span><span class="p">:</span>
+                <span class="n">cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">cells</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">cells</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_name</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;cells&quot;</span><span class="p">:</span> <span class="n">cells</span><span class="p">,</span> <span class="s2">&quot;logic&quot;</span><span class="p">:</span> <span class="n">logic</span><span class="p">}))</span>
 
     <span class="c1"># NOTE: Override basic dataset method __getitem__ to handle table-specific targets</span>

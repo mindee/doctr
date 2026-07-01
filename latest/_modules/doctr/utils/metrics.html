@@ -630,25 +630,30 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">TableCellMetric</span><span class="p">:</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Implements a table-structure-recognition metric.</span>
 
-<span class="sd">    Predicted cells are matched to ground-truth cells by maximising the total polygon IoU (Hungarian</span>
-<span class="sd">    assignment); a pair counts as a match when its IoU is at least ``iou_thresh``. From the matches it</span>
-<span class="sd">    reports cell-detection recall / precision / F1 and the **structure accuracy** (the fraction of matched</span>
-<span class="sd">    cells whose logical coordinates ``[start_col, end_col, start_row, end_row]`` exactly equal the</span>
-<span class="sd">    ground-truth ones).</span>
+<span class="sd">    Predicted cells are matched to ground-truth cells by maximising the total IoU (Hungarian assignment); a pair</span>
+<span class="sd">    counts as a match when its IoU is at least `iou_thresh`. From the matches it reports cell-detection recall,</span>
+<span class="sd">    precision, F1 and the **structure accuracy** (the fraction of matched cells whose logical coordinates</span>
+<span class="sd">    `[start_col, end_col, start_row, end_row]` exactly equal the ground-truth ones).</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.utils import TableCellMetric</span>
 <span class="sd">    &gt;&gt;&gt; metric = TableCellMetric(iou_thresh=0.5)</span>
-<span class="sd">    &gt;&gt;&gt; gt = np.array([[[0, 0], [1, 0], [1, 1], [0, 1]]], dtype=np.float32)</span>
+<span class="sd">    &gt;&gt;&gt; gt = np.array([[0, 0, 1, 1]], dtype=np.float32)</span>
 <span class="sd">    &gt;&gt;&gt; metric.update(gt, np.array([[0, 0, 0, 0]]), gt, np.array([[0, 0, 0, 0]]))</span>
 <span class="sd">    &gt;&gt;&gt; metric.summary()</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        iou_thresh: minimum polygon IoU for a predicted/ground-truth cell pair to be considered a match</span>
+<span class="sd">        iou_thresh: minimum IoU for a predicted/ground-truth cell pair to be considered a match</span>
+<span class="sd">        use_polygons: if set to True, predictions and targets will be expected to have polygon format</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">iou_thresh</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span> <span class="o">=</span> <span class="n">iou_thresh</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span> <span class="o">=</span> <span class="n">use_polygons</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
 
 <div class="viewcode-block" id="TableCellMetric.update">
@@ -663,9 +668,9 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the metric with one sample.</span>
 
 <span class="sd">        Args:</span>
-<span class="sd">            gt_cells: ground-truth cell polygons, shape (N, 4, 2)</span>
+<span class="sd">            gt_cells: ground-truth cells, shape (N, 4) or (N, 4, 2) when `use_polygons=True`</span>
 <span class="sd">            gt_logic: ground-truth logical coordinates, shape (N, 4)</span>
-<span class="sd">            pred_cells: predicted cell polygons, shape (M, 4, 2)</span>
+<span class="sd">            pred_cells: predicted cells, shape (M, 4) or (M, 4, 2) when `use_polygons=True`</span>
 <span class="sd">            pred_logic: predicted logical coordinates, shape (M, 4)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">+=</span> <span class="n">gt_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -673,7 +678,10 @@
         <span class="k">if</span> <span class="n">gt_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">pred_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span>
 
-        <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span><span class="n">gt_cells</span><span class="p">,</span> <span class="n">pred_cells</span><span class="p">)</span>  <span class="c1"># (N, M)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_polygons</span><span class="p">:</span>
+            <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">polygon_iou</span><span class="p">(</span><span class="n">gt_cells</span><span class="p">,</span> <span class="n">pred_cells</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">iou_mat</span> <span class="o">=</span> <span class="n">box_iou</span><span class="p">(</span><span class="n">gt_cells</span><span class="p">,</span> <span class="n">pred_cells</span><span class="p">)</span>
         <span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span> <span class="o">=</span> <span class="n">linear_sum_assignment</span><span class="p">(</span><span class="o">-</span><span class="n">iou_mat</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">gi</span><span class="p">,</span> <span class="n">pi</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">gt_idx</span><span class="p">,</span> <span class="n">pred_idx</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">iou_mat</span><span class="p">[</span><span class="n">gi</span><span class="p">,</span> <span class="n">pi</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iou_thresh</span><span class="p">:</span>
@@ -688,7 +696,7 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the aggregated metrics.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            a dict with ``recall``, ``precision``, ``f1`` (cell detection) and ``structure_acc``</span>
+<span class="sd">            a dict with `recall`, `precision`, `f1` (cell detection) and `structure_acc`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gts</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">matches</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_preds</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>

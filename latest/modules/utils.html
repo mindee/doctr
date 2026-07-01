@@ -799,24 +799,26 @@ to have rotated format</p></li>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.utils.metrics.TableCellMetric">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.utils.metrics.</span></span><span class="sig-name descname"><span class="pre">TableCellMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iou_thresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#TableCellMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.TableCellMetric" title="Link to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">doctr.utils.metrics.</span></span><span class="sig-name descname"><span class="pre">TableCellMetric</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iou_thresh</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_polygons</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/utils/metrics.html#TableCellMetric"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.utils.metrics.TableCellMetric" title="Link to this definition">¶</a></dt>
 <dd><p>Implements a table-structure-recognition metric.</p>
-<p>Predicted cells are matched to ground-truth cells by maximising the total polygon IoU (Hungarian
-assignment); a pair counts as a match when its IoU is at least <code class="docutils literal notranslate"><span class="pre">iou_thresh</span></code>. From the matches it
-reports cell-detection recall / precision / F1 and the <strong>structure accuracy</strong> (the fraction of matched
-cells whose logical coordinates <code class="docutils literal notranslate"><span class="pre">[start_col,</span> <span class="pre">end_col,</span> <span class="pre">start_row,</span> <span class="pre">end_row]</span></code> exactly equal the
-ground-truth ones).</p>
+<p>Predicted cells are matched to ground-truth cells by maximising the total IoU (Hungarian assignment); a pair
+counts as a match when its IoU is at least <cite>iou_thresh</cite>. From the matches it reports cell-detection recall,
+precision, F1 and the <strong>structure accuracy</strong> (the fraction of matched cells whose logical coordinates
+<cite>[start_col, end_col, start_row, end_row]</cite> exactly equal the ground-truth ones).</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">TableCellMetric</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span> <span class="o">=</span> <span class="n">TableCellMetric</span><span class="p">(</span><span class="n">iou_thresh</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">gt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">gt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]),</span> <span class="n">gt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]]))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">metric</span><span class="o">.</span><span class="n">summary</span><span class="p">()</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>iou_thresh</strong> – minimum polygon IoU for a predicted/ground-truth cell pair to be considered a match</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>iou_thresh</strong> – minimum IoU for a predicted/ground-truth cell pair to be considered a match</p></li>
+<li><p><strong>use_polygons</strong> – if set to True, predictions and targets will be expected to have polygon format</p></li>
+</ul>
 </dd>
 </dl>
 <dl class="py method">
@@ -826,9 +828,9 @@ ground-truth ones).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gt_cells</strong> – ground-truth cell polygons, shape (N, 4, 2)</p></li>
+<li><p><strong>gt_cells</strong> – ground-truth cells, shape (N, 4) or (N, 4, 2) when <cite>use_polygons=True</cite></p></li>
 <li><p><strong>gt_logic</strong> – ground-truth logical coordinates, shape (N, 4)</p></li>
-<li><p><strong>pred_cells</strong> – predicted cell polygons, shape (M, 4, 2)</p></li>
+<li><p><strong>pred_cells</strong> – predicted cells, shape (M, 4) or (M, 4, 2) when <cite>use_polygons=True</cite></p></li>
 <li><p><strong>pred_logic</strong> – predicted logical coordinates, shape (M, 4)</p></li>
 </ul>
 </dd>
@@ -841,7 +843,7 @@ ground-truth ones).</p>
 <dd><p>Compute the aggregated metrics.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>a dict with <code class="docutils literal notranslate"><span class="pre">recall</span></code>, <code class="docutils literal notranslate"><span class="pre">precision</span></code>, <code class="docutils literal notranslate"><span class="pre">f1</span></code> (cell detection) and <code class="docutils literal notranslate"><span class="pre">structure_acc</span></code></p>
+<dd class="field-odd"><p>a dict with <cite>recall</cite>, <cite>precision</cite>, <cite>f1</cite> (cell detection) and <cite>structure_acc</cite></p>
 </dd>
 </dl>
 </dd></dl>

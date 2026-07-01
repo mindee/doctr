@@ -322,6 +322,7 @@
     <span class="s2">&quot;detection&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">detection</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;recognition&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
     <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
+    <span class="s2">&quot;table_structure&quot;</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">table_structure</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span><span class="p">,</span>
 <span class="p">}</span>
 
 
@@ -393,8 +394,8 @@
 
     <span class="k">if</span> <span class="n">run_config</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">arch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;run_config or arch must be specified&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">,</span> <span class="s2">&quot;detection&quot;</span><span class="p">,</span> <span class="s2">&quot;recognition&quot;</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition, layout&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">task</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;classification&quot;</span><span class="p">,</span> <span class="s2">&quot;detection&quot;</span><span class="p">,</span> <span class="s2">&quot;recognition&quot;</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">,</span> <span class="s2">&quot;table_structure&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;task must be one of classification, detection, recognition, layout, table_structure&quot;</span><span class="p">)</span>
 
     <span class="c1"># default readme</span>
     <span class="n">readme</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;---</span>
@@ -518,6 +519,8 @@
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">recognition</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">],</span> <span class="n">vocab</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">])</span>
     <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;layout&quot;</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s2">&quot;table_structure&quot;</span><span class="p">:</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">table_structure</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">arch</span><span class="p">](</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="c1"># update model cfg</span>
     <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">cfg</span>

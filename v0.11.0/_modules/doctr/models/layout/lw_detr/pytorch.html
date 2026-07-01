@@ -308,7 +308,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">vit_det_m</span><span class="p">,</span> <span class="n">vit_det_s</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_pretrained_params</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_LWDETR</span><span class="p">,</span> <span class="n">LWDETRPostProcessor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.layers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">LWDETRDecoder</span><span class="p">,</span>
@@ -847,6 +847,9 @@
         <span class="n">pred_boxes</span> <span class="o">=</span> <span class="n">refine_obb_boxes</span><span class="p">(</span><span class="n">intermediate_reference_points</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">pred_boxes_delta</span><span class="p">)</span>
 
         <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">logits</span><span class="p">)</span>
+        <span class="n">pred_boxes</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">pred_boxes</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
             <span class="n">out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
