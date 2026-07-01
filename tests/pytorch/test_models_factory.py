@@ -24,6 +24,7 @@ def test_push_to_hf_hub():
 @pytest.mark.parametrize(
     "arch_name, task_name, dummy_model_id",
     [
+        # Classification
         ["vgg16_bn_r", "classification", "Felix92/doctr-dummy-torch-vgg16-bn-r"],
         ["resnet18", "classification", "Felix92/doctr-dummy-torch-resnet18"],
         ["resnet31", "classification", "Felix92/doctr-dummy-torch-resnet31"],
@@ -36,12 +37,14 @@ def test_push_to_hf_hub():
         ["vit_s", "classification", "Felix92/doctr-dummy-torch-vit-s"],
         ["vit_det_s", "classification", "Felix92/doctr-dummy-torch-vit-det-s"],
         ["textnet_tiny", "classification", "Felix92/doctr-dummy-torch-textnet-tiny"],
+        # Detection
         ["db_resnet34", "detection", "Felix92/doctr-dummy-torch-db-resnet34"],
         ["db_resnet50", "detection", "Felix92/doctr-dummy-torch-db-resnet50"],
         ["db_mobilenet_v3_large", "detection", "Felix92/doctr-dummy-torch-db-mobilenet-v3-large"],
         ["linknet_resnet18", "detection", "Felix92/doctr-dummy-torch-linknet-resnet18"],
         ["linknet_resnet34", "detection", "Felix92/doctr-dummy-torch-linknet-resnet34"],
         ["linknet_resnet50", "detection", "Felix92/doctr-dummy-torch-linknet-resnet50"],
+        # Recognition
         ["crnn_vgg16_bn", "recognition", "Felix92/doctr-dummy-torch-crnn-vgg16-bn"],
         ["crnn_mobilenet_v3_small", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-small"],
         ["crnn_mobilenet_v3_large", "recognition", "Felix92/doctr-dummy-torch-crnn-mobilenet-v3-large"],
@@ -50,7 +53,10 @@ def test_push_to_hf_hub():
         ["vitstr_small", "recognition", "Felix92/doctr-dummy-torch-vitstr-small"],
         ["parseq", "recognition", "Felix92/doctr-dummy-torch-parseq"],
         ["viptr_tiny", "recognition", "Felix92/doctr-dummy-torch-viptr-tiny"],
+        # Layout
         ["lw_detr_s", "layout", "Felix92/doctr-dummy-torch-lw-detr-s"],
+        # Table structure
+        ["tablecenternet", "table_structure", "Felix92/doctr-dummy-torch-tablecenternet"],
     ],
 )
 def test_models_huggingface_hub(arch_name, task_name, dummy_model_id, tmpdir):
