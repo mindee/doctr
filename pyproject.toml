@@ -72,7 +72,8 @@ testing = [
     "coverage[toml]>=4.5.4",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
-    "psutil>=5.9.5"
+    "psutil>=5.9.5",
+    "pandas>=2.0.0",
 ]
 quality = [
     "ruff>=0.1.5",
@@ -104,7 +105,7 @@ dev = [
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
     "psutil>=5.9.5",
-    "pandas>=3.0.0",
+    "pandas>=2.0.0",
     # Quality
     "ruff>=0.3.0",
     "mypy>=1.0",
