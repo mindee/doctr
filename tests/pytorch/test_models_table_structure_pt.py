@@ -94,7 +94,7 @@ def test_table_models(arch_name, input_shape, train_mode, assume_straight_pages)
 def test_table_structure_zoo(arch_name, assume_straight_pages):
     predictor = table_structure.zoo.table_predictor(
         arch_name,
-        pretrained=False,
+        pretrained=True,
         assume_straight_pages=assume_straight_pages,
     )
     predictor.model = predictor.model.eval()
@@ -125,7 +125,7 @@ def test_table_structure_zoo(arch_name, assume_straight_pages):
 def test_models_onnx_export(arch_name, input_shape):
     # Model
     batch_size = 2
-    model = table_structure.__dict__[arch_name](pretrained=False, exportable=True).eval()
+    model = table_structure.__dict__[arch_name](pretrained=True, exportable=True).eval()
     dummy_input = torch.rand((batch_size, *input_shape), dtype=torch.float32)
     head_names = list(model.heads.keys())
     pt = model(dummy_input)
@@ -163,7 +163,7 @@ def test_models_onnx_export(arch_name, input_shape):
 )
 def test_torch_compiled_models(arch_name):
     page = (255 * np.random.rand(1024, 1024, 3)).astype(np.uint8)
-    predictor = table_structure.zoo.table_predictor(arch_name, pretrained=False)
+    predictor = table_structure.zoo.table_predictor(arch_name, pretrained=True)
     assert isinstance(predictor, TablePredictor)
     out = predictor([page])
 
