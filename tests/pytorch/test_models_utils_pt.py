@@ -274,7 +274,7 @@ _NEAREST_FOLDS = {"ą": "a", "ó": "o", "ń": "n", "ł": "l"}
 
 
 def _force_and_decode(model, target_char, **whitelist_kwargs):
-    """Bias the model to prefer ``target_char``, apply the whitelist, return the decoded word."""
+    """Bias the model to prefer `target_char`, apply the whitelist, return the decoded word."""
     from doctr.models.utils.pytorch import _vocab_projections, add_whitelist
 
     forbidden_idx = model.vocab.index(target_char)

@@ -3,7 +3,7 @@ import pytest
 
 from doctr.file_utils import CLASS_NAME
 from doctr.io import Document
-from doctr.io.elements import KIEDocument, LayoutElement
+from doctr.io.elements import KIEDocument, LayoutElement, Table
 from doctr.models import builder
 
 words_per_page = 10
@@ -246,6 +246,114 @@ def test_documentbuilder_layout():
     region = out_rot.pages[0].layout[0]
     assert region.type == "Table"
     assert isinstance(region.geometry, tuple) and len(region.geometry) == 4
+
+
+def _table_cell(x0, y0, x1, y1, rs, re, cs, ce, score=0.9):
+    return {
+        "geometry": [[x0, y0], [x1, y0], [x1, y1], [x0, y1]],
+        "score": score,
+        "row_start": rs,
+        "row_end": re,
+        "col_start": cs,
+        "col_end": ce,
+    }
+
+
+def test_documentbuilder_tables():
+    doc_builder = builder.DocumentBuilder(resolve_lines=True)
+
+    # 4 words inside a top table, 2 inside a bottom table, 1 caption outside both
+    def wbox(cx, cy, w=0.04, h=0.02):
+        return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2]
+
+    words = [
+        ("Name", 0.17, 0.15),
+        ("Age", 0.36, 0.15),
+        ("Alice", 0.17, 0.27),
+        ("30", 0.36, 0.27),
+        ("City", 0.17, 0.63),
+        ("Pop", 0.36, 0.63),
+        ("caption", 0.30, 0.92),
+    ]
+    boxes = np.array([wbox(cx, cy) for _, cx, cy in words], dtype=np.float32)
+    text_preds = [[(w, 0.95) for w, _, _ in words]]
+    objectness_scores = np.full(len(words), 0.9, dtype=np.float32)
+    orientations = [[{"value": 0, "confidence": None}] * len(words)]
+
+    # The OCR pipeline passes a list of grids (one per cropped table region), in page-relative coordinates.
+    # The bottom table uses offset (1-based) logical coordinates to exercise local re-indexing.
+    table_top = {
+        "cells": [
+            _table_cell(0.10, 0.10, 0.25, 0.20, 0, 0, 0, 0),
+            _table_cell(0.28, 0.10, 0.45, 0.20, 0, 0, 1, 1),
+            _table_cell(0.10, 0.22, 0.25, 0.32, 1, 1, 0, 0),
+            _table_cell(0.28, 0.22, 0.45, 0.32, 1, 1, 1, 1),
+        ],
+        "num_rows": 2,
+        "num_cols": 2,
+    }
+    table_bottom = {
+        "cells": [
+            _table_cell(0.10, 0.58, 0.25, 0.68, 1, 1, 1, 1),
+            _table_cell(0.28, 0.58, 0.45, 0.68, 1, 1, 2, 2),
+        ],
+        "num_rows": 99,  # deliberately wrong dims -> recomputed from local coordinates
+        "num_cols": 99,
+    }
+
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [objectness_scores],
+        text_preds,
+        [(100, 100)],
+        orientations,
+        tables=[[table_top, table_bottom]],
+    )
+    page = out.pages[0]
+
+    # One Table per provided grid
+    assert len(page.tables) == 2
+    assert all(isinstance(t, Table) for t in page.tables)
+    assert page.tables[0].to_grid() == [["Name", "Age"], ["Alice", "30"]]
+    # bottom table re-indexed from offset coordinates to a local 0-based 1 x 2 grid
+    assert (page.tables[1].num_rows, page.tables[1].num_cols) == (1, 2)
+    assert page.tables[1].to_grid() == [["City", "Pop"]]
+
+    # Words assigned to a table are removed from the blocks; the caption remains
+    remaining = [w.value for b in page.blocks for line in b.lines for w in line.words]
+    assert remaining == ["caption"]
+
+    # Tables are part of the page export
+    exported = page.export()
+    assert len(exported["tables"]) == 2
+    assert page.tables[0].to_grid() == [["Name", "Age"], ["Alice", "30"]]
+
+    # A single grid (dict) is also accepted -> one table
+    out_single = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes[:4]],
+        [objectness_scores[:4]],
+        [text_preds[0][:4]],
+        [(100, 100)],
+        [orientations[0][:4]],
+        tables=[table_top],
+    )
+    assert len(out_single.pages[0].tables) == 1
+
+    # No tables -> empty page.tables and every word is kept in the blocks
+    out_none = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [objectness_scores],
+        text_preds,
+        [(100, 100)],
+        orientations,
+    )
+    assert out_none.pages[0].tables == []
+    assert out_none.pages[0].export()["tables"] == []
+    kept = sorted(w.value for b in out_none.pages[0].blocks for line in b.lines for w in line.words)
+    assert kept == sorted(w for w, _, _ in words)
 
 
 def test_kiedocumentbuilder_layout():

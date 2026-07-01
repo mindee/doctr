@@ -48,7 +48,7 @@ class TableStructureDataset(AbstractDataset):
         img_folder: folder with all the dataset images
         label_path: path to the JSON labels
         use_polygons: whether to keep cell polygons instead of converting them to straight boxes
-        **kwargs: keyword arguments from `AbstractDataset` (e.g. ``img_transforms``, ``sample_transforms``)
+        **kwargs: keyword arguments from `AbstractDataset` (e.g. `img_transforms`, `sample_transforms`)
     """
 
     def __init__(

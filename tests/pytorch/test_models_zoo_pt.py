@@ -6,7 +6,7 @@ from torch import nn
 from doctr import models
 from doctr.file_utils import CLASS_NAME
 from doctr.io import Document, DocumentFile
-from doctr.io.elements import KIEDocument, LayoutElement
+from doctr.io.elements import KIEDocument, LayoutElement, Table
 from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
 from doctr.models.classification.zoo import crop_orientation_predictor, page_orientation_predictor
@@ -19,6 +19,8 @@ from doctr.models.predictor import OCRPredictor
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
 from doctr.models.recognition.zoo import recognition_predictor
+from doctr.models.table_structure.predictor import TablePredictor
+from doctr.models.table_structure.zoo import table_predictor
 
 
 # Create a dummy callback
@@ -212,6 +214,56 @@ def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
     out = predictor(doc)
 
     assert out.pages[0].blocks[0].lines[0].words[0].value == "Mr."
+
+
+def test_ocrpredictor_tables(mock_pdf, mock_vocab):
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=2),
+        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, assume_straight_pages=True),
+    )
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab),
+    )
+    layout_pred = layout_predictor("lw_detr_s", pretrained=False)
+    table_pred = table_predictor("tablecenternet", pretrained=False)
+
+    # A table predictor requires a layout predictor (tables are located with the layout model)
+    with pytest.raises(ValueError):
+        OCRPredictor(det_predictor, reco_predictor, table_predictor=table_pred)
+
+    doc = DocumentFile.from_pdf(mock_pdf)
+
+    # Without a table predictor -> pages carry an empty list of tables
+    predictor = OCRPredictor(det_predictor, reco_predictor)
+    assert predictor.table_predictor is None
+    out = predictor(doc)
+    assert all(page.tables == [] for page in out.pages)
+    assert all(page.export()["tables"] == [] for page in out.pages)
+
+    # With layout + table predictors -> structured tables are attached and exported
+    predictor = OCRPredictor(det_predictor, reco_predictor, layout_predictor=layout_pred, table_predictor=table_pred)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+    assert isinstance(predictor.table_predictor, TablePredictor)
+    out = predictor(doc)
+    assert isinstance(out, Document)
+    for page in out.pages:
+        assert isinstance(page.tables, list)
+        assert all(isinstance(t, Table) for t in page.tables)
+        exported = page.export()
+        assert "tables" in exported
+        assert exported["tables"] == [t.export() for t in page.tables]
+
+
+def test_ocrpredictor_tables_factory():
+    # The factory exposes a single `detect_tables` flag, which also enables the layout model
+    predictor = models.ocr_predictor("db_mobilenet_v3_large", "crnn_vgg16_bn", pretrained=False, detect_tables=True)
+    assert isinstance(predictor.table_predictor, TablePredictor)
+    assert isinstance(predictor.layout_predictor, LayoutPredictor)
+
+    # No tables by default
+    predictor = models.ocr_predictor("db_mobilenet_v3_large", "crnn_vgg16_bn", pretrained=False)
+    assert predictor.table_predictor is None
 
 
 def test_trained_ocr_predictor(mock_pdf, mock_vocab, mock_payslip):

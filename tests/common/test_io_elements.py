@@ -1,6 +1,7 @@
 from xml.etree.ElementTree import ElementTree
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from doctr.file_utils import CLASS_NAME
@@ -271,6 +272,96 @@ def test_layout_element():
     assert region.export() == state_dict
 
 
+def test_table_cell():
+    geom = ((0.1, 0.1), (0.3, 0.2))
+    cell = elements.TableCell(
+        value="hello", confidence=0.9, geometry=geom, row_start=0, row_end=1, col_start=2, col_end=2
+    )
+
+    # Attribute checks
+    assert cell.value == "hello"
+    assert cell.confidence == 0.9
+    assert cell.geometry == geom
+    assert (cell.row_start, cell.row_end, cell.col_start, cell.col_end) == (0, 1, 2, 2)
+    assert cell.row_span == 2 and cell.col_span == 1
+
+    # Render
+    assert cell.render() == "hello"
+
+    # Export
+    assert cell.export() == {
+        "geometry": geom,
+        "value": "hello",
+        "confidence": 0.9,
+        "row_start": 0,
+        "row_end": 1,
+        "col_start": 2,
+        "col_end": 2,
+    }
+
+    # Class method
+    cell2 = elements.TableCell.from_dict(cell.export())
+    assert cell2.export() == cell.export()
+
+
+def _mock_table():
+    # 2 x 2 table
+    cells = [
+        elements.TableCell("Name", 0.9, ((0.1, 0.1), (0.3, 0.2)), 0, 0, 0, 0),
+        elements.TableCell("Age", 0.9, ((0.3, 0.1), (0.5, 0.2)), 0, 0, 1, 1),
+        elements.TableCell("Alice", 0.9, ((0.1, 0.2), (0.3, 0.3)), 1, 1, 0, 0),
+        elements.TableCell("30", 0.9, ((0.3, 0.2), (0.5, 0.3)), 1, 1, 1, 1),
+    ]
+    return elements.Table(cells=cells, num_rows=2, num_cols=2, geometry=((0.1, 0.1), (0.5, 0.3)), confidence=0.9)
+
+
+def test_table():
+    table = _mock_table()
+
+    # Attribute checks
+    assert table.num_rows == 2 and table.num_cols == 2
+    assert len(table.cells) == 4
+    assert all(isinstance(c, elements.TableCell) for c in table.cells)
+
+    # Grid + render
+    assert table.to_grid() == [["Name", "Age"], ["Alice", "30"]]
+    assert table.render() == "Name\tAge\nAlice\t30"
+
+    # Pandas
+    df = pd.DataFrame(table.to_grid())
+    assert df.shape == (2, 2)
+    assert df.values.tolist() == [["Name", "Age"], ["Alice", "30"]]
+    # With a header row
+    table_grid = table.to_grid()
+    df_h = pd.DataFrame(table_grid[1:], columns=table_grid[0])
+    assert list(df_h.columns) == ["Name", "Age"]
+    assert df_h.values.tolist() == [["Alice", "30"]]
+
+    # Spanning cell: value placed at top-left of its span, the rest left empty
+    spanned = elements.Table(
+        cells=[
+            elements.TableCell("merged", 0.9, ((0.0, 0.0), (1.0, 0.5)), 0, 0, 0, 1),
+            elements.TableCell("a", 0.9, ((0.0, 0.5), (0.5, 1.0)), 1, 1, 0, 0),
+            elements.TableCell("b", 0.9, ((0.5, 0.5), (1.0, 1.0)), 1, 1, 1, 1),
+        ],
+        num_rows=2,
+        num_cols=2,
+        geometry=((0.0, 0.0), (1.0, 1.0)),
+    )
+    assert spanned.to_grid() == [["merged", ""], ["a", "b"]]
+
+    # Export
+    exported = table.export()
+    assert set(exported.keys()) == {"geometry", "num_rows", "num_cols", "confidence", "cells"}
+    assert exported["cells"] == [c.export() for c in table.cells]
+
+    # Class method round-trip
+    assert elements.Table.from_dict(table.export()).export() == table.export()
+
+    # Repr
+    assert table.__repr__().startswith("Table(")
+
+
 def test_prediction():
     prediction_str = "hello"
     conf = 0.8
@@ -372,6 +463,7 @@ def test_page():
         "orientation": orientation,
         "language": language,
         "layout": [r.export() for r in layout],
+        "tables": [],
     }
 
     # Export XML

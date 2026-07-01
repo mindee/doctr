@@ -93,11 +93,11 @@ def _deform_conv2d(
 ) -> torch.Tensor:
     """Modulated deformable convolution (DCNv2).
 
-    Numerically equivalent to ``torchvision.ops.deform_conv2d`` (same offset/mask channel layout and bilinear
-    convention) but built only from ``grid_sample`` + ``conv2d``, so the model is ONNX-exportable (the
-    ``torchvision::deform_conv2d`` operator has no ONNX symbolic). ``offset`` is laid out as torchvision
-    expects: for kernel position ``k = kh * Kw + kw``, ``offset[:, 2 * k]`` is the vertical offset and
-    ``offset[:, 2 * k + 1]`` the horizontal one; ``mask[:, k]`` is the modulation.
+    Numerically equivalent to `torchvision.ops.deform_conv2d` (same offset/mask channel layout and bilinear
+    convention) but built only from `grid_sample` + `conv2d`, so the model is ONNX-exportable (the
+    `torchvision::deform_conv2d` operator has no ONNX symbolic). `offset` is laid out as torchvision
+    expects: for kernel position `k = kh * Kw + kw`, `offset[:, 2 * k]` is the vertical offset and
+    `offset[:, 2 * k + 1]` the horizontal one; `mask[:, k]` is the modulation.
 
     Args:
         x: input feature map, shape (N, C, H, W)
