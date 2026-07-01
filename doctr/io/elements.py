@@ -34,6 +34,8 @@ __all__ = [
     "KIEDocument",
     "Document",
     "LayoutElement",
+    "TableCell",
+    "Table",
 ]
 
 
@@ -178,6 +180,136 @@ class LayoutElement(Element):
         return cls(layout_type=kwargs["type"], confidence=kwargs["confidence"], geometry=kwargs["geometry"])
 
 
+class TableCell(Element):
+    """Implements a single cell of a recognized table
+
+    Args:
+        value: the text content of the cell (words assigned to the cell, joined together)
+        confidence: the mean recognition confidence of the words assigned to the cell
+        geometry: bounding box of the cell in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon,
+            with coordinates relative to the page's size
+        row_start: index of the first row spanned by the cell (0-indexed)
+        row_end: index of the last row spanned by the cell (0-indexed, inclusive)
+        col_start: index of the first column spanned by the cell (0-indexed)
+        col_end: index of the last column spanned by the cell (0-indexed, inclusive)
+    """
+
+    _exported_keys: list[str] = [
+        "geometry",
+        "value",
+        "confidence",
+        "row_start",
+        "row_end",
+        "col_start",
+        "col_end",
+    ]
+    _children_names: list[str] = []
+
+    def __init__(
+        self,
+        value: str,
+        confidence: float,
+        geometry: BoundingBox | np.ndarray,
+        row_start: int,
+        row_end: int,
+        col_start: int,
+        col_end: int,
+    ) -> None:
+        super().__init__()
+        self.value = value
+        self.confidence = confidence
+        self.geometry = geometry
+        self.row_start = row_start
+        self.row_end = row_end
+        self.col_start = col_start
+        self.col_end = col_end
+
+    @property
+    def row_span(self) -> int:
+        """Number of rows spanned by the cell"""
+        return self.row_end - self.row_start + 1
+
+    @property
+    def col_span(self) -> int:
+        """Number of columns spanned by the cell"""
+        return self.col_end - self.col_start + 1
+
+    def render(self) -> str:
+        """Renders the cell text"""
+        return self.value
+
+    def extra_repr(self) -> str:
+        return f"value='{self.value}', rows=({self.row_start}, {self.row_end}), cols=({self.col_start}, {self.col_end})"
+
+    @classmethod
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        return cls(**kwargs)
+
+
+class Table(Element):
+    """Implements a table recognized on a page as a grid of cells
+
+    The recognized text of the words falling inside the table is regrouped here and removed from the
+    regular `blocks` output of the page, so it is not duplicated. The structured content can be loaded
+    directly into pandas, e.g. `pd.DataFrame(table.to_grid())`.
+
+    Args:
+        cells: list of `TableCell` objects composing the table
+        num_rows: number of rows of the table
+        num_cols: number of columns of the table
+        geometry: bounding box enclosing the whole table, with coordinates relative to the page's size
+        confidence: the confidence of the table structure prediction
+    """
+
+    _exported_keys: list[str] = ["geometry", "num_rows", "num_cols", "confidence"]
+    _children_names: list[str] = ["cells"]
+    cells: list[TableCell] = []
+
+    def __init__(
+        self,
+        cells: list[TableCell],
+        num_rows: int,
+        num_cols: int,
+        geometry: BoundingBox | np.ndarray,
+        confidence: float = 1.0,
+    ) -> None:
+        super().__init__(cells=cells)
+        self.num_rows = num_rows
+        self.num_cols = num_cols
+        self.geometry = geometry
+        self.confidence = confidence
+
+    def to_grid(self) -> list[list[str]]:
+        """Return the table content as a dense `num_rows` x `num_cols` grid of strings.
+
+        Cells spanning several rows/columns have their value placed at their top-left position; the
+        remaining positions they span are left empty. The result is directly loadable into pandas via
+        `pd.DataFrame(table.to_grid())`.
+
+        Returns:
+            a list of `num_rows` lists, each of length `num_cols`
+        """
+        grid = [["" for _ in range(self.num_cols)] for _ in range(self.num_rows)]
+        for cell in self.cells:
+            if 0 <= cell.row_start < self.num_rows and 0 <= cell.col_start < self.num_cols:
+                grid[cell.row_start][cell.col_start] = cell.value
+        return grid
+
+    def render(self, row_break: str = "\n", col_break: str = "\t") -> str:
+        """Renders the table as plain text (tab-separated values)"""
+        return row_break.join(col_break.join(row) for row in self.to_grid())
+
+    def extra_repr(self) -> str:
+        return f"num_rows={self.num_rows}, num_cols={self.num_cols}, confidence={self.confidence:.2}"
+
+    @classmethod
+    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
+        kwargs = {k: save_dict[k] for k in cls._exported_keys}
+        kwargs["cells"] = [TableCell.from_dict(cell) for cell in save_dict["cells"]]
+        return cls(**kwargs)
+
+
 class Line(Element):
     """Implements a line element as a collection of words
 
@@ -299,12 +431,14 @@ class Page(Element):
         orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction
         language: a dictionary with the language value and confidence of the prediction
         layout: optional list of layout regions detected on the page
+        tables: optional list of tables recognized on the page. Words assigned to a table are removed from `blocks`.
     """
 
     _exported_keys: list[str] = ["page_idx", "dimensions", "orientation", "language"]
-    _children_names: list[str] = ["blocks", "layout"]
+    _children_names: list[str] = ["blocks", "layout", "tables"]
     blocks: list[Block] = []
     layout: list[LayoutElement] = []
+    tables: list[Table] = []
 
     def __init__(
         self,
@@ -315,8 +449,13 @@ class Page(Element):
         orientation: dict[str, Any] | None = None,
         language: dict[str, Any] | None = None,
         layout: list[LayoutElement] | None = None,
+        tables: list[Table] | None = None,
     ) -> None:
-        super().__init__(blocks=blocks, layout=layout if layout is not None else [])
+        super().__init__(
+            blocks=blocks,
+            layout=layout if layout is not None else [],
+            tables=tables if tables is not None else [],
+        )
         self.page = page
         self.page_idx = page_idx
         self.dimensions = dimensions
@@ -337,7 +476,7 @@ class Page(Element):
             interactive: whether the display should be interactive
             preserve_aspect_ratio: pass True if you passed True to the predictor
             **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method
-                (e.g. ``display_layout=False`` to hide detected layout regions)
+                (e.g. `display_layout=False` to hide detected layout regions)
         """
         requires_package("matplotlib", "`.show()` requires matplotlib & mplcursors installed")
         requires_package("mplcursors", "`.show()` requires matplotlib & mplcursors installed")
@@ -474,6 +613,7 @@ class Page(Element):
         kwargs.update({
             "blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]],
             "layout": [LayoutElement.from_dict(region_dict) for region_dict in save_dict.get("layout", [])],
+            "tables": [Table.from_dict(table_dict) for table_dict in save_dict.get("tables", [])],
         })
         return cls(**kwargs)
 

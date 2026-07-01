@@ -9,7 +9,19 @@ from typing import Any
 import numpy as np
 from scipy.cluster.hierarchy import fclusterdata
 
-from doctr.io.elements import Block, Document, KIEDocument, KIEPage, LayoutElement, Line, Page, Prediction, Word
+from doctr.io.elements import (
+    Block,
+    Document,
+    KIEDocument,
+    KIEPage,
+    LayoutElement,
+    Line,
+    Page,
+    Prediction,
+    Table,
+    TableCell,
+    Word,
+)
 from doctr.utils.geometry import estimate_page_angle, resolve_enclosing_bbox, resolve_enclosing_rbbox, rotate_boxes
 from doctr.utils.repr import NestedObject
 
@@ -213,14 +225,14 @@ class DocumentBuilder(NestedObject):
 
     @staticmethod
     def _build_layout_elements(regions: dict[str, Any] | None) -> list[LayoutElement]:
-        """Convert a raw layout prediction into exportable ``LayoutElement`` objects.
+        """Convert a raw layout prediction into exportable `LayoutElement` objects.
 
         Args:
-            regions: a layout prediction ``{"boxes": (R, 4) | (R, 4, 2), "class_names": [...], "scores": [...]}``
-                as returned by a ``LayoutPredictor``, or None.
+            regions: a layout prediction `{"boxes": (R, 4) | (R, 4, 2), "class_names": [...], "scores": [...]}`
+                as returned by a `LayoutPredictor`, or None.
 
         Returns:
-            list of ``LayoutElement`` (empty if no layout was provided).
+            list of `LayoutElement` (empty if no layout was provided).
         """
         if regions is None or len(regions.get("boxes", [])) == 0:
             return []
@@ -237,6 +249,172 @@ class DocumentBuilder(NestedObject):
                 geometry = ((float(box[0]), float(box[1])), (float(box[2]), float(box[3])))
             elements.append(LayoutElement(layout_type=str(cname), confidence=float(score), geometry=geometry))
         return elements
+
+    @staticmethod
+    def _word_centers(boxes: np.ndarray) -> np.ndarray:
+        """Return the (x, y) center of each word box.
+
+        Args:
+            boxes: word boxes of shape (N, 4) (straight: x1, y1, x2, y2) or (N, 4, 2) (rotated polygon)
+
+        Returns:
+            array of shape (N, 2) with the relative center coordinates of each box
+        """
+        if boxes.ndim == 3:  # rotated polygons (N, 4, 2)
+            return boxes.mean(axis=1)
+        return np.stack([(boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2], axis=1)
+
+    @staticmethod
+    def _point_in_poly(point: np.ndarray, poly: np.ndarray) -> bool:
+        """Test whether a 2D point lies inside a polygon using the ray casting algorithm.
+
+        Args:
+            point: array of shape (2,) with the (x, y) coordinates of the point
+            poly: array of shape (M, 2) with the polygon vertices
+
+        Returns:
+            True if the point is inside the polygon
+        """
+        x, y = float(point[0]), float(point[1])
+        inside = False
+        n = len(poly)
+        j = n - 1
+        for i in range(n):
+            xi, yi = float(poly[i][0]), float(poly[i][1])
+            xj, yj = float(poly[j][0]), float(poly[j][1])
+            if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi):
+                inside = not inside
+            j = i
+        return inside
+
+    @staticmethod
+    def _localize_logic(cells: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, int]:
+        """Re-index a table's logical coordinates to a local 0-based grid.
+
+        The table model returns logical (row/column) coordinates that may carry a constant offset; shifting them
+        so that the smallest row/column start is 0 makes the grid directly usable by :meth:`Table.to_grid`.
+
+        Args:
+            cells: the cells of a single table
+
+        Returns:
+            a tuple `(cells, num_rows, num_cols)` with the re-indexed cells and the table dimensions
+        """
+        min_row = min(int(c["row_start"]) for c in cells)
+        min_col = min(int(c["col_start"]) for c in cells)
+        norm: list[dict[str, Any]] = []
+        max_row = max_col = 0
+        for c in cells:
+            nc = dict(c)
+            nc["row_start"] = int(c["row_start"]) - min_row
+            nc["row_end"] = int(c["row_end"]) - min_row
+            nc["col_start"] = int(c["col_start"]) - min_col
+            nc["col_end"] = int(c["col_end"]) - min_col
+            max_row, max_col = max(max_row, nc["row_end"]), max(max_col, nc["col_end"])
+            norm.append(nc)
+        return norm, max_row + 1, max_col + 1
+
+    def _build_tables(
+        self,
+        boxes: np.ndarray,
+        word_preds: list[tuple[str, float]],
+        page_table: dict[str, Any] | list[dict[str, Any]] | None,
+    ) -> tuple[list[Table], np.ndarray]:
+        """Assign detected words to table cells and build the page tables.
+
+        A page may contain several tables; each one is provided as its own grid (the OCR pipeline detects table
+        regions with the layout model, then runs the table model on every cropped region). Both a single grid and
+        a list of grids are accepted. Each word whose center falls inside a cell polygon is assigned to (at most)
+        one cell, across all tables, and flagged so it can be removed from the regular `blocks` output. Words
+        are joined per cell in reading order (top to bottom, then left to right).
+
+        Args:
+            boxes: word boxes of the page, of shape (N, 4) or (N, 4, 2), in relative coordinates
+            word_preds: list of (text, confidence) for each of the N words
+            page_table: the table structure prediction(s) for the page. Either a single grid
+                `{"cells": [{"geometry", "score", "row_start", "row_end", "col_start", "col_end"}], "num_rows",
+                "num_cols"}` (cell geometries in page-relative coordinates), a list of such grids, or None
+
+        Returns:
+            a tuple with the list of `Table` objects of the page (one per provided table) and a boolean mask of
+            shape (N,) that is True for words assigned to a table (to be removed from `blocks`)
+        """
+        num_words = boxes.shape[0]
+        consumed = np.zeros(num_words, dtype=bool)
+        if page_table is None:
+            return [], consumed
+
+        # Normalize the prediction(s) to a list of per-table grids with local 0-based logical coordinates
+        raw_tables = [page_table] if isinstance(page_table, dict) else list(page_table)
+        table_dicts: list[dict[str, Any]] = []
+        for raw in raw_tables:
+            if not raw or len(raw.get("cells", [])) == 0:
+                continue
+            cells, n_rows, n_cols = self._localize_logic(raw["cells"])
+            table_dicts.append({"cells": cells, "num_rows": n_rows, "num_cols": n_cols})
+        if len(table_dicts) == 0:
+            return [], consumed
+
+        centers = self._word_centers(boxes) if num_words > 0 else np.empty((0, 2))
+
+        tables_out: list[Table] = []
+        for table_dict in table_dicts:
+            cells = table_dict["cells"]
+            cell_polys = [np.asarray(cell["geometry"], dtype=np.float32) for cell in cells]
+
+            # Assign each (still unassigned) word to at most one cell of this table
+            cell_word_idcs: list[list[int]] = [[] for _ in cells]
+            for w_idx in range(num_words):
+                if consumed[w_idx]:
+                    continue
+                for c_idx, poly in enumerate(cell_polys):
+                    if self._point_in_poly(centers[w_idx], poly):
+                        cell_word_idcs[c_idx].append(w_idx)
+                        consumed[w_idx] = True
+                        break
+
+            # Build the cells
+            table_cells: list[TableCell] = []
+            for cell, poly, w_idcs in zip(cells, cell_polys, cell_word_idcs):
+                if len(w_idcs) > 0:
+                    # Reading order inside the cell: top to bottom, then left to right
+                    ordered = sorted(w_idcs, key=lambda i: (round(float(centers[i][1]), 3), float(centers[i][0])))
+                    value = " ".join(word_preds[i][0] for i in ordered)
+                    confidence = float(np.mean([word_preds[i][1] for i in ordered]))
+                else:
+                    value, confidence = "", float(cell["score"])
+                geometry = tuple(tuple(float(c) for c in pt) for pt in poly.tolist())
+                table_cells.append(
+                    TableCell(
+                        value=value,
+                        confidence=confidence,
+                        geometry=geometry,  # type: ignore[arg-type]
+                        row_start=int(cell["row_start"]),
+                        row_end=int(cell["row_end"]),
+                        col_start=int(cell["col_start"]),
+                        col_end=int(cell["col_end"]),
+                    )
+                )
+
+            # Enclosing geometry of the whole table (relative bbox)
+            all_pts = np.concatenate(cell_polys, axis=0)
+            table_geometry = (
+                (float(all_pts[:, 0].min()), float(all_pts[:, 1].min())),
+                (float(all_pts[:, 0].max()), float(all_pts[:, 1].max())),
+            )
+            table_confidence = float(np.mean([cell["score"] for cell in cells]))
+
+            tables_out.append(
+                Table(
+                    cells=table_cells,
+                    num_rows=int(table_dict["num_rows"]),
+                    num_cols=int(table_dict["num_cols"]),
+                    geometry=table_geometry,
+                    confidence=table_confidence,
+                )
+            )
+
+        return tables_out, consumed
 
     def _build_blocks(
         self,
@@ -320,6 +498,7 @@ class DocumentBuilder(NestedObject):
         orientations: list[dict[str, Any]] | None = None,
         languages: list[dict[str, Any]] | None = None,
         regions: list[dict[str, Any] | None] | None = None,
+        tables: list[dict[str, Any] | None] | None = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -337,7 +516,11 @@ class DocumentBuilder(NestedObject):
             languages: optional, list of N elements,
                 where each element is a dictionary containing the language (language + confidence)
             regions: optional, list of N elements, where each element is a layout prediction
-                ``{"boxes": (R, 4|4x2), "class_names": [...], "scores": [...]}`` attached to each page
+                `{"boxes": (R, 4|4x2), "class_names": [...], "scores": [...]}` attached to each page
+            tables: optional, list of N elements, where each element is the table structure prediction(s) of a
+                page: a single grid `{"cells": [...], "num_rows": int, "num_cols": int}` or a list of such grids
+                (one per table region detected by the layout model). Words assigned to any table are removed from
+                the `blocks` output of that page.
 
         Returns:
             document object
@@ -350,40 +533,66 @@ class DocumentBuilder(NestedObject):
         _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)
         _regions = regions if isinstance(regions, list) else [None] * len(boxes)
+        _tables = tables if isinstance(tables, list) else [None] * len(boxes)
         if self.export_as_straight_boxes and len(boxes) > 0:
             # If boxes are already straight OK, else fit a bounding rect
             if boxes[0].ndim == 3:
                 # Iterate over pages and boxes
                 boxes = [np.concatenate((p_boxes.min(1), p_boxes.max(1)), 1) for p_boxes in boxes]
 
-        _pages = [
-            Page(
-                page,
-                self._build_blocks(
-                    page_boxes,
-                    loc_scores,
-                    word_preds,
-                    word_crop_orientations,
-                ),
-                _idx,
-                shape,
-                orientation,
-                language,
-                self._build_layout_elements(page_regions),
+        _pages = []
+        for (
+            page,
+            _idx,
+            shape,
+            page_boxes,
+            loc_scores,
+            word_preds,
+            word_crop_orientations,
+            orientation,
+            language,
+            page_regions,
+            page_table,
+        ) in zip(  # noqa: E501
+            pages,
+            range(len(boxes)),
+            page_shapes,
+            boxes,
+            objectness_scores,
+            text_preds,
+            crop_orientations,
+            _orientations,
+            _languages,
+            _regions,
+            _tables,
+        ):
+            # Build the page tables and flag the words that belong to a table
+            page_tables, consumed = self._build_tables(page_boxes, word_preds, page_table)
+            if consumed.any():
+                # Remove the words assigned to a table from the regular blocks output
+                keep = ~consumed
+                page_boxes = page_boxes[keep]
+                loc_scores = loc_scores[keep]
+                word_preds = [wp for wp, k in zip(word_preds, keep) if k]
+                word_crop_orientations = [co for co, k in zip(word_crop_orientations, keep) if k]
+
+            _pages.append(
+                Page(
+                    page,
+                    self._build_blocks(
+                        page_boxes,
+                        loc_scores,
+                        word_preds,
+                        word_crop_orientations,
+                    ),
+                    _idx,
+                    shape,
+                    orientation,
+                    language,
+                    self._build_layout_elements(page_regions),
+                    page_tables,
+                )
             )
-            for page, _idx, shape, page_boxes, loc_scores, word_preds, word_crop_orientations, orientation, language, page_regions in zip(  # noqa: E501
-                pages,
-                range(len(boxes)),
-                page_shapes,
-                boxes,
-                objectness_scores,
-                text_preds,
-                crop_orientations,
-                _orientations,
-                _languages,
-                _regions,
-            )
-        ]
 
         return Document(_pages)
 
@@ -410,6 +619,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         orientations: list[dict[str, Any]] | None = None,
         languages: list[dict[str, Any]] | None = None,
         regions: list[dict[str, Any] | None] | None = None,
+        tables: list[list[dict[str, Any] | None] | None] | None = None,
     ) -> KIEDocument:
         """Re-arrange detected words into structured predictions
 
@@ -427,7 +637,11 @@ class KIEDocumentBuilder(DocumentBuilder):
             languages: optional, list of N elements,
                 where each element is a dictionary containing the language (language + confidence)
             regions: optional, list of N elements, where each element is a layout prediction
-                ``{"boxes": (R, 4|4x2), "class_names": [...], "scores": [...]}`` attached to each page
+                `{"boxes": (R, 4|4x2), "class_names": [...], "scores": [...]}` attached to each page
+            tables: optional, list of N elements, where each element is the table structure prediction(s) of a
+                page: a single grid `{"cells": [...], "num_rows": int, "num_cols": int}` or a list of such grids
+                (one per table region detected by the layout model). Words assigned to any table are removed from
+                the `blocks` output of that page. Unused for KIE documents, as tables are not supported in KIE.
 
         Returns:
             document object

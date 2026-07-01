@@ -10,6 +10,7 @@ from .kie_predictor import KIEPredictor
 from .layout.zoo import layout_predictor
 from .predictor import OCRPredictor
 from .recognition.zoo import recognition_predictor
+from .table_structure.zoo import table_predictor
 
 __all__ = ["ocr_predictor", "kie_predictor"]
 
@@ -29,6 +30,7 @@ def _predictor(
     detect_language: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
+    detect_tables: bool = False,
     **kwargs,
 ) -> OCRPredictor:
     # Detection
@@ -50,7 +52,7 @@ def _predictor(
         batch_size=reco_bs,
     )
 
-    # Layout - optional
+    # Layout - required for table detection, so build it whenever layout or tables are requested
     layout_pred = (
         layout_predictor(
             layout_arch,
@@ -60,7 +62,18 @@ def _predictor(
             symmetric_pad=symmetric_pad,
             batch_size=det_bs,
         )
-        if detect_layout
+        if (detect_layout or detect_tables)
+        else None
+    )
+
+    # Table structure - optional, applied on the cropped table regions found by the layout model
+    table_pred = (
+        table_predictor(
+            "tablecenternet",
+            pretrained=pretrained,
+            batch_size=det_bs,
+        )
+        if detect_tables
         else None
     )
 
@@ -74,6 +87,7 @@ def _predictor(
         straighten_pages=straighten_pages,
         detect_language=detect_language,
         layout_predictor=layout_pred,
+        table_predictor=table_pred,
         **kwargs,
     )
 
@@ -92,6 +106,7 @@ def ocr_predictor(
     detect_language: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
+    detect_tables: bool = False,
     **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -128,6 +143,10 @@ def ocr_predictor(
             to each page.
             Doing so will slightly deteriorate the overall latency.
         layout_arch: name of the layout architecture or the model itself to use.
+        detect_tables: if True, table regions found by the layout model are cropped and passed to a table
+            structure model. Words falling inside a detected table are regrouped into a structured table
+            (accessible via `page.tables`) and removed from the regular text output. This enables the layout
+            model and slightly deteriorates the overall latency.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -147,6 +166,7 @@ def ocr_predictor(
         detect_language=detect_language,
         detect_layout=detect_layout,
         layout_arch=layout_arch,
+        detect_tables=detect_tables,
         **kwargs,
     )
 

@@ -39,8 +39,8 @@ from utils import EarlyStopper, plot_recorder, plot_samples
 def convert_to_multiclass_targets(targets: list) -> list[dict[str, np.ndarray]]:
     """Convert detection targets to the multi-class format expected by the models.
 
-    Built-in datasets loaded with ``detection_task=True`` yield the boxes of each sample as a
-    plain ``np.ndarray``, whereas the models expect a mapping from class name to boxes. Targets
+    Built-in datasets loaded with `detection_task=True` yield the boxes of each sample as a
+    plain `np.ndarray`, whereas the models expect a mapping from class name to boxes. Targets
     coming from a :class:`~doctr.datasets.DetectionDataset` are already dictionaries and are
     returned unchanged.
 
@@ -48,7 +48,7 @@ def convert_to_multiclass_targets(targets: list) -> list[dict[str, np.ndarray]]:
         targets: the batch of targets to normalize
 
     Returns:
-        the batch of targets as a list of ``{class_name: boxes}`` dictionaries
+        the batch of targets as a list of `{class_name: boxes}` dictionaries
     """
     return [target if isinstance(target, dict) else {CLASS_NAME: target} for target in targets]
 
