@@ -50,6 +50,7 @@ def load_predictor(
     device: torch.device,
     detect_layout: bool,
     layout_arch: str,
+    detect_tables: bool,
 ) -> OCRPredictor:
     """Load a predictor from doctr.models
 
@@ -66,6 +67,7 @@ def load_predictor(
         device: torch.device, the device to load the predictor on
         detect_layout: whether to run a layout detection model and attach the regions to each page
         layout_arch: layout architecture to use when detect_layout is True
+        detect_tables: whether to detect tables (via the layout model), structure them and attach them to each page
 
     Returns:
         instance of OCRPredictor
@@ -82,6 +84,7 @@ def load_predictor(
         disable_crop_orientation=disable_crop_orientation,
         detect_layout=detect_layout,
         layout_arch=layout_arch,
+        detect_tables=detect_tables,
     ).to(device)
     predictor.det_predictor.model.postprocessor.bin_thresh = bin_thresh
     predictor.det_predictor.model.postprocessor.box_thresh = box_thresh

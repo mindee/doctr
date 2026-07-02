@@ -94,6 +94,35 @@ async def test_ocr_layout(test_app_asyncio, mock_detection_image):
 
 
 @pytest.mark.asyncio
+async def test_ocr_tables(test_app_asyncio, mock_detection_image):
+    headers = {
+        "accept": "application/json",
+    }
+    params = {"det_arch": "db_resnet50", "reco_arch": "crnn_vgg16_bn", "detect_tables": True}
+    files = [
+        ("files", ("test.jpg", mock_detection_image, "image/jpeg")),
+    ]
+    response = await test_app_asyncio.post("/ocr", params=params, files=files, headers=headers)
+    assert response.status_code == 200
+    json_response = response.json()
+
+    assert isinstance(json_response, list) and len(json_response) == 1
+    # detect_tables enables the layout model as well
+    assert "layout" in json_response[0] and isinstance(json_response[0]["layout"], list)
+    assert "tables" in json_response[0] and isinstance(json_response[0]["tables"], list)
+    for table in json_response[0]["tables"]:
+        assert isinstance(table["num_rows"], int) and isinstance(table["num_cols"], int)
+        assert isinstance(table["confidence"], (int, float))
+        assert len(table["geometry"]) in (4, 8)
+        assert isinstance(table["cells"], list)
+        for cell in table["cells"]:
+            assert isinstance(cell["value"], str)
+            assert isinstance(cell["confidence"], (int, float))
+            assert len(cell["geometry"]) in (4, 8)
+            assert all(isinstance(cell[k], int) for k in ("row_start", "row_end", "col_start", "col_end"))
+
+
+@pytest.mark.asyncio
 async def test_ocr_invalid_file(test_app_asyncio, mock_txt_file):
     headers = {
         "accept": "application/json",

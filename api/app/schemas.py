@@ -31,6 +31,7 @@ class OCRIn(KIEIn, BaseModel):
     resolve_lines: bool = Field(default=True, examples=[True])
     resolve_blocks: bool = Field(default=False, examples=[False])
     paragraph_break: float = Field(default=0.0035, examples=[0.0035])
+    detect_tables: bool = Field(default=False, examples=[False])
 
 
 class RecognitionIn(BaseModel):
@@ -139,6 +140,37 @@ class LayoutElementOut(BaseModel):
     confidence: float = Field(..., examples=[0.99])
 
 
+class TableCellOut(BaseModel):
+    value: str = Field(..., examples=["example"])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    confidence: float = Field(..., examples=[0.99])
+    row_start: int = Field(..., examples=[0])
+    row_end: int = Field(..., examples=[0])
+    col_start: int = Field(..., examples=[0])
+    col_end: int = Field(..., examples=[0])
+
+
+class TableOut(BaseModel):
+    num_rows: int = Field(..., examples=[2])
+    num_cols: int = Field(..., examples=[2])
+    geometry: list[float] = Field(..., examples=[[0.0, 0.0, 0.0, 0.0]])
+    confidence: float = Field(..., examples=[0.99])
+    cells: list[TableCellOut] = Field(
+        ...,
+        examples=[
+            {
+                "value": "example",
+                "geometry": [0.0, 0.0, 0.0, 0.0],
+                "confidence": 0.99,
+                "row_start": 0,
+                "row_end": 0,
+                "col_start": 0,
+                "col_end": 0,
+            }
+        ],
+    )
+
+
 class OCROut(BaseModel):
     name: str = Field(..., examples=["example.jpg"])
     orientation: dict[str, float | None] = Field(..., examples=[{"value": 0.0, "confidence": 0.99}])
@@ -148,27 +180,55 @@ class OCROut(BaseModel):
         default=[],
         examples=[[{"type": "Title", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}]],
     )
+    tables: list[TableOut] = Field(
+        default=[],
+        examples=[
+            [
+                {
+                    "num_rows": 2,
+                    "num_cols": 2,
+                    "geometry": [0.0, 0.0, 0.0, 0.0],
+                    "confidence": 0.99,
+                    "cells": [
+                        {
+                            "value": "example",
+                            "geometry": [0.0, 0.0, 0.0, 0.0],
+                            "confidence": 0.99,
+                            "row_start": 0,
+                            "row_end": 0,
+                            "col_start": 0,
+                            "col_end": 0,
+                        }
+                    ],
+                }
+            ]
+        ],
+    )
     items: list[OCRPage] = Field(
         ...,
         examples=[
             {
-                "geometry": [0.0, 0.0, 0.0, 0.0],
-                "objectness_score": 0.99,
-                "lines": [
+                "blocks": [
                     {
                         "geometry": [0.0, 0.0, 0.0, 0.0],
                         "objectness_score": 0.99,
-                        "words": [
+                        "lines": [
                             {
-                                "value": "example",
                                 "geometry": [0.0, 0.0, 0.0, 0.0],
                                 "objectness_score": 0.99,
-                                "confidence": 0.99,
-                                "crop_orientation": {"value": 0, "confidence": None},
+                                "words": [
+                                    {
+                                        "value": "example",
+                                        "geometry": [0.0, 0.0, 0.0, 0.0],
+                                        "objectness_score": 0.99,
+                                        "confidence": 0.99,
+                                        "crop_orientation": {"value": 0, "confidence": None},
+                                    }
+                                ],
                             }
                         ],
                     }
-                ],
+                ]
             }
         ],
     )
@@ -199,4 +259,20 @@ class KIEOut(BaseModel):
         default=[],
         examples=[[{"type": "Title", "geometry": [0.0, 0.0, 0.0, 0.0], "confidence": 0.99}]],
     )
-    predictions: list[KIEElement]
+    predictions: list[KIEElement] = Field(
+        ...,
+        examples=[
+            {
+                "class_name": "example",
+                "items": [
+                    {
+                        "value": "example",
+                        "geometry": [0.0, 0.0, 0.0, 0.0],
+                        "objectness_score": 0.99,
+                        "confidence": 0.99,
+                        "crop_orientation": {"value": 0, "confidence": None},
+                    }
+                ],
+            }
+        ],
+    )

@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+from collections.abc import Sequence
 from typing import Any
 
 import numpy as np
@@ -498,7 +499,7 @@ class DocumentBuilder(NestedObject):
         orientations: list[dict[str, Any]] | None = None,
         languages: list[dict[str, Any]] | None = None,
         regions: list[dict[str, Any] | None] | None = None,
-        tables: list[dict[str, Any] | None] | None = None,
+        tables: Sequence[dict[str, Any] | list[dict[str, Any]] | None] | None = None,
     ) -> Document:
         """Re-arrange detected words into structured blocks
 
@@ -619,7 +620,7 @@ class KIEDocumentBuilder(DocumentBuilder):
         orientations: list[dict[str, Any]] | None = None,
         languages: list[dict[str, Any]] | None = None,
         regions: list[dict[str, Any] | None] | None = None,
-        tables: list[list[dict[str, Any] | None] | None] | None = None,
+        tables: Sequence[dict[str, Any] | list[dict[str, Any]] | None] | None = None,
     ) -> KIEDocument:
         """Re-arrange detected words into structured predictions
 

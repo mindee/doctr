@@ -6,6 +6,7 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import streamlit as st
 import torch
 from backend.pytorch import DET_ARCHS, LAYOUT_ARCHS, RECO_ARCHS, forward_image, load_predictor
@@ -70,6 +71,8 @@ def main(det_archs, reco_archs, layout_archs):
     # Layout detection
     detect_layout = st.sidebar.checkbox("Detect layout", value=False)
     layout_arch = st.sidebar.selectbox("Layout detection model", layout_archs, disabled=not detect_layout)
+    # Table detection (relies on the layout model to locate tables)
+    detect_tables = st.sidebar.checkbox("Detect tables", value=False)
     st.sidebar.write("\n")
     # Binarization threshold
     bin_thresh = st.sidebar.slider("Binarization threshold", min_value=0.1, max_value=0.9, value=0.3, step=0.1)
@@ -97,6 +100,7 @@ def main(det_archs, reco_archs, layout_archs):
                     device=forward_device,
                     detect_layout=detect_layout,
                     layout_arch=layout_arch,
+                    detect_tables=detect_tables,
                 )
 
             with st.spinner("Analyzing..."):
@@ -121,6 +125,13 @@ def main(det_archs, reco_archs, layout_archs):
                 if assume_straight_pages or (not assume_straight_pages and straighten_pages):
                     img = out.pages[0].synthesize()
                     cols[3].image(img, clamp=True)
+
+                # Display extracted tables (if any)
+                if out.pages[0].tables:
+                    st.markdown("\nExtracted tables:")
+                    for idx, table in enumerate(out.pages[0].tables):
+                        st.markdown(f"**Table {idx + 1}** ({table.num_rows} x {table.num_cols})")
+                        st.dataframe(pd.DataFrame(table.to_grid()))
 
                 # Display JSON
                 st.markdown("\nHere are your analysis results in JSON format:")

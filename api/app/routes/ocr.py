@@ -6,7 +6,7 @@
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
-from app.schemas import LayoutElementOut, OCRBlock, OCRIn, OCRLine, OCROut, OCRPage, OCRWord
+from app.schemas import LayoutElementOut, OCRBlock, OCRIn, OCRLine, OCROut, OCRPage, OCRWord, TableCellOut, TableOut
 from app.utils import get_documents, resolve_geometry
 from app.vision import init_predictor
 
@@ -38,6 +38,27 @@ async def perform_ocr(request: OCRIn = Depends(), files: list[UploadFile] = [Fil
                     confidence=round(region.confidence, 2),
                 )
                 for region in page.layout
+            ],
+            tables=[
+                TableOut(
+                    num_rows=table.num_rows,
+                    num_cols=table.num_cols,
+                    geometry=resolve_geometry(table.geometry),
+                    confidence=round(table.confidence, 2),
+                    cells=[
+                        TableCellOut(
+                            value=cell.value,
+                            geometry=resolve_geometry(cell.geometry),
+                            confidence=round(cell.confidence, 2),
+                            row_start=cell.row_start,
+                            row_end=cell.row_end,
+                            col_start=cell.col_start,
+                            col_end=cell.col_end,
+                        )
+                        for cell in table.cells
+                    ],
+                )
+                for table in page.tables
             ],
             items=[
                 OCRPage(

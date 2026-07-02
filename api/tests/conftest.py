@@ -158,6 +158,7 @@ def mock_ocr_response():
             "language": {"value": None, "confidence": None},
             "dimensions": [2339, 1654],
             "layout": [],
+            "tables": [],
             "items": [
                 {
                     "blocks": [
@@ -207,6 +208,7 @@ def mock_ocr_response():
             "language": {"value": None, "confidence": None},
             "dimensions": [2339, 1654],
             "layout": [],
+            "tables": [],
             "items": [
                 {
                     "blocks": [

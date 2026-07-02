@@ -1,2 +1,3 @@
 -e "python-doctr[viz] @ git+https://github.com/mindee/doctr.git"
 streamlit>=1.0.0
+pandas>=2.0.0
