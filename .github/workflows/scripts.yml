@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.10", "3.11"]
+        python: ["3.11", "3.12"]
     steps:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
@@ -45,7 +45,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.10", "3.11"]
+        python: ["3.11", "3.12"]
     steps:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
@@ -77,7 +77,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python: ["3.10", "3.11"]
+        python: ["3.11", "3.12"]
     steps:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
@@ -108,14 +108,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python: ["3.10", "3.11"]
+        python: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v7
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          # MacOS issue ref.: https://github.com/actions/setup-python/issues/855 & https://github.com/actions/setup-python/issues/865
-          python-version: ${{ matrix.os == 'macos-latest' && matrix.python == '3.10' && '3.11' || matrix.python }}
+          python-version: ${{ matrix.python }}
           architecture: x64
       - name: Run environment collection script
         run: python scripts/collect_env.py

@@ -161,7 +161,7 @@ This project is supported by [t2k GmbH](https://www.text2knowledge.de/de),
 
 ### Prerequisites
 
-Python 3.10 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
+Python 3.11 (or higher) and [pip](https://pip.pypa.io/en/stable/) are required to install docTR.
 
 ### Latest release
 
@@ -268,7 +268,7 @@ docker run -it --gpus all ghcr.io/mindee/doctr:torch-py3.9.18-2024-10 bash
 The Docker images for docTR follow a specific tag nomenclature: `<deps>-py<python_version>-<doctr_version|YYYY-MM>`. Here's a breakdown of the tag structure:
 
 - `<deps>`: `torch`, `torch-viz-html-contrib`.
-- `<python_version>`: `3.9.18`, `3.10.13` or `3.11.8`.
+- `<python_version>`: `3.10.13`, `3.11.8`, etc.
 - `<doctr_version>`: a tag >= `v0.11.0`
 - `<YYYY-MM>`: e.g. `2014-10`
 

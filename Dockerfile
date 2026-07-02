@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python
-ARG PYTHON_VERSION=3.10.13
+ARG PYTHON_VERSION=3.11.15
 
 RUN wget http://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz && \
     tar -zxf Python-$PYTHON_VERSION.tgz && \
