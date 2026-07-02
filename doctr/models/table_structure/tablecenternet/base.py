@@ -12,6 +12,7 @@ from scipy.interpolate import griddata
 from shapely.geometry import Point, Polygon
 
 from doctr.models.core import BaseModel
+from doctr.utils import order_points
 
 __all__ = ["_TableCenterNet", "TableCenterNetPostProcessor"]
 
@@ -75,23 +76,6 @@ def _lookup_logic(lc_map: np.ndarray, x: float, y: float) -> np.ndarray:
     xi = 0 if x < 0 else (w - 1 if x >= w else int(x))
     yi = 0 if y < 0 else (h - 1 if y >= h else int(y))
     return lc_map[:, yi, xi]
-
-
-def _ensure_simple_quads(polys: np.ndarray) -> np.ndarray:
-    """Guarantee each predicted quad is a simple (non-self-intersecting) polygon.
-
-    Args:
-        polys: predicted quads, shape (N, 4, 2)
-
-    Returns:
-        the quads with every self-intersecting one reordered into a simple polygon, shape (N, 4, 2)
-    """
-    for i in range(polys.shape[0]):
-        if not Polygon(polys[i]).is_valid:
-            centroid = polys[i].mean(axis=0)
-            angles = np.arctan2(polys[i, :, 1] - centroid[1], polys[i, :, 0] - centroid[0])
-            polys[i] = polys[i][np.argsort(angles)]
-    return polys
 
 
 class TableCenterNetPostProcessor:
@@ -202,12 +186,15 @@ class TableCenterNetPostProcessor:
             cp, cs, logic = self._simple(decoded, b) if self.not_relocate else self._relocate(decoded, b)
             keep = cs >= self.center_thresh
             polys = cp[keep].reshape(-1, 4, 2) / scale  # relative coordinates
-            polys = _ensure_simple_quads(np.clip(polys.astype(np.float32), 0, 1))
-            cells = (
-                np.concatenate([polys.min(axis=1), polys.max(axis=1)], axis=1).astype(np.float32)
-                if self.assume_straight_pages
-                else polys
-            )
+            polys = np.clip(polys.astype(np.float32), 0, 1)
+            if self.assume_straight_pages:
+                cells = np.concatenate([polys.min(axis=1), polys.max(axis=1)], axis=1).astype(np.float32)
+            else:
+                cells = (
+                    np.stack([order_points(poly) for poly in polys]).astype(np.float32)
+                    if polys.shape[0]
+                    else polys.reshape(0, 4, 2).astype(np.float32)
+                )
             results.append({
                 "polygons": cells,  # (N, 4) boxes or (N, 4, 2) quads in relative coordinates
                 "scores": cs[keep].astype(np.float32),

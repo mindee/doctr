@@ -357,6 +357,9 @@ class DocumentBuilder(NestedObject):
             return [], consumed
 
         centers = self._word_centers(boxes) if num_words > 0 else np.empty((0, 2))
+        # Geometry format follows the page's word geometry: straight 2-point boxes when the word boxes are
+        # (N, 4), 4-point polygons when they are (N, 4, 2).
+        straight = boxes.ndim != 3
 
         tables_out: list[Table] = []
         for table_dict in table_dicts:
@@ -384,12 +387,19 @@ class DocumentBuilder(NestedObject):
                     confidence = float(np.mean([word_preds[i][1] for i in ordered]))
                 else:
                     value, confidence = "", float(cell["score"])
-                geometry = tuple(tuple(float(c) for c in pt) for pt in poly.tolist())
+                if straight:
+                    xs, ys = poly[:, 0], poly[:, 1]
+                    geometry: Any = (
+                        (float(xs.min()), float(ys.min())),
+                        (float(xs.max()), float(ys.max())),
+                    )
+                else:
+                    geometry = tuple(tuple(float(c) for c in pt) for pt in poly.tolist())
                 table_cells.append(
                     TableCell(
                         value=value,
                         confidence=confidence,
-                        geometry=geometry,  # type: ignore[arg-type]
+                        geometry=geometry,
                         row_start=int(cell["row_start"]),
                         row_end=int(cell["row_end"]),
                         col_start=int(cell["col_start"]),
@@ -397,11 +407,12 @@ class DocumentBuilder(NestedObject):
                     )
                 )
 
-            # Enclosing geometry of the whole table (relative bbox)
+            # Enclosing geometry of the whole table
             all_pts = np.concatenate(cell_polys, axis=0)
-            table_geometry = (
-                (float(all_pts[:, 0].min()), float(all_pts[:, 1].min())),
-                (float(all_pts[:, 0].max()), float(all_pts[:, 1].max())),
+            xmin, ymin = float(all_pts[:, 0].min()), float(all_pts[:, 1].min())
+            xmax, ymax = float(all_pts[:, 0].max()), float(all_pts[:, 1].max())
+            table_geometry: Any = (
+                ((xmin, ymin), (xmax, ymax)) if straight else ((xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax))
             )
             table_confidence = float(np.mean([cell["score"] for cell in cells]))
 

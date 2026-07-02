@@ -5,6 +5,7 @@
 
 from typing import Any
 
+import cv2
 import numpy as np
 import torch
 from torch import nn
@@ -195,8 +196,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
     ) -> list[list[dict[str, Any]]]:
         """Crop the table regions found by the layout model and run the table model on each crop.
 
-        The table model is applied per cropped region, so a page naturally yields one structured table per
-        detected `Table` region. Cell geometries are mapped back from crop-relative to page-relative coordinates.
+        Each `Table` region is rectified to an upright crop with a perspective transform (so straight boxes and
+        rotated polygons are both handled), the table model is applied per crop, and the predicted cell polygons
+        are mapped back to page-relative coordinates through the inverse transform. A page therefore yields one
+        structured table per detected `Table` region.
 
         Args:
             pages: the (possibly straightened) page images
@@ -208,7 +211,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             coordinates
         """
         crops: list[np.ndarray] = []
-        crop_meta: list[tuple[int, tuple[float, float, float, float]]] = []
+        # (page index, inverse transform, crop width, crop height, page width, page height)
+        crop_meta: list[tuple[int, np.ndarray, int, int, int, int]] = []
         for p_idx, (page, region) in enumerate(zip(pages, regions)):
             if region is None:
                 continue
@@ -217,28 +221,41 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 if cls_name != self.table_class_name:
                     continue
                 pts = np.asarray(box, dtype=np.float32).reshape(-1, 2)
-                x0, y0 = float(pts[:, 0].min()), float(pts[:, 1].min())
-                x1, y1 = float(pts[:, 0].max()), float(pts[:, 1].max())
-                # Relative box -> pixel crop (axis-aligned, clamped to the page)
-                px0, py0 = max(0, int(round(x0 * w))), max(0, int(round(y0 * h)))
-                px1, py1 = min(w, int(round(x1 * w))), min(h, int(round(y1 * h)))
-                if px1 - px0 < 2 or py1 - py0 < 2:
+                if pts.shape[0] == 2:  # straight box (x_min, y_min, x_max, y_max) -> corners
+                    (bx0, by0), (bx1, by1) = pts
+                    src = np.array([[bx0, by0], [bx1, by0], [bx1, by1], [bx0, by1]], dtype=np.float32)
+                else:  # rotated 4-point polygon, already ordered (top-left, top-right, bottom-right, bottom-left)
+                    src = pts.copy()
+                # Relative -> absolute pixel corners
+                src[:, 0] *= w
+                src[:, 1] *= h
+                # Upright crop size from the region side lengths
+                crop_w = int(round(max(np.linalg.norm(src[1] - src[0]), np.linalg.norm(src[2] - src[3]))))
+                crop_h = int(round(max(np.linalg.norm(src[3] - src[0]), np.linalg.norm(src[2] - src[1]))))
+                if crop_w < 2 or crop_h < 2:
                     continue
-                crops.append(page[py0:py1, px0:px1])
-                crop_meta.append((p_idx, (x0, y0, x1, y1)))
+                # Full-extent destination corners so crop-relative [0, 1] maps exactly to [0, crop] pixels
+                dst = np.array([[0, 0], [crop_w, 0], [crop_w, crop_h], [0, crop_h]], dtype=np.float32)
+                transform = cv2.getPerspectiveTransform(src, dst)
+                inverse = cv2.getPerspectiveTransform(dst, src)
+                crops.append(cv2.warpPerspective(page, transform, (crop_w, crop_h)))
+                crop_meta.append((p_idx, inverse, crop_w, crop_h, w, h))
 
         tables_per_page: list[list[dict[str, Any]]] = [[] for _ in pages]
         if len(crops) == 0:
             return tables_per_page
 
         grids = self.table_predictor(crops, **kwargs)  # type: ignore[misc]
-        for (p_idx, (x0, y0, x1, y1)), grid in zip(crop_meta, grids):
-            region_w, region_h = (x1 - x0), (y1 - y0)
+        for (p_idx, inverse, crop_w, crop_h, w, h), grid in zip(crop_meta, grids):
             remapped_cells: list[dict[str, Any]] = []
             for cell in grid["cells"]:
+                # Cell polygon is crop-relative -> crop pixels -> page pixels (inverse transform) -> page-relative
                 poly = np.asarray(cell["geometry"], dtype=np.float32).reshape(-1, 2)
-                poly[:, 0] = x0 + poly[:, 0] * region_w
-                poly[:, 1] = y0 + poly[:, 1] * region_h
+                poly[:, 0] *= crop_w
+                poly[:, 1] *= crop_h
+                poly = cv2.perspectiveTransform(poly[None, :, :], inverse)[0]
+                poly[:, 0] /= w
+                poly[:, 1] /= h
                 new_cell = dict(cell)
                 new_cell["geometry"] = poly.tolist()
                 remapped_cells.append(new_cell)
