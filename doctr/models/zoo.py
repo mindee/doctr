@@ -71,6 +71,9 @@ def _predictor(
         table_predictor(
             "tablecenternet",
             pretrained=pretrained,
+            assume_straight_pages=assume_straight_pages,
+            preserve_aspect_ratio=preserve_aspect_ratio,
+            symmetric_pad=symmetric_pad,
             batch_size=det_bs,
         )
         if detect_tables
