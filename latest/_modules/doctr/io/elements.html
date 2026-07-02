@@ -326,6 +326,8 @@
     <span class="s2">&quot;KIEDocument&quot;</span><span class="p">,</span>
     <span class="s2">&quot;Document&quot;</span><span class="p">,</span>
     <span class="s2">&quot;LayoutElement&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;TableCell&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Table&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -479,6 +481,136 @@
 
 
 
+<span class="k">class</span><span class="w"> </span><span class="nc">TableCell</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a single cell of a recognized table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value: the text content of the cell (words assigned to the cell, joined together)</span>
+<span class="sd">        confidence: the mean recognition confidence of the words assigned to the cell</span>
+<span class="sd">        geometry: bounding box of the cell in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon,</span>
+<span class="sd">            with coordinates relative to the page&#39;s size</span>
+<span class="sd">        row_start: index of the first row spanned by the cell (0-indexed)</span>
+<span class="sd">        row_end: index of the last row spanned by the cell (0-indexed, inclusive)</span>
+<span class="sd">        col_start: index of the first column spanned by the cell (0-indexed)</span>
+<span class="sd">        col_end: index of the last column spanned by the cell (0-indexed, inclusive)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;geometry&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;value&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;confidence&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;row_start&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;row_end&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;col_start&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;col_end&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">row_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">row_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">col_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">col_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row_start</span> <span class="o">=</span> <span class="n">row_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row_end</span> <span class="o">=</span> <span class="n">row_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_start</span> <span class="o">=</span> <span class="n">col_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_end</span> <span class="o">=</span> <span class="n">col_end</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">row_span</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of rows spanned by the cell&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_start</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">col_span</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Number of columns spanned by the cell&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_start</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Renders the cell text&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;value=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">&#39;, rows=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">row_start</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">row_end</span><span class="si">}</span><span class="s2">), cols=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">col_start</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">col_end</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Table</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a table recognized on a page as a grid of cells</span>
+
+<span class="sd">    The recognized text of the words falling inside the table is regrouped here and removed from the</span>
+<span class="sd">    regular `blocks` output of the page, so it is not duplicated. The structured content can be loaded</span>
+<span class="sd">    directly into pandas, e.g. `pd.DataFrame(table.to_grid())`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cells: list of `TableCell` objects composing the table</span>
+<span class="sd">        num_rows: number of rows of the table</span>
+<span class="sd">        num_cols: number of columns of the table</span>
+<span class="sd">        geometry: bounding box enclosing the whole table, with coordinates relative to the page&#39;s size</span>
+<span class="sd">        confidence: the confidence of the table structure prediction</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">,</span> <span class="s2">&quot;num_rows&quot;</span><span class="p">,</span> <span class="s2">&quot;num_cols&quot;</span><span class="p">,</span> <span class="s2">&quot;confidence&quot;</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;cells&quot;</span><span class="p">]</span>
+    <span class="n">cells</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TableCell</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cells</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TableCell</span><span class="p">],</span>
+        <span class="n">num_rows</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_cols</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span> <span class="o">=</span> <span class="n">num_rows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span> <span class="o">=</span> <span class="n">num_cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the table content as a dense `num_rows` x `num_cols` grid of strings.</span>
+
+<span class="sd">        Cells spanning several rows/columns have their value placed at their top-left position; the</span>
+<span class="sd">        remaining positions they span are left empty. The result is directly loadable into pandas via</span>
+<span class="sd">        `pd.DataFrame(table.to_grid())`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a list of `num_rows` lists, each of length `num_cols`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span><span class="p">)]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">:</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cell</span><span class="o">.</span><span class="n">row_start</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cell</span><span class="o">.</span><span class="n">col_start</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span><span class="p">:</span>
+                <span class="n">grid</span><span class="p">[</span><span class="n">cell</span><span class="o">.</span><span class="n">row_start</span><span class="p">][</span><span class="n">cell</span><span class="o">.</span><span class="n">col_start</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">grid</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">col_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Renders the table as plain text (tab-separated values)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">row_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_grid</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;num_rows=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span><span class="si">}</span><span class="s2">, num_cols=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span><span class="si">}</span><span class="s2">, confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">&quot;</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;cells&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">TableCell</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">&quot;cells&quot;</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
 <div class="viewcode-block" id="Line">
 <a class="viewcode-back" href="../../../modules/io.html#doctr.io.Line">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Line</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
@@ -611,12 +743,14 @@
 <span class="sd">        orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction</span>
 <span class="sd">        language: a dictionary with the language value and confidence of the prediction</span>
 <span class="sd">        layout: optional list of layout regions detected on the page</span>
+<span class="sd">        tables: optional list of tables recognized on the page. Words assigned to a table are removed from `blocks`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;page_idx&quot;</span><span class="p">,</span> <span class="s2">&quot;dimensions&quot;</span><span class="p">,</span> <span class="s2">&quot;orientation&quot;</span><span class="p">,</span> <span class="s2">&quot;language&quot;</span><span class="p">]</span>
-    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">,</span> <span class="s2">&quot;layout&quot;</span><span class="p">,</span> <span class="s2">&quot;tables&quot;</span><span class="p">]</span>
     <span class="n">blocks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Block</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -627,8 +761,13 @@
         <span class="n">orientation</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">language</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">blocks</span><span class="o">=</span><span class="n">blocks</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">blocks</span><span class="o">=</span><span class="n">blocks</span><span class="p">,</span>
+            <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
+            <span class="n">tables</span><span class="o">=</span><span class="n">tables</span> <span class="k">if</span> <span class="n">tables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page_idx</span> <span class="o">=</span> <span class="n">page_idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
@@ -651,7 +790,7 @@
 <span class="sd">            interactive: whether the display should be interactive</span>
 <span class="sd">            preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 <span class="sd">            **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method</span>
-<span class="sd">                (e.g. ``display_layout=False`` to hide detected layout regions)</span>
+<span class="sd">                (e.g. `display_layout=False` to hide detected layout regions)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;matplotlib&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
         <span class="n">requires_package</span><span class="p">(</span><span class="s2">&quot;mplcursors&quot;</span><span class="p">,</span> <span class="s2">&quot;`.show()` requires matplotlib &amp; mplcursors installed&quot;</span><span class="p">)</span>
@@ -789,6 +928,7 @@
         <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Block</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">block_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">block_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">]],</span>
             <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">LayoutElement</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">region_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">region_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;layout&quot;</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="s2">&quot;tables&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">Table</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">table_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">table_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;tables&quot;</span><span class="p">,</span> <span class="p">[])],</span>
         <span class="p">})</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 

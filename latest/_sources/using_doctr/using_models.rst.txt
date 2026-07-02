@@ -303,6 +303,38 @@ and columns.
     # out[0] -> {"cells": [{"geometry": ..., "score": ..., "row_start": 0, "row_end": 0,
     #            "col_start": 0, "col_end": 0}, ...], "num_rows": ..., "num_cols": ...}
 
+Tables in the OCR pipeline
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Passing ``detect_tables=True`` to :py:meth:`ocr_predictor <doctr.models.ocr_predictor>` runs table structure
+recognition. It relies on the layout model: each region the layout model labels as
+a table is cropped and passed to the table model, so a page yields one structured table per detected table region
+(``detect_tables=True`` therefore also enables the layout model, whose regions are attached to the page). The words
+whose center falls inside a detected cell are regrouped into a structured table, attached to the page as
+``page.tables``, and **removed from the regular** ``blocks`` **output** so the same text is not returned twice. Each
+table exposes a dense row/column grid that loads directly into pandas.
+
+.. code:: python3
+
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor
+
+    model = ocr_predictor(pretrained=True, detect_tables=True)
+    doc = DocumentFile.from_images("invoice_with_table.png")
+    result = model(doc)
+
+    page = result.pages[0]
+    # Structured tables (one or more per page), kept out of the regular text blocks
+    for i, table in enumerate(page.tables):
+        df = table.to_grid()  # for a plain list of lists
+        print(f"Table {i} ({table.num_rows}x{table.num_cols}):")
+        print(df)
+
+    # The remaining (non-table) text is still available as usual
+    print(page.render())
+
+Tables are included in :meth:`Page.export` under the ``tables`` key, so they are preserved in the JSON export as well.
+
 
 End-to-End OCR
 --------------

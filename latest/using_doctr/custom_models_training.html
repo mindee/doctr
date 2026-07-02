@@ -462,6 +462,38 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 </div>
 </section>
 </section>
+<section id="custom-table-structure-recognition-models">
+<h2>Custom table structure recognition models<a class="headerlink" href="#custom-table-structure-recognition-models" title="Link to this heading">¶</a></h2>
+<p>If you work with documents containing tables and make use of the table structure recognition feature by passing the following arguments:</p>
+<ul class="simple">
+<li><p><cite>detect_tables=True</cite></p></li>
+</ul>
+<p>You can train your own table structure recognition model using the docTR library. For details on the training process and the necessary data and data format, refer to the following link:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/mindee/doctr/blob/main/references/table/README.md#usage">table structure recognition</a></p></li>
+</ul>
+<section id="loading-your-custom-trained-table-structure-recognition-model">
+<h3>Loading your custom trained table structure recognition model<a class="headerlink" href="#loading-your-custom-trained-table-structure-recognition-model" title="Link to this heading">¶</a></h3>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">tablecenternet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.table_structure.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">table_predictor</span>
+
+<span class="n">custom_table_structure_model</span> <span class="o">=</span> <span class="n">tablecenternet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">custom_table_structure_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">&#39;&lt;path_to_pt&gt;&#39;</span><span class="p">)</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
+    <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">detect_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">detect_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Overwrite the default table structure model</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">table_predictor</span> <span class="o">=</span> <span class="n">table_predictor</span><span class="p">(</span><span class="n">custom_table_structure_model</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
         </article>
@@ -523,6 +555,10 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <li><a class="reference internal" href="#loading-your-custom-trained-model">Loading your custom trained model</a></li>
 <li><a class="reference internal" href="#custom-orientation-classification-models">Custom orientation classification models</a><ul>
 <li><a class="reference internal" href="#loading-your-custom-trained-orientation-classification-model">Loading your custom trained orientation classification model</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#custom-table-structure-recognition-models">Custom table structure recognition models</a><ul>
+<li><a class="reference internal" href="#loading-your-custom-trained-table-structure-recognition-model">Loading your custom trained table structure recognition model</a></li>
 </ul>
 </li>
 </ul>

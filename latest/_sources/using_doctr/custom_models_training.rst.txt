@@ -186,3 +186,36 @@ Loading your custom trained orientation classification model
     # Overwrite the default orientation models
     predictor.crop_orientation_predictor = crop_orientation_predictor(custom_crop_orientation_model)
     predictor.page_orientation_predictor = page_orientation_predictor(custom_page_orientation_model)
+
+Custom table structure recognition models
+-----------------------------------------
+
+If you work with documents containing tables and make use of the table structure recognition feature by passing the following arguments:
+
+* `detect_tables=True`
+
+You can train your own table structure recognition model using the docTR library. For details on the training process and the necessary data and data format, refer to the following link:
+
+- `table structure recognition <https://github.com/mindee/doctr/blob/main/references/table/README.md#usage>`_
+
+Loading your custom trained table structure recognition model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python3
+
+    import torch
+    from doctr.io import DocumentFile
+    from doctr.models import ocr_predictor, tablecenternet
+    from doctr.models.table_structure.zoo import table_predictor
+
+    custom_table_structure_model = tablecenternet(pretrained=False)
+    custom_table_structure_model.from_pretrained('<path_to_pt>')
+
+    predictor = ocr_predictor(
+        pretrained=True,
+        detect_layout=True,
+        detect_tables=True,
+    )
+
+    # Overwrite the default table structure model
+    predictor.table_predictor = table_predictor(custom_table_structure_model)

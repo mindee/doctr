@@ -772,6 +772,35 @@ and columns.</p>
 </pre></div>
 </div>
 </section>
+<section id="tables-in-the-ocr-pipeline">
+<h3>Tables in the OCR pipeline<a class="headerlink" href="#tables-in-the-ocr-pipeline" title="Link to this heading">¶</a></h3>
+<p>Passing <code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code> to <a class="reference internal" href="../modules/models.html#doctr.models.ocr_predictor" title="doctr.models.ocr_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">ocr_predictor</span></code></a> runs table structure
+recognition. It relies on the layout model: each region the layout model labels as
+a table is cropped and passed to the table model, so a page yields one structured table per detected table region
+(<code class="docutils literal notranslate"><span class="pre">detect_tables=True</span></code> therefore also enables the layout model, whose regions are attached to the page). The words
+whose center falls inside a detected cell are regrouped into a structured table, attached to the page as
+<code class="docutils literal notranslate"><span class="pre">page.tables</span></code>, and <strong>removed from the regular</strong> <code class="docutils literal notranslate"><span class="pre">blocks</span></code> <strong>output</strong> so the same text is not returned twice. Each
+table exposes a dense row/column grid that loads directly into pandas.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">&quot;invoice_with_table.png&quot;</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+<span class="n">page</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="c1"># Structured tables (one or more per page), kept out of the regular text blocks</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">table</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">tables</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">to_grid</span><span class="p">()</span>  <span class="c1"># for a plain list of lists</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Table </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">num_rows</span><span class="si">}</span><span class="s2">x</span><span class="si">{</span><span class="n">table</span><span class="o">.</span><span class="n">num_cols</span><span class="si">}</span><span class="s2">):&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="p">)</span>
+
+<span class="c1"># The remaining (non-table) text is still available as usual</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">page</span><span class="o">.</span><span class="n">render</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>Tables are included in <code class="xref py py-meth docutils literal notranslate"><span class="pre">Page.export()</span></code> under the <code class="docutils literal notranslate"><span class="pre">tables</span></code> key, so they are preserved in the JSON export as well.</p>
+</section>
 </section>
 <section id="end-to-end-ocr">
 <h2>End-to-End OCR<a class="headerlink" href="#end-to-end-ocr" title="Link to this heading">¶</a></h2>
@@ -1279,6 +1308,7 @@ learned confusions, or a <code class="docutils literal notranslate"><span class=
 <li><a class="reference internal" href="#table-structure-recognition">Table Structure Recognition</a><ul>
 <li><a class="reference internal" href="#available-table-architectures">Available table architectures</a></li>
 <li><a class="reference internal" href="#table-structure-predictors">Table structure predictors</a></li>
+<li><a class="reference internal" href="#tables-in-the-ocr-pipeline">Tables in the OCR pipeline</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#end-to-end-ocr">End-to-End OCR</a><ul>

@@ -473,10 +473,10 @@
 <span class="sd">        model: the PyTorch model to be exported</span>
 <span class="sd">        model_name: the name for the exported model</span>
 <span class="sd">        dummy_input: the dummy input to the model</span>
-<span class="sd">        input_names: optional names for the model inputs. Defaults to ``[&quot;input&quot;]`` (or ``[&quot;input&quot;, &quot;masks&quot;]``</span>
-<span class="sd">            when ``dummy_input`` is a tuple).</span>
-<span class="sd">        output_names: optional names for the model outputs. Defaults to ``[&quot;logits&quot;]`` (or</span>
-<span class="sd">            ``[&quot;logits&quot;, &quot;pred_boxes&quot;]`` when ``dummy_input`` is a tuple). Pass the names of every output when</span>
+<span class="sd">        input_names: optional names for the model inputs. Defaults to `[&quot;input&quot;]` (or `[&quot;input&quot;, &quot;masks&quot;]`</span>
+<span class="sd">            when `dummy_input` is a tuple).</span>
+<span class="sd">        output_names: optional names for the model outputs. Defaults to `[&quot;logits&quot;]` (or</span>
+<span class="sd">            `[&quot;logits&quot;, &quot;pred_boxes&quot;]` when `dummy_input` is a tuple). Pass the names of every output when</span>
 <span class="sd">            the model returns more than one tensor (e.g. a multi-head model).</span>
 <span class="sd">        dynamic_axes: optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.</span>
 <span class="sd">        kwargs: additional arguments to be passed to torch.onnx.export</span>
@@ -580,8 +580,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_anyascii_nearest_map</span><span class="p">(</span><span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">allowed</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Map each forbidden character to the visually closest allowed one via transliteration.</span>
 
-<span class="sd">    Uses ``anyascii`` to fold characters to their ASCII form (e.g. ``ä -&gt; a``, ``ł -&gt; l``,</span>
-<span class="sd">    Cyrillic ``а -&gt; a``); a forbidden character is mapped to an allowed character sharing the</span>
+<span class="sd">    Uses `anyascii` to fold characters to their ASCII form (e.g. `ä -&gt; a`, `ł -&gt; l`,</span>
+<span class="sd">    Cyrillic `а -&gt; a`); a forbidden character is mapped to an allowed character sharing the</span>
 <span class="sd">    same ASCII form. Forbidden characters without such a match are left unmapped (they fall</span>
 <span class="sd">    back to plain masking).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -658,19 +658,19 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Restrict a recognition model so it can only predict a subset of its vocabulary.</span>
 
 <span class="sd">    The whitelist is enforced at the model&#39;s final projection layer, before the decoding</span>
-<span class="sd">    ``argmax``. Because the projection is the single point every logit flows through, the</span>
+<span class="sd">    `argmax`. Because the projection is the single point every logit flows through, the</span>
 <span class="sd">    constraint also applies inside the autoregressive decoding loop of SAR, MASTER and PARSeq,</span>
 <span class="sd">    so a forbidden character can never be produced -- not even fed back mid-word. The sequence</span>
-<span class="sd">    terminator (CTC ``blank`` / attention ``&lt;eos&gt;``) is always kept so decoding still</span>
+<span class="sd">    terminator (CTC `blank` / attention `&lt;eos&gt;`) is always kept so decoding still</span>
 <span class="sd">    terminates. It works with every recognition architecture and with any predictor wrapping</span>
 <span class="sd">    one (`ocr_predictor`, `kie_predictor`, `recognition_predictor`).</span>
 
 <span class="sd">    Two strategies are available:</span>
 
-<span class="sd">    * ``&quot;mask&quot;`` (default): the logits of forbidden characters are set to ``-inf``, so decoding</span>
+<span class="sd">    * `&quot;mask&quot;` (default): the logits of forbidden characters are set to `-inf`, so decoding</span>
 <span class="sd">      falls back to the highest-scoring allowed character.</span>
-<span class="sd">    * ``&quot;nearest&quot;``: the score of each forbidden character is first reassigned to the closest</span>
-<span class="sd">      allowed character (so e.g. ``ä`` folds onto ``a``), then forbidden logits are masked.</span>
+<span class="sd">    * `&quot;nearest&quot;`: the score of each forbidden character is first reassigned to the closest</span>
+<span class="sd">      allowed character (so e.g. `ä` folds onto `a`), then forbidden logits are masked.</span>
 <span class="sd">      Forbidden characters without a mapping fall back to masking.</span>
 
 <span class="sd">    A whitelist can only restrict a model to characters it already knows: characters that are</span>
@@ -686,14 +686,14 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: an `ocr_predictor`, `kie_predictor`, `recognition_predictor`, or a recognition model.</span>
-<span class="sd">        vocabs: a vocabulary string (e.g. ``VOCABS[&quot;german&quot;]``) or an iterable of vocabulary</span>
-<span class="sd">            strings (e.g. ``[VOCABS[&quot;polish&quot;], VOCABS[&quot;german&quot;]]``) whose characters are allowed.</span>
-<span class="sd">        strategy: ``&quot;mask&quot;`` (default) to drop forbidden characters, or ``&quot;nearest&quot;`` to fold</span>
+<span class="sd">        vocabs: a vocabulary string (e.g. `VOCABS[&quot;german&quot;]`) or an iterable of vocabulary</span>
+<span class="sd">            strings (e.g. `[VOCABS[&quot;polish&quot;], VOCABS[&quot;german&quot;]]`) whose characters are allowed.</span>
+<span class="sd">        strategy: `&quot;mask&quot;` (default) to drop forbidden characters, or `&quot;nearest&quot;` to fold</span>
 <span class="sd">            them onto the closest allowed character.</span>
-<span class="sd">        mapping: only used when ``strategy=&quot;nearest&quot;``. ``None`` or ``&quot;anyascii&quot;`` builds the</span>
-<span class="sd">            forbidden-to-allowed map by transliteration (the default); ``&quot;weights&quot;`` derives it</span>
-<span class="sd">            from the projection weights (the model&#39;s own confusions); a ``dict`` of</span>
-<span class="sd">            ``{forbidden_char: allowed_char}`` overrides specific characters on top of the</span>
+<span class="sd">        mapping: only used when `&quot;strategy=&quot;nearest&quot;`&quot;. `None` or `&quot;anyascii&quot;` builds the</span>
+<span class="sd">            forbidden-to-allowed map by transliteration (the default); `&quot;weights&quot;` derives it</span>
+<span class="sd">            from the projection weights (the model&#39;s own confusions); a `dict` of</span>
+<span class="sd">            `{forbidden_char: allowed_char}` overrides specific characters on top of the</span>
 <span class="sd">            transliteration map.</span>
 <span class="sd">        verbose: if True, log how many characters were kept, forbidden and reassigned per model.</span>
 

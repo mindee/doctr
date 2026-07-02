@@ -302,6 +302,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.layout.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">OCRPredictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.recognition.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">recognition_predictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.table_structure.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">table_predictor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ocr_predictor&quot;</span><span class="p">,</span> <span class="s2">&quot;kie_predictor&quot;</span><span class="p">]</span>
 
@@ -321,6 +322,7 @@
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;lw_detr_s&quot;</span><span class="p">,</span>
+    <span class="n">detect_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
     <span class="c1"># Detection</span>
@@ -342,7 +344,7 @@
         <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="c1"># Layout - optional</span>
+    <span class="c1"># Layout - required for table detection, so build it whenever layout or tables are requested</span>
     <span class="n">layout_pred</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">layout_predictor</span><span class="p">(</span>
             <span class="n">layout_arch</span><span class="p">,</span>
@@ -352,7 +354,21 @@
             <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
             <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">if</span> <span class="n">detect_layout</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">detect_layout</span> <span class="ow">or</span> <span class="n">detect_tables</span><span class="p">)</span>
+        <span class="k">else</span> <span class="kc">None</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Table structure - optional, applied on the cropped table regions found by the layout model</span>
+    <span class="n">table_pred</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">table_predictor</span><span class="p">(</span>
+            <span class="s2">&quot;tablecenternet&quot;</span><span class="p">,</span>
+            <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+            <span class="n">assume_straight_pages</span><span class="o">=</span><span class="n">assume_straight_pages</span><span class="p">,</span>
+            <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+            <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+            <span class="n">batch_size</span><span class="o">=</span><span class="n">det_bs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">detect_tables</span>
         <span class="k">else</span> <span class="kc">None</span>
     <span class="p">)</span>
 
@@ -366,6 +382,7 @@
         <span class="n">straighten_pages</span><span class="o">=</span><span class="n">straighten_pages</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="o">=</span><span class="n">layout_pred</span><span class="p">,</span>
+        <span class="n">table_predictor</span><span class="o">=</span><span class="n">table_pred</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -386,6 +403,7 @@
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;lw_detr_s&quot;</span><span class="p">,</span>
+    <span class="n">detect_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
@@ -422,6 +440,10 @@
 <span class="sd">            to each page.</span>
 <span class="sd">            Doing so will slightly deteriorate the overall latency.</span>
 <span class="sd">        layout_arch: name of the layout architecture or the model itself to use.</span>
+<span class="sd">        detect_tables: if True, table regions found by the layout model are cropped and passed to a table</span>
+<span class="sd">            structure model. Words falling inside a detected table are regrouped into a structured table</span>
+<span class="sd">            (accessible via `page.tables`) and removed from the regular text output. This enables the layout</span>
+<span class="sd">            model and slightly deteriorates the overall latency.</span>
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
@@ -441,6 +463,7 @@
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="n">detect_layout</span><span class="o">=</span><span class="n">detect_layout</span><span class="p">,</span>
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
+        <span class="n">detect_tables</span><span class="o">=</span><span class="n">detect_tables</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
