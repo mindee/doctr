@@ -154,7 +154,6 @@ class PreProcessor(nn.Module):
             samples = list(multithread_exec(self.sample_transforms, x))
             # Batching
             if self.resize.return_padding_mask:
-                print(samples)
                 img_batches, mask_batches = self.batch_inputs(samples)
             else:
                 img_batches = self.batch_inputs(samples)

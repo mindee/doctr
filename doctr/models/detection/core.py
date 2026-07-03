@@ -52,10 +52,16 @@ class DetectionPostProcessor(NestedObject):
             return pred[ymin : ymax + 1, xmin : xmax + 1].mean()
 
         else:
-            mask: np.ndarray = np.zeros((h, w), np.int32)
-            cv2.fillPoly(mask, [points.astype(np.int32)], 1.0)
-            product = pred * mask
-            return np.sum(product) / np.count_nonzero(product)
+            pts: np.ndarray = points.reshape((-1, 2)).astype(np.int32)
+            xmin = np.clip(pts[:, 0].min(), 0, w - 1)
+            xmax = np.clip(pts[:, 0].max(), 0, w - 1)
+            ymin = np.clip(pts[:, 1].min(), 0, h - 1)
+            ymax = np.clip(pts[:, 1].max(), 0, h - 1)
+            mask: np.ndarray = np.zeros((ymax - ymin + 1, xmax - xmin + 1), dtype=np.uint8)
+            cv2.fillPoly(mask, [pts - np.array([[xmin, ymin]], dtype=np.int32)], 1)
+            vals = pred[ymin : ymax + 1, xmin : xmax + 1][mask.astype(bool)]
+            nonzero = np.count_nonzero(vals)
+            return float(vals.sum() / nonzero) if nonzero > 0 else 0.0
 
     def bitmap_to_boxes(
         self,
