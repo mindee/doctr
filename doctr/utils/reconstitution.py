@@ -16,7 +16,7 @@ from .fonts import get_font
 __all__ = ["synthesize_page", "synthesize_kie_page"]
 
 
-@lru_cache(maxsize=64)
+@lru_cache(maxsize=256)
 def _cached_font(font_family: str | None, font_size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     """Memoized font loader: avoids re-reading the font file for every word."""
     return get_font(font_family, font_size)
@@ -34,6 +34,11 @@ def _polygon_angle(polygon: list[tuple[float, float]], w: int, h: int) -> float:
     return -math.degrees(math.atan2((y1 - y0) * h, (x1 - x0) * w))
 
 
+def _text_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
+    bbox = font.getbbox(text)
+    return max(int(bbox[2]) - int(bbox[0]), 1)
+
+
 def _fit_font(
     text: str,
     box_w: int,
@@ -42,15 +47,46 @@ def _fit_font(
     min_font_size: int,
     max_font_size: int,
 ) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """Directly estimate the largest font size fitting the box."""
+    """Directly estimate the largest font size fitting the box (text width scales ~linearly with size)."""
     font_size = max(min(box_h, max_font_size), min_font_size)
     try:
         font = _cached_font(font_family, font_size)
         x0, y0, x1, y1 = font.getbbox(text)
-        text_w, text_h = max(x1 - x0, 1), max(y1 - y0, 1)
+        text_w, text_h = max(int(x1) - int(x0), 1), max(int(y1) - int(y0), 1)
         if text_w > box_w or text_h > box_h:
             scale = min(box_w / text_w, box_h / text_h)
             font_size = max(min(int(font_size * scale), max_font_size), min_font_size)
+            font = _cached_font(font_family, font_size)
+        # The linear estimate can be off by a pixel or two: shrink until the text truly fits
+        while font_size > min_font_size and _text_width(font, text) > box_w:
+            font_size -= 1
+            font = _cached_font(font_family, font_size)
+    except ValueError:
+        font = _cached_font(font_family, min_font_size)
+    return font
+
+
+def _fit_line_font(
+    word_boxes: list[tuple[str, int, int, int, int]],
+    line_height: int,
+    font_family: str | None,
+    min_font_size: int,
+    max_font_size: int,
+) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
+    """Find one font size for a whole line such that every word fits its own bounding box."""
+    font_size = max(min(line_height, max_font_size), min_font_size)
+    try:
+        font = _cached_font(font_family, font_size)
+        # Scale down so the most constrained word still fits its own box
+        scale = min([(xmax - xmin) / _text_width(font, value) for value, xmin, _, xmax, _ in word_boxes] + [1.0])
+        if scale < 1.0:
+            font_size = max(min(int(font_size * scale), max_font_size), min_font_size)
+            font = _cached_font(font_family, font_size)
+        # The linear estimate can be off by a pixel or two: shrink until every word truly fits
+        while font_size > min_font_size and any(
+            _text_width(font, value) > (xmax - xmin) for value, xmin, _, xmax, _ in word_boxes
+        ):
+            font_size -= 1
             font = _cached_font(font_family, font_size)
     except ValueError:
         font = _cached_font(font_family, min_font_size)
@@ -123,16 +159,21 @@ def _synthesize(
     d = ImageDraw.Draw(response)
 
     if "words" in entry:
-        # Line entry: one consistent font size for the whole line,
-        # but each word is drawn at its own position to preserve the original spacing.
-        line_text = " ".join(word["value"] for word in entry["words"])
-        font = _fit_font(line_text, box_width, box_height, font_family, min_font_size, max_font_size)
+        # Line entry: one consistent font size for the whole line, drawn word by word.
+        # The font is sized so that no word overflows its own box (no overlap between words).
+        word_boxes: list[tuple[str, int, int, int, int]] = []
         for word in entry["words"]:
-            wx, wy = zip(
-                *(word["geometry"] if len(word["geometry"]) != 2 else [word["geometry"][0], word["geometry"][1]])
-            )
-            wxmin, wymin, wymax = int(round(w * min(wx))), int(round(h * min(wy))), int(round(h * max(wy)))
-            _draw_word(d, (wxmin, (wymin + wymax) // 2), word["value"], font, text_color, anchor="lm")
+            wx, wy = zip(*word["geometry"])
+            word_boxes.append((
+                word["value"],
+                int(round(w * min(wx))),
+                int(round(h * min(wy))),
+                int(round(w * max(wx))),
+                int(round(h * max(wy))),
+            ))
+        font = _fit_line_font(word_boxes, box_height, font_family, min_font_size, max_font_size)
+        for value, wxmin, wymin, _, wymax in word_boxes:
+            _draw_word(d, (wxmin, (wymin + wymax) // 2), value, font, text_color, anchor="lm")
     else:
         word_text = entry["value"]
         if abs(angle) > 3:  # Rotated word: render on a patch and paste it rotated

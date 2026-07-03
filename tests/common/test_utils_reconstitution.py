@@ -100,3 +100,31 @@ def test_synthesize_kie_page_rotated_prediction(caplog):
         reconstitution.synthesize_kie_page(page)
     warnings = [record for record in caplog.records if "rotation" in record.message.lower()]
     assert len(warnings) == 1
+
+
+def test_synthesize_page_words_do_not_overlap():
+    # Two adjacent words whose boxes are much narrower than the naive line-level font
+    # would require: the render must keep the gap between the boxes blank (regression test)
+    page = {
+        "dimensions": (300, 400),
+        "blocks": [
+            {
+                "geometry": ((0.05, 0.4), (0.5, 0.48)),
+                "lines": [
+                    {
+                        "geometry": ((0.05, 0.4), (0.5, 0.48)),
+                        "words": [
+                            {"value": "Wideword", "confidence": 0.9, "geometry": ((0.05, 0.4), (0.3, 0.48))},
+                            {"value": "Next", "confidence": 0.9, "geometry": ((0.32, 0.4), (0.5, 0.48))},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, (300, 400))
+
+    # The vertical strip between the first word's box and the second word's box must be blank
+    gap = render[:, int(round(400 * 0.3)) + 1 : int(round(400 * 0.32)) - 1]
+    assert (gap == 255).all()
