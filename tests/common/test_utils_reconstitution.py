@@ -8,6 +8,7 @@ def _assert_valid_render(render: np.ndarray, dimensions: tuple[int, int]) -> Non
     assert isinstance(render, np.ndarray)
     assert render.dtype == np.uint8
     assert render.shape == (*dimensions, 3)
+    # Something must actually have been drawn on the page
     assert (render < 255).any()
 
 
@@ -128,3 +129,48 @@ def test_synthesize_page_words_do_not_overlap():
     # The vertical strip between the first word's box and the second word's box must be blank
     gap = render[:, int(round(400 * 0.3)) + 1 : int(round(400 * 0.32)) - 1]
     assert (gap == 255).all()
+
+
+def test_synthesize_page_rotated_line():
+    # A line whose words carry rotated 4-point polygons must render without error,
+    # follow the rotation (ink appears along the tilted baseline, not just the top band),
+    # and keep adjacent words from overlapping
+    import math
+
+    h_px, w_px = 400, 600
+    angle = math.radians(-18)
+    dx, dy = math.cos(angle), math.sin(angle)
+    px, py = -math.sin(angle), math.cos(angle)
+    height = 30
+
+    def rot_word(value, start_x, start_y, width):
+        x0, y0 = start_x, start_y
+        x1, y1 = x0 + width * dx, y0 + width * dy
+        x2, y2 = x1 + height * px, y1 + height * py
+        x3, y3 = x0 + height * px, y0 + height * py
+        poly = [(x / w_px, y / h_px) for x, y in ((x0, y0), (x1, y1), (x2, y2), (x3, y3))]
+        return {"value": value, "confidence": 0.9, "geometry": poly}, (x1, y1)
+
+    w1, end1 = rot_word("Rotated", 60, 220, 150)
+    w2, _ = rot_word("baseline", end1[0] + 20 * dx, end1[1] + 20 * dy, 160)
+    page = {
+        "dimensions": (h_px, w_px),
+        "blocks": [
+            {
+                "geometry": ((0, 0), (1, 1)),
+                "lines": [
+                    {
+                        "geometry": [w1["geometry"][0], w2["geometry"][1], w2["geometry"][2], w1["geometry"][3]],
+                        "words": [w1, w2],
+                    },
+                ],
+            }
+        ],
+    }
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, (h_px, w_px))
+
+    # With an upward tilt, the second word's ink must sit clearly above the first word's start row;
+    # a horizontal per-bbox render would not place ink that high at those x-positions
+    right_half = render[: 220 - 2 * height, w_px // 2 :]
+    assert (right_half < 128).any()

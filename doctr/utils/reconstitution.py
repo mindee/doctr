@@ -67,25 +67,23 @@ def _fit_font(
 
 
 def _fit_line_font(
-    word_boxes: list[tuple[str, int, int, int, int]],
+    word_widths: list[tuple[str, int]],
     line_height: int,
     font_family: str | None,
     min_font_size: int,
     max_font_size: int,
 ) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
-    """Find one font size for a whole line such that every word fits its own bounding box."""
+    """Find one font size for a whole line such that every word fits its own available width."""
     font_size = max(min(line_height, max_font_size), min_font_size)
     try:
         font = _cached_font(font_family, font_size)
-        # Scale down so the most constrained word still fits its own box
-        scale = min([(xmax - xmin) / _text_width(font, value) for value, xmin, _, xmax, _ in word_boxes] + [1.0])
+        # Scale down so the most constrained word still fits its own box (linear estimate)
+        scale = min([avail_w / _text_width(font, value) for value, avail_w in word_widths] + [1.0])
         if scale < 1.0:
             font_size = max(min(int(font_size * scale), max_font_size), min_font_size)
             font = _cached_font(font_family, font_size)
         # The linear estimate can be off by a pixel or two: shrink until every word truly fits
-        while font_size > min_font_size and any(
-            _text_width(font, value) > (xmax - xmin) for value, xmin, _, xmax, _ in word_boxes
-        ):
+        while font_size > min_font_size and any(_text_width(font, value) > avail_w for value, avail_w in word_widths):
             font_size -= 1
             font = _cached_font(font_family, font_size)
     except ValueError:
@@ -160,20 +158,49 @@ def _synthesize(
 
     if "words" in entry:
         # Line entry: one consistent font size for the whole line, drawn word by word.
-        # The font is sized so that no word overflows its own box (no overlap between words).
-        word_boxes: list[tuple[str, int, int, int, int]] = []
+        word_render: list[tuple[str, int, int, int, int, float]] = []
         for word in entry["words"]:
-            wx, wy = zip(*word["geometry"])
-            word_boxes.append((
-                word["value"],
-                int(round(w * min(wx))),
-                int(round(h * min(wy))),
-                int(round(w * max(wx))),
-                int(round(h * max(wy))),
-            ))
-        font = _fit_line_font(word_boxes, box_height, font_family, min_font_size, max_font_size)
-        for value, wxmin, wymin, _, wymax in word_boxes:
-            _draw_word(d, (wxmin, (wymin + wymax) // 2), value, font, text_color, anchor="lm")
+            geom = word["geometry"]
+            if len(geom) == 2:
+                (gx0, gy0), (gx1, gy1) = geom
+                wxmin, wymin = int(round(w * gx0)), int(round(h * gy0))
+                wxmax, wymax = int(round(w * gx1)), int(round(h * gy1))
+                word_render.append((
+                    word["value"],
+                    wxmin,
+                    (wymin + wymax) // 2,
+                    max(wxmax - wxmin, 1),
+                    max(wymax - wymin, 1),
+                    0.0,
+                ))
+            else:
+                xs, ys = zip(*geom)
+                cx = int(round(w * sum(xs) / len(xs)))
+                cy = int(round(h * sum(ys) / len(ys)))
+                # True text-direction extent: length of the top edge / left edge in pixels
+                avail_w = int(round(math.hypot((geom[1][0] - geom[0][0]) * w, (geom[1][1] - geom[0][1]) * h)))
+                avail_h = int(round(math.hypot((geom[2][0] - geom[1][0]) * w, (geom[2][1] - geom[1][1]) * h)))
+                word_render.append((
+                    word["value"],
+                    cx,
+                    cy,
+                    max(avail_w, 1),
+                    max(avail_h, 1),
+                    _polygon_angle(geom, w, h),
+                ))
+        line_height = min(avail_h for *_, avail_h, _angle in word_render)
+        font = _fit_line_font(
+            [(value, avail_w) for value, _, _, avail_w, _, _ in word_render],
+            line_height,
+            font_family,
+            min_font_size,
+            max_font_size,
+        )
+        for value, ax, ay, _, _, word_angle in word_render:
+            if abs(word_angle) > 3:
+                _paste_rotated_word(response, value, font, (ax, ay), word_angle, text_color)
+            else:
+                _draw_word(d, (ax, ay), value, font, text_color, anchor="lm")
     else:
         word_text = entry["value"]
         if abs(angle) > 3:  # Rotated word: render on a patch and paste it rotated
