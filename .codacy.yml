@@ -1,0 +1,15 @@
+---
+# Codacy configuration file
+# https://docs.codacy.com/repositories-configure/codacy-configuration-file/
+# Analyze only doctr/ and references/ — everything else is excluded.
+
+exclude_paths:
+  - ".github/**"
+  - "api/**"
+  - "demo/**"
+  - "docs/**"
+  - "notebooks/**"
+  - "scripts/**"
+  - "tests/**"
+  # Root-level files (setup.py, pyproject.toml, README.md, ...)
+  - "*.*"

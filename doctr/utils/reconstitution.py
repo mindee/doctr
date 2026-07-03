@@ -61,7 +61,7 @@ def _fit_font(
         while font_size > min_font_size and _text_width(font, text) > box_w:
             font_size -= 1
             font = _cached_font(font_family, font_size)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         font = _cached_font(font_family, min_font_size)
     return font
 
@@ -86,7 +86,7 @@ def _fit_line_font(
         while font_size > min_font_size and any(_text_width(font, value) > avail_w for value, avail_w in word_widths):
             font_size -= 1
             font = _cached_font(font_family, font_size)
-    except ValueError:
+    except ValueError:  # pragma: no cover
         font = _cached_font(font_family, min_font_size)
     return font
 
