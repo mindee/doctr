@@ -61,7 +61,7 @@ class VIPTRPostProcessor(RecognitionPostProcessor):
         probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
 
         # collapse best path (using itertools.groupby), map to chars, join char list to string
-        best_paths = torch.argmax(logits, dim=-1).cpu().numpy()
+        best_paths = torch.argmax(logits, dim=-1).detach().cpu().numpy()
         words = [decode_sequence([k for k, _ in groupby(seq.tolist()) if k != blank], vocab) for seq in best_paths]
 
         return list(zip(words, probs.tolist()))

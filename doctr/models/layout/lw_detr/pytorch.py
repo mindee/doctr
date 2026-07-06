@@ -701,7 +701,7 @@ class LWDETR(nn.Module, _LWDETR):
 
                 cost = 2.0 * cost_class + 5.0 * cost_bbox + 2.0 * cost_iou
 
-                query_idx, tgt_idx = linear_sum_assignment(cost.cpu().numpy())
+                query_idx, tgt_idx = linear_sum_assignment(cost.detach().cpu().numpy())
                 indices.append((
                     torch.as_tensor(query_idx, dtype=torch.long, device=device),
                     torch.as_tensor(tgt_idx, dtype=torch.long, device=device),

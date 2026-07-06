@@ -174,12 +174,12 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
     ) -> list[tuple[str, float]]:
         # compute pred with argmax for attention models
         out_idxs = logits.argmax(-1)
-        preds_prob = torch.softmax(logits, -1).max(dim=-1)[0].cpu().numpy()
+        preds_prob = torch.softmax(logits, -1).max(dim=-1)[0].detach().cpu().numpy()
 
         # Manual decoding
         word_values = [
             "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
-            for encoded_seq in out_idxs.cpu().numpy()
+            for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
         # compute probabilties for each word up to the EOS token
         probs = [

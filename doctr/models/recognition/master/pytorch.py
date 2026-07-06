@@ -271,7 +271,7 @@ class MASTERPostProcessor(_MASTERPostProcessor):
         # Manual decoding
         word_values = [
             "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
-            for encoded_seq in out_idxs.cpu().numpy()
+            for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
 
         return list(zip(word_values, probs.numpy().clip(0, 1).tolist()))
