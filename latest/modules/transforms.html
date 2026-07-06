@@ -322,7 +322,9 @@
 if True, the image will be resized to fit within the target size while maintaining its aspect ratio</p></li>
 <li><p><strong>symmetric_pad</strong> – whether to symmetrically pad the image to the target size,
 if True, the image will be padded equally on both sides to fit the target size</p></li>
-<li><p><strong>return_padding_mask</strong> – whether to return a padding mask indicating the padded areas of the image</p></li>
+<li><p><strong>return_padding_mask</strong> – whether to return a boolean mask alongside the image, with True on valid
+(image content) pixels and False on padded areas. This matches how masks propagate through the
+other transforms (padding and rotation fill new areas with False).</p></li>
 </ul>
 </dd>
 </dl>
