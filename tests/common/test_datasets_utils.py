@@ -63,6 +63,10 @@ def test_decode_sequence():
         utils.decode_sequence(np.array([2, 4.5]), mapping)
 
     assert utils.decode_sequence([3, 4, 3, 4], mapping) == "dede"
+    assert utils.decode_sequence(np.array([3, 4, 3, 4], dtype=np.int64), mapping) == "dede"
+    assert utils.decode_sequence(np.array([3, 4, 3, 4], dtype=np.int32), mapping) == "dede"
+    # empty sequences decode to an empty string instead of raising on .max()
+    assert utils.decode_sequence(np.array([], dtype=np.int64), mapping) == ""
 
 
 @pytest.mark.parametrize(

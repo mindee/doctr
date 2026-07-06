@@ -44,7 +44,9 @@ class Resize(T.Resize):
             if True, the image will be resized to fit within the target size while maintaining its aspect ratio
         symmetric_pad: whether to symmetrically pad the image to the target size,
             if True, the image will be padded equally on both sides to fit the target size
-        return_padding_mask: whether to return a padding mask indicating the padded areas of the image
+        return_padding_mask: whether to return a boolean mask alongside the image, with True on valid
+            (image content) pixels and False on padded areas. This matches how masks propagate through the
+            other transforms (padding and rotation fill new areas with False).
     """
 
     def __init__(
@@ -123,6 +125,7 @@ class Resize(T.Resize):
                 ).squeeze(0)
 
             if self.return_padding_mask:
+                # No padding was added: every pixel is valid image content
                 padding_mask = torch.ones(self.size, dtype=torch.bool, device=img.device)
 
             if target is not None:
@@ -167,6 +170,7 @@ class Resize(T.Resize):
                     mask = pad(mask, _pad)
 
                 if self.return_padding_mask:
+                    # True on valid (image content) pixels, False on the padded borders
                     h, w = self.size
                     padding_mask = torch.zeros((h, w), dtype=torch.bool, device=img.device)
                     left, right, top, bottom = _pad

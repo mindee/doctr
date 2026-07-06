@@ -111,7 +111,9 @@ def decode_sequence(
     """
     if not isinstance(input_seq, (Sequence, np.ndarray)):
         raise TypeError("Invalid sequence type")
-    if isinstance(input_seq, np.ndarray) and (input_seq.dtype != np.int_ or input_seq.max() >= len(mapping)):
+    if isinstance(input_seq, np.ndarray) and (
+        not np.issubdtype(input_seq.dtype, np.integer) or (input_seq.size > 0 and input_seq.max() >= len(mapping))
+    ):
         raise AssertionError("Input must be an array of int, with max less than mapping size")
 
     return "".join(map(mapping.__getitem__, input_seq))

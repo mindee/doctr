@@ -43,7 +43,8 @@ def test_resize():
     assert out.shape[-2:] == output_size
     assert mask.shape == output_size
     assert mask.dtype == torch.bool
-    assert torch.all(mask == 0)
+    # No padding was added: every pixel is valid image content
+    assert torch.all(mask)
 
     # Test with preserve_aspect_ratio
     output_size = (32, 32)
@@ -56,15 +57,14 @@ def test_resize():
     assert not torch.all(out == 1)
     assert torch.all(out[:, -1] == 0) and torch.all(out[:, 0] == 1)
 
-    # Asymmetric padding mask
+    # Asymmetric padding mask: the (32, 64) image is scaled to (16, 32) and padded at the bottom
     transfo = Resize(output_size, preserve_aspect_ratio=True, return_padding_mask=True)
     data = transfo(input_t)
     out, mask = data.image, data.mask
     assert mask.shape == output_size
     assert mask.dtype == torch.bool
-    assert mask.any()
-    assert torch.any(mask[:, -5:])
-    assert torch.any(mask[:, 5:])
+    assert torch.all(mask[:16])  # image content is marked as valid (True)
+    assert not mask[16:].any()  # bottom padding is masked out (False)
 
     # Symmetric padding
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True)
@@ -72,15 +72,14 @@ def test_resize():
     assert out.shape[-2:] == output_size
     assert torch.all(out[:, 0] == 0) and torch.all(out[:, -1] == 0)
 
-    # Symmetric padding mask
+    # Symmetric padding mask: the (32, 64) image is scaled to (16, 32) and padded top & bottom (8 rows each)
     transfo = Resize(32, preserve_aspect_ratio=True, symmetric_pad=True, return_padding_mask=True)
     data = transfo(input_t)
     out, mask = data.image, data.mask
     assert mask.shape == output_size
     assert mask.dtype == torch.bool
-    assert mask.any()
-    assert torch.any(mask[:, :5])
-    assert torch.any(mask[:, -5:])
+    assert torch.all(mask[8:24])  # centered image content is marked as valid (True)
+    assert not mask[:8].any() and not mask[24:].any()  # symmetric padding is masked out (False)
 
     expected = "Resize(output_size=(32, 32), interpolation='bilinear', preserve_aspect_ratio=True, symmetric_pad=True)"
     assert repr(transfo) == expected

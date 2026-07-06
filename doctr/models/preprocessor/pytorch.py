@@ -149,6 +149,7 @@ class PreProcessor(nn.Module):
             img_batches = [tensor]
 
             if self.resize.return_padding_mask:
+                # Plain (stretching) resize adds no padding: every pixel is valid image content
                 h, w = self.resize.size
                 mask = torch.ones((x.shape[0], h, w), dtype=torch.bool)
                 mask_batches = [mask]

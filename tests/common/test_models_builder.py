@@ -31,7 +31,7 @@ def test_documentbuilder():
             [boxes, boxes],
             [objectness_scores, objectness_scores],
             [("hello", 1.0)] * 3,
-            [(100, 200), (100, 200)],
+            [(100, 200)] * num_pages,
             [{"value": 0, "confidence": None}] * 3,
         )
     out = doc_builder(
@@ -39,7 +39,7 @@ def test_documentbuilder():
         [boxes, boxes],
         [objectness_scores, objectness_scores],
         [[("hello", 1.0)] * words_per_page] * num_pages,
-        [(100, 200), (100, 200)],
+        [(100, 200)] * num_pages,
         [[{"value": 0, "confidence": None}] * words_per_page] * num_pages,
     )
     assert isinstance(out, Document)
@@ -58,7 +58,7 @@ def test_documentbuilder():
         [boxes, boxes],
         [objectness_scores, objectness_scores],
         [[("hello", 1.0)] * words_per_page] * num_pages,
-        [(100, 200), (100, 200)],
+        [(100, 200)] * num_pages,
         [[{"value": 0, "confidence": None}] * words_per_page] * num_pages,
     )
 
@@ -66,7 +66,12 @@ def test_documentbuilder():
     boxes = np.zeros((0, 4))
     objectness_scores = np.zeros([0])
     out = doc_builder(
-        pages, [boxes, boxes], [objectness_scores, objectness_scores], [[], []], [(100, 200), (100, 200)], [[]]
+        pages,
+        [boxes, boxes],
+        [objectness_scores, objectness_scores],
+        [[], []],
+        [(100, 200)] * num_pages,
+        [[]] * num_pages,
     )
     assert len(out.pages[0].blocks) == 0
 
@@ -517,3 +522,43 @@ def test_documentbuilder_tables_straight_geometry():
     # words assigned to the table are removed from the blocks; the caption remains
     remaining = [w.value for b in page.blocks for line in b.lines for w in line.words]
     assert remaining == ["caption"]
+
+
+def test_documentbuilder_argument_length_validation():
+    # A single mismatched argument must raise, whichever one it is
+    num_pages = 2
+    doc_builder = builder.DocumentBuilder()
+    pages = [np.zeros((100, 200, 3))] * num_pages
+    boxes = np.random.rand(words_per_page, 6)
+    boxes[:2] *= boxes[2:4]
+    page_boxes = [boxes[:, :4]] * num_pages
+    objectness = [np.array([0.9] * words_per_page)] * num_pages
+    text_preds = [[("hello", 0.99)] * words_per_page] * num_pages
+    page_shapes = [(100, 200)] * num_pages
+    crop_orientations = [[{"value": 0, "confidence": None}] * words_per_page] * num_pages
+
+    args = dict(
+        pages=pages,
+        boxes=page_boxes,
+        objectness_scores=objectness,
+        text_preds=text_preds,
+        page_shapes=page_shapes,
+        crop_orientations=crop_orientations,
+    )
+    # sanity: consistent arguments build fine
+    assert isinstance(doc_builder(**args), Document)
+
+    # each argument mismatched on its own must raise
+    for key in ("pages", "objectness_scores", "text_preds", "page_shapes", "crop_orientations"):
+        bad_args = dict(args)
+        bad_args[key] = args[key] + [args[key][0]]
+        with pytest.raises(ValueError):
+            doc_builder(**bad_args)
+
+
+def test_sort_boxes_degenerate_heights():
+    # Boxes with zero height must not produce a NaN ordering (division by median height)
+    doc_builder = builder.DocumentBuilder()
+    boxes = np.array([[0.5, 0.2, 0.6, 0.2], [0.1, 0.2, 0.2, 0.2]], dtype=np.float32)
+    idxs, _ = doc_builder._sort_boxes(boxes)
+    assert sorted(np.asarray(idxs).tolist()) == [0, 1]
