@@ -69,3 +69,22 @@ def test_remove_padding(pages, preserve_aspect_ratio, symmetric_pad, assume_stra
     result = _remove_padding(pages, loc_preds, preserve_aspect_ratio, symmetric_pad, assume_straight_pages)
     for res, exp in zip(result, expected):
         assert np.allclose(res["words"], exp["words"])
+
+
+def test_remove_padding_does_not_mutate_input():
+    # Calling twice on the same predictions must not dilate the coordinates twice
+    pages = [np.zeros((1200, 800, 3))]
+    polygons = np.array([[[0.4, 0.4], [0.6, 0.4], [0.6, 0.5], [0.4, 0.5]]], dtype=np.float32)
+    model_frame = polygons.copy()
+    loc_preds = [{"words": polygons}]
+
+    first = _remove_padding(
+        pages, loc_preds, preserve_aspect_ratio=True, symmetric_pad=True, assume_straight_pages=False
+    )
+    # the caller's arrays are left untouched
+    assert np.array_equal(loc_preds[0]["words"], model_frame)
+    # and a second call over the same input yields the same result (idempotent)
+    second = _remove_padding(
+        pages, loc_preds, preserve_aspect_ratio=True, symmetric_pad=True, assume_straight_pages=False
+    )
+    assert np.allclose(first[0]["words"], second[0]["words"])

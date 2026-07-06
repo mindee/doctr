@@ -98,7 +98,9 @@ class PreProcessor(nn.Module):
             raise AssertionError("expected list of 3D Tensors")
         if x.dtype not in (np.uint8, np.float32, np.float16):
             raise TypeError("unsupported data type for numpy.ndarray")
-        tensor = torch.from_numpy(x.copy()).permute(2, 0, 1)
+        if not x.flags.writeable:  # torch.from_numpy requires a writable buffer
+            x = x.copy()
+        tensor = torch.from_numpy(np.ascontiguousarray(x)).permute(2, 0, 1)
         # Resizing
         if self.resize.return_padding_mask:
             sample = self.resize(Sample(image=tensor))
@@ -107,7 +109,7 @@ class PreProcessor(nn.Module):
             tensor = self.resize(Sample(image=tensor)).image
         # Data type
         if tensor.dtype == torch.uint8:
-            tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
+            tensor = tensor.to(dtype=torch.float32).div(255)
         else:
             tensor = tensor.to(dtype=torch.float32)
 
@@ -130,7 +132,9 @@ class PreProcessor(nn.Module):
                 raise AssertionError("expected 4D Tensor")
             if x.dtype not in (np.uint8, np.float32, np.float16):
                 raise TypeError("unsupported data type for numpy.ndarray")
-            tensor = torch.from_numpy(x.copy()).permute(0, 3, 1, 2)
+            if not x.flags.writeable:  # torch.from_numpy requires a writable buffer
+                x = x.copy()
+            tensor = torch.from_numpy(np.ascontiguousarray(x)).permute(0, 3, 1, 2)
 
             # Resizing
             if tensor.shape[-2] != self.resize.size[0] or tensor.shape[-1] != self.resize.size[1]:
@@ -139,7 +143,7 @@ class PreProcessor(nn.Module):
                 )
             # Data type
             if tensor.dtype == torch.uint8:
-                tensor = tensor.to(dtype=torch.float32).div(255).clip(0, 1)
+                tensor = tensor.to(dtype=torch.float32).div(255)
             else:
                 tensor = tensor.to(dtype=torch.float32)
             img_batches = [tensor]

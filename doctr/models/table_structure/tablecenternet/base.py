@@ -9,7 +9,8 @@ import math
 
 import numpy as np
 from scipy.interpolate import griddata
-from shapely.geometry import Point, Polygon
+from shapely import contains_xy, prepare
+from shapely.geometry import Polygon
 
 from doctr.models.core import BaseModel
 from doctr.utils import order_points
@@ -130,13 +131,15 @@ class TableCenterNetPostProcessor:
         corner_count = np.zeros(cp.shape[0], dtype=np.int32)
         for qi, i in enumerate(valid_c):
             center_poly = Polygon(cp[i].reshape(4, 2))
+            prepare(center_poly)
             cell = cp[i].reshape(4, 2)
             origin = decoded["center_polygons"][b][i].reshape(4, 2)
             lc_logic: list[np.ndarray | None] = [None, None, None, None]
             n_used = n_repeat = 0
             for j in valid_k[queries[qi]]:
                 cx, cy = corner_pts[j]
-                if not any(Point(p).within(center_poly) for p in corner_polys[j].reshape(4, 2)):
+                candidate_pts = corner_polys[j].reshape(4, 2)
+                if not contains_xy(center_poly, candidate_pts[:, 0], candidate_pts[:, 1]).any():
                     continue
                 # nearest corner index is computed on the ORIGINAL polygon
                 idx = int(np.argmin(((origin - [cx, cy]) ** 2).sum(1)))
@@ -266,11 +269,13 @@ def _interpolate_polygons(polygons: list[list[tuple]], img_size: tuple[int, int]
             interp = griddata(points, values, grid_points, method="linear", fill_value=-1)
         except Exception:
             continue
-        for (gi, gj), value in zip(grid_points, interp):
-            i, j = gi + x_min, gj + y_min
-            if value >= 0 and 0 <= j < img_size[0] and 0 <= i < img_size[1] and not mask[j, i]:
-                final_image[j, i] = value
-                mask[j, i] = True
+        cols = grid_points[:, 0] + x_min
+        rows = grid_points[:, 1] + y_min
+        valid = (interp >= 0) & (rows >= 0) & (rows < img_size[0]) & (cols >= 0) & (cols < img_size[1])
+        rows, cols, vals = rows[valid], cols[valid], interp[valid]
+        free = ~mask[rows, cols]
+        final_image[rows[free], cols[free]] = vals[free]
+        mask[rows[free], cols[free]] = True
     return final_image, mask
 
 

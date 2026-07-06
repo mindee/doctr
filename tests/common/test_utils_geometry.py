@@ -193,6 +193,14 @@ def test_remove_image_padding():
     cropped = geometry.remove_image_padding(img)
     assert np.all(cropped == img)
 
+    # Grayscale images are supported as well
+    gray = np.pad(np.ones((16, 16), dtype=np.uint8), ((3, 4), (5, 6)))
+    assert np.all(geometry.remove_image_padding(gray) == np.ones((16, 16), dtype=np.uint8))
+
+    # Fully black image: nothing to crop, must not raise
+    black = np.zeros((32, 64, 3), dtype=np.float32)
+    assert geometry.remove_image_padding(black) is black
+
 
 @pytest.mark.parametrize(
     "abs_geoms, img_size, rel_geoms",
@@ -236,6 +244,9 @@ def test_estimate_page_angle():
     invalid_poly = np.array([[[0.5, 0.5], [0.5, 0.5], [0.5, 0.5], [0.5, 0.5]]])
     angle = geometry.estimate_page_angle(invalid_poly)
     assert angle == 0.0
+    # A degenerate polygon among valid ones must be ignored, not collapse the whole estimate to 0
+    angle = geometry.estimate_page_angle(np.concatenate([rotated_polys, invalid_poly], axis=0))
+    assert np.isclose(angle, 20)
 
 
 def test_extract_crops(mock_pdf):

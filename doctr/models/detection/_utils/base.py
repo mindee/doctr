@@ -33,8 +33,10 @@ def _remove_padding(
         # Rectify loc_preds to remove padding
         rectified_preds = []
         for page, dict_loc_preds in zip(pages, loc_preds):
+            h, w = page.shape[0], page.shape[1]
+            rectified_page_preds = {}
             for k, loc_pred in dict_loc_preds.items():
-                h, w = page.shape[0], page.shape[1]
+                loc_pred = loc_pred.copy()
                 if h > w:
                     # y unchanged, dilate x coord
                     if symmetric_pad:
@@ -71,6 +73,7 @@ def _remove_padding(
                                 loc_pred[:, :-1, 1] *= w / h
                             else:
                                 loc_pred[:, :, 1] *= w / h
-                rectified_preds.append({k: np.clip(loc_pred, 0, 1)})
+                rectified_page_preds[k] = np.clip(loc_pred, 0, 1, out=loc_pred)
+            rectified_preds.append(rectified_page_preds)
         return rectified_preds
     return loc_preds

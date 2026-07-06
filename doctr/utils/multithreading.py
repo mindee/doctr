@@ -36,13 +36,16 @@ def multithread_exec(func: Callable[[Any], Any], seq: Iterable[Any], threads: in
         you might want to disable multiprocessing. To achieve that, set 'DOCTR_MULTIPROCESSING_DISABLE' to 'TRUE'.
     """
     threads = threads if isinstance(threads, int) else min(16, mp.cpu_count())
+    items = seq if isinstance(seq, (list, tuple)) else list(seq)
+    # Never spawn more workers than items - single-item calls skip pool startup entirely
+    threads = min(threads, len(items))
     # Single-thread
     if threads < 2 or os.environ.get("DOCTR_MULTIPROCESSING_DISABLE", "").upper() in ENV_VARS_TRUE_VALUES:
-        results = map(func, seq)
+        results = map(func, items)
     # Multi-threading
     else:
         with ThreadPool(threads) as tp:
             # ThreadPool's map function returns a list, but seq could be of a different type
             # That's why wrapping result in map to return iterator
-            results = map(lambda x: x, tp.map(func, seq))  # noqa: C417
+            results = map(lambda x: x, tp.map(func, items))  # noqa: C417
     return results

@@ -152,19 +152,18 @@ class _OCRPredictor:
         crops: list[list[np.ndarray]],
         loc_preds: list[np.ndarray],
     ) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[tuple[int, float]]]:
-        # Work at a page level
-        orientations, classes, probs = zip(*[self.crop_orientation_predictor(page_crops) for page_crops in crops])  # type: ignore[misc]
+        page_counts = [len(page_crops) for page_crops in crops]
+        flat_crops = [crop for page_crops in crops for crop in page_crops]
+        flat_orientations, flat_classes, flat_probs = self.crop_orientation_predictor(flat_crops)  # type: ignore[misc]
+        _bounds = np.cumsum([0, *page_counts])
+        orientations = [flat_orientations[start:end] for start, end in zip(_bounds[:-1], _bounds[1:])]
         rect_crops = [rectify_crops(page_crops, orientation) for page_crops, orientation in zip(crops, orientations)]
         rect_loc_preds = [
             rectify_loc_preds(page_loc_preds, orientation) if len(page_loc_preds) > 0 else page_loc_preds
             for page_loc_preds, orientation in zip(loc_preds, orientations)
         ]
         # Flatten to list of tuples with (value, confidence)
-        crop_orientations = [
-            (orientation, prob)
-            for page_classes, page_probs in zip(classes, probs)
-            for orientation, prob in zip(page_classes, page_probs)
-        ]
+        crop_orientations = [(orientation, prob) for orientation, prob in zip(flat_classes, flat_probs)]
         return rect_crops, rect_loc_preds, crop_orientations  # type: ignore[return-value]
 
     @staticmethod

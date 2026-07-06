@@ -81,16 +81,18 @@ class KIEPredictor(nn.Module, _KIEPredictor):
 
         origin_page_shapes = [page.shape[:2] for page in pages]
 
-        # Localize text elements
-        loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+        # Localize text elements (segmentation maps are only materialized when actually consumed)
+        if self.detect_orientation or self.straighten_pages:
+            loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+            bin_thresh = kwargs.get("bin_thresh", 0.3)
+            seg_maps = [
+                ((np.expand_dims(np.amax(out_map, axis=-1), axis=-1) > bin_thresh) * 255).astype(np.uint8)
+                for out_map in out_maps
+            ]
+        else:
+            loc_preds = self.det_predictor(pages, **kwargs)
 
         # Detect document rotation and rotate pages
-        seg_maps = [
-            np.where(np.expand_dims(np.amax(out_map, axis=-1), axis=-1) > kwargs.get("bin_thresh", 0.3), 255, 0).astype(
-                np.uint8
-            )
-            for out_map in out_maps
-        ]
         if self.detect_orientation:
             general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
             orientations = [

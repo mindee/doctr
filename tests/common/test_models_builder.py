@@ -440,3 +440,80 @@ def test_sort_boxes(input_boxes, sorted_idxs):
 def test_resolve_lines(input_boxes, lines):
     doc_builder = builder.DocumentBuilder()
     assert doc_builder._resolve_lines(np.asarray(input_boxes)) == lines
+
+
+def test_points_in_polygons():
+    polys = np.array(
+        [
+            [[0.1, 0.1], [0.4, 0.1], [0.4, 0.3], [0.1, 0.3]],  # axis-aligned quad
+            [[0.5, 0.5], [0.8, 0.6], [0.7, 0.9], [0.45, 0.8]],  # rotated quad
+        ],
+        dtype=np.float32,
+    )
+    points = np.array([[0.2, 0.2], [0.6, 0.7], [0.95, 0.95], [0.05, 0.05]], dtype=np.float32)
+    inside = builder.DocumentBuilder._points_in_polygons(points, polys)
+    assert inside.shape == (4, 2)
+    assert inside[0].tolist() == [True, False]
+    assert inside[1].tolist() == [False, True]
+    assert not inside[2].any()
+    assert not inside[3].any()
+    # empty inputs yield empty masks instead of raising
+    assert builder.DocumentBuilder._points_in_polygons(np.zeros((0, 2)), polys).shape == (0, 2)
+    assert builder.DocumentBuilder._points_in_polygons(points, np.zeros((0, 4, 2))).shape == (4, 0)
+
+
+def test_as_cell_polygon():
+    # flat straight box (xmin, ymin, xmax, ymax) -> (4, 2) polygon
+    poly = builder.DocumentBuilder._as_cell_polygon([0.1, 0.2, 0.5, 0.6])
+    assert poly.shape == (4, 2)
+    assert np.allclose(poly, [[0.1, 0.2], [0.5, 0.2], [0.5, 0.6], [0.1, 0.6]])
+    # (4, 2) polygons pass through unchanged
+    quad = np.array([[0.1, 0.2], [0.5, 0.25], [0.45, 0.6], [0.05, 0.55]], dtype=np.float32)
+    assert np.allclose(builder.DocumentBuilder._as_cell_polygon(quad), quad)
+
+
+def test_documentbuilder_tables_straight_geometry():
+    # Straight-mode table predictions store cells as flat (xmin, ymin, xmax, ymax) boxes.
+    # Regression test: this format used to crash the word-to-cell assignment with an IndexError.
+    doc_builder = builder.DocumentBuilder()
+
+    def wbox(cx, cy, w=0.04, h=0.02):
+        return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2]
+
+    words = [("Name", 0.17, 0.15), ("Age", 0.36, 0.15), ("caption", 0.30, 0.92)]
+    boxes = np.array([wbox(cx, cy) for _, cx, cy in words], dtype=np.float32)
+    text_preds = [[(w, 0.95) for w, _, _ in words]]
+    objectness_scores = np.full(len(words), 0.9, dtype=np.float32)
+    orientations = [[{"value": 0, "confidence": None}] * len(words)]
+
+    def straight_cell(x0, y0, x1, y1, cs):
+        return {
+            "geometry": [x0, y0, x1, y1],  # flat straight-box format, as emitted by the table predictor
+            "score": 0.9,
+            "row_start": 0,
+            "row_end": 0,
+            "col_start": cs,
+            "col_end": cs,
+        }
+
+    table = {
+        "cells": [straight_cell(0.10, 0.10, 0.25, 0.20, 0), straight_cell(0.28, 0.10, 0.45, 0.20, 1)],
+        "score": 0.9,
+    }
+
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [objectness_scores],
+        text_preds,
+        [(100, 100)],
+        orientations,
+        tables=[[table]],
+    )
+    page = out.pages[0]
+
+    assert len(page.tables) == 1
+    assert page.tables[0].to_grid() == [["Name", "Age"]]
+    # words assigned to the table are removed from the blocks; the caption remains
+    remaining = [w.value for b in page.blocks for line in b.lines for w in line.words]
+    assert remaining == ["caption"]

@@ -3,7 +3,6 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from copy import deepcopy
 from math import ceil
 
 import cv2
@@ -388,11 +387,13 @@ def remove_image_padding(image: np.ndarray) -> np.ndarray:
     Returns:
         Image with padding removed
     """
-    # Find the bounding box of the non-black region
-    rows = np.any(image, axis=1)
-    cols = np.any(image, axis=0)
-    rmin, rmax = np.where(rows)[0][[0, -1]]
-    cmin, cmax = np.where(cols)[0][[0, -1]]
+    # Find the bounding box of the non-black region (reduce over every axis but the one of interest)
+    rows = np.any(image, axis=tuple(ax for ax in range(image.ndim) if ax != 0))
+    cols = np.any(image, axis=tuple(ax for ax in range(image.ndim) if ax != 1))
+    if not rows.any():  # fully black image: nothing to crop
+        return image
+    rmin, rmax = int(np.argmax(rows)), image.shape[0] - 1 - int(np.argmax(rows[::-1]))
+    cmin, cmax = int(np.argmax(cols)), image.shape[1] - 1 - int(np.argmax(cols[::-1]))
 
     return image[rmin : rmax + 1, cmin : cmax + 1]
 
@@ -406,13 +407,12 @@ def estimate_page_angle(polys: np.ndarray) -> float:
     yleft = polys[:, 0, 1] + polys[:, 3, 1]
     xright = polys[:, 1, 0] + polys[:, 2, 0]
     yright = polys[:, 1, 1] + polys[:, 2, 1]
-    with np.errstate(divide="raise", invalid="raise"):
-        try:
-            return float(
-                np.median(np.arctan((yleft - yright) / (xright - xleft)) * 180 / np.pi)  # Y axis from top to bottom!
-            )
-        except FloatingPointError:
-            return 0.0
+    with np.errstate(divide="ignore", invalid="ignore"):
+        angles = np.arctan((yleft - yright) / (xright - xleft)) * 180 / np.pi  # Y axis from top to bottom!
+    # Degenerate polygons (0/0) yield NaN: ignore them instead of discarding the whole page estimate,
+    # while vertical polygons (x/0 -> +/-inf) legitimately contribute +/-90 degrees through arctan
+    angles = angles[np.isfinite(angles)]
+    return float(np.median(angles)) if angles.size > 0 else 0.0
 
 
 def convert_to_relative_coords(geoms: np.ndarray, img_shape: tuple[int, int]) -> np.ndarray:
@@ -466,7 +466,7 @@ def extract_crops(img: np.ndarray, boxes: np.ndarray) -> list[np.ndarray]:
         # Add last index
         _boxes[:, 2:] += 1
 
-    return deepcopy([img[box[1] : box[3], box[0] : box[2]] for box in _boxes])
+    return [np.ascontiguousarray(img[box[1] : box[3], box[0] : box[2]]) for box in _boxes]
 
 
 def extract_rcrops(
@@ -531,6 +531,9 @@ def extract_rcrops(
             # Get the maximum width and height
             rect_width = max(int(width_upper), int(width_lower))
             rect_height = max(int(height_left), int(height_right))
+            if rect_width < 1 or rect_height < 1:
+                crops.append(np.zeros((0, 0, *img.shape[2:]), dtype=img.dtype))
+                continue
 
             dst_pts = np.array(
                 [
@@ -576,6 +579,8 @@ def extract_rcrops(
                 cv2.getAffineTransform(src_pts[idx], dst_pts[idx]),
                 (int(d1[idx]), int(d2[idx])),
             )
+            if int(d1[idx]) > 0 and int(d2[idx]) > 0
+            else np.zeros((0, 0, *img.shape[2:]), dtype=img.dtype)
             for idx in range(_boxes.shape[0])
         ]
     return crops

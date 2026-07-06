@@ -123,6 +123,9 @@ class FASTPostProcessor(DetectionPostProcessor):
             else:
                 _box = self.polygon_to_box(np.squeeze(contour))
 
+            if _box is None:
+                continue
+
             if self.assume_straight_pages:
                 # compute relative polygon to get rid of img shape
                 x, y, w, h = _box

@@ -99,14 +99,15 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             # Detect layout regions on the pages
             regions = self.layout_predictor(pages, **kwargs) if self.layout_predictor is not None else None
 
-        # Localize text elements
-        loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+        # Localize text elements (segmentation maps are only materialized when actually consumed)
+        if self.detect_orientation or self.straighten_pages:
+            loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+            bin_thresh = getattr(self.det_predictor.model.postprocessor, "bin_thresh")
+            seg_maps = [((out_map > bin_thresh) * 255).astype(np.uint8) for out_map in out_maps]
+        else:
+            loc_preds = self.det_predictor(pages, **kwargs)
 
         # Detect document rotation and rotate pages
-        seg_maps = [
-            np.where(out_map > getattr(self.det_predictor.model.postprocessor, "bin_thresh"), 255, 0).astype(np.uint8)
-            for out_map in out_maps
-        ]
         if self.detect_orientation:
             general_pages_orientations, origin_pages_orientations = self._get_orientations(pages, seg_maps)
             orientations = [

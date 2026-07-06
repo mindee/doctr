@@ -48,6 +48,11 @@ def test_encode_string_unknown_char():
         utils.encode_string("abc", "xyz")
 
 
+def test_encode_string_duplicate_vocab_chars():
+    # Duplicated characters map to their first occurrence, like str.index
+    assert utils.encode_string("aba", "aba") == [0, 1, 0]
+
+
 def test_decode_sequence():
     mapping = "abcdef"
     with pytest.raises(TypeError):

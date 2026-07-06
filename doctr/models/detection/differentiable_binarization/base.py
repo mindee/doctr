@@ -131,7 +131,7 @@ class DBPostProcessor(DetectionPostProcessor):
             if self.assume_straight_pages:
                 if _box is None or _box[2] < min_size_box or _box[3] < min_size_box:
                     continue
-            elif np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
+            elif _box is None or np.linalg.norm(_box[2, :] - _box[0, :], axis=-1) < min_size_box:
                 continue
 
             if self.assume_straight_pages:
@@ -141,7 +141,7 @@ class DBPostProcessor(DetectionPostProcessor):
                 boxes.append([xmin, ymin, xmax, ymax, score])
             else:
                 # compute relative box to get rid of img shape, in that case _box is a 4pt polygon
-                if not isinstance(_box, np.ndarray) and _box.shape == (4, 2):
+                if not (isinstance(_box, np.ndarray) and _box.shape == (4, 2)):
                     raise AssertionError("When assume straight pages is false a box is a (4, 2) array (polygon)")
                 _box[:, 0] /= width
                 _box[:, 1] /= height

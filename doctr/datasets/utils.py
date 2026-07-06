@@ -7,7 +7,7 @@ import string
 import unicodedata
 from collections.abc import Sequence
 from collections.abc import Sequence as SequenceType
-from functools import partial
+from functools import lru_cache, partial
 from pathlib import Path
 from typing import Any, TypeVar
 
@@ -66,6 +66,12 @@ def translate(
     return translated
 
 
+@lru_cache(maxsize=32)
+def _vocab_lookup_table(vocab: str) -> dict[str, int]:
+    """Cached char -> index table for a vocab"""
+    return {char: idx for idx, char in reversed(list(enumerate(vocab)))}
+
+
 def encode_string(
     input_string: str,
     vocab: str,
@@ -79,10 +85,11 @@ def encode_string(
     Returns:
         A list encoding the input_string
     """
+    table = _vocab_lookup_table(vocab)
     try:
-        return list(map(vocab.index, input_string))
-    except ValueError as e:
-        missing_chars = [char for char in input_string if char not in vocab]
+        return [table[char] for char in input_string]
+    except KeyError as e:
+        missing_chars = [char for char in input_string if char not in table]
         raise ValueError(
             f"Some characters cannot be found in 'vocab': {set(missing_chars)}.\n"
             f"Please check the input string `{input_string}` and the vocabulary `{vocab}`"

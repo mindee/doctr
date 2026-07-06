@@ -266,27 +266,46 @@ class DocumentBuilder(NestedObject):
         return np.stack([(boxes[:, 0] + boxes[:, 2]) / 2, (boxes[:, 1] + boxes[:, 3]) / 2], axis=1)
 
     @staticmethod
-    def _point_in_poly(point: np.ndarray, poly: np.ndarray) -> bool:
-        """Test whether a 2D point lies inside a polygon using the ray casting algorithm.
+    def _as_cell_polygon(geometry: Any) -> np.ndarray:
+        """Normalize a cell geometry to a (4, 2) polygon.
+
+        Straight-page table predictions store cells as flat (xmin, ymin, xmax, ymax) boxes, while rotated-page
+        predictions store (4, 2) corner polygons: both are mapped to a (4, 2) polygon (TL, TR, BR, BL).
 
         Args:
-            point: array of shape (2,) with the (x, y) coordinates of the point
-            poly: array of shape (M, 2) with the polygon vertices
+            geometry: the raw cell geometry
 
         Returns:
-            True if the point is inside the polygon
+            array of shape (4, 2) with the polygon vertices
         """
-        x, y = float(point[0]), float(point[1])
-        inside = False
-        n = len(poly)
-        j = n - 1
-        for i in range(n):
-            xi, yi = float(poly[i][0]), float(poly[i][1])
-            xj, yj = float(poly[j][0]), float(poly[j][1])
-            if ((yi > y) != (yj > y)) and (x < (xj - xi) * (y - yi) / (yj - yi + 1e-12) + xi):
-                inside = not inside
-            j = i
-        return inside
+        arr = np.asarray(geometry, dtype=np.float32)
+        if arr.ndim == 1:  # straight box (xmin, ymin, xmax, ymax)
+            x0, y0, x1, y1 = arr
+            return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
+        return arr.reshape(-1, 2)
+
+    @staticmethod
+    def _points_in_polygons(points: np.ndarray, polys: np.ndarray) -> np.ndarray:
+        """Vectorized ray casting: test every point against every polygon at once.
+
+        Args:
+            points: array of shape (N, 2) with the (x, y) coordinates of the points
+            polys: array of shape (C, V, 2) with the polygon vertices
+
+        Returns:
+            boolean array of shape (N, C), True where point n lies inside polygon c
+        """
+        if points.shape[0] == 0 or polys.shape[0] == 0:
+            return np.zeros((points.shape[0], polys.shape[0]), dtype=bool)
+        px = points[:, 0].astype(np.float64)[:, None, None]
+        py = points[:, 1].astype(np.float64)[:, None, None]
+        vi = polys.astype(np.float64)  # (C, V, 2)
+        vj = np.roll(vi, 1, axis=1)  # previous vertex, with wrap-around
+        xi, yi = vi[None, ..., 0], vi[None, ..., 1]
+        xj, yj = vj[None, ..., 0], vj[None, ..., 1]
+        crossing = ((yi > py) != (yj > py)) & (px < (xj - xi) * (py - yi) / (yj - yi + 1e-12) + xi)
+        # A point is inside when a ray crosses the polygon boundary an odd number of times
+        return (crossing.sum(axis=-1) % 2).astype(bool)
 
     @staticmethod
     def _localize_logic(cells: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], int, int]:
@@ -364,18 +383,19 @@ class DocumentBuilder(NestedObject):
         tables_out: list[Table] = []
         for table_dict in table_dicts:
             cells = table_dict["cells"]
-            cell_polys = [np.asarray(cell["geometry"], dtype=np.float32) for cell in cells]
+            cell_polys = [self._as_cell_polygon(cell["geometry"]) for cell in cells]
 
-            # Assign each (still unassigned) word to at most one cell of this table
+            # Assign each (still unassigned) word to at most one cell of this table: the first cell (in cell
+            # order) whose polygon contains the word center
             cell_word_idcs: list[list[int]] = [[] for _ in cells]
-            for w_idx in range(num_words):
-                if consumed[w_idx]:
-                    continue
-                for c_idx, poly in enumerate(cell_polys):
-                    if self._point_in_poly(centers[w_idx], poly):
-                        cell_word_idcs[c_idx].append(w_idx)
+            free_idcs = np.flatnonzero(~consumed)
+            if free_idcs.size > 0 and len(cell_polys) > 0:
+                inside = self._points_in_polygons(centers[free_idcs], np.stack(cell_polys))  # (F, C)
+                first_cell = np.where(inside.any(axis=1), inside.argmax(axis=1), -1)
+                for w_idx, c_idx in zip(free_idcs, first_cell):
+                    if c_idx >= 0:
+                        cell_word_idcs[c_idx].append(int(w_idx))
                         consumed[w_idx] = True
-                        break
 
             # Build the cells
             table_cells: list[TableCell] = []
