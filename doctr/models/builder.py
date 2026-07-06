@@ -73,7 +73,10 @@ class DocumentBuilder(NestedObject):
                 min_angle=5.0,
             )
             boxes = np.concatenate((boxes.min(1), boxes.max(1)), -1)
-        return (boxes[:, 0] + 2 * boxes[:, 3] / np.median(boxes[:, 3] - boxes[:, 1])).argsort(), boxes
+        med_height = float(np.median(boxes[:, 3] - boxes[:, 1]))
+        if not np.isfinite(med_height) or med_height <= 0:
+            med_height = 1.0
+        return (boxes[:, 0] + 2 * boxes[:, 3] / med_height).argsort(), boxes
 
     def _resolve_sub_lines(self, boxes: np.ndarray, word_idcs: list[int]) -> list[list[int]]:
         """Split a line in sub_lines
@@ -557,9 +560,10 @@ class DocumentBuilder(NestedObject):
         Returns:
             document object
         """
-        if len(boxes) != len(text_preds) != len(crop_orientations) != len(objectness_scores) or len(boxes) != len(
-            page_shapes
-        ) != len(crop_orientations) != len(objectness_scores):
+        expected_len = len(boxes)
+        if any(
+            len(arg) != expected_len for arg in (pages, text_preds, crop_orientations, objectness_scores, page_shapes)
+        ):
             raise ValueError("All arguments are expected to be lists of the same size")
 
         _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
@@ -678,9 +682,10 @@ class KIEDocumentBuilder(DocumentBuilder):
         Returns:
             document object
         """
-        if len(boxes) != len(text_preds) != len(crop_orientations) != len(objectness_scores) or len(boxes) != len(
-            page_shapes
-        ) != len(crop_orientations) != len(objectness_scores):
+        expected_len = len(boxes)
+        if any(
+            len(arg) != expected_len for arg in (pages, text_preds, crop_orientations, objectness_scores, page_shapes)
+        ):
             raise ValueError("All arguments are expected to be lists of the same size")
         _orientations = orientations if isinstance(orientations, list) else [None] * len(boxes)
         _languages = languages if isinstance(languages, list) else [None] * len(boxes)

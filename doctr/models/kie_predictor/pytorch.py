@@ -84,7 +84,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         # Localize text elements (segmentation maps are only materialized when actually consumed)
         if self.detect_orientation or self.straighten_pages:
             loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
-            bin_thresh = kwargs.get("bin_thresh", 0.3)
+            bin_thresh = kwargs.get("bin_thresh", getattr(self.det_predictor.model.postprocessor, "bin_thresh", 0.3))
             seg_maps = [
                 ((np.expand_dims(np.amax(out_map, axis=-1), axis=-1) > bin_thresh) * 255).astype(np.uint8)
                 for out_map in out_maps

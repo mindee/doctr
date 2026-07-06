@@ -123,7 +123,7 @@ class Resize(T.Resize):
                 ).squeeze(0)
 
             if self.return_padding_mask:
-                padding_mask = torch.zeros(self.size, dtype=torch.bool, device=img.device)
+                padding_mask = torch.ones(self.size, dtype=torch.bool, device=img.device)
 
             if target is not None:
                 if self.return_padding_mask:

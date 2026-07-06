@@ -297,8 +297,8 @@ class LWDETRMultiscaleDeformableAttention(nn.Module):
 
         value = self.value_proj(encoder_hidden_states)
         if attention_mask is not None:
-            # attention_mask contains True on padded positions -> zero-out the padded values
-            value = value.masked_fill(attention_mask[..., None], float(0))
+            # attention_mask contains True on valid positions -> zero-out the padded (invalid) values
+            value = value.masked_fill(~attention_mask[..., None], float(0))
         value = value.view(batch_size, sequence_length, self.n_heads, self.d_model // self.n_heads)
         sampling_offsets = self.sampling_offsets(hidden_states).view(
             batch_size, num_queries, self.n_heads, self.n_levels, self.n_points, 2
