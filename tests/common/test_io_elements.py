@@ -467,11 +467,17 @@ def test_page():
     }
 
     # Export XML
-    assert (
-        isinstance(page.export_as_xml(), tuple)
-        and isinstance(page.export_as_xml()[0], (bytes, bytearray))
-        and isinstance(page.export_as_xml()[1], ElementTree)
-    )
+    xml_bytes, xml_tree = page.export_as_xml()
+    assert isinstance(xml_bytes, (bytes, bytearray)) and isinstance(xml_tree, ElementTree)
+    # The detected language must be exported instead of being hardcoded to "en"
+    assert xml_tree.getroot().get("xml:lang") == "EN"
+    # hOCR title properties must be single-spaced
+    titles = [el.get("title") for el in xml_tree.iter() if el.get("title") is not None]
+    assert any(title.startswith("bbox ") for title in titles)
+    assert all("  " not in title for title in titles)
+    # Without a detected language, the export must fall back to "en"
+    fallback_page = elements.Page(np.zeros((300, 200, 3), dtype=np.uint8), blocks, page_idx, page_size, orientation)
+    assert fallback_page.export_as_xml()[1].getroot().get("xml:lang") == "en"
 
     # Repr
     assert "\n".join(repr(page).split("\n")[:2]) == f"Page(\n  dimensions={page_size!r}"
@@ -529,11 +535,19 @@ def test_kiepage():
     }
 
     # Export XML
-    assert (
-        isinstance(kie_page.export_as_xml(), tuple)
-        and isinstance(kie_page.export_as_xml()[0], (bytes, bytearray))
-        and isinstance(kie_page.export_as_xml()[1], ElementTree)
+    xml_bytes, xml_tree = kie_page.export_as_xml()
+    assert isinstance(xml_bytes, (bytes, bytearray)) and isinstance(xml_tree, ElementTree)
+    # The detected language must be exported instead of being hardcoded to "en"
+    assert xml_tree.getroot().get("xml:lang") == "EN"
+    # hOCR title properties must be single-spaced
+    titles = [el.get("title") for el in xml_tree.iter() if el.get("title") is not None]
+    assert any(title.startswith("bbox ") for title in titles)
+    assert all("  " not in title for title in titles)
+    # Without a detected language, the export must fall back to "en"
+    fallback_page = elements.KIEPage(
+        np.zeros((300, 200, 3), dtype=np.uint8), predictions, page_idx, page_size, orientation
     )
+    assert fallback_page.export_as_xml()[1].getroot().get("xml:lang") == "en"
 
     # Repr
     assert "\n".join(repr(kie_page).split("\n")[:2]) == f"KIEPage(\n  dimensions={page_size!r}"

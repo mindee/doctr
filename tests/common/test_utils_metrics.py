@@ -34,6 +34,8 @@ def test_text_match(gt, pred, raw, caseless, anyascii, unicase):
         [[[0, 0, 1, 1]], [[0.5, 0.5, 1, 1]], 0.25, 0],  # Partial match
         [[[0.2, 0.2, 0.6, 0.6]], [[0.4, 0.4, 0.8, 0.8]], 4 / 28, 1e-7],  # Partial match
         [[[0, 0, 0.1, 0.1]], [[0.9, 0.9, 1, 1]], 0, 0],  # Boxes far from each other
+        [[[0.2, 0.2, 0.2, 0.2]], [[0.2, 0.2, 0.2, 0.2]], 0, 0],  # Degenerate (zero-area) boxes: 0, not NaN
+        [[[0, 0, 0, 0]], [[0, 0, 0.5, 0.5]], 0, 0],  # Degenerate box vs. regular box
         [np.zeros((0, 4)), [[0, 0, 0.5, 0.5]], 0, 0],  # Zero-sized inputs
         [[[0, 0, 0.5, 0.5]], np.zeros((0, 4)), 0, 0],  # Zero-sized inputs
     ],
@@ -42,6 +44,7 @@ def test_box_iou(box1, box2, iou, abs_tol):
     iou_mat = metrics.box_iou(np.asarray(box1), np.asarray(box2))
     assert iou_mat.shape == (len(box1), len(box2))
     if iou_mat.size > 0:
+        assert not np.isnan(iou_mat).any()
         assert abs(iou_mat - iou) <= abs_tol
 
 
@@ -154,6 +157,31 @@ def test_r_localization_confusion(gts, preds, iou_thresh, recall, precision, mea
     assert metric.num_gts == metric.num_preds == metric.matches == metric.tot_iou == 0
 
 
+@pytest.mark.parametrize("use_polygons", [False, True])
+def test_localization_confusion_empty_gt(use_polygons):
+    # A sample with predictions but no ground truth must not crash: the predictions
+    # simply count as false positives
+    metric = metrics.LocalizationConfusion(iou_thresh=0.5, use_polygons=use_polygons)
+    if use_polygons:
+        gts = np.zeros((0, 4, 2))
+        preds = np.asarray([[[0, 0], [0.5, 0], [0.5, 0.5], [0, 0.5]]])
+    else:
+        gts = np.zeros((0, 4))
+        preds = np.asarray([[0, 0, 0.5, 0.5]])
+    metric.update(gts, preds)
+    recall, precision, mean_iou = metric.summary()
+    assert recall is None  # no ground truth at all
+    assert precision == 0  # the prediction is a false positive
+    assert mean_iou == 0
+
+    # A following sample with a perfect match must still be accounted for
+    metric.update(preds.copy(), preds.copy())
+    recall, precision, mean_iou = metric.summary()
+    assert recall == 1
+    assert precision == 0.5
+    assert abs(mean_iou - 0.5) <= 5e-3
+
+
 @pytest.mark.parametrize(
     "gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, recall, precision, mean_iou",
     [
@@ -222,6 +250,24 @@ def test_ocr_metric(gt_boxes, gt_words, pred_boxes, pred_words, iou_thresh, reca
         )
 
 
+def test_ocr_metric_empty_gt():
+    # A sample with predictions but no ground truth must not crash: the predictions
+    # simply count as false positives
+    metric = metrics.OCRMetric(iou_thresh=0.5)
+    metric.update(np.zeros((0, 4)), np.asarray([[0, 0, 0.5, 0.5]]), [], ["hello"])
+    recall, precision, mean_iou = metric.summary()
+    assert all(value is None for value in recall.values())  # no ground truth at all
+    assert all(value == 0 for value in precision.values())  # the prediction is a false positive
+    assert mean_iou == 0
+
+    # A following sample with a perfect match must still be accounted for
+    metric.update(np.asarray([[0, 0, 0.5, 0.5]]), np.asarray([[0, 0, 0.5, 0.5]]), ["hello"], ["hello"])
+    recall, precision, mean_iou = metric.summary()
+    assert all(value == 1 for value in recall.values())
+    assert all(value == 0.5 for value in precision.values())
+    assert mean_iou == 0.5
+
+
 @pytest.mark.parametrize(
     "gt_boxes, gt_classes, pred_boxes, pred_classes, iou_thresh, recall, precision, mean_iou",
     [
@@ -278,6 +324,34 @@ def test_detection_metric(gt_boxes, gt_classes, pred_boxes, pred_classes, iou_th
         metric.update(
             np.asarray(_gboxes), np.zeros((0, 4)), np.array(_gclasses, dtype=np.int64), np.array([1, 2], dtype=np.int64)
         )
+
+
+def test_detection_metric_empty_gt():
+    # A sample with predictions but no ground truth must not crash: the predictions
+    # simply count as false positives
+    metric = metrics.DetectionMetric(iou_thresh=0.5)
+    metric.update(
+        np.zeros((0, 4)),
+        np.asarray([[0, 0, 0.5, 0.5]]),
+        np.array([], dtype=np.int64),
+        np.array([0], dtype=np.int64),
+    )
+    recall, precision, mean_iou = metric.summary()
+    assert recall is None  # no ground truth at all
+    assert precision == 0  # the prediction is a false positive
+    assert mean_iou == 0
+
+    # A following sample with a perfect match must still be accounted for
+    metric.update(
+        np.asarray([[0, 0, 0.5, 0.5]]),
+        np.asarray([[0, 0, 0.5, 0.5]]),
+        np.array([0], dtype=np.int64),
+        np.array([0], dtype=np.int64),
+    )
+    recall, precision, mean_iou = metric.summary()
+    assert recall == 1
+    assert precision == 0.5
+    assert mean_iou == 0.5
 
 
 def test_nms():

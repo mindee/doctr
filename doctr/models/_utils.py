@@ -59,7 +59,7 @@ def estimate_orientation(
 
     # Convert image to grayscale if necessary
     if img.shape[-1] == 3:
-        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray_img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
         gray_img = cv2.medianBlur(gray_img, 5)
         thresh = cv2.threshold(gray_img, thresh=0, maxval=255, type=cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
     else:

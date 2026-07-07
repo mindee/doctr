@@ -7,7 +7,7 @@
 import numpy as np
 from anyascii import anyascii
 from scipy.optimize import linear_sum_assignment
-from shapely import area, intersection, polygons
+from shapely import STRtree, area, intersection, polygons
 
 __all__ = [
     "TextMatch",
@@ -146,7 +146,7 @@ def box_iou(boxes_1: np.ndarray, boxes_2: np.ndarray) -> np.ndarray:
 
         intersection = np.clip(right - left, 0, np.inf) * np.clip(bot - top, 0, np.inf)
         union = (r1 - l1) * (b1 - t1) + ((r2 - l2) * (b2 - t2)).T - intersection
-        iou_mat = intersection / union
+        iou_mat = np.divide(intersection, union, out=np.zeros_like(intersection), where=union > 0)
 
     return iou_mat
 
@@ -170,18 +170,15 @@ def polygon_iou(polys_1: np.ndarray, polys_2: np.ndarray) -> np.ndarray:
 
     geoms_1 = polygons(polys_1)
     geoms_2 = polygons(polys_2)
-    grid_1 = np.repeat(geoms_1, m)
-    grid_2 = np.tile(geoms_2, n)
 
-    # Compute intersections and areas
-    intersections = area(intersection(grid_1, grid_2))
-    areas_1 = area(grid_1)
-    areas_2 = area(grid_2)
-
-    # Compute IoU
-    unions = areas_1 + areas_2 - intersections
-    iou_flat = np.divide(intersections, unions, out=np.zeros_like(intersections), where=unions > 0)
-    return iou_flat.reshape(n, m).astype(np.float32)
+    iou_mat = np.zeros((n, m), dtype=np.float32)
+    idcs_1, idcs_2 = STRtree(geoms_2).query(geoms_1)
+    if idcs_1.size > 0:
+        # Compute intersections and areas for the candidate pairs only
+        intersections = area(intersection(geoms_1[idcs_1], geoms_2[idcs_2]))
+        unions = area(geoms_1)[idcs_1] + area(geoms_2)[idcs_2] - intersections
+        iou_mat[idcs_1, idcs_2] = np.divide(intersections, unions, out=np.zeros_like(intersections), where=unions > 0)
+    return iou_mat
 
 
 def nms(boxes: np.ndarray, thresh: float = 0.5) -> list[int]:
@@ -275,7 +272,7 @@ class LocalizationConfusion:
             gts: a set of relative bounding boxes either of shape (N, 4) or (N, 5) if they are rotated ones
             preds: a set of relative bounding boxes either of shape (M, 4) or (M, 5) if they are rotated ones
         """
-        if preds.shape[0] > 0:
+        if gts.shape[0] > 0 and preds.shape[0] > 0:
             # Compute IoU
             if self.use_polygons:
                 iou_mat = polygon_iou(gts, preds)
@@ -468,8 +465,7 @@ class OCRMetric:
                 "there should be the same number of boxes and string both for the ground truth and the predictions"
             )
 
-        # Compute IoU
-        if pred_boxes.shape[0] > 0:
+        if gt_boxes.shape[0] > 0 and pred_boxes.shape[0] > 0:
             if self.use_polygons:
                 iou_mat = polygon_iou(gt_boxes, pred_boxes)
             else:
@@ -598,8 +594,7 @@ class DetectionMetric:
                 "there should be the same number of boxes and string both for the ground truth and the predictions"
             )
 
-        # Compute IoU
-        if pred_boxes.shape[0] > 0:
+        if gt_boxes.shape[0] > 0 and pred_boxes.shape[0] > 0:
             if self.use_polygons:
                 iou_mat = polygon_iou(gt_boxes, pred_boxes)
             else:

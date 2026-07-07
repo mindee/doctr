@@ -39,6 +39,37 @@ __all__ = [
 ]
 
 
+def _resolve_hocr_language(language: dict[str, Any]) -> str:
+    """Resolve the language code to use in the hOCR export, falling back to 'en'.
+
+    Args:
+        language: the page language dictionary `{"value": str | None, "confidence": float | None}`
+
+    Returns:
+        the detected language code when available, 'en' otherwise
+    """
+    lang_value = language.get("value") if isinstance(language, dict) else None
+    return lang_value if isinstance(lang_value, str) and len(lang_value) > 0 else "en"
+
+
+def _hocr_bbox(geometry: BoundingBox, width: int, height: int) -> str:
+    """Format a relative straight bounding box as an absolute hOCR `bbox` property string.
+
+    Args:
+        geometry: the relative bounding box ((xmin, ymin), (xmax, ymax))
+        width: the page width in pixels
+        height: the page height in pixels
+
+    Returns:
+        the hOCR `bbox` property string
+    """
+    (xmin, ymin), (xmax, ymax) = geometry
+    return (
+        f"bbox {int(round(xmin * width))} {int(round(ymin * height))} "
+        f"{int(round(xmax * width))} {int(round(ymax * height))}"
+    )
+
+
 class Element(NestedObject):
     """Implements an abstract document element with exporting and text rendering capabilities"""
 
@@ -518,7 +549,7 @@ class Page(Element):
         line_count: int = 1
         word_count: int = 1
         height, width = self.dimensions
-        language = self.language if "language" in self.language.keys() else "en"
+        language = _resolve_hocr_language(self.language)
         # Create the XML root element
         page_hocr = ETElement("html", attrib={"xmlns": "http://www.w3.org/1999/xhtml", "xml:lang": str(language)})
         # Create the header / SubElements of the root element
@@ -550,15 +581,14 @@ class Page(Element):
         for block in self.blocks:
             if len(block.geometry) != 2:
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
-            (xmin, ymin), (xmax, ymax) = block.geometry
+            block_bbox = _hocr_bbox(block.geometry, width, height)  # type: ignore[arg-type]
             block_div = SubElement(
                 page_div,
                 "div",
                 attrib={
                     "class": "ocr_carea",
                     "id": f"block_{block_count}",
-                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                    {int(round(xmax * width))} {int(round(ymax * height))}",
+                    "title": block_bbox,
                 },
             )
             paragraph = SubElement(
@@ -567,13 +597,11 @@ class Page(Element):
                 attrib={
                     "class": "ocr_par",
                     "id": f"par_{block_count}",
-                    "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                    {int(round(xmax * width))} {int(round(ymax * height))}",
+                    "title": block_bbox,
                 },
             )
             block_count += 1
             for line in block.lines:
-                (xmin, ymin), (xmax, ymax) = line.geometry
                 # NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0
                 line_span = SubElement(
                     paragraph,
@@ -581,14 +609,14 @@ class Page(Element):
                     attrib={
                         "class": "ocr_line",
                         "id": f"line_{line_count}",
-                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}; \
-                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                        "title": (
+                            f"{_hocr_bbox(line.geometry, width, height)}; "  # type: ignore[arg-type]
+                            "baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"
+                        ),
                     },
                 )
                 line_count += 1
                 for word in line.words:
-                    (xmin, ymin), (xmax, ymax) = word.geometry
                     conf = word.confidence
                     word_div = SubElement(
                         line_span,
@@ -596,9 +624,10 @@ class Page(Element):
                         attrib={
                             "class": "ocrx_word",
                             "id": f"word_{word_count}",
-                            "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                            {int(round(xmax * width))} {int(round(ymax * height))}; \
-                            x_wconf {int(round(conf * 100))}",
+                            "title": (
+                                f"{_hocr_bbox(word.geometry, width, height)}; "  # type: ignore[arg-type]
+                                f"x_wconf {int(round(conf * 100))}"
+                            ),
                         },
                     )
                     # set the text
@@ -708,7 +737,7 @@ class KIEPage(Element):
         p_idx = self.page_idx
         prediction_count: int = 1
         height, width = self.dimensions
-        language = self.language if "language" in self.language.keys() else "en"
+        language = _resolve_hocr_language(self.language)
         # Create the XML root element
         page_hocr = ETElement("html", attrib={"xmlns": "http://www.w3.org/1999/xhtml", "xml:lang": str(language)})
         # Create the header / SubElements of the root element
@@ -741,15 +770,14 @@ class KIEPage(Element):
             for prediction in predictions:
                 if len(prediction.geometry) != 2:
                     raise TypeError("XML export is only available for straight bounding boxes for now.")
-                (xmin, ymin), (xmax, ymax) = prediction.geometry
+                prediction_bbox = _hocr_bbox(prediction.geometry, width, height)  # type: ignore[arg-type]
                 prediction_div = SubElement(
                     body,
                     "div",
                     attrib={
                         "class": "ocr_carea",
                         "id": f"{class_name}_prediction_{prediction_count}",
-                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}",
+                        "title": prediction_bbox,
                     },
                 )
                 # NOTE: ocr_par, ocr_line and ocrx_word are the same because the KIE predictions contain only words
@@ -760,8 +788,7 @@ class KIEPage(Element):
                     attrib={
                         "class": "ocr_par",
                         "id": f"{class_name}_par_{prediction_count}",
-                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}",
+                        "title": prediction_bbox,
                     },
                 )
                 line_span = SubElement(
@@ -770,9 +797,7 @@ class KIEPage(Element):
                     attrib={
                         "class": "ocr_line",
                         "id": f"{class_name}_line_{prediction_count}",
-                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}; \
-                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                        "title": f"{prediction_bbox}; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
                     },
                 )
                 word_div = SubElement(
@@ -781,9 +806,7 @@ class KIEPage(Element):
                     attrib={
                         "class": "ocrx_word",
                         "id": f"{class_name}_word_{prediction_count}",
-                        "title": f"bbox {int(round(xmin * width))} {int(round(ymin * height))} \
-                        {int(round(xmax * width))} {int(round(ymax * height))}; \
-                        x_wconf {int(round(prediction.confidence * 100))}",
+                        "title": f"{prediction_bbox}; x_wconf {int(round(prediction.confidence * 100))}",
                     },
                 )
                 word_div.text = prediction.value
