@@ -260,6 +260,8 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 new_cell = dict(cell)
                 new_cell["geometry"] = poly.tolist()
                 remapped_cells.append(new_cell)
+            if not remapped_cells:
+                continue
             tables_per_page[p_idx].append({
                 "cells": remapped_cells,
                 "num_rows": grid["num_rows"],

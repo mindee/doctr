@@ -562,3 +562,22 @@ def test_sort_boxes_degenerate_heights():
     boxes = np.array([[0.5, 0.2, 0.6, 0.2], [0.1, 0.2, 0.2, 0.2]], dtype=np.float32)
     idxs, _ = doc_builder._sort_boxes(boxes)
     assert sorted(np.asarray(idxs).tolist()) == [0, 1]
+
+
+def test_documentbuilder_tables_empty_cells():
+    # A table prediction with no cells (e.g. a false-positive "Table" region where the table model
+    # finds nothing) must not crash the document build
+    doc_builder = builder.DocumentBuilder()
+    boxes = np.array([[0.1, 0.1, 0.2, 0.2]], dtype=np.float32)
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [np.array([0.9])],
+        [[("hello", 0.99)]],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}]],
+        tables=[[{"cells": [], "num_rows": 0, "num_cols": 0}]],
+    )
+    assert out.pages[0].tables == []
+    # the word stays in the regular blocks since it was never consumed by a table
+    assert [w.value for b in out.pages[0].blocks for line in b.lines for w in line.words] == ["hello"]

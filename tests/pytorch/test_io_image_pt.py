@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import torch
+from PIL import Image
 
 from doctr.io import decode_img_as_tensor, read_img_as_tensor, tensor_from_numpy
 
@@ -51,3 +52,19 @@ def test_tensor_from_numpy(mock_image_stream):
     assert out.dtype == torch.float16
     out = tensor_from_numpy(np.zeros((256, 256, 3), dtype=np.uint8), dtype=torch.uint8)
     assert out.dtype == torch.uint8
+
+
+def test_read_img_as_tensor_exif_orientation(tmpdir_factory):
+    folder = tmpdir_factory.mktemp("images")
+    path = str(folder.join("exif_o6.jpg"))
+    pil_img = Image.fromarray(np.zeros((40, 60, 3), dtype=np.uint8))
+    exif = pil_img.getexif()
+    exif[0x0112] = 6  # orientation tag
+    pil_img.save(path, format="JPEG", exif=exif)
+
+    img = read_img_as_tensor(path)
+    assert img.shape == (3, 60, 40)
+
+    with open(path, "rb") as f:
+        img_stream = decode_img_as_tensor(f.read())
+    assert img_stream.shape == (3, 60, 40)

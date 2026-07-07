@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 import requests
+from PIL import Image
 
 from doctr import io
 
@@ -97,3 +98,17 @@ def test_pdf(mock_pdf):
     # As images
     num_pages = 2
     _check_doc_content(pages, num_pages)
+
+
+def test_read_img_as_numpy_exif_orientation(tmpdir_factory):
+    # A JPEG with EXIF orientation 6 (90° clockwise display rotation)
+    folder = tmpdir_factory.mktemp("images")
+    path = str(folder.join("exif_o6.jpg"))
+    pil_img = Image.fromarray(np.zeros((40, 60, 3), dtype=np.uint8))
+    exif = pil_img.getexif()
+    exif[0x0112] = 6  # orientation tag
+    pil_img.save(path, format="JPEG", exif=exif)
+
+    assert io.read_img_as_numpy(path).shape == (60, 40, 3)
+    with open(path, "rb") as f:
+        assert io.read_img_as_numpy(f.read()).shape == (60, 40, 3)

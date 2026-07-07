@@ -34,9 +34,10 @@ def read_img_as_numpy(
     if isinstance(file, (str, Path)):
         if not Path(file).is_file():
             raise FileNotFoundError(f"unable to access {file}")
-        img = cv2.imread(str(file), cv2.IMREAD_COLOR)
+        _file: np.ndarray = np.frombuffer(Path(file).read_bytes(), np.uint8)
+        img = cv2.imdecode(_file, cv2.IMREAD_COLOR)
     elif isinstance(file, bytes):
-        _file: np.ndarray = np.frombuffer(file, np.uint8)
+        _file = np.frombuffer(file, np.uint8)
         img = cv2.imdecode(_file, cv2.IMREAD_COLOR)
     else:
         raise TypeError("unsupported object type for argument 'file'")

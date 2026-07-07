@@ -386,6 +386,8 @@ class DocumentBuilder(NestedObject):
         tables_out: list[Table] = []
         for table_dict in table_dicts:
             cells = table_dict["cells"]
+            if len(cells) == 0:
+                continue
             cell_polys = [self._as_cell_polygon(cell["geometry"]) for cell in cells]
 
             # Assign each (still unassigned) word to at most one cell of this table: the first cell (in cell

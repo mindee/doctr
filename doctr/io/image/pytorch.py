@@ -7,7 +7,7 @@ from io import BytesIO
 
 import numpy as np
 import torch
-from PIL import Image
+from PIL import Image, ImageOps
 from torchvision.transforms.functional import to_tensor
 
 from doctr.utils.common_types import AbstractPath
@@ -47,7 +47,9 @@ def read_img_as_tensor(img_path: AbstractPath, dtype: torch.dtype = torch.float3
         raise ValueError("insupported value for dtype")
 
     with Image.open(img_path, mode="r") as pil_img:
-        return tensor_from_pil(pil_img.convert("RGB"), dtype)
+        # Apply the EXIF orientation before decoding, to stay consistent with `read_img_as_numpy`
+        # (OpenCV applies EXIF orientation automatically, PIL does not)
+        return tensor_from_pil(ImageOps.exif_transpose(pil_img).convert("RGB"), dtype)
 
 
 def decode_img_as_tensor(img_content: bytes, dtype: torch.dtype = torch.float32) -> torch.Tensor:
@@ -64,7 +66,7 @@ def decode_img_as_tensor(img_content: bytes, dtype: torch.dtype = torch.float32)
         raise ValueError("insupported value for dtype")
 
     with Image.open(BytesIO(img_content), mode="r") as pil_img:
-        return tensor_from_pil(pil_img.convert("RGB"), dtype)
+        return tensor_from_pil(ImageOps.exif_transpose(pil_img).convert("RGB"), dtype)
 
 
 def tensor_from_numpy(npy_img: np.ndarray, dtype: torch.dtype = torch.float32) -> torch.Tensor:

@@ -123,7 +123,7 @@ class LinkNetPostProcessor(DetectionPostProcessor):
             else:
                 _box = self.polygon_to_box(np.squeeze(contour))
 
-            if _box is None:
+            if _box is None:  # pragma: no cover
                 continue
 
             if self.assume_straight_pages:
