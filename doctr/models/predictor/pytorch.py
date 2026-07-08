@@ -204,14 +204,26 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 for block in page.blocks:
                     for line in block.lines:
                         for word in line.words:
-                            pts = np.asarray(word.geometry, dtype=np.float32).reshape(-1, 2)  # (4, 2)
+                            pts = np.asarray(word.geometry, dtype=np.float64).reshape(-1, 2)
+                            was_straight = pts.shape[0] == 2
+                            if was_straight:
+                                (x0, y0), (x1, y1) = pts
+                                pts = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float64)
+
                             pts[:, 0] *= sw
                             pts[:, 1] *= sh
-                            homo = np.column_stack([pts, np.ones(4)])  # (4, 3)
+                            homo = np.column_stack([pts, np.ones(len(pts))])
                             orig = (homo @ m_inv.T)[:, :2]
                             orig[:, 0] = orig[:, 0].clip(0, ow - 1) / ow
                             orig[:, 1] = orig[:, 1].clip(0, oh - 1) / oh
-                            word.geometry = tuple(tuple(r) for r in orig.tolist())
+
+                            if was_straight:
+                                word.geometry = (
+                                    (float(orig[:, 0].min()), float(orig[:, 1].min())),
+                                    (float(orig[:, 0].max()), float(orig[:, 1].max())),
+                                )
+                            else:
+                                word.geometry = tuple(tuple(r) for r in orig.tolist())
         return out
 
     def _tables_from_regions(
