@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
   train-char-classification:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -16,30 +24,19 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
-          sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
+          extra-requirements: references/requirements.txt
+      - name: Install fonts
+        run: sudo apt-get update && sudo apt-get install fonts-freefont-ttf -y
       - name: Train for a short epoch
         run: python references/classification/train_character.py vit_s -b 32 --val-samples 1 --train-samples 1 --epochs 1
 
   train-orientation-classification:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -47,32 +44,18 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract detection toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_detection_set-bbbb4243.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_detection_set-bbbb4243.zip -d det_set
       - name: Download and extract recognition toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_recogition_set-036a4d80.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_recogition_set-036a4d80.zip -d reco_set
       - name: Train for a short epoch (document orientation)
         run: python references/classification/train_orientation.py resnet18 --type page --train_path ./det_set --val_path ./det_set  -b 2 --epochs 1
@@ -81,6 +64,7 @@ jobs:
 
   train-text-recognition:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -88,33 +72,21 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_recogition_set-036a4d80.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_recogition_set-036a4d80.zip -d reco_set
       - name: Train for a short epoch
         run: python references/recognition/train.py crnn_mobilenet_v3_small --train_path ./reco_set --val_path ./reco_set -b 4 --epochs 1
 
   evaluate-text-recognition:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -122,25 +94,16 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
       - name: Evaluate text recognition
         run: python references/recognition/evaluate.py crnn_mobilenet_v3_small --dataset SVT -b 32
 
   latency-text-recognition:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -148,25 +111,16 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/recognition/latency.py crnn_mobilenet_v3_small --it 5
 
   train-text-detection:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -174,33 +128,21 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v0.3.1/toy_detection_set-bbbb4243.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_detection_set-bbbb4243.zip -d det_set
       - name: Train for a short epoch
         run: python references/detection/train.py db_mobilenet_v3_large --train_path ./det_set --val_path ./det_set -b 2 --epochs 1
 
   evaluate-text-detection:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -208,26 +150,17 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Evaluate text detection
         run: python references/detection/evaluate.py db_mobilenet_v3_large
 
   latency-text-detection:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -235,26 +168,16 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/detection/latency.py db_mobilenet_v3_large --it 5 --size 512
 
-
   train-layout-analysis:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -262,33 +185,21 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_layout_set-d4a8d4c9.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_layout_set-d4a8d4c9.zip -d layout_set
       - name: Train for a short epoch
         run: python references/layout/train.py lw_detr_s --train_path ./layout_set --val_path ./layout_set -b 2 --epochs 1
 
   evaluate-layout-analysis:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -296,31 +207,21 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_layout_set-d4a8d4c9.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_layout_set-d4a8d4c9.zip -d layout_set
       - name: Evaluate layout analysis
         run: python references/layout/evaluate.py lw_detr_s ./layout_set
 
   latency-layout-analysis:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -328,25 +229,16 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/layout/latency.py lw_detr_s --it 5 --size 512
 
   train-table-structure-recognition:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -354,33 +246,21 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-${{ hashFiles('references/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_table_set-ea091e15.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_table_set-ea091e15.zip -d table_set
       - name: Train for a short epoch
         run: python references/table/train.py tablecenternet --train_path ./table_set --val_path ./table_set -b 2 --epochs 1
 
   evaluate-table-structure-recognition:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -388,31 +268,21 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -r references/requirements.txt
+          extra-requirements: references/requirements.txt
       - name: Download and extract toy set
         run: |
           wget https://github.com/mindee/doctr/releases/download/v1.0.1/toy_table_set-ea091e15.zip
-          sudo apt-get update && sudo apt-get install unzip -y
           unzip toy_table_set-ea091e15.zip -d table_set
       - name: Evaluate table structure recognition
         run: python references/table/evaluate.py tablecenternet ./table_set
 
   latency-table-structure-recognition:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -420,19 +290,9 @@ jobs:
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('requirements-pt.txt') }}
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
       - name: Benchmark latency
         run: python references/table/latency.py tablecenternet --it 5 --size 512

@@ -4,26 +4,25 @@ on:
   pull_request:
     branches: main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   docs-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: "3.11"
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-docs
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -e .[docs]
+          extras: viz,html,docs
+          cache-models: "false"
 
       - name: Build documentation
         run: cd docs && bash build.sh

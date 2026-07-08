@@ -3,7 +3,7 @@ name: Clear GitHub runner caches
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Runs once a day
+    - cron: '0 0 * * 0'  # Runs once a week (Sunday midnight)
 
 jobs:
   clear:
@@ -12,4 +12,9 @@ jobs:
     steps:
     - uses: MyAlbum/purge-cache@v2
       with:
-        max-age: 172800 # Caches older than 2 days are deleted
+        # With CPU-only torch wheels the pip caches are small enough to fit
+        # comfortably in the 10 GB repo cache limit, so aggressive purging
+        # (previously: daily, older than 2 days) is no longer needed and was
+        # causing constant cold-cache CI runs. GitHub also auto-evicts
+        # caches unused for 7 days and applies LRU eviction above 10 GB.
+        max-age: 604800 # Caches older than 7 days are deleted

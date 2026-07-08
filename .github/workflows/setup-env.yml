@@ -1,0 +1,69 @@
+# Shared environment setup for all docTR CI jobs.
+# Location in the repo: .github/actions/setup-env/action.yml
+#
+# NOTE: actions/checkout must run BEFORE this action in every job,
+# since a local composite action can only be resolved after checkout.
+
+name: "Setup docTR environment"
+description: "Python setup with pip caching, CPU-only PyTorch, package install and optional pretrained model cache"
+
+inputs:
+  python-version:
+    description: "Python version to set up"
+    required: false
+    default: "3.11"
+  extras:
+    description: "Comma-separated pip extras to install with the package (e.g. viz,html,testing)"
+    required: false
+    default: "viz,html"
+  extra-requirements:
+    description: "Optional path to an additional requirements file to install"
+    required: false
+    default: ""
+  cache-models:
+    description: "Cache pretrained models (~/.cache/doctr) across runs"
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+        cache: pip
+        cache-dependency-path: |
+          pyproject.toml
+          references/requirements.txt
+          demo/pt-requirements.txt
+
+    - name: Cache pretrained models
+      if: inputs.cache-models == 'true'
+      uses: actions/cache@v6
+      with:
+        path: |
+          ~/.cache/doctr
+          ~/.cache/huggingface
+        # Bump the -v1 suffix to invalidate if the set of models a job uses changes
+        key: doctr-models-${{ github.job }}-v1
+
+    # The default PyPI torch wheel on Linux bundles CUDA (multi-GB) which CI
+    # runners can't use. Pre-installing CPU wheels satisfies the torch
+    # requirement so the package install below won't pull the CUDA build.
+    # macOS/Windows wheels are already CPU-only.
+    - name: Install CPU-only PyTorch (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+
+    - name: Install package
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install -e .[${{ inputs.extras }}] --upgrade
+        if [ -n "${{ inputs.extra-requirements }}" ]; then
+          pip install -r "${{ inputs.extra-requirements }}"
+        fi

@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -19,24 +27,12 @@ jobs:
       - if: matrix.os == 'macos-latest'
         name: Install MacOS prerequisites
         run: brew install cairo pango gdk-pixbuf libffi
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}
-      - name: Install package
-        run: |
-          python -m pip install --upgrade pip
-          if [ "${{ runner.os }}" = "Windows" ]; then
-            pip install -e .[viz] --upgrade
-          else
-            pip install -e .[viz,html] --upgrade
-          fi
-        shell: bash  # Ensures shell is consistent across OSes
+          # html extra (weasyprint) needs GTK on Windows, so it stays excluded there
+          extras: ${{ matrix.os == 'windows-latest' && 'viz' || 'viz,html' }}
+          cache-models: "false"
       - name: Import package
         run: python -c "import doctr; print(doctr.__version__)"

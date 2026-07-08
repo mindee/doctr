@@ -6,9 +6,17 @@ on:
   pull_request:
     branches: main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
   ruff:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -19,7 +27,6 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
       - name: Run ruff
         run: |
           pip install ruff --upgrade
@@ -28,27 +35,28 @@ jobs:
 
   mypy:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest]
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
+          extras: dev
+          cache-models: "false"
+      - name: Install mypy
+        run: pip install mypy --upgrade
+      - name: Cache mypy
         uses: actions/cache@v6
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-style
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[dev] --upgrade
-          pip install mypy --upgrade
+          path: .mypy_cache
+          key: mypy-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}-${{ github.sha }}
+          restore-keys: |
+            mypy-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}-
       - name: Run mypy
         run: |
           mypy --version

@@ -11,12 +11,17 @@ on:
   schedule:
     - cron: '0 2 1 */3 *'  # At 02:00 on the 1st day of every 3rd month
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   REGISTRY: ghcr.io
 
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     strategy:
       fail-fast: false
@@ -34,6 +39,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to the Container registry
         uses: docker/login-action@v4
@@ -71,13 +79,17 @@ jobs:
             DOCTR_REPO=${{ github.repository }}
             DOCTR_VERSION=${{ github.sha }}
           push: false  # push only if `import doctr` works
+          load: true   # load into local docker so the image can be run below
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=${{ matrix.framework }}-${{ matrix.python }}
+          cache-to: type=gha,scope=${{ matrix.framework }}-${{ matrix.python }},mode=max
 
       - name: Check if `import doctr` works
         run: docker run ${{ steps.build.outputs.imageid }} python3 -c 'import doctr'
 
       - name: Push Docker image
         # Push only if the CI is not triggered by "PR on main"
+        # Fully served from the GHA layer cache of the build above, so this is fast
         if: ${{ (github.ref == 'refs/heads/main' && github.event_name != 'pull_request') || (startsWith(github.ref, 'refs/tags') && github.event_name == 'push') }}
         uses: docker/build-push-action@v7
         with:
@@ -89,3 +101,4 @@ jobs:
             DOCTR_VERSION=${{ github.sha }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=${{ matrix.framework }}-${{ matrix.python }}

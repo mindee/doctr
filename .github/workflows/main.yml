@@ -6,70 +6,64 @@ on:
   pull_request:
     branches: main
 
+# Cancel superseded runs when new commits are pushed to a PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
 jobs:
   pytest-common:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       matrix:
         os: [ubuntu-latest]
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -e .[testing]
+          extras: viz,html,testing
+      - name: Install parallel test tools
+        run: pip install pytest-cov pytest-xdist --upgrade
+      # -n auto: parallelize across the runner's 4 cores.
+      # --dist loadfile: keep all tests of one file on the same worker, which
+      #   avoids most concurrent downloads of the same pretrained model/sample.
+      #   If flaky failures from concurrent cache writes appear, drop these two
+      #   flags to return to sequential execution.
+      # --cov reads [tool.coverage.run] from pyproject.toml (source = doctr)
+      #   and, unlike plain `coverage run`, collects coverage from xdist workers.
       - name: Run unittests
-        run: |
-          coverage run -m pytest tests/common/ -rs
-          coverage xml -o coverage-common.xml
+        run: pytest tests/common/ -rs -n auto --dist loadfile --cov --cov-report=xml:coverage-common.xml
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-common
           path: ./coverage-common.xml
           if-no-files-found: error
 
-
   pytest-torch:
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
     strategy:
       matrix:
         os: [ubuntu-latest]
         python: ["3.11"]
     steps:
       - uses: actions/checkout@v7
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Setup environment
+        uses: ./.github/actions/setup-env
         with:
           python-version: ${{ matrix.python }}
-          architecture: x64
-      - name: Cache python modules
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pkg-deps-${{ matrix.python }}-${{ hashFiles('pyproject.toml') }}-tests
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e .[viz,html] --upgrade
-          pip install -e .[testing]
-
+          extras: viz,html,testing
+      - name: Install parallel test tools
+        run: pip install pytest-cov pytest-xdist --upgrade
       - name: Run unittests
-        run: |
-          coverage run -m pytest tests/pytorch/ -rs
-          coverage xml -o coverage-pt.xml
-
+        run: pytest tests/pytorch/ -rs -n auto --dist loadfile --cov --cov-report=xml:coverage-pt.xml
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-pytorch
@@ -78,6 +72,7 @@ jobs:
 
   codecov-upload:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: [ pytest-common, pytest-torch ]
     steps:
       - uses: actions/checkout@v7
