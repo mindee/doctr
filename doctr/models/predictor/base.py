@@ -10,7 +10,13 @@ import cv2
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import compute_expanded_shape, extract_crops, extract_rcrops
+from doctr.utils.geometry import (
+    compute_expanded_shape,
+    extract_crops,
+    extract_rcrops,
+    remove_image_padding,
+    rotate_image,
+)
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
@@ -139,6 +145,12 @@ class _OCRPredictor:
                 for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
             ]
         )
+        if not self.preserve_original_coords:
+            return [
+                remove_image_padding(rotate_image(page, angle, expand=page.shape[0] != page.shape[1]))
+                for page, angle in zip(pages, origin_pages_orientations)
+            ]
+
         self._straighten_m_inv = []
         out = []
         for page, angle in zip(pages, origin_pages_orientations):
