@@ -27,5 +27,9 @@ jobs:
       - name: Build documentation
         run: cd docs && bash build.sh
 
+      - name: Restore workspace ref
+        if: always()
+        run: git checkout -f ${{ github.sha }}
+
       - name: Documentation sanity check
         run: test -e docs/build/index.html || exit
