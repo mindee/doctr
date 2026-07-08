@@ -6,10 +6,11 @@
 from collections.abc import Callable, Collection
 from typing import Any
 
+import cv2
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import extract_crops, extract_rcrops, remove_image_padding, rotate_image
+from doctr.utils.geometry import compute_expanded_shape, extract_crops, extract_rcrops, rotate_image
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
@@ -34,6 +35,8 @@ class _OCRPredictor:
         ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
             layout model will be used to locate the regions of the specified classes, and these regions will
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
+        preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
+            original page coordinates. Useful for redaction and annotation.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -48,10 +51,12 @@ class _OCRPredictor:
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         ignore_regions: Collection[str] | None = None,
+        preserve_original_coords: bool = False,
         **kwargs: Any,
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
         self.straighten_pages = straighten_pages
+        self.preserve_original_coords = preserve_original_coords
         self._page_orientation_disabled = kwargs.pop("disable_page_orientation", False)
         self._crop_orientation_disabled = kwargs.pop("disable_crop_orientation", False)
         self.crop_orientation_predictor = (
@@ -134,11 +139,49 @@ class _OCRPredictor:
                 for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
             ]
         )
-        return [
-            # expand if height and width are not equal, then remove the padding
-            remove_image_padding(rotate_image(page, angle, expand=page.shape[0] != page.shape[1]))
-            for page, angle in zip(pages, origin_pages_orientations)
-        ]
+        self._straighten_m_inv = []
+        out = []
+        for page, angle in zip(pages, origin_pages_orientations):
+            h, w = page.shape[:2]
+            expand = h != w
+            h_pad = w_pad = 0
+            if expand:
+                exp = compute_expanded_shape((h, w), angle)
+                h_pad = int(max(0, np.ceil(exp[0] - h)))
+                w_pad = int(max(0, np.ceil(exp[1] - w)))
+
+            pt, pb = h_pad // 2, h_pad - h_pad // 2
+            pl, pr = w_pad // 2, w_pad - w_pad // 2
+
+            exp_img = np.pad(page, ((pt, pb), (pl, pr), (0, 0)))
+            ph_pad, pw_pad = exp_img.shape[:2]
+
+            rot_mat = cv2.getRotationMatrix2D((pw_pad / 2, ph_pad / 2), angle, 1.0)
+            rotated = cv2.warpAffine(exp_img, rot_mat, (pw_pad, ph_pad))
+
+            # Aspect-ratio padding (follows rotate_image logic, doesn't shift content)
+            if expand:
+                if (rotated.shape[0] / rotated.shape[1]) > (h / w):
+                    w_pad2 = int(rotated.shape[0] * w / h - rotated.shape[1])
+                    rotated = np.pad(rotated, ((0, 0), (0, w_pad2), (0, 0)))
+                else:
+                    h_pad2 = int(rotated.shape[1] * h / w - rotated.shape[0])
+                    rotated = np.pad(rotated, ((0, h_pad2), (0, 0), (0, 0)))
+
+            # Analytic crop: project content corners through rotation
+            corners = np.array([[pl, pt, 1], [pl + w, pt, 1], [pl + w, pt + h, 1], [pl, pt + h, 1]], dtype=np.float64).T
+            rc = rot_mat @ corners
+            cx, cy = int(np.floor(rc[0].min())), int(np.floor(rc[1].min()))
+            cr = rotated[cy:, cx:]
+
+            # Composite forward matrix: crop ∘ rotate ∘ pad
+            # warpAffine treats M as src→dst (inverts internally for pixel lookup)
+            C3 = np.array([[1, 0, -cx], [0, 1, -cy], [0, 0, 1]], dtype=np.float64)
+            R3 = np.vstack([rot_mat, [0, 0, 1]])
+            P3 = np.array([[1, 0, pl], [0, 1, pt], [0, 0, 1]], dtype=np.float64)
+            self._straighten_m_inv.append(np.linalg.inv(C3 @ R3 @ P3))
+            out.append(cr)
+        return out
 
     @staticmethod
     def _generate_crops(
