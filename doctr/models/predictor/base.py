@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
-from doctr.utils.geometry import compute_expanded_shape, extract_crops, extract_rcrops, rotate_image
+from doctr.utils.geometry import compute_expanded_shape, extract_crops, extract_rcrops
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
