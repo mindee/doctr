@@ -35,8 +35,6 @@ jobs:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
           VERSION: ${{ env.VERSION }}
-        # setup.py reads BUILD_VERSION from the environment, which is
-        # inherited by the isolated build environment of `python -m build`
         run: |
           BUILD_VERSION=$VERSION python -m build
           twine check dist/*
