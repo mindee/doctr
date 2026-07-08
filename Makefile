@@ -11,15 +11,15 @@ style:
 
 # Run tests for the library
 test:
-	coverage run -m pytest tests/common/ -rs
-	coverage run -m pytest tests/pytorch/ -rs
+	pytest tests/common/ -rs --cov
+	pytest tests/pytorch/ -rs --cov --cov-append
 	coverage report --fail-under=80 --show-missing
 
 test-common:
-	coverage run -m pytest tests/common/ -rs
+	pytest tests/common/ -rs --cov
 
 test-torch:
-	coverage run -m pytest tests/pytorch/ -rs
+	pytest tests/pytorch/ -rs --cov
 
 # Check that docs can build
 docs-single-version:

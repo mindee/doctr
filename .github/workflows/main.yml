@@ -29,17 +29,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           extras: viz,html,testing
-      - name: Install parallel test tools
-        run: pip install pytest-cov pytest-xdist --upgrade
-      # -n auto: parallelize across the runner's 4 cores.
-      # --dist loadfile: keep all tests of one file on the same worker, which
-      #   avoids most concurrent downloads of the same pretrained model/sample.
-      #   If flaky failures from concurrent cache writes appear, drop these two
-      #   flags to return to sequential execution.
-      # --cov reads [tool.coverage.run] from pyproject.toml (source = doctr)
-      #   and, unlike plain `coverage run`, collects coverage from xdist workers.
       - name: Run unittests
-        run: pytest tests/common/ -rs -n auto --dist loadfile --cov --cov-report=xml:coverage-common.xml
+        run: pytest tests/common/ -rs --cov --cov-report=xml:coverage-common.xml
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-common
@@ -60,10 +51,8 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           extras: viz,html,testing
-      - name: Install parallel test tools
-        run: pip install pytest-cov pytest-xdist --upgrade
       - name: Run unittests
-        run: pytest tests/pytorch/ -rs -n auto --dist loadfile --cov --cov-report=xml:coverage-pt.xml
+        run: pytest tests/pytorch/ -rs --cov --cov-report=xml:coverage-pt.xml
       - uses: actions/upload-artifact@v7
         with:
           name: coverage-pytorch

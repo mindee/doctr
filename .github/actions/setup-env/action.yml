@@ -1,8 +1,11 @@
 # Shared environment setup for all docTR CI jobs.
-# Location in the repo: .github/actions/setup-env/action.yml
 #
-# NOTE: actions/checkout must run BEFORE this action in every job,
-# since a local composite action can only be resolved after checkout.
+# REQUIRED LOCATION IN THE REPO (the filename MUST be action.yml):
+#   .github/actions/setup-env/action.yml
+#
+# actions/checkout must run BEFORE this action in every job, and the commit
+# being built must already contain this file (committing it in the same PR
+# as the workflow changes is fine - pull_request events build the merge ref).
 
 name: "Setup docTR environment"
 description: "Python setup with pip caching, CPU-only PyTorch, package install and optional pretrained model cache"

@@ -50,12 +50,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Sanitize docker tag
+      - name: Sanitize docker tag and cache scope
         run: |
           PREFIX_DOCKER_TAG="${{ matrix.framework }}-py${{ matrix.python }}-"
           PREFIX_DOCKER_TAG=$(echo ${PREFIX_DOCKER_TAG}|sed 's/,/-/g')
           echo PREFIX_DOCKER_TAG=${PREFIX_DOCKER_TAG} >> $GITHUB_ENV
           echo $PREFIX_DOCKER_TAG
+          # Commas are the CSV delimiter in buildx cache-from/cache-to values,
+          # so the scope must not contain them (matrix.framework does)
+          CACHE_SCOPE=$(echo "${{ matrix.framework }}-py${{ matrix.python }}"|sed 's/,/-/g')
+          echo CACHE_SCOPE=${CACHE_SCOPE} >> $GITHUB_ENV
+          echo $CACHE_SCOPE
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -81,8 +86,8 @@ jobs:
           push: false  # push only if `import doctr` works
           load: true   # load into local docker so the image can be run below
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha,scope=${{ matrix.framework }}-${{ matrix.python }}
-          cache-to: type=gha,scope=${{ matrix.framework }}-${{ matrix.python }},mode=max
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}
+          cache-to: type=gha,scope=${{ env.CACHE_SCOPE }},mode=max
 
       - name: Check if `import doctr` works
         run: docker run ${{ steps.build.outputs.imageid }} python3 -c 'import doctr'
@@ -101,4 +106,4 @@ jobs:
             DOCTR_VERSION=${{ github.sha }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          cache-from: type=gha,scope=${{ matrix.framework }}-${{ matrix.python }}
+          cache-from: type=gha,scope=${{ env.CACHE_SCOPE }}

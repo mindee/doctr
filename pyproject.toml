@@ -69,7 +69,7 @@ contrib = [
     "onnxruntime>=1.11.0",
 ]
 testing = [
-    "pytest>=5.3.2",
+    "pytest-cov>=7.0.0",
     "coverage[toml]>=4.5.4",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
@@ -101,7 +101,7 @@ dev = [
     "matplotlib>=3.1.0",
     "mplcursors>=0.3",
     # Testing
-    "pytest>=5.3.2",
+    "pytest-cov>=7.0.0",
     "coverage[toml]>=4.5.4",
     "onnxruntime>=1.11.0",
     "requests>=2.20.0",
