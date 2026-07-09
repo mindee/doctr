@@ -30,6 +30,8 @@ class _KIEPredictor(_OCRPredictor):
         ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
             layout model will be used to locate the regions of the specified classes, and these regions will
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
+        preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
+            original page coordinates. Useful for redaction and annotation.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -44,6 +46,7 @@ class _KIEPredictor(_OCRPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         ignore_regions: Collection[str] | None = None,
+        preserve_original_coords: bool = False,
         **kwargs: Any,
     ) -> None:
         super().__init__(
@@ -53,6 +56,7 @@ class _KIEPredictor(_OCRPredictor):
             symmetric_pad,
             detect_orientation,
             ignore_regions,
+            preserve_original_coords=preserve_original_coords,
             **kwargs,
         )
 

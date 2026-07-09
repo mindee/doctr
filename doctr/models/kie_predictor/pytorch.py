@@ -36,6 +36,8 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             page. Doing so will slightly deteriorate the overall latency.
         detect_language: if True, the language prediction will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        preserve_original_coords: if True and straighten_pages is True, bounding boxes are mapped back to the
+            original page coordinates. Useful for redaction and annotation.
         layout_predictor: optional layout detection module
         **kwargs: keyword args of `DocumentBuilder`
     """
@@ -50,6 +52,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
         detect_language: bool = False,
+        preserve_original_coords: bool = False,
         layout_predictor: LayoutPredictor | None = None,
         **kwargs: Any,
     ) -> None:
@@ -63,6 +66,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             preserve_aspect_ratio,
             symmetric_pad,
             detect_orientation,
+            preserve_original_coords=preserve_original_coords,
             **kwargs,
         )
         self.detect_orientation = detect_orientation
