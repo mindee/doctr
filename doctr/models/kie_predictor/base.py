@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+from collections.abc import Collection
 from typing import Any
 
 from doctr.models.builder import KIEDocumentBuilder
@@ -26,6 +27,9 @@ class _KIEPredictor(_OCRPredictor):
         symmetric_pad: if True and preserve_aspect_ratio is True, pas the image symmetrically.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
+            layout model will be used to locate the regions of the specified classes, and these regions will
+            be masked out (filled with black) before passing the pages to the detection/recognition modules.
         kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -39,10 +43,17 @@ class _KIEPredictor(_OCRPredictor):
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
+        ignore_regions: Collection[str] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(
-            assume_straight_pages, straighten_pages, preserve_aspect_ratio, symmetric_pad, detect_orientation, **kwargs
+            assume_straight_pages,
+            straighten_pages,
+            preserve_aspect_ratio,
+            symmetric_pad,
+            detect_orientation,
+            ignore_regions,
+            **kwargs,
         )
 
         # Remove the following arguments from kwargs after initialization of the parent class
