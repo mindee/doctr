@@ -274,7 +274,7 @@ class LWDETR(nn.Module, _LWDETR):
         self,
         feat_extractor: LWDETRBackbone,
         class_names: list[str],
-        score_thresh: float = 0.25,
+        score_thresh: float = 0.5,
         iou_thresh: float = 0.5,
         d_model: int = 256,
         num_queries: int = 195,

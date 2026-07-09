@@ -6,7 +6,7 @@ import pytest
 import requests
 
 from doctr.io import reader
-from doctr.models._utils import estimate_orientation, get_language, invert_data_structure
+from doctr.models._utils import estimate_orientation, get_language, invert_data_structure, mask_boxes
 from doctr.utils import geometry
 
 
@@ -91,6 +91,46 @@ def test_get_lang():
     lang = get_language("a")
     assert lang[0] == "unknown"
     assert lang[1] == 0.0
+
+
+def test_mask_boxes():
+    img = np.full((100, 200, 3), 100, dtype=np.uint8)
+    boxes = np.array([[0.1, 0.2, 0.4, 0.6]], dtype=np.float32)
+    out = mask_boxes(img, boxes, fill_value=0)
+    assert out is not img
+    assert np.all(img == 100)
+    assert out.dtype == img.dtype and out.shape == img.shape
+
+    # abs box -> x in [20, 80], y in [20, 60] -> interior filled, far outside unchanged
+    assert np.all(out[25:55, 25:75] == 0)
+    assert out[5, 5, 0] == 100
+    assert out[90, 190, 0] == 100
+    # rotated polygons (N, 4, 2), relative coords
+    polys = np.array([[[0.5, 0.1], [0.9, 0.1], [0.9, 0.5], [0.5, 0.5]]], dtype=np.float32)
+    out = mask_boxes(img, polys, fill_value=0)
+
+    # abs box -> x in [100, 180], y in [10, 50]
+    assert np.all(out[15:45, 105:175] == 0)
+    assert out[5, 5, 0] == 100
+    # default fill value is 255
+    out = mask_boxes(np.zeros((50, 50, 3), dtype=np.uint8), np.array([[0.2, 0.2, 0.8, 0.8]], np.float32))
+    assert np.all(out[15:35, 15:35] == 255)
+    # multiple boxes in a single call
+    boxes = np.array([[0.0, 0.0, 0.2, 0.2], [0.8, 0.8, 1.0, 1.0]], dtype=np.float32)
+    out = mask_boxes(img, boxes, fill_value=0)
+    assert out[5, 5, 0] == 0 and out[95, 195, 0] == 0
+    assert out[50, 100, 0] == 100  # center untouched
+    # out-of-range coords are clipped to the image (no error, whole image covered)
+    out = mask_boxes(img, np.array([[-0.5, -0.5, 1.5, 1.5]], dtype=np.float32), fill_value=0)
+    assert np.all(out == 0)
+    # empty boxes
+    assert mask_boxes(img, np.zeros((0, 4), dtype=np.float32)) is img
+    assert mask_boxes(img, np.zeros((0, 4, 2), dtype=np.float32)) is img
+    # grayscale
+    gray = np.full((100, 200), 100, dtype=np.uint8)
+    out = mask_boxes(gray, np.array([[0.1, 0.2, 0.4, 0.6]], dtype=np.float32), fill_value=0)
+    assert np.all(out[25:55, 25:75] == 0)
+    assert out[5, 5] == 100
 
 
 def test_convert_list_dict():

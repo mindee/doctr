@@ -34,6 +34,8 @@ def _predictor(arch: Any, pretrained: bool, assume_straight_pages: bool = True, 
         if not isinstance(arch, tuple(allowed_archs)):
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
+        _model.assume_straight_pages = assume_straight_pages  # type: ignore[attr-defined]
+        _model.postprocessor.assume_straight_pages = assume_straight_pages  # type: ignore[attr-defined]
 
     kwargs.pop("pretrained_backbone", None)
 

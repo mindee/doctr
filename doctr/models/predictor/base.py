@@ -1,9 +1,7 @@
-# Copyright (C) 2021-2026, Mindee.
-
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from typing import Any
 
 import numpy as np
@@ -11,7 +9,7 @@ import numpy as np
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import extract_crops, extract_rcrops, remove_image_padding, rotate_image
 
-from .._utils import estimate_orientation, rectify_crops, rectify_loc_preds
+from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
 from ..classification import crop_orientation_predictor, page_orientation_predictor
 from ..classification.predictor import OrientationPredictor
 
@@ -31,6 +29,9 @@ class _OCRPredictor:
         symmetric_pad: if True and preserve_aspect_ratio is True, pas the image symmetrically.
         detect_orientation: if True, the estimated general page orientation will be added to the predictions for each
             page. Doing so will slightly deteriorate the overall latency.
+        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
+            layout model will be used to locate the regions of the specified classes, and these regions will
+            be masked out (filled with black) before passing the pages to the detection/recognition modules.
         **kwargs: keyword args of `DocumentBuilder`
     """
 
@@ -44,6 +45,7 @@ class _OCRPredictor:
         preserve_aspect_ratio: bool = True,
         symmetric_pad: bool = True,
         detect_orientation: bool = False,
+        ignore_regions: Collection[str] | None = None,
         **kwargs: Any,
     ) -> None:
         self.assume_straight_pages = assume_straight_pages
@@ -61,8 +63,12 @@ class _OCRPredictor:
             else None
         )
         self.doc_builder = DocumentBuilder(**kwargs)
+
         self.preserve_aspect_ratio = preserve_aspect_ratio
         self.symmetric_pad = symmetric_pad
+
+        self.ignore_regions = ignore_regions
+
         self.hooks: list[Callable] = []
 
     def _general_page_orientations(
@@ -87,6 +93,26 @@ class _OCRPredictor:
             for seq_map, general_orientation in zip(seg_maps, general_pages_orientations)
         ]
         return general_pages_orientations, origin_page_orientations
+
+    def _mask_regions(
+        self,
+        pages: list[np.ndarray],
+        regions: list[dict[str, Any]] | None,
+        fill_value: int = 0,
+    ) -> list[np.ndarray]:
+        if regions is None or not self.ignore_regions:
+            return pages
+
+        out_pages: list[np.ndarray] = []
+        for page, region in zip(pages, regions):
+            if region is None:
+                out_pages.append(page)
+                continue
+            boxes = np.asarray(region["boxes"], dtype=np.float32)
+            keep = np.array([name in self.ignore_regions for name in region["class_names"]], dtype=bool)
+            out_pages.append(mask_boxes(page, boxes[keep], fill_value=fill_value) if keep.any() else page)
+
+        return out_pages
 
     def _straighten_pages(
         self,

@@ -138,14 +138,16 @@ def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
     doc = DocumentFile.from_pdf(mock_pdf)
 
     # Without a layout predictor -> pages carry an empty layout
-    predictor = OCRPredictor(det_predictor, reco_predictor)
+    predictor = OCRPredictor(det_predictor, reco_predictor, ignore_regions=["Picture", "Formula"])
     assert predictor.layout_predictor is None
     out = predictor(doc)
     assert all(page.layout == [] for page in out.pages)
     assert all(page.export()["layout"] == [] for page in out.pages)
 
     # With a layout predictor -> detected regions are attached to every page
-    predictor = OCRPredictor(det_predictor, reco_predictor, layout_predictor=layout_pred)
+    predictor = OCRPredictor(
+        det_predictor, reco_predictor, layout_predictor=layout_pred, ignore_regions=["Picture", "Formula"]
+    )
     assert isinstance(predictor.layout_predictor, LayoutPredictor)
     out = predictor(doc)
     assert isinstance(out, Document)
@@ -207,6 +209,7 @@ def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
         symmetric_pad=True,
         resolve_blocks=True,
         resolve_lines=True,
+        ignore_regions=["Picture", "Formula"],
     )
     # test hooks
     predictor.add_hook(_DummyCallback())

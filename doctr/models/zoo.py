@@ -30,6 +30,7 @@ def _predictor(
     detect_language: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
+    ignore_regions: list[str] | None = None,
     detect_tables: bool = False,
     **kwargs,
 ) -> OCRPredictor:
@@ -91,6 +92,7 @@ def _predictor(
         detect_language=detect_language,
         layout_predictor=layout_pred,
         table_predictor=table_pred,
+        ignore_regions=ignore_regions,
         **kwargs,
     )
 
@@ -109,6 +111,7 @@ def ocr_predictor(
     detect_language: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
+    ignore_regions: list[str] | None = None,
     detect_tables: bool = False,
     **kwargs: Any,
 ) -> OCRPredictor:
@@ -146,6 +149,9 @@ def ocr_predictor(
             to each page.
             Doing so will slightly deteriorate the overall latency.
         layout_arch: name of the layout architecture or the model itself to use.
+        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
+            layout model will be used to locate the regions of the specified classes, and these regions will
+            be masked out (filled with black) before passing the pages to the detection/recognition modules.
         detect_tables: if True, table regions found by the layout model are cropped and passed to a table
             structure model. Words falling inside a detected table are regrouped into a structured table
             (accessible via `page.tables`) and removed from the regular text output. This enables the layout
@@ -170,6 +176,7 @@ def ocr_predictor(
         detect_layout=detect_layout,
         layout_arch=layout_arch,
         detect_tables=detect_tables,
+        ignore_regions=ignore_regions,
         **kwargs,
     )
 
@@ -189,6 +196,7 @@ def _kie_predictor(
     detect_language: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
+    ignore_regions: list[str] | None = None,
     **kwargs,
 ) -> KIEPredictor:
     # Detection
@@ -234,6 +242,7 @@ def _kie_predictor(
         straighten_pages=straighten_pages,
         detect_language=detect_language,
         layout_predictor=layout_pred,
+        ignore_regions=ignore_regions,
         **kwargs,
     )
 
@@ -252,6 +261,7 @@ def kie_predictor(
     detect_language: bool = False,
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
+    ignore_regions: list[str] | None = None,
     **kwargs: Any,
 ) -> KIEPredictor:
     """End-to-end KIE architecture using one model for localization, and another for text recognition.
@@ -288,6 +298,9 @@ def kie_predictor(
             to each page.
             Doing so will slightly deteriorate the overall latency.
         layout_arch: name of the layout architecture or the model itself to use.
+        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
+            layout model will be used to locate the regions of the specified classes, and these regions will
+            be masked out (filled with black) before passing the pages to the detection/recognition modules.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -307,5 +320,6 @@ def kie_predictor(
         detect_language=detect_language,
         detect_layout=detect_layout,
         layout_arch=layout_arch,
+        ignore_regions=ignore_regions,
         **kwargs,
     )

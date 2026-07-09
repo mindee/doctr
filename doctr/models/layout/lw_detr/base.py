@@ -28,7 +28,7 @@ class LWDETRPostProcessor:
     def __init__(
         self,
         num_classes: int,
-        score_thresh: float = 0.3,
+        score_thresh: float = 0.5,
         iou_thresh: float = 0.5,
         topk: int = 300,
         assume_straight_pages: bool = True,

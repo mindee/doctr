@@ -98,14 +98,17 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if not self.straighten_pages:
             # Detect layout regions on the pages
             regions = self.layout_predictor(pages, **kwargs) if self.layout_predictor is not None else None
+            det_pages = self._mask_regions(pages, regions)
+        else:
+            det_pages = pages
 
         # Localize text elements (segmentation maps are only materialized when actually consumed)
         if self.detect_orientation or self.straighten_pages:
-            loc_preds, out_maps = self.det_predictor(pages, return_maps=True, **kwargs)
+            loc_preds, out_maps = self.det_predictor(det_pages, return_maps=True, **kwargs)
             bin_thresh = getattr(self.det_predictor.model.postprocessor, "bin_thresh")
             seg_maps = [((out_map > bin_thresh) * 255).astype(np.uint8) for out_map in out_maps]
         else:
-            loc_preds = self.det_predictor(pages, **kwargs)
+            loc_preds = self.det_predictor(det_pages, **kwargs)
 
         # Detect document rotation and rotate pages
         if self.detect_orientation:
@@ -124,9 +127,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
 
             # Detect layout regions on the pages
             regions = self.layout_predictor(pages, **kwargs) if self.layout_predictor is not None else None
+            det_pages = self._mask_regions(pages, regions)
 
             # Forward again to get predictions on straight pages
-            loc_preds = self.det_predictor(pages, **kwargs)
+            loc_preds = self.det_predictor(det_pages, **kwargs)
 
         assert all(len(loc_pred) == 1 for loc_pred in loc_preds), (
             "Detection Model in ocr_predictor should output only one class"
