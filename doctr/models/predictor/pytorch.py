@@ -125,10 +125,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             general_pages_orientations = None
             origin_pages_orientations = None
         if self.straighten_pages:
-            _orig_shapes = [p.shape[:2] for p in pages]
+            _orig_shapes = origin_page_shapes
             pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
-            _straight_shapes = [p.shape[:2] for p in pages]
-            origin_page_shapes = _straight_shapes
+            # update page shapes after straightening
+            origin_page_shapes = [page.shape[:2] for page in pages]
+            _straight_shapes = origin_page_shapes
 
             # Detect layout regions on the pages
             regions = self.layout_predictor(pages, **kwargs) if self.layout_predictor is not None else None
@@ -197,7 +198,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             tables,
         )
 
-        if self.straighten_pages and self.preserve_original_coords and self._straighten_m_inv:
+        if self.straighten_pages and self.preserve_original_coords:
             out = self._remap_to_original_coords(out, _orig_shapes, _straight_shapes)
         return out
 
