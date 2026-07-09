@@ -8,6 +8,7 @@ from typing import Any
 
 import numpy as np
 
+from doctr.io.elements import Document, Word
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -229,6 +230,64 @@ class _OCRPredictor:
                 _idx += page_boxes.shape[0]
 
         return loc_preds, text_preds, crop_orientation_preds
+
+    def _remap_to_original_coords(
+        self,
+        out: Document,
+        orig_shapes: list[tuple[int, int]],
+        straight_shapes: list[tuple[int, int]],
+    ) -> Document:
+        """Remap word geometries from straightened-page coordinates back to original page coordinates.
+
+        This method is called after the document builder when straighten_pages and
+        preserve_original_coords are both True. It applies the inverse straightening
+        transform to each word's geometry so that bounding boxes align with the input image.
+
+        Supports both Page (blocks -> lines -> words) and KIEPage (predictions dict)
+        structures, identified by the presence of a ``predictions`` attribute.
+
+        Args:
+            out: the document returned by the builder
+            orig_shapes: original (pre-straightening) page shapes (H, W)
+            straight_shapes: straightened page shapes (H, W)
+
+        Returns:
+            the document with remapped word geometries
+        """
+        for pidx, (page, m_inv) in enumerate(zip(out.pages, self._straighten_m_inv)):
+            sh, sw = straight_shapes[pidx]
+            oh, ow = orig_shapes[pidx]
+
+            # Collect all geometry-bearing objects (supports Page & KIEPage)
+            if hasattr(page, "predictions"):
+                objs: list[Word] = []
+                for preds in page.predictions.values():
+                    objs.extend(preds)
+            else:
+                objs = [word for block in page.blocks for line in block.lines for word in line.words]
+
+            for word in objs:
+                pts = np.asarray(word.geometry, dtype=np.float64).reshape(-1, 2)
+                was_straight = pts.shape[0] == 2
+                if was_straight:
+                    (x0, y0), (x1, y1) = pts
+                    pts = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float64)
+
+                pts[:, 0] *= sw
+                pts[:, 1] *= sh
+                homo = np.column_stack([pts, np.ones(len(pts))])
+                orig = (homo @ m_inv.T)[:, :2]
+                orig[:, 0] = orig[:, 0].clip(0, ow - 1) / ow
+                orig[:, 1] = orig[:, 1].clip(0, oh - 1) / oh
+
+                if was_straight:
+                    word.geometry = (
+                        (float(orig[:, 0].min()), float(orig[:, 1].min())),
+                        (float(orig[:, 0].max()), float(orig[:, 1].max())),
+                    )
+                else:
+                    word.geometry = tuple(tuple(r) for r in orig.tolist())  # type: ignore[assignment]
+        return out
 
     def add_hook(self, hook: Callable) -> None:
         """Add a hook to the predictor

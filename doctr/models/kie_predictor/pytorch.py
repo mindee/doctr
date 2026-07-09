@@ -114,9 +114,11 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             general_pages_orientations = None
             origin_pages_orientations = None
         if self.straighten_pages:
+            _orig_shapes = [p.shape[:2] for p in pages]
             pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
             # update page shapes after straightening
-            origin_page_shapes = [page.shape[:2] for page in pages]
+            _straight_shapes = [page.shape[:2] for page in pages]
+            origin_page_shapes = _straight_shapes
 
             # Detect layout regions on the pages
             regions = self.layout_predictor(pages, **kwargs) if self.layout_predictor is not None else None
@@ -196,6 +198,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             languages_dict,
             regions,
         )
+
+        if self.straighten_pages and self.preserve_original_coords and self._straighten_m_inv:
+            out = self._remap_to_original_coords(out, _orig_shapes, _straight_shapes)  # type: ignore[assignment]
         return out
 
     @staticmethod
