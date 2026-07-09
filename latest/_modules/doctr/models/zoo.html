@@ -322,6 +322,7 @@
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;lw_detr_s&quot;</span><span class="p">,</span>
+    <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">detect_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
@@ -383,6 +384,7 @@
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="o">=</span><span class="n">layout_pred</span><span class="p">,</span>
         <span class="n">table_predictor</span><span class="o">=</span><span class="n">table_pred</span><span class="p">,</span>
+        <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -403,6 +405,7 @@
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;lw_detr_s&quot;</span><span class="p">,</span>
+    <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">detect_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
@@ -440,6 +443,9 @@
 <span class="sd">            to each page.</span>
 <span class="sd">            Doing so will slightly deteriorate the overall latency.</span>
 <span class="sd">        layout_arch: name of the layout architecture or the model itself to use.</span>
+<span class="sd">        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the</span>
+<span class="sd">            layout model will be used to locate the regions of the specified classes, and these regions will</span>
+<span class="sd">            be masked out (filled with black) before passing the pages to the detection/recognition modules.</span>
 <span class="sd">        detect_tables: if True, table regions found by the layout model are cropped and passed to a table</span>
 <span class="sd">            structure model. Words falling inside a detected table are regrouped into a structured table</span>
 <span class="sd">            (accessible via `page.tables`) and removed from the regular text output. This enables the layout</span>
@@ -464,6 +470,7 @@
         <span class="n">detect_layout</span><span class="o">=</span><span class="n">detect_layout</span><span class="p">,</span>
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
         <span class="n">detect_tables</span><span class="o">=</span><span class="n">detect_tables</span><span class="p">,</span>
+        <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -484,6 +491,7 @@
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;lw_detr_s&quot;</span><span class="p">,</span>
+    <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEPredictor</span><span class="p">:</span>
     <span class="c1"># Detection</span>
@@ -529,6 +537,7 @@
         <span class="n">straighten_pages</span><span class="o">=</span><span class="n">straighten_pages</span><span class="p">,</span>
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="n">layout_predictor</span><span class="o">=</span><span class="n">layout_pred</span><span class="p">,</span>
+        <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
 
@@ -549,6 +558,7 @@
     <span class="n">detect_language</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">&quot;lw_detr_s&quot;</span><span class="p">,</span>
+    <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;End-to-end KIE architecture using one model for localization, and another for text recognition.</span>
@@ -585,6 +595,9 @@
 <span class="sd">            to each page.</span>
 <span class="sd">            Doing so will slightly deteriorate the overall latency.</span>
 <span class="sd">        layout_arch: name of the layout architecture or the model itself to use.</span>
+<span class="sd">        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the</span>
+<span class="sd">            layout model will be used to locate the regions of the specified classes, and these regions will</span>
+<span class="sd">            be masked out (filled with black) before passing the pages to the detection/recognition modules.</span>
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
@@ -604,6 +617,7 @@
         <span class="n">detect_language</span><span class="o">=</span><span class="n">detect_language</span><span class="p">,</span>
         <span class="n">detect_layout</span><span class="o">=</span><span class="n">detect_layout</span><span class="p">,</span>
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
+        <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
