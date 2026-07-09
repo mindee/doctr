@@ -293,9 +293,11 @@ class _OCRPredictor:
                 else:
                     word.geometry = tuple(tuple(r) for r in orig.tolist())  # type: ignore[assignment]
 
-            # Restore original page image so .show() renders boxes on the correct frame
+            # Restore original page image and dimensions so .show() and export()
+            # render boxes in the correct frame (visualize_page scales geometry by dimensions)
             if orig_pages is not None:
                 out.pages[pidx].page = orig_pages[pidx]
+                out.pages[pidx].dimensions = orig_shapes[pidx]
 
         return out
 

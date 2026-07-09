@@ -72,9 +72,10 @@ def test_preserve_original_coords_roundtrip(angle, shape, predictor):
 
     result = predictor([img_rgb])
 
-    # page.page must hold the ORIGINAL (skewed) input, not the straightened image
+    # page.page and dimensions must hold the ORIGINAL (skewed) values, not the straightened ones
     assert result.pages[0].page.shape[:2] == (h, w), "page.page should have original dimensions"
     assert np.array_equal(result.pages[0].page, img_rgb), "page.page should be the original input image"
+    assert result.pages[0].dimensions == (h, w), "page.dimensions should match original page shape"
 
     # ---- Collect detection polygons (in original coords, i.e. skewed frame) ----
     det_polys = []
