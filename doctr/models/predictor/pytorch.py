@@ -72,7 +72,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             preserve_aspect_ratio,
             symmetric_pad,
             detect_orientation,
-            preserve_original_coords,
+            preserve_original_coords=preserve_original_coords,
             **kwargs,
         )
         self.detect_orientation = detect_orientation
