@@ -326,3 +326,38 @@ def test_extract_rcrops(mock_pdf, assume_horizontal):
 
     # No box
     assert geometry.extract_rcrops(doc_img, np.zeros((0, 4, 2)), assume_horizontal=assume_horizontal) == []
+
+
+@pytest.mark.parametrize("angle", [5, 12, -5, -12, 90 + 13, 180 + 13, 270 + 13])
+@pytest.mark.parametrize("shape", [(800, 600), (600, 800)])
+def test_straighten_page_inverse(angle, shape):
+    """M_inv returned by straighten_page is the exact inverse of the
+    pad -> rotate -> crop pipeline, accurate to within interpolation noise.
+
+    Sub-degree angles are excluded: at very small rotations every fiducial
+    pixel is blended by interpolation, so exact-colour matching finds nothing.
+    """
+    h, w = shape
+    page = np.ones((h, w, 3), dtype=np.uint8) * 255
+    page[99:102, 99:102] = (255, 0, 0)
+    page[99:102, 499:502] = (0, 255, 0)
+    page[699:702, 99:102] = (0, 0, 255)
+    page[699:702, 499:502] = (255, 255, 0)
+    page[399:402, 299:302] = (255, 0, 255)
+    dots = [(100, 100), (500, 100), (100, 700), (500, 700), (300, 400)]
+    colours = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255)]
+
+    straightened, m_inv = geometry.straighten_page(page, angle)
+
+    errors = []
+    for (dx, dy), colour in zip(dots, colours):
+        mask = np.all(straightened == colour, axis=-1)
+        found = np.argwhere(mask)
+        if len(found) == 0:
+            continue
+        fy, fx = found.mean(axis=0)
+        recovered = (np.array([float(fx), float(fy), 1.0]) @ m_inv.T)[:2]
+        errors.append(np.linalg.norm(recovered - np.array([float(dx), float(dy)])))
+
+    assert len(errors) > 0, "No fiducial dots found -- interpolation blended all pixels"
+    assert max(errors) < 0.6, f"Max remap error {max(errors):.4f}px exceeds 0.6px threshold"

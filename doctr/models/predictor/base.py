@@ -6,16 +6,15 @@
 from collections.abc import Callable, Collection
 from typing import Any
 
-import cv2
 import numpy as np
 
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
-    compute_expanded_shape,
     extract_crops,
     extract_rcrops,
     remove_image_padding,
     rotate_image,
+    straighten_page,
 )
 
 from .._utils import estimate_orientation, mask_boxes, rectify_crops, rectify_loc_preds
@@ -154,45 +153,9 @@ class _OCRPredictor:
         self._straighten_m_inv = []
         out = []
         for page, angle in zip(pages, origin_pages_orientations):
-            h, w = page.shape[:2]
-            expand = h != w
-            h_pad = w_pad = 0
-            if expand:
-                exp = compute_expanded_shape((h, w), angle)
-                h_pad = int(max(0, np.ceil(exp[0] - h)))
-                w_pad = int(max(0, np.ceil(exp[1] - w)))
-
-            pt, pb = h_pad // 2, h_pad - h_pad // 2
-            pl, pr = w_pad // 2, w_pad - w_pad // 2
-
-            exp_img = np.pad(page, ((pt, pb), (pl, pr), (0, 0)))
-            ph_pad, pw_pad = exp_img.shape[:2]
-
-            rot_mat = cv2.getRotationMatrix2D((pw_pad / 2, ph_pad / 2), angle, 1.0)
-            rotated = cv2.warpAffine(exp_img, rot_mat, (pw_pad, ph_pad))
-
-            # Aspect-ratio padding (follows rotate_image logic, doesn't shift content)
-            if expand:
-                if (rotated.shape[0] / rotated.shape[1]) > (h / w):
-                    w_pad2 = int(rotated.shape[0] * w / h - rotated.shape[1])
-                    rotated = np.pad(rotated, ((0, 0), (0, w_pad2), (0, 0)))
-                else:
-                    h_pad2 = int(rotated.shape[1] * h / w - rotated.shape[0])
-                    rotated = np.pad(rotated, ((0, h_pad2), (0, 0), (0, 0)))
-
-            # Analytic crop: project content corners through rotation
-            corners = np.array([[pl, pt, 1], [pl + w, pt, 1], [pl + w, pt + h, 1], [pl, pt + h, 1]], dtype=np.float64).T
-            rc = rot_mat @ corners
-            cx, cy = int(np.floor(rc[0].min())), int(np.floor(rc[1].min()))
-            cr = rotated[cy:, cx:]
-
-            # Composite forward matrix: crop ∘ rotate ∘ pad
-            # warpAffine treats M as src→dst (inverts internally for pixel lookup)
-            C3 = np.array([[1, 0, -cx], [0, 1, -cy], [0, 0, 1]], dtype=np.float64)
-            R3 = np.vstack([rot_mat, [0, 0, 1]])
-            P3 = np.array([[1, 0, pl], [0, 1, pt], [0, 0, 1]], dtype=np.float64)
-            self._straighten_m_inv.append(np.linalg.inv(C3 @ R3 @ P3))
-            out.append(cr)
+            straightened, m_inv = straighten_page(page, angle)
+            self._straighten_m_inv.append(m_inv)
+            out.append(straightened)
         return out
 
     @staticmethod

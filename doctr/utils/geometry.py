@@ -20,6 +20,7 @@ __all__ = [
     "compute_expanded_shape",
     "rotate_image",
     "remove_image_padding",
+    "straighten_page",
     "estimate_page_angle",
     "convert_to_relative_coords",
     "rotate_abs_geoms",
@@ -396,6 +397,71 @@ def remove_image_padding(image: np.ndarray) -> np.ndarray:
     cmin, cmax = int(np.argmax(cols)), image.shape[1] - 1 - int(np.argmax(cols[::-1]))
 
     return image[rmin : rmax + 1, cmin : cmax + 1]
+
+
+def straighten_page(
+    page: np.ndarray,
+    angle: float,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Straighten a page by rotating it and cropping to content, returning the straightened image
+    and the inverse affine matrix that maps straightened-page coordinates back to the original page.
+
+    Args:
+        page: the original page image (H, W, C)
+        angle: rotation angle in degrees (between -90 and +90)
+
+    Returns:
+        a tuple (straightened, M_inv) where straightened is the page rotated and cropped to the
+        non-padded region, and M_inv is a (3, 3) array mapping points in the straightened image's
+        pixel space (x, y, 1) back to the original page's pixel space.
+    """
+    h, w = page.shape[:2]
+    expand = h != w
+
+    # Padding to preserve content after rotation
+    if expand:
+        exp = compute_expanded_shape((h, w), angle)
+        h_pad = int(max(0, np.ceil(exp[0] - h)))
+        w_pad = int(max(0, np.ceil(exp[1] - w)))
+    else:
+        h_pad = w_pad = 0
+
+    pt, pb = h_pad // 2, h_pad - h_pad // 2
+    pl, pr = w_pad // 2, w_pad - w_pad // 2
+
+    exp_img = np.pad(page, ((pt, pb), (pl, pr), (0, 0)))
+    ph_pad, pw_pad = exp_img.shape[:2]
+
+    # Rotate around the padded image center
+    rot_mat = cv2.getRotationMatrix2D((pw_pad / 2, ph_pad / 2), angle, 1.0)
+    rotated = cv2.warpAffine(exp_img, rot_mat, (pw_pad, ph_pad))
+
+    # Aspect-ratio padding (applied only on right/bottom so analytic crop stays simple)
+    if expand:
+        if (rotated.shape[0] / rotated.shape[1]) > (h / w):
+            w_pad2 = int(rotated.shape[0] * w / h - rotated.shape[1])
+            rotated = np.pad(rotated, ((0, 0), (0, w_pad2), (0, 0)))
+        else:
+            h_pad2 = int(rotated.shape[1] * h / w - rotated.shape[0])
+            rotated = np.pad(rotated, ((0, h_pad2), (0, 0), (0, 0)))
+
+    # Analytic crop: project the four content corners through the rotation matrix
+    corners = np.array(
+        [[pl, pt, 1], [pl + w, pt, 1], [pl + w, pt + h, 1], [pl, pt + h, 1]],
+        dtype=np.float64,
+    ).T
+    rc = rot_mat @ corners
+    cx, cy = int(np.floor(rc[0].min())), int(np.floor(rc[1].min()))
+    cropped = rotated[cy:, cx:]
+
+    # Composite forward matrix: crop ∘ rotate ∘ pad
+    # cv2.warpAffine treats the rotation matrix as src→dst
+    c3 = np.array([[1, 0, -cx], [0, 1, -cy], [0, 0, 1]], dtype=np.float64)
+    r3 = np.vstack([rot_mat, [0, 0, 1]])
+    p3 = np.array([[1, 0, pl], [0, 1, pt], [0, 0, 1]], dtype=np.float64)
+    m_inv = np.linalg.inv(c3 @ r3 @ p3)
+
+    return cropped, m_inv
 
 
 def estimate_page_angle(polys: np.ndarray) -> float:
