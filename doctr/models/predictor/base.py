@@ -238,8 +238,7 @@ class _OCRPredictor:
         straight_shapes: list[tuple[int, int]],
         orig_pages: list[np.ndarray] | None = None,
     ) -> Document:
-        """
-        Remap word geometries from straightened-page coordinates back to original page coordinates.
+        """Remap word geometries from straightened-page coordinates back to original page coordinates.
 
         This method is called after the document builder when straighten_pages and
         preserve_original_coords are both True. It applies the inverse straightening
