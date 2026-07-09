@@ -236,6 +236,7 @@ class _OCRPredictor:
         out: Document,
         orig_shapes: list[tuple[int, int]],
         straight_shapes: list[tuple[int, int]],
+        orig_pages: list[np.ndarray] | None = None,
     ) -> Document:
         """Remap word geometries from straightened-page coordinates back to original page coordinates.
 
@@ -246,10 +247,14 @@ class _OCRPredictor:
         Supports both Page (blocks -> lines -> words) and KIEPage (predictions dict)
         structures, identified by the presence of a ``predictions`` attribute.
 
+        When ``orig_pages`` is provided, each page's image is also restored to the original
+        (pre-straightening) input so that ``.show()`` renders boxes on the correct image.
+
         Args:
             out: the document returned by the builder
             orig_shapes: original (pre-straightening) page shapes (H, W)
             straight_shapes: straightened page shapes (H, W)
+            orig_pages: optional list of original page images to restore on ``page.page``
 
         Returns:
             the document with remapped word geometries
@@ -287,6 +292,11 @@ class _OCRPredictor:
                     )
                 else:
                     word.geometry = tuple(tuple(r) for r in orig.tolist())  # type: ignore[assignment]
+
+            # Restore original page image so .show() renders boxes on the correct frame
+            if orig_pages is not None:
+                out.pages[pidx].page = orig_pages[pidx]
+
         return out
 
     def add_hook(self, hook: Callable) -> None:

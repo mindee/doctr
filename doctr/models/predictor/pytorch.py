@@ -126,6 +126,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             origin_pages_orientations = None
         if self.straighten_pages:
             _orig_shapes = origin_page_shapes
+            _orig_pages = list(pages)
             pages = self._straighten_pages(pages, seg_maps, general_pages_orientations, origin_pages_orientations)
             # update page shapes after straightening
             origin_page_shapes = [page.shape[:2] for page in pages]
@@ -199,7 +200,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         )
 
         if self.straighten_pages and self.preserve_original_coords:
-            out = self._remap_to_original_coords(out, _orig_shapes, _straight_shapes)
+            out = self._remap_to_original_coords(out, _orig_shapes, _straight_shapes, _orig_pages)
         return out
 
     def _tables_from_regions(
