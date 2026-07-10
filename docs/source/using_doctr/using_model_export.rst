@@ -34,6 +34,23 @@ Advantages:
     ).cuda().half()
     res = predictor(doc)
 
+.. warning::
+    On an NVIDIA T4 (Turing), applying ``.half()`` to the **default** recognition architecture
+    ``crnn_vgg16_bn`` (``nn.LSTM`` decoder) silently corrupts recognition output — no error or
+    warning is raised, and the result is deterministic (100% reproducible across runs), which makes
+    it easy to mistake for a correct, faster result. Example on the same image, fp32 vs. fp16:
+
+    .. code:: text
+
+        fp32: ['Mr.', 'Anjum', 'Hameed,', 'We', 'are', 'pleased', 'inform', 'that', 'your', 'salary']
+        fp16: ['Mr',  'Anjnn', 'nra,',    'Wn', 'arn', 'plansa', 'infnrn', 'tt',   'your', 'salay']
+
+    Cross-checking with transformer-based recognizers (``master``, ``parseq``) on the same detector
+    and image showed **no corruption** — output was identical to fp32 — so this appears specific to
+    the CRNN's LSTM decoder rather than half-precision inference in general. Until this is fixed,
+    verify your recognition architecture is not CRNN-based (or validate output quality yourself)
+    before using ``.half()`` for recognition.
+
 
 Compiling your models (PyTorch only)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

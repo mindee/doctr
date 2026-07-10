@@ -27,6 +27,9 @@ from doctr.models import ocr_predictor
 model = ocr_predictor(det_arch="db_resnet50", reco_arch="crnn_vgg16_bn", pretrained=True)
 ```
 
+> [!NOTE]
+> `ocr_predictor(...)` stays on **CPU by default, with no warning**, even on a machine with a CUDA GPU available. To run on GPU you must explicitly move the predictor yourself, e.g. `model = model.cuda()` (or `.to(device)`) — see [Running the predictors on GPU](https://mindee.github.io/doctr/using_doctr/using_models.html#running-the-predictors-on-gpu) for the full snippet (NVIDIA/CUDA and Apple Silicon/MPS). On an NVIDIA T4, adding this single call measured a **17.16x** speedup (2.657s → 0.155s per image) over the silent CPU fallback.
+
 ### Reading files
 
 Documents can be interpreted from PDF or images:
@@ -189,6 +192,9 @@ First clone the project repository:
 git clone https://github.com/mindee/doctr.git
 pip install -e doctr/.
 ```
+
+> [!NOTE]
+> This installs a PyTorch version constrained only by `torch>=2.0.0,<3.0.0`, which can resolve to a build newer than what your installed GPU driver supports. If that happens, `torch.cuda.is_available()` silently returns `False` (no error) and docTR falls back to CPU. If you hit this, reinstall torch/torchvision pinned to your driver's CUDA version, e.g. `pip install --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cu124`.
 
 Again, if you prefer to avoid the risk of missing dependencies, you can install the build:
 
