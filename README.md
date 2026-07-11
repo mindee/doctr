@@ -374,3 +374,7 @@ You're in luck, we compiled a short guide (cf. [`CONTRIBUTING`](https://mindee.g
 ## License
 
 Distributed under the Apache 2.0 License. See [`LICENSE`](https://github.com/mindee/doctr?tab=Apache-2.0-1-ov-file#readme) for more information.
+
+---
+
+*[Mukller](https://github.com/Mukller)*
