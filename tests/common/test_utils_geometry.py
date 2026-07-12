@@ -329,14 +329,9 @@ def test_extract_rcrops(mock_pdf, assume_horizontal):
 
 
 @pytest.mark.parametrize("angle", [5, 12, -5, -12, 90 + 13, 180 + 13, 270 + 13])
-@pytest.mark.parametrize("shape", [(800, 600), (600, 800)])
+@pytest.mark.parametrize("shape", [(800, 600), (600, 800), (700, 700)])
 def test_straighten_page_inverse(angle, shape):
-    """M_inv returned by straighten_page is the exact inverse of the
-    pad -> rotate -> crop pipeline, accurate to within interpolation noise.
-
-    Sub-degree angles are excluded: at very small rotations every fiducial
-    pixel is blended by interpolation, so exact-colour matching finds nothing.
-    """
+    # Sub-degree angles excluded: interpolation blends every pixel at small rotations
     h, w = shape
     page = np.ones((h, w, 3), dtype=np.uint8) * 255
     page[99:102, 99:102] = (255, 0, 0)
