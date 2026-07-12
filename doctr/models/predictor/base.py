@@ -133,7 +133,7 @@ class _OCRPredictor:
         seg_maps: list[np.ndarray],
         general_pages_orientations: list[tuple[int, float]] | None = None,
         origin_pages_orientations: list[int] | None = None,
-    ) -> list[np.ndarray]:
+    ) -> tuple[list[np.ndarray], list[np.ndarray]]:
         general_pages_orientations = (
             general_pages_orientations if general_pages_orientations else self._general_page_orientations(pages)
         )
@@ -149,15 +149,15 @@ class _OCRPredictor:
             return [
                 remove_image_padding(rotate_image(page, angle, expand=page.shape[0] != page.shape[1]))
                 for page, angle in zip(pages, origin_pages_orientations)
-            ]
+            ], []
 
-        self._straighten_m_inv = []
+        m_invs = []
         out = []
         for page, angle in zip(pages, origin_pages_orientations):
             straightened, m_inv = straighten_page(page, angle)
-            self._straighten_m_inv.append(m_inv)
+            m_invs.append(m_inv)
             out.append(straightened)
-        return out
+        return out, m_invs
 
     @staticmethod
     def _generate_crops(
@@ -236,6 +236,7 @@ class _OCRPredictor:
         out: Document,
         orig_shapes: list[tuple[int, int]],
         straight_shapes: list[tuple[int, int]],
+        m_invs: list[np.ndarray],
         orig_pages: list[np.ndarray] | None = None,
     ) -> Document:
         """Remap word geometries from straightened-page coordinates back to original page coordinates.
@@ -250,7 +251,7 @@ class _OCRPredictor:
             the document with remapped word geometries
 
         """
-        for pidx, (page, m_inv) in enumerate(zip(out.pages, self._straighten_m_inv)):
+        for pidx, (page, m_inv) in enumerate(zip(out.pages, m_invs)):
             sh, sw = straight_shapes[pidx]
             oh, ow = orig_shapes[pidx]
 
