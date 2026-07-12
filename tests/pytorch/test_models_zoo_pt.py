@@ -722,7 +722,7 @@ def test__remap_geometry():
 
     # 4-point polygon with identity matrix
     poly = ((0.1, 0.1), (0.3, 0.1), (0.3, 0.2), (0.1, 0.2))
-    word4 = Word("test", 0.9, poly, 0.8, {"value": 0, "confidence": 1.0})
+    word4 = Word("test", 0.9, poly, 0.8, {"value": 0, "confidence": 1.0})  # type: ignore[arg-type]
     _OCRPredictor._remap_geometry(word4, m_inv, sw, sh, oh, ow)
     assert len(word4.geometry) == 4
     assert np.allclose(np.array(word4.geometry).reshape(-1, 2)[0], [0.1, 0.1])
@@ -807,7 +807,7 @@ def test_remap_to_original_coords_walk():
             "table": table,
             "cell": cell,
         }[key]
-        current = np.array(obj.geometry).reshape(-1, 2)
+        current = np.array(obj.geometry).reshape(-1, 2)  # type: ignore[attr-defined]
         assert not np.allclose(current, orig_val), f"{key} geometry unchanged after remap"
 
     # Containment: block envelope contains its word geometries
@@ -882,7 +882,7 @@ def test_preserve_original_coords_roundtrip(angle, shape, _preserve_coords_pred)
         corners = np.array([[gx1, gy1], [gx2, gy1], [gx2, gy2], [gx1, gy2]], dtype=np.float32)
         ones = np.ones((4, 1), dtype=np.float32)
         homo = np.column_stack([corners, ones])
-        xs, ys = (homo @ m_skew.T)[:, 0], (homo @ m_skew.T)[:, 1]
+        xs, ys = (homo @ m_skew.T)[:, 0], (homo @ m_skew.T)[:, 1]  # type: ignore[assignment]
         gt_skewed.append(np.column_stack([xs, ys]))
 
     result = _preserve_coords_pred([skewed])
@@ -916,6 +916,7 @@ def test_preserve_original_coords_roundtrip(angle, shape, _preserve_coords_pred)
 
 def test_preserve_original_coords_2point():
     from shapely.geometry import Polygon
+
     from doctr.models import ocr_predictor
 
     h, w = 800, 600
@@ -946,7 +947,7 @@ def test_preserve_original_coords_2point():
         corners = np.array([[gx1, gy1], [gx2, gy1], [gx2, gy2], [gx1, gy2]], dtype=np.float32)
         ones = np.ones((4, 1), dtype=np.float32)
         homo = np.column_stack([corners, ones])
-        xs, ys = (homo @ m_skew.T)[:, 0], (homo @ m_skew.T)[:, 1]
+        xs, ys = (homo @ m_skew.T)[:, 0], (homo @ m_skew.T)[:, 1]  # type: ignore[assignment]
         gt_skewed.append(np.column_stack([xs, ys]))
 
     predictor = ocr_predictor(

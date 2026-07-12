@@ -267,6 +267,7 @@ class _OCRPredictor:
             out: the document returned by the builder
             orig_shapes: original (pre-straightening) page shapes (H, W)
             straight_shapes: straightened page shapes (H, W)
+            m_invs: inverse affine matrices from the straightening pipeline, one per page
             orig_pages: optional list of original page images to restore on `page.page`
 
         Returns:
