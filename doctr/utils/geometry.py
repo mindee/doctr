@@ -416,15 +416,11 @@ def straighten_page(
         pixel space (x, y, 1) back to the original page's pixel space.
     """
     h, w = page.shape[:2]
-    expand = h != w
 
     # Padding to preserve content after rotation
-    if expand:
-        exp = compute_expanded_shape((h, w), angle)
-        h_pad = int(max(0, np.ceil(exp[0] - h)))
-        w_pad = int(max(0, np.ceil(exp[1] - w)))
-    else:
-        h_pad = w_pad = 0
+    exp = compute_expanded_shape((h, w), angle)
+    h_pad = int(max(0, np.ceil(exp[0] - h)))
+    w_pad = int(max(0, np.ceil(exp[1] - w)))
 
     pt, pb = h_pad // 2, h_pad - h_pad // 2
     pl, pr = w_pad // 2, w_pad - w_pad // 2
@@ -437,7 +433,7 @@ def straighten_page(
     rotated = cv2.warpAffine(exp_img, rot_mat, (pw_pad, ph_pad))
 
     # Aspect-ratio padding (applied only on right/bottom so analytic crop stays simple)
-    if expand:
+    if h_pad > 0 or w_pad > 0:
         if (rotated.shape[0] / rotated.shape[1]) > (h / w):
             w_pad2 = int(rotated.shape[0] * w / h - rotated.shape[1])
             rotated = np.pad(rotated, ((0, 0), (0, w_pad2), (0, 0)))

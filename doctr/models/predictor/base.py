@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from doctr.io.elements import Document, Word
+from doctr.io.elements import Document, KIEPage, Word
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -266,7 +266,7 @@ class _OCRPredictor:
             oh, ow = orig_shapes[pidx]
 
             # Collect all geometry-bearing objects (supports Page & KIEPage)
-            if hasattr(page, "predictions"):
+            if isinstance(page, KIEPage):
                 objs: list[Word] = []
                 for preds in page.predictions.values():
                     objs.extend(preds)
