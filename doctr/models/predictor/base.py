@@ -240,25 +240,14 @@ class _OCRPredictor:
     ) -> Document:
         """Remap word geometries from straightened-page coordinates back to original page coordinates.
 
-        This method is called after the document builder when straighten_pages and
-        preserve_original_coords are both True. It applies the inverse straightening
-        transform to each word's geometry so that bounding boxes align with the input image.
-
-        Supports both Page (blocks -> lines -> words) and KIEPage (predictions dict)
-        structures, identified by the presence of a ``predictions`` attribute.
-
-        When ``orig_pages`` is provided, each page's image is also restored to the original
-        (pre-straightening) input so that ``.show()`` renders boxes on the correct image.
-
         Args:
             out: the document returned by the builder
             orig_shapes: original (pre-straightening) page shapes (H, W)
             straight_shapes: straightened page shapes (H, W)
-            orig_pages: optional list of original page images to restore on ``page.page``
+            orig_pages: optional list of original page images to restore on `page.page`
 
-        Returns
-        -------
-        the document with remapped word geometries
+        Returns:
+            the document with remapped word geometries
 
         """
         for pidx, (page, m_inv) in enumerate(zip(out.pages, self._straighten_m_inv)):
