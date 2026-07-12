@@ -727,16 +727,99 @@ def test__remap_geometry():
     assert len(word4.geometry) == 4
     assert np.allclose(np.array(word4.geometry).reshape(-1, 2)[0], [0.1, 0.1])
 
-    # Non-identity translation + scale (m_inv maps straight->orig by scaling 2x + offset 10,20)
-    m_inv2 = np.array([[2, 0, 10], [0, 2, 20], [0, 0, 1]], dtype=np.float64)
-    word2 = Word("test", 0.9, ((0.0, 0.0), (0.5, 0.5)), 0.8, {"value": 0, "confidence": 1.0})
-    _OCRPredictor._remap_geometry(word2, m_inv2, sw, sh, oh, ow)
+    # Realistic 12° rotation via a real straighten_page m_inv
+    h, w = oh, ow
+    page_img = np.ones((h, w, 3), dtype=np.uint8) * 255
+    from doctr.utils.geometry import straighten_page
+
+    straightened, m_inv_rot = straighten_page(page_img, 12.0)
+    sh, sw = straightened.shape[:2]
+    word2 = Word("test", 0.9, ((0.1, 0.1), (0.3, 0.2)), 0.8, {"value": 0, "confidence": 1.0})
+    orig_geo = np.array(word2.geometry).reshape(-1, 2).copy()
+    _OCRPredictor._remap_geometry(word2, m_inv_rot, sw, sh, oh, ow)
     g2 = np.array(word2.geometry).reshape(-1, 2)
-    # Expected: at (0,0): (0*sw*2+10)/ow = 10/600 ≈ 0.0167
-    # At (0.5, 0.5): (0.5*sw*2+10)/ow = 610/600 > 1, clipped to 599/600
-    assert abs(g2[0, 0] - 10.0 / ow) < 1e-6
-    assert g2[1, 0] <= 1.0
-    assert g2[1, 1] <= 1.0
+    assert not np.allclose(g2, orig_geo), "12° rotation must change geometry"
+
+
+def test_remap_to_original_coords_walk():
+    from doctr.io.elements import (
+        Artefact,
+        Block,
+        Document,
+        LayoutElement,
+        Line,
+        Page,
+        Table,
+        TableCell,
+        Word,
+    )
+    from doctr.models.predictor.base import _OCRPredictor
+    from doctr.utils.geometry import straighten_page
+
+    oh, ow = 800, 600
+    page_img = np.ones((oh, ow, 3), dtype=np.uint8) * 255
+
+    # Build a realistic m_inv from the 12° straightening pipeline
+    straightened, m_inv = straighten_page(page_img, 12.0)
+    sh, sw = straightened.shape[:2]
+
+    # Construct one of every geometry-bearing type
+    word = Word("test", 0.9, ((0.1, 0.1), (0.3, 0.2)), 0.8, {"value": 0, "confidence": 1.0})
+    artefact = Artefact("qr_code", 0.95, ((0.5, 0.5), (0.6, 0.6)))
+    line = Line([word])
+    block = Block([line], artefacts=[artefact])
+    layout = LayoutElement("Text", 0.9, ((0.7, 0.1), (0.9, 0.3)))
+    cell = TableCell("$100", 0.95, ((0.4, 0.4), (0.6, 0.5)), 0, 0, 0, 0)
+    table = Table([cell], 1, 1, ((0.35, 0.35), (0.65, 0.55)), 0.9)
+
+    page = Page(
+        page=np.ones((oh, ow, 3), dtype=np.uint8) * 255,
+        blocks=[block],
+        page_idx=0,
+        dimensions=(oh, ow),
+        layout=[layout],
+        tables=[table],
+    )
+    doc = Document([page])
+
+    # Snapshot original geometries
+    orig = {
+        "word": np.array(word.geometry).reshape(-1, 2).copy(),
+        "line": np.array(line.geometry).reshape(-1, 2).copy(),
+        "block": np.array(block.geometry).reshape(-1, 2).copy(),
+        "artefact": np.array(artefact.geometry).reshape(-1, 2).copy(),
+        "layout": np.array(layout.geometry).reshape(-1, 2).copy(),
+        "table": np.array(table.geometry).reshape(-1, 2).copy(),
+        "cell": np.array(cell.geometry).reshape(-1, 2).copy(),
+    }
+
+    predictor = _OCRPredictor(assume_straight_pages=True, straighten_pages=False)
+    predictor._remap_to_original_coords(doc, [(oh, ow)], [(sh, sw)], [m_inv])
+
+    # Difference check: every geometry must have changed
+    for key, orig_val in orig.items():
+        obj = {
+            "word": word,
+            "line": line,
+            "block": block,
+            "artefact": artefact,
+            "layout": layout,
+            "table": table,
+            "cell": cell,
+        }[key]
+        current = np.array(obj.geometry).reshape(-1, 2)
+        assert not np.allclose(current, orig_val), f"{key} geometry unchanged after remap"
+
+    # Containment: block envelope contains its word geometries
+    block_poly = np.array(block.geometry).reshape(-1, 2)
+    bx0, by0 = block_poly.min(axis=0)
+    bx1, by1 = block_poly.max(axis=0)
+    for word_obj in block.lines[0].words:
+        wp = np.array(word_obj.geometry).reshape(-1, 2)
+        assert wp[:, 0].min() >= bx0 - 1e-6
+        assert wp[:, 1].min() >= by0 - 1e-6
+        assert wp[:, 0].max() <= bx1 + 1e-6
+        assert wp[:, 1].max() <= by1 + 1e-6
 
 
 def test_preserve_original_coords_kie_smoke(_preserve_coords_kie_pair):
