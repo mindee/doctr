@@ -8,7 +8,7 @@ from typing import Any
 
 import numpy as np
 
-from doctr.io.elements import Document, KIEPage, Word
+from doctr.io.elements import Document, KIEPage
 from doctr.models.builder import DocumentBuilder
 from doctr.utils.geometry import (
     extract_crops,
@@ -231,6 +231,28 @@ class _OCRPredictor:
 
         return loc_preds, text_preds, crop_orientation_preds
 
+    @staticmethod
+    def _remap_geometry(obj: Any, m_inv: np.ndarray, sw: int, sh: int, oh: int, ow: int) -> None:
+        """Remap a single geometry-bearing object from straightened to original coords."""
+        pts = np.asarray(obj.geometry, dtype=np.float64).reshape(-1, 2)
+        was_straight = pts.shape[0] == 2
+        if was_straight:
+            (x0, y0), (x1, y1) = pts
+            pts = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float64)
+        pts[:, 0] *= sw
+        pts[:, 1] *= sh
+        homo = np.column_stack([pts, np.ones(len(pts))])
+        orig = (homo @ m_inv.T)[:, :2]
+        orig[:, 0] = orig[:, 0].clip(0, ow - 1) / ow
+        orig[:, 1] = orig[:, 1].clip(0, oh - 1) / oh
+        if was_straight:
+            obj.geometry = (
+                (float(orig[:, 0].min()), float(orig[:, 1].min())),
+                (float(orig[:, 0].max()), float(orig[:, 1].max())),
+            )
+        else:
+            obj.geometry = tuple(tuple(r) for r in orig.tolist())
+
     def _remap_to_original_coords(
         self,
         out: Document,
@@ -255,38 +277,28 @@ class _OCRPredictor:
             sh, sw = straight_shapes[pidx]
             oh, ow = orig_shapes[pidx]
 
-            # Collect all geometry-bearing objects (supports Page & KIEPage)
             if isinstance(page, KIEPage):
-                objs: list[Word] = []
                 for preds in page.predictions.values():
-                    objs.extend(preds)
+                    for pred in preds:
+                        self._remap_geometry(pred, m_inv, sw, sh, oh, ow)
+                for region in page.layout:
+                    self._remap_geometry(region, m_inv, sw, sh, oh, ow)
             else:
-                objs = [word for block in page.blocks for line in block.lines for word in line.words]
+                for block in page.blocks:
+                    self._remap_geometry(block, m_inv, sw, sh, oh, ow)
+                    for artefact in block.artefacts:
+                        self._remap_geometry(artefact, m_inv, sw, sh, oh, ow)
+                    for line in block.lines:
+                        self._remap_geometry(line, m_inv, sw, sh, oh, ow)
+                        for word in line.words:
+                            self._remap_geometry(word, m_inv, sw, sh, oh, ow)
+                for region in page.layout:
+                    self._remap_geometry(region, m_inv, sw, sh, oh, ow)
+                for table in page.tables:
+                    self._remap_geometry(table, m_inv, sw, sh, oh, ow)
+                    for cell in table.cells:
+                        self._remap_geometry(cell, m_inv, sw, sh, oh, ow)
 
-            for word in objs:
-                pts = np.asarray(word.geometry, dtype=np.float64).reshape(-1, 2)
-                was_straight = pts.shape[0] == 2
-                if was_straight:
-                    (x0, y0), (x1, y1) = pts
-                    pts = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float64)
-
-                pts[:, 0] *= sw
-                pts[:, 1] *= sh
-                homo = np.column_stack([pts, np.ones(len(pts))])
-                orig = (homo @ m_inv.T)[:, :2]
-                orig[:, 0] = orig[:, 0].clip(0, ow - 1) / ow
-                orig[:, 1] = orig[:, 1].clip(0, oh - 1) / oh
-
-                if was_straight:
-                    word.geometry = (
-                        (float(orig[:, 0].min()), float(orig[:, 1].min())),
-                        (float(orig[:, 0].max()), float(orig[:, 1].max())),
-                    )
-                else:
-                    word.geometry = tuple(tuple(r) for r in orig.tolist())  # type: ignore[assignment]
-
-            # Restore original page image and dimensions so .show() and export()
-            # render boxes in the correct frame (visualize_page scales geometry by dimensions)
             if orig_pages is not None:
                 out.pages[pidx].page = orig_pages[pidx]
                 out.pages[pidx].dimensions = orig_shapes[pidx]
