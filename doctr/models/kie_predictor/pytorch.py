@@ -202,6 +202,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             regions,
         )
 
+        # manipulate the already built Document to restore the original pages / shapes and geometries
         if self.straighten_pages and self.preserve_original_coords:
             out = self._remap_to_original_coords(out, _orig_shapes, _straight_shapes, m_invs, _orig_pages)  # type: ignore[assignment]
         return out
