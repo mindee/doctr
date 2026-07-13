@@ -447,7 +447,7 @@ def straighten_page(
         dtype=np.float64,
     ).T
     rc = rot_mat @ corners
-    cx, cy = int(np.floor(rc[0].min())), int(np.floor(rc[1].min()))
+    cx, cy = max(0, int(np.floor(rc[0].min()))), max(0, int(np.floor(rc[1].min())))
     cropped = rotated[cy:, cx:]
 
     # Composite forward matrix: crop ∘ rotate ∘ pad
