@@ -146,6 +146,7 @@ class _OCRPredictor:
             ]
         )
         if not self.preserve_original_coords:
+            # expand if height and width are not equal, then remove the padding
             return [
                 remove_image_padding(rotate_image(page, angle, expand=page.shape[0] != page.shape[1]))
                 for page, angle in zip(pages, origin_pages_orientations)
@@ -275,8 +276,8 @@ class _OCRPredictor:
 
         """
         for pidx, (page, m_inv) in enumerate(zip(out.pages, m_invs)):
-            sh, sw = straight_shapes[pidx]
-            oh, ow = orig_shapes[pidx]
+            sh, sw = straight_shapes[pidx]  # straightened_height, straightened_width
+            oh, ow = orig_shapes[pidx]  # original_height, original_width
 
             if isinstance(page, KIEPage):
                 for preds in page.predictions.values():
