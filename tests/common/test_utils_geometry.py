@@ -360,9 +360,7 @@ def test_straighten_page_inverse(angle, shape):
 
 
 def test_straighten_page_projected_corner_clamp():
-    """Regression: large images at 30° can project a content corner to cx=-1 via
-    floating-point error, and Python's negative slice rotated[:,-1:] silently
-    returns a 1-pixel strip. The max(0, floor(...)) clamp fixes it."""
+    # Regression: fp error can project a content corner to cx=-1; negative slice collapsed the crop to a 1px strip
     h, w = 2291, 2025
     angle = 30
     page = np.ones((h, w, 3), dtype=np.uint8) * 255

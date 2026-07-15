@@ -661,33 +661,59 @@ def test_end_to_end_torch_compile(det_arch, reco_arch, mock_payslip):
     )
 
 
-def test_ocr_predictor_straighten_with_preserve_original_coords(mock_payslip):
-    doc = DocumentFile.from_images(mock_payslip)
+def test_ocr_predictor_straighten_with_preserve_original_coords(mock_tilted_payslip):
+    doc = DocumentFile.from_images(mock_tilted_payslip)
     det_predictor = detection_predictor(
         "fast_base",
         pretrained=True,
         batch_size=2,
-        assume_straight_pages=True,
+        assume_straight_pages=False,
         symmetric_pad=True,
         preserve_aspect_ratio=False,
     )
     reco_predictor = recognition_predictor("crnn_vgg16_bn", pretrained=True, batch_size=128)
-    predictor = OCRPredictor(
+    predictor_on = OCRPredictor(
         det_predictor,
         reco_predictor,
-        assume_straight_pages=True,
+        assume_straight_pages=False,
         straighten_pages=True,
+        detect_orientation=True,
         preserve_aspect_ratio=False,
         resolve_blocks=True,
         resolve_lines=True,
         preserve_original_coords=True,
     )
-    out = predictor(doc)
-    assert out.pages[0].blocks[0].lines[0].words[0].value == "Mr."
-    geometry_mr = np.array([[0.1083984375, 0.0634765625], [0.1494140625, 0.0859375]])
-    assert np.allclose(np.array(out.pages[0].blocks[0].lines[0].words[0].geometry), geometry_mr, rtol=0.05)
-    assert out.pages[0].page.shape[:2] == out.pages[0].dimensions
-    assert out.pages[0].page.shape[:2] == doc[0].shape[:2]
+    predictor_off = OCRPredictor(
+        det_predictor,
+        reco_predictor,
+        assume_straight_pages=False,
+        straighten_pages=True,
+        detect_orientation=True,
+        preserve_aspect_ratio=False,
+        resolve_blocks=True,
+        resolve_lines=True,
+        preserve_original_coords=False,
+    )
+    out_on = predictor_on(doc)
+    out_off = predictor_off(doc)
+    assert len(out_on.pages[0].blocks) > 0
+    assert len(out_off.pages[0].blocks) > 0
+    geoms_on = [
+        np.array(w.geometry).reshape(-1, 2).tolist()
+        for block in out_on.pages[0].blocks
+        for line in block.lines
+        for w in line.words
+    ]
+    geoms_off = [
+        np.array(w.geometry).reshape(-1, 2).tolist()
+        for block in out_off.pages[0].blocks
+        for line in block.lines
+        for w in line.words
+    ]
+    assert geoms_on != geoms_off
+    assert any(w.value == "Mr." for block in out_on.pages[0].blocks for line in block.lines for w in line.words)
+    assert out_on.pages[0].page.shape[:2] == out_on.pages[0].dimensions
+    assert out_on.pages[0].page.shape[:2] == doc[0].shape[:2]
 
 
 def test_kie_predictor_straighten_with_preserve_original_coords(mock_tilted_payslip):
