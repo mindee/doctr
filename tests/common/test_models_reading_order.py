@@ -4,6 +4,7 @@ import pytest
 from doctr.models.reading_order import (
     ReadingOrderPredictor,
     assign_layout_labels,
+    deskew_reading_geometries,
     detect_text_direction,
     layout_label_role,
     normalize_layout_label,
@@ -196,7 +197,82 @@ def test_reading_order_predictor():
         ReadingOrderPredictor(direction="bottom-up")
 
 
-# regression test for a bug where a stray fragment of a split line was read after the next line in the same column
+def _rotated_box(box, deg, width=800, height=1000):
+    angle = np.deg2rad(deg)
+    rot = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    center = np.array([width / 2, height / 2])
+    (x0, y0), (x1, y1) = box
+    pts = np.array([
+        [x0 * width, y0 * height],
+        [x1 * width, y0 * height],
+        [x1 * width, y1 * height],
+        [x0 * width, y1 * height],
+    ])
+    return ((pts - center) @ rot.T + center) / [width, height]
+
+
+def test_sort_reading_order_rotated_pages():
+    title = [((0.1, 0.06), (0.9, 0.09))]
+    left = [((0.1, 0.12 + 0.05 * idx), (0.47, 0.15 + 0.05 * idx)) for idx in range(5)]
+    right = [((0.53, 0.12 + 0.05 * idx), (0.9, 0.15 + 0.05 * idx)) for idx in range(5)]
+    geoms = title + left + right
+    expected = list(range(11))
+    for deg in (-35, -15, 15, 35):
+        rotated = [_rotated_box(box, deg) for box in geoms]
+        assert sort_reading_order(rotated) == expected
+        assert sort_reading_order(rotated, page_shape=(1000, 800)) == expected
+    # straight polygons are untouched (angle below the threshold, behavior identical to 2-point boxes)
+    straight = np.asarray([[(x0, y0), (x1, y0), (x1, y1), (x0, y1)] for ((x0, y0), (x1, y1)) in geoms])
+    assert sort_reading_order(straight) == expected
+
+
+def test_deskew_reading_geometries():
+    geoms = [((0.1, 0.12), (0.47, 0.15)), ((0.53, 0.12), (0.9, 0.15))]
+    rotated = [_rotated_box(box, 25) for box in geoms]
+    # straight 2-point boxes are returned unchanged
+    out, regions = deskew_reading_geometries(geoms, [((0.0, 0.0), (1.0, 0.5))])
+    assert out == list(geoms) and len(regions) == 1
+    # rotated polygons are de-skewed: the two boxes end up on the same visual row
+    out, _ = deskew_reading_geometries(rotated, page_shape=(1000, 800))
+    y_centers = [np.asarray(poly)[:, 1].mean() for poly in out]
+    assert abs(y_centers[0] - y_centers[1]) < 0.005
+    # a straight region is expanded to its corners and rotated with the elements
+    out, regions = deskew_reading_geometries(rotated, [((0.0, 0.1), (1.0, 0.2))], page_shape=(1000, 800))
+    assert np.asarray(regions[0]).shape == (4, 2)
+    # the operation is idempotent
+    again, _ = deskew_reading_geometries(out, page_shape=(1000, 800))
+    assert all(np.allclose(a, b) for a, b in zip(out, again))
+    # angle_geoms as the estimation source
+    out, _ = deskew_reading_geometries(rotated, page_shape=(1000, 800), angle_geoms=np.stack(rotated))
+    y_centers = [np.asarray(poly)[:, 1].mean() for poly in out]
+    assert abs(y_centers[0] - y_centers[1]) < 0.005
+
+
+def test_reading_order_predictor_rotated():
+    left = [_rotated_box(((0.1, 0.1 + 0.2 * idx), (0.3, 0.2 + 0.2 * idx)), 25) for idx in range(3)]
+    right = [_rotated_box(((0.6, 0.1 + 0.2 * idx), (0.8, 0.2 + 0.2 * idx)), 25) for idx in range(3)]
+    order = ReadingOrderPredictor()(left + right, page_shape=(1000, 800))
+    assert order == [0, 1, 2, 3, 4, 5]
+
+
+def test_deskew_strong_rotation_non_square_page():
+    layout = [(80, 40, 670, 110), (80, 150, 360, 900), (390, 150, 670, 900)]  # title + 2 columns
+    for height, width in [(1000, 750), (700, 2000)]:
+        sx, sy = width / 750, height / 1000
+        for angle in (-44, 30, 44):
+            theta = np.deg2rad(angle)
+            rot = np.array([[np.cos(theta), np.sin(theta)], [-np.sin(theta), np.cos(theta)]])
+            center = np.array([width / 2, height / 2])
+            polys = []
+            for x0, y0, x1, y1 in layout:
+                pts = np.array([[x0 * sx, y0 * sy], [x1 * sx, y0 * sy], [x1 * sx, y1 * sy], [x0 * sx, y1 * sy]])
+                polys.append(((pts - center) @ rot.T + center) / np.array([width, height]))
+            assert sort_reading_order(polys, page_shape=(height, width)) == [0, 1, 2], (height, width, angle)
+
+
+# Auto generated regression tests for known failures of the reading order algorithm
+
+
 def test_sort_reading_order_fragmented_columns():
     left = [
         ((0.10, 0.10), (0.45, 0.13)),  # 0 wide
@@ -210,3 +286,17 @@ def test_sort_reading_order_fragmented_columns():
     order = sort_reading_order(left + right)
     # every left element (0..5) is read before every right element (6..11)
     assert max(order.index(i) for i in range(6)) < min(order.index(i) for i in range(6, 12))
+
+
+def test_fragmented_row_with_merged_column_components():
+    geoms = [
+        ((0.35, 0.05), (0.65, 0.10)),  # 0 gutter-straddling element (bridges both columns)
+        ((0.10, 0.15), (0.45, 0.20)),  # 1 left col, row 1
+        ((0.10, 0.22), (0.16, 0.27)),  # 2 left col, row 2, fragment A
+        ((0.17, 0.22), (0.24, 0.27)),  # 3 left col, row 2, fragment B
+        ((0.25, 0.22), (0.45, 0.27)),  # 4 left col, row 2, fragment C
+        ((0.10, 0.29), (0.45, 0.34)),  # 5 left col, row 3
+        ((0.55, 0.15), (0.90, 0.20)),  # 6 right col, row 1
+        ((0.55, 0.22), (0.90, 0.27)),  # 7 right col, row 2
+    ]
+    assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6, 7]

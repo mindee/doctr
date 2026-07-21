@@ -9,11 +9,13 @@ from typing import Any
 
 import numpy as np
 
+from doctr.utils.geometry import estimate_page_angle, order_points
 from doctr.utils.repr import NestedObject
 
 __all__ = [
     "ReadingOrderPredictor",
     "assign_layout_labels",
+    "deskew_reading_geometries",
     "detect_text_direction",
     "layout_label_role",
     "normalize_layout_label",
@@ -238,6 +240,8 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
                 if last >= 0
                 else np.empty(0, dtype=int)
             )
+            if candidates.size == 0 and last >= 0:
+                candidates = ready[y_overlap[last, ready] > y_overlap_threshold]
             if candidates.size == 0 and last >= 0 and not spanning[last]:
                 # Continuation broken (gap, fragment): stay in the same column before switching to another
                 same_column = ready[component[ready] == component[last]]
@@ -289,6 +293,70 @@ def _attach_captions(
     return order
 
 
+def deskew_reading_geometries(
+    geoms: Sequence[Any] | np.ndarray,
+    region_geoms: Sequence[Any] | np.ndarray | None = None,
+    page_shape: tuple[int, int] | None = None,
+    angle_geoms: Sequence[Any] | np.ndarray | None = None,
+    min_angle: float = 1.0,
+) -> tuple[list[Any], list[Any]]:
+    """De-skew rotated geometries so the reading order can be computed in an upright frame.
+
+    Args:
+        geoms: geometries of the elements to order, in any docTR format (cf. `sort_reading_order`)
+        region_geoms: optional geometries of the layout regions, de-skewed together with the elements
+        page_shape: the page dimensions (height, width). Required for an exact angle on non-square pages with
+            relative coordinates, since relative coordinates distort angles by the aspect ratio.
+        angle_geoms: optional reading-oriented 4-point polygons used to estimate the page angle
+        min_angle: minimum estimated angle (in degrees) to trigger the de-skew. Ordering is affected as soon
+            as the drift along a line approaches the line height (about 1 degree for a page-wide line), and a
+            small rigid rotation cannot change the order of an upright page, hence the low default. Beyond 45
+            degrees the corner identification is ambiguous (an upstream orientation correction is needed) and
+            nothing is done.
+
+    Returns:
+        the (possibly de-skewed) element and region geometries
+    """
+    region_geoms = list(region_geoms) if region_geoms is not None else []
+    pts = [np.asarray(geom, dtype=np.float64).reshape(-1, 2) for geom in geoms]
+    if len(pts) == 0 or any(p.shape[0] != 4 for p in pts):
+        return list(geoms), region_geoms  # straight geometries: nothing to de-skew
+    height, width = page_shape if page_shape is not None else (1, 1)
+    scale = np.array([width, height], dtype=np.float64)
+    angle_source = angle_geoms if angle_geoms is not None else []
+    angle_pts = [np.asarray(geom, dtype=np.float64).reshape(-1, 2) for geom in angle_source]
+    if len(angle_pts) > 0 and all(p.shape[0] == 4 for p in angle_pts):
+        # Detection polygons are already reading-oriented (cf. `estimate_page_angle`): keep their vertex order
+        angle = estimate_page_angle(np.stack(angle_pts) * scale)
+    else:
+        # Normalize the vertex order (TL, TR, BR, BL) so the estimation does not depend on the vertex
+        angle = estimate_page_angle(np.stack([order_points(p * scale) for p in pts]))
+    if not np.isfinite(angle) or abs(angle) < min_angle or abs(angle) >= 45:
+        return list(geoms), region_geoms
+    # Rigid rotation zeroing the estimated angle; the center is irrelevant for ordering purposes
+    theta = np.deg2rad(angle)
+    rot = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+    all_pts = np.concatenate(pts, axis=0) * scale
+    center = all_pts.mean(axis=0)
+
+    def _rotate(points: np.ndarray) -> np.ndarray:
+        return ((points * scale - center) @ rot.T + center) / scale
+
+    deskewed = [_rotate(p) for p in pts]
+
+    def _corners(points: np.ndarray) -> np.ndarray:
+        # Straight ((xmin, ymin), (xmax, ymax)) regions must be expanded to their 4 corners before rotating,
+        # otherwise only the diagonal would be rotated and the resulting extent would be underestimated
+        if points.shape[0] == 4:
+            return points
+        (x0, y0), (x1, y1) = points.min(axis=0), points.max(axis=0)
+        return np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]])
+
+    region_pts = [np.asarray(geom, dtype=np.float64).reshape(-1, 2) for geom in region_geoms]
+    regions_out = [_rotate(_corners(p)) for p in region_pts]
+    return deskewed, regions_out
+
+
 def sort_reading_order(
     geoms: Sequence[Any] | np.ndarray,
     direction: str = "ltr",
@@ -296,6 +364,8 @@ def sort_reading_order(
     x_overlap_threshold: float = 0.2,
     y_overlap_threshold: float = 0.5,
     caption_max_distance: float = 0.1,
+    page_shape: tuple[int, int] | None = None,
+    angle_geoms: Sequence[Any] | np.ndarray | None = None,
 ) -> list[int]:
     """Compute the reading order of document elements from their geometries (and optionally, layout labels).
 
@@ -324,12 +394,17 @@ def sort_reading_order(
             on the same visual row
         caption_max_distance: maximum relative distance between a caption and a float (table or figure) for
             the caption to be attached to it
+        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.
+            `deskew_reading_geometries`)
+        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
+            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
 
     Returns:
         the permutation of the input indices which sorts the elements in reading order
     """
     if direction not in SUPPORTED_DIRECTIONS[1:]:
         raise ValueError(f"invalid reading direction '{direction}', should be one of {SUPPORTED_DIRECTIONS[1:]}")
+    geoms, _ = deskew_reading_geometries(geoms, page_shape=page_shape, angle_geoms=angle_geoms)
     boxes = _to_boxes(geoms)
     num_boxes = boxes.shape[0]
     if labels is not None and len(labels) != num_boxes:
@@ -368,6 +443,8 @@ def resolve_reading_segments(
     y_overlap_threshold: float = 0.5,
     caption_max_distance: float = 0.1,
     paragraph_gap: float = 0.8,
+    page_shape: tuple[int, int] | None = None,
+    angle_geoms: Sequence[Any] | np.ndarray | None = None,
 ) -> list[list[int]]:
     """Order elements in reading order and group consecutive ones into segments (paragraphs or regions).
 
@@ -388,11 +465,17 @@ def resolve_reading_segments(
             the caption to be attached to it
         paragraph_gap: maximum vertical gap between two consecutive elements to belong to the same segment,
             as a multiple of the median element height
+        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.
+            `deskew_reading_geometries`)
+        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
+            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
         reading order)
     """
+    # De-skew once so the ordering and the vertical-gap measurement share the same upright frame
+    geoms, _ = deskew_reading_geometries(geoms, page_shape=page_shape, angle_geoms=angle_geoms)
     order = sort_reading_order(
         geoms,
         direction=direction,
@@ -431,6 +514,8 @@ def assign_layout_labels(
     layout_geoms: Sequence[Any] | np.ndarray,
     layout_labels: Sequence[str],
     min_coverage: float = 0.5,
+    page_shape: tuple[int, int] | None = None,
+    angle_geoms: Sequence[Any] | np.ndarray | None = None,
 ) -> list[str | None]:
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
@@ -442,10 +527,16 @@ def assign_layout_labels(
         layout_geoms: geometries of the layout regions, in any docTR format
         layout_labels: labels of the layout regions (e.g. `[region.type for region in page.layout]`)
         min_coverage: minimum share of an element's area a region must cover to assign its label
+        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.
+            `deskew_reading_geometries`)
+        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
+            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
 
     Returns:
         the label of each element (None when no region covers it enough)
     """
+    # De-skew elements and regions together so the coverage is measured on tight boxes in the same frame
+    geoms, layout_geoms = deskew_reading_geometries(geoms, layout_geoms, page_shape=page_shape, angle_geoms=angle_geoms)
     boxes, regions = _to_boxes(geoms), _to_boxes(layout_geoms)
     if len(layout_labels) != regions.shape[0]:
         raise ValueError(f"Incompatible number of labels ({len(layout_labels)}) and regions ({regions.shape[0]})")
@@ -523,6 +614,8 @@ class ReadingOrderPredictor(NestedObject):
         texts: Sequence[str] | None = None,
         labels: Sequence[str | None] | None = None,
         language: str | None = None,
+        page_shape: tuple[int, int] | None = None,
+        angle_geoms: Sequence[Any] | np.ndarray | None = None,
     ) -> list[int]:
         """Compute the reading order of document elements.
 
@@ -532,6 +625,10 @@ class ReadingOrderPredictor(NestedObject):
                 direction detection
             labels: optional layout labels (one per geometry), used to handle page furniture & captions
             language: optional ISO 639 language code used as a fallback hint for the direction detection
+            page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly on
+                non-square pages
+            angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used
+                to estimate the page angle on rotated pages
 
         Returns:
             the permutation of the input indices which sorts the elements in reading order
@@ -543,4 +640,6 @@ class ReadingOrderPredictor(NestedObject):
             x_overlap_threshold=self.x_overlap_threshold,
             y_overlap_threshold=self.y_overlap_threshold,
             caption_max_distance=self.caption_max_distance,
+            page_shape=page_shape,
+            angle_geoms=angle_geoms,
         )
