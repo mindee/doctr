@@ -364,9 +364,8 @@ def main(args):
     if distributed:
         model = DDP(model, device_ids=[rank])
 
-    backbone_lr = args.lr * 0.1 if args.pretrained or args.resume is not None else args.lr
     param_groups = build_param_groups(
-        model, lr=args.lr, backbone_lr=backbone_lr, weight_decay=args.weight_decay or 1e-4
+        model, lr=args.lr, backbone_lr=args.backbone_lr, weight_decay=args.weight_decay or 1e-4
     )
     optimizer = (
         torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
@@ -405,7 +404,7 @@ def main(args):
     if rank == 0:
         config = {
             "learning_rate": args.lr,
-            "backbone_learning_rate": backbone_lr,
+            "backbone_learning_rate": args.backbone_lr,
             "epochs": args.epochs,
             "weight_decay": args.weight_decay,
             "batch_size": args.batch_size,
@@ -541,7 +540,8 @@ def parse_args():
         "--save-interval-epoch", dest="save_interval_epoch", action="store_true", help="Save model every epoch"
     )
     parser.add_argument("--input_size", type=int, default=1024, help="model input size, H = W")
-    parser.add_argument("--lr", type=float, default=1e-4, help="learning rate for the optimizer (Adam or AdamW)")
+    parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
+    parser.add_argument("--backbone-lr", type=float, default=0.001, help="learning rate for the backbone")
     parser.add_argument("--wd", "--weight-decay", default=1e-4, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
     parser.add_argument("--resume", type=str, default=None, help="Path to your checkpoint")
