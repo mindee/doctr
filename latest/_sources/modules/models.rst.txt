@@ -146,3 +146,27 @@ doctr.models.utils
 .. autofunction:: export_model_to_onnx
 
 .. autofunction:: add_whitelist
+
+
+doctr.models.reading_order
+--------------------------
+
+Language-independent estimation of the reading order of the elements of a page, combining a column-following
+topological sort of their spatial relations with optional layout semantics (headers, footers, captions). The
+reading-order-aware export of a :class:`~doctr.io.elements.Page` / :class:`~doctr.io.elements.Document` to
+Markdown or AsciiDoc is exposed through the ``export_as_markdown`` / ``export_as_asciidoc`` methods of
+:mod:`doctr.io.elements`.
+
+.. currentmodule:: doctr.models.reading_order
+
+.. autofunction:: detect_text_direction
+
+.. autofunction:: sort_reading_order
+
+.. autofunction:: resolve_reading_segments
+
+.. autofunction:: assign_layout_labels
+
+.. autofunction:: deskew_reading_geometries
+
+.. autoclass:: ReadingOrderPredictor
