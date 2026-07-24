@@ -628,9 +628,9 @@ For reference, here is a sample XML byte string output:
     </body>
   </html>
 
-To export the output in reading order as Markdown or AsciiDoc, you can use the `export_as_markdown` and
-`export_as_asciidoc` methods (also available on a single :class:`Page`). Reading order is always applied by
-these exporters: the content is linearized column by column, the reading direction is inferred from the
+To export the output in reading order as Markdown, AsciiDoc, HTML or XML, you can use the `export_as_markdown`,
+`export_as_asciidoc`, `export_as_html` and `export_as_xml` methods (also available on a single :class:`Page`).
+Reading order is always applied by these exporters: the content is linearized column by column, the reading direction is inferred from the
 recognized text (e.g. right-to-left for Arabic or Hebrew documents), and - when the predictor is run with
 layout detection (``detect_layout=True``) - the layout regions are used to render headings, list items and
 recognized tables, and to place the page furniture (headers, footers, footnotes):
@@ -640,6 +640,9 @@ recognized tables, and to place the page furniture (headers, footers, footnotes)
   markdown_output = result.export_as_markdown()
   asciidoc_output = result.export_as_asciidoc()
   html_output = result.export_as_html()
+  xml_output = result.export_as_xml()
+  raw_text_output = result.render()  # same as result.export_as("text")
+  dict_output = result.export()      # same as result.export_as("json")
 
 The `export_as` method is a convenience dispatcher over all the formats above::
 
