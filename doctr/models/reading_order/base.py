@@ -154,12 +154,7 @@ def _to_canonical_ltr(boxes: np.ndarray, direction: str) -> np.ndarray:
 
 
 def _overlap_ratios(starts: np.ndarray, ends: np.ndarray) -> np.ndarray:
-    """Compute the pairwise 1D overlap of intervals, normalized by the length of the smaller interval
-
-    Computed in float32 with in-place operations: the result is only ever compared against overlap
-    thresholds, so single precision is ample, and the N x N intermediates dominate the memory of the
-    caller on dense pages.
-    """
+    """Compute the pairwise 1D overlap of intervals, normalized by the length of the smaller interval"""
     starts = starts.astype(np.float32, copy=False)
     ends = ends.astype(np.float32, copy=False)
     lengths = ends - starts
