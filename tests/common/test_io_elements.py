@@ -1,3 +1,4 @@
+import json
 from xml.etree.ElementTree import ElementTree
 
 import numpy as np
@@ -453,10 +454,10 @@ def test_page():
     assert page.language == language
 
     # Render
-    assert page.render() == "hello world\nhello world\n\nhello world\nhello world"
+    assert page.render() == "hello world\n\nhello world\n\nhello world\n\nhello world"
 
-    # Export
-    assert page.export() == {
+    # Export - `reading_order=False` serializes the blocks exactly as stored
+    assert page.export(reading_order=False) == {
         "blocks": [b.export() for b in blocks],
         "page_idx": page_idx,
         "dimensions": page_size,
@@ -465,6 +466,7 @@ def test_page():
         "layout": [r.export() for r in layout],
         "tables": [],
     }
+    assert json.dumps(page.export()) and json.dumps(page.export(reading_order=False))
 
     # Export XML
     xml_bytes, xml_tree = page.export_as_xml()
@@ -570,11 +572,12 @@ def test_document():
     assert all(isinstance(p, elements.Page) for p in doc.pages)
 
     # Render
-    page_export = "hello world\nhello world\n\nhello world\nhello world"
+    page_export = "hello world\n\nhello world\n\nhello world\n\nhello world"
     assert doc.render() == f"{page_export}\n\n\n\n{page_export}"
 
     # Export
     assert doc.export() == {"pages": [p.export() for p in pages]}
+    assert json.dumps(doc.export())  # a full document export can be written to a JSON file as is
 
     # Export XML
     xml_output = doc.export_as_xml()
@@ -645,3 +648,59 @@ def test_kie_document():
     # Synthesize
     img_list = doc.synthesize()
     assert isinstance(img_list, list) and len(img_list) == len(pages)
+
+
+def test_element_is_abstract():
+    with pytest.raises(NotImplementedError):
+        elements.Element.from_dict({})
+    with pytest.raises(NotImplementedError):
+        elements.Element().render()
+    with pytest.raises(KeyError):
+        elements.Element(unknown_child=[])
+
+
+def test_artefact_from_dict_round_trip():
+    artefact = elements.Artefact("qr_code", 0.8, ((0.1, 0.1), (0.2, 0.2)))
+    assert elements.Artefact.from_dict(artefact.export()).export() == artefact.export()
+    # Artefacts survive a Block round trip
+    block = _mock_blocks()[0]
+    assert elements.Block.from_dict(block.export()).export() == block.export()
+
+
+def test_page_from_dict_restores_the_image():
+    page = _mock_pages()[0]
+    exported = page.export()
+    # The page image is not part of the export, so a placeholder is used unless it is passed back
+    restored = elements.Page.from_dict(exported)
+    assert isinstance(restored, elements.Page) and restored.page.shape == (0, 0, 3)
+    assert restored.export() == exported
+    restored = elements.Page.from_dict(exported, page=page.page)
+    assert np.array_equal(restored.page, page.page)
+    assert elements.Page.from_dict(json.loads(json.dumps(exported))).render() == restored.render()
+
+
+def test_kie_page_and_kie_document_from_dict():
+    kie_page = _mock_kie_pages()[0]
+    exported = kie_page.export()
+    restored = elements.KIEPage.from_dict(exported)
+    assert isinstance(restored, elements.KIEPage) and restored.page.shape == (0, 0, 3)
+    assert restored.export() == exported
+    assert np.array_equal(elements.KIEPage.from_dict(exported, page=kie_page.page).page, kie_page.page)
+
+    # A KIEDocument must rebuild KIEPage objects, not plain Page ones
+    doc = elements.KIEDocument(_mock_kie_pages())
+    restored_doc = elements.KIEDocument.from_dict(doc.export())
+    assert isinstance(restored_doc, elements.KIEDocument)
+    assert all(isinstance(page, elements.KIEPage) for page in restored_doc.pages)
+    assert restored_doc.export() == doc.export()
+    assert restored_doc.render() == doc.render()
+    # The page images can be handed back positionally, page by page
+    images = [page.page for page in doc.pages]
+    restored_doc = elements.KIEDocument.from_dict(doc.export(), pages=images)
+    assert all(np.array_equal(page.page, image) for page, image in zip(restored_doc.pages, images))
+
+    # plain Document keeps rebuilding Page objects
+    plain = elements.Document(_mock_pages())
+    restored_plain = elements.Document.from_dict(plain.export())
+    assert all(isinstance(page, elements.Page) for page in restored_plain.pages)
+    assert restored_plain.export() == plain.export()

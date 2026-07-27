@@ -251,12 +251,18 @@ class OCRPredictor(nn.Module, _OCRPredictor):
                 crop_h = int(round(max(np.linalg.norm(src[3] - src[0]), np.linalg.norm(src[2] - src[1]))))
                 if crop_w < 2 or crop_h < 2:
                     continue
-                # Full-extent destination corners so crop-relative [0, 1] maps exactly to [0, crop] pixels
-                dst = np.array([[0, 0], [crop_w, 0], [crop_w, crop_h], [0, crop_h]], dtype=np.float32)
+                # Map the region onto an inset rectangle so the warp samples `pad` extra pixels of page
+                # context on each side. Crop-relative [0, 1] still maps exactly to [0, out_w] / [0, out_h].
+                pad = max(20, round(0.01 * max(crop_w, crop_h)))
+                out_w, out_h = crop_w + 2 * pad, crop_h + 2 * pad
+                dst = np.array(
+                    [[pad, pad], [pad + crop_w, pad], [pad + crop_w, pad + crop_h], [pad, pad + crop_h]],
+                    dtype=np.float32,
+                )
                 transform = cv2.getPerspectiveTransform(src, dst)
                 inverse = cv2.getPerspectiveTransform(dst, src)
-                crops.append(cv2.warpPerspective(page, transform, (crop_w, crop_h)))
-                crop_meta.append((p_idx, inverse, crop_w, crop_h, w, h))
+                crops.append(cv2.warpPerspective(page, transform, (out_w, out_h), borderMode=cv2.BORDER_REPLICATE))
+                crop_meta.append((p_idx, inverse, out_w, out_h, w, h))
 
         tables_per_page: list[list[dict[str, Any]]] = [[] for _ in pages]
         if len(crops) == 0:

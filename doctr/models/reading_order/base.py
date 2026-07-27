@@ -155,9 +155,16 @@ def _to_canonical_ltr(boxes: np.ndarray, direction: str) -> np.ndarray:
 
 def _overlap_ratios(starts: np.ndarray, ends: np.ndarray) -> np.ndarray:
     """Compute the pairwise 1D overlap of intervals, normalized by the length of the smaller interval"""
-    inter = np.minimum(ends[:, None], ends[None, :]) - np.maximum(starts[:, None], starts[None, :])
-    min_len = np.minimum(ends - starts, (ends - starts)[:, None])
-    return np.clip(inter, 0, None) / np.clip(min_len, 1e-9, None)
+    starts = starts.astype(np.float32, copy=False)
+    ends = ends.astype(np.float32, copy=False)
+    lengths = ends - starts
+    inter = np.minimum(ends[:, None], ends[None, :])
+    inter -= np.maximum(starts[:, None], starts[None, :])
+    np.clip(inter, 0, None, out=inter)
+    min_len = np.minimum(lengths, lengths[:, None])
+    np.clip(min_len, 1e-9, None, out=min_len)
+    inter /= min_len
+    return inter
 
 
 def _strict_rank(primary: np.ndarray, secondary: np.ndarray) -> np.ndarray:
@@ -193,13 +200,17 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     # Strict total orders on both axes, so that the induced relations cannot create 2-cycles
     x_rank = _strict_rank(x0, x1)
     y_rank = _strict_rank(y0, y1)
-    is_above = y_rank[:, None] < y_rank[None, :]
-    is_left = x_rank[:, None] < x_rank[None, :]
 
-    # i -> j edges: i must be read before j
-    edges = ((x_overlap > x_overlap_threshold) & is_above) | (
-        (x_overlap <= x_overlap_threshold) & (y_overlap > y_overlap_threshold) & is_left
-    )
+    # i -> j edges: i must be read before j. The matrices are combined in place: every intermediate is an
+    # N x N array, so materializing them all at once dominates the memory of this function on dense pages.
+    x_linked = x_overlap > x_overlap_threshold
+    edges = y_rank[:, None] < y_rank[None, :]  # i is above j
+    edges &= x_linked
+    same_row = y_overlap > y_overlap_threshold
+    same_row &= ~x_linked
+    same_row &= x_rank[:, None] < x_rank[None, :]  # i is on the left of j
+    edges |= same_row
+    del same_row
     np.fill_diagonal(edges, False)
 
     in_degree = edges.sum(axis=0)
@@ -220,12 +231,32 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
             node = int(parent[node])
         return node
 
-    col_edges = (x_overlap > x_overlap_threshold) & ~spanning[:, None] & ~spanning[None, :]
-    for i, j in np.argwhere(np.triu(col_edges, 1)):
+    # Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once
+    col_edges = np.triu(x_linked, 1)
+    col_edges &= ~spanning[:, None]
+    col_edges &= ~spanning[None, :]
+    for i, j in np.argwhere(col_edges):
         ri, rj = _find(int(i)), _find(int(j))
         if ri != rj:
             parent[ri] = rj
     component = np.array([_find(i) for i in range(num_boxes)])
+
+    # Detect whether the page is multi-column: if a vertical line can be drawn that separates the boxes into two
+    # groups with a small number of crossing boxes, the page is considered multi-column. This is used to
+    # favor the continuation of the current column when traversing the graph, which keeps multi-column bodies intact
+    # even for non-Manhattan layouts where recursive XY-cuts fail to find a valid split.
+    multi_column = False
+    if num_boxes >= 3:
+        span = page_width
+        tolerance = max(1, int(0.05 * num_boxes))
+        centers = (x0 + x1) / 2
+        lo, hi = x0.min() + 0.25 * span, x0.min() + 0.75 * span
+        for split in np.unique(x1[(x1 >= lo) & (x1 <= hi)]):
+            crossing = int(np.count_nonzero(np.minimum(x1 - split, split - x0) > 0.02 * span))
+            left = int(np.count_nonzero(centers <= split))
+            if crossing <= tolerance and left >= 0.25 * num_boxes and num_boxes - left >= 0.25 * num_boxes:
+                multi_column = True
+                break
 
     while len(order) < num_boxes:
         ready = np.flatnonzero((in_degree == 0) & ~emitted)
@@ -237,7 +268,7 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
             # last emitted one with a horizontal overlap
             candidates = (
                 ready[(x_overlap[last, ready] > x_overlap_threshold) & (y0[ready] >= y0[last])]
-                if last >= 0
+                if last >= 0 and multi_column
                 else np.empty(0, dtype=int)
             )
             if candidates.size == 0 and last >= 0:

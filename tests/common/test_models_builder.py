@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 
@@ -96,7 +98,7 @@ def test_documentbuilder():
     # Repr
     assert (
         repr(doc_builder) == "DocumentBuilder(resolve_lines=True, "
-        "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False)"
+        "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False, keep_reading_order=False)"
     )
 
 
@@ -185,7 +187,7 @@ def test_kiedocumentbuilder():
     # Repr
     assert (
         repr(doc_builder) == "KIEDocumentBuilder(resolve_lines=True, "
-        "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False)"
+        "resolve_blocks=True, paragraph_break=0.035, export_as_straight_boxes=False, keep_reading_order=False)"
     )
 
 
@@ -581,3 +583,393 @@ def test_documentbuilder_tables_empty_cells():
     assert out.pages[0].tables == []
     # the word stays in the regular blocks since it was never consumed by a table
     assert [w.value for b in out.pages[0].blocks for line in b.lines for w in line.words] == ["hello"]
+
+
+def test_documentbuilder_keep_reading_order():
+    # Two columns of 3 lines each: a naive top-down sort interleaves the columns
+    left = [[0.1, 0.1 + 0.2 * idx, 0.3, 0.2 + 0.2 * idx] for idx in range(3)]
+    right = [[0.6, 0.1 + 0.2 * idx, 0.8, 0.2 + 0.2 * idx] for idx in range(3)]
+    boxes = np.asarray(left + right)
+    words = [(f"L{idx}", 0.9) for idx in range(3)] + [(f"R{idx}", 0.9) for idx in range(3)]
+    crop_orientations = [{"value": 0, "confidence": None}] * len(words)
+    args = (
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [boxes],
+        [np.ones(len(words))],
+        [words],
+        [(100, 100)],
+        [crop_orientations],
+    )
+
+    doc = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=True)(*args)
+    page = doc.pages[0]
+    assert page.render(block_break=" ").split() == ["L0", "L1", "L2", "R0", "R1", "R2"]
+    # The flag reorders the stored blocks themselves
+    assert [word.value for block in page.blocks for line in block.lines for word in line.words] == [
+        "L0",
+        "L1",
+        "L2",
+        "R0",
+        "R1",
+        "R2",
+    ]
+    # Without the flag, the stored blocks keep their original (interleaved) order
+    page = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=False)(*args).pages[0]
+    assert [word.value for block in page.blocks for line in block.lines for word in line.words] != [
+        "L0",
+        "L1",
+        "L2",
+        "R0",
+        "R1",
+        "R2",
+    ]
+    assert page.render(block_break=" ").split() == ["L0", "L1", "L2", "R0", "R1", "R2"]
+    exported = [word["value"] for b in page.export()["blocks"] for ln in b["lines"] for word in ln["words"]]
+    assert exported == ["L0", "L1", "L2", "R0", "R1", "R2"]
+
+    # Layout regions are used to place page furniture: the top line is labeled as a page footer -> emitted last
+    boxes = np.asarray([[0.1, 0.05, 0.9, 0.1], [0.1, 0.3, 0.9, 0.4], [0.1, 0.5, 0.9, 0.6]])
+    words = [("footer", 0.9), ("first", 0.9), ("second", 0.9)]
+    regions = {"boxes": np.asarray([[0.05, 0.02, 0.95, 0.15]]), "class_names": ["Page-footer"], "scores": [0.9]}
+    doc = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=True)(
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [boxes],
+        [np.ones(3)],
+        [words],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 3],
+        regions=[regions],
+    )
+    assert doc.pages[0].render(block_break=" ").split() == ["first", "second", "footer"]
+
+
+def _rot_poly(x0, y0, x1, y1, deg, cx=0.5, cy=0.5):
+    a = np.deg2rad(deg)
+    ca, sa = np.cos(a), np.sin(a)
+    return [
+        [cx + (x - cx) * ca - (y - cy) * sa, cy + (x - cx) * sa + (y - cy) * ca]
+        for x, y in [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+    ]
+
+
+def test_documentbuilder_keep_reading_order_rotated():
+    deg = 25
+    height, width = 1000, 800
+    angle = np.deg2rad(deg)
+    rot = np.array([[np.cos(angle), -np.sin(angle)], [np.sin(angle), np.cos(angle)]])
+    center = np.array([width / 2, height / 2])
+
+    def _rot_box(x0, y0, x1, y1):
+        pts = np.array([
+            [x0 * width, y0 * height],
+            [x1 * width, y0 * height],
+            [x1 * width, y1 * height],
+            [x0 * width, y1 * height],
+        ])
+        return ((pts - center) @ rot.T + center) / [width, height]
+
+    left = [_rot_box(0.1, 0.1 + 0.2 * idx, 0.3, 0.2 + 0.2 * idx) for idx in range(3)]
+    right = [_rot_box(0.6, 0.1 + 0.2 * idx, 0.8, 0.2 + 0.2 * idx) for idx in range(3)]
+    polys = np.asarray(left + right, dtype=np.float32)
+    words = [(f"L{idx}", 0.9) for idx in range(3)] + [(f"R{idx}", 0.9) for idx in range(3)]
+    doc = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=True)(
+        [np.zeros((height, width, 3), dtype=np.uint8)],
+        [polys],
+        [np.ones(len(words))],
+        [words],
+        [(height, width)],
+        [[{"value": 0, "confidence": None}] * len(words)],
+    )
+    assert doc.pages[0].render(block_break=" ").split() == ["L0", "L1", "L2", "R0", "R1", "R2"]
+
+
+_FLAG_COMBINATIONS = [
+    (True, True),
+    (True, False),
+    (False, True),
+    (False, False),
+]
+
+
+def _run(doc_builder, boxes, words, regions=None):
+    return doc_builder(
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [np.asarray(boxes, dtype=np.float32)],
+        [np.ones(len(words))],
+        [words],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * len(words)],
+        regions=[regions] if regions is not None else None,
+    ).pages[0]
+
+
+def _two_columns_of_words():
+    # Two columns, three rows each, two words per row; shuffled so the input order is not the reading order
+    cells = []
+    for column, tag in ((0.08, "L"), (0.55, "R")):
+        for row in range(3):
+            y = 0.12 + 0.04 * row
+            cells.append(([column, y, column + 0.15, y + 0.02], f"{tag}{row}a"))
+            cells.append(([column + 0.17, y, column + 0.34, y + 0.02], f"{tag}{row}b"))
+    order = [7, 0, 11, 3, 5, 9, 1, 6, 10, 2, 8, 4]
+    cells = [cells[idx] for idx in order]
+    boxes = [box for box, _ in cells]
+    words = [(text, 0.9) for _, text in cells]
+    expected = "L0a L0b L1a L1b L2a L2b R0a R0b R1a R1b R2a R2b".split()
+    return boxes, words, expected
+
+
+def test_documentbuilder_keep_reading_order_all_flag_combinations():
+    boxes, words, expected = _two_columns_of_words()
+    # two column text regions
+    regions = {
+        "boxes": np.asarray([[0.06, 0.10, 0.45, 0.24], [0.53, 0.10, 0.92, 0.24]]),
+        "class_names": ["Text", "Text"],
+        "scores": [0.9, 0.9],
+    }
+    for resolve_lines, resolve_blocks in _FLAG_COMBINATIONS:
+        for page_regions in (None, regions):
+            page = _run(
+                builder.DocumentBuilder(
+                    resolve_lines=resolve_lines, resolve_blocks=resolve_blocks, keep_reading_order=True
+                ),
+                boxes,
+                words,
+                page_regions,
+            )
+            assert page.render(block_break=" ").split() == expected
+
+
+def test_documentbuilder_keep_reading_order_without_resolve_lines():
+    # resolve_lines=False still reads row by row (lines are resolved internally only to order the content)
+    boxes, words, expected = _two_columns_of_words()
+    page = _run(
+        builder.DocumentBuilder(resolve_lines=False, resolve_blocks=False, keep_reading_order=True), boxes, words
+    )
+    assert page.render(block_break=" ").split() == expected
+    # each column collapses onto a single line since lines are not exposed
+    assert all(len(block.lines) == 1 for block in page.blocks)
+
+
+def test_documentbuilder_keep_reading_order_prefers_layout_furniture():
+    boxes = [
+        [0.1, 0.05, 0.9, 0.09],  # footer text (near the top of the page)
+        [0.1, 0.30, 0.9, 0.38],  # first body line
+        [0.1, 0.45, 0.9, 0.53],  # second body line
+        [0.1, 0.15, 0.9, 0.20],  # header text
+    ]
+    words = [("foot", 0.9), ("first", 0.9), ("second", 0.9), ("head", 0.9)]
+    regions = {
+        "boxes": np.asarray([[0.05, 0.03, 0.95, 0.11], [0.05, 0.13, 0.95, 0.22]]),
+        "class_names": ["Page-footer", "Page-header"],
+        "scores": [0.9, 0.9],
+    }
+    for resolve_lines, resolve_blocks in _FLAG_COMBINATIONS:
+        page = _run(
+            builder.DocumentBuilder(
+                resolve_lines=resolve_lines, resolve_blocks=resolve_blocks, keep_reading_order=True
+            ),
+            boxes,
+            words,
+            regions,
+        )
+        assert page.render(block_break=" ").split() == ["head", "first", "second", "foot"]
+
+
+def test_documentbuilder_keep_reading_order_without_resolve_lines_rotated():
+    angle = np.deg2rad(20.0)
+    ca, sa = np.cos(angle), np.sin(angle)
+
+    def _rot(x0, y0, x1, y1, cx=0.5, cy=0.5):
+        return [
+            [cx + (x - cx) * ca - (y - cy) * sa, cy + (x - cx) * sa + (y - cy) * ca]
+            for x, y in [(x0, y0), (x1, y0), (x1, y1), (x0, y1)]
+        ]
+
+    cells = []
+    for column, tag in ((0.08, "L"), (0.55, "R")):
+        for row in range(3):
+            y = 0.15 + 0.04 * row
+            cells.append((_rot(column, y, column + 0.15, y + 0.02), f"{tag}{row}a"))
+            cells.append((_rot(column + 0.17, y, column + 0.34, y + 0.02), f"{tag}{row}b"))
+    boxes = np.asarray([box for box, _ in cells], dtype=np.float32)
+    words = [(text, 0.9) for _, text in cells]
+
+    page = _run(
+        builder.DocumentBuilder(resolve_lines=False, resolve_blocks=False, keep_reading_order=True), boxes, words
+    )
+    assert page.render(block_break=" ").split() == "L0a L0b L1a L1b L2a L2b R0a R0b R1a R1b R2a R2b".split()
+
+
+def test_documentbuilder_keep_reading_order_no_double_sort_across_exports():
+    boxes = [[x, 0.15 + 0.03 * r, x + 0.37, 0.17 + 0.03 * r] for x in (0.08, 0.55) for r in range(3)]
+    boxes.append([0.3, 0.05, 0.7, 0.08])  # a footer, geometrically at the top
+    words = [("L0", 0.9), ("L1", 0.9), ("L2", 0.9), ("R0", 0.9), ("R1", 0.9), ("R2", 0.9), ("foot", 0.9)]
+    regions = {
+        "boxes": np.asarray([[0.06, 0.13, 0.47, 0.26], [0.53, 0.13, 0.94, 0.26], [0.25, 0.03, 0.75, 0.10]]),
+        "class_names": ["Text", "Text", "Page-footer"],
+        "scores": [0.9, 0.9, 0.9],
+    }
+    page = _run(builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=True), boxes, words, regions)
+
+    expected = ["L0", "L1", "L2", "R0", "R1", "R2", "foot"]
+    block_order = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert block_order == expected
+    # render() follows the stored order and is idempotent (no conflicting re-sort)
+    assert page.render(block_break=" ").split() == expected
+    assert page.render(block_break=" ").split() == page.render(block_break=" ").split()
+    # markdown re-derives reading order from the lines and lands on the same order
+    markdown_words = [token for token in page.export_as_markdown().replace("#", " ").split() if token in expected]
+    assert markdown_words == expected
+
+
+def _word_args(words, boxes, shape=(1000, 1000)):
+    """Pack builder arguments for a single page from (value, box) pairs"""
+    return (
+        [np.zeros((*shape, 3), dtype=np.uint8)],
+        [np.asarray(boxes, dtype=np.float32)],
+        [np.full(len(words), 0.9, dtype=np.float32)],
+        [[(value, 0.95) for value in words]],
+        [shape],
+        [[{"value": 0, "confidence": None}] * len(words)],
+    )
+
+
+def test_documentbuilder_tables_multi_word_cells():
+    words = ["world", "hello", "second", "line", "solo"]
+    boxes = [
+        [0.20, 0.13, 0.28, 0.16],  # "world"  - first line, right
+        [0.11, 0.13, 0.19, 0.16],  # "hello"  - first line, left
+        [0.11, 0.17, 0.20, 0.20],  # "second" - second line, left
+        [0.21, 0.17, 0.27, 0.20],  # "line"   - second line, right
+        [0.36, 0.13, 0.44, 0.16],  # "solo"   - other cell
+    ]
+    table = {
+        "cells": [
+            _table_cell(0.10, 0.10, 0.30, 0.22, 0, 0, 0, 0),
+            _table_cell(0.32, 0.10, 0.50, 0.22, 0, 0, 1, 1),
+        ],
+        "num_rows": 1,
+        "num_cols": 2,
+    }
+    out = builder.DocumentBuilder(resolve_lines=True)(*_word_args(words, boxes), tables=[[table]])
+    page = out.pages[0]
+    assert len(page.tables) == 1
+    assert page.tables[0].to_grid() == [["hello world second line", "solo"]]
+    # Every word ended up in the table, so nothing is left in the regular blocks
+    assert page.blocks == []
+    # A degenerate cell whose words all share the same center still produces a single row
+    words = ["a", "b"]
+    boxes = [[0.15, 0.15, 0.15, 0.15], [0.16, 0.15, 0.16, 0.15]]
+    out = builder.DocumentBuilder(resolve_lines=True)(
+        *_word_args(words, boxes),
+        tables=[[{"cells": [_table_cell(0.10, 0.10, 0.30, 0.22, 0, 0, 0, 0)], "num_rows": 1, "num_cols": 1}]],
+    )
+    assert out.pages[0].tables[0].to_grid() == [["a b"]]
+
+
+def test_documentbuilder_tables_nearest_cell_fallback():
+    words = ["left", "right", "outside", "faraway"]
+    boxes = [
+        [0.11, 0.12, 0.19, 0.16],  # inside cell 0
+        [0.33, 0.12, 0.41, 0.16],  # inside cell 1
+        [0.305, 0.12, 0.315, 0.16],  # in the gutter, closest to cell 1
+        [0.11, 0.80, 0.25, 0.85],  # far outside the table
+    ]
+    table = {
+        "cells": [
+            _table_cell(0.10, 0.10, 0.30, 0.18, 0, 0, 0, 0),
+            _table_cell(0.32, 0.10, 0.50, 0.18, 0, 0, 1, 1),
+        ],
+        "num_rows": 1,
+        "num_cols": 2,
+    }
+    page = builder.DocumentBuilder(resolve_lines=True)(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    grid = page.tables[0].to_grid()
+    assert grid[0][0] == "left"
+    assert "outside" in grid[0][1]
+    # The word far away from the table is untouched and stays in the regular blocks
+    body = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert body == ["faraway"]
+
+
+def test_documentbuilder_tables_rotated_geometry():
+    deg = 20
+    words = ["Name", "Age", "Alice", "30"]
+    cell_boxes = [
+        (0.10, 0.10, 0.28, 0.20),
+        (0.30, 0.10, 0.48, 0.20),
+        (0.10, 0.22, 0.28, 0.32),
+        (0.30, 0.22, 0.48, 0.32),
+    ]
+    word_boxes = [
+        (0.13, 0.13, 0.25, 0.17),
+        (0.33, 0.13, 0.45, 0.17),
+        (0.13, 0.25, 0.25, 0.29),
+        (0.33, 0.25, 0.45, 0.29),
+    ]
+    polys = np.asarray([_rot_poly(*box, deg) for box in word_boxes], dtype=np.float32)  # (N, 4, 2)
+    table = {
+        "cells": [
+            {**_table_cell(0, 0, 0, 0, rs, re, cs, ce), "geometry": _rot_poly(*box, deg)}
+            for box, (rs, re, cs, ce) in zip(cell_boxes, [(0, 0, 0, 0), (0, 0, 1, 1), (1, 1, 0, 0), (1, 1, 1, 1)])
+        ],
+        "num_rows": 2,
+        "num_cols": 2,
+    }
+    args = _word_args(words, polys)
+    out = builder.DocumentBuilder(resolve_lines=True, export_as_straight_boxes=False)(*args, tables=[[table]])
+    page = out.pages[0]
+    assert len(page.tables) == 1
+    table_out = page.tables[0]
+    # Rotated pages keep 4-point polygons for the table and its cells
+    assert len(table_out.geometry) == 4
+    assert all(len(cell.geometry) == 4 for cell in table_out.cells)
+    assert table_out.to_grid() == [["Name", "Age"], ["Alice", "30"]]
+    # The export is still JSON-serializable
+    json.dumps(page.export())
+
+
+def test_documentbuilder_tables_without_words():
+    # A detected table grid on a page without any recognized word must not raise
+    table = {"cells": [_table_cell(0.10, 0.10, 0.30, 0.20, 0, 0, 0, 0)], "num_rows": 1, "num_cols": 1}
+    out = builder.DocumentBuilder(resolve_lines=True)(
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [np.zeros((0, 4), dtype=np.float32)],
+        [np.zeros(0, dtype=np.float32)],
+        [[]],
+        [(100, 100)],
+        [[]],
+        tables=[[table]],
+    )
+    page = out.pages[0]
+    assert len(page.tables) == 1 and page.tables[0].to_grid() == [[""]]
+    assert page.blocks == [] and page.render() == ""
+
+
+def test_documentbuilder_sort_boxes_mixed_rotation():
+    deg = 30
+    rotated = [_rot_poly(0.10, 0.10 + 0.12 * idx, 0.60, 0.16 + 0.12 * idx, deg) for idx in range(3)]
+    axis_aligned = [
+        [[0.10, 0.70], [0.60, 0.70], [0.60, 0.76], [0.10, 0.76]],  # not rotated at all
+    ]
+    polys = np.asarray(rotated + axis_aligned, dtype=np.float32)
+    words = ["r0", "r1", "r2", "flat"]
+    out = builder.DocumentBuilder(resolve_lines=True, export_as_straight_boxes=False)(
+        *_word_args(words, polys, shape=(1000, 1000))
+    )
+    page = out.pages[0]
+    rendered = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert sorted(rendered) == ["flat", "r0", "r1", "r2"]
+    json.dumps(page.export())
+
+
+def test_documentbuilder_tables_skips_empty_grids():
+    # A detected table region whose structure prediction has no cell at all is skipped entirely
+    words = ["body", "text"]
+    boxes = [[0.10, 0.10, 0.25, 0.15], [0.30, 0.10, 0.45, 0.15]]
+    grids = [{"cells": [], "num_rows": 0, "num_cols": 0}]
+    page = builder.DocumentBuilder(resolve_lines=True)(*_word_args(words, boxes), tables=[grids]).pages[0]
+    assert page.tables == []
+    rendered = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert rendered == words

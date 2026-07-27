@@ -60,6 +60,14 @@ A Page is a collection of Blocks that were on the same physical page.
 .. autoclass:: Page
 
    .. automethod:: show
+   .. automethod:: items_in_reading_order
+   .. automethod:: export_as_markdown
+   .. automethod:: export_as_asciidoc
+   .. automethod:: export_as_html
+   .. automethod:: export_as_xml
+   .. automethod:: export
+   .. automethod:: render
+   .. automethod:: export_as
 
 
 KIEPage
@@ -71,6 +79,13 @@ semantic class rather than by spatial layout.
 .. autoclass:: KIEPage
 
    .. automethod:: show
+   .. automethod:: export_as_markdown
+   .. automethod:: export_as_asciidoc
+   .. automethod:: export_as_html
+   .. automethod:: export_as_xml
+   .. automethod:: export
+   .. automethod:: render
+   .. automethod:: export_as
 
 
 Document
@@ -81,6 +96,13 @@ A Document is a collection of Pages.
 .. autoclass:: Document
 
    .. automethod:: show
+   .. automethod:: export_as_markdown
+   .. automethod:: export_as_asciidoc
+   .. automethod:: export_as_xml
+   .. automethod:: export_as_html
+   .. automethod:: export
+   .. automethod:: render
+   .. automethod:: export_as
 
 
 KIEDocument
@@ -117,3 +139,41 @@ High-performance file reading and conversion to processable structured data.
    .. automethod:: from_url
 
    .. automethod:: from_images
+
+
+.. _reading_order:
+
+Reading order
+-------------
+
+The reading-order-aware export of a :class:`Document` / :class:`Page` to Markdown, AsciiDoc, HTML, or XML is available
+through the ``export_as_markdown`` / ``export_as_asciidoc`` / ``export_as_html`` / ``export_as_xml`` / ``export_as`` / ``export`` / ``render`` methods documented above, which
+delegate to the exporters of :mod:`doctr.io.exporters`.
+The underlying ordering primitives live in :mod:`doctr.models.reading_order`.
+
+Every export path shares the same linearization, so ``render()``, ``export()``, ``export_as_xml()`` and the
+Markdown / AsciiDoc / HTML exports all present the content in the same order. The result is memoized on the
+page, so exporting one page to several formats orders it only once.
+
+.. currentmodule:: doctr.io
+
+.. autoclass:: TextExporter
+    :members: export_page, export_kie_page, export_document
+
+.. autoclass:: MarkdownExporter
+    :members: export_page, export_kie_page, export_document
+
+.. autoclass:: AsciiDocExporter
+    :members: export_page, export_kie_page, export_document
+
+.. autoclass:: HTMLExporter
+    :members: export_page, export_kie_page, export_document
+
+.. autoclass:: XMLExporter
+    :members: export_page, export_kie_page, export_document
+
+.. autofunction:: doctr.io.exporters.page_reading_order
+
+.. autofunction:: doctr.io.exporters.predictions_in_reading_order
+
+.. autofunction:: doctr.io.exporters.to_json_safe

@@ -273,16 +273,20 @@ def test_deskew_strong_rotation_non_square_page():
 # Auto generated regression tests for known failures of the reading order algorithm
 
 
+def _box(x0, y0, x1, y1):
+    return ((x0, y0), (x1, y1))
+
+
 def test_sort_reading_order_fragmented_columns():
     left = [
-        ((0.10, 0.10), (0.45, 0.13)),  # 0 wide
-        ((0.10, 0.14), (0.25, 0.17)),  # 1 narrow (left part of a split line)
-        ((0.34, 0.14), (0.45, 0.17)),  # 2 stray fragment (right part), same visual row as 1
-        ((0.10, 0.18), (0.45, 0.21)),  # 3
-        ((0.10, 0.22), (0.45, 0.25)),  # 4
-        ((0.10, 0.26), (0.45, 0.29)),  # 5
+        _box(0.10, 0.10, 0.45, 0.13),  # 0 wide
+        _box(0.10, 0.14, 0.25, 0.17),  # 1 narrow (left part of a split line)
+        _box(0.34, 0.14, 0.45, 0.17),  # 2 stray fragment (right part), same visual row as 1
+        _box(0.10, 0.18, 0.45, 0.21),  # 3
+        _box(0.10, 0.22, 0.45, 0.25),  # 4
+        _box(0.10, 0.26, 0.45, 0.29),  # 5
     ]
-    right = [((0.55, 0.10 + 0.04 * i), (0.90, 0.13 + 0.04 * i)) for i in range(6)]  # 6..11
+    right = [_box(0.55, 0.10 + 0.04 * i, 0.90, 0.13 + 0.04 * i) for i in range(6)]  # 6..11
     order = sort_reading_order(left + right)
     # every left element (0..5) is read before every right element (6..11)
     assert max(order.index(i) for i in range(6)) < min(order.index(i) for i in range(6, 12))
@@ -290,13 +294,43 @@ def test_sort_reading_order_fragmented_columns():
 
 def test_fragmented_row_with_merged_column_components():
     geoms = [
-        ((0.35, 0.05), (0.65, 0.10)),  # 0 gutter-straddling element (bridges both columns)
-        ((0.10, 0.15), (0.45, 0.20)),  # 1 left col, row 1
-        ((0.10, 0.22), (0.16, 0.27)),  # 2 left col, row 2, fragment A
-        ((0.17, 0.22), (0.24, 0.27)),  # 3 left col, row 2, fragment B
-        ((0.25, 0.22), (0.45, 0.27)),  # 4 left col, row 2, fragment C
-        ((0.10, 0.29), (0.45, 0.34)),  # 5 left col, row 3
-        ((0.55, 0.15), (0.90, 0.20)),  # 6 right col, row 1
-        ((0.55, 0.22), (0.90, 0.27)),  # 7 right col, row 2
+        _box(0.35, 0.05, 0.65, 0.10),  # 0 gutter-straddling element (bridges both columns)
+        _box(0.10, 0.15, 0.45, 0.20),  # 1 left col, row 1
+        _box(0.10, 0.22, 0.16, 0.27),  # 2 left col, row 2, fragment A
+        _box(0.17, 0.22, 0.24, 0.27),  # 3 left col, row 2, fragment B
+        _box(0.25, 0.22, 0.45, 0.27),  # 4 left col, row 2, fragment C
+        _box(0.10, 0.29, 0.45, 0.34),  # 5 left col, row 3
+        _box(0.55, 0.15, 0.90, 0.20),  # 6 right col, row 1
+        _box(0.55, 0.22, 0.90, 0.27),  # 7 right col, row 2
     ]
     assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6, 7]
+
+
+def test_sort_reading_order_keeps_key_value_rows_together():
+    geoms = [
+        _box(0.05, 0.02, 0.95, 0.06),  # 0 full-width
+        _box(0.05, 0.08, 0.95, 0.12),  # 1 full-width
+        _box(0.05, 0.14, 0.95, 0.18),  # 2 full-width
+        _box(0.05, 0.20, 0.30, 0.24),  # 3 label
+        _box(0.65, 0.20, 0.95, 0.24),  # 4 value
+        _box(0.05, 0.26, 0.30, 0.30),  # 5 label
+        _box(0.65, 0.26, 0.95, 0.30),  # 6 value
+        _box(0.05, 0.32, 0.30, 0.36),  # 7 label
+        _box(0.65, 0.32, 0.95, 0.36),  # 8 value
+        _box(0.05, 0.38, 0.95, 0.42),  # 9 full-width
+        _box(0.05, 0.44, 0.95, 0.48),  # 10 full-width
+    ]
+    assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+
+def test_sort_reading_order_follows_columns_when_a_gutter_exists():
+    geoms = [
+        _box(0.05, 0.02, 0.95, 0.06),  # 0 full-width header
+        _box(0.05, 0.10, 0.45, 0.14),  # 1 left column
+        _box(0.05, 0.16, 0.45, 0.20),  # 2 left column
+        _box(0.05, 0.22, 0.45, 0.26),  # 3 left column
+        _box(0.55, 0.10, 0.95, 0.14),  # 4 right column
+        _box(0.55, 0.16, 0.95, 0.20),  # 5 right column
+        _box(0.55, 0.22, 0.95, 0.26),  # 6 right column
+    ]
+    assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6]
