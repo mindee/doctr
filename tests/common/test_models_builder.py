@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 
@@ -819,3 +821,155 @@ def test_documentbuilder_keep_reading_order_no_double_sort_across_exports():
     # markdown re-derives reading order from the lines and lands on the same order
     markdown_words = [token for token in page.export_as_markdown().replace("#", " ").split() if token in expected]
     assert markdown_words == expected
+
+
+def _word_args(words, boxes, shape=(1000, 1000)):
+    """Pack builder arguments for a single page from (value, box) pairs"""
+    return (
+        [np.zeros((*shape, 3), dtype=np.uint8)],
+        [np.asarray(boxes, dtype=np.float32)],
+        [np.full(len(words), 0.9, dtype=np.float32)],
+        [[(value, 0.95) for value in words]],
+        [shape],
+        [[{"value": 0, "confidence": None}] * len(words)],
+    )
+
+
+def test_documentbuilder_tables_multi_word_cells():
+    words = ["world", "hello", "second", "line", "solo"]
+    boxes = [
+        [0.20, 0.13, 0.28, 0.16],  # "world"  - first line, right
+        [0.11, 0.13, 0.19, 0.16],  # "hello"  - first line, left
+        [0.11, 0.17, 0.20, 0.20],  # "second" - second line, left
+        [0.21, 0.17, 0.27, 0.20],  # "line"   - second line, right
+        [0.36, 0.13, 0.44, 0.16],  # "solo"   - other cell
+    ]
+    table = {
+        "cells": [
+            _table_cell(0.10, 0.10, 0.30, 0.22, 0, 0, 0, 0),
+            _table_cell(0.32, 0.10, 0.50, 0.22, 0, 0, 1, 1),
+        ],
+        "num_rows": 1,
+        "num_cols": 2,
+    }
+    out = builder.DocumentBuilder(resolve_lines=True)(*_word_args(words, boxes), tables=[[table]])
+    page = out.pages[0]
+    assert len(page.tables) == 1
+    assert page.tables[0].to_grid() == [["hello world second line", "solo"]]
+    # Every word ended up in the table, so nothing is left in the regular blocks
+    assert page.blocks == []
+    # A degenerate cell whose words all share the same center still produces a single row
+    words = ["a", "b"]
+    boxes = [[0.15, 0.15, 0.15, 0.15], [0.16, 0.15, 0.16, 0.15]]
+    out = builder.DocumentBuilder(resolve_lines=True)(
+        *_word_args(words, boxes),
+        tables=[[{"cells": [_table_cell(0.10, 0.10, 0.30, 0.22, 0, 0, 0, 0)], "num_rows": 1, "num_cols": 1}]],
+    )
+    assert out.pages[0].tables[0].to_grid() == [["a b"]]
+
+
+def test_documentbuilder_tables_nearest_cell_fallback():
+    words = ["left", "right", "outside", "faraway"]
+    boxes = [
+        [0.11, 0.12, 0.19, 0.16],  # inside cell 0
+        [0.33, 0.12, 0.41, 0.16],  # inside cell 1
+        [0.305, 0.12, 0.315, 0.16],  # in the gutter, closest to cell 1
+        [0.11, 0.80, 0.25, 0.85],  # far outside the table
+    ]
+    table = {
+        "cells": [
+            _table_cell(0.10, 0.10, 0.30, 0.18, 0, 0, 0, 0),
+            _table_cell(0.32, 0.10, 0.50, 0.18, 0, 0, 1, 1),
+        ],
+        "num_rows": 1,
+        "num_cols": 2,
+    }
+    page = builder.DocumentBuilder(resolve_lines=True)(*_word_args(words, boxes), tables=[[table]]).pages[0]
+    grid = page.tables[0].to_grid()
+    assert grid[0][0] == "left"
+    assert "outside" in grid[0][1]
+    # The word far away from the table is untouched and stays in the regular blocks
+    body = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert body == ["faraway"]
+
+
+def test_documentbuilder_tables_rotated_geometry():
+    deg = 20
+    words = ["Name", "Age", "Alice", "30"]
+    cell_boxes = [
+        (0.10, 0.10, 0.28, 0.20),
+        (0.30, 0.10, 0.48, 0.20),
+        (0.10, 0.22, 0.28, 0.32),
+        (0.30, 0.22, 0.48, 0.32),
+    ]
+    word_boxes = [
+        (0.13, 0.13, 0.25, 0.17),
+        (0.33, 0.13, 0.45, 0.17),
+        (0.13, 0.25, 0.25, 0.29),
+        (0.33, 0.25, 0.45, 0.29),
+    ]
+    polys = np.asarray([_rot_poly(*box, deg) for box in word_boxes], dtype=np.float32)  # (N, 4, 2)
+    table = {
+        "cells": [
+            {**_table_cell(0, 0, 0, 0, rs, re, cs, ce), "geometry": _rot_poly(*box, deg)}
+            for box, (rs, re, cs, ce) in zip(cell_boxes, [(0, 0, 0, 0), (0, 0, 1, 1), (1, 1, 0, 0), (1, 1, 1, 1)])
+        ],
+        "num_rows": 2,
+        "num_cols": 2,
+    }
+    args = _word_args(words, polys)
+    out = builder.DocumentBuilder(resolve_lines=True, export_as_straight_boxes=False)(*args, tables=[[table]])
+    page = out.pages[0]
+    assert len(page.tables) == 1
+    table_out = page.tables[0]
+    # Rotated pages keep 4-point polygons for the table and its cells
+    assert len(table_out.geometry) == 4
+    assert all(len(cell.geometry) == 4 for cell in table_out.cells)
+    assert table_out.to_grid() == [["Name", "Age"], ["Alice", "30"]]
+    # The export is still JSON-serializable
+    json.dumps(page.export())
+
+
+def test_documentbuilder_tables_without_words():
+    # A detected table grid on a page without any recognized word must not raise
+    table = {"cells": [_table_cell(0.10, 0.10, 0.30, 0.20, 0, 0, 0, 0)], "num_rows": 1, "num_cols": 1}
+    out = builder.DocumentBuilder(resolve_lines=True)(
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [np.zeros((0, 4), dtype=np.float32)],
+        [np.zeros(0, dtype=np.float32)],
+        [[]],
+        [(100, 100)],
+        [[]],
+        tables=[[table]],
+    )
+    page = out.pages[0]
+    assert len(page.tables) == 1 and page.tables[0].to_grid() == [[""]]
+    assert page.blocks == [] and page.render() == ""
+
+
+def test_documentbuilder_sort_boxes_mixed_rotation():
+    deg = 30
+    rotated = [_rot_poly(0.10, 0.10 + 0.12 * idx, 0.60, 0.16 + 0.12 * idx, deg) for idx in range(3)]
+    axis_aligned = [
+        [[0.10, 0.70], [0.60, 0.70], [0.60, 0.76], [0.10, 0.76]],  # not rotated at all
+    ]
+    polys = np.asarray(rotated + axis_aligned, dtype=np.float32)
+    words = ["r0", "r1", "r2", "flat"]
+    out = builder.DocumentBuilder(resolve_lines=True, export_as_straight_boxes=False)(
+        *_word_args(words, polys, shape=(1000, 1000))
+    )
+    page = out.pages[0]
+    rendered = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert sorted(rendered) == ["flat", "r0", "r1", "r2"]
+    json.dumps(page.export())
+
+
+def test_documentbuilder_tables_skips_empty_grids():
+    # A detected table region whose structure prediction has no cell at all is skipped entirely
+    words = ["body", "text"]
+    boxes = [[0.10, 0.10, 0.25, 0.15], [0.30, 0.10, 0.45, 0.15]]
+    grids = [{"cells": [], "num_rows": 0, "num_cols": 0}]
+    page = builder.DocumentBuilder(resolve_lines=True)(*_word_args(words, boxes), tables=[grids]).pages[0]
+    assert page.tables == []
+    rendered = [word.value for block in page.blocks for line in block.lines for word in line.words]
+    assert rendered == words
