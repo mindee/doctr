@@ -221,7 +221,7 @@ For a comprehensive comparison, we have compiled a detailed benchmark:
 +--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
 | lw_detr_s                                        | (1024, 1024, 3) | 15.1 M        |                  |             |              | 0.5                |
 +--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
-| lw_detr_m                                        | (1024, 1024, 3) | 29.5 M        |                  |             |              | 0.7                |
+| lw_detr_m                                        | (1024, 1024, 3) | 29.5 M        | soon             | soon        | soon         | 0.7                |
 +--------------------------------------------------+-----------------+---------------+------------------+-------------+--------------+--------------------+
 
 
@@ -628,6 +628,35 @@ For reference, here is a sample XML byte string output:
     </body>
   </html>
 
+To export the output in reading order as Markdown, AsciiDoc, HTML or XML, you can use the `export_as_markdown`,
+`export_as_asciidoc`, `export_as_html` and `export_as_xml` methods (also available on a single :class:`Page`).
+Reading order is always applied by these exporters: the content is linearized column by column, the reading direction is inferred from the
+recognized text (e.g. right-to-left for Arabic or Hebrew documents), and - when the predictor is run with
+layout detection (``detect_layout=True``) - the layout regions are used to render headings, list items and
+recognized tables, and to place the page furniture (headers, footers, footnotes):
+
+.. code-block:: python
+
+  markdown_output = result.export_as_markdown()
+  asciidoc_output = result.export_as_asciidoc()
+  html_output = result.export_as_html()
+  xml_output = result.export_as_xml()
+  raw_text_output = result.render()  # same as result.export_as("text")
+  dict_output = result.export()      # same as result.export_as("json")
+
+The `export_as` method is a convenience dispatcher over all the formats above::
+
+  result.export_as("markdown")  # or "md"
+  result.export_as("asciidoc")  # or "adoc"
+  result.export_as("html")
+  result.export_as("text")      # same as render()
+  result.export_as("json")      # same as export()
+  result.export_as("xml")       # same as export_as_xml()
+
+The document structure itself can also be produced in reading order by building the predictor with
+``keep_reading_order=True``, which sorts the blocks of every page in reading order::
+
+  predictor = ocr_predictor(pretrained=True, keep_reading_order=True)
 
 Advanced options
 ^^^^^^^^^^^^^^^^

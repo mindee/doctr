@@ -677,9 +677,9 @@ Our latest layout models works with rotated and skewed documents!</p>
 <tr class="row-even"><td><p>lw_detr_m</p></td>
 <td><p>(1024, 1024, 3)</p></td>
 <td><p>29.5 M</p></td>
-<td></td>
-<td></td>
-<td></td>
+<td><p>soon</p></td>
+<td><p>soon</p></td>
+<td><p>soon</p></td>
 <td><p>0.7</p></td>
 </tr>
 </tbody>
@@ -1117,6 +1117,34 @@ To get a better understanding of our document model, check our <a class="referen
 <span class="w">      </span><span class="nt">&lt;/div&gt;</span>
 <span class="w">  </span><span class="nt">&lt;/body&gt;</span>
 <span class="nt">&lt;/html&gt;</span>
+</pre></div>
+</div>
+<p>To export the output in reading order as Markdown, AsciiDoc, HTML or XML, you can use the <cite>export_as_markdown</cite>,
+<cite>export_as_asciidoc</cite>, <cite>export_as_html</cite> and <cite>export_as_xml</cite> methods (also available on a single <code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code>).
+Reading order is always applied by these exporters: the content is linearized column by column, the reading direction is inferred from the
+recognized text (e.g. right-to-left for Arabic or Hebrew documents), and - when the predictor is run with
+layout detection (<code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>) - the layout regions are used to render headings, list items and
+recognized tables, and to place the page furniture (headers, footers, footnotes):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">markdown_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_markdown</span><span class="p">()</span>
+<span class="n">asciidoc_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_asciidoc</span><span class="p">()</span>
+<span class="n">html_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_html</span><span class="p">()</span>
+<span class="n">xml_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">()</span>
+<span class="n">raw_text_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">render</span><span class="p">()</span>  <span class="c1"># same as result.export_as(&quot;text&quot;)</span>
+<span class="n">dict_output</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export</span><span class="p">()</span>      <span class="c1"># same as result.export_as(&quot;json&quot;)</span>
+</pre></div>
+</div>
+<p>The <cite>export_as</cite> method is a convenience dispatcher over all the formats above:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">&quot;markdown&quot;</span><span class="p">)</span>  <span class="c1"># or &quot;md&quot;</span>
+<span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">&quot;asciidoc&quot;</span><span class="p">)</span>  <span class="c1"># or &quot;adoc&quot;</span>
+<span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">&quot;html&quot;</span><span class="p">)</span>
+<span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>      <span class="c1"># same as render()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">&quot;json&quot;</span><span class="p">)</span>      <span class="c1"># same as export()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">export_as</span><span class="p">(</span><span class="s2">&quot;xml&quot;</span><span class="p">)</span>       <span class="c1"># same as export_as_xml()</span>
+</pre></div>
+</div>
+<p>The document structure itself can also be produced in reading order by building the predictor with
+<code class="docutils literal notranslate"><span class="pre">keep_reading_order=True</span></code>, which sorts the blocks of every page in reading order:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">keep_reading_order</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
