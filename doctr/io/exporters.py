@@ -693,7 +693,7 @@ class XMLExporter:
             cells = sorted(rows[row_idx], key=lambda cell: cell.col_start)
             xs = [coord for cell in cells for coord in (cell.geometry[0][0], cell.geometry[1][0])]
             ys = [coord for cell in cells for coord in (cell.geometry[0][1], cell.geometry[1][1])]
-            row_bbox = _hocr_bbox(((min(xs), min(ys)), (max(xs), max(ys))), width, height)  # type: ignore[arg-type]
+            row_bbox = _hocr_bbox(((min(xs), min(ys)), (max(xs), max(ys))), width, height)
             line_span = SubElement(
                 paragraph,
                 "span",
@@ -711,7 +711,7 @@ class XMLExporter:
                         "class": "ocrx_word",
                         "id": f"table_{table_count}_cell_{row_idx + 1}_{col_idx + 1}",
                         "title": (
-                            f"{_hocr_bbox(cell.geometry, width, height)}; x_wconf {int(round(cell.confidence * 100))}"  # type: ignore[arg-type]
+                            f"{_hocr_bbox(cell.geometry, width, height)}; x_wconf {int(round(cell.confidence * 100))}"
                         ),
                     },
                 )
@@ -767,7 +767,7 @@ class XMLExporter:
             block = item
             if len(block.geometry) != 2:
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
-            block_bbox = _hocr_bbox(block.geometry, width, height)  # type: ignore[arg-type]
+            block_bbox = _hocr_bbox(block.geometry, width, height)
             block_div = SubElement(
                 page_div,
                 "div",
@@ -788,7 +788,7 @@ class XMLExporter:
                         "class": "ocr_line",
                         "id": f"line_{line_count}",
                         "title": (
-                            f"{_hocr_bbox(line.geometry, width, height)}; "  # type: ignore[arg-type]
+                            f"{_hocr_bbox(line.geometry, width, height)}; "
                             "baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"
                         ),
                     },
@@ -802,7 +802,7 @@ class XMLExporter:
                             "class": "ocrx_word",
                             "id": f"word_{word_count}",
                             "title": (
-                                f"{_hocr_bbox(word.geometry, width, height)}; "  # type: ignore[arg-type]
+                                f"{_hocr_bbox(word.geometry, width, height)}; "
                                 f"x_wconf {int(round(word.confidence * 100))}"
                             ),
                         },
