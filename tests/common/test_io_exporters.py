@@ -11,7 +11,9 @@ from doctr.io.exporters import (
     MarkdownExporter,
     TextExporter,
     XMLExporter,
+    ordered_line_words,
     page_reading_order,
+    to_json_safe,
 )
 
 
@@ -595,8 +597,6 @@ def _table_page(num_rows=2, num_cols=1, rotated=False):
 
 
 def test_to_json_safe_covers_every_container():
-    from doctr.io.exporters import to_json_safe
-
     # 0-d arrays and numpy scalars collapse to their Python equivalent
     assert to_json_safe(np.array(3.5)) == 3.5 and type(to_json_safe(np.array(3.5))) is float
     assert to_json_safe(np.int64(7)) == 7 and type(to_json_safe(np.int64(7))) is int
@@ -623,8 +623,6 @@ def test_page_artefacts():
 
 
 def test_ordered_line_words_directions():
-    from doctr.io.exporters import ordered_line_words
-
     line = _line_at("one two three", 0.1, 0.1, 0.7, 0.15)
     assert [word.render() for word in ordered_line_words(line, "ltr")] == ["one", "two", "three"]
     assert [word.render() for word in ordered_line_words(line, "rtl")] == ["three", "two", "one"]
