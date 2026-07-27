@@ -1,9 +1,18 @@
+import json
+
 import numpy as np
 import pytest
 
 from doctr.file_utils import CLASS_NAME
 from doctr.io import elements
-from doctr.io.exporters import AsciiDocExporter, HTMLExporter, MarkdownExporter, XMLExporter, page_reading_order
+from doctr.io.exporters import (
+    AsciiDocExporter,
+    HTMLExporter,
+    MarkdownExporter,
+    TextExporter,
+    XMLExporter,
+    page_reading_order,
+)
 
 
 def _word_at(text, x0, y0, x1, y1):
@@ -566,3 +575,262 @@ def test_xml_exporter_class():
     doc = elements.Document([page, page])
     doc_xml = XMLExporter().export_document(doc)
     assert len(doc_xml) == 2 and doc.export_as_xml()[0][0] == doc_xml[0][0]
+
+
+def _table_page(num_rows=2, num_cols=1, rotated=False):
+    """A page with an intro line and one recognized table"""
+    geo = ((0.1, 0.6), (0.4, 0.66), (0.4, 0.71), (0.1, 0.71)) if rotated else ((0.1, 0.6), (0.4, 0.71))
+    cells = [
+        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
+        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
+    ]
+    table = elements.Table(cells=cells, num_rows=num_rows, num_cols=num_cols, geometry=geo)
+    return elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+        tables=[table],
+    )
+
+
+def test_to_json_safe_covers_every_container():
+    from doctr.io.exporters import to_json_safe
+
+    # 0-d arrays and numpy scalars collapse to their Python equivalent
+    assert to_json_safe(np.array(3.5)) == 3.5 and type(to_json_safe(np.array(3.5))) is float
+    assert to_json_safe(np.int64(7)) == 7 and type(to_json_safe(np.int64(7))) is int
+    assert to_json_safe(np.bool_(True)) is True
+    # arrays become nested tuples, so `create_obj_patch` still recognizes an exported geometry
+    assert to_json_safe(np.asarray([[0.0, 1.0], [2.0, 3.0]])) == ((0.0, 1.0), (2.0, 3.0))
+    # lists stay lists, sets are normalized to lists, dict keys to str
+    assert to_json_safe([np.float32(1.0), (np.int8(2),)]) == [1.0, (2,)]
+    assert sorted(to_json_safe({np.int64(1), np.int64(2)})) == [1, 2]
+    assert to_json_safe({np.int64(1): np.float32(0.5)}) == {"1": 0.5}
+    # anything already built-in is returned untouched
+    assert to_json_safe("text") == "text" and to_json_safe(None) is None
+    json.dumps(to_json_safe({"a": [np.float32(0.1)], "b": np.arange(3)}))
+
+
+def test_page_artefacts():
+    artefact = elements.Artefact("qr_code", 0.9, ((0.7, 0.7), (0.9, 0.9)))
+    orphan = elements.Block(lines=[], artefacts=[artefact], geometry=((0.7, 0.7), (0.9, 0.9)), objectness_score=0.9)
+    text = elements.Block(lines=[_line_at("some text", 0.1, 0.1, 0.9, 0.15)])
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [orphan, text], 0, (1000, 800))
+    items = page.items_in_reading_order()
+    assert [artefact.export() for artefact in items[-1].artefacts] == [artefact.export()]
+    assert page.export()["blocks"][-1]["artefacts"] == [artefact.export()]
+
+
+def test_ordered_line_words_directions():
+    from doctr.io.exporters import ordered_line_words
+
+    line = _line_at("one two three", 0.1, 0.1, 0.7, 0.15)
+    assert [word.render() for word in ordered_line_words(line, "ltr")] == ["one", "two", "three"]
+    assert [word.render() for word in ordered_line_words(line, "rtl")] == ["three", "two", "one"]
+    # Vertical pages read their words top to bottom
+    stacked = elements.Line([_word_at(value, 0.1, 0.1 * idx, 0.2, 0.1 * idx + 0.05) for idx, value in enumerate("abc")])
+    assert [word.render() for word in ordered_line_words(stacked, "ttb-rtl")] == ["a", "b", "c"]
+    assert [word.render() for word in ordered_line_words(stacked, "ttb-ltr")] == ["a", "b", "c"]
+    # A single-word line short-circuits the per-line detection
+    single = elements.Line([_word_at("solo", 0.1, 0.1, 0.2, 0.15)])
+    assert [word.render() for word in ordered_line_words(single, "auto", auto=True)] == ["solo"]
+
+
+def test_vertical_direction_reaches_every_exporter():
+    page = _reading_order_page()
+    for export in (page.render, page.export_as_markdown, page.export_as_asciidoc, page.export_as_html):
+        assert isinstance(export(direction="ttb-ltr"), str)
+    assert isinstance(page.export_as_xml(direction="ttb-rtl")[0], bytes)
+
+
+def test_html_export_with_tables_and_furniture():
+    page = _table_page()
+    html = page.export_as_html()
+    assert "<table>" in html and "<th>head</th>" in html and "<td>body</td>" in html
+    assert html.index("<p>intro line</p>") < html.index("<table>")
+    # A single-row table has a header but no body
+    single = elements.Table(
+        cells=[elements.TableCell("only", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0)],
+        num_rows=1,
+        num_cols=1,
+        geometry=((0.1, 0.6), (0.4, 0.65)),
+    )
+    assert HTMLExporter().render_table(single) == "<table>\n<tr><th>only</th></tr>\n</table>"
+    # Page furniture can be dropped from the HTML export too
+    assert "Page 3 of 12" in _reading_order_page().export_as_html()
+    assert "Page 3 of 12" not in _reading_order_page().export_as_html(include_furniture=False)
+
+
+def test_render_table_with_empty_grid():
+    empty = elements.Table(cells=[], num_rows=0, num_cols=0, geometry=((0.0, 0.0), (0.0, 0.0)))
+    for exporter in (MarkdownExporter(), AsciiDocExporter(), HTMLExporter(), TextExporter()):
+        assert exporter.render_table(empty) == ""
+    # An empty table contributes nothing to the page export
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("only text", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+        tables=[empty],
+    )
+    assert page.export_as_markdown() == "only text"
+    assert page.export_as_html() == "<p>only text</p>"
+
+
+def test_text_exporter_kie_and_document():
+    predictions = {
+        CLASS_NAME: [
+            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
+            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
+        ],
+        "empty": [],
+    }
+    kie = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
+    # Classes without any prediction are skipped by every text exporter
+    assert TextExporter().export_kie_page(kie) == f"{CLASS_NAME}:\n\nfirst\nsecond"
+    assert "empty" not in MarkdownExporter().export_kie_page(kie)
+    assert "empty" not in AsciiDocExporter().export_kie_page(kie)
+    assert "empty" not in HTMLExporter().export_kie_page(kie)
+    # export_document dispatches on the page type and uses the format-specific page break
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("a page", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+    )
+    mixed = elements.Document([page, kie])
+    assert TextExporter().export_document(mixed) == f"a page\n\n\n\n{CLASS_NAME}:\n\nfirst\nsecond"
+    assert TextExporter().export_document(mixed, page_break=" // ").startswith("a page // ")
+
+
+def test_base_text_exporter_is_abstract():
+    from doctr.io.exporters import _PageTextExporter
+
+    table = elements.Table(cells=[], num_rows=0, num_cols=0, geometry=((0.0, 0.0), (0.0, 0.0)))
+    with pytest.raises(NotImplementedError):
+        _PageTextExporter().render_table(table)
+    with pytest.raises(NotImplementedError):
+        _PageTextExporter().class_header("cls")
+
+
+def test_blank_lines_are_skipped():
+    # Words recognized as empty strings must not produce an empty paragraph / list item
+    blank = elements.Block(lines=[elements.Line([_word_at("", 0.1, 0.1, 0.4, 0.15)])])
+    text = elements.Block(lines=[_line_at("real text", 0.1, 0.5, 0.9, 0.55)])
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [blank, text], 0, (1000, 800))
+    assert page.render() == "real text"
+    assert page.export_as_markdown() == "real text"
+    assert page.export_as_html() == "<p>real text</p>"
+
+
+def test_xml_export_edge_cases():
+    from doctr.io.exporters import _covering_region_indices
+
+    assert _covering_region_indices([], [((0.0, 0.0), (1.0, 1.0))]) == []
+    # Rotated geometries are rejected with an explicit error, for blocks, tables and KIE predictions alike
+    poly = np.asarray([[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]], dtype=np.float32)
+    rot_page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [
+            elements.Block(
+                lines=[elements.Line([elements.Word("rot", 0.9, poly, 0.9, {"value": 0, "confidence": None})])]
+            )
+        ],
+        0,
+        (1000, 800),
+    )
+    with pytest.raises(TypeError):
+        rot_page.export_as_xml()
+    with pytest.raises(TypeError):
+        XMLExporter().export_page(_table_page(rotated=True))
+    rot_kie = elements.KIEPage(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        {CLASS_NAME: [elements.Prediction("rot", 0.9, poly, 0.9, {"value": 0, "confidence": None})]},
+        0,
+        (1000, 800),
+    )
+    with pytest.raises(TypeError):
+        rot_kie.export_as_xml()
+    # The linearization can be opted out of: blocks first, then tables, in their stored order
+    xml = _table_page().export_as_xml(reading_order=False)[0].decode()
+    assert xml.index("intro") < xml.index(">head<")
+
+
+def test_document_forwards_reading_order_options():
+    left = elements.Block(lines=[_line_at("left col", 0.08, 0.2, 0.45, 0.23)])
+    right = elements.Block(lines=[_line_at("right col", 0.55, 0.2, 0.92, 0.23)])
+    footer = elements.Block(lines=[_line_at("Page 1 of 2", 0.4, 0.95, 0.6, 0.97)])
+    layout = [
+        elements.LayoutElement("Text", 0.98, ((0.06, 0.18), (0.48, 0.26))),
+        elements.LayoutElement("Text", 0.98, ((0.52, 0.18), (0.94, 0.26))),
+        elements.LayoutElement("Page-footer", 0.97, ((0.35, 0.94), (0.65, 0.98))),
+    ]
+    page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [right, left, footer], 0, (1000, 800), layout=layout)
+    doc = elements.Document([page, page])
+
+    assert (
+        doc.render(page_break=" || ") == "left col\n\nright col\n\nPage 1 of 2 || left col\n\nright col\n\nPage 1 of 2"
+    )
+    assert "Page 1 of 2" not in doc.render(include_furniture=False)
+    assert doc.render(block_break=" ", page_break=" || ").startswith("left col right col")
+    assert doc.export_as("text", include_furniture=False) == doc.render(include_furniture=False)
+
+    ordered = doc.export()["pages"][0]["blocks"]
+    assert [block["lines"][0]["words"][0]["value"] for block in ordered] == ["left", "right", "Page"]
+    raw = doc.export(reading_order=False)["pages"][0]["blocks"]
+    assert [block["lines"][0]["words"][0]["value"] for block in raw] == ["right", "left", "Page"]
+    assert doc.export_as("json", reading_order=False) == doc.export(reading_order=False)
+    json.dumps(doc.export(reading_order=False))
+
+
+def test_kie_document_forwards_reading_order_options():
+    predictions = {
+        CLASS_NAME: [
+            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
+            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
+        ]
+    }
+    page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
+    doc = elements.KIEDocument([page])
+    assert doc.render() == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
+    # The reading direction reaches KIEPage.render through the document
+    assert doc.render(direction="ttb-ltr") == f"{CLASS_NAME}: first\n\n{CLASS_NAME}: second"
+    assert [p["value"] for p in doc.export()["pages"][0]["predictions"][CLASS_NAME]] == ["first", "second"]
+    raw = doc.export(reading_order=False)["pages"][0]["predictions"][CLASS_NAME]
+    assert [p["value"] for p in raw] == ["second", "first"]
+    json.dumps(doc.export(reading_order=False))
+
+
+def test_every_format_is_reachable_from_a_document():
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("page text", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+    )
+    predictions = {
+        CLASS_NAME: [elements.Prediction("value", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None})]
+    }
+    kie_page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
+    formats = ("markdown", "md", "asciidoc", "adoc", "html", "text", "txt", "json", "dict", "xml", "hocr")
+
+    for element in (page, kie_page, elements.Document([page]), elements.KIEDocument([kie_page])):
+        for fmt in formats:
+            assert element.export_as(fmt) is not None
+        with pytest.raises(ValueError, match="unsupported export format"):
+            element.export_as("pptx")
+
+    # The document-level named methods carry the page break of their format
+    doc = elements.Document([page, page])
+    assert doc.export_as_html() == "<p>page text</p><hr><p>page text</p>"
+    assert doc.export_as_html(page_break="\n") == "<p>page text</p>\n<p>page text</p>"
+    assert doc.export_as_markdown().count("\n\n---\n\n") == 1
+    assert doc.export_as_asciidoc().count("\n\n<<<\n\n") == 1
+    assert len(doc.export_as_xml()) == 2
+
+    kie_doc = elements.KIEDocument([kie_page, kie_page])
+    kie_html = f"<h3>{CLASS_NAME}</h3>\n<ul>\n<li>value</li>\n</ul>"
+    assert kie_doc.export_as_html() == f"{kie_html}<hr>{kie_html}"
+    assert kie_page.export_as_html() == f"<h3>{CLASS_NAME}</h3>\n<ul>\n<li>value</li>\n</ul>"
+    assert kie_page.export_as_html(direction="rtl") == kie_page.export_as_html()

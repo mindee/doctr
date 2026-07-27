@@ -1090,11 +1090,12 @@ class KIEPageExportsMixin:
             }
         return export_dict
 
-    def render(self, prediction_break: str = "\n\n") -> str:
+    def render(self, prediction_break: str = "\n\n", direction: str = "auto") -> str:
         """Renders the full text of the page, with the predictions of each class sorted in reading order.
 
         Args:
             prediction_break: the string inserted between two predictions
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
 
         Returns:
             the text of the page, one section per detection class with its predictions in reading order
@@ -1103,7 +1104,7 @@ class KIEPageExportsMixin:
         for class_name, predictions in self.predictions.items():
             parts.extend(
                 f"{class_name}: {prediction.render()}"
-                for prediction in predictions_in_reading_order(cast("KIEPage", self), predictions)
+                for prediction in predictions_in_reading_order(cast("KIEPage", self), predictions, direction)
             )
         return prediction_break.join(parts)
 
@@ -1181,12 +1182,32 @@ class DocumentExportsMixin:
 
     if TYPE_CHECKING:  # structural attributes provided by the element class
         pages: list[Any]
+        _exported_keys: list[str]
 
-        def export(self) -> dict[str, Any]: ...
+    def render(self, page_break: str = "\n\n\n\n", **kwargs: Any) -> str:
+        """Renders the full text of the document, with the content of each page sorted in reading order.
 
-    def render(self, page_break: str = "\n\n\n\n") -> str:
-        """Renders the full text of the element"""
-        return page_break.join(p.render() for p in self.pages)
+        Args:
+            page_break: the string inserted between two pages
+            **kwargs: additional keyword arguments passed to the `Page.render` / `KIEPage.render` method
+
+        Returns:
+            the text of the document
+        """
+        return page_break.join(page.render(**kwargs) for page in self.pages)
+
+    def export(self, reading_order: bool = True) -> dict[str, Any]:
+        """Export the document into a nested dict, with the content of each page sorted in reading order.
+
+        Args:
+            reading_order: whether the content of each page should be linearized in reading order
+
+        Returns:
+            a JSON-serializable dict
+        """
+        export_dict: dict[str, Any] = {key: to_json_safe(getattr(self, key)) for key in self._exported_keys}
+        export_dict["pages"] = [page.export(reading_order=reading_order) for page in self.pages]
+        return export_dict
 
     def export_as_xml(self, **kwargs: Any) -> list[tuple[bytes, ET.ElementTree]]:
         """Export the document as XML (hOCR-format)

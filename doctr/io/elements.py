@@ -16,7 +16,7 @@ from doctr.utils.repr import NestedObject
 
 try:  # optional dependency for visualization
     from doctr.utils.visualization import visualize_kie_page, visualize_page
-except ModuleNotFoundError:
+except ModuleNotFoundError:  # pragma: no cover
     pass
 
 __all__ = [
@@ -146,8 +146,7 @@ class Artefact(Element):
 
     @classmethod
     def from_dict(cls, save_dict: dict[str, Any], **kwargs):
-        kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        return cls(**kwargs)
+        return cls(artefact_type=save_dict["type"], confidence=save_dict["confidence"], geometry=save_dict["geometry"])
 
 
 class LayoutElement(Element):
