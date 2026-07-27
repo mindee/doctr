@@ -146,8 +146,8 @@ High-performance file reading and conversion to processable structured data.
 Reading order
 -------------
 
-The reading-order-aware export of a :class:`Document` / :class:`Page` to Markdown, AsciiDoc is available
-through the ``export_as_markdown`` / ``export_as_asciidoc`` /  ``export_as_html`` / ``export_as_xml`` / ``export_as`` / ``export`` / ``render`` methods documented above, which
+The reading-order-aware export of a :class:`Document` / :class:`Page` to Markdown, AsciiDoc, HTML, or XML is available
+through the ``export_as_markdown`` / ``export_as_asciidoc`` / ``export_as_html`` / ``export_as_xml`` / ``export_as`` / ``export`` / ``render`` methods documented above, which
 delegate to the exporters of :mod:`doctr.io.exporters`.
 The underlying ordering primitives live in :mod:`doctr.models.reading_order`.
 
