@@ -151,7 +151,14 @@ through the ``export_as_markdown`` / ``export_as_asciidoc`` /  ``export_as_html`
 delegate to the exporters of :mod:`doctr.io.exporters`.
 The underlying ordering primitives live in :mod:`doctr.models.reading_order`.
 
+Every export path shares the same linearization, so ``render()``, ``export()``, ``export_as_xml()`` and the
+Markdown / AsciiDoc / HTML exports all present the content in the same order. The result is memoized on the
+page, so exporting one page to several formats orders it only once.
+
 .. currentmodule:: doctr.io
+
+.. autoclass:: TextExporter
+    :members: export_page, export_kie_page, export_document
 
 .. autoclass:: MarkdownExporter
     :members: export_page, export_kie_page, export_document
@@ -166,3 +173,7 @@ The underlying ordering primitives live in :mod:`doctr.models.reading_order`.
     :members: export_page, export_kie_page, export_document
 
 .. autofunction:: doctr.io.exporters.page_reading_order
+
+.. autofunction:: doctr.io.exporters.predictions_in_reading_order
+
+.. autofunction:: doctr.io.exporters.to_json_safe

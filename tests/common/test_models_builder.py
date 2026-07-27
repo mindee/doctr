@@ -600,10 +600,30 @@ def test_documentbuilder_keep_reading_order():
     )
 
     doc = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=True)(*args)
-    assert doc.pages[0].render(block_break=" ").split() == ["L0", "L1", "L2", "R0", "R1", "R2"]
-    # Without the flag, the blocks keep their original (interleaved) order
-    doc = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=False)(*args)
-    assert doc.pages[0].render(block_break=" ").split() != ["L0", "L1", "L2", "R0", "R1", "R2"]
+    page = doc.pages[0]
+    assert page.render(block_break=" ").split() == ["L0", "L1", "L2", "R0", "R1", "R2"]
+    # The flag reorders the stored blocks themselves
+    assert [word.value for block in page.blocks for line in block.lines for word in line.words] == [
+        "L0",
+        "L1",
+        "L2",
+        "R0",
+        "R1",
+        "R2",
+    ]
+    # Without the flag, the stored blocks keep their original (interleaved) order
+    page = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=False)(*args).pages[0]
+    assert [word.value for block in page.blocks for line in block.lines for word in line.words] != [
+        "L0",
+        "L1",
+        "L2",
+        "R0",
+        "R1",
+        "R2",
+    ]
+    assert page.render(block_break=" ").split() == ["L0", "L1", "L2", "R0", "R1", "R2"]
+    exported = [word["value"] for b in page.export()["blocks"] for ln in b["lines"] for word in ln["words"]]
+    assert exported == ["L0", "L1", "L2", "R0", "R1", "R2"]
 
     # Layout regions are used to place page furniture: the top line is labeled as a page footer -> emitted last
     boxes = np.asarray([[0.1, 0.05, 0.9, 0.1], [0.1, 0.3, 0.9, 0.4], [0.1, 0.5, 0.9, 0.6]])

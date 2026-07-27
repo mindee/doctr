@@ -24,6 +24,7 @@ __all__ = [
     "KIEPageExportsMixin",
     "MarkdownExporter",
     "PageExportsMixin",
+    "TextExporter",
     "XMLExporter",
     "page_reading_order",
 ]
@@ -34,6 +35,29 @@ def _export_as(exporters: dict[str, Any], format: str, **kwargs: Any) -> Any:
     if fmt not in exporters:
         raise ValueError(f"unsupported export format '{format}', should be one of {sorted(exporters)}")
     return exporters[fmt](**kwargs)
+
+
+def to_json_safe(value: Any) -> Any:
+    """Recursively convert NumPy containers and scalars into built-in Python types.
+
+    Args:
+        value: any exported value
+
+    Returns:
+        the same value with every NumPy array converted to nested tuples and every NumPy scalar to its
+        Python equivalent
+    """
+    if isinstance(value, np.ndarray):
+        return value.item() if value.ndim == 0 else tuple(to_json_safe(item) for item in value)
+    if isinstance(value, np.generic):  # np.float32, np.int64, np.bool_, ...
+        return value.item()
+    if isinstance(value, dict):
+        return {str(key): to_json_safe(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return tuple(to_json_safe(item) for item in value)
+    if isinstance(value, (list, set, frozenset)):
+        return [to_json_safe(item) for item in value]
+    return value
 
 
 _LIST_LABELS = {"list_item"}
@@ -83,7 +107,7 @@ def _store_reading_order(page: "Page", signature: tuple[Any, ...], result: tuple
     """Memoize a reading-order result on the page, ignoring pages that reject attribute assignment."""
     try:
         page._reading_order_cache = (signature, result)  # type: ignore[attr-defined]
-    except AttributeError:  # pragma: no cover - e.g. a __slots__ subclass
+    except AttributeError:  # pragma: no cover
         pass
 
 
@@ -143,6 +167,17 @@ def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any]
 
     items = []
     labels = []
+    line_owner = {id(line): idx for idx, block in enumerate(page.blocks) for line in block.lines}
+    pending_artefacts = {idx: list(block.artefacts) for idx, block in enumerate(page.blocks) if block.artefacts}
+
+    def _claim_artefacts(block_lines: list[Any]) -> list[Any]:
+        claimed: list[Any] = []
+        for line in block_lines:
+            owner = line_owner.get(id(line))
+            if owner is not None and owner in pending_artefacts:
+                claimed.extend(pending_artefacts.pop(owner))
+        return claimed
+
     # Region index covering each element, used to group the lines of a wrapped list item under a single bullet
     region_idx = _covering_region_indices(elt_geoms, region_geoms) if len(region_geoms) > 0 else [-1] * len(elements)
     open_list_region: int | None = None  # region of the list bullet currently being built (None outside a list)
@@ -160,15 +195,23 @@ def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any]
             for idx in segment:
                 region = region_idx[idx]
                 if open_list_region is not None and region == open_list_region and region != -1:
-                    items[-1] = Block(lines=[*items[-1].lines, elements[idx]])
+                    merged = [*items[-1].lines, elements[idx]]
+                    items[-1] = Block(lines=merged, artefacts=[*items[-1].artefacts, *_claim_artefacts([merged[-1]])])
                 else:
-                    items.append(Block(lines=[elements[idx]]))
+                    items.append(Block(lines=[elements[idx]], artefacts=_claim_artefacts([elements[idx]])))
                     labels.append(seg_label)
                     open_list_region = region
         else:
-            items.append(Block(lines=[elements[idx] for idx in segment]))
+            block_lines = [elements[idx] for idx in segment]
+            items.append(Block(lines=block_lines, artefacts=_claim_artefacts(block_lines)))
             labels.append(seg_label)
             open_list_region = None
+    # Artefacts of blocks without any line stay attached to the page
+    leftover = [artefact for artefacts in pending_artefacts.values() for artefact in artefacts]
+    if leftover:
+        last_block = next((item for item in reversed(items) if isinstance(item, Block)), None)
+        if last_block is not None:
+            last_block.artefacts = [*last_block.artefacts, *leftover]
     _store_reading_order(page, signature, (items, labels, direction))
     return items, labels, direction
 
@@ -188,6 +231,50 @@ def _line_render_direction(line: "Line", page_direction: str, auto: bool) -> str
     return detect_text_direction([word.render() for word in line.words])
 
 
+def ordered_line_words(line: "Line", direction: str = "ltr", auto: bool = False) -> list[Any]:
+    """Return the words of a line in reading order.
+
+    Args:
+        line: the line whose words should be ordered
+        direction: the reading direction resolved for the page
+        auto: whether the page direction was inferred (each line then gets its own base direction)
+
+    Returns:
+        the words of the line, ordered logically
+    """
+    direction = _line_render_direction(line, direction, auto)
+    if direction in ("ttb-rtl", "ttb-ltr"):
+        return sorted(line.words, key=lambda word: float(np.asarray(word.geometry, dtype=np.float64)[..., 1].mean()))
+    if direction == "rtl":
+        return sorted(line.words, key=lambda word: -float(np.asarray(word.geometry, dtype=np.float64)[..., 0].mean()))
+    return list(line.words)
+
+
+def predictions_in_reading_order(page: "KIEPage", predictions: list[Any], direction: str = "auto") -> list[Any]:
+    """Sort the predictions of a single KIE detection class in reading order.
+
+    Args:
+        page: the KIE page the predictions belong to (used for its dimensions and detected language)
+        predictions: the predictions of one detection class
+        direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+
+    Returns:
+        the predictions, ordered logically
+    """
+    from doctr.models.reading_order import ReadingOrderPredictor
+
+    if len(predictions) < 2:
+        return list(predictions)
+    language = page.language.get("value") if isinstance(page.language, dict) else None
+    order = ReadingOrderPredictor(direction=direction)(
+        [prediction.geometry for prediction in predictions],
+        texts=[prediction.value for prediction in predictions],
+        language=language,
+        page_shape=page.dimensions,
+    )
+    return [predictions[idx] for idx in order]
+
+
 class _PageTextExporter:
     """Shared logic of the reading-order-aware text exporters.
 
@@ -198,6 +285,7 @@ class _PageTextExporter:
 
     headings: ClassVar[dict[str, str]] = {}
     bullet: ClassVar[str] = "- "
+    block_break: ClassVar[str] = "\n\n"
     page_break: ClassVar[str] = "\n\n"
 
     def escape_text(self, text: str) -> str:
@@ -218,16 +306,16 @@ class _PageTextExporter:
 
     def _line_text(self, line: "Line", direction: str, escape: bool) -> str:
         """Render the text of a line, ordering the words according to the reading direction."""
-        words = line.words
-        if direction in ("ttb-rtl", "ttb-ltr"):
-            words = sorted(words, key=lambda word: float(np.asarray(word.geometry, dtype=np.float64)[..., 1].mean()))
-        elif direction == "rtl":
-            words = sorted(words, key=lambda word: -float(np.asarray(word.geometry, dtype=np.float64)[..., 0].mean()))
-        text = " ".join(word.render() for word in words)
+        text = " ".join(word.render() for word in ordered_line_words(line, direction))
         return self.escape_text(text) if escape else text
 
     def export_page(
-        self, page: "Page", direction: str = "auto", escape: bool = True, include_furniture: bool = True
+        self,
+        page: "Page",
+        direction: str = "auto",
+        escape: bool = True,
+        include_furniture: bool = True,
+        block_break: str | None = None,
     ) -> str:
         """Export a page, with its content sorted in reading order.
 
@@ -236,6 +324,7 @@ class _PageTextExporter:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             escape: whether the characters or markers carrying a structural meaning should be neutralized
             include_furniture: whether page headers, page footers and footnotes should be included
+            block_break: the string inserted between two blocks (the format-specific default when None)
 
         Returns:
             the exported page as a string
@@ -280,7 +369,7 @@ class _PageTextExporter:
                 _flush_list()
                 parts.append("\n".join(self.finalize_line(line) if escape else line for line in item_lines))
         _flush_list()
-        return "\n\n".join(parts)
+        return (self.block_break if block_break is None else block_break).join(parts)
 
     def export_kie_page(self, page: "KIEPage", direction: str = "auto", escape: bool = True) -> str:
         """Export a KIE page, with the predictions of each class sorted in reading order.
@@ -293,24 +382,13 @@ class _PageTextExporter:
         Returns:
             the exported page as a string, with one section per detection class
         """
-        from doctr.models.reading_order import ReadingOrderPredictor
-
-        language = page.language.get("value") if isinstance(page.language, dict) else None
-        predictor = ReadingOrderPredictor(direction=direction)
         parts: list[str] = []
         for class_name, predictions in page.predictions.items():
             if len(predictions) == 0:
                 continue
-            order = predictor(
-                [prediction.geometry for prediction in predictions],
-                texts=[prediction.value for prediction in predictions],
-                language=language,
-                page_shape=page.dimensions,
-            )
             values = "\n".join(
-                self.bullet
-                + (self.finalize_line(self.escape_text(predictions[idx].value)) if escape else predictions[idx].value)
-                for idx in order
+                self.bullet + (self.finalize_line(self.escape_text(prediction.value)) if escape else prediction.value)
+                for prediction in predictions_in_reading_order(page, predictions, direction)
             )
             parts.append(f"{self.class_header(class_name, escape)}\n\n{values}")
         return "\n\n".join(parts)
@@ -335,11 +413,31 @@ class _PageTextExporter:
         )
 
 
+class TextExporter(_PageTextExporter):
+    """Export OCR results to plain text, with the content sorted in reading order.
+
+    >>> from doctr.io import TextExporter
+    >>> text = TextExporter().export_page(page)
+    """
+
+    headings: ClassVar[dict[str, str]] = {}
+    bullet: ClassVar[str] = ""
+    block_break: ClassVar[str] = "\n\n"
+    page_break: ClassVar[str] = "\n\n\n\n"
+
+    def render_table(self, table: "Table", escape: bool = True) -> str:
+        """Render a table as tab-separated values, one line per row"""
+        return table.render()
+
+    def class_header(self, class_name: str, escape: bool = True) -> str:
+        return f"{class_name}:"
+
+
 class MarkdownExporter(_PageTextExporter):
     """Export OCR results to Markdown, with the content sorted in reading order.
 
     >>> from doctr.io import MarkdownExporter
-    >>> markdown = MarkdownExporter().export_page(page)  # doctest: +SKIP
+    >>> markdown = MarkdownExporter().export_page(page)
     """
 
     headings: ClassVar[dict[str, str]] = {"title": "# ", "section_header": "## "}
@@ -377,7 +475,7 @@ class AsciiDocExporter(_PageTextExporter):
     """Export OCR results to AsciiDoc, with the content sorted in reading order.
 
     >>> from doctr.io import AsciiDocExporter
-    >>> asciidoc = AsciiDocExporter().export_page(page)  # doctest: +SKIP
+    >>> asciidoc = AsciiDocExporter().export_page(page)
     """
 
     headings: ClassVar[dict[str, str]] = {"title": "== ", "section_header": "=== "}
@@ -428,13 +526,19 @@ class HTMLExporter(_PageTextExporter):
     """
 
     headings: ClassVar[dict[str, str]] = {"title": "h1", "section_header": "h2"}
+    block_break: ClassVar[str] = "\n"
     page_break: ClassVar[str] = "\n<hr>\n"
 
     def escape_text(self, text: str) -> str:
         return _html_escape(text, quote=False)
 
     def export_page(
-        self, page: "Page", direction: str = "auto", escape: bool = True, include_furniture: bool = True
+        self,
+        page: "Page",
+        direction: str = "auto",
+        escape: bool = True,
+        include_furniture: bool = True,
+        block_break: str | None = None,
     ) -> str:
         from doctr.io.elements import Table
         from doctr.models.reading_order import layout_label_role, normalize_layout_label
@@ -475,7 +579,7 @@ class HTMLExporter(_PageTextExporter):
                 _flush_list()
                 parts.append("<p>" + "<br>\n".join(item_lines) + "</p>")
         _flush_list()
-        return "\n".join(parts)
+        return (self.block_break if block_break is None else block_break).join(parts)
 
     def render_table(self, table: "Table", escape: bool = True) -> str:
         """Render a table as an HTML table (first row used as header)"""
@@ -492,23 +596,13 @@ class HTMLExporter(_PageTextExporter):
         return f"<table>\n{head}\n{body}\n</table>" if body else f"<table>\n{head}\n</table>"
 
     def export_kie_page(self, page: "KIEPage", direction: str = "auto", escape: bool = True) -> str:
-        from doctr.models.reading_order import ReadingOrderPredictor
-
-        language = page.language.get("value") if isinstance(page.language, dict) else None
-        predictor = ReadingOrderPredictor(direction=direction)
         parts: list[str] = []
         for class_name, predictions in page.predictions.items():
             if len(predictions) == 0:
                 continue
-            order = predictor(
-                [prediction.geometry for prediction in predictions],
-                texts=[prediction.value for prediction in predictions],
-                language=language,
-                page_shape=page.dimensions,
-            )
             values = "\n".join(
-                f"<li>{self.escape_text(predictions[idx].value) if escape else predictions[idx].value}</li>"
-                for idx in order
+                f"<li>{self.escape_text(prediction.value) if escape else prediction.value}</li>"
+                for prediction in predictions_in_reading_order(page, predictions, direction)
             )
             header = self.escape_text(class_name) if escape else class_name
             parts.append(f"<h3>{header}</h3>\n<ul>\n{values}\n</ul>")
@@ -570,19 +664,85 @@ class XMLExporter:
         SubElement(head, "meta", attrib={"name": "ocr-capabilities", "content": self.ocr_capabilities})
         return root, SubElement(root, "body")
 
-    def export_page(self, page: "Page", file_title: str = "docTR - XML export (hOCR)") -> tuple[bytes, ET.ElementTree]:
-        """Export a page as hOCR XML.
+    def _add_table(self, page_div: ETElement, table: "Table", width: int, height: int, table_count: int) -> int:
+        """Serialize a recognized table as an hOCR text area, with one `ocr_line` per row.
+
+        Args:
+            page_div: the `ocr_page` element the table is appended to
+            table: the table to serialize
+            width: the page width in pixels
+            height: the page height in pixels
+            table_count: the 1-based index of the table on the page
+
+        Returns:
+            the index of the next table
+        """
+        if len(table.geometry) != 2 or any(len(cell.geometry) != 2 for cell in table.cells):
+            raise TypeError("XML export is only available for straight bounding boxes for now.")
+        table_bbox = _hocr_bbox(table.geometry, width, height)  # type: ignore[arg-type]
+        table_div = SubElement(
+            page_div, "div", attrib={"class": "ocr_carea", "id": f"table_{table_count}", "title": table_bbox}
+        )
+        paragraph = SubElement(
+            table_div, "p", attrib={"class": "ocr_par", "id": f"table_par_{table_count}", "title": table_bbox}
+        )
+        rows: dict[int, list[Any]] = {}
+        for cell in table.cells:
+            rows.setdefault(cell.row_start, []).append(cell)
+        for row_idx in sorted(rows):
+            cells = sorted(rows[row_idx], key=lambda cell: cell.col_start)
+            xs = [coord for cell in cells for coord in (cell.geometry[0][0], cell.geometry[1][0])]
+            ys = [coord for cell in cells for coord in (cell.geometry[0][1], cell.geometry[1][1])]
+            row_bbox = _hocr_bbox(((min(xs), min(ys)), (max(xs), max(ys))), width, height)  # type: ignore[arg-type]
+            line_span = SubElement(
+                paragraph,
+                "span",
+                attrib={
+                    "class": "ocr_line",
+                    "id": f"table_{table_count}_row_{row_idx + 1}",
+                    "title": f"{row_bbox}; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0",
+                },
+            )
+            for col_idx, cell in enumerate(cells):
+                cell_span = SubElement(
+                    line_span,
+                    "span",
+                    attrib={
+                        "class": "ocrx_word",
+                        "id": f"table_{table_count}_cell_{row_idx + 1}_{col_idx + 1}",
+                        "title": (
+                            f"{_hocr_bbox(cell.geometry, width, height)}; x_wconf {int(round(cell.confidence * 100))}"  # type: ignore[arg-type]
+                        ),
+                    },
+                )
+                cell_span.text = cell.value
+        return table_count + 1
+
+    def export_page(
+        self,
+        page: "Page",
+        file_title: str = "docTR - XML export (hOCR)",
+        direction: str = "auto",
+        reading_order: bool = True,
+    ) -> tuple[bytes, ET.ElementTree]:
+        """Export a page as hOCR XML, with its content sorted in reading order.
 
         Args:
             page: the page to export
             file_title: the title of the XML file
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            reading_order: whether the content should be linearized in reading order. Pass False to serialize
+                `page.blocks` then `page.tables` in their raw order.
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
         """
+        from doctr.io.elements import Table
+
         block_count: int = 1
         line_count: int = 1
         word_count: int = 1
+        table_count: int = 1
         height, width = page.dimensions
         page_hocr, body = self._new_document(file_title, _resolve_hocr_language(page.language))
         page_div = SubElement(
@@ -594,8 +754,17 @@ class XMLExporter:
                 "title": f"image; bbox 0 0 {width} {height}; ppageno 0",
             },
         )
+        auto = direction == "auto"
+        if reading_order:
+            items, _, direction = page_reading_order(page, direction)
+        else:
+            items = [*page.blocks, *page.tables]
         # iterate over the blocks / lines / words and create the XML elements line by line with the attributes
-        for block in page.blocks:
+        for item in items:
+            if isinstance(item, Table):
+                table_count = self._add_table(page_div, item, width, height, table_count)
+                continue
+            block = item
             if len(block.geometry) != 2:
                 raise TypeError("XML export is only available for straight bounding boxes for now.")
             block_bbox = _hocr_bbox(block.geometry, width, height)  # type: ignore[arg-type]
@@ -625,7 +794,7 @@ class XMLExporter:
                     },
                 )
                 line_count += 1
-                for word in line.words:
+                for word in ordered_line_words(line, direction, auto):
                     word_div = SubElement(
                         line_span,
                         "span",
@@ -643,13 +812,19 @@ class XMLExporter:
         return ET.tostring(page_hocr, encoding="utf-8", method="xml"), ET.ElementTree(page_hocr)
 
     def export_kie_page(
-        self, page: "KIEPage", file_title: str = "docTR - XML export (hOCR)"
+        self,
+        page: "KIEPage",
+        file_title: str = "docTR - XML export (hOCR)",
+        direction: str = "auto",
+        reading_order: bool = True,
     ) -> tuple[bytes, ET.ElementTree]:
-        """Export a KIE page as hOCR XML.
+        """Export a KIE page as hOCR XML, with the predictions of each class sorted in reading order.
 
         Args:
             page: the KIE page to export
             file_title: the title of the XML file
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            reading_order: whether the predictions of each class should be sorted in reading order
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
@@ -668,7 +843,8 @@ class XMLExporter:
         )
         # iterate over the predictions and create the XML elements line by line with the attributes
         for class_name, predictions in page.predictions.items():
-            for prediction in predictions:
+            ordered = predictions_in_reading_order(page, predictions, direction) if reading_order else predictions
+            for prediction in ordered:
                 if len(prediction.geometry) != 2:
                     raise TypeError("XML export is only available for straight bounding boxes for now.")
                 prediction_bbox = _hocr_bbox(prediction.geometry, width, height)  # type: ignore[arg-type]
@@ -745,30 +921,60 @@ class PageExportsMixin:
         layout: list[Any]
         tables: list["Table"]
 
-        def export(self) -> dict[str, Any]: ...
-
-    def render(self, block_break: str = "\n\n") -> str:
-        """Renders the full text of the page.
+    def render(self, block_break: str = "\n\n", direction: str = "auto", include_furniture: bool = True) -> str:
+        """Renders the full text of the page, with its content sorted in reading order.
 
         Args:
             block_break: the string inserted between two blocks
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            include_furniture: whether page headers, page footers and footnotes should be included
 
         Returns:
             the text of the page
         """
-        return block_break.join(block.render() for block in self.blocks)
+        return TextExporter().export_page(
+            cast("Page", self), direction=direction, include_furniture=include_furniture, block_break=block_break
+        )
 
-    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> tuple[bytes, ET.ElementTree]:
-        """Export the page as XML (hOCR-format)
+    def export(self, reading_order: bool = True) -> dict[str, Any]:
+        """Export the page into a nested dict, with its content sorted in reading order.
+
+        Args:
+            reading_order: whether the blocks should be linearized in reading order, exactly like the
+                Markdown / HTML / AsciiDoc / hOCR exports. Pass False to serialize `page.blocks` as stored.
+
+        Returns:
+            a JSON-serializable dict
+        """
+        from doctr.io.elements import Element, Table
+
+        export_dict = Element.export(cast("Element", self))
+        if reading_order:
+            blocks = [item for item in page_reading_order(cast("Page", self))[0] if not isinstance(item, Table)]
+            if blocks:  # an empty linearization (no line on the page) leaves the stored blocks untouched
+                export_dict["blocks"] = [block.export() for block in blocks]
+        return export_dict
+
+    def export_as_xml(
+        self,
+        file_title: str = "docTR - XML export (hOCR)",
+        direction: str = "auto",
+        reading_order: bool = True,
+    ) -> tuple[bytes, ET.ElementTree]:
+        """Export the page as XML (hOCR-format), with its content sorted in reading order
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
         Args:
             file_title: the title of the XML file
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            reading_order: whether the content should be linearized in reading order
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
         """
-        return XMLExporter().export_page(cast("Page", self), file_title=file_title)
+        return XMLExporter().export_page(
+            cast("Page", self), file_title=file_title, direction=direction, reading_order=reading_order
+        )
 
     def items_in_reading_order(self, direction: str = "auto") -> list["Block | Table"]:
         """Return the content of the page (blocks & tables) sorted in reading order.
@@ -862,7 +1068,27 @@ class KIEPageExportsMixin:
         orientation: dict[str, Any]
         language: dict[str, Any]
 
-        def export(self) -> dict[str, Any]: ...
+    def export(self, reading_order: bool = True) -> dict[str, Any]:
+        """Export the KIE page into a nested dict, with the predictions of each class in reading order.
+
+        Args:
+            reading_order: whether the predictions of each class should be sorted in reading order
+
+        Returns:
+            a JSON-serializable dict
+        """
+        from doctr.io.elements import Element
+
+        export_dict = Element.export(cast("Element", self))
+        if reading_order:
+            export_dict["predictions"] = {
+                class_name: [
+                    prediction.export()
+                    for prediction in predictions_in_reading_order(cast("KIEPage", self), predictions)
+                ]
+                for class_name, predictions in self.predictions.items()
+            }
+        return export_dict
 
     def render(self, prediction_break: str = "\n\n") -> str:
         """Renders the full text of the page, with the predictions of each class sorted in reading order.
@@ -873,35 +1099,34 @@ class KIEPageExportsMixin:
         Returns:
             the text of the page, one section per detection class with its predictions in reading order
         """
-        from doctr.models.reading_order import ReadingOrderPredictor
-
-        predictor = ReadingOrderPredictor()
-        language = self.language.get("value") if isinstance(self.language, dict) else None
         parts: list[str] = []
         for class_name, predictions in self.predictions.items():
-            ordered = predictions
-            if len(ordered) > 1:
-                order = predictor(
-                    [prediction.geometry for prediction in ordered],
-                    texts=[prediction.value for prediction in ordered],
-                    language=language,
-                    page_shape=self.dimensions,
-                )
-                ordered = [ordered[idx] for idx in order]
-            parts.extend(f"{class_name}: {prediction.render()}" for prediction in ordered)
+            parts.extend(
+                f"{class_name}: {prediction.render()}"
+                for prediction in predictions_in_reading_order(cast("KIEPage", self), predictions)
+            )
         return prediction_break.join(parts)
 
-    def export_as_xml(self, file_title: str = "docTR - XML export (hOCR)") -> tuple[bytes, ET.ElementTree]:
-        """Export the page as XML (hOCR-format)
+    def export_as_xml(
+        self,
+        file_title: str = "docTR - XML export (hOCR)",
+        direction: str = "auto",
+        reading_order: bool = True,
+    ) -> tuple[bytes, ET.ElementTree]:
+        """Export the page as XML (hOCR-format), with the predictions of each class in reading order
         convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md
 
         Args:
             file_title: the title of the XML file
+            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            reading_order: whether the predictions of each class should be sorted in reading order
 
         Returns:
             a tuple of the XML byte string, and its ElementTree
         """
-        return XMLExporter().export_kie_page(cast("KIEPage", self), file_title=file_title)
+        return XMLExporter().export_kie_page(
+            cast("KIEPage", self), file_title=file_title, direction=direction, reading_order=reading_order
+        )
 
     def export_as_markdown(self, direction: str = "auto", escape: bool = True) -> str:
         """Export the KIE page as Markdown, with the predictions of each class sorted in reading order.

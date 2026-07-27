@@ -380,18 +380,160 @@ def test_export_mixins_carry_full_api():
         page.export_as("pptx")
 
 
-def test_page_render_preserves_block_order():
+def test_page_render():
     left = elements.Block(
         lines=[_line_at("left top", 0.08, 0.1, 0.45, 0.13), _line_at("left low", 0.08, 0.2, 0.45, 0.23)]
     )
     right = elements.Block(
         lines=[_line_at("right top", 0.55, 0.1, 0.92, 0.13), _line_at("right low", 0.55, 0.2, 0.92, 0.23)]
     )
+    # The blocks are stored right-first, but render() linearizes them like the other exporters
     page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [right, left], 0, (1000, 800))
-    assert page.render() == "right top\nright low\n\nleft top\nleft low"
+    assert page.render() == "left top\n\nleft low\n\nright top\n\nright low"
+    assert page.render(block_break=" | ") == "left top | left low | right top | right low"
     # Single-block and empty pages
-    assert elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [left], 0, (1000, 800)).render() == "left top\nleft low"
+    single = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [left], 0, (1000, 800))
+    assert single.render(block_break=" | ") == "left top | left low"
     assert elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [], 0, (1000, 800)).render() == ""
+
+
+def test_page_render_includes_tables_and_furniture_flag():
+    page = _reading_order_page()
+    assert page.render().splitlines()[0] == "A Two Column Study"
+    assert "Page 3 of 12" in page.render()
+    # Page furniture can be dropped, exactly like in the Markdown / HTML exports
+    assert "Page 3 of 12" not in page.render(include_furniture=False)
+    # Recognized tables are part of the plain text render
+    cells = [
+        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
+        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
+    ]
+    table = elements.Table(cells=cells, num_rows=2, num_cols=1, geometry=((0.1, 0.6), (0.4, 0.71)))
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+        tables=[table],
+    )
+    assert page.render() == "intro line\n\nhead\nbody"
+
+
+def test_export_is_json_serializable():
+    import json
+
+    # Straight boxes built from a detection array carry np.float32 coordinates
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [
+            elements.Block(
+                lines=[
+                    elements.Line([
+                        elements.Word(
+                            "np",
+                            np.float32(0.9),
+                            ((np.float32(0.1), np.float32(0.1)), (np.float32(0.4), np.float32(0.2))),
+                            np.float32(0.8),
+                            {"value": np.int64(0), "confidence": None},
+                        )
+                    ])
+                ]
+            )
+        ],
+        np.int64(0),
+        (np.int64(1000), np.int64(800)),
+        {"value": np.float32(0.0), "confidence": np.float32(1.0)},
+    )
+    exported = page.export()
+    assert json.loads(json.dumps(exported)) is not None
+    word = exported["blocks"][0]["lines"][0]["words"][0]
+    assert [coord for point in word["geometry"] for coord in point] == pytest.approx([0.1, 0.1, 0.4, 0.2])
+    assert all(type(coord) is float for point in word["geometry"] for coord in point)
+    assert type(word["confidence"]) is float and type(word["objectness_score"]) is float
+    assert type(word["crop_orientation"]["value"]) is int
+    assert exported["page_idx"] == 0 and type(exported["page_idx"]) is int
+    assert exported["dimensions"] == (1000, 800) and all(type(dim) is int for dim in exported["dimensions"])
+    # Rotated lines / blocks expose their geometry as a numpy array, exported as nested tuples
+    poly = np.asarray([[0.1, 0.1], [0.4, 0.1], [0.4, 0.2], [0.1, 0.2]], dtype=np.float32)
+    rot_word = elements.Word("rot", 0.9, poly, 0.8, {"value": 0, "confidence": None})
+    rot_page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[elements.Line([rot_word])])],
+        0,
+        (1000, 800),
+    )
+    assert isinstance(rot_page.blocks[0].geometry, np.ndarray)  # untouched in memory
+    rot_export = rot_page.export()
+    assert isinstance(rot_export["blocks"][0]["geometry"], tuple)
+    json.dumps(rot_export)
+    # ... and a whole document round-trips through JSON
+    doc = elements.Document([page, rot_page])
+    assert elements.Document.from_dict(json.loads(json.dumps(doc.export()))) is not None
+
+
+def test_export():
+    page = _reading_order_page()
+    rendered = [
+        " ".join(word["value"] for line in block["lines"] for word in line["words"])
+        for block in page.export()["blocks"]
+    ]
+    assert rendered[0] == "A Two Column Study"
+    assert rendered[-1] == "Page 3 of 12"
+    assert rendered.index("left line 0 left line 1 left line 2") < rendered.index(
+        "right line 0 right line 1 right line 2"
+    )
+    # The linearization can be opted out of
+    raw = page.export(reading_order=False)["blocks"]
+    assert len(raw) == 1 and len(raw[0]["lines"]) == 9
+    # Artefacts survive the regrouping
+    artefact = elements.Artefact("qr_code", 0.9, ((0.1, 0.8), (0.2, 0.9)))
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("a line", 0.1, 0.1, 0.9, 0.15)], artefacts=[artefact])],
+        0,
+        (1000, 800),
+    )
+    assert page.export()["blocks"][0]["artefacts"] == [artefact.export()]
+
+
+def test_xml_export():
+    import re
+
+    page = _reading_order_page()
+    xml = page.export_as_xml()[0].decode()
+    words = re.findall(r'class="ocrx_word"[^>]*>([^<]*)<', xml)
+    assert words[:4] == ["A", "Two", "Column", "Study"]
+    assert words[-4:] == ["Page", "3", "of", "12"]
+    assert words.index("left") < words.index("right")
+    # Recognized tables are serialized as an hOCR text area (they used to be dropped)
+    cells = [
+        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
+        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
+    ]
+    table = elements.Table(cells=cells, num_rows=2, num_cols=1, geometry=((0.1, 0.6), (0.4, 0.71)))
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+        tables=[table],
+    )
+    xml = page.export_as_xml()[0].decode()
+    assert 'id="table_1"' in xml and ">head<" in xml and ">body<" in xml
+
+
+def test_kie_page_export():
+    predictions = {
+        CLASS_NAME: [
+            elements.Prediction("second", 0.9, ((0.1, 0.5), (0.9, 0.6)), 0.9, {"value": 0, "confidence": None}),
+            elements.Prediction("first", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None}),
+        ]
+    }
+    page = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
+    assert [p["value"] for p in page.export()["predictions"][CLASS_NAME]] == ["first", "second"]
+    assert [p["value"] for p in page.export(reading_order=False)["predictions"][CLASS_NAME]] == ["second", "first"]
+    xml = page.export_as_xml()[0].decode()
+    assert xml.index(">first<") < xml.index(">second<")
 
 
 def test_kie_page_render_keeps_reading_order():

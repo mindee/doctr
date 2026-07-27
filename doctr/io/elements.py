@@ -8,7 +8,7 @@ from typing import Any
 import numpy as np
 
 from doctr.file_utils import requires_package
-from doctr.io.exporters import DocumentExportsMixin, KIEPageExportsMixin, PageExportsMixin
+from doctr.io.exporters import DocumentExportsMixin, KIEPageExportsMixin, PageExportsMixin, to_json_safe
 from doctr.utils.common_types import BoundingBox
 from doctr.utils.geometry import resolve_enclosing_bbox, resolve_enclosing_rbbox
 from doctr.utils.reconstitution import synthesize_kie_page, synthesize_page
@@ -36,6 +36,11 @@ __all__ = [
 ]
 
 
+def _empty_page_image(page: np.ndarray | None) -> np.ndarray:
+    """Return the given page image, or an empty placeholder when the page was restored from an export."""
+    return page if page is not None else np.zeros((0, 0, 3), dtype=np.uint8)
+
+
 class Element(NestedObject):
     """Implements an abstract document element with exporting and text rendering capabilities"""
 
@@ -51,7 +56,7 @@ class Element(NestedObject):
 
     def export(self) -> dict[str, Any]:
         """Exports the object into a nested dict format"""
-        export_dict = {k: getattr(self, k) for k in self._exported_keys}
+        export_dict = {k: to_json_safe(getattr(self, k)) for k in self._exported_keys}
         for children_name in self._children_names:
             if children_name in ["predictions"]:
                 export_dict[children_name] = {
@@ -497,14 +502,15 @@ class Page(PageExportsMixin, Element):
         return synthesize_page(self.export(), **kwargs)
 
     @classmethod
-    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
-        kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({
+    def from_dict(cls, save_dict: dict[str, Any], page: np.ndarray | None = None, **kwargs):
+        _kwargs: dict[str, Any] = {k: save_dict[k] for k in cls._exported_keys}
+        _kwargs.update({
             "blocks": [Block.from_dict(block_dict) for block_dict in save_dict["blocks"]],
             "layout": [LayoutElement.from_dict(region_dict) for region_dict in save_dict.get("layout", [])],
             "tables": [Table.from_dict(table_dict) for table_dict in save_dict.get("tables", [])],
         })
-        return cls(**kwargs)
+        # The page image is not part of the export: pass it back explicitly to restore a fully usable page
+        return cls(page=_empty_page_image(page), **_kwargs)
 
 
 class KIEPage(KIEPageExportsMixin, Element):
@@ -579,16 +585,17 @@ class KIEPage(KIEPageExportsMixin, Element):
         return synthesize_kie_page(self.export(), **kwargs)
 
     @classmethod
-    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
-        kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({
+    def from_dict(cls, save_dict: dict[str, Any], page: np.ndarray | None = None, **kwargs):
+        _kwargs: dict[str, Any] = {k: save_dict[k] for k in cls._exported_keys}
+        _kwargs.update({
             "predictions": {
                 class_name: [Prediction.from_dict(pred) for pred in preds]
                 for class_name, preds in save_dict["predictions"].items()
             },
             "layout": [LayoutElement.from_dict(region_dict) for region_dict in save_dict.get("layout", [])],
         })
-        return cls(**kwargs)
+        # The page image is not part of the export: pass it back explicitly to restore a fully usable page
+        return cls(page=_empty_page_image(page), **_kwargs)
 
 
 class Document(DocumentExportsMixin, Element):
@@ -623,11 +630,18 @@ class Document(DocumentExportsMixin, Element):
         """
         return [page.synthesize(**kwargs) for page in self.pages]
 
+    _page_cls: Any = Page
+
     @classmethod
-    def from_dict(cls, save_dict: dict[str, Any], **kwargs):
-        kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        kwargs.update({"pages": [Page.from_dict(page_dict) for page_dict in save_dict["pages"]]})
-        return cls(**kwargs)
+    def from_dict(cls, save_dict: dict[str, Any], pages: list[np.ndarray] | None = None, **kwargs):
+        _kwargs: dict[str, Any] = {k: save_dict[k] for k in cls._exported_keys}
+        _kwargs.update({
+            "pages": [
+                cls._page_cls.from_dict(page_dict, page=None if pages is None else pages[idx])
+                for idx, page_dict in enumerate(save_dict["pages"])
+            ]
+        })
+        return cls(**_kwargs)
 
 
 class KIEDocument(Document):
@@ -638,6 +652,7 @@ class KIEDocument(Document):
     """
 
     _children_names: list[str] = ["pages"]
+    _page_cls: Any = KIEPage
     pages: list[KIEPage] = []  # type: ignore[assignment]
 
     def __init__(

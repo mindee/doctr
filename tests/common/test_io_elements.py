@@ -1,3 +1,4 @@
+import json
 from xml.etree.ElementTree import ElementTree
 
 import numpy as np
@@ -453,10 +454,10 @@ def test_page():
     assert page.language == language
 
     # Render
-    assert page.render() == "hello world\nhello world\n\nhello world\nhello world"
+    assert page.render() == "hello world\n\nhello world\n\nhello world\n\nhello world"
 
-    # Export
-    assert page.export() == {
+    # Export - `reading_order=False` serializes the blocks exactly as stored
+    assert page.export(reading_order=False) == {
         "blocks": [b.export() for b in blocks],
         "page_idx": page_idx,
         "dimensions": page_size,
@@ -465,6 +466,7 @@ def test_page():
         "layout": [r.export() for r in layout],
         "tables": [],
     }
+    assert json.dumps(page.export()) and json.dumps(page.export(reading_order=False))
 
     # Export XML
     xml_bytes, xml_tree = page.export_as_xml()
@@ -570,11 +572,12 @@ def test_document():
     assert all(isinstance(p, elements.Page) for p in doc.pages)
 
     # Render
-    page_export = "hello world\nhello world\n\nhello world\nhello world"
+    page_export = "hello world\n\nhello world\n\nhello world\n\nhello world"
     assert doc.render() == f"{page_export}\n\n\n\n{page_export}"
 
     # Export
     assert doc.export() == {"pages": [p.export() for p in pages]}
+    assert json.dumps(doc.export())  # a full document export can be written to a JSON file as is
 
     # Export XML
     xml_output = doc.export_as_xml()
