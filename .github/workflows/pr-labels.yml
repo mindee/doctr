@@ -19,7 +19,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
       - name: Set up python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
       - name: Install requests
         run: pip install requests
       - name: Process commit and find merger responsible for labeling
