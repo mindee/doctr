@@ -149,7 +149,9 @@ def set_device_and_dtype(
     Returns:
         the model and batches set
     """
-    model = model.to(device=device, dtype=dtype)
+    first = next(model.parameters(), None)
+    if first is None or first.device != torch.device(device) or first.dtype != dtype:
+        model = model.to(device=device, dtype=dtype)
     if isinstance(batches, tuple):
         return model, [
             (img.to(device=device, dtype=dtype), mask.to(device=device, dtype=torch.bool))

@@ -243,7 +243,7 @@ class _DBNet:
         ys: np.ndarray = np.broadcast_to(np.linspace(0, height - 1, num=height).reshape(height, 1), (height, width))
 
         # Compute distance map to fill the padded polygon
-        distance_map = np.zeros((polygon.shape[0], height, width), dtype=polygon.dtype)
+        distance_map = np.zeros((polygon.shape[0], height, width), dtype=np.float32)
         for i in range(polygon.shape[0]):
             j = (i + 1) % polygon.shape[0]
             absolute_distance = self.compute_distance(xs, ys, polygon[i], polygon[j])
