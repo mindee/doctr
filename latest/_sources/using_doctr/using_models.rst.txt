@@ -506,7 +506,8 @@ The same approach applies to all standalone predictors:
 * `layout_predictor`
 
 Just create the predictor instance and move it to the appropriate device.
-To enable **half-precision inference**, you can append `.half()` after moving the predictor to the device.
+To enable **half-precision inference**, append `.bfloat16()` after moving the predictor to the
+device -- or `.half()` for FP16, though BF16 is preferred (see :ref:`half-precision` for details)
 
 
 What should I do with the output?

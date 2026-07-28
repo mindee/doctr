@@ -1004,7 +1004,8 @@ Explanations about the metrics being used are available in <a class="reference i
 <li><p><cite>layout_predictor</cite></p></li>
 </ul>
 <p>Just create the predictor instance and move it to the appropriate device.
-To enable <strong>half-precision inference</strong>, you can append <cite>.half()</cite> after moving the predictor to the device.</p>
+To enable <strong>half-precision inference</strong>, append <cite>.bfloat16()</cite> after moving the predictor to the
+device – or <cite>.half()</cite> for FP16, though BF16 is preferred (see <a class="reference internal" href="using_model_export.html#half-precision"><span class="std std-ref">Half-precision</span></a> for details)</p>
 </section>
 <section id="what-should-i-do-with-the-output">
 <h3>What should I do with the output?<a class="headerlink" href="#what-should-i-do-with-the-output" title="Link to this heading">¶</a></h3>
