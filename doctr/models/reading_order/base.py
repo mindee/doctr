@@ -8,6 +8,8 @@ from collections.abc import Iterable, Sequence
 from typing import Any
 
 import numpy as np
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
 
 from doctr.utils.geometry import estimate_page_angle, order_points
 from doctr.utils.repr import NestedObject
@@ -223,23 +225,12 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     # the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.
     page_width = float(x1.max() - x0.min()) or 1.0
     spanning = (x1 - x0) > 0.5 * page_width
-    parent = np.arange(num_boxes)
-
-    def _find(node: int) -> int:
-        while parent[node] != node:
-            parent[node] = parent[parent[node]]
-            node = int(parent[node])
-        return node
 
     # Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once
     col_edges = np.triu(x_linked, 1)
     col_edges &= ~spanning[:, None]
     col_edges &= ~spanning[None, :]
-    for i, j in np.argwhere(col_edges):
-        ri, rj = _find(int(i)), _find(int(j))
-        if ri != rj:
-            parent[ri] = rj
-    component = np.array([_find(i) for i in range(num_boxes)])
+    component = connected_components(csr_matrix(col_edges), directed=False, return_labels=True)[1]
 
     # Detect whether the page is multi-column: if a vertical line can be drawn that separates the boxes into two
     # groups with a small number of crossing boxes, the page is considered multi-column. This is used to

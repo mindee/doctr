@@ -110,7 +110,7 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         if self.detect_orientation or self.straighten_pages:
             loc_preds, out_maps = self.det_predictor(det_pages, return_maps=True, **kwargs)
             bin_thresh = getattr(self.det_predictor.model.postprocessor, "bin_thresh")
-            seg_maps = [((out_map > bin_thresh) * 255).astype(np.uint8) for out_map in out_maps]
+            seg_maps = [((out_map > bin_thresh).astype(np.uint8) * 255) for out_map in out_maps]
         else:
             loc_preds = self.det_predictor(det_pages, **kwargs)
 
