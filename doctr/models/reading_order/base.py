@@ -225,13 +225,6 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     # the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.
     page_width = float(x1.max() - x0.min()) or 1.0
     spanning = (x1 - x0) > 0.5 * page_width
-    parent = np.arange(num_boxes)
-
-    def _find(node: int) -> int:
-        while parent[node] != node:
-            parent[node] = parent[parent[node]]
-            node = int(parent[node])
-        return node
 
     # Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once
     col_edges = np.triu(x_linked, 1)
