@@ -221,11 +221,12 @@ class MultiScaleDeformableAttention(nn.Module):
                 .flatten(2)
                 .transpose(1, 2)
                 .reshape(batch_size * num_heads, hidden_dim, height, width)
+                .contiguous()
             )
             # batch_size, num_queries, num_heads, num_points, 2
             # -> batch_size, num_heads, num_queries, num_points, 2
             # -> batch_size*num_heads, num_queries, num_points, 2
-            sampling_grid_l_ = sampling_grids[:, :, :, level_id].transpose(1, 2).flatten(0, 1)
+            sampling_grid_l_ = sampling_grids[:, :, :, level_id].transpose(1, 2).flatten(0, 1).contiguous()
             # batch_size*num_heads, hidden_dim, num_queries, num_points
             sampling_value_l_ = nn.functional.grid_sample(
                 value_l_,

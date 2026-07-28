@@ -56,7 +56,8 @@ class OrientationPredictor(nn.Module):
         predicted_batches = [self.model(batch) for batch in processed_batches]
         # confidence
         probs = [
-            torch.max(torch.softmax(batch, dim=1), dim=1).values.cpu().detach().numpy() for batch in predicted_batches
+            torch.max(torch.softmax(batch.float(), dim=1), dim=1).values.cpu().detach().numpy()
+            for batch in predicted_batches
         ]
         # Postprocess predictions
         predicted_batches = [out_batch.argmax(dim=1).cpu().detach().numpy() for out_batch in predicted_batches]

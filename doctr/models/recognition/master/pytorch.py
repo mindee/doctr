@@ -249,6 +249,8 @@ class MASTER(_MASTER, nn.Module):
             output = self.decoder(ys, encoded, source_mask, target_mask)
             # update ys with the next token and ignore the first token (SOS)
             ys[:, i + 1] = self.linear(output[:, i]).argmax(-1)
+            if (ys == self.vocab_size).any(dim=-1).all():  # every sequence has emitted EOS
+                break
 
         # Shape (N, max_length, vocab_size + 1)
         return self.linear(output)

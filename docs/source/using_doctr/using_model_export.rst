@@ -11,18 +11,28 @@ Model optimization
 
 This section is meant to help you perform inference with optimized versions of your model.
 
+.. _half-precision:
+
 
 Half-precision
 ^^^^^^^^^^^^^^
 
 **NOTE:** We support half-precision inference for PyTorch models only on **GPU devices**.
 
-Half-precision (or FP16) is a binary floating-point format that occupies 16 bits in computer memory.
+Half-precision formats occupy 16 bits in computer memory instead of the 32 bits used by
+single-precision (FP32). Two formats are supported:
+
+- **BF16** (``bfloat16``): keeps the same exponent range as FP32 with a reduced mantissa.
+- **FP16** (``float16``): higher precision than BF16, but a much narrower dynamic range.
 
 Advantages:
 
 - Faster inference
 - Less memory usage
+
+We recommend **BF16 over FP16**. Because it retains the full FP32 exponent range, BF16 is far
+less prone to overflow and underflow. BF16 requires an Ampere-generation GPU or newer
+(compute capability 8.0+); on older hardware, use FP16 instead.
 
 .. code:: python3
 
@@ -31,7 +41,7 @@ Advantages:
         reco_arch="crnn_mobilenet_v3_small",
         det_arch="linknet_resnet34",
         pretrained=True
-    ).cuda().half()
+    ).cuda().bfloat16()  # or .half() for FP16
     res = predictor(doc)
 
 
