@@ -97,7 +97,7 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             loc_preds, out_maps = self.det_predictor(det_pages, return_maps=True, **kwargs)
             bin_thresh = kwargs.get("bin_thresh", getattr(self.det_predictor.model.postprocessor, "bin_thresh", 0.3))
             seg_maps = [
-                ((np.expand_dims(np.amax(out_map, axis=-1), axis=-1) > bin_thresh) * 255).astype(np.uint8)
+                ((np.expand_dims(np.amax(out_map, axis=-1), axis=-1) > bin_thresh).astype(np.uint8) * 255)
                 for out_map in out_maps
             ]
         else:
