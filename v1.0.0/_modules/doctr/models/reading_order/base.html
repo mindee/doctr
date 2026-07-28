@@ -300,6 +300,8 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse.csgraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">connected_components</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">estimate_page_angle</span><span class="p">,</span> <span class="n">order_points</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.repr</span><span class="w"> </span><span class="kn">import</span> <span class="n">NestedObject</span>
@@ -518,23 +520,12 @@
     <span class="c1"># the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.</span>
     <span class="n">page_width</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">-</span> <span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">())</span> <span class="ow">or</span> <span class="mf">1.0</span>
     <span class="n">spanning</span> <span class="o">=</span> <span class="p">(</span><span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">page_width</span>
-    <span class="n">parent</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">_find</span><span class="p">(</span><span class="n">node</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-        <span class="k">while</span> <span class="n">parent</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">!=</span> <span class="n">node</span><span class="p">:</span>
-            <span class="n">parent</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent</span><span class="p">[</span><span class="n">parent</span><span class="p">[</span><span class="n">node</span><span class="p">]]</span>
-            <span class="n">node</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parent</span><span class="p">[</span><span class="n">node</span><span class="p">])</span>
-        <span class="k">return</span> <span class="n">node</span>
 
     <span class="c1"># Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once</span>
     <span class="n">col_edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">triu</span><span class="p">(</span><span class="n">x_linked</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">col_edges</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">spanning</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
     <span class="n">col_edges</span> <span class="o">&amp;=</span> <span class="o">~</span><span class="n">spanning</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argwhere</span><span class="p">(</span><span class="n">col_edges</span><span class="p">):</span>
-        <span class="n">ri</span><span class="p">,</span> <span class="n">rj</span> <span class="o">=</span> <span class="n">_find</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)),</span> <span class="n">_find</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">ri</span> <span class="o">!=</span> <span class="n">rj</span><span class="p">:</span>
-            <span class="n">parent</span><span class="p">[</span><span class="n">ri</span><span class="p">]</span> <span class="o">=</span> <span class="n">rj</span>
-    <span class="n">component</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">_find</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">)])</span>
+    <span class="n">component</span> <span class="o">=</span> <span class="n">connected_components</span><span class="p">(</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">col_edges</span><span class="p">),</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">return_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="c1"># Detect whether the page is multi-column: if a vertical line can be drawn that separates the boxes into two</span>
     <span class="c1"># groups with a small number of crossing boxes, the page is considered multi-column. This is used to</span>
