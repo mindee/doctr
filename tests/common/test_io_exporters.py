@@ -1,5 +1,6 @@
 import json
 
+import cv2
 import numpy as np
 import pytest
 
@@ -15,6 +16,7 @@ from doctr.io.exporters import (
     page_reading_order,
     to_json_safe,
 )
+from doctr.io.figures import FigureEncoder
 
 
 def _word_at(text, x0, y0, x1, y1):
@@ -873,3 +875,138 @@ def test_every_format_is_reachable_from_a_document():
     assert kie_doc.export_as_html() == f"{kie_html}<hr>{kie_html}"
     assert kie_page.export_as_html() == f"<h3>{CLASS_NAME}</h3>\n<ul>\n<li>value</li>\n</ul>"
     assert kie_page.export_as_html(direction="rtl") == kie_page.export_as_html()
+
+
+def _figure_page():
+    """A title, a paragraph, a figure with a caption underneath, and a closing paragraph."""
+    image = np.zeros((1000, 800, 3), dtype=np.uint8)
+    image[300:600, 100:700] = (255, 0, 0)
+    lines = [
+        _line_at("Annual Report", 0.2, 0.04, 0.8, 0.08),
+        _line_at("Revenue grew steadily", 0.1, 0.12, 0.9, 0.16),
+        _line_at("axis label", 0.15, 0.45, 0.35, 0.48),  # text detected inside the figure
+        _line_at("Figure 1 quarterly revenue", 0.2, 0.63, 0.8, 0.66),
+        _line_at("The trend continued", 0.1, 0.72, 0.9, 0.76),
+    ]
+    layout = [
+        elements.LayoutElement("Title", 0.99, ((0.15, 0.03), (0.85, 0.09))),
+        elements.LayoutElement("Text", 0.98, ((0.08, 0.11), (0.92, 0.17))),
+        elements.LayoutElement("Picture", 0.97, ((0.12, 0.30), (0.88, 0.60))),
+        elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.67))),
+        elements.LayoutElement("Text", 0.98, ((0.08, 0.71), (0.92, 0.77))),
+    ]
+    return elements.Page(image, [elements.Block(lines=lines)], 0, (1000, 800), layout=layout)
+
+
+def test_page_reading_order_with_figures():
+    page = _figure_page()
+    items, labels, _ = page_reading_order(page)
+    kinds = [type(item).__name__ for item in items]
+    assert kinds.count("LayoutElement") == 1
+    figure_idx = kinds.index("LayoutElement")
+    assert labels[figure_idx] == "Picture"
+    # The figure is read after the paragraph above it and before its caption
+    rendered = [item.render(line_break=" ") if isinstance(item, elements.Block) else None for item in items]
+    assert rendered.index("Revenue grew steadily") < figure_idx
+    assert figure_idx < rendered.index("Figure 1 quarterly revenue")
+    # A page without layout keeps yielding blocks only
+    plain = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), page.blocks, 0, (1000, 800))
+    assert all(isinstance(item, elements.Block) for item in plain.items_in_reading_order())
+
+
+def test_page_export_markdown_images():
+    page = _figure_page()
+    # Placeholder is the default: the position of the figure is marked, the text around it is untouched
+    markdown = page.export_as_markdown()
+    assert "<!-- image -->" in markdown
+    assert markdown.index("Revenue grew steadily") < markdown.index("<!-- image -->")
+    assert markdown.index("<!-- image -->") < markdown.index("Figure 1 quarterly revenue")
+    assert "axis label" in markdown  # nothing carries those pixels, so the text is kept
+
+    # 'none' restores the pre-figure output
+    assert "<!-- image -->" not in page.export_as_markdown(images="none")
+    assert "Figure 1 quarterly revenue" in page.export_as_markdown(images="none")
+
+    # 'embedded' inlines the crop, absorbs the caption as the alternative text and drops the inner text
+    embedded = page.export_as_markdown(images="embedded")
+    assert "![Figure 1 quarterly revenue](data:image/png;base64," in embedded
+    assert "axis label" not in embedded
+    assert embedded.count("Figure 1 quarterly revenue") == 1  # the caption is not repeated as a paragraph
+    jpeg = FigureEncoder("embedded", image_format="jpeg")
+    assert "data:image/jpeg;base64," in page.export_as_markdown(images=jpeg)
+
+
+def test_page_export_referenced_images(tmp_path):
+    page = _figure_page()
+    encoder = FigureEncoder("referenced", image_dir=tmp_path, path_prefix="assets/")
+    markdown = page.export_as_markdown(images=encoder)
+    assert "![Figure 1 quarterly revenue](assets/page1_figure1.png)" in markdown
+    assert encoder.written == [tmp_path / "page1_figure1.png"]
+    # The crop holds the figure pixels, not the whole page
+
+    crop = cv2.imread(str(encoder.written[0]))
+    assert crop.shape[0] < page.dimensions[0] and crop.shape[1] < page.dimensions[1]
+    assert crop[..., 2].mean() > 200  # OpenCV reads BGR: the red rectangle lands on the last channel
+
+
+def test_page_export_asciidoc_and_html_images():
+    page = _figure_page()
+    assert "// image" in page.export_as_asciidoc()
+    assert "<!-- image -->" in page.export_as_html()
+
+    asciidoc = page.export_as_asciidoc(images="embedded")
+    assert ".Figure 1 quarterly revenue\nimage::data:image/png;base64," in asciidoc
+
+    html = page.export_as_html(images="embedded")
+    assert '<figure><img src="data:image/png;base64,' in html
+    assert "<figcaption>Figure 1 quarterly revenue</figcaption></figure>" in html
+    assert 'alt="Figure 1 quarterly revenue"' in html
+
+    # A figure without a caption gets an empty alternative text rather than an invented one
+    page.layout = [region for region in page.layout if region.type != "Caption"]
+    page._reading_order_cache = None
+    assert 'alt=""' in page.export_as_html(images="embedded")
+
+
+def test_page_export_images_without_page_image():
+    # A page restored from a JSON export carries no pixels: the figures degrade to a placeholder, and the
+    # text detected inside them is kept, since nothing else would carry it
+    restored = elements.Page.from_dict(_figure_page().export())
+    markdown = restored.export_as_markdown(images="embedded")
+    assert "<!-- image -->" in markdown
+    assert "axis label" in markdown
+    assert "Figure 1 quarterly revenue" in markdown
+
+
+def test_text_and_json_exports_ignore_figures():
+    page = _figure_page()
+    # Plain text has no image syntax: the figures are dropped
+    assert "image" not in page.render()
+    assert page.render().startswith("Annual Report")
+    assert TextExporter().export_page(page, images="embedded") == page.render()
+    # The figures have their own key in the JSON export and must not leak into the blocks
+    exported = page.export()
+    assert len(exported["blocks"]) == 5
+    assert len(exported["layout"]) == 5
+    json.dumps(exported)
+
+
+def test_page_export_as_xml_figures():
+    page = _figure_page()
+    xml_bytes, _ = page.export_as_xml()
+    xml = xml_bytes.decode()
+    assert 'class="ocr_photo" id="figure_1"' in xml
+    assert 'title="bbox 96 300 704 600"' in xml
+    assert "ocr_photo" in xml.split('name="ocr-capabilities" content="')[1].split('"')[0]
+    # The raw order also carries the figures
+    assert 'class="ocr_photo"' in page.export_as_xml(reading_order=False)[0].decode()
+
+
+def test_document_export_passes_images_through(tmp_path):
+    page = _figure_page()
+    doc = elements.Document([page, page])
+    assert doc.export_as_markdown().count("<!-- image -->") == 2
+    assert doc.export_as_markdown(images="none").count("<!-- image -->") == 0
+    encoder = FigureEncoder("referenced", image_dir=tmp_path)
+    doc.export_as_html(images=encoder)
+    assert len(encoder.written) == 2
