@@ -32,7 +32,7 @@ def _cached_font(font_family: str | None, font_size: int) -> ImageFont.FreeTypeF
     """Memoized font loader: avoids re-reading the font file for every word."""
     try:
         return get_font(font_family, max(font_size, 1))
-    except Exception:  # noqa: BLE001 - a missing or broken font must not abort a whole page
+    except Exception:  # pragma: no cover
         logging.warning(f"Could not load font '{font_family}', falling back to the default font")
         return get_font(None, max(font_size, 1))
 
@@ -44,6 +44,7 @@ def _warn_rotation_once() -> None:  # pragma: no cover
 
 
 def _points(geometry: Any) -> list[tuple[float, float]] | None:
+    """Validate a geometry and return its points, or None if it is unusable."""
     try:
         points = [(float(x), float(y)) for x, y in geometry]
     except (TypeError, ValueError):
@@ -54,16 +55,19 @@ def _points(geometry: Any) -> list[tuple[float, float]] | None:
 
 
 def _polygon_angle(polygon: list[tuple[float, float]], w: int, h: int) -> float:
+    """Estimate the rotation angle (degrees, counter-clockwise) from the top edge of a 4-point polygon."""
     (x0, y0), (x1, y1) = polygon[0], polygon[1]
     return -math.degrees(math.atan2((y1 - y0) * h, (x1 - x0) * w))
 
 
 def _text_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
+    """Width from the drawing origin to the right edge of the ink, so the left bearing counts."""
     bbox = font.getbbox(text)
     return max(math.ceil(bbox[2]), 1)
 
 
 def _text_height(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
+    """Height from the top of the ink to the bottom, so the ascender counts."""
     bbox = font.getbbox(text)
     return max(int(bbox[3]) - int(bbox[1]), 1)
 
@@ -71,7 +75,7 @@ def _text_height(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) 
 def _text_vspan(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
     """Ascender-to-descender span: the vertical extent the "lm" anchor is centered on."""
     try:
-        ascent, descent = font.getmetrics()
+        ascent, descent = font.getmetrics()  # type: ignore[union-attr]
         return max(ascent + descent, 1)
     except AttributeError:  # pragma: no cover - bitmap fonts expose no metrics
         return _text_height(font, text)
@@ -104,7 +108,13 @@ def _fit_line_font_size(
     min_font_size: int,
     max_font_size: int,
 ) -> int:
-    """Find one font size for a whole line, driven by the median word box."""
+    """Find one font size for a whole line, driven by the median word box.
+
+    Using the median rather than the smallest box is what keeps a single tiny box - a full stop,
+    a subscript, a mis-detected accent - from collapsing the entire line. The width is measured
+    the same way: a summed width would let the slack of a generous box pay for the overflow of a
+    tight one, which sizes the line too large for half of its words.
+    """
     font_size = max(min(int(np.median([word.height for word in words])), max_font_size), min_font_size)
     try:
         font = _cached_font(font_family, font_size)
@@ -138,6 +148,7 @@ def _draw_word(
     fill: tuple[int, int, int],
     anchor: str = "lm",
 ) -> None:
+    """Draw a word, falling back to ASCII if the font cannot render it."""
     try:
         try:
             d.text(xy, text, font=font, fill=fill, anchor=anchor)
@@ -184,6 +195,48 @@ def _paste_word(
     response.paste(patch, (round(position[0] - anchor_x), round(position[1] - anchor_y)), patch)
 
 
+def _tilt(words: list[_Word]) -> float | None:
+    """Direction of a line in degrees, read from where its words sit, or None if they disagree."""
+    if len(words) < 4:
+        return None
+    xs = np.array([word.x for word in words], dtype=float)
+    ys = np.array([word.y for word in words], dtype=float)
+    height = float(np.median([word.height for word in words]))
+    dx, dy = xs[:, None] - xs[None, :], ys[:, None] - ys[None, :]
+    spread = np.abs(dx) > height  # pairs too close together only measure box noise
+    if not spread.any():
+        return None
+    slopes = dy[spread] / dx[spread]
+    slope = float(np.median(slopes))
+    if float(np.median(np.abs(slopes - slope))) > max(0.5 * abs(slope), 0.02):
+        return None
+    return -math.degrees(math.atan(slope))
+
+
+def _unrotate_box(word: _Word, angle: float) -> _Word:
+    """Recover the text extent and leading-edge anchor of a word from its axis-aligned box."""
+    s, c = abs(math.sin(math.radians(angle))), abs(math.cos(math.radians(angle)))
+    det = c * c - s * s
+    if det < 0.2:  # past ~39 degrees the inversion stops being trustworthy
+        return word
+    width = (word.width * c - word.height * s) / det
+    height = (word.height * c - word.width * s) / det
+    if width < 1 or height < 1:
+        return word
+    # The anchor moves from the middle of the box edge to the middle of the leading edge of the text
+    x = word.x + height * s / 2
+    y = word.y - word.height / 2 + height * c / 2 if angle < 0 else word.y + word.height / 2 - height * c / 2
+    return word._replace(x=round(x), y=round(y), width=round(width), height=round(height), angle=angle)
+
+
+def _space_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont) -> float:
+    """Half of the font's own space advance: the least gap that still reads as a word break."""
+    try:
+        return max(float(font.getlength(" ")) / 2, 1.0)
+    except Exception:  # noqa: BLE001 - pragma: no cover - a bitmap font may not measure a space
+        return max(_text_width(font, "n") / 2, 1.0)
+
+
 def _entry_words(entry: dict[str, Any], w: int, h: int) -> list[_Word]:
     """Collect the renderable words of a line entry, in pixel coordinates."""
     words = []
@@ -213,16 +266,19 @@ def _entry_words(entry: dict[str, Any], w: int, h: int) -> list[_Word]:
                     _polygon_angle(geom, w, h),
                 )
             )
-    return words
+    # An upright box carries no angle of its own, so a tilted line has to be recognised from where
+    # its words sit before anything can be sized off boxes that the tilt has inflated
+    tilt = _tilt(words) if words and not any(word.angle for word in words) else None
+    return [_unrotate_box(word, tilt) for word in words] if tilt and abs(tilt) >= 3 else words
 
 
 def _line_axis(words: list[_Word]) -> tuple[float, float, float, float, float]:
-    """The baseline of a line: its origin, its unit direction and its angle.
-
-    Words are placed along this one axis instead of at their own box centres, which is what keeps
-    a line straight; the perpendicular median absorbs boxes that sit a little high or low.
-    """
-    angle = float(np.median([word.angle for word in words]))
+    """The baseline of a line: its origin, its unit direction and its angle."""
+    # Where the words sit pins the direction down far more tightly than their own corners do,
+    # so the box angles are only a fallback for lines too short to read a trend from
+    angle = _tilt(words)
+    if angle is None:
+        angle = _median_angle(words)
     theta = math.radians(angle)
     ux, uy = math.cos(theta), -math.sin(theta)
     x0, y0 = words[0].x, words[0].y
@@ -256,6 +312,29 @@ def _place_words(offsets: list[float], widths: list[float], space: float, budget
     return placed, squeeze
 
 
+def _median_angle(words: list[_Word]) -> float:
+    """Median of the word angles, folded so they all lie within a quarter turn of zero."""
+    return float(np.median([(word.angle + 90) % 180 - 90 for word in words]))
+
+
+def _split_rows(words: list[_Word]) -> list[list[_Word]]:
+    """Split a group of words into the separate baselines they actually sit on."""
+    if len(words) < 2:
+        return [words]
+    theta = math.radians(_median_angle(words))
+    vx, vy = math.sin(theta), math.cos(theta)  # across the text direction
+    tolerance = 0.8 * float(np.median([word.height for word in words]))
+    ordered = sorted(words, key=lambda word: word.x * vx + word.y * vy)
+    rows, current = [], [ordered[0]]
+    for previous, word in zip(ordered, ordered[1:]):
+        if (word.x - previous.x) * vx + (word.y - previous.y) * vy > tolerance:
+            rows.append(current)
+            current = []
+        current.append(word)
+    rows.append(current)
+    return rows
+
+
 def _synthesize_line(
     response: Image.Image,
     words: list[_Word],
@@ -264,7 +343,20 @@ def _synthesize_line(
     min_font_size: int,
     text_color: tuple[int, int, int],
 ) -> None:
-    """Draw the words of one line at one font size, spaced so that none can overlap the next."""
+    """Draw a line, as one row per baseline its words turn out to share."""
+    for row in _split_rows(words):
+        _synthesize_row(response, row, font_size, font_family, min_font_size, text_color)
+
+
+def _synthesize_row(
+    response: Image.Image,
+    words: list[_Word],
+    font_size: int,
+    font_family: str | None,
+    min_font_size: int,
+    text_color: tuple[int, int, int],
+) -> None:
+    """Draw the words of one row at one font size, spaced so that none can overlap the next."""
     ox, oy, ux, uy, angle = _line_axis(words)
     along = sorted(((word.x - ox) * ux + (word.y - oy) * uy, word) for word in words)
     offsets = [offset for offset, _ in along]
@@ -275,7 +367,9 @@ def _synthesize_line(
         font = _cached_font(font_family, font_size)
         squeezes = [max(min(1.0, word.width / _text_width(font, word.value)), 0.5) for word in words]
         widths = [squeeze * _text_width(font, word.value) for squeeze, word in zip(squeezes, words)]
-        placed, line_squeeze = _place_words(offsets, widths, 1.0, budget)
+        # The boxes cannot supply the spacing (a detector dilates them), so the layout keeps at
+        # least a readable gap of its own between one word and the next
+        placed, line_squeeze = _place_words(offsets, widths, _space_width(font), budget)
         # A line that would have to be condensed to less than half is not crowded but mis-sized:
         # a smaller face keeps it readable instead of squashing the glyphs to nothing.
         if line_squeeze > 0.5 or font_size <= min_font_size:
@@ -325,6 +419,7 @@ def _draw_confidence(
     box: tuple[int, int, int, int],
     font_family: str | None,
 ) -> None:
+    """Outline the entry and label it with its confidence. Blue: p=1, red: p=0."""
     xmin, ymin, xmax, ymax = box
     box_width, box_height = max(xmax - xmin, 1), max(ymax - ymin, 1)
     confidences = [
@@ -355,6 +450,7 @@ def _draw_confidence(
 def _entry_geometry(
     entry: dict[str, Any], w: int, h: int
 ) -> tuple[list[tuple[float, float]], float, tuple[int, int, int, int]] | None:
+    """Normalize an entry geometry to a 4-point polygon, its angle and its pixel bounding box."""
     geometry = _points(entry.get("geometry"))
     if geometry is None:
         return None
@@ -385,6 +481,7 @@ def _entry_font_size(
     min_font_size: int,
     max_font_size: int,
 ) -> int:
+    """The size this entry would like, before it is harmonized with the rest of the page."""
     if words:
         return _fit_line_font_size(words, font_family, min_font_size, max_font_size)
     box_w = max(int(round(math.hypot((polygon[1][0] - polygon[0][0]) * w, (polygon[1][1] - polygon[0][1]) * h))), 1)
@@ -393,6 +490,7 @@ def _entry_font_size(
 
 
 def _page_size(page: dict[str, Any]) -> tuple[int, int]:
+    """Validate the page dimensions before allocating the canvas."""
     try:
         h, w = (int(round(float(value))) for value in page["dimensions"])
     except Exception as exc:
@@ -431,7 +529,7 @@ def _render(
             continue
         try:
             size = _entry_font_size(entry, words, polygon, w, h, font_family, min_font_size, max_font_size)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logging.warning(f"Could not size entry: {exc}")
             continue
         prepared.append((entry, polygon, angle, box, words, size))
@@ -443,7 +541,7 @@ def _render(
                 _synthesize_line(response, words, size, font_family, min_font_size, text_color)
             else:
                 _synthesize_value(response, entry, polygon, angle, w, h, size, font_family, text_color)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logging.warning(f"Could not render entry: {exc}")
         if draw_proba:
             _draw_confidence(response, entry, box, font_family)
