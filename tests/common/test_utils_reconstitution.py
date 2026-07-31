@@ -227,7 +227,7 @@ def test_synthesize_page_words_stay_apart_when_boxes_touch():
     _assert_valid_render(render, (300, 900))
 
     # Blank columns split the line into the gaps between letters and the two wider ones between
-    # the three words - if the words run together the widest gaps are just letter gaps
+    # the three words; if the words run together the widest gaps are just letter gaps
     columns = np.nonzero((render.min(axis=2) < 128).any(axis=0))[0]
     blanks = sorted((b - a - 1 for a, b in zip(columns, columns[1:]) if b - a > 1), reverse=True)
     assert blanks[1] > 1.5 * float(np.median(blanks))
@@ -290,3 +290,172 @@ def test_synthesize_page_line_holding_two_rows():
     # baseline empties one row and fills the gap
     assert all((render[top : top + 30].min(axis=2) < 128).sum() > 50 for top in (120, 180))
     assert (render[154:176] == 255).all()
+
+
+def test_synthesize_page_table_cells():
+    h_px, w_px = 1000, 1600
+    words, x = [], 200.0
+    for token in ("The", "table", "below", "lists", "the", "items"):
+        box_w = 12 * len(token)
+        words.append({
+            "value": token,
+            "confidence": 1.0,
+            "geometry": ((x / w_px, 300 / h_px), ((x + box_w) / w_px, 322 / h_px)),
+        })
+        x += box_w + 9
+    cells = []
+    for row, values in enumerate((("Product", "Price"), ("Widget", "9.99"))):
+        for col, value in enumerate(values):
+            x0, y0 = 200 + col * 400, 500 + row * 60
+            cells.append({
+                "value": value,
+                "confidence": 1.0,
+                "geometry": ((x0 / w_px, y0 / h_px), ((x0 + 380) / w_px, (y0 + 50) / h_px)),
+                "row_start": row,
+                "row_end": row,
+                "col_start": col,
+                "col_end": col,
+            })
+    page = {
+        "dimensions": (h_px, w_px),
+        "blocks": [{"geometry": ((0, 0), (1, 1)), "lines": [{"geometry": ((0, 0), (1, 1)), "words": words}]}],
+        "tables": [
+            {
+                "geometry": ((200 / w_px, 500 / h_px), (980 / w_px, 610 / h_px)),
+                "num_rows": 2,
+                "num_cols": 2,
+                "confidence": 0.9,
+                "cells": cells,
+            }
+        ],
+    }
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, (h_px, w_px))
+
+    def ink_rows(y0, y1, x0, x1):
+        rows = np.nonzero((render[y0:y1, x0:x1].min(axis=2) < 128).any(axis=1))[0]
+        return rows.max() - rows.min() + 1 if len(rows) else 0
+
+    # every cell holds its text, and the grid is drawn in a lighter tone than the text
+    assert all(ink_rows(500, 610, x, x + 380) > 0 for x in (200, 600))
+    assert ((render.min(axis=2) > 150) & (render.min(axis=2) < 220)).any()
+    # a table sized off its rows instead of off the page would be far taller than the body text
+    assert ink_rows(500, 548, 200, 980) <= 1.5 * ink_rows(295, 330, 200, 980)
+
+
+def test_synthesize_page_layout_regions():
+    page = {
+        "dimensions": (300, 400),
+        "blocks": [
+            {
+                "geometry": ((0.1, 0.1), (0.4, 0.2)),
+                "lines": [
+                    {
+                        "geometry": ((0.1, 0.1), (0.4, 0.2)),
+                        "words": [{"value": "hello", "confidence": 0.9, "geometry": ((0.1, 0.1), (0.4, 0.2))}],
+                    }
+                ],
+            }
+        ],
+    }
+    plain = reconstitution.synthesize_page(page)
+    _assert_valid_render(plain, (300, 400))
+
+    # a region wrapped around text that is already on the page must not add anything
+    covered = reconstitution.synthesize_page({
+        **page,
+        "layout": [{"geometry": ((0.05, 0.05), (0.45, 0.25)), "type": "Text", "confidence": 0.9}],
+    })
+    assert np.array_equal(plain, covered)
+
+    # an empty one is only marked when the caller asks for it
+    empty = {**page, "layout": [{"geometry": ((0.5, 0.5), (0.95, 0.9)), "type": "Picture", "confidence": 0.8}]}
+    assert np.array_equal(plain, reconstitution.synthesize_page(empty))
+    assert (reconstitution.synthesize_page(empty, draw_placeholders=True)[150:270, 200:380] < 255).any()
+
+
+def test_synthesize_page_section_header_keeps_its_size():
+    h_px, w_px = 1200, 1600
+
+    def line(text, y, size):
+        words, x = [], 200.0
+        for token in text.split():
+            box_w = int(size * 0.58 * len(token))
+            words.append({
+                "value": token,
+                "confidence": 1.0,
+                "geometry": ((x / w_px, y / h_px), ((x + box_w) / w_px, (y + size) / h_px)),
+            })
+            x += box_w + int(size * 0.4)
+        xs = [c for word in words for c in (word["geometry"][0][0], word["geometry"][1][0])]
+        ys = [c for word in words for c in (word["geometry"][0][1], word["geometry"][1][1])]
+        return {"geometry": ((min(xs), min(ys)), (max(xs), max(ys))), "words": words}
+
+    page = {
+        "dimensions": (h_px, w_px),
+        "blocks": [
+            {
+                "geometry": ((0, 0), (1, 1)),
+                "lines": [
+                    line("Results", 300, 24),  # a header only a little larger than the body
+                    line("Results", 380, 22),
+                    line("and the mean of each run is here", 420, 22),
+                    line("with the deviation in brackets", 460, 22),
+                ],
+            }
+        ],
+        "layout": [
+            {"geometry": ((0.11, 0.24), (0.40, 0.28)), "type": "Section-header", "confidence": 0.95},
+            {"geometry": ((0.11, 0.30), (0.80, 0.42)), "type": "Text", "confidence": 0.96},
+        ],
+    }
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, (h_px, w_px))
+
+    def ink_width(y0, y1):
+        columns = np.nonzero((render[y0:y1, 190:400].min(axis=2) < 128).any(axis=0))[0]
+        return columns.max() - columns.min() + 1 if len(columns) else 0
+
+    # The same word sits in both, so its width follows the font size: harmonizing across the whole
+    # page instead of inside each region would render the header at the size of the body text
+    assert ink_width(290, 345) > 1.05 * ink_width(370, 412)
+
+
+def test_synthesize_page_headings_are_bold():
+    h_px, w_px = 600, 1200
+
+    def line(text, y, size=26):
+        words, x = [], 200.0
+        for token in text.split():
+            box_w = int(size * 0.58 * len(token))
+            words.append({
+                "value": token,
+                "confidence": 1.0,
+                "geometry": ((x / w_px, y / h_px), ((x + box_w) / w_px, (y + size) / h_px)),
+            })
+            x += box_w + int(size * 0.4)
+        xs = [c for word in words for c in (word["geometry"][0][0], word["geometry"][1][0])]
+        ys = [c for word in words for c in (word["geometry"][0][1], word["geometry"][1][1])]
+        return {"geometry": ((min(xs), min(ys)), (max(xs), max(ys))), "words": words}
+
+    page = {
+        "dimensions": (h_px, w_px),
+        "blocks": [{"geometry": ((0, 0), (1, 1)), "lines": [line("Heading", 200), line("Heading", 350)]}],
+        "layout": [
+            {"geometry": ((0.12, 0.31), (0.50, 0.40)), "type": "Title", "confidence": 0.95},
+            {"geometry": ((0.12, 0.56), (0.50, 0.66)), "type": "Text", "confidence": 0.95},
+        ],
+    }
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, (h_px, w_px))
+
+    def ink(y0, y1):
+        marked = render[y0:y1, 190:500].min(axis=2) < 128
+        columns = np.nonzero(marked.any(axis=0))[0]
+        return marked.sum(), (columns.max() - columns.min() + 1 if len(columns) else 0)
+
+    title, body = ink(190, 250), ink(340, 400)
+    # the same word in the same size of box: the title carries more ink without growing wider,
+    # which is weight rather than size
+    assert title[0] > 1.3 * body[0]
+    assert title[1] < 1.15 * body[1]

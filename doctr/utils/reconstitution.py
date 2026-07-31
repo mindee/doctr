@@ -60,10 +60,10 @@ def _polygon_angle(polygon: list[tuple[float, float]], w: int, h: int) -> float:
     return -math.degrees(math.atan2((y1 - y0) * h, (x1 - x0) * w))
 
 
-def _text_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
+def _text_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str, stroke: int = 0) -> int:
     """Width from the drawing origin to the right edge of the ink, so the left bearing counts."""
     bbox = font.getbbox(text)
-    return max(math.ceil(bbox[2]), 1)
+    return max(math.ceil(bbox[2]) + 2 * stroke, 1)
 
 
 def _text_height(font: ImageFont.FreeTypeFont | ImageFont.ImageFont, text: str) -> int:
@@ -147,13 +147,18 @@ def _draw_word(
     font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
     fill: tuple[int, int, int],
     anchor: str = "lm",
+    stroke: int = 0,
 ) -> None:
-    """Draw a word, falling back to ASCII if the font cannot render it."""
+    """Draw a word, falling back to ASCII if the font cannot render it.
+
+    `stroke` outlines the glyphs in their own colour, which is how a heading is set in bold without
+    a second font file: doctr resolves one family, and it is not always shipped with a bold face.
+    """
     try:
         try:
-            d.text(xy, text, font=font, fill=fill, anchor=anchor)
+            d.text(xy, text, font=font, fill=fill, anchor=anchor, stroke_width=stroke, stroke_fill=fill)
         except UnicodeEncodeError:
-            d.text(xy, anyascii(text), font=font, fill=fill, anchor=anchor)
+            d.text(xy, anyascii(text), font=font, fill=fill, anchor=anchor, stroke_width=stroke, stroke_fill=fill)
     except Exception:  # pragma: no cover
         try:
             # Anchors are rejected by bitmap fonts, which would otherwise leave the page blank
@@ -170,6 +175,7 @@ def _paste_word(
     fill: tuple[int, int, int],
     angle: float = 0.0,
     squeeze: float = 1.0,
+    stroke: int = 0,
 ) -> None:
     """Render a word on a transparent patch, condense and rotate it, then paste it.
 
@@ -177,9 +183,13 @@ def _paste_word(
     draw. `squeeze` condenses the glyphs horizontally without touching their height, which is how
     a line that is too long for its box stays inside it at the size the rest of the page uses.
     """
-    pad = 2
-    patch = Image.new("RGBA", (_text_width(font, text) + 2 * pad, _text_vspan(font, text) + 2 * pad), (0, 0, 0, 0))
-    _draw_word(ImageDraw.Draw(patch), (pad, pad), text, font, fill, anchor="la")
+    pad = 2 + stroke
+    patch = Image.new(
+        "RGBA",
+        (_text_width(font, text, stroke) + 2 * pad, _text_vspan(font, text) + 2 * pad + 2 * stroke),
+        (0, 0, 0, 0),
+    )
+    _draw_word(ImageDraw.Draw(patch), (pad, pad + stroke), text, font, fill, anchor="la", stroke=stroke)
     if squeeze < 1.0:
         patch = patch.resize((max(round(patch.width * squeeze), 1), patch.height), Image.Resampling.BICUBIC)
         pad = round(pad * squeeze)
@@ -335,6 +345,25 @@ def _split_rows(words: list[_Word]) -> list[list[_Word]]:
     return rows
 
 
+def _place_word(
+    response: Image.Image,
+    d: ImageDraw.ImageDraw,
+    text: str,
+    font: ImageFont.FreeTypeFont | ImageFont.ImageFont,
+    position: tuple[int, int],
+    fill: tuple[int, int, int],
+    angle: float = 0.0,
+    squeeze: float = 1.0,
+    stroke: int = 0,
+) -> None:
+    """Put one word on the page: straight onto it when it can be, on a patch when it cannot."""
+    if abs(angle) > 3 or squeeze < 1.0:
+        _paste_word(response, text, font, position, fill, angle, squeeze, stroke)
+    else:
+        # "lm" anchor: vertically centered on the baseline, no ascender-offset drift
+        _draw_word(d, position, text, font, fill, anchor="lm", stroke=stroke)
+
+
 def _synthesize_line(
     response: Image.Image,
     words: list[_Word],
@@ -342,10 +371,11 @@ def _synthesize_line(
     font_family: str | None,
     min_font_size: int,
     text_color: tuple[int, int, int],
+    bold: bool = False,
 ) -> None:
     """Draw a line, as one row per baseline its words turn out to share."""
     for row in _split_rows(words):
-        _synthesize_row(response, row, font_size, font_family, min_font_size, text_color)
+        _synthesize_row(response, row, font_size, font_family, min_font_size, text_color, bold)
 
 
 def _synthesize_row(
@@ -355,6 +385,7 @@ def _synthesize_row(
     font_family: str | None,
     min_font_size: int,
     text_color: tuple[int, int, int],
+    bold: bool = False,
 ) -> None:
     """Draw the words of one row at one font size, spaced so that none can overlap the next."""
     ox, oy, ux, uy, angle = _line_axis(words)
@@ -365,8 +396,11 @@ def _synthesize_row(
 
     for _ in range(2):
         font = _cached_font(font_family, font_size)
-        squeezes = [max(min(1.0, word.width / _text_width(font, word.value)), 0.5) for word in words]
-        widths = [squeeze * _text_width(font, word.value) for squeeze, word in zip(squeezes, words)]
+        # A bold face is set by outlining the glyphs, which widens them: the layout has to allow
+        # for that or the extra weight would spill over the following word
+        stroke = max(round(font_size / 32), 1) if bold else 0
+        squeezes = [max(min(1.0, word.width / _text_width(font, word.value, stroke)), 0.5) for word in words]
+        widths = [squeeze * _text_width(font, word.value, stroke) for squeeze, word in zip(squeezes, words)]
         # The boxes cannot supply the spacing (a detector dilates them), so the layout keeps at
         # least a readable gap of its own between one word and the next
         placed, line_squeeze = _place_words(offsets, widths, _space_width(font), budget)
@@ -379,12 +413,7 @@ def _synthesize_row(
     d = ImageDraw.Draw(response)
     for word, offset, squeeze in zip(words, placed, squeezes):
         x, y = round(ox + offset * ux), round(oy + offset * uy)
-        squeeze *= line_squeeze
-        if abs(angle) > 3 or squeeze < 1.0:
-            _paste_word(response, word.value, font, (x, y), text_color, angle, squeeze)
-        else:
-            # "lm" anchor: vertically centered on the baseline, no ascender-offset drift
-            _draw_word(d, (x, y), word.value, font, text_color, anchor="lm")
+        _place_word(response, d, word.value, font, (x, y), text_color, angle, squeeze * line_squeeze, stroke)
 
 
 def _synthesize_value(
@@ -397,6 +426,7 @@ def _synthesize_value(
     font_size: int,
     font_family: str | None,
     text_color: tuple[int, int, int],
+    bold: bool = False,
 ) -> None:
     """Draw a single value (a word entry, or a KIE prediction) inside its own box."""
     text = str(entry["value"])
@@ -406,11 +436,10 @@ def _synthesize_value(
     # Anchor on the middle of the leading edge, like the "lm" anchor of flat text
     x = int(round(w * (polygon[0][0] + polygon[3][0]) / 2))
     y = int(round(h * (polygon[0][1] + polygon[3][1]) / 2))
-    squeeze = min(1.0, box_w / _text_width(font, text))  # stay inside the box, do not run into the next field
-    if abs(angle) > 3 or squeeze < 1.0:
-        _paste_word(response, text, font, (x, y), text_color, angle, squeeze)
-    else:
-        _draw_word(ImageDraw.Draw(response), (x, y), text, font, text_color, anchor="lm")
+    stroke = max(round(font_size / 64), 1) if bold else 0
+    # stay inside the box, do not run into the next field
+    squeeze = min(1.0, box_w / _text_width(font, text, stroke))
+    _place_word(response, ImageDraw.Draw(response), text, font, (x, y), text_color, angle, squeeze, stroke)
 
 
 def _draw_confidence(
@@ -445,6 +474,37 @@ def _draw_confidence(
     prob_x_offset = (box_width - prob_text_width) // 2
     prob_y_offset = max(0, ymin - prob_text_height - 2)
     _draw_word(d, (int(xmin + prob_x_offset), int(prob_y_offset)), prob_text, prob_font, color, anchor="lt")
+
+
+def _region_kind(kind: str) -> str:
+    """Normalize a layout class name so 'Section-header', 'section header' and 'SECTION_HEADER' match."""
+    return "".join(character for character in kind.lower() if character.isalnum())
+
+
+def _region_type(regions: list[tuple[tuple[int, int, int, int], str]], point: tuple[int, int]) -> str:
+    """Type of the smallest layout region holding a point, or "" if it falls outside them all."""
+    holding = [(box, kind) for box, kind in regions if box[0] <= point[0] <= box[2] and box[1] <= point[1] <= box[3]]
+    if not holding:
+        return ""
+    box, kind = min(holding, key=lambda item: (item[0][2] - item[0][0]) * (item[0][3] - item[0][1]))
+    return kind
+
+
+def _draw_region(
+    response: Image.Image,
+    box: tuple[int, int, int, int],
+    color: tuple[int, int, int],
+    label: str = "",
+    font_family: str | None = None,
+) -> None:
+    """Outline a region of the page and, if it is roomy enough, name it."""
+    xmin, ymin, xmax, ymax = box
+    d = ImageDraw.Draw(response)
+    d.rectangle([(xmin, ymin), (xmax, ymax)], outline=color, width=2)
+    if label:
+        size = _fit_font_size(label, max(xmax - xmin, 1), max((ymax - ymin) // 4, 1), font_family, 8, 20)
+        font = _cached_font(font_family, size)
+        _draw_word(d, ((xmin + xmax) // 2, (ymin + ymax) // 2), label, font, color, anchor="mm")
 
 
 def _entry_geometry(
@@ -511,6 +571,7 @@ def _render(
     max_font_size: int,
     background_color: tuple[int, int, int],
     text_color: tuple[int, int, int],
+    draw_placeholders: bool,
 ) -> np.ndarray:
     """Render entries onto a blank page at one harmonized set of font sizes."""
     h, w = _page_size(page)
@@ -534,13 +595,60 @@ def _render(
             continue
         prepared.append((entry, polygon, angle, box, words, size))
 
-    sizes = _harmonize([size for *_, size in prepared]) if prepared else []
+    # A table draws its own grid, and a region holding no text of its own - a picture, a formula,
+    # a region the predictor was told to ignore - would otherwise leave a hole in the page. Both go
+    # down before the text, in a tone leaning towards the page itself so they stay quiet under it.
+    faint: tuple[int, int, int] = tuple((2 * back + fore) // 3 for back, fore in zip(background_color, text_color))  # type: ignore[assignment]
+    filled: list[tuple[int, int]] = []
+    for _, _, _, box, entry_words, _ in prepared:
+        filled.extend([(word.x, word.y) for word in entry_words] or [((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)])
+    for table in page.get("tables") or []:
+        if not isinstance(table, dict):
+            continue
+        for region in [table, *(table.get("cells") or [])]:
+            geometry = _entry_geometry(region, w, h) if isinstance(region, dict) else None
+            if geometry is not None:
+                _draw_region(response, geometry[2], faint)
+    regions = []
+    for region in page.get("layout") or []:
+        geometry = _entry_geometry(region, w, h) if isinstance(region, dict) else None
+        if geometry is None:
+            continue
+        regions.append((geometry[2], str(region.get("type", "")).strip()))
+        xmin, ymin, xmax, ymax = geometry[2]
+        if draw_placeholders and not any(xmin <= x <= xmax and ymin <= y <= ymax for x, y in filled):
+            _draw_region(response, geometry[2], faint, str(region.get("type", "")).strip(), font_family)
+
+    sizes = [size for *_, size in prepared]
+    # A table cell is a structural box, not an ink box: it is as tall as its row, padding and all,
+    # so letting its text fill it renders a table twice the size of the page it sits on. The text
+    # a cell holds came off the same page, so the size the rest of the page uses is the better bet.
+    body = [size for (entry, *_), size in zip(prepared, sizes) if "row_start" not in entry]
+    if body:
+        sizes = [
+            min(size, int(np.median(body))) if "row_start" in entry else size
+            for (entry, *_), size in zip(prepared, sizes)
+        ]
+    # Harmonizing inside a region rather than across the whole page is what keeps a section header
+    # its own size: it is often only a little larger than the body text, and a page-wide median
+    # would swallow it. Entries outside every region keep harmonizing with each other as before.
+    grouped: dict[str, list[int]] = {}
+    for index, (_, _, _, box, _, _) in enumerate(prepared):
+        centre = ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
+        grouped.setdefault(_region_type(regions, centre), []).append(index)
+    for indices in grouped.values():
+        for index, size in zip(indices, _harmonize([sizes[index] for index in indices])):
+            sizes[index] = size
+
     for (entry, polygon, angle, box, words, _), size in zip(prepared, sizes):
+        centre = ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
+        kind = _region_kind(_region_type(regions, centre))
+        bold = kind in ("title", "sectionheader")
         try:
             if words:
-                _synthesize_line(response, words, size, font_family, min_font_size, text_color)
+                _synthesize_line(response, words, size, font_family, min_font_size, text_color, bold)
             else:
-                _synthesize_value(response, entry, polygon, angle, w, h, size, font_family, text_color)
+                _synthesize_value(response, entry, polygon, angle, w, h, size, font_family, text_color, bold)
         except Exception as exc:
             logging.warning(f"Could not render entry: {exc}")
         if draw_proba:
@@ -557,6 +665,7 @@ def synthesize_page(
     max_font_size: int = 50,
     background_color: tuple[int, int, int] = (255, 255, 255),
     text_color: tuple[int, int, int] = (0, 0, 0),
+    draw_placeholders: bool = False,
 ) -> np.ndarray:
     """Draw the content of the element page (OCR response) on a blank page.
 
@@ -568,18 +677,38 @@ def synthesize_page(
         max_font_size: maximum font size
         background_color: RGB color of the page background
         text_color: RGB color of the rendered text
+        draw_placeholders: if True, outline the layout regions holding no text of their own
 
     Returns:
         the synthesized page
     """
-    lines = [
+    entries = [
         line
         for block in page.get("blocks") or []
         if isinstance(block, dict)
         for line in block.get("lines") or []
         if isinstance(line, dict)
     ]
-    return _render(page, lines, draw_proba, font_family, min_font_size, max_font_size, background_color, text_color)
+    # Words falling in a table are regrouped into its cells and removed from the blocks, so the
+    # cells are the only place that text still exists
+    entries += [
+        cell
+        for table in page.get("tables") or []
+        if isinstance(table, dict)
+        for cell in table.get("cells") or []
+        if isinstance(cell, dict)
+    ]
+    return _render(
+        page,
+        entries,
+        draw_proba,
+        font_family,
+        min_font_size,
+        max_font_size,
+        background_color,
+        text_color,
+        draw_placeholders,
+    )
 
 
 def synthesize_kie_page(
@@ -590,6 +719,7 @@ def synthesize_kie_page(
     max_font_size: int = 50,
     background_color: tuple[int, int, int] = (255, 255, 255),
     text_color: tuple[int, int, int] = (0, 0, 0),
+    draw_placeholders: bool = False,
 ) -> np.ndarray:
     """Draw the content of the element page (KIE OCR response) on a blank page.
 
@@ -601,6 +731,7 @@ def synthesize_kie_page(
         max_font_size: maximum font size
         background_color: RGB color of the page background
         text_color: RGB color of the rendered text
+        draw_placeholders: if True, outline the layout regions holding no text of their own
 
     Returns:
         the synthesized page
@@ -612,5 +743,13 @@ def synthesize_kie_page(
         if isinstance(prediction, dict)
     ]
     return _render(
-        page, predictions, draw_proba, font_family, min_font_size, max_font_size, background_color, text_color
+        page,
+        predictions,
+        draw_proba,
+        font_family,
+        min_font_size,
+        max_font_size,
+        background_color,
+        text_color,
+        draw_placeholders,
     )
