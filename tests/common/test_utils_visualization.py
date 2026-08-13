@@ -38,6 +38,12 @@ def test_visualize_kie_page():
     visualization.visualize_kie_page(page_export, image, words_only=False, display_layout=True)
     visualization.visualize_kie_page(page_export, image, words_only=False, display_layout=False, interactive=False)
 
+    # static plots label each prediction when add_labels is set
+    fig = visualization.visualize_kie_page(pages[0].export(), image, interactive=False, add_labels=True)
+    assert [text.get_text() for text in fig.axes[0].texts] == ["hello", "world"]
+    fig = visualization.visualize_kie_page(pages[0].export(), image, interactive=False, add_labels=False)
+    assert len(fig.axes[0].texts) == 0
+
 
 def test_draw_boxes():
     image = np.ones((256, 256, 3), dtype=np.float32)

@@ -388,6 +388,16 @@ def visualize_kie_page(
                 if interactive:
                     # add patch to cursor's artists
                     artists.append(rect)
+                elif add_labels and len(prediction["geometry"]) == 2:
+                    # We draw only if boxes are in straight format
+                    ax.text(
+                        int(page["dimensions"][1] * prediction["geometry"][0][0]),
+                        int(page["dimensions"][0] * prediction["geometry"][0][1]),
+                        prediction["value"],
+                        size=10,
+                        alpha=0.5,
+                        color=colors[key],
+                    )
 
     if interactive:
         import mplcursors
