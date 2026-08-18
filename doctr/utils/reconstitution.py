@@ -17,13 +17,13 @@ __all__ = ["synthesize_page", "synthesize_kie_page"]
 
 
 class _Word(NamedTuple):
-    """A word to render: its text, where it starts, and how much room it was detected in."""
+    """A word to render, with its text, position, size and rotation."""
 
     value: str
-    x: int  # anchor: middle of the leading edge of the box, like the "lm" anchor of flat text
+    x: int
     y: int
-    width: int  # extent along the text direction
-    height: int  # extent across the text direction
+    width: int
+    height: int
     angle: float  # degrees, counter-clockwise
 
 
@@ -39,7 +39,7 @@ def _cached_font(font_family: str | None, font_size: int) -> ImageFont.FreeTypeF
 
 @lru_cache(maxsize=1)
 def _warn_rotation_once() -> None:  # pragma: no cover
-    # lru_cache gives us thread-safe "warn once" semantics without a mutable global
+    # lru_cache is thread-safe "warn once" semantics without a mutable global
     logging.warning("Polygons with larger rotations may lead to slightly inaccurate rendering")
 
 
@@ -108,13 +108,7 @@ def _fit_line_font_size(
     min_font_size: int,
     max_font_size: int,
 ) -> int:
-    """Find one font size for a whole line, driven by the median word box.
-
-    Using the median rather than the smallest box is what keeps a single tiny box - a full stop,
-    a subscript, a mis-detected accent - from collapsing the entire line. The width is measured
-    the same way: a summed width would let the slack of a generous box pay for the overflow of a
-    tight one, which sizes the line too large for half of its words.
-    """
+    """Find one font size for a whole line, driven by the median word box."""
     font_size = max(min(int(np.median([word.height for word in words])), max_font_size), min_font_size)
     try:
         font = _cached_font(font_family, font_size)
@@ -152,7 +146,7 @@ def _draw_word(
     """Draw a word, falling back to ASCII if the font cannot render it.
 
     `stroke` outlines the glyphs in their own colour, which is how a heading is set in bold without
-    a second font file: doctr resolves one family, and it is not always shipped with a bold face.
+    a second font file
     """
     try:
         try:
@@ -177,12 +171,7 @@ def _paste_word(
     squeeze: float = 1.0,
     stroke: int = 0,
 ) -> None:
-    """Render a word on a transparent patch, condense and rotate it, then paste it.
-
-    `position` is the middle of the left edge of the text, the same anchor point as a flat "lm"
-    draw. `squeeze` condenses the glyphs horizontally without touching their height, which is how
-    a line that is too long for its box stays inside it at the size the rest of the page uses.
-    """
+    """Render a word on a transparent patch, condense and rotate it, then paste it."""
     pad = 2 + stroke
     patch = Image.new(
         "RGBA",
@@ -243,7 +232,7 @@ def _space_width(font: ImageFont.FreeTypeFont | ImageFont.ImageFont) -> float:
     """Half of the font's own space advance: the least gap that still reads as a word break."""
     try:
         return max(float(font.getlength(" ")) / 2, 1.0)
-    except Exception:  # noqa: BLE001 - pragma: no cover - a bitmap font may not measure a space
+    except Exception:  # pragma: no cover - a bitmap font may not measure a space
         return max(_text_width(font, "n") / 2, 1.0)
 
 
@@ -595,20 +584,22 @@ def _render(
             continue
         prepared.append((entry, polygon, angle, box, words, size))
 
-    # A table draws its own grid, and a region holding no text of its own - a picture, a formula,
-    # a region the predictor was told to ignore - would otherwise leave a hole in the page. Both go
-    # down before the text, in a tone leaning towards the page itself so they stay quiet under it.
+    # The grid of a table, and the outline of a region holding no text of its own - a picture, a
+    # formula, a region the predictor was told to ignore
     faint: tuple[int, int, int] = tuple((2 * back + fore) // 3 for back, fore in zip(background_color, text_color))  # type: ignore[assignment]
     filled: list[tuple[int, int]] = []
-    for _, _, _, box, entry_words, _ in prepared:
-        filled.extend([(word.x, word.y) for word in entry_words] or [((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)])
-    for table in page.get("tables") or []:
-        if not isinstance(table, dict):
-            continue
-        for region in [table, *(table.get("cells") or [])]:
-            geometry = _entry_geometry(region, w, h) if isinstance(region, dict) else None
-            if geometry is not None:
-                _draw_region(response, geometry[2], faint)
+    if draw_placeholders:
+        for _, _, _, box, entry_words, _ in prepared:
+            filled.extend(
+                [(word.x, word.y) for word in entry_words] or [((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)]
+            )
+        for table in page.get("tables") or []:
+            if not isinstance(table, dict):
+                continue
+            for region in [table, *(table.get("cells") or [])]:
+                geometry = _entry_geometry(region, w, h) if isinstance(region, dict) else None
+                if geometry is not None:
+                    _draw_region(response, geometry[2], faint)
     regions = []
     for region in page.get("layout") or []:
         geometry = _entry_geometry(region, w, h) if isinstance(region, dict) else None
@@ -677,7 +668,8 @@ def synthesize_page(
         max_font_size: maximum font size
         background_color: RGB color of the page background
         text_color: RGB color of the rendered text
-        draw_placeholders: if True, outline the layout regions holding no text of their own
+        draw_placeholders: if True, draw the grid of the recognized tables and outline the layout
+            regions holding no text of their own
 
     Returns:
         the synthesized page
@@ -731,7 +723,8 @@ def synthesize_kie_page(
         max_font_size: maximum font size
         background_color: RGB color of the page background
         text_color: RGB color of the rendered text
-        draw_placeholders: if True, outline the layout regions holding no text of their own
+        draw_placeholders: if True, draw the grid of the recognized tables and outline the layout
+            regions holding no text of their own
 
     Returns:
         the synthesized page

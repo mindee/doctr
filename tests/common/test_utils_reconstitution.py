@@ -1,6 +1,7 @@
 import math
 
 import numpy as np
+import pytest
 from test_io_elements import _mock_kie_pages, _mock_pages
 
 from doctr.utils import reconstitution
@@ -12,6 +13,44 @@ def _assert_valid_render(render: np.ndarray, dimensions: tuple[int, int]) -> Non
     assert render.shape == (*dimensions, 3)
     # Something must actually have been drawn on the page
     assert (render < 255).any()
+
+
+def _table_page(h_px: int = 1000, w_px: int = 1600) -> dict:
+    words, x = [], 200.0
+    for token in ("The", "table", "below", "lists", "the", "items"):
+        box_w = 12 * len(token)
+        words.append({
+            "value": token,
+            "confidence": 1.0,
+            "geometry": ((x / w_px, 300 / h_px), ((x + box_w) / w_px, 322 / h_px)),
+        })
+        x += box_w + 9
+    cells = []
+    for row, values in enumerate((("Product", "Price"), ("Widget", "9.99"))):
+        for col, value in enumerate(values):
+            x0, y0 = 200 + col * 400, 500 + row * 60
+            cells.append({
+                "value": value,
+                "confidence": 1.0,
+                "geometry": ((x0 / w_px, y0 / h_px), ((x0 + 380) / w_px, (y0 + 50) / h_px)),
+                "row_start": row,
+                "row_end": row,
+                "col_start": col,
+                "col_end": col,
+            })
+    return {
+        "dimensions": (h_px, w_px),
+        "blocks": [{"geometry": ((0, 0), (1, 1)), "lines": [{"geometry": ((0, 0), (1, 1)), "words": words}]}],
+        "tables": [
+            {
+                "geometry": ((200 / w_px, 500 / h_px), (980 / w_px, 610 / h_px)),
+                "num_rows": 2,
+                "num_cols": 2,
+                "confidence": 0.9,
+                "cells": cells,
+            }
+        ],
+    }
 
 
 def test_synthesize_page():
@@ -227,7 +266,7 @@ def test_synthesize_page_words_stay_apart_when_boxes_touch():
     _assert_valid_render(render, (300, 900))
 
     # Blank columns split the line into the gaps between letters and the two wider ones between
-    # the three words; if the words run together the widest gaps are just letter gaps
+    # the three words - if the words run together the widest gaps are just letter gaps
     columns = np.nonzero((render.min(axis=2) < 128).any(axis=0))[0]
     blanks = sorted((b - a - 1 for a, b in zip(columns, columns[1:]) if b - a > 1), reverse=True)
     assert blanks[1] > 1.5 * float(np.median(blanks))
@@ -293,57 +332,37 @@ def test_synthesize_page_line_holding_two_rows():
 
 
 def test_synthesize_page_table_cells():
-    h_px, w_px = 1000, 1600
-    words, x = [], 200.0
-    for token in ("The", "table", "below", "lists", "the", "items"):
-        box_w = 12 * len(token)
-        words.append({
-            "value": token,
-            "confidence": 1.0,
-            "geometry": ((x / w_px, 300 / h_px), ((x + box_w) / w_px, 322 / h_px)),
-        })
-        x += box_w + 9
-    cells = []
-    for row, values in enumerate((("Product", "Price"), ("Widget", "9.99"))):
-        for col, value in enumerate(values):
-            x0, y0 = 200 + col * 400, 500 + row * 60
-            cells.append({
-                "value": value,
-                "confidence": 1.0,
-                "geometry": ((x0 / w_px, y0 / h_px), ((x0 + 380) / w_px, (y0 + 50) / h_px)),
-                "row_start": row,
-                "row_end": row,
-                "col_start": col,
-                "col_end": col,
-            })
-    page = {
-        "dimensions": (h_px, w_px),
-        "blocks": [{"geometry": ((0, 0), (1, 1)), "lines": [{"geometry": ((0, 0), (1, 1)), "words": words}]}],
-        "tables": [
-            {
-                "geometry": ((200 / w_px, 500 / h_px), (980 / w_px, 610 / h_px)),
-                "num_rows": 2,
-                "num_cols": 2,
-                "confidence": 0.9,
-                "cells": cells,
-            }
-        ],
-    }
+    page = _table_page()
     render = reconstitution.synthesize_page(page)
-    _assert_valid_render(render, (h_px, w_px))
+    _assert_valid_render(render, (1000, 1600))
 
     def ink_rows(y0, y1, x0, x1):
         rows = np.nonzero((render[y0:y1, x0:x1].min(axis=2) < 128).any(axis=1))[0]
         return rows.max() - rows.min() + 1 if len(rows) else 0
 
-    # every cell holds its text, and the grid is drawn in a lighter tone than the text
+    # every cell holds its text
     assert all(ink_rows(500, 610, x, x + 380) > 0 for x in (200, 600))
-    assert ((render.min(axis=2) > 150) & (render.min(axis=2) < 220)).any()
     # a table sized off its rows instead of off the page would be far taller than the body text
     assert ink_rows(500, 548, 200, 980) <= 1.5 * ink_rows(295, 330, 200, 980)
 
 
-def test_synthesize_page_layout_regions():
+def test_synthesize_page_placeholders():
+    # The grid of a table and the outline of an empty layout region are both placeholders: neither
+    # is text the page holds, so neither may be drawn unless the caller asks for them
+    table = _table_page()
+    plain_table = reconstitution.synthesize_page(table)
+    marked_table = reconstitution.synthesize_page(table, draw_placeholders=True)
+    _assert_valid_render(marked_table, (1000, 1600))
+
+    # The top edge of the table carries no text of its own, so it is only ever the grid
+    assert (plain_table[500:502, 200:981] == 255).all()
+    assert (marked_table[500:502, 200:981] < 255).any()
+    # and the grid is drawn in a lighter tone than the text, so it stays under it
+    grid = marked_table[500:502, 200:981].min(axis=2)
+    assert ((grid > 150) & (grid < 220)).any()
+    # the text itself is untouched: inside a cell, away from its borders, both renders agree
+    assert np.array_equal(plain_table[520:540, 210:570], marked_table[520:540, 210:570])
+
     page = {
         "dimensions": (300, 400),
         "blocks": [
@@ -372,6 +391,18 @@ def test_synthesize_page_layout_regions():
     empty = {**page, "layout": [{"geometry": ((0.5, 0.5), (0.95, 0.9)), "type": "Picture", "confidence": 0.8}]}
     assert np.array_equal(plain, reconstitution.synthesize_page(empty))
     assert (reconstitution.synthesize_page(empty, draw_placeholders=True)[150:270, 200:380] < 255).any()
+
+    # a region wrapped around a value-only entry counts as filled, too
+    value_only = {
+        "dimensions": (300, 400),
+        "blocks": [{"geometry": ((0.1, 0.1), (0.4, 0.2)), "lines": [{"geometry": ((0.1, 0.1), (0.4, 0.2))}]}],
+    }
+    value_only["blocks"][0]["lines"][0]["value"] = "hello"
+    marked = reconstitution.synthesize_page(
+        {**value_only, "layout": [{"geometry": ((0.05, 0.05), (0.45, 0.25)), "type": "Text"}]},
+        draw_placeholders=True,
+    )
+    assert np.array_equal(reconstitution.synthesize_page(value_only), marked)
 
 
 def test_synthesize_page_section_header_keeps_its_size():
@@ -459,3 +490,191 @@ def test_synthesize_page_headings_are_bold():
     # which is weight rather than size
     assert title[0] > 1.3 * body[0]
     assert title[1] < 1.15 * body[1]
+
+
+def test_points_rejects_unusable_geometries():
+    # not a sequence of pairs at all
+    assert reconstitution._points(None) is None
+    assert reconstitution._points("nope") is None
+    assert reconstitution._points([(0.0, 0.0), (1.0, "x")]) is None
+    # neither a box nor a polygon
+    assert reconstitution._points([(0.0, 0.0), (1.0, 0.0), (1.0, 1.0)]) is None
+    # coordinates that cannot be drawn
+    assert reconstitution._points([(0.0, 0.0), (float("nan"), 1.0)]) is None
+    assert reconstitution._points([(0, 0), (1, 1)]) == [(0.0, 0.0), (1.0, 1.0)]
+
+
+def test_draw_word_falls_back_to_ascii():
+    drawn = []
+
+    class _AsciiOnlyDraw:
+        def text(self, xy, text, **kwargs):
+            if any(ord(character) > 127 for character in text):
+                raise UnicodeEncodeError("ascii", text, 0, 1, "not encodable")
+            drawn.append(text)
+
+    font = reconstitution._cached_font(None, 12)
+    reconstitution._draw_word(_AsciiOnlyDraw(), (0, 0), "Ünïcôde", font, (0, 0, 0))
+    assert drawn == ["Unicode"]
+
+
+def test_tilt_needs_words_that_agree():
+    word = reconstitution._Word
+    # too few words to read a trend from
+    assert reconstitution._tilt([word("a", index, 0, 10, 10, 0.0) for index in range(3)]) is None
+    # words sitting on top of each other: every pair is too close to measure a direction
+    assert reconstitution._tilt([word("a", 100, 100 + 3 * index, 20, 20, 0.0) for index in range(4)]) is None
+    # words scattered around: the pairs do not agree on any one direction
+    scattered = [word("a", 100 * index, y, 20, 20, 0.0) for index, y in enumerate((0, 400, 90, 900))]
+    assert reconstitution._tilt(scattered) is None
+
+
+def test_unrotate_box_keeps_what_it_cannot_invert():
+    word = reconstitution._Word("a", 100, 100, 40, 20, 0.0)
+    # past ~39 degrees the inversion stops being trustworthy
+    assert reconstitution._unrotate_box(word, 45.0) == word
+    # a box whose recovered extent would be empty is left alone as well
+    thin = reconstitution._Word("a", 100, 100, 10, 20, 0.0)
+    assert reconstitution._unrotate_box(thin, 35.0) == thin
+    # a box that can be inverted comes back with the angle it was measured at
+    assert reconstitution._unrotate_box(word, -10.0).angle == -10.0
+
+
+def test_space_width_without_a_measurable_space():
+    class _NoAdvance:
+        def getlength(self, text):
+            raise ValueError("no advance for this font")
+
+        def getbbox(self, text):
+            return (0, 0, 8, 10)
+
+    assert reconstitution._space_width(_NoAdvance()) == 4.0
+    assert reconstitution._space_width(reconstitution._cached_font(None, 12)) >= 1.0
+
+
+def test_synthesize_page_skips_unusable_words():
+    page = {
+        "dimensions": (200, 400),
+        "blocks": [
+            {
+                "geometry": ((0.1, 0.4), (0.9, 0.6)),
+                "lines": [
+                    {
+                        "geometry": ((0.1, 0.4), (0.9, 0.6)),
+                        "words": [
+                            "not a word at all",
+                            {"value": "   ", "confidence": 0.9, "geometry": ((0.1, 0.4), (0.3, 0.6))},
+                            {"value": "gone", "confidence": 0.9, "geometry": None},
+                            {"value": "kept", "confidence": 0.9, "geometry": ((0.4, 0.4), (0.9, 0.6))},
+                        ],
+                    }
+                ],
+            }
+        ],
+    }
+    render = reconstitution.synthesize_page(page)
+    _assert_valid_render(render, (200, 400))
+    # only the one usable word was drawn, and it stayed inside its own box
+    assert (render[:, : int(0.4 * 400)] == 255).all()
+
+
+def test_synthesize_page_crowded_line_drops_a_size():
+    # Boxes stacked on the same spot: the words cannot all fit at the size the boxes suggest, so
+    # the line has to be set smaller instead of being squashed to nothing
+    words = [{"value": "stacked", "confidence": 0.9, "geometry": ((0.1, 0.4), (0.4, 0.6))} for _ in range(6)]
+    page = {
+        "dimensions": (300, 400),
+        "blocks": [
+            {"geometry": ((0.1, 0.4), (0.4, 0.6)), "lines": [{"geometry": ((0.1, 0.4), (0.4, 0.6)), "words": words}]}
+        ],
+    }
+    render = reconstitution.synthesize_page(page, min_font_size=8, max_font_size=50)
+    _assert_valid_render(render, (300, 400))
+
+
+def test_synthesize_page_skips_unusable_entries():
+    page = {
+        "dimensions": (200, 400),
+        "blocks": [
+            {
+                "geometry": ((0, 0), (1, 1)),
+                "lines": [
+                    # no geometry to place anything with
+                    {
+                        "geometry": None,
+                        "words": [{"value": "lost", "confidence": 0.9, "geometry": ((0.1, 0.1), (0.3, 0.3))}],
+                    },
+                    # a geometry, but nothing at all to write in it
+                    {"geometry": ((0.1, 0.6), (0.5, 0.8)), "value": "  ", "confidence": 0.4, "words": []},
+                ],
+            }
+        ],
+    }
+    # nothing is drawn, but the empty entry is still outlined when confidences are asked for
+    assert (reconstitution.synthesize_page(page) == 255).all()
+    assert (reconstitution.synthesize_page(page, draw_proba=True) < 255).any()
+
+
+def test_synthesize_page_reports_entries_it_cannot_draw(caplog, monkeypatch):
+    page = {
+        "dimensions": (200, 400),
+        "blocks": [
+            {
+                "geometry": ((0.1, 0.4), (0.9, 0.6)),
+                "lines": [
+                    {
+                        "geometry": ((0.1, 0.4), (0.9, 0.6)),
+                        "words": [{"value": "hello", "confidence": 0.9, "geometry": ((0.1, 0.4), (0.9, 0.6))}],
+                    }
+                ],
+            }
+        ],
+    }
+
+    def _raise(*args, **kwargs):
+        raise ValueError("boom")
+
+    # an entry that cannot be sized is dropped, with a warning, instead of failing the whole page
+    monkeypatch.setattr(reconstitution, "_entry_font_size", _raise)
+    with caplog.at_level("WARNING"):
+        assert (reconstitution.synthesize_page(page) == 255).all()
+    assert any("could not size entry" in record.message.lower() for record in caplog.records)
+
+    # and so is an entry that cannot be drawn
+    monkeypatch.undo()
+    caplog.clear()
+    monkeypatch.setattr(reconstitution, "_synthesize_line", _raise)
+    with caplog.at_level("WARNING"):
+        assert (reconstitution.synthesize_page(page) == 255).all()
+    assert any("could not render entry" in record.message.lower() for record in caplog.records)
+
+
+def test_synthesize_page_ignores_malformed_tables_and_regions():
+    page = {
+        "dimensions": (300, 400),
+        "blocks": [],
+        "tables": [
+            "not a table",
+            {"geometry": None, "cells": ["not a cell", {"geometry": None, "value": "x"}]},
+            {
+                "geometry": ((0.1, 0.1), (0.9, 0.5)),
+                "cells": [{"geometry": ((0.1, 0.1), (0.9, 0.5)), "value": "x", "row_start": 0}],
+            },
+        ],
+        "layout": ["not a region", {"geometry": None, "type": "Picture"}],
+    }
+    render = reconstitution.synthesize_page(page, draw_placeholders=True)
+    _assert_valid_render(render, (300, 400))
+    # only the one table that could be placed was drawn
+    assert (render[:20] == 255).all()
+
+
+def test_synthesize_page_rejects_bad_dimensions():
+    with pytest.raises(ValueError, match="dimensions"):
+        reconstitution.synthesize_page({"blocks": []})
+    with pytest.raises(ValueError, match="dimensions"):
+        reconstitution.synthesize_page({"dimensions": ("a", "b"), "blocks": []})
+    with pytest.raises(ValueError, match="positive"):
+        reconstitution.synthesize_page({"dimensions": (0, 100), "blocks": []})
+    with pytest.raises(ValueError, match="MAX_IMAGE_PIXELS"):
+        reconstitution.synthesize_page({"dimensions": (100_000, 100_000), "blocks": []})
