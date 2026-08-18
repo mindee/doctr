@@ -197,7 +197,7 @@ class LWDETRPostProcessor:
                 np.asarray(final_boxes, dtype=np.float32).reshape(-1, 4, 2)
                 if not self.assume_straight_pages
                 else np.asarray(final_boxes, dtype=np.float32).reshape(-1, 4)
-            )
+            ).clip(0, 1)
 
             results.append((
                 final_labels,
