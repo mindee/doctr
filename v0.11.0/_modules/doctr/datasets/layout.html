@@ -304,18 +304,18 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractDataset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">pre_transform_multiclass</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LayoutDataset&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"LayoutDataset"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="LayoutDataset">
 <a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.LayoutDataset">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LayoutDataset</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a document layout detection dataset.</span>
+<span class="w">    </span><span class="sd">"""Implements a document layout detection dataset.</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import LayoutDataset</span>
 <span class="sd">    &gt;&gt;&gt; train_set = LayoutDataset(</span>
-<span class="sd">    &gt;&gt;&gt;     img_folder=&quot;/path/to/images&quot;,</span>
-<span class="sd">    &gt;&gt;&gt;     label_path=&quot;/path/to/labels.json&quot;,</span>
+<span class="sd">    &gt;&gt;&gt;     img_folder="/path/to/images",</span>
+<span class="sd">    &gt;&gt;&gt;     label_path="/path/to/labels.json",</span>
 <span class="sd">    &gt;&gt;&gt; )</span>
 <span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
 <span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
@@ -325,7 +325,7 @@
 <span class="sd">        label_path: path to the labels.json file</span>
 <span class="sd">        use_polygons: whether to keep polygons instead of converting to straight boxes</span>
 <span class="sd">        **kwargs: keyword arguments from `AbstractDataset`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -341,8 +341,8 @@
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_class_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">label_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">label_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">label_path</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">labels</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]]]</span> <span class="o">=</span> <span class="p">[]</span>
@@ -353,20 +353,20 @@
 
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">img_path</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">img_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">img_path</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
-            <span class="n">polygons</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;polygons&quot;</span><span class="p">)</span>
-            <span class="n">class_names</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">)</span>
+            <span class="n">polygons</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"polygons"</span><span class="p">)</span>
+            <span class="n">class_names</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"classes"</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">polygons</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missing &#39;polygons&#39; for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"missing 'polygons' for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">class_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;missing &#39;classes&#39; for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"missing 'classes' for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                    <span class="sa">f</span><span class="s2">&quot;number of polygons (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span><span class="si">}</span><span class="s2">) does not match &quot;</span>
-                    <span class="sa">f</span><span class="s2">&quot;number of classes (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="sa">f</span><span class="s2">"number of polygons (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span><span class="si">}</span><span class="s2">) does not match "</span>
+                    <span class="sa">f</span><span class="s2">"number of classes (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">class_names</span><span class="p">)</span><span class="si">}</span><span class="s2">) for image: </span><span class="si">{</span><span class="n">img_name</span><span class="si">}</span><span class="s2">"</span>
                 <span class="p">)</span>
 
             <span class="n">geoms</span><span class="p">,</span> <span class="n">polygon_classes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_polygons</span><span class="p">(</span>
@@ -391,7 +391,7 @@
         <span class="n">use_polygons</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">np_dtype</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Format polygons into an array.</span>
+<span class="w">        </span><span class="sd">"""Format polygons into an array.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            polygons: list of polygons</span>
@@ -402,12 +402,12 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            geoms: polygons or straight boxes</span>
 <span class="sd">            polygon_classes: list of classes</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_class_names</span> <span class="o">+=</span> <span class="n">class_names</span>
 
         <span class="n">_polygons</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">polygons</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np_dtype</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_polygons</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">_polygons</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">!=</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;polygons are expected to have shape (N, 4, 2), got </span><span class="si">{</span><span class="n">_polygons</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"polygons are expected to have shape (N, 4, 2), got </span><span class="si">{</span><span class="n">_polygons</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">geoms</span> <span class="o">=</span> <span class="n">_polygons</span> <span class="k">if</span> <span class="n">use_polygons</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">_polygons</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">_polygons</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">geoms</span><span class="p">,</span> <span class="n">class_names</span>

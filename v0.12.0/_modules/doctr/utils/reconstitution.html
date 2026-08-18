@@ -300,7 +300,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.fonts</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_font</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;synthesize_page&quot;</span><span class="p">,</span> <span class="s2">&quot;synthesize_kie_page&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"synthesize_page"</span><span class="p">,</span> <span class="s2">"synthesize_kie_page"</span><span class="p">]</span>
 
 
 <span class="c1"># Global variable to avoid multiple warnings</span>
@@ -309,8 +309,8 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_warn_rotation</span><span class="p">(</span><span class="n">entry</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">global</span> <span class="n">ROTATION_WARNING</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">ROTATION_WARNING</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Polygons with larger rotations will lead to inaccurate rendering&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">ROTATION_WARNING</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Polygons with larger rotations will lead to inaccurate rendering"</span><span class="p">)</span>
         <span class="n">ROTATION_WARNING</span> <span class="o">=</span> <span class="kc">True</span>
 
 
@@ -325,11 +325,11 @@
     <span class="n">min_font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6</span><span class="p">,</span>
     <span class="n">max_font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">:</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-        <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span>
         <span class="n">polygon</span> <span class="o">=</span> <span class="p">[(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">),</span> <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">polygon</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">]</span>
+        <span class="n">polygon</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">]</span>
 
     <span class="c1"># Calculate the bounding box of the word</span>
     <span class="n">x_coords</span><span class="p">,</span> <span class="n">y_coords</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">polygon</span><span class="p">)</span>
@@ -343,10 +343,10 @@
     <span class="n">word_height</span> <span class="o">=</span> <span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span>
 
     <span class="c1"># If lines are provided instead of words, concatenate the word entries</span>
-    <span class="k">if</span> <span class="s2">&quot;words&quot;</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
-        <span class="n">word_text</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">"words"</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">:</span>
+        <span class="n">word_text</span> <span class="o">=</span> <span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"words"</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">word_text</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span>
+        <span class="n">word_text</span> <span class="o">=</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
     <span class="c1"># Find the optimal font size</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">font_size</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">word_height</span><span class="p">,</span> <span class="n">max_font_size</span><span class="p">)</span>
@@ -361,32 +361,32 @@
         <span class="n">font</span> <span class="o">=</span> <span class="n">get_font</span><span class="p">(</span><span class="n">font_family</span><span class="p">,</span> <span class="n">min_font_size</span><span class="p">)</span>
 
     <span class="c1"># Create a mask for the word</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;L&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"L"</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span><span class="o">.</span><span class="n">polygon</span><span class="p">([(</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">x</span><span class="p">)),</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">y</span><span class="p">)))</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">polygon</span><span class="p">],</span> <span class="n">fill</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
 
     <span class="c1"># Draw the word text</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">ImageDraw</span><span class="o">.</span><span class="n">Draw</span><span class="p">(</span><span class="n">response</span><span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">word_text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;lt&quot;</span><span class="p">)</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">word_text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">"lt"</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
-            <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word_text</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;lt&quot;</span><span class="p">)</span>
+            <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">word_text</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">"lt"</span><span class="p">)</span>
     <span class="c1"># Catch generic exceptions to avoid crashing the whole rendering</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not render word: </span><span class="si">{</span><span class="n">word_text</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not render word: </span><span class="si">{</span><span class="n">word_text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">draw_proba</span><span class="p">:</span>
         <span class="n">confidence</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s2">&quot;confidence&quot;</span> <span class="ow">in</span> <span class="n">entry</span>
-            <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="s2">&quot;confidence&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">])</span>
+            <span class="n">entry</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s2">"confidence"</span> <span class="ow">in</span> <span class="n">entry</span>
+            <span class="k">else</span> <span class="nb">sum</span><span class="p">(</span><span class="n">w</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">]</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">entry</span><span class="p">[</span><span class="s2">"words"</span><span class="p">])</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">entry</span><span class="p">[</span><span class="s2">"words"</span><span class="p">])</span>
         <span class="p">)</span>
         <span class="n">p</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">confidence</span><span class="p">)</span>
         <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">-</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">p</span><span class="p">)</span>  <span class="c1"># Red to blue gradient based on probability</span>
         <span class="n">d</span><span class="o">.</span><span class="n">rectangle</span><span class="p">([(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)],</span> <span class="n">outline</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
         <span class="n">prob_font</span> <span class="o">=</span> <span class="n">get_font</span><span class="p">(</span><span class="n">font_family</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
-        <span class="n">prob_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="n">prob_text</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">"</span>
         <span class="n">prob_text_width</span><span class="p">,</span> <span class="n">prob_text_height</span> <span class="o">=</span> <span class="n">prob_font</span><span class="o">.</span><span class="n">getbbox</span><span class="p">(</span><span class="n">prob_text</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="mi">4</span><span class="p">]</span>
 
         <span class="c1"># Position the probability slightly above the bounding box</span>
@@ -394,7 +394,7 @@
         <span class="n">prob_y_offset</span> <span class="o">=</span> <span class="n">ymin</span> <span class="o">-</span> <span class="n">prob_text_height</span> <span class="o">-</span> <span class="mi">2</span>
         <span class="n">prob_y_offset</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">prob_y_offset</span><span class="p">)</span>
 
-        <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xmin</span> <span class="o">+</span> <span class="n">prob_x_offset</span><span class="p">,</span> <span class="n">prob_y_offset</span><span class="p">),</span> <span class="n">prob_text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">prob_font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">&quot;lt&quot;</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">((</span><span class="n">xmin</span> <span class="o">+</span> <span class="n">prob_x_offset</span><span class="p">,</span> <span class="n">prob_y_offset</span><span class="p">),</span> <span class="n">prob_text</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="n">prob_font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s2">"lt"</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">response</span>
 
@@ -409,7 +409,7 @@
     <span class="n">min_font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span>
     <span class="n">max_font_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">50</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a the content of the element page (OCR response) on a blank page.</span>
+<span class="w">    </span><span class="sd">"""Draw a the content of the element page (OCR response) on a blank page.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        page: exported Page object to represent</span>
@@ -421,15 +421,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the synthesized page</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Draw template</span>
-    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
 
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]:</span>
         <span class="c1"># If lines are provided use these to get better rendering results</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">[</span><span class="s2">"lines"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">"lines"</span><span class="p">]:</span>
                 <span class="n">_warn_rotation</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">_synthesize</span><span class="p">(</span>
                     <span class="n">response</span><span class="o">=</span><span class="n">response</span><span class="p">,</span>
@@ -444,9 +444,9 @@
                 <span class="p">)</span>
         <span class="c1"># Otherwise, draw each word</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">"lines"</span><span class="p">]:</span>
                 <span class="n">_warn_rotation</span><span class="p">(</span><span class="n">block</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
-                <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">"words"</span><span class="p">]:</span>
                     <span class="n">response</span> <span class="o">=</span> <span class="n">_synthesize</span><span class="p">(</span>
                         <span class="n">response</span><span class="o">=</span><span class="n">response</span><span class="p">,</span>
                         <span class="n">entry</span><span class="o">=</span><span class="n">word</span><span class="p">,</span>
@@ -468,7 +468,7 @@
     <span class="n">draw_proba</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">font_family</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw a the content of the element page (OCR response) on a blank page.</span>
+<span class="w">    </span><span class="sd">"""Draw a the content of the element page (OCR response) on a blank page.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        page: exported Page object to represent</span>
@@ -480,13 +480,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the synthesized page</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Draw template</span>
-    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span>
-    <span class="n">response</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
+    <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">]</span>
+    <span class="n">response</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">,</span> <span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">),</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">))</span>
 
     <span class="c1"># Draw each word</span>
-    <span class="k">for</span> <span class="n">predictions</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">predictions</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"predictions"</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">:</span>
             <span class="n">_warn_rotation</span><span class="p">(</span><span class="n">prediction</span><span class="p">)</span>  <span class="c1"># pragma: no cover</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">_synthesize</span><span class="p">(</span>

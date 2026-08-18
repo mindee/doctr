@@ -304,11 +304,11 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractPath</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;tensor_from_pil&quot;</span><span class="p">,</span> <span class="s2">&quot;read_img_as_tensor&quot;</span><span class="p">,</span> <span class="s2">&quot;decode_img_as_tensor&quot;</span><span class="p">,</span> <span class="s2">&quot;tensor_from_numpy&quot;</span><span class="p">,</span> <span class="s2">&quot;get_img_shape&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"tensor_from_pil"</span><span class="p">,</span> <span class="s2">"read_img_as_tensor"</span><span class="p">,</span> <span class="s2">"decode_img_as_tensor"</span><span class="p">,</span> <span class="s2">"tensor_from_numpy"</span><span class="p">,</span> <span class="s2">"get_img_shape"</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">tensor_from_pil</span><span class="p">(</span><span class="n">pil_img</span><span class="p">:</span> <span class="n">Image</span><span class="o">.</span><span class="n">Image</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a PIL Image to a PyTorch tensor</span>
+<span class="w">    </span><span class="sd">"""Convert a PIL Image to a PyTorch tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        pil_img: a PIL image</span>
@@ -316,7 +316,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        decoded image as tensor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
         <span class="n">img</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -328,7 +328,7 @@
 <div class="viewcode-block" id="read_img_as_tensor">
 <a class="viewcode-back" href="../../../../modules/io.html#doctr.io.read_img_as_tensor">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">read_img_as_tensor</span><span class="p">(</span><span class="n">img_path</span><span class="p">:</span> <span class="n">AbstractPath</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file as a PyTorch tensor</span>
+<span class="w">    </span><span class="sd">"""Read an image file as a PyTorch tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_path: location of the image file</span>
@@ -336,21 +336,21 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        decoded image as a tensor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
         <span class="c1"># Apply the EXIF orientation before decoding, to stay consistent with `read_img_as_numpy`</span>
         <span class="c1"># (OpenCV applies EXIF orientation automatically, PIL does not)</span>
-        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="decode_img_as_tensor">
 <a class="viewcode-back" href="../../../../modules/io.html#doctr.io.decode_img_as_tensor">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">decode_img_as_tensor</span><span class="p">(</span><span class="n">img_content</span><span class="p">:</span> <span class="nb">bytes</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read a byte stream as a PyTorch tensor</span>
+<span class="w">    </span><span class="sd">"""Read a byte stream as a PyTorch tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        img_content: bytes of a decoded image</span>
@@ -358,17 +358,17 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        decoded image as a tensor</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">img_content</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;RGB&quot;</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
+    <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">img_content</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">tensor_from_numpy</span><span class="p">(</span><span class="n">npy_img</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read an image file as a PyTorch tensor</span>
+<span class="w">    </span><span class="sd">"""Read an image file as a PyTorch tensor</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        npy_img: image encoded as a numpy array of shape (H, W, C) in np.uint8</span>
@@ -376,9 +376,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        same image as a tensor of shape (C, H, W)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">dtype</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">uint8</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;insupported value for dtype&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
         <span class="n">img</span> <span class="o">=</span> <span class="n">to_tensor</span><span class="p">(</span><span class="n">npy_img</span><span class="p">)</span>
@@ -394,7 +394,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_img_shape</span><span class="p">(</span><span class="n">img</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the shape of an image&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Get the shape of an image"""</span>
     <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>  <span class="c1"># type: ignore[return-value]</span>
 </pre></div>
         </article>

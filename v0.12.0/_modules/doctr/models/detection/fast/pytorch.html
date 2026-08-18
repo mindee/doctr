@@ -309,38 +309,38 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_FAST</span><span class="p">,</span> <span class="n">FASTPostProcessor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;FAST&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_tiny&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_small&quot;</span><span class="p">,</span> <span class="s2">&quot;fast_base&quot;</span><span class="p">,</span> <span class="s2">&quot;reparameterize&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"FAST"</span><span class="p">,</span> <span class="s2">"fast_tiny"</span><span class="p">,</span> <span class="s2">"fast_small"</span><span class="p">,</span> <span class="s2">"fast_base"</span><span class="p">,</span> <span class="s2">"reparameterize"</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;fast_tiny&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.8.1/fast_tiny-1acac421.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"fast_tiny"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.8.1/fast_tiny-1acac421.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;fast_small&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.8.1/fast_small-10952cc1.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"fast_small"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.8.1/fast_small-10952cc1.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;fast_base&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.8.1/fast_base-688a8b34.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"fast_base"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.8.1/fast_base-688a8b34.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FastNeck</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layers.</span>
+<span class="w">    </span><span class="sd">"""Neck of the FAST architecture, composed of a series of 3x3 convolutions and upsampling layers.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        in_channels: number of input channels</span>
 <span class="sd">        out_channels: number of output channels</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -353,7 +353,7 @@
         <span class="p">])</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_upsample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;bilinear&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"bilinear"</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
         <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">f3</span><span class="p">,</span> <span class="n">f4</span> <span class="o">=</span> <span class="n">x</span>
@@ -364,14 +364,14 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FastHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Head of the FAST architecture</span>
+<span class="w">    </span><span class="sd">"""Head of the FAST architecture</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        in_channels: number of input channels</span>
 <span class="sd">        num_classes: number of output classes</span>
 <span class="sd">        out_channels: number of output channels</span>
 <span class="sd">        dropout: dropout probability</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -389,7 +389,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">FAST</span><span class="p">(</span><span class="n">_FAST</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;FAST as described in `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation&quot;</span>
+<span class="w">    </span><span class="sd">"""FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2111.02394.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -402,7 +402,7 @@
 <span class="sd">        exportable: onnx exportable returns only logits</span>
 <span class="sd">        cfg: the configuration dict of the model</span>
 <span class="sd">        class_names: list of class names</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -449,11 +449,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">pooling</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">MaxPool2d</span><span class="p">(</span><span class="n">kernel_size</span><span class="o">=</span><span class="n">pooling_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="p">(</span><span class="n">pooling_size</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
-            <span class="c1"># Don&#39;t override the initialization of the backbone</span>
-            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;feat_extractor.&quot;</span><span class="p">):</span>
+            <span class="c1"># Don't override the initialization of the backbone</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"feat_extractor."</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">):</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;fan_out&quot;</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">)</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"fan_out"</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s2">"relu"</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">):</span>
@@ -461,12 +461,12 @@
                 <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pretrained parameters onto the model</span>
+<span class="w">        </span><span class="sd">"""Load pretrained parameters onto the model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path_or_url: the path or URL to the model parameters (checkpoint)</span>
 <span class="sd">            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">load_pretrained_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
@@ -481,18 +481,18 @@
         <span class="n">feats</span> <span class="o">=</span> <span class="p">[</span><span class="n">feats</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">feats</span><span class="p">))]</span>
         <span class="c1"># Pass through the Neck &amp; Head &amp; Upsample</span>
         <span class="n">feat_concat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neck</span><span class="p">(</span><span class="n">feats</span><span class="p">)</span>
-        <span class="n">logits</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prob_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;bilinear&quot;</span><span class="p">)</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">prob_head</span><span class="p">(</span><span class="n">feat_concat</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:],</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"bilinear"</span><span class="p">)</span>
 
         <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"logits"</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
             <span class="k">return</span> <span class="n">out</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="n">prob_map</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pooling</span><span class="p">(</span><span class="n">logits</span><span class="p">)))</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"out_map"</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Disable for torch.compile compatibility</span>
@@ -504,11 +504,11 @@
                 <span class="p">]</span>
 
             <span class="c1"># Post-process boxes (keep only text predictions)</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;preds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"preds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"loss"</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
 
         <span class="k">return</span> <span class="n">out</span>
 
@@ -518,7 +518,7 @@
         <span class="n">target</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
         <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.</span>
+<span class="w">        </span><span class="sd">"""Compute fast loss, 2 x Dice loss where the text kernel loss is scaled by 0.5.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            out_map: output feature map of the model of shape (N, num_classes, H, W)</span>
@@ -527,7 +527,7 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A loss tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
 
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">targets</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">targets</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -580,19 +580,19 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">reparameterize</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">FAST</span> <span class="o">|</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FAST</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fuse batchnorm and conv layers and reparameterize the model</span>
+<span class="w">    </span><span class="sd">"""Fuse batchnorm and conv layers and reparameterize the model</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: the FAST model to reparameterize</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the reparameterized model</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">last_conv</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">last_conv_name</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">modules</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">&quot;reparameterize_layer&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s2">"reparameterize_layer"</span><span class="p">):</span>
             <span class="n">module</span><span class="o">.</span><span class="n">reparameterize_layer</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">named_children</span><span class="p">():</span>
@@ -635,10 +635,10 @@
         <span class="p">{</span><span class="n">layer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">feat_layers</span><span class="p">)},</span>
     <span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class_names"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class_names"</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">])</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">])</span>
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">FAST</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="c1"># Load pretrained parameters</span>
@@ -646,9 +646,9 @@
         <span class="c1"># The number of class_names is not the same as the number of classes in the pretrained model =&gt;</span>
         <span class="c1"># remove the layer weights</span>
         <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class_names"</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"url"</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
@@ -656,7 +656,7 @@
 <div class="viewcode-block" id="fast_tiny">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.fast_tiny">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fast_tiny</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FAST</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;FAST as described in `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation&quot;</span>
+<span class="w">    </span><span class="sd">"""FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2111.02394.pdf&gt;`_, using a tiny TextNet backbone.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -671,13 +671,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_fast</span><span class="p">(</span>
-        <span class="s2">&quot;fast_tiny&quot;</span><span class="p">,</span>
+        <span class="s2">"fast_tiny"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">textnet_tiny</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">],</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;prob_head.2.weight&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"3"</span><span class="p">,</span> <span class="s2">"4"</span><span class="p">,</span> <span class="s2">"5"</span><span class="p">,</span> <span class="s2">"6"</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"prob_head.2.weight"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -686,7 +686,7 @@
 <div class="viewcode-block" id="fast_small">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.fast_small">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fast_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FAST</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;FAST as described in `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation&quot;</span>
+<span class="w">    </span><span class="sd">"""FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2111.02394.pdf&gt;`_, using a small TextNet backbone.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -701,13 +701,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_fast</span><span class="p">(</span>
-        <span class="s2">&quot;fast_small&quot;</span><span class="p">,</span>
+        <span class="s2">"fast_small"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">textnet_small</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">],</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;prob_head.2.weight&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"3"</span><span class="p">,</span> <span class="s2">"4"</span><span class="p">,</span> <span class="s2">"5"</span><span class="p">,</span> <span class="s2">"6"</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"prob_head.2.weight"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -716,7 +716,7 @@
 <div class="viewcode-block" id="fast_base">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.fast_base">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">fast_base</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">FAST</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;FAST as described in `&quot;FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation&quot;</span>
+<span class="w">    </span><span class="sd">"""FAST as described in `"FAST: Faster Arbitrarily-Shaped Text Detector with Minimalist Kernel Representation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2111.02394.pdf&gt;`_, using a base TextNet backbone.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -731,13 +731,13 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_fast</span><span class="p">(</span>
-        <span class="s2">&quot;fast_base&quot;</span><span class="p">,</span>
+        <span class="s2">"fast_base"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">textnet_base</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span> <span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="s2">&quot;6&quot;</span><span class="p">],</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;prob_head.2.weight&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"3"</span><span class="p">,</span> <span class="s2">"4"</span><span class="p">,</span> <span class="s2">"5"</span><span class="p">,</span> <span class="s2">"6"</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"prob_head.2.weight"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 

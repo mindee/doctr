@@ -307,14 +307,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.data</span><span class="w"> </span><span class="kn">import</span> <span class="n">download_from_url</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;load_pretrained_params&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;conv_sequence_pt&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;set_device_and_dtype&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;export_model_to_onnx&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;add_whitelist&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;_copy_tensor&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;_bf16_to_float32&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;_CompiledModule&quot;</span><span class="p">,</span>
+    <span class="s2">"load_pretrained_params"</span><span class="p">,</span>
+    <span class="s2">"conv_sequence_pt"</span><span class="p">,</span>
+    <span class="s2">"set_device_and_dtype"</span><span class="p">,</span>
+    <span class="s2">"export_model_to_onnx"</span><span class="p">,</span>
+    <span class="s2">"add_whitelist"</span><span class="p">,</span>
+    <span class="s2">"_copy_tensor"</span><span class="p">,</span>
+    <span class="s2">"_bf16_to_float32"</span><span class="p">,</span>
+    <span class="s2">"_CompiledModule"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># torch compiled model type</span>
@@ -337,10 +337,10 @@
     <span class="n">ignore_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Load a set of parameters onto a model</span>
+<span class="w">    </span><span class="sd">"""Load a set of parameters onto a model</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.models import load_pretrained_params</span>
-<span class="sd">    &gt;&gt;&gt; load_pretrained_params(model, &quot;https://yoursource.com/yourcheckpoint-yourhash.pt&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; load_pretrained_params(model, "https://yoursource.com/yourcheckpoint-yourhash.pt")</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: the PyTorch model to be loaded</span>
@@ -348,19 +348,19 @@
 <span class="sd">        hash_prefix: first characters of SHA256 expected hash</span>
 <span class="sd">        ignore_keys: list of weights to be ignored from the state_dict</span>
 <span class="sd">        **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">path_or_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No model URL or Path provided, using default initialization.&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No model URL or Path provided, using default initialization."</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="n">archive_path</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">download_from_url</span><span class="p">(</span><span class="n">path_or_url</span><span class="p">,</span> <span class="n">hash_prefix</span><span class="o">=</span><span class="n">hash_prefix</span><span class="p">,</span> <span class="n">cache_subdir</span><span class="o">=</span><span class="s2">&quot;models&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">download_from_url</span><span class="p">(</span><span class="n">path_or_url</span><span class="p">,</span> <span class="n">hash_prefix</span><span class="o">=</span><span class="n">hash_prefix</span><span class="p">,</span> <span class="n">cache_subdir</span><span class="o">=</span><span class="s2">"models"</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">validators</span><span class="o">.</span><span class="n">url</span><span class="p">(</span><span class="n">path_or_url</span><span class="p">)</span>
         <span class="k">else</span> <span class="n">path_or_url</span>
     <span class="p">)</span>
 
     <span class="c1"># Read state_dict</span>
-    <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">&quot;cpu&quot;</span><span class="p">)</span>
+    <span class="n">state_dict</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">archive_path</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="s2">"cpu"</span><span class="p">)</span>
 
     <span class="c1"># Remove weights from the state_dict</span>
     <span class="k">if</span> <span class="n">ignore_keys</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">ignore_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -370,8 +370,8 @@
         <span class="n">missing_keys</span><span class="p">,</span> <span class="n">unexpected_keys</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">state_dict</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ignore_keys</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">missing_keys</span> <span class="o">+</span> <span class="n">unexpected_keys</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;Unable to load state_dict, due to non-matching keys.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;Unexpected keys: </span><span class="si">{</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="se">\n</span><span class="s2">Missing keys: </span><span class="si">{</span><span class="n">missing_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="s2">"Unable to load state_dict, due to non-matching keys.</span><span class="se">\n</span><span class="s2">"</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">"Unexpected keys: </span><span class="si">{</span><span class="n">unexpected_keys</span><span class="si">}</span><span class="se">\n</span><span class="s2">Missing keys: </span><span class="si">{</span><span class="n">missing_keys</span><span class="si">}</span><span class="s2">"</span>
             <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Load weights</span>
@@ -386,7 +386,7 @@
     <span class="n">activation</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ReLU</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Builds a convolutional-based layer sequence</span>
+<span class="w">    </span><span class="sd">"""Builds a convolutional-based layer sequence</span>
 
 <span class="sd">    &gt;&gt;&gt; from torch.nn import Sequential</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models import conv_sequence</span>
@@ -402,9 +402,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        list of layers</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># No bias before Batch norm</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;bias&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bias&quot;</span><span class="p">,</span> <span class="ow">not</span> <span class="n">bn</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"bias"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"bias"</span><span class="p">,</span> <span class="ow">not</span> <span class="n">bn</span><span class="p">)</span>
     <span class="c1"># Add activation directly to the conv if there is no BN</span>
     <span class="n">conv_seq</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_channels</span><span class="p">,</span> <span class="n">out_channels</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)]</span>
 
@@ -423,14 +423,14 @@
     <span class="n">device</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
     <span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Set the device and dtype of a model and its batches</span>
+<span class="w">    </span><span class="sd">"""Set the device and dtype of a model and its batches</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
 <span class="sd">    &gt;&gt;&gt; from torch import nn</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.utils import set_device_and_dtype</span>
 <span class="sd">    &gt;&gt;&gt; model = nn.Sequential(nn.Linear(8, 8), nn.ReLU(), nn.Linear(8, 4))</span>
 <span class="sd">    &gt;&gt;&gt; batches = [torch.rand(8) for _ in range(2)]</span>
-<span class="sd">    &gt;&gt;&gt; model, batches = set_device_and_dtype(model, batches, device=&quot;cuda&quot;, dtype=torch.float16)</span>
+<span class="sd">    &gt;&gt;&gt; model, batches = set_device_and_dtype(model, batches, device="cuda", dtype=torch.float16)</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: the model to be set</span>
@@ -440,7 +440,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the model and batches set</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">first</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">first</span><span class="o">.</span><span class="n">device</span> <span class="o">!=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="n">device</span><span class="p">)</span> <span class="ow">or</span> <span class="n">first</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">dtype</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
@@ -463,41 +463,41 @@
     <span class="n">dynamic_axes</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export model to ONNX format.</span>
+<span class="w">    </span><span class="sd">"""Export model to ONNX format.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.classification import resnet18</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.utils import export_model_to_onnx</span>
 <span class="sd">    &gt;&gt;&gt; model = resnet18(pretrained=True)</span>
-<span class="sd">    &gt;&gt;&gt; export_model_to_onnx(model, &quot;my_model&quot;, dummy_input=torch.randn(1, 3, 32, 32))</span>
+<span class="sd">    &gt;&gt;&gt; export_model_to_onnx(model, "my_model", dummy_input=torch.randn(1, 3, 32, 32))</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: the PyTorch model to be exported</span>
 <span class="sd">        model_name: the name for the exported model</span>
 <span class="sd">        dummy_input: the dummy input to the model</span>
-<span class="sd">        input_names: optional names for the model inputs. Defaults to `[&quot;input&quot;]` (or `[&quot;input&quot;, &quot;masks&quot;]`</span>
+<span class="sd">        input_names: optional names for the model inputs. Defaults to `["input"]` (or `["input", "masks"]`</span>
 <span class="sd">            when `dummy_input` is a tuple).</span>
-<span class="sd">        output_names: optional names for the model outputs. Defaults to `[&quot;logits&quot;]` (or</span>
-<span class="sd">            `[&quot;logits&quot;, &quot;pred_boxes&quot;]` when `dummy_input` is a tuple). Pass the names of every output when</span>
+<span class="sd">        output_names: optional names for the model outputs. Defaults to `["logits"]` (or</span>
+<span class="sd">            `["logits", "pred_boxes"]` when `dummy_input` is a tuple). Pass the names of every output when</span>
 <span class="sd">            the model returns more than one tensor (e.g. a multi-head model).</span>
 <span class="sd">        dynamic_axes: optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.</span>
 <span class="sd">        kwargs: additional arguments to be passed to torch.onnx.export</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the path to the exported model</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">is_tuple</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dummy_input</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">input_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">input_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">,</span> <span class="s2">&quot;masks&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tuple</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;input&quot;</span><span class="p">]</span>
+        <span class="n">input_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"input"</span><span class="p">,</span> <span class="s2">"masks"</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tuple</span> <span class="k">else</span> <span class="p">[</span><span class="s2">"input"</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">output_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">output_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">,</span> <span class="s2">&quot;pred_boxes&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tuple</span> <span class="k">else</span> <span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
+        <span class="n">output_names</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"logits"</span><span class="p">,</span> <span class="s2">"pred_boxes"</span><span class="p">]</span> <span class="k">if</span> <span class="n">is_tuple</span> <span class="k">else</span> <span class="p">[</span><span class="s2">"logits"</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">dynamic_axes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">dynamic_axes</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">}</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">input_names</span><span class="p">,</span> <span class="o">*</span><span class="n">output_names</span><span class="p">]}</span>
+        <span class="n">dynamic_axes</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s2">"batch_size"</span><span class="p">}</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="o">*</span><span class="n">input_names</span><span class="p">,</span> <span class="o">*</span><span class="n">output_names</span><span class="p">]}</span>
 
     <span class="n">torch</span><span class="o">.</span><span class="n">onnx</span><span class="o">.</span><span class="n">export</span><span class="p">(</span>
         <span class="n">model</span><span class="p">,</span>
         <span class="n">dummy_input</span><span class="p">,</span>  <span class="c1"># type: ignore[arg-type]</span>
-        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx&quot;</span><span class="p">,</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">,</span>
         <span class="n">input_names</span><span class="o">=</span><span class="n">input_names</span><span class="p">,</span>
         <span class="n">output_names</span><span class="o">=</span><span class="n">output_names</span><span class="p">,</span>
         <span class="n">dynamic_axes</span><span class="o">=</span><span class="n">dynamic_axes</span><span class="p">,</span>
@@ -506,40 +506,40 @@
         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model exported to </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx&quot;</span><span class="p">)</span>
-    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx&quot;</span></div>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Model exported to </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span></div>
 
 
 
 <span class="c1"># Location of the final vocabulary-projection layer for each recognition architecture.</span>
 <span class="n">_RECOGNITION_PROJECTIONS</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;CRNN&quot;</span><span class="p">:</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;SAR&quot;</span><span class="p">:</span> <span class="s2">&quot;decoder.output_dense&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;MASTER&quot;</span><span class="p">:</span> <span class="s2">&quot;linear&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;ViTSTR&quot;</span><span class="p">:</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;PARSeq&quot;</span><span class="p">:</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;VIPTR&quot;</span><span class="p">:</span> <span class="s2">&quot;head&quot;</span><span class="p">,</span>
+    <span class="s2">"CRNN"</span><span class="p">:</span> <span class="s2">"linear"</span><span class="p">,</span>
+    <span class="s2">"SAR"</span><span class="p">:</span> <span class="s2">"decoder.output_dense"</span><span class="p">,</span>
+    <span class="s2">"MASTER"</span><span class="p">:</span> <span class="s2">"linear"</span><span class="p">,</span>
+    <span class="s2">"ViTSTR"</span><span class="p">:</span> <span class="s2">"head"</span><span class="p">,</span>
+    <span class="s2">"PARSeq"</span><span class="p">:</span> <span class="s2">"head"</span><span class="p">,</span>
+    <span class="s2">"VIPTR"</span><span class="p">:</span> <span class="s2">"head"</span><span class="p">,</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">WhitelistHandle</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Removable registration returned by :func:`add_whitelist`.</span>
+<span class="w">    </span><span class="sd">"""Removable registration returned by :func:`add_whitelist`.</span>
 
-<span class="sd">    Call :meth:`remove` to restore the model&#39;s original, unconstrained decoding. The</span>
+<span class="sd">    Call :meth:`remove` to restore the model's original, unconstrained decoding. The</span>
 <span class="sd">    handle can also be used as a context manager, in which case the whitelist is removed</span>
 <span class="sd">    on exit.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">handles</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">hooks</span><span class="o">.</span><span class="n">RemovableHandle</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handles</span> <span class="o">=</span> <span class="n">handles</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Remove the whitelist and restore the model&#39;s unconstrained decoding.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Remove the whitelist and restore the model's unconstrained decoding."""</span>
         <span class="k">for</span> <span class="n">handle</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handles</span><span class="p">:</span>
             <span class="n">handle</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handles</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;WhitelistHandle&quot;</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">"WhitelistHandle"</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">_</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -548,14 +548,14 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_recognition_model</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">:</span>
     <span class="c1"># Accept an ocr_predictor / kie_predictor / recognition_predictor or a recognition model</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;vocab&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;postprocessor&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">"vocab"</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">"postprocessor"</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">model</span>
-    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;reco_predictor&quot;</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
-    <span class="n">reco_model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">reco_predictor</span><span class="p">,</span> <span class="s2">&quot;model&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">reco_predictor</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">"reco_predictor"</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="n">reco_model</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">reco_predictor</span><span class="p">,</span> <span class="s2">"model"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">reco_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-            <span class="s2">&quot;Expected an ocr_predictor, kie_predictor, recognition_predictor or a recognition &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;model, but could not find a recognition model on </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="s2">"Expected an ocr_predictor, kie_predictor, recognition_predictor or a recognition "</span>
+            <span class="sa">f</span><span class="s2">"model, but could not find a recognition model on </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">."</span>
         <span class="p">)</span>
     <span class="k">return</span> <span class="n">reco_model</span>
 
@@ -564,7 +564,7 @@
     <span class="n">path</span> <span class="o">=</span> <span class="n">_RECOGNITION_PROJECTIONS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">layer</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">model</span>
-        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">):</span>
             <span class="n">layer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">part</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">layer</span><span class="p">]</span>
@@ -575,18 +575,18 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">)</span> <span class="ow">and</span> <span class="n">module</span><span class="o">.</span><span class="n">out_features</span> <span class="ow">in</span> <span class="p">{</span><span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="n">vocab_size</span> <span class="o">+</span> <span class="mi">3</span><span class="p">}</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not locate the vocabulary projection layer of </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not locate the vocabulary projection layer of </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">."</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">candidates</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_anyascii_nearest_map</span><span class="p">(</span><span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">allowed</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map each forbidden character to the visually closest allowed one via transliteration.</span>
+<span class="w">    </span><span class="sd">"""Map each forbidden character to the visually closest allowed one via transliteration.</span>
 
 <span class="sd">    Uses `anyascii` to fold characters to their ASCII form (e.g. `ä -&gt; a`, `ł -&gt; l`,</span>
 <span class="sd">    Cyrillic `а -&gt; a`); a forbidden character is mapped to an allowed character sharing the</span>
 <span class="sd">    same ASCII form. Forbidden characters without such a match are left unmapped (they fall</span>
 <span class="sd">    back to plain masking).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">by_translit</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">char</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">allowed</span><span class="p">:</span>
@@ -609,12 +609,12 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_weights_nearest_map</span><span class="p">(</span><span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">allowed</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">projection</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map each forbidden character to the allowed one whose projection weights are most similar.</span>
+<span class="w">    </span><span class="sd">"""Map each forbidden character to the allowed one whose projection weights are most similar.</span>
 
-<span class="sd">    This uses the model&#39;s own learned representation: the nearest allowed character is the one</span>
+<span class="sd">    This uses the model's own learned representation: the nearest allowed character is the one</span>
 <span class="sd">    the model most confuses the forbidden character with (cosine similarity of the projection</span>
 <span class="sd">    weight rows).</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
     <span class="n">rows</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">functional</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">projection</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">detach</span><span class="p">()[:</span><span class="n">vocab_size</span><span class="p">],</span> <span class="n">dim</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">allowed_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span> <span class="k">if</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">allowed</span><span class="p">]</span>
@@ -629,7 +629,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_keep_and_reassign</span><span class="p">(</span>
     <span class="n">vocab</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">allowed</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">out_features</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">char_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the keep mask and the (forbidden -&gt; allowed) index tensors for one projection.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Build the keep mask and the (forbidden -&gt; allowed) index tensors for one projection."""</span>
     <span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
     <span class="n">keep</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">out_features</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">char</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vocab</span><span class="p">):</span>
@@ -653,13 +653,13 @@
     <span class="n">model</span><span class="p">:</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span>
     <span class="n">vocabs</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="o">*</span><span class="p">,</span>
-    <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span>
+    <span class="n">strategy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"mask"</span><span class="p">,</span>
     <span class="n">mapping</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">WhitelistHandle</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Restrict a recognition model so it can only predict a subset of its vocabulary.</span>
+<span class="w">    </span><span class="sd">"""Restrict a recognition model so it can only predict a subset of its vocabulary.</span>
 
-<span class="sd">    The whitelist is enforced at the model&#39;s final projection layer, before the decoding</span>
+<span class="sd">    The whitelist is enforced at the model's final projection layer, before the decoding</span>
 <span class="sd">    `argmax`. Because the projection is the single point every logit flows through, the</span>
 <span class="sd">    constraint also applies inside the autoregressive decoding loop of SAR, MASTER and PARSeq,</span>
 <span class="sd">    so a forbidden character can never be produced -- not even fed back mid-word. The sequence</span>
@@ -669,32 +669,32 @@
 
 <span class="sd">    Two strategies are available:</span>
 
-<span class="sd">    * `&quot;mask&quot;` (default): the logits of forbidden characters are set to `-inf`, so decoding</span>
+<span class="sd">    * `"mask"` (default): the logits of forbidden characters are set to `-inf`, so decoding</span>
 <span class="sd">      falls back to the highest-scoring allowed character.</span>
-<span class="sd">    * `&quot;nearest&quot;`: the score of each forbidden character is first reassigned to the closest</span>
+<span class="sd">    * `"nearest"`: the score of each forbidden character is first reassigned to the closest</span>
 <span class="sd">      allowed character (so e.g. `ä` folds onto `a`), then forbidden logits are masked.</span>
 <span class="sd">      Forbidden characters without a mapping fall back to masking.</span>
 
 <span class="sd">    A whitelist can only restrict a model to characters it already knows: characters that are</span>
-<span class="sd">    not part of the model&#39;s own vocabulary are silently ignored.</span>
+<span class="sd">    not part of the model's own vocabulary are silently ignored.</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import VOCABS</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models import ocr_predictor</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.utils import add_whitelist</span>
 <span class="sd">    &gt;&gt;&gt; predictor = ocr_predictor(pretrained=True)</span>
-<span class="sd">    &gt;&gt;&gt; handle = add_whitelist(predictor, [VOCABS[&quot;polish&quot;], VOCABS[&quot;german&quot;]])</span>
+<span class="sd">    &gt;&gt;&gt; handle = add_whitelist(predictor, [VOCABS["polish"], VOCABS["german"]])</span>
 <span class="sd">    &gt;&gt;&gt; # ... run the predictor; only Polish/German characters can be predicted ...</span>
 <span class="sd">    &gt;&gt;&gt; handle.remove()  # restore the original, unconstrained decoding</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        model: an `ocr_predictor`, `kie_predictor`, `recognition_predictor`, or a recognition model.</span>
-<span class="sd">        vocabs: a vocabulary string (e.g. `VOCABS[&quot;german&quot;]`) or an iterable of vocabulary</span>
-<span class="sd">            strings (e.g. `[VOCABS[&quot;polish&quot;], VOCABS[&quot;german&quot;]]`) whose characters are allowed.</span>
-<span class="sd">        strategy: `&quot;mask&quot;` (default) to drop forbidden characters, or `&quot;nearest&quot;` to fold</span>
+<span class="sd">        vocabs: a vocabulary string (e.g. `VOCABS["german"]`) or an iterable of vocabulary</span>
+<span class="sd">            strings (e.g. `[VOCABS["polish"], VOCABS["german"]]`) whose characters are allowed.</span>
+<span class="sd">        strategy: `"mask"` (default) to drop forbidden characters, or `"nearest"` to fold</span>
 <span class="sd">            them onto the closest allowed character.</span>
-<span class="sd">        mapping: only used when `&quot;strategy=&quot;nearest&quot;`&quot;. `None` or `&quot;anyascii&quot;` builds the</span>
-<span class="sd">            forbidden-to-allowed map by transliteration (the default); `&quot;weights&quot;` derives it</span>
-<span class="sd">            from the projection weights (the model&#39;s own confusions); a `dict` of</span>
+<span class="sd">        mapping: only used when `"strategy="nearest"`". `None` or `"anyascii"` builds the</span>
+<span class="sd">            forbidden-to-allowed map by transliteration (the default); `"weights"` derives it</span>
+<span class="sd">            from the projection weights (the model's own confusions); a `dict` of</span>
 <span class="sd">            `{forbidden_char: allowed_char}` overrides specific characters on top of the</span>
 <span class="sd">            transliteration map.</span>
 <span class="sd">        verbose: if True, log how many characters were kept, forbidden and reassigned per model.</span>
@@ -702,15 +702,15 @@
 <span class="sd">    Returns:</span>
 <span class="sd">        a :class:`WhitelistHandle`; call its :meth:`~WhitelistHandle.remove` method to restore</span>
 <span class="sd">        the original, unconstrained decoding.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;nearest&quot;</span><span class="p">}:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown strategy </span><span class="si">{</span><span class="n">strategy</span><span class="si">!r}</span><span class="s2">; expected &#39;mask&#39; or &#39;nearest&#39;.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;mask&quot;</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The &#39;mapping&#39; argument is only used with strategy=&#39;nearest&#39;.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;anyascii&quot;</span><span class="p">,</span> <span class="s2">&quot;weights&quot;</span><span class="p">}:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unknown mapping </span><span class="si">{</span><span class="n">mapping</span><span class="si">!r}</span><span class="s2">; expected &#39;anyascii&#39;, &#39;weights&#39;, a dict or None.&quot;</span><span class="p">)</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"mask"</span><span class="p">,</span> <span class="s2">"nearest"</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown strategy </span><span class="si">{</span><span class="n">strategy</span><span class="si">!r}</span><span class="s2">; expected 'mask' or 'nearest'."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">"mask"</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The 'mapping' argument is only used with strategy='nearest'."</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">"anyascii"</span><span class="p">,</span> <span class="s2">"weights"</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Unknown mapping </span><span class="si">{</span><span class="n">mapping</span><span class="si">!r}</span><span class="s2">; expected 'anyascii', 'weights', a dict or None."</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">mapping</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The &#39;mapping&#39; argument must be None, &#39;anyascii&#39;, &#39;weights&#39; or a dict.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The 'mapping' argument must be None, 'anyascii', 'weights' or a dict."</span><span class="p">)</span>
 
     <span class="n">allowed</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">vocabs</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vocabs</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="p">{</span><span class="n">char</span> <span class="k">for</span> <span class="n">vocab</span> <span class="ow">in</span> <span class="n">vocabs</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">}</span>
 
@@ -720,14 +720,14 @@
     <span class="n">vocab_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">char</span> <span class="ow">in</span> <span class="n">allowed</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;The whitelist shares no character with the model&#39;s vocabulary; the model would &quot;</span>
-            <span class="s2">&quot;be unable to predict anything.&quot;</span>
+            <span class="s2">"The whitelist shares no character with the model's vocabulary; the model would "</span>
+            <span class="s2">"be unable to predict anything."</span>
         <span class="p">)</span>
 
     <span class="c1"># A vocab-level character map (shared by every projection); the weight-based map is</span>
     <span class="c1"># derived per projection further down.</span>
     <span class="n">base_map</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;nearest&quot;</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="o">!=</span> <span class="s2">&quot;weights&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">"nearest"</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="o">!=</span> <span class="s2">"weights"</span><span class="p">:</span>
         <span class="n">base_map</span> <span class="o">=</span> <span class="n">_anyascii_nearest_map</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">allowed</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
             <span class="n">base_map</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">base_map</span><span class="p">,</span> <span class="o">**</span><span class="n">mapping</span><span class="p">}</span>
@@ -736,7 +736,7 @@
     <span class="k">for</span> <span class="n">projection</span> <span class="ow">in</span> <span class="n">_vocab_projections</span><span class="p">(</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">):</span>
         <span class="n">char_map</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">_weights_nearest_map</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">allowed</span><span class="p">,</span> <span class="n">projection</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;nearest&quot;</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="o">==</span> <span class="s2">&quot;weights&quot;</span>
+            <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">"nearest"</span> <span class="ow">and</span> <span class="n">mapping</span> <span class="o">==</span> <span class="s2">"weights"</span>
             <span class="k">else</span> <span class="n">base_map</span>
         <span class="p">)</span>
         <span class="n">keep</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">dst</span> <span class="o">=</span> <span class="n">_keep_and_reassign</span><span class="p">(</span><span class="n">vocab</span><span class="p">,</span> <span class="n">allowed</span><span class="p">,</span> <span class="n">projection</span><span class="o">.</span><span class="n">out_features</span><span class="p">,</span> <span class="n">char_map</span><span class="p">)</span>
@@ -752,11 +752,11 @@
         <span class="p">):</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">src</span><span class="o">.</span><span class="n">numel</span><span class="p">():</span>
-                <span class="c1"># move each forbidden character&#39;s score onto its nearest allowed character</span>
+                <span class="c1"># move each forbidden character's score onto its nearest allowed character</span>
                 <span class="n">values</span> <span class="o">=</span> <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">src</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span>
                 <span class="n">index</span> <span class="o">=</span> <span class="n">dst</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">*</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">dim</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">expand</span><span class="p">(</span><span class="o">*</span><span class="n">output</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-                <span class="n">output</span><span class="o">.</span><span class="n">scatter_reduce_</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">reduce</span><span class="o">=</span><span class="s2">&quot;amax&quot;</span><span class="p">,</span> <span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">~</span><span class="n">keep</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;-inf&quot;</span><span class="p">)</span>
+                <span class="n">output</span><span class="o">.</span><span class="n">scatter_reduce_</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">reduce</span><span class="o">=</span><span class="s2">"amax"</span><span class="p">,</span> <span class="n">include_self</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">output</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="o">~</span><span class="n">keep</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">device</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">output</span>
 
         <span class="n">handles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">projection</span><span class="o">.</span><span class="n">register_forward_hook</span><span class="p">(</span><span class="n">_constrain_logits</span><span class="p">))</span>
@@ -764,9 +764,9 @@
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
         <span class="n">kept</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">char</span> <span class="ow">in</span> <span class="n">allowed</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">)</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;add_whitelist: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">reco_model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> - kept </span><span class="si">{</span><span class="n">kept</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">vocab_size</span><span class="si">}</span><span class="s2"> vocabulary &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;characters, forbade </span><span class="si">{</span><span class="n">vocab_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">kept</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;, reassigned </span><span class="si">{</span><span class="n">reassigned</span><span class="si">}</span><span class="s2"> to a nearest allowed character.&quot;</span> <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">&quot;nearest&quot;</span> <span class="k">else</span> <span class="s2">&quot;.&quot;</span><span class="p">)</span>
+            <span class="sa">f</span><span class="s2">"add_whitelist: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">reco_model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> - kept </span><span class="si">{</span><span class="n">kept</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">vocab_size</span><span class="si">}</span><span class="s2"> vocabulary "</span>
+            <span class="sa">f</span><span class="s2">"characters, forbade </span><span class="si">{</span><span class="n">vocab_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">kept</span><span class="si">}</span><span class="s2">"</span>
+            <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">", reassigned </span><span class="si">{</span><span class="n">reassigned</span><span class="si">}</span><span class="s2"> to a nearest allowed character."</span> <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">"nearest"</span> <span class="k">else</span> <span class="s2">"."</span><span class="p">)</span>
         <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">WhitelistHandle</span><span class="p">(</span><span class="n">handles</span><span class="p">)</span></div>

@@ -308,29 +308,29 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils.pytorch</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">_ViTSTR</span><span class="p">,</span> <span class="n">_ViTSTRPostProcessor</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ViTSTR&quot;</span><span class="p">,</span> <span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span> <span class="s2">&quot;vitstr_base&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ViTSTR"</span><span class="p">,</span> <span class="s2">"vitstr_small"</span><span class="p">,</span> <span class="s2">"vitstr_base"</span><span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;vitstr_small&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
-        <span class="s2">&quot;vocab&quot;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/vitstr_small-fcd12655.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"vitstr_small"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+        <span class="s2">"vocab"</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">"french"</span><span class="p">],</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.7.0/vitstr_small-fcd12655.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;vitstr_base&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
-        <span class="s2">&quot;vocab&quot;</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">],</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/vitstr_base-50b21df2.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"vitstr_base"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">),</span>
+        <span class="s2">"vocab"</span><span class="p">:</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">"french"</span><span class="p">],</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.7.0/vitstr_base-50b21df2.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ViTSTR</span><span class="p">(</span><span class="n">_ViTSTR</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Implements a ViTSTR architecture as described in `&quot;Vision Transformer for Fast and</span>
-<span class="sd">    Efficient Scene Text Recognition&quot; &lt;https://arxiv.org/pdf/2105.08582.pdf&gt;`_.</span>
+<span class="w">    </span><span class="sd">"""Implements a ViTSTR architecture as described in `"Vision Transformer for Fast and</span>
+<span class="sd">    Efficient Scene Text Recognition" &lt;https://arxiv.org/pdf/2105.08582.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        feature_extractor: the backbone serving as feature extractor</span>
@@ -341,7 +341,7 @@
 <span class="sd">        input_shape: input shape of the image</span>
 <span class="sd">        exportable: onnx exportable returns only logits</span>
 <span class="sd">        cfg: dictionary containing information about the model</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -365,12 +365,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span> <span class="o">=</span> <span class="n">ViTSTRPostProcessor</span><span class="p">(</span><span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pretrained parameters onto the model</span>
+<span class="w">        </span><span class="sd">"""Load pretrained parameters onto the model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path_or_url: the path or URL to the model parameters (checkpoint)</span>
 <span class="sd">            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">load_pretrained_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
@@ -380,7 +380,7 @@
         <span class="n">return_model_output</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">return_preds</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
-        <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="s2">&quot;features&quot;</span><span class="p">]</span>  <span class="c1"># (batch_size, patches_seqlen, d_model)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">feat_extractor</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="s2">"features"</span><span class="p">]</span>  <span class="c1"># (batch_size, patches_seqlen, d_model)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_gt</span><span class="p">,</span> <span class="n">_seq_len</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
@@ -388,7 +388,7 @@
             <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span> <span class="o">=</span> <span class="n">gt</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">seq_len</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="ow">and</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to provide labels during training&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Need to provide labels during training"</span><span class="p">)</span>
 
         <span class="c1"># borrowed from : https://github.com/baudm/parseq/blob/main/strhub/models/vitstr/model.py</span>
         <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_length</span><span class="p">]</span>  <span class="c1"># (batch_size, max_length, d_model)</span>
@@ -399,11 +399,11 @@
 
         <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decoded_features</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"logits"</span><span class="p">]</span> <span class="o">=</span> <span class="n">decoded_features</span>
             <span class="k">return</span> <span class="n">out</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decoded_features</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"out_map"</span><span class="p">]</span> <span class="o">=</span> <span class="n">decoded_features</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Disable for torch.compile compatibility</span>
@@ -412,10 +412,10 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">postprocessor</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">)</span>
 
             <span class="c1"># Post-process boxes</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;preds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"preds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"loss"</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">decoded_features</span><span class="p">,</span> <span class="n">gt</span><span class="p">,</span> <span class="n">seq_len</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">out</span>
 
@@ -425,7 +425,7 @@
         <span class="n">gt</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
         <span class="n">seq_len</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute categorical cross-entropy loss for the model.</span>
+<span class="w">        </span><span class="sd">"""Compute categorical cross-entropy loss for the model.</span>
 <span class="sd">        Sequences are masked after the EOS character.</span>
 
 <span class="sd">        Args:</span>
@@ -435,14 +435,14 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The loss of the model on the batch</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Input length : number of steps</span>
         <span class="n">input_len</span> <span class="o">=</span> <span class="n">model_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
         <span class="c1"># Add one for additional &lt;eos&gt; token (sos disappear in shift!)</span>
         <span class="n">seq_len</span> <span class="o">=</span> <span class="n">seq_len</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># type: ignore[assignment]</span>
-        <span class="c1"># Compute loss: don&#39;t forget to shift gt! Otherwise the model learns to output the gt[t-1]!</span>
-        <span class="c1"># The &quot;masked&quot; first gt char is &lt;sos&gt;.</span>
-        <span class="n">cce</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">model_output</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">gt</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
+        <span class="c1"># Compute loss: don't forget to shift gt! Otherwise the model learns to output the gt[t-1]!</span>
+        <span class="c1"># The "masked" first gt char is &lt;sos&gt;.</span>
+        <span class="n">cce</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">cross_entropy</span><span class="p">(</span><span class="n">model_output</span><span class="o">.</span><span class="n">permute</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">gt</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">"none"</span><span class="p">)</span>
         <span class="c1"># Compute mask</span>
         <span class="n">mask_2d</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">input_len</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">device</span><span class="p">)[</span><span class="kc">None</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&gt;=</span> <span class="n">seq_len</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">]</span>
         <span class="n">cce</span><span class="p">[</span><span class="n">mask_2d</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
@@ -452,11 +452,11 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">ViTSTRPostProcessor</span><span class="p">(</span><span class="n">_ViTSTRPostProcessor</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Post processor for ViTSTR architecture</span>
+<span class="w">    </span><span class="sd">"""Post processor for ViTSTR architecture</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        vocab: string containing the ordered sequence of supported characters</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -468,7 +468,7 @@
 
         <span class="c1"># Manual decoding</span>
         <span class="n">word_values</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">encoded_seq</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&lt;eos&gt;&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">encoded_seq</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"&lt;eos&gt;"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">encoded_seq</span> <span class="ow">in</span> <span class="n">out_idxs</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
         <span class="p">]</span>
         <span class="c1"># compute probabilties for each word up to the EOS token</span>
@@ -489,22 +489,22 @@
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ViTSTR</span><span class="p">:</span>
     <span class="c1"># Patch the config</span>
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;vocab&quot;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;input_shape&quot;</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">])</span>
-    <span class="n">patch_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;patch_size&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">"vocab"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"vocab"</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">"vocab"</span><span class="p">])</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"input_shape"</span><span class="p">,</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">])</span>
+    <span class="n">patch_size</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"patch_size"</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
 
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"vocab"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">"vocab"</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">]</span>
 
     <span class="c1"># Feature extractor</span>
     <span class="n">feat_extractor</span> <span class="o">=</span> <span class="n">IntermediateLayerGetter</span><span class="p">(</span>
-        <span class="c1"># NOTE: we don&#39;t use a pretrained backbone for non-rectangular patches to avoid the pos embed mismatch</span>
-        <span class="n">backbone_fn</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;input_shape&quot;</span><span class="p">],</span> <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">),</span>  <span class="c1"># type: ignore[call-arg]</span>
-        <span class="p">{</span><span class="n">layer</span><span class="p">:</span> <span class="s2">&quot;features&quot;</span><span class="p">},</span>
+        <span class="c1"># NOTE: we don't use a pretrained backbone for non-rectangular patches to avoid the pos embed mismatch</span>
+        <span class="n">backbone_fn</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">input_shape</span><span class="o">=</span><span class="n">_cfg</span><span class="p">[</span><span class="s2">"input_shape"</span><span class="p">],</span> <span class="n">patch_size</span><span class="o">=</span><span class="n">patch_size</span><span class="p">),</span>  <span class="c1"># type: ignore[call-arg]</span>
+        <span class="p">{</span><span class="n">layer</span><span class="p">:</span> <span class="s2">"features"</span><span class="p">},</span>
     <span class="p">)</span>
 
-    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;patch_size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;pretrained_backbone&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"patch_size"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"pretrained_backbone"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">ViTSTR</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">_cfg</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -512,8 +512,8 @@
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="c1"># The number of classes is not the same as the number of classes in the pretrained model =&gt;</span>
         <span class="c1"># remove the last layer weights</span>
-        <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
+        <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">_cfg</span><span class="p">[</span><span class="s2">"vocab"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"vocab"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"url"</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
@@ -521,7 +521,7 @@
 <div class="viewcode-block" id="vitstr_small">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.vitstr_small">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ViTSTR</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;ViTSTR-Small as described in `&quot;Vision Transformer for Fast and Efficient Scene Text Recognition&quot;</span>
+<span class="w">    </span><span class="sd">"""ViTSTR-Small as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2105.08582.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -536,15 +536,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text recognition architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_vitstr</span><span class="p">(</span>
-        <span class="s2">&quot;vitstr_small&quot;</span><span class="p">,</span>
+        <span class="s2">"vitstr_small"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">vit_s</span><span class="p">,</span>
-        <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+        <span class="s2">"1"</span><span class="p">,</span>
         <span class="n">embedding_units</span><span class="o">=</span><span class="mi">384</span><span class="p">,</span>
         <span class="n">patch_size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;head.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;head.bias&quot;</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"head.weight"</span><span class="p">,</span> <span class="s2">"head.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -553,7 +553,7 @@
 <div class="viewcode-block" id="vitstr_base">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.recognition.vitstr_base">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">vitstr_base</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ViTSTR</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;ViTSTR-Base as described in `&quot;Vision Transformer for Fast and Efficient Scene Text Recognition&quot;</span>
+<span class="w">    </span><span class="sd">"""ViTSTR-Base as described in `"Vision Transformer for Fast and Efficient Scene Text Recognition"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/2105.08582.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -568,15 +568,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text recognition architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_vitstr</span><span class="p">(</span>
-        <span class="s2">&quot;vitstr_base&quot;</span><span class="p">,</span>
+        <span class="s2">"vitstr_base"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">vit_b</span><span class="p">,</span>
-        <span class="s2">&quot;1&quot;</span><span class="p">,</span>
+        <span class="s2">"1"</span><span class="p">,</span>
         <span class="n">embedding_units</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
         <span class="n">patch_size</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;head.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;head.bias&quot;</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"head.weight"</span><span class="p">,</span> <span class="s2">"head.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 

@@ -304,7 +304,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">Polygon4P</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;visualize_page&quot;</span><span class="p">,</span> <span class="s2">&quot;visualize_kie_page&quot;</span><span class="p">,</span> <span class="s2">&quot;draw_boxes&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"visualize_page"</span><span class="p">,</span> <span class="s2">"visualize_kie_page"</span><span class="p">,</span> <span class="s2">"draw_boxes"</span><span class="p">]</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">rect_patch</span><span class="p">(</span>
@@ -317,7 +317,7 @@
     <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib rectangular patch for the element</span>
+<span class="w">    </span><span class="sd">"""Create a matplotlib rectangular patch for the element</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box of the element</span>
@@ -331,9 +331,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a rectangular Patch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elt</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">elt</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">elt</span> <span class="ow">in</span> <span class="n">geometry</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"invalid geometry format"</span><span class="p">)</span>
 
     <span class="c1"># Unpack</span>
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
@@ -366,7 +366,7 @@
     <span class="n">fill</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">patches</span><span class="o">.</span><span class="n">Polygon</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib polygon patch for the element</span>
+<span class="w">    </span><span class="sd">"""Create a matplotlib polygon patch for the element</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box of the element</span>
@@ -380,9 +380,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a polygon Patch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">geometry</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"invalid geometry format"</span><span class="p">)</span>
 
     <span class="c1"># Unpack</span>
     <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="n">page_dimensions</span>
@@ -404,7 +404,7 @@
     <span class="n">page_dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">patches</span><span class="o">.</span><span class="n">Patch</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a matplotlib patch for the element</span>
+<span class="w">    </span><span class="sd">"""Create a matplotlib patch for the element</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        geometry: bounding box (straight or rotated) of the element</span>
@@ -413,7 +413,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a matplotlib Patch</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">geometry</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>  <span class="c1"># straight word BB (2 pts)</span>
             <span class="k">return</span> <span class="n">rect_patch</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -421,18 +421,18 @@
             <span class="k">return</span> <span class="n">polygon_patch</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geometry</span><span class="p">),</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">and</span> <span class="n">geometry</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>  <span class="c1"># rotated line</span>
         <span class="k">return</span> <span class="n">polygon_patch</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">page_dimensions</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;invalid geometry format&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"invalid geometry format"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">get_colors</span><span class="p">(</span><span class="n">num_colors</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate num_colors color for matplotlib</span>
+<span class="w">    </span><span class="sd">"""Generate num_colors color for matplotlib</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        num_colors: number of colors to generate</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        colors: list of generated colors</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">colors</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">,</span> <span class="mf">360.0</span> <span class="o">/</span> <span class="n">num_colors</span><span class="p">):</span>
         <span class="n">hue</span> <span class="o">=</span> <span class="n">i</span> <span class="o">/</span> <span class="mf">360.0</span>
@@ -454,7 +454,7 @@
     <span class="n">add_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Figure</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Visualize a full page with predicted blocks, lines and words</span>
+<span class="w">    </span><span class="sd">"""Visualize a full page with predicted blocks, lines and words</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
@@ -468,7 +468,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        page: the exported Page of a Document</span>
-<span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
+<span class="sd">        image: np array of the page, needs to have the same shape than page['dimensions']</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
 <span class="sd">        display_artefacts: whether artefacts should be displayed</span>
 <span class="sd">        scale: figsize of the largest windows side</span>
@@ -478,7 +478,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the matplotlib figure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">w</span> <span class="o">/</span> <span class="n">h</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="k">if</span> <span class="n">h</span> <span class="o">&gt;</span> <span class="n">w</span> <span class="k">else</span> <span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">h</span> <span class="o">/</span> <span class="n">w</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
@@ -486,36 +486,36 @@
     <span class="c1"># Display the image</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="c1"># hide both axis</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">"off"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
         <span class="n">artists</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">patches</span><span class="o">.</span><span class="n">Patch</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># instantiate an empty list of patches (to be drawn on the page)</span>
 
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">words_only</span><span class="p">:</span>
             <span class="n">rect</span> <span class="o">=</span> <span class="n">create_obj_patch</span><span class="p">(</span>
-                <span class="n">block</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">],</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;block&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+                <span class="n">block</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span> <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"block"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
             <span class="p">)</span>
             <span class="c1"># add patch on figure</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
-                <span class="c1"># add patch to cursor&#39;s artists</span>
+                <span class="c1"># add patch to cursor's artists</span>
                 <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;lines&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">"lines"</span><span class="p">]:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">words_only</span><span class="p">:</span>
                 <span class="n">rect</span> <span class="o">=</span> <span class="n">create_obj_patch</span><span class="p">(</span>
-                    <span class="n">line</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">],</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;line&quot;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+                    <span class="n">line</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span> <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">"line"</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
                 <span class="p">)</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
                     <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
-            <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">"words"</span><span class="p">]:</span>
                 <span class="n">rect</span> <span class="o">=</span> <span class="n">create_obj_patch</span><span class="p">(</span>
-                    <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">],</span>
-                    <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">],</span>
-                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">word</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (confidence: </span><span class="si">{</span><span class="n">word</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                    <span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span>
+                    <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">],</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">word</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (confidence: </span><span class="si">{</span><span class="n">word</span><span class="p">[</span><span class="s1">'confidence'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
                     <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
                 <span class="p">)</span>
@@ -523,33 +523,33 @@
                 <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
                     <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">add_labels</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
                         <span class="n">text_loc</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
-                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)),</span>
                         <span class="p">)</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">text_loc</span> <span class="o">=</span> <span class="p">(</span>
-                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
-                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
                         <span class="p">)</span>
 
-                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">])</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
                         <span class="c1"># We draw only if boxes are in straight format</span>
                         <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
                             <span class="o">*</span><span class="n">text_loc</span><span class="p">,</span>
-                            <span class="n">word</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
+                            <span class="n">word</span><span class="p">[</span><span class="s2">"value"</span><span class="p">],</span>
                             <span class="n">size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
                             <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
                             <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">display_artefacts</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">&quot;artefacts&quot;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">artefact</span> <span class="ow">in</span> <span class="n">block</span><span class="p">[</span><span class="s2">"artefacts"</span><span class="p">]:</span>
                 <span class="n">rect</span> <span class="o">=</span> <span class="n">create_obj_patch</span><span class="p">(</span>
-                    <span class="n">artefact</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">],</span>
-                    <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">],</span>
-                    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;artefact&quot;</span><span class="p">,</span>
+                    <span class="n">artefact</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span>
+                    <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">],</span>
+                    <span class="n">label</span><span class="o">=</span><span class="s2">"artefact"</span><span class="p">,</span>
                     <span class="n">color</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
                     <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -562,7 +562,7 @@
         <span class="kn">import</span><span class="w"> </span><span class="nn">mplcursors</span>
 
         <span class="c1"># Create mlp Cursor to hover patches in artists</span>
-        <span class="n">mplcursors</span><span class="o">.</span><span class="n">Cursor</span><span class="p">(</span><span class="n">artists</span><span class="p">,</span> <span class="n">hover</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sel</span><span class="p">:</span> <span class="n">sel</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">artist</span><span class="o">.</span><span class="n">get_label</span><span class="p">()))</span>
+        <span class="n">mplcursors</span><span class="o">.</span><span class="n">Cursor</span><span class="p">(</span><span class="n">artists</span><span class="p">,</span> <span class="n">hover</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">"add"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sel</span><span class="p">:</span> <span class="n">sel</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">artist</span><span class="o">.</span><span class="n">get_label</span><span class="p">()))</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">fig</span></div>
@@ -579,7 +579,7 @@
     <span class="n">add_labels</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Figure</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Visualize a full page with predicted blocks, lines and words</span>
+<span class="w">    </span><span class="sd">"""Visualize a full page with predicted blocks, lines and words</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; import matplotlib.pyplot as plt</span>
@@ -593,7 +593,7 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        page: the exported Page of a Document</span>
-<span class="sd">        image: np array of the page, needs to have the same shape than page[&#39;dimensions&#39;]</span>
+<span class="sd">        image: np array of the page, needs to have the same shape than page['dimensions']</span>
 <span class="sd">        words_only: whether only words should be displayed</span>
 <span class="sd">        display_artefacts: whether artefacts should be displayed</span>
 <span class="sd">        scale: figsize of the largest windows side</span>
@@ -603,7 +603,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the matplotlib figure</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Get proper scale and aspect ratio</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">size</span> <span class="o">=</span> <span class="p">(</span><span class="n">scale</span> <span class="o">*</span> <span class="n">w</span> <span class="o">/</span> <span class="n">h</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span> <span class="k">if</span> <span class="n">h</span> <span class="o">&gt;</span> <span class="n">w</span> <span class="k">else</span> <span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">h</span> <span class="o">/</span> <span class="n">w</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
@@ -611,19 +611,19 @@
     <span class="c1"># Display the image</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
     <span class="c1"># hide both axis</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">&quot;off&quot;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s2">"off"</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
         <span class="n">artists</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">patches</span><span class="o">.</span><span class="n">Patch</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># instantiate an empty list of patches (to be drawn on the page)</span>
 
-    <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">color</span> <span class="k">for</span> <span class="n">color</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">get_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">])),</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">])}</span>
-    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">&quot;predictions&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">colors</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">color</span> <span class="k">for</span> <span class="n">color</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">get_colors</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">page</span><span class="p">[</span><span class="s2">"predictions"</span><span class="p">])),</span> <span class="n">page</span><span class="p">[</span><span class="s2">"predictions"</span><span class="p">])}</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">page</span><span class="p">[</span><span class="s2">"predictions"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">words_only</span><span class="p">:</span>
                 <span class="n">rect</span> <span class="o">=</span> <span class="n">create_obj_patch</span><span class="p">(</span>
-                    <span class="n">prediction</span><span class="p">[</span><span class="s2">&quot;geometry&quot;</span><span class="p">],</span>
-                    <span class="n">page</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">],</span>
-                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">prediction</span><span class="p">[</span><span class="s1">&#39;value&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> (confidence: </span><span class="si">{</span><span class="n">prediction</span><span class="p">[</span><span class="s1">&#39;confidence&#39;</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">prediction</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">],</span>
+                    <span class="n">page</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">],</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2"> </span><span class="se">\n</span><span class="s2"> </span><span class="si">{</span><span class="n">prediction</span><span class="p">[</span><span class="s1">'value'</span><span class="p">]</span><span class="si">}</span><span class="s2"> (confidence: </span><span class="si">{</span><span class="n">prediction</span><span class="p">[</span><span class="s1">'confidence'</span><span class="p">]</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                     <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">key</span><span class="p">],</span>
                     <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
@@ -631,28 +631,28 @@
                 <span class="c1"># add patch on figure</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
-                    <span class="c1"># add patch to cursor&#39;s artists</span>
+                    <span class="c1"># add patch to cursor's artists</span>
                     <span class="n">artists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">interactive</span><span class="p">:</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">mplcursors</span>
 
         <span class="c1"># Create mlp Cursor to hover patches in artists</span>
-        <span class="n">mplcursors</span><span class="o">.</span><span class="n">Cursor</span><span class="p">(</span><span class="n">artists</span><span class="p">,</span> <span class="n">hover</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">&quot;add&quot;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sel</span><span class="p">:</span> <span class="n">sel</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">artist</span><span class="o">.</span><span class="n">get_label</span><span class="p">()))</span>
+        <span class="n">mplcursors</span><span class="o">.</span><span class="n">Cursor</span><span class="p">(</span><span class="n">artists</span><span class="p">,</span> <span class="n">hover</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="s2">"add"</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sel</span><span class="p">:</span> <span class="n">sel</span><span class="o">.</span><span class="n">annotation</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">artist</span><span class="o">.</span><span class="n">get_label</span><span class="p">()))</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">fig</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">draw_boxes</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">image</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">color</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Draw an array of relative straight boxes on an image</span>
+<span class="w">    </span><span class="sd">"""Draw an array of relative straight boxes on an image</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        boxes: array of relative boxes, of shape (*, 4)</span>
 <span class="sd">        image: np array, float32 or uint8</span>
 <span class="sd">        color: color to use for bounding box edges</span>
 <span class="sd">        **kwargs: keyword arguments from `matplotlib.pyplot.plot`</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
     <span class="c1"># Convert boxes to absolute coords</span>
     <span class="n">_boxes</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">boxes</span><span class="p">)</span>

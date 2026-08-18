@@ -315,7 +315,7 @@ It is based on the YOLOv8 architecture, which is a state-of-the-art object detec
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.contrib.artefacts</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtefactDetector</span>
 
 <span class="c1"># Load the document</span>
-<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s2">&quot;path/to/your/image&quot;</span><span class="p">])</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s2">"path/to/your/image"</span><span class="p">])</span>
 <span class="n">detector</span> <span class="o">=</span> <span class="n">ArtefactDetector</span><span class="p">(</span><span class="n">batch_size</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">conf_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">iou_threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">artefacts</span> <span class="o">=</span> <span class="n">detector</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
 
@@ -328,7 +328,7 @@ Reference: <a class="reference external" href="https://github.com/ultralytics/ul
 <p><strong>NOTE:</strong> The YOLOv8 model (no Oriented Bounding Box (OBB) inference supported yet) needs to be provided as onnx exported model with a dynamic batch size.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.contrib</span><span class="w"> </span><span class="kn">import</span> <span class="n">ArtefactDetector</span>
 
-<span class="n">detector</span> <span class="o">=</span> <span class="n">ArtefactDetector</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;path/to/your/model.onnx&quot;</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">])</span>
+<span class="n">detector</span> <span class="o">=</span> <span class="n">ArtefactDetector</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">"path/to/your/model.onnx"</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="s2">"table"</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>

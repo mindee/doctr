@@ -307,95 +307,95 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.repr</span><span class="w"> </span><span class="kn">import</span> <span class="n">NestedObject</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;ReadingOrderPredictor&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;assign_layout_labels&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;deskew_reading_geometries&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;detect_text_direction&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;layout_label_role&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;normalize_layout_label&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;resolve_reading_segments&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;sort_reading_order&quot;</span><span class="p">,</span>
+    <span class="s2">"ReadingOrderPredictor"</span><span class="p">,</span>
+    <span class="s2">"assign_layout_labels"</span><span class="p">,</span>
+    <span class="s2">"deskew_reading_geometries"</span><span class="p">,</span>
+    <span class="s2">"detect_text_direction"</span><span class="p">,</span>
+    <span class="s2">"layout_label_role"</span><span class="p">,</span>
+    <span class="s2">"normalize_layout_label"</span><span class="p">,</span>
+    <span class="s2">"resolve_reading_segments"</span><span class="p">,</span>
+    <span class="s2">"sort_reading_order"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="c1"># Directions supported by the ordering functions</span>
-<span class="n">SUPPORTED_DIRECTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;ltr&quot;</span><span class="p">,</span> <span class="s2">&quot;rtl&quot;</span><span class="p">,</span> <span class="s2">&quot;ttb-rtl&quot;</span><span class="p">,</span> <span class="s2">&quot;ttb-ltr&quot;</span><span class="p">)</span>
+<span class="n">SUPPORTED_DIRECTIONS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"auto"</span><span class="p">,</span> <span class="s2">"ltr"</span><span class="p">,</span> <span class="s2">"rtl"</span><span class="p">,</span> <span class="s2">"ttb-rtl"</span><span class="p">,</span> <span class="s2">"ttb-ltr"</span><span class="p">)</span>
 
 <span class="c1"># ISO 639 codes of languages predominantly written right-to-left (used as a fallback hint when no text is</span>
 <span class="c1"># available, e.g. from the `langdetect` prediction attached to a page)</span>
-<span class="n">RTL_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ar&quot;</span><span class="p">,</span> <span class="s2">&quot;arc&quot;</span><span class="p">,</span> <span class="s2">&quot;ckb&quot;</span><span class="p">,</span> <span class="s2">&quot;dv&quot;</span><span class="p">,</span> <span class="s2">&quot;fa&quot;</span><span class="p">,</span> <span class="s2">&quot;he&quot;</span><span class="p">,</span> <span class="s2">&quot;iw&quot;</span><span class="p">,</span> <span class="s2">&quot;ks&quot;</span><span class="p">,</span> <span class="s2">&quot;ku&quot;</span><span class="p">,</span> <span class="s2">&quot;nqo&quot;</span><span class="p">,</span> <span class="s2">&quot;ps&quot;</span><span class="p">,</span> <span class="s2">&quot;sd&quot;</span><span class="p">,</span> <span class="s2">&quot;syr&quot;</span><span class="p">,</span> <span class="s2">&quot;ug&quot;</span><span class="p">,</span> <span class="s2">&quot;ur&quot;</span><span class="p">,</span> <span class="s2">&quot;yi&quot;</span><span class="p">}</span>
+<span class="n">RTL_LANGUAGES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"ar"</span><span class="p">,</span> <span class="s2">"arc"</span><span class="p">,</span> <span class="s2">"ckb"</span><span class="p">,</span> <span class="s2">"dv"</span><span class="p">,</span> <span class="s2">"fa"</span><span class="p">,</span> <span class="s2">"he"</span><span class="p">,</span> <span class="s2">"iw"</span><span class="p">,</span> <span class="s2">"ks"</span><span class="p">,</span> <span class="s2">"ku"</span><span class="p">,</span> <span class="s2">"nqo"</span><span class="p">,</span> <span class="s2">"ps"</span><span class="p">,</span> <span class="s2">"sd"</span><span class="p">,</span> <span class="s2">"syr"</span><span class="p">,</span> <span class="s2">"ug"</span><span class="p">,</span> <span class="s2">"ur"</span><span class="p">,</span> <span class="s2">"yi"</span><span class="p">}</span>
 
 <span class="c1"># Unicode bidirectional categories of strong right-to-left characters (Hebrew-like &amp; Arabic-like)</span>
-<span class="n">_RTL_BIDI_CATEGORIES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;R&quot;</span><span class="p">,</span> <span class="s2">&quot;AL&quot;</span><span class="p">}</span>
+<span class="n">_RTL_BIDI_CATEGORIES</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"R"</span><span class="p">,</span> <span class="s2">"AL"</span><span class="p">}</span>
 
 <span class="c1"># Normalized layout labels (DocLayNet-style) grouped by their role in the reading order</span>
-<span class="n">_HEADER_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;page_header&quot;</span><span class="p">,</span> <span class="s2">&quot;header&quot;</span><span class="p">,</span> <span class="s2">&quot;running_header&quot;</span><span class="p">}</span>
-<span class="n">_FOOTER_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;page_footer&quot;</span><span class="p">,</span> <span class="s2">&quot;footer&quot;</span><span class="p">,</span> <span class="s2">&quot;running_footer&quot;</span><span class="p">}</span>
-<span class="n">_FOOTNOTE_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;footnote&quot;</span><span class="p">}</span>
-<span class="n">_CAPTION_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;caption&quot;</span><span class="p">}</span>
-<span class="n">_FLOAT_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;table&quot;</span><span class="p">,</span> <span class="s2">&quot;picture&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;chart&quot;</span><span class="p">,</span> <span class="s2">&quot;graphic&quot;</span><span class="p">}</span>
+<span class="n">_HEADER_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"page_header"</span><span class="p">,</span> <span class="s2">"header"</span><span class="p">,</span> <span class="s2">"running_header"</span><span class="p">}</span>
+<span class="n">_FOOTER_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"page_footer"</span><span class="p">,</span> <span class="s2">"footer"</span><span class="p">,</span> <span class="s2">"running_footer"</span><span class="p">}</span>
+<span class="n">_FOOTNOTE_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"footnote"</span><span class="p">}</span>
+<span class="n">_CAPTION_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"caption"</span><span class="p">}</span>
+<span class="n">_FLOAT_LABELS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"table"</span><span class="p">,</span> <span class="s2">"picture"</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="s2">"image"</span><span class="p">,</span> <span class="s2">"chart"</span><span class="p">,</span> <span class="s2">"graphic"</span><span class="p">}</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize a layout label to lower snake case (e.g. &#39;Page-header&#39; -&gt; &#39;page_header&#39;)</span>
+<span class="w">    </span><span class="sd">"""Normalize a layout label to lower snake case (e.g. 'Page-header' -&gt; 'page_header')</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        label: the layout label to normalize (None is mapped to an empty string)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the normalized label</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
-    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">else</span> <span class="s2">&quot;_&quot;</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+        <span class="k">return</span> <span class="s2">""</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">c</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"_"</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">label</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">layout_label_role</span><span class="p">(</span><span class="n">label</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Resolve the role of a layout label in the reading order.</span>
+<span class="w">    </span><span class="sd">"""Resolve the role of a layout label in the reading order.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        label: the layout label (e.g. a DocLayNet class such as &#39;Page-header&#39; or &#39;Caption&#39;)</span>
+<span class="sd">        label: the layout label (e.g. a DocLayNet class such as 'Page-header' or 'Caption')</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        one of &#39;header&#39;, &#39;footer&#39;, &#39;footnote&#39;, &#39;caption&#39;, &#39;float&#39; or &#39;body&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        one of 'header', 'footer', 'footnote', 'caption', 'float' or 'body'</span>
+<span class="sd">    """</span>
     <span class="n">norm</span> <span class="o">=</span> <span class="n">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_HEADER_LABELS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;header&quot;</span>
+        <span class="k">return</span> <span class="s2">"header"</span>
     <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_FOOTER_LABELS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;footer&quot;</span>
+        <span class="k">return</span> <span class="s2">"footer"</span>
     <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_FOOTNOTE_LABELS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;footnote&quot;</span>
+        <span class="k">return</span> <span class="s2">"footnote"</span>
     <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_CAPTION_LABELS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;caption&quot;</span>
+        <span class="k">return</span> <span class="s2">"caption"</span>
     <span class="k">if</span> <span class="n">norm</span> <span class="ow">in</span> <span class="n">_FLOAT_LABELS</span><span class="p">:</span>
-        <span class="k">return</span> <span class="s2">&quot;float&quot;</span>
-    <span class="k">return</span> <span class="s2">&quot;body&quot;</span>
+        <span class="k">return</span> <span class="s2">"float"</span>
+    <span class="k">return</span> <span class="s2">"body"</span>
 
 
 <div class="viewcode-block" id="detect_text_direction">
 <a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.detect_text_direction">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">detect_text_direction</span><span class="p">(</span><span class="n">texts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Infer the horizontal base direction of a document from its text content.</span>
+<span class="w">    </span><span class="sd">"""Infer the horizontal base direction of a document from its text content.</span>
 
 <span class="sd">    The detection relies on the Unicode bidirectional property of each character: strong right-to-left</span>
 <span class="sd">    characters (bidirectional categories `R` and `AL`, covering among others Hebrew, Arabic, Syriac,</span>
-<span class="sd">    Thaana, N&#39;Ko) are counted against strong left-to-right characters (category `L`). This makes the</span>
+<span class="sd">    Thaana, N'Ko) are counted against strong left-to-right characters (category `L`). This makes the</span>
 <span class="sd">    detection language-independent and robust to mixed content. When no strong character is found, the</span>
 <span class="sd">    optional ISO 639 language code is used as a fallback hint.</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.utils.reading_order import detect_text_direction</span>
-<span class="sd">    &gt;&gt;&gt; detect_text_direction([&quot;Hello&quot;, &quot;world&quot;])</span>
-<span class="sd">    &#39;ltr&#39;</span>
-<span class="sd">    &gt;&gt;&gt; detect_text_direction([&quot;مرحبا&quot;, &quot;بالعالم&quot;])</span>
-<span class="sd">    &#39;rtl&#39;</span>
+<span class="sd">    &gt;&gt;&gt; detect_text_direction(["Hello", "world"])</span>
+<span class="sd">    'ltr'</span>
+<span class="sd">    &gt;&gt;&gt; detect_text_direction(["مرحبا", "بالعالم"])</span>
+<span class="sd">    'rtl'</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        texts: iterable of text strings (e.g. all the words of a page)</span>
 <span class="sd">        language: optional ISO 639 language code used as a fallback when the script is inconclusive</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">        either &quot;ltr&quot; or &quot;rtl&quot;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">        either "ltr" or "rtl"</span>
+<span class="sd">    """</span>
     <span class="n">rtl_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">ltr_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">texts</span><span class="p">:</span>
@@ -405,13 +405,13 @@
             <span class="n">bidi</span> <span class="o">=</span> <span class="n">unicodedata</span><span class="o">.</span><span class="n">bidirectional</span><span class="p">(</span><span class="n">char</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">bidi</span> <span class="ow">in</span> <span class="n">_RTL_BIDI_CATEGORIES</span><span class="p">:</span>
                 <span class="n">rtl_count</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">elif</span> <span class="n">bidi</span> <span class="o">==</span> <span class="s2">&quot;L&quot;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">bidi</span> <span class="o">==</span> <span class="s2">"L"</span><span class="p">:</span>
                 <span class="n">ltr_count</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="n">rtl_count</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">ltr_count</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">language</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">RTL_LANGUAGES</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s2">&quot;rtl&quot;</span>
-        <span class="k">return</span> <span class="s2">&quot;ltr&quot;</span>
-    <span class="k">return</span> <span class="s2">&quot;rtl&quot;</span> <span class="k">if</span> <span class="n">rtl_count</span> <span class="o">&gt;</span> <span class="n">ltr_count</span> <span class="k">else</span> <span class="s2">&quot;ltr&quot;</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">language</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"-"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">RTL_LANGUAGES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">"rtl"</span>
+        <span class="k">return</span> <span class="s2">"ltr"</span>
+    <span class="k">return</span> <span class="s2">"rtl"</span> <span class="k">if</span> <span class="n">rtl_count</span> <span class="o">&gt;</span> <span class="n">ltr_count</span> <span class="k">else</span> <span class="s2">"ltr"</span></div>
 
 
 
@@ -431,27 +431,27 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_to_canonical_ltr</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Map boxes to a canonical left-to-right, top-to-bottom space for the given reading direction.</span>
+<span class="w">    </span><span class="sd">"""Map boxes to a canonical left-to-right, top-to-bottom space for the given reading direction.</span>
 
 <span class="sd">    Mirroring &amp; axis swapping are performed around the extent of the boxes themselves, so both relative and</span>
 <span class="sd">    absolute coordinates are supported.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;ltr&quot;</span> <span class="ow">or</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"ltr"</span> <span class="ow">or</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">boxes</span>
     <span class="n">x0</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">boxes</span><span class="p">[:,</span> <span class="mi">3</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;rtl&quot;</span><span class="p">:</span>  <span class="c1"># mirror horizontally</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"rtl"</span><span class="p">:</span>  <span class="c1"># mirror horizontally</span>
         <span class="n">pivot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">x1</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">pivot</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;ttb-ltr&quot;</span><span class="p">:</span>  <span class="c1"># vertical lines, columns ordered left to right: swap axes</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"ttb-ltr"</span><span class="p">:</span>  <span class="c1"># vertical lines, columns ordered left to right: swap axes</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">y0</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">&quot;ttb-rtl&quot;</span><span class="p">:</span>  <span class="c1"># vertical lines, columns ordered right to left: swap axes &amp; mirror</span>
+    <span class="k">if</span> <span class="n">direction</span> <span class="o">==</span> <span class="s2">"ttb-rtl"</span><span class="p">:</span>  <span class="c1"># vertical lines, columns ordered right to left: swap axes &amp; mirror</span>
         <span class="n">pivot</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">x0</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">x1</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">y0</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">pivot</span> <span class="o">-</span> <span class="n">x0</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid reading direction &#39;</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&#39;, should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid reading direction '</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">', should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_overlap_ratios</span><span class="p">(</span><span class="n">starts</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">ends</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the pairwise 1D overlap of intervals, normalized by the length of the smaller interval&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Compute the pairwise 1D overlap of intervals, normalized by the length of the smaller interval"""</span>
     <span class="n">starts</span> <span class="o">=</span> <span class="n">starts</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">ends</span> <span class="o">=</span> <span class="n">ends</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">lengths</span> <span class="o">=</span> <span class="n">ends</span> <span class="o">-</span> <span class="n">starts</span>
@@ -465,7 +465,7 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_strict_rank</span><span class="p">(</span><span class="n">primary</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">secondary</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the rank of each element in the strict total order given by (primary, secondary, index)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Return the rank of each element in the strict total order given by (primary, secondary, index)"""</span>
     <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">lexsort</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">primary</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">secondary</span><span class="p">,</span> <span class="n">primary</span><span class="p">))</span>
     <span class="n">ranks</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty_like</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
     <span class="n">ranks</span><span class="p">[</span><span class="n">order</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">order</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -473,19 +473,19 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_topological_order</span><span class="p">(</span><span class="n">boxes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Order boxes (already in canonical LTR space) with a column-following topological sort.</span>
+<span class="w">    </span><span class="sd">"""Order boxes (already in canonical LTR space) with a column-following topological sort.</span>
 
-<span class="sd">    Two families of &quot;reads-before&quot; relations are used (cf. Breuel 2003):</span>
+<span class="sd">    Two families of "reads-before" relations are used (cf. Breuel 2003):</span>
 
 <span class="sd">    * `i` precedes `j` when they overlap horizontally and `i` lies above `j`</span>
 <span class="sd">    * `i` precedes `j` when they lie on the same visual row (vertical overlap, no horizontal overlap)</span>
 <span class="sd">      and `i` is on the left of `j`</span>
 
-<span class="sd">    The relations are resolved with Kahn&#39;s algorithm; among the available elements, the traversal favors the</span>
+<span class="sd">    The relations are resolved with Kahn's algorithm; among the available elements, the traversal favors the</span>
 <span class="sd">    continuation of the current column (the closest element below the last emitted one with a horizontal</span>
 <span class="sd">    overlap), which keeps multi-column bodies intact even for non-Manhattan layouts where recursive XY-cuts</span>
 <span class="sd">    fail to find a valid split.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">num_boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">num_boxes</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">))</span>
@@ -582,14 +582,14 @@
     <span class="n">labels</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
     <span class="n">max_distance</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Insert captions right before (resp. after) the closest float they sit above (resp. below).</span>
+<span class="w">    </span><span class="sd">"""Insert captions right before (resp. after) the closest float they sit above (resp. below).</span>
 
 <span class="sd">    Captions without a float within reach keep their natural spatial position in the body.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">float_idcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">idx</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">order</span> <span class="k">if</span> <span class="n">labels</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_FLOAT_LABELS</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">cap</span> <span class="ow">in</span> <span class="n">caption_idcs</span><span class="p">:</span>
         <span class="n">cx0</span><span class="p">,</span> <span class="n">cy0</span><span class="p">,</span> <span class="n">cx1</span><span class="p">,</span> <span class="n">cy1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">cap</span><span class="p">]</span>
-        <span class="n">best_target</span><span class="p">,</span> <span class="n">best_dist</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+        <span class="n">best_target</span><span class="p">,</span> <span class="n">best_dist</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"inf"</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">target</span> <span class="ow">in</span> <span class="n">float_idcs</span><span class="p">:</span>
             <span class="n">tx0</span><span class="p">,</span> <span class="n">ty0</span><span class="p">,</span> <span class="n">tx1</span><span class="p">,</span> <span class="n">ty1</span> <span class="o">=</span> <span class="n">boxes</span><span class="p">[</span><span class="n">target</span><span class="p">]</span>
             <span class="n">x_gap</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tx0</span> <span class="o">-</span> <span class="n">cx1</span><span class="p">,</span> <span class="n">cx0</span> <span class="o">-</span> <span class="n">tx1</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
@@ -619,7 +619,7 @@
     <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">min_angle</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;De-skew rotated geometries so the reading order can be computed in an upright frame.</span>
+<span class="w">    </span><span class="sd">"""De-skew rotated geometries so the reading order can be computed in an upright frame.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        geoms: geometries of the elements to order, in any docTR format (cf. `sort_reading_order`)</span>
@@ -635,7 +635,7 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the (possibly de-skewed) element and region geometries</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">region_geoms</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">region_geoms</span><span class="p">)</span> <span class="k">if</span> <span class="n">region_geoms</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
     <span class="n">pts</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">geom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="k">for</span> <span class="n">geom</span> <span class="ow">in</span> <span class="n">geoms</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">4</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pts</span><span class="p">):</span>
@@ -681,7 +681,7 @@
 <a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.sort_reading_order">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">sort_reading_order</span><span class="p">(</span>
     <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ltr&quot;</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ltr"</span><span class="p">,</span>
     <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
@@ -689,7 +689,7 @@
     <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the reading order of document elements from their geometries (and optionally, layout labels).</span>
+<span class="w">    </span><span class="sd">"""Compute the reading order of document elements from their geometries (and optionally, layout labels).</span>
 
 <span class="sd">    &gt;&gt;&gt; from doctr.models.reading_order import sort_reading_order</span>
 <span class="sd">    &gt;&gt;&gt; # A title spanning two columns of text</span>
@@ -704,9 +704,9 @@
 <span class="sd">    Args:</span>
 <span class="sd">        geoms: sequence of geometries in any docTR format (((xmin, ymin), (xmax, ymax)) boxes, 4-point</span>
 <span class="sd">            polygons, or a (N, 4) / (N, 4, 2) numpy array), in relative or absolute coordinates</span>
-<span class="sd">        direction: reading direction, one of &#39;ltr&#39; (Latin, Cyrillic, CJK horizontal, ...), &#39;rtl&#39; (Arabic,</span>
-<span class="sd">            Hebrew, ...), &#39;ttb-rtl&#39; (vertical lines with columns ordered right-to-left, e.g. traditional</span>
-<span class="sd">            Chinese/Japanese) or &#39;ttb-ltr&#39; (vertical lines with columns ordered left-to-right)</span>
+<span class="sd">        direction: reading direction, one of 'ltr' (Latin, Cyrillic, CJK horizontal, ...), 'rtl' (Arabic,</span>
+<span class="sd">            Hebrew, ...), 'ttb-rtl' (vertical lines with columns ordered right-to-left, e.g. traditional</span>
+<span class="sd">            Chinese/Japanese) or 'ttb-ltr' (vertical lines with columns ordered left-to-right)</span>
 <span class="sd">        labels: optional layout labels (one per geometry, e.g. DocLayNet classes from a docTR layout</span>
 <span class="sd">            predictor). When provided, page headers are moved first, footnotes and page footers last, and</span>
 <span class="sd">            captions are attached to the closest figure or table. Unknown or None labels are treated as body.</span>
@@ -718,19 +718,19 @@
 <span class="sd">            the caption to be attached to it</span>
 <span class="sd">        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.</span>
 <span class="sd">            `deskew_reading_geometries`)</span>
-<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page&#39;s word polygons) used to</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to</span>
 <span class="sd">            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the permutation of the input indices which sorts the elements in reading order</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">direction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid reading direction &#39;</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&#39;, should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid reading direction '</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">', should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
     <span class="n">geoms</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">deskew_reading_geometries</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span> <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">)</span>
     <span class="n">boxes</span> <span class="o">=</span> <span class="n">_to_boxes</span><span class="p">(</span><span class="n">geoms</span><span class="p">)</span>
     <span class="n">num_boxes</span> <span class="o">=</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">labels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_boxes</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incompatible number of labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) and geometries (</span><span class="si">{</span><span class="n">num_boxes</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Incompatible number of labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) and geometries (</span><span class="si">{</span><span class="n">num_boxes</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_boxes</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">))</span>
 
@@ -746,15 +746,15 @@
         <span class="k">return</span> <span class="n">_order</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">num_boxes</span><span class="p">)))</span>
 
     <span class="n">norm_labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">normalize_layout_label</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
-    <span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;header&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;body&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;caption&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;footnote&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;footer&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+    <span class="n">groups</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"header"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"body"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"caption"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"footnote"</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">"footer"</span><span class="p">:</span> <span class="p">[]}</span>
     <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">norm_labels</span><span class="p">):</span>
         <span class="n">role</span> <span class="o">=</span> <span class="n">layout_label_role</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-        <span class="n">groups</span><span class="p">[</span><span class="s2">&quot;body&quot;</span> <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">&quot;float&quot;</span> <span class="k">else</span> <span class="n">role</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="n">groups</span><span class="p">[</span><span class="s2">"body"</span> <span class="k">if</span> <span class="n">role</span> <span class="o">==</span> <span class="s2">"float"</span> <span class="k">else</span> <span class="n">role</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
 
     <span class="n">body_order</span> <span class="o">=</span> <span class="n">_attach_captions</span><span class="p">(</span>
-        <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">&quot;body&quot;</span><span class="p">]),</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">&quot;caption&quot;</span><span class="p">]),</span> <span class="n">canonical</span><span class="p">,</span> <span class="n">norm_labels</span><span class="p">,</span> <span class="n">caption_max_distance</span>
+        <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"body"</span><span class="p">]),</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"caption"</span><span class="p">]),</span> <span class="n">canonical</span><span class="p">,</span> <span class="n">norm_labels</span><span class="p">,</span> <span class="n">caption_max_distance</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">&quot;header&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="n">body_order</span> <span class="o">+</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">&quot;footnote&quot;</span><span class="p">])</span> <span class="o">+</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">&quot;footer&quot;</span><span class="p">])</span></div>
+    <span class="k">return</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"header"</span><span class="p">])</span> <span class="o">+</span> <span class="n">body_order</span> <span class="o">+</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"footnote"</span><span class="p">])</span> <span class="o">+</span> <span class="n">_order</span><span class="p">(</span><span class="n">groups</span><span class="p">[</span><span class="s2">"footer"</span><span class="p">])</span></div>
 
 
 
@@ -762,7 +762,7 @@
 <a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.resolve_reading_segments">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">resolve_reading_segments</span><span class="p">(</span>
     <span class="n">geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
-    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;ltr&quot;</span><span class="p">,</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"ltr"</span><span class="p">,</span>
     <span class="n">labels</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
     <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
@@ -771,7 +771,7 @@
     <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Order elements in reading order and group consecutive ones into segments (paragraphs or regions).</span>
+<span class="w">    </span><span class="sd">"""Order elements in reading order and group consecutive ones into segments (paragraphs or regions).</span>
 
 <span class="sd">    This is typically used to regroup individual lines into paragraphs once they have been put in reading</span>
 <span class="sd">    order: two consecutive elements are merged into the same segment when they share the same (possibly None)</span>
@@ -779,8 +779,8 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)</span>
-<span class="sd">        direction: reading direction, one of &#39;ltr&#39;, &#39;rtl&#39;, &#39;ttb-rtl&#39; or &#39;ttb-ltr&#39;</span>
-<span class="sd">        labels: optional layout labels (one per geometry), cf. `sort_reading_order`. Elements with a &#39;float&#39;</span>
+<span class="sd">        direction: reading direction, one of 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
+<span class="sd">        labels: optional layout labels (one per geometry), cf. `sort_reading_order`. Elements with a 'float'</span>
 <span class="sd">            role (tables, pictures) are never merged with their neighbors.</span>
 <span class="sd">        x_overlap_threshold: minimum relative horizontal overlap for two elements to be considered vertically</span>
 <span class="sd">            stacked (same column)</span>
@@ -792,13 +792,13 @@
 <span class="sd">            as a multiple of the median element height</span>
 <span class="sd">        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.</span>
 <span class="sd">            `deskew_reading_geometries`)</span>
-<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page&#39;s word polygons) used to</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to</span>
 <span class="sd">            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a partition of the input indices into reading-ordered segments (each segment being itself in</span>
 <span class="sd">        reading order)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># De-skew once so the ordering and the vertical-gap measurement share the same upright frame</span>
     <span class="n">geoms</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">deskew_reading_geometries</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span> <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">)</span>
     <span class="n">order</span> <span class="o">=</span> <span class="n">sort_reading_order</span><span class="p">(</span>
@@ -823,7 +823,7 @@
         <span class="p">)</span>
         <span class="n">same_segment</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">norm_labels</span><span class="p">[</span><span class="n">prev</span><span class="p">]</span> <span class="o">==</span> <span class="n">norm_labels</span><span class="p">[</span><span class="n">cur</span><span class="p">]</span>
-            <span class="ow">and</span> <span class="n">layout_label_role</span><span class="p">(</span><span class="n">norm_labels</span><span class="p">[</span><span class="n">cur</span><span class="p">])</span> <span class="o">!=</span> <span class="s2">&quot;float&quot;</span>
+            <span class="ow">and</span> <span class="n">layout_label_role</span><span class="p">(</span><span class="n">norm_labels</span><span class="p">[</span><span class="n">cur</span><span class="p">])</span> <span class="o">!=</span> <span class="s2">"float"</span>
             <span class="ow">and</span> <span class="n">x_overlap</span> <span class="o">&gt;</span> <span class="n">x_overlap_threshold</span>
             <span class="ow">and</span> <span class="n">canonical</span><span class="p">[</span><span class="n">cur</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">canonical</span><span class="p">[</span><span class="n">prev</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">paragraph_gap</span> <span class="o">*</span> <span class="n">median_height</span>
         <span class="p">)</span>
@@ -845,7 +845,7 @@
     <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Assign a layout label to each element based on its overlap with the detected layout regions.</span>
+<span class="w">    </span><span class="sd">"""Assign a layout label to each element based on its overlap with the detected layout regions.</span>
 
 <span class="sd">    Each element receives the label of the region covering the largest share of its area, provided this share</span>
 <span class="sd">    reaches `min_coverage`; otherwise its label is None (treated as regular body content).</span>
@@ -854,20 +854,20 @@
 <span class="sd">        geoms: geometries of the elements to label, in any docTR format</span>
 <span class="sd">        layout_geoms: geometries of the layout regions, in any docTR format</span>
 <span class="sd">        layout_labels: labels of the layout regions (e.g. `[region.type for region in page.layout]`)</span>
-<span class="sd">        min_coverage: minimum share of an element&#39;s area a region must cover to assign its label</span>
+<span class="sd">        min_coverage: minimum share of an element's area a region must cover to assign its label</span>
 <span class="sd">        page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly (cf.</span>
 <span class="sd">            `deskew_reading_geometries`)</span>
-<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page&#39;s word polygons) used to</span>
+<span class="sd">        angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to</span>
 <span class="sd">            estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        the label of each element (None when no region covers it enough)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># De-skew elements and regions together so the coverage is measured on tight boxes in the same frame</span>
     <span class="n">geoms</span><span class="p">,</span> <span class="n">layout_geoms</span> <span class="o">=</span> <span class="n">deskew_reading_geometries</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">layout_geoms</span><span class="p">,</span> <span class="n">page_shape</span><span class="o">=</span><span class="n">page_shape</span><span class="p">,</span> <span class="n">angle_geoms</span><span class="o">=</span><span class="n">angle_geoms</span><span class="p">)</span>
     <span class="n">boxes</span><span class="p">,</span> <span class="n">regions</span> <span class="o">=</span> <span class="n">_to_boxes</span><span class="p">(</span><span class="n">geoms</span><span class="p">),</span> <span class="n">_to_boxes</span><span class="p">(</span><span class="n">layout_geoms</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">layout_labels</span><span class="p">)</span> <span class="o">!=</span> <span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incompatible number of labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">layout_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) and regions (</span><span class="si">{</span><span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Incompatible number of labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">layout_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) and regions (</span><span class="si">{</span><span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">regions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="n">boxes</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -888,56 +888,56 @@
 <div class="viewcode-block" id="ReadingOrderPredictor">
 <a class="viewcode-back" href="../../../../modules/models.html#doctr.models.reading_order.ReadingOrderPredictor">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ReadingOrderPredictor</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Language-independent reading order estimation for document elements.</span>
+<span class="w">    </span><span class="sd">"""Language-independent reading order estimation for document elements.</span>
 
 <span class="sd">    &gt;&gt;&gt; import numpy as np</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.models.reading_order import ReadingOrderPredictor</span>
 <span class="sd">    &gt;&gt;&gt; predictor = ReadingOrderPredictor()</span>
 <span class="sd">    &gt;&gt;&gt; geoms = np.array([[0.55, 0.2, 0.9, 0.8], [0.1, 0.05, 0.9, 0.15], [0.1, 0.2, 0.45, 0.8]])</span>
-<span class="sd">    &gt;&gt;&gt; predictor(geoms, texts=[&quot;First words of each element&quot;, &quot;of the page&quot;, &quot;to detect the direction&quot;])</span>
+<span class="sd">    &gt;&gt;&gt; predictor(geoms, texts=["First words of each element", "of the page", "to detect the direction"])</span>
 <span class="sd">    [1, 2, 0]</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        direction: reading direction, one of &#39;auto&#39; (inferred from the text content), &#39;ltr&#39;, &#39;rtl&#39;, &#39;ttb-rtl&#39;</span>
-<span class="sd">            or &#39;ttb-ltr&#39; (cf. `sort_reading_order`). Automatic detection covers horizontal scripts only.</span>
+<span class="sd">        direction: reading direction, one of 'auto' (inferred from the text content), 'ltr', 'rtl', 'ttb-rtl'</span>
+<span class="sd">            or 'ttb-ltr' (cf. `sort_reading_order`). Automatic detection covers horizontal scripts only.</span>
 <span class="sd">        x_overlap_threshold: minimum relative horizontal overlap for two elements to be considered vertically</span>
 <span class="sd">            stacked (same column)</span>
 <span class="sd">        y_overlap_threshold: minimum relative vertical overlap for two non-stacked elements to be considered</span>
 <span class="sd">            on the same visual row</span>
 <span class="sd">        caption_max_distance: maximum relative distance between a caption and a float (table or figure) for</span>
 <span class="sd">            the caption to be attached to it</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">x_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.2</span><span class="p">,</span>
         <span class="n">y_overlap_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">caption_max_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.1</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">direction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_DIRECTIONS</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;invalid reading direction &#39;</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">&#39;, should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"invalid reading direction '</span><span class="si">{</span><span class="n">direction</span><span class="si">}</span><span class="s2">', should be one of </span><span class="si">{</span><span class="n">SUPPORTED_DIRECTIONS</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">=</span> <span class="n">direction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x_overlap_threshold</span> <span class="o">=</span> <span class="n">x_overlap_threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_overlap_threshold</span> <span class="o">=</span> <span class="n">y_overlap_threshold</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">caption_max_distance</span> <span class="o">=</span> <span class="n">caption_max_distance</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">resolve_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">texts</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">language</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resolve the effective reading direction for the given content.</span>
+<span class="w">        </span><span class="sd">"""Resolve the effective reading direction for the given content.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            texts: text content used for the automatic detection (ignored when the direction is explicit)</span>
 <span class="sd">            language: optional ISO 639 language code used as a fallback hint</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            the effective reading direction (&#39;ltr&#39;, &#39;rtl&#39;, &#39;ttb-rtl&#39; or &#39;ttb-ltr&#39;)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">!=</span> <span class="s2">&quot;auto&quot;</span><span class="p">:</span>
+<span class="sd">            the effective reading direction ('ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr')</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span> <span class="o">!=</span> <span class="s2">"auto"</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">direction</span>
         <span class="k">return</span> <span class="n">detect_text_direction</span><span class="p">(</span><span class="n">texts</span> <span class="k">if</span> <span class="n">texts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;direction=&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"direction='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">direction</span><span class="si">}</span><span class="s2">'"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -948,7 +948,7 @@
         <span class="n">page_shape</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">angle_geoms</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the reading order of document elements.</span>
+<span class="w">        </span><span class="sd">"""Compute the reading order of document elements.</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)</span>
@@ -958,12 +958,12 @@
 <span class="sd">            language: optional ISO 639 language code used as a fallback hint for the direction detection</span>
 <span class="sd">            page_shape: the page dimensions (height, width), used to de-skew rotated pages exactly on</span>
 <span class="sd">                non-square pages</span>
-<span class="sd">            angle_geoms: optional reading-oriented 4-point polygons (typically the page&#39;s word polygons) used</span>
+<span class="sd">            angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used</span>
 <span class="sd">                to estimate the page angle on rotated pages</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            the permutation of the input indices which sorts the elements in reading order</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">sort_reading_order</span><span class="p">(</span>
             <span class="n">geoms</span><span class="p">,</span>
             <span class="n">direction</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">resolve_direction</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="n">language</span><span class="p">),</span>

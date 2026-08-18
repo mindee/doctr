@@ -305,11 +305,11 @@ To make it easy for you, we have integrated an interface to the Hugging Face Hub
 <p>This section shows how you can easily load a pretrained model from the Hugging Face Hub.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">from_hub</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s1">&#39;data/example.jpg&#39;</span><span class="p">])</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">([</span><span class="s1">'data/example.jpg'</span><span class="p">])</span>
 <span class="c1"># Load a custom detection model from the Hugging Face Hub</span>
-<span class="n">det_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">&#39;Felix92/doctr-torch-db-mobilenet-v3-large&#39;</span><span class="p">)</span>
+<span class="n">det_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">'Felix92/doctr-torch-db-mobilenet-v3-large'</span><span class="p">)</span>
 <span class="c1"># Load a custom recognition model from the Hugging Face Hub</span>
-<span class="n">reco_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">&#39;Felix92/doctr-torch-crnn-mobilenet-v3-large-french&#39;</span><span class="p">)</span>
+<span class="n">reco_model</span> <span class="o">=</span> <span class="n">from_hub</span><span class="p">(</span><span class="s1">'Felix92/doctr-torch-crnn-mobilenet-v3-large-french'</span><span class="p">)</span>
 <span class="c1"># You can easily plug these models in to the OCR predictor</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
@@ -334,7 +334,7 @@ existing repositories will not be overwritten) and the model name itself.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">recognition</span><span class="p">,</span> <span class="n">login_to_hub</span><span class="p">,</span> <span class="n">push_to_hf_hub</span>
 <span class="n">login_to_hub</span><span class="p">()</span>
 <span class="n">my_awesome_model</span> <span class="o">=</span> <span class="n">recognition</span><span class="o">.</span><span class="n">crnn_mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">push_to_hf_hub</span><span class="p">(</span><span class="n">my_awesome_model</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s1">&#39;doctr-crnn-mobilenet-v3-large-french-v1&#39;</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s1">&#39;recognition&#39;</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s1">&#39;crnn_mobilenet_v3_large&#39;</span><span class="p">)</span>
+<span class="n">push_to_hf_hub</span><span class="p">(</span><span class="n">my_awesome_model</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="s1">'doctr-crnn-mobilenet-v3-large-french-v1'</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s1">'recognition'</span><span class="p">,</span> <span class="n">arch</span><span class="o">=</span><span class="s1">'crnn_mobilenet_v3_large'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>It is also possible to push your model directly after training.</p>

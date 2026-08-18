@@ -302,25 +302,25 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractDataset</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;MJSynth&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"MJSynth"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="MJSynth">
 <a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.MJSynth">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MJSynth</span><span class="p">(</span><span class="n">AbstractDataset</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MJSynth dataset from `&quot;Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition&quot;</span>
+<span class="w">    </span><span class="sd">"""MJSynth dataset from `"Synthetic Data and Artificial Neural Networks for Natural Scene Text Recognition"</span>
 <span class="sd">    &lt;https://www.robots.ox.ac.uk/~vgg/data/text/&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; # NOTE: This is a pure recognition dataset without bounding box labels.</span>
 <span class="sd">    &gt;&gt;&gt; # NOTE: You need to download the dataset.</span>
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import MJSynth</span>
-<span class="sd">    &gt;&gt;&gt; train_set = MJSynth(img_folder=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px&quot;,</span>
-<span class="sd">    &gt;&gt;&gt;                     label_path=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt&quot;,</span>
+<span class="sd">    &gt;&gt;&gt; train_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",</span>
+<span class="sd">    &gt;&gt;&gt;                     label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt",</span>
 <span class="sd">    &gt;&gt;&gt;                     train=True)</span>
 <span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
 <span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
-<span class="sd">    &gt;&gt;&gt; test_set = MJSynth(img_folder=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px&quot;,</span>
-<span class="sd">    &gt;&gt;&gt;                    label_path=&quot;/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt&quot;)</span>
+<span class="sd">    &gt;&gt;&gt; test_set = MJSynth(img_folder="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px",</span>
+<span class="sd">    &gt;&gt;&gt;                    label_path="/path/to/mjsynth/mnt/ramdisk/max/90kDICT32px/imlist.txt")</span>
 <span class="sd">    &gt;&gt;&gt;                    train=False)</span>
 <span class="sd">    &gt;&gt;&gt; sample = test_set[0]</span>
 <span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
@@ -330,42 +330,42 @@
 <span class="sd">        label_path: path to the file with the labels</span>
 <span class="sd">        train: whether the subset should be the training one</span>
 <span class="sd">        **kwargs: keyword arguments from `AbstractDataset`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># filter corrupted or missing images</span>
     <span class="n">BLACKLIST</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s2">&quot;./1881/4/225_Marbling_46673.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2069/4/192_whittier_86389.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./869/4/234_TRIASSIC_80582.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./173/2/358_BURROWING_10395.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./913/4/231_randoms_62372.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./596/2/372_Ump_81662.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./936/2/375_LOCALITIES_44992.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2540/4/246_SQUAMOUS_73902.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./1332/4/224_TETHERED_78397.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./627/6/83_PATRIARCHATE_55931.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2013/2/370_refract_63890.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2911/6/77_heretical_35885.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./1730/2/361_HEREON_35880.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2194/2/334_EFFLORESCENT_24742.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2025/2/364_SNORTERS_72304.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./368/4/232_friar_30876.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./275/6/96_hackle_34465.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./384/4/220_bolts_8596.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./905/4/234_Postscripts_59142.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2749/6/101_Chided_13155.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./495/6/81_MIDYEAR_48332.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2852/6/60_TOILSOME_79481.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./554/2/366_Teleconferences_77948.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./1696/4/211_Queened_61779.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2128/2/369_REDACTED_63458.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2557/2/351_DOWN_23492.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./2489/4/221_snored_72290.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./1650/2/355_stony_74902.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./1863/4/223_Diligently_21672.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./264/2/362_FORETASTE_30276.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./429/4/208_Mainmasts_46140.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;./1817/2/363_actuating_904.jpg</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">"./1881/4/225_Marbling_46673.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2069/4/192_whittier_86389.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./869/4/234_TRIASSIC_80582.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./173/2/358_BURROWING_10395.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./913/4/231_randoms_62372.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./596/2/372_Ump_81662.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./936/2/375_LOCALITIES_44992.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2540/4/246_SQUAMOUS_73902.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./1332/4/224_TETHERED_78397.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./627/6/83_PATRIARCHATE_55931.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2013/2/370_refract_63890.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2911/6/77_heretical_35885.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./1730/2/361_HEREON_35880.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2194/2/334_EFFLORESCENT_24742.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2025/2/364_SNORTERS_72304.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./368/4/232_friar_30876.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./275/6/96_hackle_34465.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./384/4/220_bolts_8596.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./905/4/234_Postscripts_59142.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2749/6/101_Chided_13155.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./495/6/81_MIDYEAR_48332.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2852/6/60_TOILSOME_79481.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./554/2/366_Teleconferences_77948.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./1696/4/211_Queened_61779.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2128/2/369_REDACTED_63458.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2557/2/351_DOWN_23492.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./2489/4/221_snored_72290.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./1650/2/355_stony_74902.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./1863/4/223_Diligently_21672.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./264/2/362_FORETASTE_30276.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./429/4/208_Mainmasts_46140.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
+        <span class="s2">"./1817/2/363_actuating_904.jpg</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span>
     <span class="p">]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -379,7 +379,7 @@
 
         <span class="c1"># File existence check</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">img_folder</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">label_path</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">img_folder</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">label_path</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">label_path</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">img_folder</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
@@ -391,16 +391,16 @@
         <span class="n">set_slice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="k">else</span> <span class="nb">slice</span><span class="p">(</span><span class="n">train_samples</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-            <span class="n">iterable</span><span class="o">=</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Preparing and Loading MJSynth&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">])</span>
+            <span class="n">iterable</span><span class="o">=</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">],</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"Preparing and Loading MJSynth"</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">img_paths</span><span class="p">[</span><span class="n">set_slice</span><span class="p">])</span>
         <span class="p">):</span>
             <span class="k">if</span> <span class="n">path</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">BLACKLIST</span><span class="p">:</span>
-                <span class="n">label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"_"</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">img_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">img_folder</span><span class="p">,</span> <span class="n">path</span><span class="p">[</span><span class="mi">2</span><span class="p">:])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">"</span></div>
 
 </pre></div>
         </article>

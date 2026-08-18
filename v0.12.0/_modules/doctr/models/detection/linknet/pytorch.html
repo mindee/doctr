@@ -308,27 +308,27 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_bf16_to_float32</span><span class="p">,</span> <span class="n">load_pretrained_params</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinkNetPostProcessor</span><span class="p">,</span> <span class="n">_LinkNet</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;LinkNet&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span> <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"LinkNet"</span><span class="p">,</span> <span class="s2">"linknet_resnet18"</span><span class="p">,</span> <span class="s2">"linknet_resnet34"</span><span class="p">,</span> <span class="s2">"linknet_resnet50"</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet18-e47a14dc.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"linknet_resnet18"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet18-e47a14dc.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet34-9ca2df3e.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"linknet_resnet34"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet34-9ca2df3e.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet50-6cf565c1.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"linknet_resnet50"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.798</span><span class="p">,</span> <span class="mf">0.785</span><span class="p">,</span> <span class="mf">0.772</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.264</span><span class="p">,</span> <span class="mf">0.2749</span><span class="p">,</span> <span class="mf">0.287</span><span class="p">),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.7.0/linknet_resnet50-6cf565c1.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -351,7 +351,7 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">decoder_block</span><span class="p">(</span><span class="n">in_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">out_chan</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">stride</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a LinkNet decoder block&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""Creates a LinkNet decoder block"""</span>
         <span class="n">mid_chan</span> <span class="o">=</span> <span class="n">in_chan</span> <span class="o">//</span> <span class="mi">4</span>
         <span class="k">return</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
             <span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">(</span><span class="n">in_chan</span><span class="p">,</span> <span class="n">mid_chan</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
@@ -376,7 +376,7 @@
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">LinkNet</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">,</span> <span class="n">_LinkNet</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">"""LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    Args:</span>
@@ -388,7 +388,7 @@
 <span class="sd">        exportable: onnx exportable returns only logits</span>
 <span class="sd">        cfg: the configuration dict of the model</span>
 <span class="sd">        class_names: list of class names</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -439,11 +439,11 @@
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">named_modules</span><span class="p">():</span>
-            <span class="c1"># Don&#39;t override the initialization of the backbone</span>
-            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;feat_extractor.&quot;</span><span class="p">):</span>
+            <span class="c1"># Don't override the initialization of the backbone</span>
+            <span class="k">if</span> <span class="n">n</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"feat_extractor."</span><span class="p">):</span>
                 <span class="k">continue</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Conv2d</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">ConvTranspose2d</span><span class="p">)):</span>
-                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;fan_out&quot;</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">)</span>
+                <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">kaiming_normal_</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"fan_out"</span><span class="p">,</span> <span class="n">nonlinearity</span><span class="o">=</span><span class="s2">"relu"</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">BatchNorm2d</span><span class="p">):</span>
@@ -451,12 +451,12 @@
                 <span class="n">m</span><span class="o">.</span><span class="n">bias</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">zero_</span><span class="p">()</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pretrained parameters onto the model</span>
+<span class="w">        </span><span class="sd">"""Load pretrained parameters onto the model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path_or_url: the path or URL to the model parameters (checkpoint)</span>
 <span class="sd">            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">load_pretrained_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">forward</span><span class="p">(</span>
@@ -473,13 +473,13 @@
 
         <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">exportable</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"logits"</span><span class="p">]</span> <span class="o">=</span> <span class="n">logits</span>
             <span class="k">return</span> <span class="n">out</span>
 
         <span class="k">if</span> <span class="n">return_model_output</span> <span class="ow">or</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="n">prob_map</span> <span class="o">=</span> <span class="n">_bf16_to_float32</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">logits</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">return_model_output</span><span class="p">:</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;out_map&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"out_map"</span><span class="p">]</span> <span class="o">=</span> <span class="n">prob_map</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">return_preds</span><span class="p">:</span>
             <span class="c1"># Disable for torch.compile compatibility</span>
@@ -491,11 +491,11 @@
                 <span class="p">]</span>
 
             <span class="c1"># Post-process boxes (keep only text predictions)</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;preds&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"preds"</span><span class="p">]</span> <span class="o">=</span> <span class="n">_postprocess</span><span class="p">(</span><span class="n">prob_map</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
-            <span class="n">out</span><span class="p">[</span><span class="s2">&quot;loss&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
+            <span class="n">out</span><span class="p">[</span><span class="s2">"loss"</span><span class="p">]</span> <span class="o">=</span> <span class="n">loss</span>
 
         <span class="k">return</span> <span class="n">out</span>
 
@@ -507,7 +507,7 @@
         <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
         <span class="n">eps</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-8</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">Tensor</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on</span>
+<span class="w">        </span><span class="sd">"""Compute linknet loss, BCE with boosted box edges or focal loss. Focal loss implementation based on</span>
 <span class="sd">        &lt;https://github.com/tensorflow/addons/&gt;`_.</span>
 
 <span class="sd">        Args:</span>
@@ -519,19 +519,19 @@
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A loss tensor</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">_target</span><span class="p">,</span> <span class="n">_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_target</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">out_map</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
 
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">_target</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">out_map</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">from_numpy</span><span class="p">(</span><span class="n">_mask</span><span class="p">)</span>
         <span class="n">seg_target</span><span class="p">,</span> <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">seg_target</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">out_map</span><span class="o">.</span><span class="n">device</span><span class="p">),</span> <span class="n">seg_mask</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">out_map</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
         <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">seg_mask</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">out_map</span><span class="p">,</span> <span class="n">seg_target</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">)</span>
+        <span class="n">bce_loss</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">binary_cross_entropy_with_logits</span><span class="p">(</span><span class="n">out_map</span><span class="p">,</span> <span class="n">seg_target</span><span class="p">,</span> <span class="n">reduction</span><span class="o">=</span><span class="s2">"none"</span><span class="p">)</span>
         <span class="n">proba_map</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">out_map</span><span class="p">)</span>
 
         <span class="c1"># Focal loss</span>
         <span class="k">if</span> <span class="n">gamma</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value of gamma should be greater than or equal to zero.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Value of gamma should be greater than or equal to zero."</span><span class="p">)</span>
         <span class="n">p_t</span> <span class="o">=</span> <span class="n">proba_map</span> <span class="o">*</span> <span class="n">seg_target</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">proba_map</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">)</span>
         <span class="n">alpha_t</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">seg_target</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">seg_target</span><span class="p">)</span>
         <span class="c1"># Unreduced version</span>
@@ -567,10 +567,10 @@
         <span class="n">backbone</span><span class="p">,</span>
         <span class="p">{</span><span class="n">layer_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fpn_layers</span><span class="p">)},</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class_names"</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">]</span> <span class="o">=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class_names"</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">])</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">])</span>
 
     <span class="c1"># Build the model</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">LinkNet</span><span class="p">(</span><span class="n">feat_extractor</span><span class="p">,</span> <span class="n">cfg</span><span class="o">=</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -579,9 +579,9 @@
         <span class="c1"># The number of class_names is not the same as the number of classes in the pretrained model =&gt;</span>
         <span class="c1"># remove the layer weights</span>
         <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;class_names&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;class_names&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"class_names"</span><span class="p">]</span> <span class="o">!=</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"class_names"</span><span class="p">,</span> <span class="p">[</span><span class="n">CLASS_NAME</span><span class="p">])</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"url"</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">model</span>
 
@@ -589,7 +589,7 @@
 <div class="viewcode-block" id="linknet_resnet18">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet18">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">linknet_resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">"""LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -604,15 +604,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span>
+        <span class="s2">"linknet_resnet18"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet18</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;layer1&quot;</span><span class="p">,</span> <span class="s2">&quot;layer2&quot;</span><span class="p">,</span> <span class="s2">&quot;layer3&quot;</span><span class="p">,</span> <span class="s2">&quot;layer4&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"layer1"</span><span class="p">,</span> <span class="s2">"layer2"</span><span class="p">,</span> <span class="s2">"layer3"</span><span class="p">,</span> <span class="s2">"layer4"</span><span class="p">],</span>
         <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span>
-            <span class="s2">&quot;classifier.6.weight&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;classifier.6.bias&quot;</span><span class="p">,</span>
+            <span class="s2">"classifier.6.weight"</span><span class="p">,</span>
+            <span class="s2">"classifier.6.bias"</span><span class="p">,</span>
         <span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
@@ -622,7 +622,7 @@
 <div class="viewcode-block" id="linknet_resnet34">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet34">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">linknet_resnet34</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">"""LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -637,15 +637,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
+        <span class="s2">"linknet_resnet34"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet34</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;layer1&quot;</span><span class="p">,</span> <span class="s2">&quot;layer2&quot;</span><span class="p">,</span> <span class="s2">&quot;layer3&quot;</span><span class="p">,</span> <span class="s2">&quot;layer4&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"layer1"</span><span class="p">,</span> <span class="s2">"layer2"</span><span class="p">,</span> <span class="s2">"layer3"</span><span class="p">,</span> <span class="s2">"layer4"</span><span class="p">],</span>
         <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span>
-            <span class="s2">&quot;classifier.6.weight&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;classifier.6.bias&quot;</span><span class="p">,</span>
+            <span class="s2">"classifier.6.weight"</span><span class="p">,</span>
+            <span class="s2">"classifier.6.bias"</span><span class="p">,</span>
         <span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
@@ -655,7 +655,7 @@
 <div class="viewcode-block" id="linknet_resnet50">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.detection.linknet_resnet50">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">linknet_resnet50</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LinkNet</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;LinkNet as described in `&quot;LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation&quot;</span>
+<span class="w">    </span><span class="sd">"""LinkNet as described in `"LinkNet: Exploiting Encoder Representations for Efficient Semantic Segmentation"</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1707.03718.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -670,15 +670,15 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        text detection architecture</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_linknet</span><span class="p">(</span>
-        <span class="s2">&quot;linknet_resnet50&quot;</span><span class="p">,</span>
+        <span class="s2">"linknet_resnet50"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
         <span class="n">resnet50</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;layer1&quot;</span><span class="p">,</span> <span class="s2">&quot;layer2&quot;</span><span class="p">,</span> <span class="s2">&quot;layer3&quot;</span><span class="p">,</span> <span class="s2">&quot;layer4&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"layer1"</span><span class="p">,</span> <span class="s2">"layer2"</span><span class="p">,</span> <span class="s2">"layer3"</span><span class="p">,</span> <span class="s2">"layer4"</span><span class="p">],</span>
         <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span>
-            <span class="s2">&quot;classifier.6.weight&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;classifier.6.bias&quot;</span><span class="p">,</span>
+            <span class="s2">"classifier.6.weight"</span><span class="p">,</span>
+            <span class="s2">"classifier.6.bias"</span><span class="p">,</span>
         <span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>

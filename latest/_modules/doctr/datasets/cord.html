@@ -306,13 +306,13 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VisionDataset</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert_target_to_relative</span><span class="p">,</span> <span class="n">crop_bboxes_from_image</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;CORD&quot;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"CORD"</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="CORD">
 <a class="viewcode-back" href="../../../modules/datasets.html#doctr.datasets.CORD">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CORD</span><span class="p">(</span><span class="n">VisionDataset</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;CORD dataset from `&quot;CORD: A Consolidated Receipt Dataset forPost-OCR Parsing&quot;</span>
+<span class="w">    </span><span class="sd">"""CORD dataset from `"CORD: A Consolidated Receipt Dataset forPost-OCR Parsing"</span>
 <span class="sd">    &lt;https://openreview.net/pdf?id=SJl3z659UH&gt;`_.</span>
 
 <span class="sd">    .. image:: https://doctr-static.mindee.com/models?id=v0.5.0/cord-grid.png&amp;src=0</span>
@@ -329,18 +329,18 @@
 <span class="sd">        recognition_task: whether the dataset should be used for recognition task</span>
 <span class="sd">        detection_task: whether the dataset should be used for detection task</span>
 <span class="sd">        **kwargs: keyword arguments from `VisionDataset`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">TRAIN</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.1.1/cord_train.zip&amp;src=0&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;cord_train.zip&quot;</span><span class="p">,</span>
+        <span class="s2">"https://doctr-static.mindee.com/models?id=v0.1.1/cord_train.zip&amp;src=0"</span><span class="p">,</span>
+        <span class="s2">"45f9dc77f126490f3e52d7cb4f70ef3c57e649ea86d19d862a2757c9c455d7f8"</span><span class="p">,</span>
+        <span class="s2">"cord_train.zip"</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">TEST</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.1.1/cord_test.zip&amp;src=0&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;cord_test.zip&quot;</span><span class="p">,</span>
+        <span class="s2">"https://doctr-static.mindee.com/models?id=v0.1.1/cord_test.zip&amp;src=0"</span><span class="p">,</span>
+        <span class="s2">"8c895e3d6f7e1161c5b7245e3723ce15c04d84be89eaa6093949b75a66fb3c58"</span><span class="p">,</span>
+        <span class="s2">"cord_test.zip"</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
@@ -362,31 +362,31 @@
         <span class="p">)</span>
         <span class="k">if</span> <span class="n">recognition_task</span> <span class="ow">and</span> <span class="n">detection_task</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s2">&quot;`recognition_task` and `detection_task` cannot be set to True simultaneously. &quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;To get the whole dataset with boxes and labels leave both parameters to False.&quot;</span>
+                <span class="s2">"`recognition_task` and `detection_task` cannot be set to True simultaneously. "</span>
+                <span class="o">+</span> <span class="s2">"To get the whole dataset with boxes and labels leave both parameters to False."</span>
             <span class="p">)</span>
 
         <span class="c1"># list images</span>
-        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
+        <span class="n">tmp_root</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">"image"</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
         <span class="n">np_dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
         <span class="k">for</span> <span class="n">img_path</span> <span class="ow">in</span> <span class="n">tqdm</span><span class="p">(</span>
-            <span class="n">iterable</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">&quot;Preparing and Loading CORD&quot;</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">))</span>
+            <span class="n">iterable</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">),</span> <span class="n">desc</span><span class="o">=</span><span class="s2">"Preparing and Loading CORD"</span><span class="p">,</span> <span class="n">total</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">))</span>
         <span class="p">):</span>
             <span class="c1"># File existence check</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">)):</span>
-                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span><span class="w"> </span><span class="n">img_path</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unable to locate </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span><span class="w"> </span><span class="n">img_path</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
             <span class="n">stem</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">img_path</span><span class="p">)</span><span class="o">.</span><span class="n">stem</span>
             <span class="n">_targets</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.json&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">"json"</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">stem</span><span class="si">}</span><span class="s2">.json"</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                 <span class="n">label</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">label</span><span class="p">[</span><span class="s2">&quot;valid_line&quot;</span><span class="p">]:</span>
-                    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">&quot;words&quot;</span><span class="p">]:</span>
-                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                            <span class="n">x</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x1&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x2&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x3&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;x4&quot;</span><span class="p">]</span>
-                            <span class="n">y</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y1&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y2&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y3&quot;</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">&quot;quad&quot;</span><span class="p">][</span><span class="s2">&quot;y4&quot;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">label</span><span class="p">[</span><span class="s2">"valid_line"</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="p">[</span><span class="s2">"words"</span><span class="p">]:</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">[</span><span class="s2">"text"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">x</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x1"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x2"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x3"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"x4"</span><span class="p">]</span>
+                            <span class="n">y</span> <span class="o">=</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y1"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y2"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y3"</span><span class="p">],</span> <span class="n">word</span><span class="p">[</span><span class="s2">"quad"</span><span class="p">][</span><span class="s2">"y4"</span><span class="p">]</span>
                             <span class="n">box</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
                             <span class="k">if</span> <span class="n">use_polygons</span><span class="p">:</span>
                                 <span class="c1"># (x, y) coordinates of top left, top right, bottom right, bottom left corners</span>
@@ -402,7 +402,7 @@
                             <span class="k">else</span><span class="p">:</span>
                                 <span class="c1"># Reduce 8 coords to 4 -&gt; xmin, ymin, xmax, ymax</span>
                                 <span class="n">box</span> <span class="o">=</span> <span class="p">[</span><span class="nb">min</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span>
-                            <span class="n">_targets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">word</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">],</span> <span class="n">box</span><span class="p">))</span>
+                            <span class="n">_targets</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">word</span><span class="p">[</span><span class="s2">"text"</span><span class="p">],</span> <span class="n">box</span><span class="p">))</span>
 
             <span class="n">text_targets</span><span class="p">,</span> <span class="n">box_targets</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">_targets</span><span class="p">)</span>
 
@@ -411,7 +411,7 @@
                     <span class="n">img_path</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_root</span><span class="p">,</span> <span class="n">img_path</span><span class="p">),</span> <span class="n">geoms</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
                 <span class="p">)</span>
                 <span class="k">for</span> <span class="n">crop</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">crops</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">text_targets</span><span class="p">)):</span>
-                    <span class="k">if</span> <span class="s2">&quot; &quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="s2">" "</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">label</span><span class="p">:</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">crop</span><span class="p">,</span> <span class="n">label</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">detection_task</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">img_path</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">box_targets</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
@@ -424,7 +424,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">tmp_root</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"train=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="si">}</span><span class="s2">"</span></div>
 
 </pre></div>
         </article>

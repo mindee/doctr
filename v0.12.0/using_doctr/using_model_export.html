@@ -313,8 +313,8 @@
 <div class="sphinx-tabs docutils container">
 <div aria-label="Tabbed content" class="closeable" role="tablist"><button aria-controls="panel-0-0-0" aria-selected="true" class="sphinx-tabs-tab" id="tab-0-0-0" name="0-0" role="tab" tabindex="0">PyTorch</button><button aria-controls="panel-0-0-1" aria-selected="false" class="sphinx-tabs-tab" id="tab-0-0-1" name="0-1" role="tab" tabindex="-1">TensorFlow</button></div><div aria-labelledby="tab-0-0-0" class="sphinx-tabs-panel" id="panel-0-0-0" name="0-0" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
-    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
-    <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">"crnn_mobilenet_v3_small"</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="o">=</span><span class="s2">"linknet_resnet34"</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span><span class="o">.</span><span class="n">half</span><span class="p">()</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
@@ -322,10 +322,10 @@
 </div>
 </div><div aria-labelledby="tab-0-0-1" class="sphinx-tabs-panel" hidden="true" id="panel-0-0-1" name="0-1" role="tabpanel" tabindex="0"><div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tensorflow.keras</span><span class="w"> </span><span class="kn">import</span> <span class="n">mixed_precision</span>
-<span class="n">mixed_precision</span><span class="o">.</span><span class="n">set_global_policy</span><span class="p">(</span><span class="s1">&#39;mixed_float16&#39;</span><span class="p">)</span>
+<span class="n">mixed_precision</span><span class="o">.</span><span class="n">set_global_policy</span><span class="p">(</span><span class="s1">'mixed_float16'</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
-    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;crnn_mobilenet_v3_small&quot;</span><span class="p">,</span>
-    <span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet34&quot;</span><span class="p">,</span>
+    <span class="n">reco_arch</span><span class="o">=</span><span class="s2">"crnn_mobilenet_v3_small"</span><span class="p">,</span>
+    <span class="n">det_arch</span><span class="o">=</span><span class="s2">"linknet_resnet34"</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span>
 <span class="p">)</span>
 </pre></div>
@@ -395,7 +395,7 @@ It defines a common format for representing models, including the network struct
 <span class="n">dummy_input</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">model_path</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
-    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">"vitstr.onnx"</span><span class="p">,</span>
     <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span>
 <span class="p">)</span>
 </pre></div>
@@ -407,10 +407,10 @@ It defines a common format for representing models, including the network struct
 <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">input_shape</span> <span class="o">=</span> <span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
 <span class="n">model</span> <span class="o">=</span> <span class="n">vitstr_small</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exportable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;input&quot;</span><span class="p">)]</span>
+<span class="n">dummy_input</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">TensorSpec</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">*</span><span class="n">input_shape</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">"input"</span><span class="p">)]</span>
 <span class="n">model_path</span><span class="p">,</span> <span class="n">output</span> <span class="o">=</span> <span class="n">export_model_to_onnx</span><span class="p">(</span>
     <span class="n">model</span><span class="p">,</span>
-    <span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;vitstr.onnx&quot;</span><span class="p">,</span>
+    <span class="n">model_name</span><span class="o">=</span><span class="s2">"vitstr.onnx"</span><span class="p">,</span>
     <span class="n">dummy_input</span><span class="o">=</span><span class="n">dummy_input</span>
 <span class="p">)</span>
 </pre></div>
@@ -432,14 +432,14 @@ It is simple and easy-to-use (with the same interface you know already from docT
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onnxtr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">onnxtr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">parseq</span><span class="p">,</span> <span class="n">linknet_resnet18</span>
 <span class="c1"># Load your documents</span>
-<span class="n">single_img_doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">&quot;path/to/your/img.jpg&quot;</span><span class="p">)</span>
+<span class="n">single_img_doc</span> <span class="o">=</span> <span class="n">DocumentFile</span><span class="o">.</span><span class="n">from_images</span><span class="p">(</span><span class="s2">"path/to/your/img.jpg"</span><span class="p">)</span>
 
 <span class="c1"># Load your exported model/s</span>
-<span class="n">reco_model</span> <span class="o">=</span> <span class="n">parseq</span><span class="p">(</span><span class="s2">&quot;path_to_custom_model.onnx&quot;</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="s2">&quot;ABC&quot;</span><span class="p">)</span>
-<span class="n">det_model</span> <span class="o">=</span> <span class="n">linknet_resnet18</span><span class="p">(</span><span class="s2">&quot;path_to_custom_model.onnx&quot;</span><span class="p">)</span>
+<span class="n">reco_model</span> <span class="o">=</span> <span class="n">parseq</span><span class="p">(</span><span class="s2">"path_to_custom_model.onnx"</span><span class="p">,</span> <span class="n">vocab</span><span class="o">=</span><span class="s2">"ABC"</span><span class="p">)</span>
+<span class="n">det_model</span> <span class="o">=</span> <span class="n">linknet_resnet18</span><span class="p">(</span><span class="s2">"path_to_custom_model.onnx"</span><span class="p">)</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="n">det_model</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">)</span>
 <span class="c1"># Or use any of the pre-trained models</span>
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">&quot;linknet_resnet18&quot;</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">&quot;parseq&quot;</span><span class="p">)</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s2">"linknet_resnet18"</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="s2">"parseq"</span><span class="p">)</span>
 
 <span class="c1"># Get your results</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">single_img_doc</span><span class="p">)</span>

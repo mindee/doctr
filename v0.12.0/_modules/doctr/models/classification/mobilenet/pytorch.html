@@ -307,57 +307,57 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_pretrained_params</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;MobileNetV3&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">,</span>
+    <span class="s2">"MobileNetV3"</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small"</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small_r"</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_large"</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_large_r"</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small_crop_orientation"</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small_page_orientation"</span><span class="p">,</span>
 <span class="p">]</span>
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_large-11fc8cb9.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_large"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="s2">"classes"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">"french"</span><span class="p">]),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_large-11fc8cb9.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_large_r-74a22066.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_large_r"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="s2">"classes"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">"french"</span><span class="p">]),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_large_r-74a22066.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small-6a4bfa6b.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="s2">"classes"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">"french"</span><span class="p">]),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small-6a4bfa6b.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">&quot;french&quot;</span><span class="p">]),</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small_r-1a8a3530.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small_r"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span>
+        <span class="s2">"classes"</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">"french"</span><span class="p">]),</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.4.1/mobilenet_v3_small_r-1a8a3530.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_crop_orientation-f0847a18.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small_crop_orientation"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
+        <span class="s2">"classes"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_crop_orientation-f0847a18.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
-    <span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
-        <span class="s2">&quot;std&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
-        <span class="s2">&quot;input_shape&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
-        <span class="s2">&quot;classes&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_page_orientation-8e60325c.pt&amp;src=0&quot;</span><span class="p">,</span>
+    <span class="s2">"mobilenet_v3_small_page_orientation"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"mean"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.694</span><span class="p">,</span> <span class="mf">0.695</span><span class="p">,</span> <span class="mf">0.693</span><span class="p">),</span>
+        <span class="s2">"std"</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.299</span><span class="p">,</span> <span class="mf">0.296</span><span class="p">,</span> <span class="mf">0.301</span><span class="p">),</span>
+        <span class="s2">"input_shape"</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">512</span><span class="p">),</span>
+        <span class="s2">"classes"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span>
+        <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"https://doctr-static.mindee.com/models?id=v0.8.1/mobilenet_v3_small_page_orientation-8e60325c.pt&amp;src=0"</span><span class="p">,</span>
     <span class="p">},</span>
 <span class="p">}</span>
 
@@ -369,15 +369,15 @@
     <span class="n">ignore_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_classes&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">]))</span>
-    <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"num_classes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"num_classes"</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"classes"</span><span class="p">]))</span>
+    <span class="n">kwargs</span><span class="p">[</span><span class="s2">"classes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"classes"</span><span class="p">,</span> <span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"classes"</span><span class="p">])</span>
 
     <span class="n">_cfg</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">])</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span>
-    <span class="n">_cfg</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;classes&quot;</span><span class="p">]</span>
-    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;classes&quot;</span><span class="p">)</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">"num_classes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"num_classes"</span><span class="p">]</span>
+    <span class="n">_cfg</span><span class="p">[</span><span class="s2">"classes"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"classes"</span><span class="p">]</span>
+    <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"classes"</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">arch</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"mobilenet_v3_small"</span><span class="p">):</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">mobilenet_v3_small</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">mobilenet_v3_large</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
@@ -386,18 +386,18 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rect_strides</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">layer_name</span> <span class="ow">in</span> <span class="n">rect_strides</span><span class="p">:</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">model</span>
-            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">layer_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">layer_name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"."</span><span class="p">):</span>
                 <span class="n">m</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">child</span><span class="p">)</span>
             <span class="n">m</span><span class="o">.</span><span class="n">stride</span> <span class="o">=</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># monkeypatch the model to allow for loading pretrained parameters</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_pretrained</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># noqa: D417</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Load pretrained parameters onto the model</span>
+<span class="w">        </span><span class="sd">"""Load pretrained parameters onto the model</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">            path_or_url: the path or URL to the model parameters (checkpoint)</span>
 <span class="sd">            **kwargs: additional arguments to be passed to `doctr.models.utils.load_pretrained_params`</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">load_pretrained_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path_or_url</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="c1"># Bind method to the instance</span>
@@ -407,8 +407,8 @@
     <span class="k">if</span> <span class="n">pretrained</span><span class="p">:</span>
         <span class="c1"># The number of classes is not the same as the number of classes in the pretrained model =&gt;</span>
         <span class="c1"># remove the last layer weights</span>
-        <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;num_classes&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;classes&quot;</span><span class="p">])</span> <span class="k">else</span> <span class="kc">None</span>
-        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">&quot;url&quot;</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
+        <span class="n">_ignore_keys</span> <span class="o">=</span> <span class="n">ignore_keys</span> <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s2">"num_classes"</span><span class="p">]</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"classes"</span><span class="p">])</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="n">default_cfgs</span><span class="p">[</span><span class="n">arch</span><span class="p">][</span><span class="s2">"url"</span><span class="p">],</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="n">_ignore_keys</span><span class="p">)</span>
 
     <span class="n">model</span><span class="o">.</span><span class="n">cfg</span> <span class="o">=</span> <span class="n">_cfg</span>
 
@@ -418,8 +418,8 @@
 <div class="viewcode-block" id="mobilenet_v3_small">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="w">    </span><span class="sd">"""MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -434,9 +434,9 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a torch.nn.Module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span>
-        <span class="s2">&quot;mobilenet_v3_small&quot;</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;classifier.3.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier.3.bias&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="s2">"mobilenet_v3_small"</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">,</span> <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"classifier.3.weight"</span><span class="p">,</span> <span class="s2">"classifier.3.bias"</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span></div>
 
 
@@ -444,8 +444,8 @@
 <div class="viewcode-block" id="mobilenet_v3_small_r">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_r">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="w">    </span><span class="sd">"""MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_, with rectangular pooling.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -460,12 +460,12 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a torch.nn.Module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span>
-        <span class="s2">&quot;mobilenet_v3_small_r&quot;</span><span class="p">,</span>
+        <span class="s2">"mobilenet_v3_small_r"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;features.2.block.1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;features.4.block.1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;features.9.block.1.0&quot;</span><span class="p">],</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;classifier.3.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier.3.bias&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"features.2.block.1.0"</span><span class="p">,</span> <span class="s2">"features.4.block.1.0"</span><span class="p">,</span> <span class="s2">"features.9.block.1.0"</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"classifier.3.weight"</span><span class="p">,</span> <span class="s2">"classifier.3.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -474,8 +474,8 @@
 <div class="viewcode-block" id="mobilenet_v3_large">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_large</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
-<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="w">    </span><span class="sd">"""MobileNetV3-Large architecture as described in</span>
+<span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -490,11 +490,11 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a torch.nn.Module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span>
-        <span class="s2">&quot;mobilenet_v3_large&quot;</span><span class="p">,</span>
+        <span class="s2">"mobilenet_v3_large"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;classifier.3.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier.3.bias&quot;</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"classifier.3.weight"</span><span class="p">,</span> <span class="s2">"classifier.3.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -503,8 +503,8 @@
 <div class="viewcode-block" id="mobilenet_v3_large_r">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_large_r">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_large_r</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Large architecture as described in</span>
-<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="w">    </span><span class="sd">"""MobileNetV3-Large architecture as described in</span>
+<span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_, with rectangular pooling.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -519,12 +519,12 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a torch.nn.Module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span>
-        <span class="s2">&quot;mobilenet_v3_large_r&quot;</span><span class="p">,</span>
+        <span class="s2">"mobilenet_v3_large_r"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
-        <span class="p">[</span><span class="s2">&quot;features.4.block.1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;features.7.block.1.0&quot;</span><span class="p">,</span> <span class="s2">&quot;features.13.block.1.0&quot;</span><span class="p">],</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;classifier.3.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier.3.bias&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">"features.4.block.1.0"</span><span class="p">,</span> <span class="s2">"features.7.block.1.0"</span><span class="p">,</span> <span class="s2">"features.13.block.1.0"</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"classifier.3.weight"</span><span class="p">,</span> <span class="s2">"classifier.3.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -533,8 +533,8 @@
 <div class="viewcode-block" id="mobilenet_v3_small_crop_orientation">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_crop_orientation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small_crop_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="w">    </span><span class="sd">"""MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -549,11 +549,11 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a torch.nn.Module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span>
-        <span class="s2">&quot;mobilenet_v3_small_crop_orientation&quot;</span><span class="p">,</span>
+        <span class="s2">"mobilenet_v3_small_crop_orientation"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;classifier.3.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier.3.bias&quot;</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"classifier.3.weight"</span><span class="p">,</span> <span class="s2">"classifier.3.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -562,8 +562,8 @@
 <div class="viewcode-block" id="mobilenet_v3_small_page_orientation">
 <a class="viewcode-back" href="../../../../../modules/models.html#doctr.models.classification.mobilenet_v3_small_page_orientation">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">mobilenetv3</span><span class="o">.</span><span class="n">MobileNetV3</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;MobileNetV3-Small architecture as described in</span>
-<span class="sd">    `&quot;Searching for MobileNetV3&quot;,</span>
+<span class="w">    </span><span class="sd">"""MobileNetV3-Small architecture as described in</span>
+<span class="sd">    `"Searching for MobileNetV3",</span>
 <span class="sd">    &lt;https://arxiv.org/pdf/1905.02244.pdf&gt;`_.</span>
 
 <span class="sd">    &gt;&gt;&gt; import torch</span>
@@ -578,11 +578,11 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">        a torch.nn.Module</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">return</span> <span class="n">_mobilenet_v3</span><span class="p">(</span>
-        <span class="s2">&quot;mobilenet_v3_small_page_orientation&quot;</span><span class="p">,</span>
+        <span class="s2">"mobilenet_v3_small_page_orientation"</span><span class="p">,</span>
         <span class="n">pretrained</span><span class="p">,</span>
-        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;classifier.3.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;classifier.3.bias&quot;</span><span class="p">],</span>
+        <span class="n">ignore_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"classifier.3.weight"</span><span class="p">,</span> <span class="s2">"classifier.3.bias"</span><span class="p">],</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
