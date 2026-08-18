@@ -46,7 +46,7 @@ default_cfgs: dict[str, dict[str, Any]] = {
             "Text",
             "Title",
         ],
-        "url": None,
+        "url": "https://github.com/mindee/doctr/releases/download/v1.0.1/lw_detr_s-ebbd6ab9.pt",
     },
     "lw_detr_m": {
         "input_shape": (3, 1024, 1024),
