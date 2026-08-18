@@ -114,6 +114,9 @@ venv.bak/
 .spyderproject
 .spyproject
 
+# VS Code settings
+.vscode/
+
 # Rope project settings
 .ropeproject
 
@@ -124,6 +127,9 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# ruff
+.ruff_cache/
 
 # Pyre type checker
 .pyre/
