@@ -16,6 +16,7 @@ def _assert_valid_render(render: np.ndarray, dimensions: tuple[int, int]) -> Non
 
 
 def _table_page(h_px: int = 1000, w_px: int = 1600) -> dict:
+    """A page holding one line of body text and a two-by-two table below it."""
     words, x = [], 200.0
     for token in ("The", "table", "below", "lists", "the", "items"):
         box_w = 12 * len(token)
@@ -266,7 +267,7 @@ def test_synthesize_page_words_stay_apart_when_boxes_touch():
     _assert_valid_render(render, (300, 900))
 
     # Blank columns split the line into the gaps between letters and the two wider ones between
-    # the three words - if the words run together the widest gaps are just letter gaps
+    # the three words; if the words run together the widest gaps are just letter gaps
     columns = np.nonzero((render.min(axis=2) < 128).any(axis=0))[0]
     blanks = sorted((b - a - 1 for a, b in zip(columns, columns[1:]) if b - a > 1), reverse=True)
     assert blanks[1] > 1.5 * float(np.median(blanks))
@@ -344,6 +345,13 @@ def test_synthesize_page_table_cells():
     assert all(ink_rows(500, 610, x, x + 380) > 0 for x in (200, 600))
     # a table sized off its rows instead of off the page would be far taller than the body text
     assert ink_rows(500, 548, 200, 980) <= 1.5 * ink_rows(295, 330, 200, 980)
+
+    # A page holding nothing but the table has no body text to borrow a size from, but a cell box
+    # is still a padded row rather than an ink box: its text must not simply fill it
+    alone = reconstitution.synthesize_page({**page, "blocks": []})
+    _assert_valid_render(alone, (1000, 1600))
+    rows = np.nonzero((alone[500:550, 200:580].min(axis=2) < 128).any(axis=1))[0]
+    assert rows.max() - rows.min() + 1 <= 25  # the cell box is 50px tall
 
 
 def test_synthesize_page_placeholders():
@@ -490,6 +498,27 @@ def test_synthesize_page_headings_are_bold():
     # which is weight rather than size
     assert title[0] > 1.3 * body[0]
     assert title[1] < 1.15 * body[1]
+
+    # A value-only entry is set in the same weight as a word entry: both go through one stroke rule
+    box = ((0.12, 0.31), (0.50, 0.40))
+    value_only = {
+        "dimensions": (h_px, w_px),
+        "blocks": [{"geometry": box, "lines": [{"geometry": box, "value": "Heading", "confidence": 1.0}]}],
+        "layout": [{"geometry": ((0.10, 0.29), (0.55, 0.42)), "type": "Title", "confidence": 0.95}],
+    }
+    words_only = {
+        "dimensions": (h_px, w_px),
+        "blocks": [
+            {
+                "geometry": box,
+                "lines": [{"geometry": box, "words": [{"value": "Heading", "confidence": 1.0, "geometry": box}]}],
+            }
+        ],
+        "layout": value_only["layout"],
+    }
+    as_value = (reconstitution.synthesize_page(value_only).min(axis=2) < 128).sum()
+    as_words = (reconstitution.synthesize_page(words_only).min(axis=2) < 128).sum()
+    assert as_value == as_words
 
 
 def test_points_rejects_unusable_geometries():
@@ -669,7 +698,7 @@ def test_synthesize_page_ignores_malformed_tables_and_regions():
     assert (render[:20] == 255).all()
 
 
-def test_synthesize_page_rejects_bad_dimensions():
+def test_synthesize_page_rejects_bad_arguments():
     with pytest.raises(ValueError, match="dimensions"):
         reconstitution.synthesize_page({"blocks": []})
     with pytest.raises(ValueError, match="dimensions"):
@@ -678,3 +707,14 @@ def test_synthesize_page_rejects_bad_dimensions():
         reconstitution.synthesize_page({"dimensions": (0, 100), "blocks": []})
     with pytest.raises(ValueError, match="MAX_IMAGE_PIXELS"):
         reconstitution.synthesize_page({"dimensions": (100_000, 100_000), "blocks": []})
+
+    # Font size bounds have to be usable
+    page = {"dimensions": (100, 100), "blocks": []}
+    with pytest.raises(ValueError, match="min_font_size"):
+        reconstitution.synthesize_page(page, min_font_size=0)
+    with pytest.raises(ValueError, match="min_font_size"):
+        reconstitution.synthesize_page(page, min_font_size=-10, max_font_size=-5)
+    with pytest.raises(ValueError, match="min_font_size"):
+        reconstitution.synthesize_page(page, min_font_size=30, max_font_size=4)
+    with pytest.raises(ValueError, match="min_font_size"):
+        reconstitution.synthesize_kie_page(page, min_font_size=30, max_font_size=4)

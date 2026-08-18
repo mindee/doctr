@@ -122,7 +122,7 @@ def _fit_line_font_size(
     return font_size
 
 
-def _harmonize(sizes: list[int], tolerance: float = 0.2) -> list[int]:
+def _harmonize(sizes: list[int], tolerance: float = 0.2, passes: int = 4) -> list[int]:
     """Snap font sizes that are close to each other onto one common size.
 
     Boxes for one and the same typeface come out a pixel or two apart from line to line, and
@@ -131,7 +131,17 @@ def _harmonize(sizes: list[int], tolerance: float = 0.2) -> list[int]:
     - a headline, a caption, small print - stay apart.
     """
     values = np.array(sizes, dtype=float)
-    return [int(round(float(np.median(values[np.abs(values - size) <= tolerance * size])))) for size in sizes]
+    for _ in range(passes):
+        snapped = np.array([float(np.median(values[np.abs(values - size) <= tolerance * size])) for size in values])
+        if np.array_equal(snapped, values):
+            break
+        values = snapped
+    return [int(round(float(value))) for value in values]
+
+
+def _stroke(font_size: int, bold: bool) -> int:
+    """Outline width that sets a face in bold, kept in one place so every entry gets one weight."""
+    return max(round(font_size / 32), 1) if bold else 0
 
 
 def _draw_word(
@@ -194,10 +204,13 @@ def _paste_word(
     response.paste(patch, (round(position[0] - anchor_x), round(position[1] - anchor_y)), patch)
 
 
-def _tilt(words: list[_Word]) -> float | None:
+def _tilt(words: list[_Word], sample: int = 64) -> float | None:
     """Direction of a line in degrees, read from where its words sit, or None if they disagree."""
     if len(words) < 4:
         return None
+    if len(words) > sample:
+        step = len(words) / sample
+        words = [words[int(index * step)] for index in range(sample)]
     xs = np.array([word.x for word in words], dtype=float)
     ys = np.array([word.y for word in words], dtype=float)
     height = float(np.median([word.height for word in words]))
@@ -387,7 +400,7 @@ def _synthesize_row(
         font = _cached_font(font_family, font_size)
         # A bold face is set by outlining the glyphs, which widens them: the layout has to allow
         # for that or the extra weight would spill over the following word
-        stroke = max(round(font_size / 32), 1) if bold else 0
+        stroke = _stroke(font_size, bold)
         squeezes = [max(min(1.0, word.width / _text_width(font, word.value, stroke)), 0.5) for word in words]
         widths = [squeeze * _text_width(font, word.value, stroke) for squeeze, word in zip(squeezes, words)]
         # The boxes cannot supply the spacing (a detector dilates them), so the layout keeps at
@@ -425,7 +438,7 @@ def _synthesize_value(
     # Anchor on the middle of the leading edge, like the "lm" anchor of flat text
     x = int(round(w * (polygon[0][0] + polygon[3][0]) / 2))
     y = int(round(h * (polygon[0][1] + polygon[3][1]) / 2))
-    stroke = max(round(font_size / 64), 1) if bold else 0
+    stroke = _stroke(font_size, bold)
     # stay inside the box, do not run into the next field
     squeeze = min(1.0, box_w / _text_width(font, text, stroke))
     _place_word(response, ImageDraw.Draw(response), text, font, (x, y), text_color, angle, squeeze, stroke)
@@ -459,10 +472,12 @@ def _draw_confidence(
     # Scale the confidence label with the box instead of a hardcoded size
     prob_font = _cached_font(font_family, max(min(box_height // 2, 20), 10))
     prob_text = f"{confidence:.2f}"
-    prob_text_width, prob_text_height = prob_font.getbbox(prob_text)[2:4]
-    prob_x_offset = (box_width - prob_text_width) // 2
-    prob_y_offset = max(0, ymin - prob_text_height - 2)
-    _draw_word(d, (int(xmin + prob_x_offset), int(prob_y_offset)), prob_text, prob_font, color, anchor="lt")
+    prob_width, prob_height = _text_width(prob_font, prob_text), _text_height(prob_font, prob_text)
+    prob_x = xmin + (box_width - prob_width) // 2
+    # The label goes above the box it belongs to, and inside it when the box is against the top of
+    # the page: clamping to the page edge instead would draw the label over its own outline.
+    prob_y = ymin - prob_height - 2 if ymin - prob_height - 2 >= 0 else ymin + 3
+    _draw_word(d, (int(prob_x), int(prob_y)), prob_text, prob_font, color, anchor="lt")
 
 
 def _region_kind(kind: str) -> str:
@@ -563,6 +578,10 @@ def _render(
     draw_placeholders: bool,
 ) -> np.ndarray:
     """Render entries onto a blank page at one harmonized set of font sizes."""
+    if min_font_size < 1 or max_font_size < min_font_size:
+        raise ValueError(
+            f"font sizes must satisfy 1 <= min_font_size <= max_font_size, got {(min_font_size, max_font_size)}"
+        )
     h, w = _page_size(page)
     response = Image.new("RGB", (w, h), color=background_color)
 
@@ -585,7 +604,10 @@ def _render(
         prepared.append((entry, polygon, angle, box, words, size))
 
     # The grid of a table, and the outline of a region holding no text of its own - a picture, a
-    # formula, a region the predictor was told to ignore
+    # formula, a region the predictor was told to ignore - are both stand-ins for structure the page
+    # carries but its text does not. Neither is content, so both are drawn only when the caller asks
+    # for placeholders, and then in a tone leaning towards the page itself so they stay quiet under
+    # the text that is laid over them.
     faint: tuple[int, int, int] = tuple((2 * back + fore) // 3 for back, fore in zip(background_color, text_color))  # type: ignore[assignment]
     filled: list[tuple[int, int]] = []
     if draw_placeholders:
@@ -611,18 +633,18 @@ def _render(
             _draw_region(response, geometry[2], faint, str(region.get("type", "")).strip(), font_family)
 
     sizes = [size for *_, size in prepared]
-    # A table cell is a structural box, not an ink box: it is as tall as its row, padding and all,
-    # so letting its text fill it renders a table twice the size of the page it sits on. The text
-    # a cell holds came off the same page, so the size the rest of the page uses is the better bet.
+    # A page that is nothing but a table - a cropped invoice, a receipt - has no body text to borrow a size from,
+    # so half the height of the row stands in for the padding a cell carries.
     body = [size for (entry, *_), size in zip(prepared, sizes) if "row_start" not in entry]
-    if body:
-        sizes = [
-            min(size, int(np.median(body))) if "row_start" in entry else size
-            for (entry, *_), size in zip(prepared, sizes)
-        ]
-    # Harmonizing inside a region rather than across the whole page is what keeps a section header
-    # its own size: it is often only a little larger than the body text, and a page-wide median
-    # would swallow it. Entries outside every region keep harmonizing with each other as before.
+    page_size = int(np.median(body)) if body else 0
+    for index, ((entry, _, _, box, _, _), size) in enumerate(zip(prepared, sizes)):
+        if "row_start" not in entry:
+            continue
+        # A page that is nothing but a table - a cropped invoice, a receipt - has no body text to
+        # borrow a size from, so half the height of the row stands in for the padding a cell carries
+        cap = page_size or max((box[3] - box[1]) // 2, 1)
+        sizes[index] = max(min(size, cap), min_font_size)
+    # Harmonizing inside a region rather than across the whole page is what keeps a section header its own size
     grouped: dict[str, list[int]] = {}
     for index, (_, _, _, box, _, _) in enumerate(prepared):
         centre = ((box[0] + box[2]) // 2, (box[1] + box[3]) // 2)
