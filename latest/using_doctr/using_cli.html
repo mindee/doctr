@@ -298,7 +298,7 @@
         <article role="main" id="furo-main-content">
           <section id="using-the-cli-for-optical-character-recognition">
 <h1>Using the CLI for Optical Character Recognition<a class="headerlink" href="#using-the-cli-for-optical-character-recognition" title="Link to this heading">¶</a></h1>
-<p>The full Optical Character Recognition (OCR) task can be executed by using the Command Line Interface (CLI) implemented in docTR. This tool allows you to process both images and PDF files without writing a single line of Python code, providing a streamlined way to export OCR results directly to JSON.</p>
+<p>The full Optical Character Recognition (OCR) task can be executed by using the Command Line Interface (CLI) implemented in docTR. This tool allows you to process both images and PDF files without writing a single line of Python code, and to export the results as JSON, plain text, Markdown, AsciiDoc, HTML or hOCR.</p>
 <section id="basic-usage">
 <h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
 <p>To run the OCR engine on a file, use the following command structure:</p>
@@ -308,30 +308,65 @@
 </section>
 <section id="arguments">
 <h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading">¶</a></h2>
-<p>The CLI supports a variety of arguments to fine-tune the detection and recognition process:</p>
+<p>The CLI supports a variety of arguments to fine-tune the detection, recognition and export process:</p>
 <p><strong>Mandatory Arguments:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--input_path</span></code>: Path to the input image or PDF file you wish to process.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--input_path</span></code>: Path to one or more input images / PDF files. Every page is appended to a single document, so several files can be processed in one go. Values starting with <code class="docutils literal notranslate"><span class="pre">http://</span></code> or <code class="docutils literal notranslate"><span class="pre">https://</span></code> are interpreted as web pages and rendered as PDF (this requires <code class="docutils literal notranslate"><span class="pre">weasyprint</span></code>, cf. <a class="reference internal" href="../modules/io.html#doctr.io.DocumentFile.from_url" title="doctr.io.DocumentFile.from_url"><code class="xref py py-meth docutils literal notranslate"><span class="pre">doctr.io.DocumentFile.from_url()</span></code></a>).</p></li>
+</ul>
+<p><strong>General Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--version</span></code>: Prints the installed docTR version and exits.</p></li>
+</ul>
+<p><strong>Input Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf_password</span></code>: Password used to unlock encrypted PDF files. <em>Default: None</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf_scale</span></code>: PDF rendering scale, where 1 corresponds to 72dpi. <em>Default: 2</em></p></li>
 </ul>
 <p><strong>Architecture Selection:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--det_arch</span></code>: The detection architecture / model to use (e.g., <code class="docutils literal notranslate"><span class="pre">db_resnet50</span></code>). <em>Default: db_resnet50</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--reco_arch</span></code>: The recognition architecture / model to use (e.g., <code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code>). <em>Default: crnn_vgg16_bn</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--det_arch</span></code>: The detection architecture to use (e.g., <code class="docutils literal notranslate"><span class="pre">fast_base</span></code>). <em>Default: fast_base</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--reco_arch</span></code>: The recognition architecture to use (e.g., <code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code>). <em>Default: crnn_vgg16_bn</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--layout_arch</span></code>: The layout architecture to use. <em>Default: lw_detr_s</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--device</span></code>: Device the models are loaded on (<code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">cpu</span></code>, <code class="docutils literal notranslate"><span class="pre">cuda:0</span></code>, …). On a CUDA device of compute capability 8.0 or above, the models are cast to bfloat16. <em>Default: auto</em></p></li>
 </ul>
 <p><strong>Processing Options:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">--assume_straight_pages</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-assume_straight_pages</span></code>: Determine whether pages should be handled as straight or skewed pages. <em>Default: True</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code>: If flagged, the tool will attempt to straighten skewed pages before analysis. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code>: If flagged, the tool will attempt to straighten skewed pages before analysis. <em>Default: False</em></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--preserve_aspect_ratio</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-preserve_aspect_ratio</span></code>: Ensures that the aspect ratio is maintained during resizing. <em>Default: True</em></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">--symmetric_pad</span></code>: Applies symmetric padding to the input images. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--symmetric_pad</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-symmetric_pad</span></code>: Applies symmetric padding to the input images. <em>Default: True</em></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--det_bs</span></code>: Batch size used for the detection model. <em>Default: 2</em></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--reco_bs</span></code>: Batch size used for the recognition model. <em>Default: 128</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--bin_thresh</span></code>: Binarization threshold of the detection post-processing. <em>Default: the value of the architecture</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--box_thresh</span></code>: Minimum confidence of a detected box. <em>Default: the value of the architecture</em></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--detect_orientation</span></code>: Enables automatic detection of page orientation. <em>Default: False</em></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">--detect_language</span></code>: Enables language detection for the extracted text. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detect_layout</span></code>: Attaches the detected layout regions to each page. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code>: Regroups the words of the detected tables into structured tables. This enables the layout model. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ignore_regions</span></code>: Layout class names to mask out before detection &amp; recognition (e.g. <code class="docutils literal notranslate"><span class="pre">--ignore_regions</span> <span class="pre">Picture</span> <span class="pre">Table</span></code>). This enables the layout model. <em>Default: None</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--export_as_straight_boxes</span></code>: Exports (potentially rotated) predictions as straight boxes. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--preserve_original_coords</span></code>: Maps the boxes back to the original page coordinates when <code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code> is used. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable_page_orientation</span></code>: Disables the page orientation classifier. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable_crop_orientation</span></code>: Disables the crop orientation classifier. <em>Default: False</em></p></li>
+</ul>
+<p><strong>Document Assembling Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--resolve_lines</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-resolve_lines</span></code>: Groups the words into lines. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--resolve_blocks</span></code>: Groups the lines into blocks. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--paragraph_break</span></code>: Relative length of the minimum space separating two paragraphs. <em>Default: 0.035</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--keep_reading_order</span></code>: Arranges the content of every page in reading order. <em>Default: False</em></p></li>
 </ul>
 <p><strong>Output Options:</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">--output</span></code>: The destination path where the JSON results will be saved. <em>Default: results.json</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--output</span></code>: The destination path where the results will be saved. <em>Default: results.json</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--format</span></code>: The export format, one of <code class="docutils literal notranslate"><span class="pre">json</span></code>/<code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">txt</span></code>/<code class="docutils literal notranslate"><span class="pre">text</span></code>, <code class="docutils literal notranslate"><span class="pre">md</span></code>/<code class="docutils literal notranslate"><span class="pre">markdown</span></code>, <code class="docutils literal notranslate"><span class="pre">adoc</span></code>/<code class="docutils literal notranslate"><span class="pre">asciidoc</span></code>, <code class="docutils literal notranslate"><span class="pre">html</span></code>, <code class="docutils literal notranslate"><span class="pre">xml</span></code>/<code class="docutils literal notranslate"><span class="pre">hocr</span></code>. When it is not set, the format is inferred from the extension of <code class="docutils literal notranslate"><span class="pre">--output</span></code>, and falls back to JSON. <em>Default: None</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--direction</span></code>: Reading direction of the document, one of <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">ltr</span></code>, <code class="docutils literal notranslate"><span class="pre">rtl</span></code>, <code class="docutils literal notranslate"><span class="pre">ttb-rtl</span></code>, <code class="docutils literal notranslate"><span class="pre">ttb-ltr</span></code>. <em>Default: auto</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--reading_order</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-reading_order</span></code>: Linearizes the content in reading order (JSON &amp; hOCR exports). <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--escape</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-escape</span></code>: Escapes the characters carrying a structural meaning (Markdown &amp; AsciiDoc exports). <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--include_furniture</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-include_furniture</span></code>: Includes page headers, page footers and footnotes (text-like exports). <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--file_title</span></code>: Title of the exported hOCR files. <em>Default: docTR - XML export (hOCR)</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--indent</span></code>: Indentation of the JSON export. <em>Default: 4</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--quiet</span></code>: Only logs errors. <em>Default: False</em></p></li>
 </ul>
 </section>
 <section id="examples">
@@ -340,24 +375,34 @@
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>image.jpg<span class="w"> </span>--output<span class="w"> </span>ocr_res.json
 </pre></div>
 </div>
-<p><strong>Running OCR on a PDF:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>image.pdf<span class="w"> </span>--output<span class="w"> </span>ocr_res.json
+<p><strong>Running OCR on several files at once:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>page1.jpg<span class="w"> </span>page2.jpg<span class="w"> </span>scan.pdf<span class="w"> </span>--output<span class="w"> </span>ocr_res.json
 </pre></div>
 </div>
 <p><strong>Using a specific detection architecture and straightening pages:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--det_arch<span class="w"> </span>db_mobilenet_v3_large<span class="w"> </span>--straighten_pages
 </pre></div>
 </div>
+<p><strong>Exporting the text as Markdown, with tables and layout:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--detect_tables<span class="w"> </span>--output<span class="w"> </span>doc.md
+</pre></div>
+</div>
+<p><strong>Exporting as hOCR on the GPU, ignoring the pictures of the document:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--device<span class="w"> </span>cuda:0<span class="w"> </span>--ignore_regions<span class="w"> </span>Picture<span class="w"> </span>--output<span class="w"> </span>doc.xml
+</pre></div>
+</div>
 </section>
 <section id="output-format">
 <h2>Output Format<a class="headerlink" href="#output-format" title="Link to this heading">¶</a></h2>
-<p>The results are exported in a structured JSON format containing:</p>
+<p>By default, the results are exported in a structured JSON format containing:</p>
 <ul class="simple">
-<li><p><strong>Pages</strong>: Dimensions and orientation.</p></li>
+<li><p><strong>Pages</strong>: Dimensions, orientation, language and layout regions.</p></li>
 <li><p><strong>Blocks</strong>: Grouping of lines.</p></li>
 <li><p><strong>Lines</strong>: Grouping of words.</p></li>
 <li><p><strong>Words</strong>: The actual text content with confidence scores and bounding box coordinates.</p></li>
+<li><p><strong>Tables</strong>: The structured tables, when <code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code> is used.</p></li>
 </ul>
+<p>The text-like formats (<code class="docutils literal notranslate"><span class="pre">txt</span></code>, <code class="docutils literal notranslate"><span class="pre">md</span></code>, <code class="docutils literal notranslate"><span class="pre">adoc</span></code>, <code class="docutils literal notranslate"><span class="pre">html</span></code>) are written to a single file. Since hOCR describes a single page per file, the <code class="docutils literal notranslate"><span class="pre">xml</span></code> export writes one file per page: an <code class="docutils literal notranslate"><span class="pre">--output</span></code> of <code class="docutils literal notranslate"><span class="pre">doc.xml</span></code> on a 3-page document produces <code class="docutils literal notranslate"><span class="pre">doc_page_1.xml</span></code>, <code class="docutils literal notranslate"><span class="pre">doc_page_2.xml</span></code> and <code class="docutils literal notranslate"><span class="pre">doc_page_3.xml</span></code>.</p>
 </section>
 </section>
 
