@@ -273,7 +273,12 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             remapped_cells: list[dict[str, Any]] = []
             for cell in grid["cells"]:
                 # Cell polygon is crop-relative -> crop pixels -> page pixels (inverse transform) -> page-relative
-                poly = np.asarray(cell["geometry"], dtype=np.float32).reshape(-1, 2)
+                raw = np.asarray(cell["geometry"], dtype=np.float32)
+                if raw.ndim == 1 and raw.size == 4:  # straight box (xmin, ymin, xmax, ymax)
+                    x0, y0, x1, y1 = raw
+                    poly = np.array([[x0, y0], [x1, y0], [x1, y1], [x0, y1]], dtype=np.float32)
+                else:
+                    poly = raw.reshape(-1, 2)
                 poly[:, 0] *= crop_w
                 poly[:, 1] *= crop_h
                 poly = cv2.perspectiveTransform(poly[None, :, :], inverse)[0]
