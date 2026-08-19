@@ -236,7 +236,7 @@ def main(args):
         elif torch.cuda.is_available():
             device = torch.device("cuda", 0)
         else:
-            logging.warning("No accessible GPU, target device set to CPU.")
+            logging.warning("No accessible GPU, target device set to CPU.")  # noqa: LOG015
             device = torch.device("cpu")
 
     slack_token = os.getenv("TQDM_SLACK_TOKEN")

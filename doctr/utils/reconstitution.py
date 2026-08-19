@@ -15,6 +15,8 @@ from .fonts import get_font
 
 __all__ = ["synthesize_page", "synthesize_kie_page"]
 
+logger = logging.getLogger(__name__)
+
 
 class _Word(NamedTuple):
     """A word to render, with its text, position, size and rotation."""
@@ -33,14 +35,14 @@ def _cached_font(font_family: str | None, font_size: int) -> ImageFont.FreeTypeF
     try:
         return get_font(font_family, max(font_size, 1))
     except Exception:  # pragma: no cover
-        logging.warning(f"Could not load font '{font_family}', falling back to the default font")
+        logger.warning(f"Could not load font '{font_family}', falling back to the default font")
         return get_font(None, max(font_size, 1))
 
 
 @lru_cache(maxsize=1)
 def _warn_rotation_once() -> None:  # pragma: no cover
     # lru_cache is thread-safe "warn once" semantics without a mutable global
-    logging.warning("Polygons with larger rotations may lead to slightly inaccurate rendering")
+    logger.warning("Polygons with larger rotations may lead to slightly inaccurate rendering")
 
 
 def _points(geometry: Any) -> list[tuple[float, float]] | None:
@@ -168,7 +170,7 @@ def _draw_word(
             # Anchors are rejected by bitmap fonts, which would otherwise leave the page blank
             d.text(xy, anyascii(text), font=font, fill=fill)
         except Exception:
-            logging.warning(f"Could not render word: {text}")
+            logger.warning(f"Could not render word: {text}")
 
 
 def _paste_word(
@@ -599,7 +601,7 @@ def _render(
         try:
             size = _entry_font_size(entry, words, polygon, w, h, font_family, min_font_size, max_font_size)
         except Exception as exc:
-            logging.warning(f"Could not size entry: {exc}")
+            logger.warning(f"Could not size entry: {exc}")
             continue
         prepared.append((entry, polygon, angle, box, words, size))
 
@@ -663,7 +665,7 @@ def _render(
             else:
                 _synthesize_value(response, entry, polygon, angle, w, h, size, font_family, text_color, bold)
         except Exception as exc:
-            logging.warning(f"Could not render entry: {exc}")
+            logger.warning(f"Could not render entry: {exc}")
         if draw_proba:
             _draw_confidence(response, entry, box, font_family)
 
