@@ -317,6 +317,8 @@
     <span class="s2">"_CompiledModule"</span><span class="p">,</span>
 <span class="p">]</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 <span class="c1"># torch compiled model type</span>
 <span class="n">_CompiledModule</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">_dynamo</span><span class="o">.</span><span class="n">eval_frame</span><span class="o">.</span><span class="n">OptimizedModule</span>
 
@@ -350,7 +352,7 @@
 <span class="sd">        **kwargs: additional arguments to be passed to `doctr.utils.data.download_from_url`</span>
 <span class="sd">    """</span>
     <span class="k">if</span> <span class="n">path_or_url</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No model URL or Path provided, using default initialization."</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"No model URL or Path provided, using default initialization."</span><span class="p">)</span>
         <span class="k">return</span>
 
     <span class="n">archive_path</span> <span class="o">=</span> <span class="p">(</span>
@@ -506,7 +508,7 @@
         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Model exported to </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Model exported to </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span><span class="p">)</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s2">.onnx"</span></div>
 
 
@@ -763,7 +765,7 @@
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
         <span class="n">kept</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">char</span> <span class="ow">in</span> <span class="n">allowed</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">vocab</span><span class="p">)</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
             <span class="sa">f</span><span class="s2">"add_whitelist: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">reco_model</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2"> - kept </span><span class="si">{</span><span class="n">kept</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">vocab_size</span><span class="si">}</span><span class="s2"> vocabulary "</span>
             <span class="sa">f</span><span class="s2">"characters, forbade </span><span class="si">{</span><span class="n">vocab_size</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">kept</span><span class="si">}</span><span class="s2">"</span>
             <span class="o">+</span> <span class="p">(</span><span class="sa">f</span><span class="s2">", reassigned </span><span class="si">{</span><span class="n">reassigned</span><span class="si">}</span><span class="s2"> to a nearest allowed character."</span> <span class="k">if</span> <span class="n">strategy</span> <span class="o">==</span> <span class="s2">"nearest"</span> <span class="k">else</span> <span class="s2">"."</span><span class="p">)</span>

@@ -316,6 +316,8 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"login_to_hub"</span><span class="p">,</span> <span class="s2">"push_to_hf_hub"</span><span class="p">,</span> <span class="s2">"from_hub"</span><span class="p">,</span> <span class="s2">"_save_model_and_config_for_hf_hub"</span><span class="p">]</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <span class="n">AVAILABLE_ARCHS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">"classification"</span><span class="p">:</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ARCHS</span> <span class="o">+</span> <span class="n">models</span><span class="o">.</span><span class="n">classification</span><span class="o">.</span><span class="n">zoo</span><span class="o">.</span><span class="n">ORIENTATION_ARCHS</span><span class="p">,</span>
@@ -332,7 +334,7 @@
 <span class="w">    </span><span class="sd">"""Login to huggingface hub"""</span>
     <span class="n">access_token</span> <span class="o">=</span> <span class="n">get_token</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">access_token</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Huggingface Hub token found and valid"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">"Huggingface Hub token found and valid"</span><span class="p">)</span>
         <span class="n">login</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="n">access_token</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">login</span><span class="p">()</span>

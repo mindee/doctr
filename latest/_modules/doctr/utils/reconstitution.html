@@ -307,6 +307,8 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"synthesize_page"</span><span class="p">,</span> <span class="s2">"synthesize_kie_page"</span><span class="p">]</span>
 
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 
 <span class="k">class</span><span class="w"> </span><span class="nc">_Word</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""A word to render, with its text, position, size and rotation."""</span>
@@ -325,14 +327,14 @@
     <span class="k">try</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">get_font</span><span class="p">(</span><span class="n">font_family</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">font_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
     <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
-        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not load font '</span><span class="si">{</span><span class="n">font_family</span><span class="si">}</span><span class="s2">', falling back to the default font"</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not load font '</span><span class="si">{</span><span class="n">font_family</span><span class="si">}</span><span class="s2">', falling back to the default font"</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">get_font</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="n">font_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 
 
 <span class="nd">@lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="k">def</span><span class="w"> </span><span class="nf">_warn_rotation_once</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="c1"># lru_cache is thread-safe "warn once" semantics without a mutable global</span>
-    <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Polygons with larger rotations may lead to slightly inaccurate rendering"</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">"Polygons with larger rotations may lead to slightly inaccurate rendering"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_points</span><span class="p">(</span><span class="n">geometry</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
@@ -460,7 +462,7 @@
             <span class="c1"># Anchors are rejected by bitmap fonts, which would otherwise leave the page blank</span>
             <span class="n">d</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xy</span><span class="p">,</span> <span class="n">anyascii</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">font</span><span class="o">=</span><span class="n">font</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">fill</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not render word: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not render word: </span><span class="si">{</span><span class="n">text</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_paste_word</span><span class="p">(</span>
@@ -891,7 +893,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">size</span> <span class="o">=</span> <span class="n">_entry_font_size</span><span class="p">(</span><span class="n">entry</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">font_family</span><span class="p">,</span> <span class="n">min_font_size</span><span class="p">,</span> <span class="n">max_font_size</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not size entry: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not size entry: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
             <span class="k">continue</span>
         <span class="n">prepared</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">entry</span><span class="p">,</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">words</span><span class="p">,</span> <span class="n">size</span><span class="p">))</span>
 
@@ -955,7 +957,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">_synthesize_value</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">polygon</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="n">font_family</span><span class="p">,</span> <span class="n">text_color</span><span class="p">,</span> <span class="n">bold</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
-            <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not render entry: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Could not render entry: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">draw_proba</span><span class="p">:</span>
             <span class="n">_draw_confidence</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="n">entry</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">font_family</span><span class="p">)</span>
 
