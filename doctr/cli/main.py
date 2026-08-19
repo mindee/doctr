@@ -17,7 +17,10 @@ from doctr.io import DocumentFile
 from doctr.models import ocr_predictor
 from doctr.version import __version__
 
-logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Name of the handler installed by the CLI, so that repeated `main` calls do not stack handlers
+_CLI_HANDLER_NAME = "doctr-cli"
 
 # Canonical export formats and their aliases, mirroring `Document.export_as`
 FORMAT_ALIASES: dict[str, str] = {
@@ -50,6 +53,29 @@ SUFFIX_ALIASES: dict[str, str] = {
 }
 
 READING_DIRECTIONS = ["auto", "ltr", "rtl", "ttb-rtl", "ttb-ltr"]
+
+
+def _setup_logging(quiet: bool = False) -> None:
+    """Configure the logging of the `doctr` package for the CLI
+
+    Only the library logger is configured, so that the CLI output stays free of the third-party
+    logs the root logger would otherwise pick up.
+
+    Args:
+        quiet: whether only errors should be logged
+    """
+    doctr_logger = logging.getLogger("doctr")
+
+    # `main` can be called several times in the same process, so the previous handler is replaced
+    for handler in list(doctr_logger.handlers):
+        if handler.name == _CLI_HANDLER_NAME:
+            doctr_logger.removeHandler(handler)
+
+    handler = logging.StreamHandler()
+    handler.set_name(_CLI_HANDLER_NAME)
+    handler.setFormatter(logging.Formatter("%(levelname)s: %(message)s"))
+    doctr_logger.addHandler(handler)
+    doctr_logger.setLevel(logging.ERROR if quiet else logging.INFO)
 
 
 def _resolve_format(args: argparse.Namespace) -> str:
@@ -86,15 +112,15 @@ def _load_document(args: argparse.Namespace) -> list[np.ndarray]:
                 pages.extend(DocumentFile.from_pdf(input_path, **pdf_kwargs))
             else:
                 pages.extend(DocumentFile.from_images(input_path))
-            logging.info(f"Document loaded successfully from {input_path}")
+            logger.info(f"Document loaded successfully from {input_path}")
         except FileNotFoundError:
-            logging.error(f"File not found: {input_path}")
+            logger.error(f"File not found: {input_path}")
             sys.exit(1)
         except ValueError:
-            logging.error(f"File could not be read as a valid image or PDF: {input_path}")
+            logger.error(f"File could not be read as a valid image or PDF: {input_path}")
             sys.exit(1)
         except Exception as e:
-            logging.error(f"Error occurred while loading the document: {e}")
+            logger.error(f"Error occurred while loading the document: {e}")
             sys.exit(1)
 
     return pages
@@ -114,7 +140,7 @@ def _resolve_device(device: str | None) -> torch.device:
     try:
         return torch.device(device)
     except (RuntimeError, ValueError) as e:
-        logging.error(f"Invalid device '{device}': {e}")
+        logger.error(f"Invalid device '{device}': {e}")
         sys.exit(1)
 
 
@@ -131,7 +157,7 @@ def _set_thresholds(model: Any, args: argparse.Namespace) -> None:
     det_model = getattr(getattr(model, "det_predictor", None), "model", None)
     postprocessor = getattr(det_model, "postprocessor", None)
     if postprocessor is None:
-        logging.warning("The detection model exposes no postprocessor: --bin_thresh & --box_thresh are ignored")
+        logger.warning("The detection model exposes no postprocessor: --bin_thresh & --box_thresh are ignored")
         return
 
     if args.bin_thresh is not None:
@@ -155,11 +181,11 @@ def _to_device(model: Any, args: argparse.Namespace) -> Any:
         model = model.to(device)
         if device.type == "cuda" and torch.cuda.get_device_capability(device) >= (8, 0):
             model = model.bfloat16()
-            logging.info(f"Model loaded on {device} with bfloat16 precision")
+            logger.info(f"Model loaded on {device} with bfloat16 precision")
     except (RuntimeError, AssertionError, ValueError) as e:
-        logging.error(f"Could not load the model on device '{device}': {e}")
+        logger.error(f"Could not load the model on device '{device}': {e}")
         sys.exit(1)
-    logging.info(f"Model loaded on {device}")
+    logger.info(f"Model loaded on {device}")
     return model
 
 
@@ -175,7 +201,7 @@ def _build_predictor(args: argparse.Namespace) -> Any:
     # Region masking is resolved by the layout model, so it has to be enabled along with `ignore_regions`
     detect_layout = args.detect_layout or bool(args.ignore_regions)
     if detect_layout and not args.detect_layout:
-        logging.info("--ignore_regions requires the layout model: layout detection has been enabled")
+        logger.info("--ignore_regions requires the layout model: layout detection has been enabled")
 
     kwargs: dict[str, Any] = {
         "det_arch": args.det_arch,
@@ -261,7 +287,7 @@ def _save_results(result: Any, fmt: str, args: argparse.Namespace) -> None:
     try:
         exported = result.export_as(fmt, **_export_kwargs(fmt, args))
     except Exception as e:
-        logging.error(f"Results could not be exported as '{fmt}': {e}")
+        logger.error(f"Results could not be exported as '{fmt}': {e}")
         sys.exit(1)
 
     try:
@@ -270,19 +296,19 @@ def _save_results(result: Any, fmt: str, args: argparse.Namespace) -> None:
             paths = _xml_paths(args.output, len(exported))
             for path, (xml_bytes, _) in zip(paths, exported):
                 path.write_bytes(xml_bytes)
-            logging.info(f"Results saved to {', '.join(str(path) for path in paths)}")
+            logger.info(f"Results saved to {', '.join(str(path) for path in paths)}")
         else:
             with open(args.output, "w", encoding="utf-8") as f:
                 if fmt == "json":
                     json.dump(exported, f, indent=args.indent, ensure_ascii=False)
                 else:
                     f.write(exported)
-            logging.info(f"Results saved to {args.output}")
+            logger.info(f"Results saved to {args.output}")
     except FileNotFoundError:
-        logging.error(f"Could not write output file at given path: {args.output}")
+        logger.error(f"Could not write output file at given path: {args.output}")
         sys.exit(1)
     except Exception as e:
-        logging.error(f"Results could not be saved: {e}")
+        logger.error(f"Results could not be saved: {e}")
         sys.exit(1)
 
 
@@ -290,8 +316,7 @@ def main(argv=None):
     """Main function for the docTR CLI tool"""
     # parse command-line arguments and set up the model
     args = _parse_args(argv)
-    if args.quiet:
-        logging.getLogger().setLevel(logging.ERROR)
+    _setup_logging(args.quiet)
 
     fmt = _resolve_format(args)
     model = _build_predictor(args)
@@ -300,7 +325,7 @@ def main(argv=None):
     doc = _load_document(args)
 
     # perform OCR
-    logging.info("Performing OCR...")
+    logger.info("Performing OCR...")
     result = model(doc)
 
     # save results to the requested format
