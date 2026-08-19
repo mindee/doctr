@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import PosixPath
 from unittest.mock import patch
@@ -25,22 +26,22 @@ def test_download_from_url_customizing_cache_dir(mkdir_mock, urlretrieve_mock):
 
 @patch.dict(os.environ, {"HOME": "/"}, clear=True)
 @patch("pathlib.Path.mkdir", side_effect=OSError)
-@patch("logging.error")
-def test_download_from_url_error_creating_directory(logging_mock, mkdir_mock):
-    with pytest.raises(OSError):
-        download_from_url("test_url")
-    logging_mock.assert_called_with(
+def test_download_from_url_error_creating_directory(mkdir_mock, caplog):
+    with caplog.at_level(logging.ERROR, logger="doctr.utils.data"):
+        with pytest.raises(OSError):
+            download_from_url("test_url")
+    assert (
         "Failed creating cache directory at /.cache/doctr."
         " You can change default cache directory using 'DOCTR_CACHE_DIR' environment variable if needed."
-    )
+    ) in caplog.text
 
 
 @patch.dict(os.environ, {"HOME": "/", "DOCTR_CACHE_DIR": "/test"}, clear=True)
 @patch("pathlib.Path.mkdir", side_effect=OSError)
-@patch("logging.error")
-def test_download_from_url_error_creating_directory_with_env_var(logging_mock, mkdir_mock):
-    with pytest.raises(OSError):
-        download_from_url("test_url")
-    logging_mock.assert_called_with(
+def test_download_from_url_error_creating_directory_with_env_var(mkdir_mock, caplog):
+    with caplog.at_level(logging.ERROR, logger="doctr.utils.data"):
+        with pytest.raises(OSError):
+            download_from_url("test_url")
+    assert (
         "Failed creating cache directory at /test using path from 'DOCTR_CACHE_DIR' environment variable."
-    )
+    ) in caplog.text
