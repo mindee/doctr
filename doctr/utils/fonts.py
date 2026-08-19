@@ -11,6 +11,8 @@ from PIL import ImageFont
 
 __all__ = ["get_font"]
 
+logger = logging.getLogger(__name__)
+
 _FONT_CANDIDATES: dict[str, tuple[str, ...]] = {
     "Linux": (
         "DejaVuSans.ttf",
@@ -67,7 +69,7 @@ def get_font(font_family: str | None = None, font_size: int = 13) -> ImageFont.F
     try:
         return ImageFont.load_default(size=font_size)
     except TypeError:  # pragma: no cover
-        logging.warning(
+        logger.warning(
             "Unable to load any recommended font family. Loading default PIL font, "
             "font size issues may be expected. "
             "To prevent this, it is recommended to specify the value of 'font_family'."

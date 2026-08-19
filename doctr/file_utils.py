@@ -8,6 +8,8 @@ import logging
 
 __all__ = ["requires_package", "CLASS_NAME"]
 
+logger = logging.getLogger(__name__)
+
 CLASS_NAME: str = "words"
 ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 
@@ -22,7 +24,7 @@ def requires_package(name: str, extra_message: str | None = None) -> None:  # pr
     """
     try:
         _pkg_version = importlib.metadata.version(name)
-        logging.info(f"{name} version {_pkg_version} available.")
+        logger.info(f"{name} version {_pkg_version} available.")
     except importlib.metadata.PackageNotFoundError:
         raise ImportError(
             f"\n\n{extra_message if extra_message is not None else ''} "
