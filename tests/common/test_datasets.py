@@ -4,6 +4,67 @@ import numpy as np
 import pytest
 
 from doctr import datasets
+from doctr.datasets.generator import base
+from doctr.datasets.generator.base import _fonts_per_char, _renders_char, synthesize_text_img
+from doctr.utils.fonts import get_font_candidates
+
+
+@pytest.mark.parametrize("text", ["", "  ", "   "])
+def test_synthesize_text_img_rejects_inkless_text(text):
+    # Empty text, and text a font draws with no ink, both used to yield a 0-dimension image
+    # and an opaque resize failure deep in a DataLoader worker (#2016).
+    with pytest.raises(ValueError):
+        synthesize_text_img(text)
+
+
+def test_renders_char_smoke_on_a_real_font():
+    # One real-font assertion, kept deliberately minimal: basic Latin coverage in the
+    # default system font. It proves the Pillow/FreeType path works; every capability
+    # rule below is asserted deterministically instead of through installed fonts.
+    if not get_font_candidates():
+        pytest.skip("no recommended system font installed")
+    assert _renders_char("a", get_font_candidates()[0], 32)
+
+
+def test_renders_char_rejects_blank_and_notdef(monkeypatch):
+    # A character the font does not cover is drawn as a ".notdef" box: it carries ink, so
+    # ink alone cannot tell it apart from a real glyph — it must be compared to the box.
+    notdef = ((4, 4), b"notdef")
+    ink = {"a": ((3, 5), b"glyph"), "?": notdef, " ": None}
+    monkeypatch.setattr(base, "_glyph_ink", lambda font, char: ink[char])
+    monkeypatch.setattr(base, "_notdef_ink", lambda family, size: frozenset({notdef}))
+    base._renders_char.cache_clear()
+
+    assert base._renders_char("a", None, 32)
+    assert not base._renders_char("?", None, 32)  # .notdef box
+    assert not base._renders_char(" ", None, 32)  # no ink at all
+    base._renders_char.cache_clear()
+
+
+def test_fonts_per_char_falls_back_to_system_fonts(monkeypatch):
+    # "x" is drawn by neither given font, so it must fall back — and only to the system
+    # candidate that actually draws it, in candidate order.
+    monkeypatch.setattr(base, "get_font_candidates", lambda: ("blind.ttf", "rescue.ttf"))
+    monkeypatch.setattr(base, "_renders_char", lambda char, font, size: char != "x" or font == "rescue.ttf")
+
+    mapping = base._fonts_per_char("ax", ["given.ttf"])
+
+    assert mapping["a"] == ("given.ttf",)
+    assert mapping["x"] == ("rescue.ttf",)
+
+
+def test_fonts_per_char_accepts_whitespace():
+    # A space is inkless in every font by design; judging it by ink would reject any
+    # vocabulary containing one, such as VOCABS["latex"].
+    assert _fonts_per_char("a b", [None])[" "] == (None,)
+
+
+def test_fonts_per_char_raises_when_no_font_renders(monkeypatch):
+    monkeypatch.setattr(base, "get_font_candidates", lambda: ("blind.ttf",))
+    monkeypatch.setattr(base, "_renders_char", lambda char, font, size: False)
+
+    with pytest.raises(ValueError, match="cannot be rendered"):
+        base._fonts_per_char("x", ["given.ttf"])
 
 
 def test_visiondataset():
