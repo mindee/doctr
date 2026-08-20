@@ -5,9 +5,11 @@ from shutil import move
 import numpy as np
 import pytest
 import torch
+from PIL import Image
 from torch.utils.data import DataLoader, RandomSampler
 
 from doctr import datasets
+from doctr.datasets.generator import base
 from doctr.file_utils import CLASS_NAME
 from doctr.transforms import Resize, SampleCompose
 
@@ -425,8 +427,13 @@ def test_charactergenerator():
     assert isinstance(targets, list) and len(targets) == 2
     assert all(isinstance(t, int) for t in targets)
 
+    ds = datasets.CharacterGenerator(vocab=vocab, num_samples=10, cache_samples=False)
+    sample = ds[0]
+    assert isinstance(sample.image, torch.Tensor)
+    assert isinstance(sample.target, int) and sample.target < len(vocab)
 
-def test_wordgenerator():
+
+def test_wordgenerator(monkeypatch):
     input_size = (32, 128)
     wordlen_range = (1, 10)
     vocab = "abcdef"
@@ -453,6 +460,36 @@ def test_wordgenerator():
     images, targets = next(iter(loader))
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and len(targets) == 2 and all(isinstance(t, str) for t in targets)
+
+    # Each word must be drawn with a single font that can render all its chars (#2016).
+    monkeypatch.setattr(base, "get_font_candidates", lambda: ())
+    monkeypatch.setattr(base, "_load_font", lambda family, size: None)
+    monkeypatch.setattr(base, "_renders_char", lambda char, font, size: char == "a" or font == "second.ttf")
+    monkeypatch.setattr(base, "synthesize_text_img", lambda text, font_family=None: Image.new("RGB", (8, 8)))
+
+    ds = datasets.WordGenerator(
+        vocab="ab",
+        min_chars=4,
+        max_chars=4,
+        num_samples=16,
+        cache_samples=True,
+        font_family=["first.ttf", "second.ttf"],
+    )
+    assert ds._vocab_per_font == {"first.ttf": "a", "second.ttf": "ab"}
+    for _, target in ds._data:
+        assert len(target) == 4
+
+    ds = datasets.WordGenerator(
+        vocab="ab",
+        min_chars=4,
+        max_chars=4,
+        num_samples=16,
+        cache_samples=False,
+        font_family=["first.ttf", "second.ttf"],
+    )
+    sample = ds[0]
+    assert isinstance(sample.image, torch.Tensor)
+    assert len(sample.target) == 4
 
 
 @pytest.mark.parametrize("rotate", [True, False])

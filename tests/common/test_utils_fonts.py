@@ -2,7 +2,7 @@ import pytest
 from PIL.ImageFont import FreeTypeFont, ImageFont
 
 from doctr.utils import fonts
-from doctr.utils.fonts import get_font
+from doctr.utils.fonts import get_font, get_font_candidates
 
 
 @pytest.fixture(autouse=True)
@@ -65,3 +65,21 @@ def test_get_font_fallback(monkeypatch):
     assert isinstance(font, (ImageFont, FreeTypeFont))
     # The fallback font must still be usable for text measurement
     assert font.getbbox("hello")[2] > 0
+
+
+def test_get_font_candidates_only_lists_installed_fonts():
+    candidates = get_font_candidates()
+
+    # Every returned family must actually load, and the default is the first of them
+    for family in candidates:
+        assert isinstance(get_font(family, 10), FreeTypeFont)
+    assert fonts._resolve_default_font_family() == (candidates[0] if candidates else None)
+
+
+def test_get_font_candidates_skips_missing(monkeypatch):
+    monkeypatch.setattr(
+        fonts, "_FONT_CANDIDATES", dict.fromkeys(fonts._FONT_CANDIDATES, ("missing-font.ttf", "DejaVuSans.ttf"))
+    )
+    fonts._resolve_default_font_family.cache_clear()
+
+    assert "missing-font.ttf" not in get_font_candidates()
