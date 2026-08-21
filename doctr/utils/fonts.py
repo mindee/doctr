@@ -9,7 +9,7 @@ from functools import lru_cache
 
 from PIL import ImageFont
 
-__all__ = ["get_font"]
+__all__ = ["get_font", "get_font_candidates"]
 
 logger = logging.getLogger(__name__)
 
@@ -34,17 +34,29 @@ _FONT_CANDIDATES: dict[str, tuple[str, ...]] = {
 }
 
 
+def _is_available(font_family: str) -> bool:
+    try:
+        _ = ImageFont.truetype(font_family, 10)
+    except OSError:
+        return False
+    return True
+
+
+def get_font_candidates() -> tuple[str, ...]:
+    """Lists the recommended fonts which are installed on this system
+
+    Returns:
+        the available font families, by order of preference
+    """
+    candidates = _FONT_CANDIDATES.get(platform.system(), _FONT_CANDIDATES["Linux"])
+    return tuple(family for family in candidates if _is_available(family))
+
+
 @lru_cache(maxsize=1)
 def _resolve_default_font_family() -> str | None:
     """Find the first available candidate font for this platform."""
-    candidates = _FONT_CANDIDATES.get(platform.system(), _FONT_CANDIDATES["Linux"])
-    for family in candidates:
-        try:
-            ImageFont.truetype(family, 10)
-            return family
-        except OSError:
-            continue
-    return None
+    candidates = get_font_candidates()
+    return candidates[0] if candidates else None
 
 
 def get_font(font_family: str | None = None, font_size: int = 13) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:

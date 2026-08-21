@@ -5,6 +5,7 @@ from shutil import move
 import numpy as np
 import pytest
 import torch
+from PIL import Image
 from torch.utils.data import DataLoader, RandomSampler
 
 from doctr import datasets
@@ -424,6 +425,32 @@ def test_charactergenerator():
     assert isinstance(images, torch.Tensor) and images.shape == (2, 3, *input_size)
     assert isinstance(targets, list) and len(targets) == 2
     assert all(isinstance(t, int) for t in targets)
+
+
+def test_wordgenerator_draws_each_word_with_a_single_capable_font(monkeypatch):
+    # A word is rendered with one font, so it must only use characters that font can draw.
+    # Mixing fonts inside a word, or picking a font that cannot render a character, is what
+    # produced blank glyphs and 0-dimension images (#2016).
+    from doctr.datasets.generator import base
+
+    monkeypatch.setattr(base, "get_font_candidates", lambda: ())
+    monkeypatch.setattr(base, "_load_font", lambda family, size: None)
+    # "b" is drawn by the second font only, "a" by both
+    monkeypatch.setattr(base, "_renders_char", lambda char, font, size: char == "a" or font == "second.ttf")
+    monkeypatch.setattr(base, "synthesize_text_img", lambda text, font_family=None: Image.new("RGB", (8, 8)))
+
+    ds = datasets.WordGenerator(
+        vocab="ab",
+        min_chars=4,
+        max_chars=4,
+        num_samples=16,
+        cache_samples=True,
+        font_family=["first.ttf", "second.ttf"],
+    )
+
+    assert ds._vocab_per_font == {"first.ttf": "a", "second.ttf": "ab"}
+    for _, target in ds._data:
+        assert len(target) == 4
 
 
 def test_wordgenerator():
