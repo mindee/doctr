@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -232,6 +233,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -295,17 +297,10 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">defusedxml</span><span class="w"> </span><span class="kn">import</span> <span class="n">defuse_stdlib</span>
-
-<span class="n">defuse_stdlib</span><span class="p">()</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">xml.etree</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElementTree</span> <span class="k">as</span> <span class="n">ET</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">xml.etree.ElementTree</span><span class="w"> </span><span class="kn">import</span> <span class="n">Element</span> <span class="k">as</span> <span class="n">ETElement</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">xml.etree.ElementTree</span><span class="w"> </span><span class="kn">import</span> <span class="n">SubElement</span>
-
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">doctr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.file_utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">requires_package</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io.exporters</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentExportsMixin</span><span class="p">,</span> <span class="n">KIEPageExportsMixin</span><span class="p">,</span> <span class="n">PageExportsMixin</span><span class="p">,</span> <span class="n">to_json_safe</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">BoundingBox</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_enclosing_bbox</span><span class="p">,</span> <span class="n">resolve_enclosing_rbbox</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.reconstitution</span><span class="w"> </span><span class="kn">import</span> <span class="n">synthesize_kie_page</span><span class="p">,</span> <span class="n">synthesize_page</span>
@@ -313,10 +308,29 @@
 
 <span class="k">try</span><span class="p">:</span>  <span class="c1"># optional dependency for visualization</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">visualize_kie_page</span><span class="p">,</span> <span class="n">visualize_page</span>
-<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>
+<span class="k">except</span> <span class="ne">ModuleNotFoundError</span><span class="p">:</span>  <span class="c1"># pragma: no cover</span>
     <span class="k">pass</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Element"</span><span class="p">,</span> <span class="s2">"Word"</span><span class="p">,</span> <span class="s2">"Artefact"</span><span class="p">,</span> <span class="s2">"Line"</span><span class="p">,</span> <span class="s2">"Prediction"</span><span class="p">,</span> <span class="s2">"Block"</span><span class="p">,</span> <span class="s2">"Page"</span><span class="p">,</span> <span class="s2">"KIEPage"</span><span class="p">,</span> <span class="s2">"Document"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">"Element"</span><span class="p">,</span>
+    <span class="s2">"Word"</span><span class="p">,</span>
+    <span class="s2">"Artefact"</span><span class="p">,</span>
+    <span class="s2">"Line"</span><span class="p">,</span>
+    <span class="s2">"Prediction"</span><span class="p">,</span>
+    <span class="s2">"Block"</span><span class="p">,</span>
+    <span class="s2">"Page"</span><span class="p">,</span>
+    <span class="s2">"KIEPage"</span><span class="p">,</span>
+    <span class="s2">"KIEDocument"</span><span class="p">,</span>
+    <span class="s2">"Document"</span><span class="p">,</span>
+    <span class="s2">"LayoutElement"</span><span class="p">,</span>
+    <span class="s2">"TableCell"</span><span class="p">,</span>
+    <span class="s2">"Table"</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_empty_page_image</span><span class="p">(</span><span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Return the given page image, or an empty placeholder when the page was restored from an export."""</span>
+    <span class="k">return</span> <span class="n">page</span> <span class="k">if</span> <span class="n">page</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Element</span><span class="p">(</span><span class="n">NestedObject</span><span class="p">):</span>
@@ -334,7 +348,7 @@
 
     <span class="k">def</span><span class="w"> </span><span class="nf">export</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Exports the object into a nested dict format"""</span>
-        <span class="n">export_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="n">export_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">to_json_safe</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">children_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_children_names</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">children_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"predictions"</span><span class="p">]:</span>
                 <span class="n">export_dict</span><span class="p">[</span><span class="n">children_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
@@ -362,7 +376,7 @@
 <span class="sd">        value: the text string of the word</span>
 <span class="sd">        confidence: the confidence associated with the text prediction</span>
 <span class="sd">        geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to</span>
-<span class="sd">        the page's size</span>
+<span class="sd">            the page's size</span>
 <span class="sd">        objectness_score: the objectness score of the detection</span>
 <span class="sd">        crop_orientation: the general orientation of the crop in degrees and its confidence</span>
 <span class="sd">    """</span>
@@ -421,8 +435,42 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Renders the full text of the element"""</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">]"</span>
+<span class="w">        </span><span class="sd">"""Renders the region as a tag"""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">]&gt;"</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"type='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">', confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">artefact_type</span><span class="o">=</span><span class="n">save_dict</span><span class="p">[</span><span class="s2">"type"</span><span class="p">],</span> <span class="n">confidence</span><span class="o">=</span><span class="n">save_dict</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">],</span> <span class="n">geometry</span><span class="o">=</span><span class="n">save_dict</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">])</span></div>
+
+
+
+<div class="viewcode-block" id="LayoutElement">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.LayoutElement">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">LayoutElement</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Implements a layout region predicted by a layout detection model</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        layout_type: the predicted region class (e.g. 'Title', 'Text', 'Table', 'Page-header')</span>
+<span class="sd">        confidence: the confidence of the region prediction</span>
+<span class="sd">        geometry: bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to</span>
+<span class="sd">            the page's size</span>
+<span class="sd">    """</span>
+
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"type"</span><span class="p">,</span> <span class="s2">"confidence"</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layout_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">layout_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Renders the region as a tag"""</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"&lt;[</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s2">]&gt;"</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"type='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">type</span><span class="si">}</span><span class="s2">', confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">"</span>
@@ -430,8 +478,138 @@
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">layout_type</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"type"</span><span class="p">],</span> <span class="n">confidence</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"confidence"</span><span class="p">],</span> <span class="n">geometry</span><span class="o">=</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">"geometry"</span><span class="p">])</span></div>
 
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">TableCell</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Implements a single cell of a recognized table</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        value: the text content of the cell (words assigned to the cell, joined together)</span>
+<span class="sd">        confidence: the mean recognition confidence of the words assigned to the cell</span>
+<span class="sd">        geometry: bounding box of the cell in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon,</span>
+<span class="sd">            with coordinates relative to the page's size</span>
+<span class="sd">        row_start: index of the first row spanned by the cell (0-indexed)</span>
+<span class="sd">        row_end: index of the last row spanned by the cell (0-indexed, inclusive)</span>
+<span class="sd">        col_start: index of the first column spanned by the cell (0-indexed)</span>
+<span class="sd">        col_end: index of the last column spanned by the cell (0-indexed, inclusive)</span>
+<span class="sd">    """</span>
+
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"geometry"</span><span class="p">,</span>
+        <span class="s2">"value"</span><span class="p">,</span>
+        <span class="s2">"confidence"</span><span class="p">,</span>
+        <span class="s2">"row_start"</span><span class="p">,</span>
+        <span class="s2">"row_end"</span><span class="p">,</span>
+        <span class="s2">"col_start"</span><span class="p">,</span>
+        <span class="s2">"col_end"</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">row_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">row_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">col_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">col_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row_start</span> <span class="o">=</span> <span class="n">row_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">row_end</span> <span class="o">=</span> <span class="n">row_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_start</span> <span class="o">=</span> <span class="n">col_start</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">col_end</span> <span class="o">=</span> <span class="n">col_end</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">row_span</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Number of rows spanned by the cell"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">row_start</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">col_span</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Number of columns spanned by the cell"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_end</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">col_start</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Renders the cell text"""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"value='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">', rows=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">row_start</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">row_end</span><span class="si">}</span><span class="s2">), cols=(</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">col_start</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">col_end</span><span class="si">}</span><span class="s2">)"</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">Table</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Implements a table recognized on a page as a grid of cells</span>
+
+<span class="sd">    The recognized text of the words falling inside the table is regrouped here and removed from the</span>
+<span class="sd">    regular `blocks` output of the page, so it is not duplicated. The structured content can be loaded</span>
+<span class="sd">    directly into pandas, e.g. `pd.DataFrame(table.to_grid())`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cells: list of `TableCell` objects composing the table</span>
+<span class="sd">        num_rows: number of rows of the table</span>
+<span class="sd">        num_cols: number of columns of the table</span>
+<span class="sd">        geometry: bounding box enclosing the whole table, with coordinates relative to the page's size</span>
+<span class="sd">        confidence: the confidence of the table structure prediction</span>
+<span class="sd">    """</span>
+
+    <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"num_rows"</span><span class="p">,</span> <span class="s2">"num_cols"</span><span class="p">,</span> <span class="s2">"confidence"</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"cells"</span><span class="p">]</span>
+    <span class="n">cells</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TableCell</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">cells</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">TableCell</span><span class="p">],</span>
+        <span class="n">num_rows</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">num_cols</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">confidence</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">cells</span><span class="o">=</span><span class="n">cells</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span> <span class="o">=</span> <span class="n">num_rows</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span> <span class="o">=</span> <span class="n">num_cols</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geometry</span> <span class="o">=</span> <span class="n">geometry</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">confidence</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">to_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">"""Return the table content as a dense `num_rows` x `num_cols` grid of strings.</span>
+
+<span class="sd">        Cells spanning several rows/columns have their value placed at their top-left position; the</span>
+<span class="sd">        remaining positions they span are left empty. The result is directly loadable into pandas via</span>
+<span class="sd">        `pd.DataFrame(table.to_grid())`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            a list of `num_rows` lists, each of length `num_cols`</span>
+<span class="sd">        """</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">""</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span><span class="p">)]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cells</span><span class="p">:</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cell</span><span class="o">.</span><span class="n">row_start</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">cell</span><span class="o">.</span><span class="n">col_start</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span><span class="p">:</span>
+                <span class="n">grid</span><span class="p">[</span><span class="n">cell</span><span class="o">.</span><span class="n">row_start</span><span class="p">][</span><span class="n">cell</span><span class="o">.</span><span class="n">col_start</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell</span><span class="o">.</span><span class="n">value</span>
+        <span class="k">return</span> <span class="n">grid</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span> <span class="n">col_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\t</span><span class="s2">"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">"""Renders the table as plain text (tab-separated values)"""</span>
+        <span class="k">return</span> <span class="n">row_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">col_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">row</span><span class="p">)</span> <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_grid</span><span class="p">())</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"num_rows=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_rows</span><span class="si">}</span><span class="s2">, num_cols=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">num_cols</span><span class="si">}</span><span class="s2">, confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">TableCell</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]]</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Line">
@@ -483,6 +661,8 @@
 
 
 
+<div class="viewcode-block" id="Prediction">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.Prediction">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Prediction</span><span class="p">(</span><span class="n">Word</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Implements a prediction element"""</span>
 
@@ -491,7 +671,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">"value='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">', confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">, bounding_box=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"value='</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="si">}</span><span class="s2">', confidence=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">confidence</span><span class="si">:</span><span class="s2">.2</span><span class="si">}</span><span class="s2">, bounding_box=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">geometry</span><span class="si">}</span><span class="s2">"</span></div>
+
 
 
 <div class="viewcode-block" id="Block">
@@ -552,7 +733,7 @@
 
 <div class="viewcode-block" id="Page">
 <a class="viewcode-back" href="../../../modules/io.html#doctr.io.Page">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Page</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Page</span><span class="p">(</span><span class="n">PageExportsMixin</span><span class="p">,</span> <span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Implements a page element as a collection of blocks</span>
 
 <span class="sd">    Args:</span>
@@ -562,11 +743,15 @@
 <span class="sd">        dimensions: the page size in pixels in format (height, width)</span>
 <span class="sd">        orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction</span>
 <span class="sd">        language: a dictionary with the language value and confidence of the prediction</span>
+<span class="sd">        layout: optional list of layout regions detected on the page</span>
+<span class="sd">        tables: optional list of tables recognized on the page. Words assigned to a table are removed from `blocks`.</span>
 <span class="sd">    """</span>
 
     <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"page_idx"</span><span class="p">,</span> <span class="s2">"dimensions"</span><span class="p">,</span> <span class="s2">"orientation"</span><span class="p">,</span> <span class="s2">"language"</span><span class="p">]</span>
-    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"blocks"</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"blocks"</span><span class="p">,</span> <span class="s2">"layout"</span><span class="p">,</span> <span class="s2">"tables"</span><span class="p">]</span>
     <span class="n">blocks</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Block</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -576,17 +761,19 @@
         <span class="n">dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
         <span class="n">orientation</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">language</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">tables</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Table</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">blocks</span><span class="o">=</span><span class="n">blocks</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">blocks</span><span class="o">=</span><span class="n">blocks</span><span class="p">,</span>
+            <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
+            <span class="n">tables</span><span class="o">=</span><span class="n">tables</span> <span class="k">if</span> <span class="n">tables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[],</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page_idx</span> <span class="o">=</span> <span class="n">page_idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="n">orientation</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="o">=</span> <span class="n">language</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">block_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Renders the full text of the element"""</span>
-        <span class="k">return</span> <span class="n">block_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">render</span><span class="p">()</span> <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"dimensions=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="si">}</span><span class="s2">"</span>
@@ -600,12 +787,20 @@
 <span class="sd">            interactive: whether the display should be interactive</span>
 <span class="sd">            preserve_aspect_ratio: pass True if you passed True to the predictor</span>
 <span class="sd">            **kwargs: additional keyword arguments passed to the matplotlib.pyplot.show method</span>
+<span class="sd">                (e.g. `display_layout=False` to hide detected layout regions)</span>
 <span class="sd">        """</span>
         <span class="n">requires_package</span><span class="p">(</span><span class="s2">"matplotlib"</span><span class="p">,</span> <span class="s2">"`.show()` requires matplotlib &amp; mplcursors installed"</span><span class="p">)</span>
         <span class="n">requires_package</span><span class="p">(</span><span class="s2">"mplcursors"</span><span class="p">,</span> <span class="s2">"`.show()` requires matplotlib &amp; mplcursors installed"</span><span class="p">)</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-        <span class="n">visualize_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">)</span>
+        <span class="n">show_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"words_only"</span><span class="p">,</span> <span class="s2">"display_artefacts"</span><span class="p">,</span> <span class="s2">"display_layout"</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">}</span>
+        <span class="n">visualize_page</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span>
+            <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span>
+            <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">show_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
@@ -620,119 +815,22 @@
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">synthesize_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"docTR - XML export (hOCR)"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Export the page as XML (hOCR-format)</span>
-<span class="sd">        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            file_title: the title of the XML file</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
-<span class="sd">        """</span>
-        <span class="n">p_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_idx</span>
-        <span class="n">block_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">line_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">word_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
-        <span class="n">language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="k">if</span> <span class="s2">"language"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"en"</span>
-        <span class="c1"># Create the XML root element</span>
-        <span class="n">page_hocr</span> <span class="o">=</span> <span class="n">ETElement</span><span class="p">(</span><span class="s2">"html"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"xmlns"</span><span class="p">:</span> <span class="s2">"http://www.w3.org/1999/xhtml"</span><span class="p">,</span> <span class="s2">"xml:lang"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span><span class="p">)})</span>
-        <span class="c1"># Create the header / SubElements of the root element</span>
-        <span class="n">head</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="s2">"head"</span><span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="s2">"title"</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">file_title</span>
-        <span class="n">SubElement</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"http-equiv"</span><span class="p">:</span> <span class="s2">"Content-Type"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"text/html; charset=utf-8"</span><span class="p">})</span>
-        <span class="n">SubElement</span><span class="p">(</span>
-            <span class="n">head</span><span class="p">,</span>
-            <span class="s2">"meta"</span><span class="p">,</span>
-            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"ocr-system"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"python-doctr </span><span class="si">{</span><span class="n">doctr</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>  <span class="c1"># type: ignore[attr-defined]</span>
-        <span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span>
-            <span class="n">head</span><span class="p">,</span>
-            <span class="s2">"meta"</span><span class="p">,</span>
-            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"ocr-capabilities"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"ocr_page ocr_carea ocr_par ocr_line ocrx_word"</span><span class="p">},</span>
-        <span class="p">)</span>
-        <span class="c1"># Create the body</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="s2">"body"</span><span class="p">)</span>
-        <span class="n">page_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-            <span class="n">body</span><span class="p">,</span>
-            <span class="s2">"div"</span><span class="p">,</span>
-            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_page"</span><span class="p">,</span>
-                <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"page_</span><span class="si">{</span><span class="n">p_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"image; bbox 0 0 </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">; ppageno 0"</span><span class="p">,</span>
-            <span class="p">},</span>
-        <span class="p">)</span>
-        <span class="c1"># iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes</span>
-        <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">blocks</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"XML export is only available for straight bounding boxes for now."</span><span class="p">)</span>
-            <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">geometry</span>
-            <span class="n">block_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                <span class="n">page_div</span><span class="p">,</span>
-                <span class="s2">"div"</span><span class="p">,</span>
-                <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                    <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_carea"</span><span class="p">,</span>
-                    <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"block_</span><span class="si">{</span><span class="n">block_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                    </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="p">},</span>
-            <span class="p">)</span>
-            <span class="n">paragraph</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                <span class="n">block_div</span><span class="p">,</span>
-                <span class="s2">"p"</span><span class="p">,</span>
-                <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                    <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_par"</span><span class="p">,</span>
-                    <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"par_</span><span class="si">{</span><span class="n">block_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                    </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="p">},</span>
-            <span class="p">)</span>
-            <span class="n">block_count</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
-                <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">geometry</span>
-                <span class="c1"># NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0</span>
-                <span class="n">line_span</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                    <span class="n">paragraph</span><span class="p">,</span>
-                    <span class="s2">"span"</span><span class="p">,</span>
-                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_line"</span><span class="p">,</span>
-                        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"line_</span><span class="si">{</span><span class="n">line_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">; </span><span class="se">\</span>
-<span class="s2">                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"</span><span class="p">,</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
-                <span class="n">line_count</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">words</span><span class="p">:</span>
-                    <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">geometry</span>
-                    <span class="n">conf</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">confidence</span>
-                    <span class="n">word_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                        <span class="n">line_span</span><span class="p">,</span>
-                        <span class="s2">"span"</span><span class="p">,</span>
-                        <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                            <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocrx_word"</span><span class="p">,</span>
-                            <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"word_</span><span class="si">{</span><span class="n">word_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                            <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                            </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">; </span><span class="se">\</span>
-<span class="s2">                            x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">conf</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="p">},</span>
-                    <span class="p">)</span>
-                    <span class="c1"># set the text</span>
-                    <span class="n">word_div</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">word</span><span class="o">.</span><span class="n">value</span>
-                    <span class="n">word_count</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="k">return</span> <span class="p">(</span><span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"xml"</span><span class="p">),</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">))</span>
-
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"blocks"</span><span class="p">:</span> <span class="p">[</span><span class="n">Block</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">block_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">block_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]]})</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">"blocks"</span><span class="p">:</span> <span class="p">[</span><span class="n">Block</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">block_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">block_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"blocks"</span><span class="p">]],</span>
+            <span class="s2">"layout"</span><span class="p">:</span> <span class="p">[</span><span class="n">LayoutElement</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">region_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">region_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"layout"</span><span class="p">,</span> <span class="p">[])],</span>
+            <span class="s2">"tables"</span><span class="p">:</span> <span class="p">[</span><span class="n">Table</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">table_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">table_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"tables"</span><span class="p">,</span> <span class="p">[])],</span>
+        <span class="p">})</span>
+        <span class="c1"># The page image is not part of the export: pass it back explicitly to restore a fully usable page</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">page</span><span class="o">=</span><span class="n">_empty_page_image</span><span class="p">(</span><span class="n">page</span><span class="p">),</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span></div>
 
 
 
-<span class="k">class</span><span class="w"> </span><span class="nc">KIEPage</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<div class="viewcode-block" id="KIEPage">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.KIEPage">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">KIEPage</span><span class="p">(</span><span class="n">KIEPageExportsMixin</span><span class="p">,</span> <span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Implements a KIE page element as a collection of predictions</span>
 
 <span class="sd">    Args:</span>
@@ -742,11 +840,13 @@
 <span class="sd">        dimensions: the page size in pixels in format (height, width)</span>
 <span class="sd">        orientation: a dictionary with the value of the rotation angle in degress and confidence of the prediction</span>
 <span class="sd">        language: a dictionary with the language value and confidence of the prediction</span>
+<span class="sd">        layout: optional list of layout regions detected on the page</span>
 <span class="sd">    """</span>
 
     <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"page_idx"</span><span class="p">,</span> <span class="s2">"dimensions"</span><span class="p">,</span> <span class="s2">"orientation"</span><span class="p">,</span> <span class="s2">"language"</span><span class="p">]</span>
-    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"predictions"</span><span class="p">]</span>
+    <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"predictions"</span><span class="p">,</span> <span class="s2">"layout"</span><span class="p">]</span>
     <span class="n">predictions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="n">Prediction</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -756,23 +856,20 @@
         <span class="n">dimensions</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">],</span>
         <span class="n">orientation</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">language</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">layout</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">LayoutElement</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">predictions</span><span class="o">=</span><span class="n">predictions</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">predictions</span><span class="o">=</span><span class="n">predictions</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="k">if</span> <span class="n">layout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">page_idx</span> <span class="o">=</span> <span class="n">page_idx</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">orientation</span> <span class="o">=</span> <span class="n">orientation</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orientation</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="o">=</span> <span class="n">language</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prediction_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n</span><span class="s2">"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Renders the full text of the element"""</span>
-        <span class="k">return</span> <span class="n">prediction_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">render</span><span class="p">()</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">predictions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictions</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">predictions</span>
-        <span class="p">)</span>
-
     <span class="k">def</span><span class="w"> </span><span class="nf">extra_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="sa">f</span><span class="s2">"dimensions=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span><span class="si">}</span><span class="s2">"</span>
 
+<div class="viewcode-block" id="KIEPage.show">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.KIEPage.show">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interactive</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Overlay the result on a given image</span>
 
@@ -785,10 +882,16 @@
         <span class="n">requires_package</span><span class="p">(</span><span class="s2">"mplcursors"</span><span class="p">,</span> <span class="s2">"`.show()` requires matplotlib &amp; mplcursors installed"</span><span class="p">)</span>
         <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
+        <span class="n">show_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"words_only"</span><span class="p">,</span> <span class="s2">"display_artefacts"</span><span class="p">,</span> <span class="s2">"display_layout"</span><span class="p">)</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">}</span>
         <span class="n">visualize_kie_page</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">page</span><span class="p">,</span>
+            <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span>
+            <span class="n">preserve_aspect_ratio</span><span class="o">=</span><span class="n">preserve_aspect_ratio</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">show_kwargs</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 
     <span class="k">def</span><span class="w"> </span><span class="nf">synthesize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Synthesize the page from the predictions</span>
@@ -801,114 +904,24 @@
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">synthesize_kie_page</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">export</span><span class="p">(),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"docTR - XML export (hOCR)"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">"""Export the page as XML (hOCR-format)</span>
-<span class="sd">        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            file_title: the title of the XML file</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
-<span class="sd">        """</span>
-        <span class="n">p_idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">page_idx</span>
-        <span class="n">prediction_count</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">height</span><span class="p">,</span> <span class="n">width</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions</span>
-        <span class="n">language</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span> <span class="k">if</span> <span class="s2">"language"</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">language</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">else</span> <span class="s2">"en"</span>
-        <span class="c1"># Create the XML root element</span>
-        <span class="n">page_hocr</span> <span class="o">=</span> <span class="n">ETElement</span><span class="p">(</span><span class="s2">"html"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"xmlns"</span><span class="p">:</span> <span class="s2">"http://www.w3.org/1999/xhtml"</span><span class="p">,</span> <span class="s2">"xml:lang"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">language</span><span class="p">)})</span>
-        <span class="c1"># Create the header / SubElements of the root element</span>
-        <span class="n">head</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="s2">"head"</span><span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="s2">"title"</span><span class="p">)</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">file_title</span>
-        <span class="n">SubElement</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"http-equiv"</span><span class="p">:</span> <span class="s2">"Content-Type"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"text/html; charset=utf-8"</span><span class="p">})</span>
-        <span class="n">SubElement</span><span class="p">(</span>
-            <span class="n">head</span><span class="p">,</span>
-            <span class="s2">"meta"</span><span class="p">,</span>
-            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"ocr-system"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"python-doctr </span><span class="si">{</span><span class="n">doctr</span><span class="o">.</span><span class="n">__version__</span><span class="si">}</span><span class="s2">"</span><span class="p">},</span>  <span class="c1"># type: ignore[attr-defined]</span>
-        <span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span>
-            <span class="n">head</span><span class="p">,</span>
-            <span class="s2">"meta"</span><span class="p">,</span>
-            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"ocr-capabilities"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="s2">"ocr_page ocr_carea ocr_par ocr_line ocrx_word"</span><span class="p">},</span>
-        <span class="p">)</span>
-        <span class="c1"># Create the body</span>
-        <span class="n">body</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="s2">"body"</span><span class="p">)</span>
-        <span class="n">SubElement</span><span class="p">(</span>
-            <span class="n">body</span><span class="p">,</span>
-            <span class="s2">"div"</span><span class="p">,</span>
-            <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_page"</span><span class="p">,</span>
-                <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"page_</span><span class="si">{</span><span class="n">p_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"image; bbox 0 0 </span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">; ppageno 0"</span><span class="p">,</span>
-            <span class="p">},</span>
-        <span class="p">)</span>
-        <span class="c1"># iterate over the blocks / lines / words and create the XML elements in body line by line with the attributes</span>
-        <span class="k">for</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">predictions</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">predictions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">for</span> <span class="n">prediction</span> <span class="ow">in</span> <span class="n">predictions</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"XML export is only available for straight bounding boxes for now."</span><span class="p">)</span>
-                <span class="p">(</span><span class="n">xmin</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">xmax</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">geometry</span>
-                <span class="n">prediction_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                    <span class="n">body</span><span class="p">,</span>
-                    <span class="s2">"div"</span><span class="p">,</span>
-                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_carea"</span><span class="p">,</span>
-                        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_prediction_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
-                <span class="c1"># NOTE: ocr_par, ocr_line and ocrx_word are the same because the KIE predictions contain only words</span>
-                <span class="c1"># This is a workaround to make it PDF/A compatible</span>
-                <span class="n">par_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                    <span class="n">prediction_div</span><span class="p">,</span>
-                    <span class="s2">"p"</span><span class="p">,</span>
-                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_par"</span><span class="p">,</span>
-                        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_par_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
-                <span class="n">line_span</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                    <span class="n">par_div</span><span class="p">,</span>
-                    <span class="s2">"span"</span><span class="p">,</span>
-                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_line"</span><span class="p">,</span>
-                        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_line_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">; </span><span class="se">\</span>
-<span class="s2">                        baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"</span><span class="p">,</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
-                <span class="n">word_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
-                    <span class="n">line_span</span><span class="p">,</span>
-                    <span class="s2">"span"</span><span class="p">,</span>
-                    <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
-                        <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocrx_word"</span><span class="p">,</span>
-                        <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_word_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"bbox </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymin</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="se">\</span>
-<span class="s2">                        </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">xmax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">width</span><span class="p">))</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">ymax</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">height</span><span class="p">))</span><span class="si">}</span><span class="s2">; </span><span class="se">\</span>
-<span class="s2">                        x_wconf </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">confidence</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="p">))</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="p">},</span>
-                <span class="p">)</span>
-                <span class="n">word_div</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">prediction</span><span class="o">.</span><span class="n">value</span>
-                <span class="n">prediction_count</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="k">return</span> <span class="n">ET</span><span class="o">.</span><span class="n">tostring</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"xml"</span><span class="p">),</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">(</span><span class="n">page_hocr</span><span class="p">)</span>
-
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
-            <span class="s2">"predictions"</span><span class="p">:</span> <span class="p">[</span><span class="n">Prediction</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">predictions_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">predictions_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"predictions"</span><span class="p">]]</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">page</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">"predictions"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">class_name</span><span class="p">:</span> <span class="p">[</span><span class="n">Prediction</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">pred</span><span class="p">)</span> <span class="k">for</span> <span class="n">pred</span> <span class="ow">in</span> <span class="n">preds</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">preds</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"predictions"</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">},</span>
+            <span class="s2">"layout"</span><span class="p">:</span> <span class="p">[</span><span class="n">LayoutElement</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">region_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">region_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"layout"</span><span class="p">,</span> <span class="p">[])],</span>
         <span class="p">})</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># The page image is not part of the export: pass it back explicitly to restore a fully usable page</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="n">page</span><span class="o">=</span><span class="n">_empty_page_image</span><span class="p">(</span><span class="n">page</span><span class="p">),</span> <span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span></div>
+
 
 
 <div class="viewcode-block" id="Document">
 <a class="viewcode-back" href="../../../modules/io.html#doctr.io.Document">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">Document</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Document</span><span class="p">(</span><span class="n">DocumentExportsMixin</span><span class="p">,</span> <span class="n">Element</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Implements a document element as a collection of pages</span>
 
 <span class="sd">    Args:</span>
@@ -923,10 +936,6 @@
         <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Page</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">pages</span><span class="o">=</span><span class="n">pages</span><span class="p">)</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_break</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"</span><span class="se">\n\n\n\n</span><span class="s2">"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">"""Renders the full text of the element"""</span>
-        <span class="k">return</span> <span class="n">page_break</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">render</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Document.show">
 <a class="viewcode-back" href="../../../modules/io.html#doctr.io.Document.show">[docs]</a>
@@ -947,25 +956,23 @@
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">synthesize</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">export_as_xml</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]]:</span>
-<span class="w">        </span><span class="sd">"""Export the document as XML (hOCR-format)</span>
-
-<span class="sd">        Args:</span>
-<span class="sd">            **kwargs: additional keyword arguments passed to the Page.export_as_xml method</span>
-
-<span class="sd">        Returns:</span>
-<span class="sd">            list of tuple of (bytes, ElementTree)</span>
-<span class="sd">        """</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">page</span><span class="o">.</span><span class="n">export_as_xml</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pages</span><span class="p">]</span>
+    <span class="n">_page_cls</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Page</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
-        <span class="n">kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"pages"</span><span class="p">:</span> <span class="p">[</span><span class="n">Page</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">page_dict</span><span class="p">)</span> <span class="k">for</span> <span class="n">page_dict</span> <span class="ow">in</span> <span class="n">save_dict</span><span class="p">[</span><span class="s2">"pages"</span><span class="p">]]})</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">_kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
+        <span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s2">"pages"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_page_cls</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">page_dict</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="kc">None</span> <span class="k">if</span> <span class="n">pages</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">pages</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">page_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">save_dict</span><span class="p">[</span><span class="s2">"pages"</span><span class="p">])</span>
+            <span class="p">]</span>
+        <span class="p">})</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">_kwargs</span><span class="p">)</span></div>
 
 
 
+<div class="viewcode-block" id="KIEDocument">
+<a class="viewcode-back" href="../../../modules/io.html#doctr.io.KIEDocument">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">KIEDocument</span><span class="p">(</span><span class="n">Document</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Implements a document element as a collection of pages</span>
 
@@ -974,13 +981,15 @@
 <span class="sd">    """</span>
 
     <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"pages"</span><span class="p">]</span>
+    <span class="n">_page_cls</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">KIEPage</span>
     <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">KIEPage</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># type: ignore[assignment]</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">pages</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">KIEPage</span><span class="p">],</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">pages</span><span class="o">=</span><span class="n">pages</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">pages</span><span class="o">=</span><span class="n">pages</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span></div>
+
 </pre></div>
         </article>
       </div>
@@ -1013,12 +1022,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../../../_static/documentation_options.js?v=73c82100"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../../../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

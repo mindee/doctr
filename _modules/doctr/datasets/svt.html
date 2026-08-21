@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -232,6 +233,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -294,9 +296,9 @@
 <span class="c1"># See LICENSE or go to &lt;https://opensource.org/licenses/Apache-2.0&gt; for full license details.</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xml.etree.ElementTree</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ET</span>  <span class="c1"># nosec B405</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">defusedxml.ElementTree</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ET</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
 
@@ -317,7 +319,8 @@
 
 <span class="sd">    &gt;&gt;&gt; from doctr.datasets import SVT</span>
 <span class="sd">    &gt;&gt;&gt; train_set = SVT(train=True, download=True)</span>
-<span class="sd">    &gt;&gt;&gt; img, target = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; sample = train_set[0]</span>
+<span class="sd">    &gt;&gt;&gt; img, target = sample.image, sample.target</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">        train: whether the subset should be the training one</span>
@@ -449,12 +452,12 @@
       
     </aside>
   </div>
-</div><script src="../../../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../../../_static/documentation_options.js?v=73c82100"></script>
     <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../../../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

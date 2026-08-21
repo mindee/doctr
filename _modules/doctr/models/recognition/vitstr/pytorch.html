@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -232,6 +233,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -464,16 +466,16 @@
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
         <span class="c1"># compute pred with argmax for attention models</span>
         <span class="n">out_idxs</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">preds_prob</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">preds_prob</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
 
         <span class="c1"># Manual decoding</span>
         <span class="n">word_values</span> <span class="o">=</span> <span class="p">[</span>
             <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_embedding</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">encoded_seq</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">"&lt;eos&gt;"</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">encoded_seq</span> <span class="ow">in</span> <span class="n">out_idxs</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">encoded_seq</span> <span class="ow">in</span> <span class="n">out_idxs</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
         <span class="p">]</span>
         <span class="c1"># compute probabilties for each word up to the EOS token</span>
         <span class="n">probs</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">preds_prob</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span> <span class="k">if</span> <span class="n">word</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">word_values</span><span class="p">)</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">preds_prob</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">word</span><span class="p">)]</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">())</span> <span class="k">if</span> <span class="n">word</span> <span class="k">else</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">word</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">word_values</span><span class="p">)</span>
         <span class="p">]</span>
 
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">word_values</span><span class="p">,</span> <span class="n">probs</span><span class="p">))</span>
@@ -531,7 +533,7 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        pretrained: If True, returns a model pre-trained on our text recognition dataset</span>
 <span class="sd">        kwargs: keyword arguments of the ViTSTR architecture</span>
 
 <span class="sd">    Returns:</span>
@@ -563,7 +565,7 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on our text recognition dataset</span>
+<span class="sd">        pretrained: If True, returns a model pre-trained on our text recognition dataset</span>
 <span class="sd">        kwargs: keyword arguments of the ViTSTR architecture</span>
 
 <span class="sd">    Returns:</span>
@@ -612,12 +614,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=73c82100"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../../../../../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

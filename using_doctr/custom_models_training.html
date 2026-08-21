@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -233,6 +234,7 @@
 <li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -295,12 +297,14 @@
         </div>
         <article role="main" id="furo-main-content">
           <section id="train-your-own-model">
-<h1>Train your own model<a class="headerlink" href="#train-your-own-model" title="Link to this heading">¶</a></h1>
+<span id="custom-models-training"></span><h1>Train your own model<a class="headerlink" href="#train-your-own-model" title="Link to this heading">¶</a></h1>
 <p>If the pretrained models don’t meet your specific needs, you have the option to train your own model using the docTR library.
 For details on the training process and the necessary data and data format, refer to the following links:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/detection#readme">detection</a></p></li>
 <li><p><a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/recognition#readme">recognition</a></p></li>
+<li><p><a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/layout#readme">layout</a></p></li>
+<li><p><a class="reference external" href="https://github.com/mindee/doctr/tree/main/references/table#readme">table structure</a></p></li>
 </ul>
 <p>If you’re looking for a lightweight yet efficient tool to annotate small amounts of data, especially tailored for docTR,
 check out the <a class="reference external" href="https://github.com/text2knowledge/docTR-Labeler">docTR Labeling Tool</a>.
@@ -338,6 +342,38 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <span class="n">reco_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">'&lt;path_to_pt&gt;'</span><span class="p">)</span>
 
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">det_arch</span><span class="o">=</span><span class="s1">'linknet_resnet18'</span><span class="p">,</span> <span class="n">reco_arch</span><span class="o">=</span><span class="n">reco_model</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">lw_detr_s</span>
+
+<span class="c1"># Custom layout model with your own class names</span>
+<span class="n">layout_model</span> <span class="o">=</span> <span class="n">lw_detr_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"heading"</span><span class="p">,</span> <span class="s2">"paragraph"</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="s2">"table"</span><span class="p">])</span>
+<span class="n">layout_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">'&lt;path_to_pt&gt;'</span><span class="p">)</span>
+
+<span class="c1"># Pass it through `layout_arch`, exactly as for the detection / recognition models</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_model</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+<span class="c1"># The regions (with your custom class names) are available on each page</span>
+<span class="nb">print</span><span class="p">([(</span><span class="n">region</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">confidence</span><span class="p">)</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">layout</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Plug a custom layout analysis model (trained on another set of classes) directly into the OCR pipeline so the detected regions are attached to every page:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">lw_detr_s</span>
+
+<span class="c1"># Custom layout model with your own class names</span>
+<span class="n">layout_model</span> <span class="o">=</span> <span class="n">lw_detr_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">class_names</span><span class="o">=</span><span class="p">[</span><span class="s2">"heading"</span><span class="p">,</span> <span class="s2">"paragraph"</span><span class="p">,</span> <span class="s2">"figure"</span><span class="p">,</span> <span class="s2">"table"</span><span class="p">])</span>
+<span class="n">layout_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">'&lt;path_to_pt&gt;'</span><span class="p">)</span>
+
+<span class="c1"># Pass it through `layout_arch`, exactly as for the detection / recognition models</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">detect_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_model</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+<span class="c1"># The regions (with your custom class names) are available on each page</span>
+<span class="nb">print</span><span class="p">([(</span><span class="n">region</span><span class="o">.</span><span class="n">type</span><span class="p">,</span> <span class="n">region</span><span class="o">.</span><span class="n">confidence</span><span class="p">)</span> <span class="k">for</span> <span class="n">region</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">layout</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Load a custom trained KIE detection model:</p>
@@ -426,6 +462,38 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 </div>
 </section>
 </section>
+<section id="custom-table-structure-recognition-models">
+<h2>Custom table structure recognition models<a class="headerlink" href="#custom-table-structure-recognition-models" title="Link to this heading">¶</a></h2>
+<p>If you work with documents containing tables and make use of the table structure recognition feature by passing the following arguments:</p>
+<ul class="simple">
+<li><p><cite>detect_tables=True</cite></p></li>
+</ul>
+<p>You can train your own table structure recognition model using the docTR library. For details on the training process and the necessary data and data format, refer to the following link:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://github.com/mindee/doctr/blob/main/references/table/README.md#usage">table structure recognition</a></p></li>
+</ul>
+<section id="loading-your-custom-trained-table-structure-recognition-model">
+<h3>Loading your custom trained table structure recognition model<a class="headerlink" href="#loading-your-custom-trained-table-structure-recognition-model" title="Link to this heading">¶</a></h3>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">DocumentFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">tablecenternet</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.table_structure.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">table_predictor</span>
+
+<span class="n">custom_table_structure_model</span> <span class="o">=</span> <span class="n">tablecenternet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">custom_table_structure_model</span><span class="o">.</span><span class="n">from_pretrained</span><span class="p">(</span><span class="s1">'&lt;path_to_pt&gt;'</span><span class="p">)</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
+    <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">detect_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">detect_tables</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Overwrite the default table structure model</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">table_predictor</span> <span class="o">=</span> <span class="n">table_predictor</span><span class="p">(</span><span class="n">custom_table_structure_model</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
 </section>
 
         </article>
@@ -489,6 +557,10 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
 <li><a class="reference internal" href="#loading-your-custom-trained-orientation-classification-model">Loading your custom trained orientation classification model</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#custom-table-structure-recognition-models">Custom table structure recognition models</a><ul>
+<li><a class="reference internal" href="#loading-your-custom-trained-table-structure-recognition-model">Loading your custom trained table structure recognition model</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -500,12 +572,12 @@ This tool makes it easy to create your own dataset for fine-tuning and optimizin
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../_static/documentation_options.js?v=73c82100"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -232,6 +233,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -299,12 +301,13 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">torch</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vgg</span> <span class="k">as</span> <span class="n">tv_vgg</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.models.vgg</span><span class="w"> </span><span class="kn">import</span> <span class="n">VGG</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">...utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_pretrained_params</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"vgg16_bn_r"</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"VGG"</span><span class="p">,</span> <span class="s2">"vgg16_bn_r"</span><span class="p">]</span>
 
 
 <span class="n">default_cfgs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span>
@@ -384,7 +387,7 @@
 <span class="sd">    &gt;&gt;&gt; out = model(input_tensor)</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        pretrained (bool): If True, returns a model pre-trained on ImageNet</span>
+<span class="sd">        pretrained: If True, returns a model pre-trained on ImageNet</span>
 <span class="sd">        **kwargs: keyword arguments of the VGG architecture</span>
 
 <span class="sd">    Returns:</span>
@@ -431,12 +434,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../../../../../_static/documentation_options.js?v=73c82100"></script>
     <script src="../../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../../../../../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

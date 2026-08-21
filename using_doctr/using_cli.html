@@ -1,0 +1,488 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-40DVRMX8T4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-40DVRMX8T4');
+</script>
+    <link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Community Resources" href="../community/resources.html"><link rel="prev" title="AWS Lambda" href="running_on_aws.html">
+        <link rel="prefetch" href="../_static/Logo-docTR-white.png" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.ico"><!-- Generated with Sphinx 9.0.4 and Furo 2025.12.19 -->
+        <title>Using the CLI for Optical Character Recognition - docTR documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d75fae25" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/mindee.css?v=75ddc721" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f0f0f0;
+  --color-code-foreground: black;
+  --color-sidebar-background: #082747;
+  --color-sidebar-background-border: #082747;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  --color-sidebar-link-text: white;
+  --sidebar-caption-font-size: normal;
+  --color-sidebar-item-background--hover:  #5dade2;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  --color-sidebar-background: #1a1c1e;
+  --color-sidebar-background-border: #1a1c1e;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #272822;
+  --color-code-foreground: #f8f8f2;
+  --color-sidebar-background: #1a1c1e;
+  --color-sidebar-background-border: #1a1c1e;
+  --color-sidebar-caption-text: white;
+  --color-sidebar-link-text--top-level: white;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">docTR documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../_static/Logo-docTR-white.png" alt="Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="using_models.html">Choosing the right model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_datasets.html">Choose a ready to use dataset</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_contrib_modules.html">Integrate contributions into your pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sharing_models.html">Share your model with the community</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_model_export.html">Preparing your model for inference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Using the CLI for Optical Character Recognition</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Community</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../community/resources.html">Community Resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../community/tools.html">Community Tools</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Package Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules/contrib.html">doctr.contrib</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/datasets.html">doctr.datasets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/io.html">doctr.io</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/models.html">doctr.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/transforms.html">doctr.transforms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../modules/utils.html">doctr.utils</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/code_of_conduct.html">Contributor Covenant Code of Conduct</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/contributing.html">Contributing to docTR</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Notes</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/using_doctr/using_cli.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="using-the-cli-for-optical-character-recognition">
+<h1>Using the CLI for Optical Character Recognition<a class="headerlink" href="#using-the-cli-for-optical-character-recognition" title="Link to this heading">¶</a></h1>
+<p>The full Optical Character Recognition (OCR) task can be executed by using the Command Line Interface (CLI) implemented in docTR. This tool allows you to process both images and PDF files without writing a single line of Python code, and to export the results as JSON, plain text, Markdown, AsciiDoc, HTML or hOCR.</p>
+<section id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading">¶</a></h2>
+<p>To run the OCR engine on a file, use the following command structure:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>path/to/your/document.pdf<span class="w"> </span>--output<span class="w"> </span>results.json
+</pre></div>
+</div>
+</section>
+<section id="arguments">
+<h2>Arguments<a class="headerlink" href="#arguments" title="Link to this heading">¶</a></h2>
+<p>The CLI supports a variety of arguments to fine-tune the detection, recognition and export process:</p>
+<p><strong>Mandatory Arguments:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--input_path</span></code>: Path to one or more input images / PDF files. Every page is appended to a single document, so several files can be processed in one go. Values starting with <code class="docutils literal notranslate"><span class="pre">http://</span></code> or <code class="docutils literal notranslate"><span class="pre">https://</span></code> are interpreted as web pages and rendered as PDF (this requires <code class="docutils literal notranslate"><span class="pre">weasyprint</span></code>, cf. <a class="reference internal" href="../modules/io.html#doctr.io.DocumentFile.from_url" title="doctr.io.DocumentFile.from_url"><code class="xref py py-meth docutils literal notranslate"><span class="pre">doctr.io.DocumentFile.from_url()</span></code></a>).</p></li>
+</ul>
+<p><strong>General Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--version</span></code>: Prints the installed docTR version and exits.</p></li>
+</ul>
+<p><strong>Input Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf_password</span></code>: Password used to unlock encrypted PDF files. <em>Default: None</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--pdf_scale</span></code>: PDF rendering scale, where 1 corresponds to 72dpi. <em>Default: 2</em></p></li>
+</ul>
+<p><strong>Architecture Selection:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--det_arch</span></code>: The detection architecture to use (e.g., <code class="docutils literal notranslate"><span class="pre">fast_base</span></code>). <em>Default: fast_base</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--reco_arch</span></code>: The recognition architecture to use (e.g., <code class="docutils literal notranslate"><span class="pre">crnn_vgg16_bn</span></code>). <em>Default: crnn_vgg16_bn</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--layout_arch</span></code>: The layout architecture to use. <em>Default: lw_detr_s</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--device</span></code>: Device the models are loaded on (<code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">cpu</span></code>, <code class="docutils literal notranslate"><span class="pre">cuda:0</span></code>, …). On a CUDA device of compute capability 8.0 or above, the models are cast to bfloat16. <em>Default: auto</em></p></li>
+</ul>
+<p><strong>Processing Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--assume_straight_pages</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-assume_straight_pages</span></code>: Determine whether pages should be handled as straight or skewed pages. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code>: If flagged, the tool will attempt to straighten skewed pages before analysis. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--preserve_aspect_ratio</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-preserve_aspect_ratio</span></code>: Ensures that the aspect ratio is maintained during resizing. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--symmetric_pad</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-symmetric_pad</span></code>: Applies symmetric padding to the input images. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--det_bs</span></code>: Batch size used for the detection model. <em>Default: 2</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--reco_bs</span></code>: Batch size used for the recognition model. <em>Default: 128</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--bin_thresh</span></code>: Binarization threshold of the detection post-processing. <em>Default: the value of the architecture</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--box_thresh</span></code>: Minimum confidence of a detected box. <em>Default: the value of the architecture</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detect_orientation</span></code>: Enables automatic detection of page orientation. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detect_language</span></code>: Enables language detection for the extracted text. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detect_layout</span></code>: Attaches the detected layout regions to each page. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code>: Regroups the words of the detected tables into structured tables. This enables the layout model. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--ignore_regions</span></code>: Layout class names to mask out before detection &amp; recognition (e.g. <code class="docutils literal notranslate"><span class="pre">--ignore_regions</span> <span class="pre">Picture</span> <span class="pre">Table</span></code>). This enables the layout model. <em>Default: None</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--export_as_straight_boxes</span></code>: Exports (potentially rotated) predictions as straight boxes. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--preserve_original_coords</span></code>: Maps the boxes back to the original page coordinates when <code class="docutils literal notranslate"><span class="pre">--straighten_pages</span></code> is used. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable_page_orientation</span></code>: Disables the page orientation classifier. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable_crop_orientation</span></code>: Disables the crop orientation classifier. <em>Default: False</em></p></li>
+</ul>
+<p><strong>Document Assembling Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--resolve_lines</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-resolve_lines</span></code>: Groups the words into lines. <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--resolve_blocks</span></code>: Groups the lines into blocks. <em>Default: False</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--paragraph_break</span></code>: Relative length of the minimum space separating two paragraphs. <em>Default: 0.035</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--keep_reading_order</span></code>: Arranges the content of every page in reading order. <em>Default: False</em></p></li>
+</ul>
+<p><strong>Output Options:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">--output</span></code>: The destination path where the results will be saved. <em>Default: results.json</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--format</span></code>: The export format, one of <code class="docutils literal notranslate"><span class="pre">json</span></code>/<code class="docutils literal notranslate"><span class="pre">dict</span></code>, <code class="docutils literal notranslate"><span class="pre">txt</span></code>/<code class="docutils literal notranslate"><span class="pre">text</span></code>, <code class="docutils literal notranslate"><span class="pre">md</span></code>/<code class="docutils literal notranslate"><span class="pre">markdown</span></code>, <code class="docutils literal notranslate"><span class="pre">adoc</span></code>/<code class="docutils literal notranslate"><span class="pre">asciidoc</span></code>, <code class="docutils literal notranslate"><span class="pre">html</span></code>, <code class="docutils literal notranslate"><span class="pre">xml</span></code>/<code class="docutils literal notranslate"><span class="pre">hocr</span></code>. When it is not set, the format is inferred from the extension of <code class="docutils literal notranslate"><span class="pre">--output</span></code>, and falls back to JSON. <em>Default: None</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--direction</span></code>: Reading direction of the document, one of <code class="docutils literal notranslate"><span class="pre">auto</span></code>, <code class="docutils literal notranslate"><span class="pre">ltr</span></code>, <code class="docutils literal notranslate"><span class="pre">rtl</span></code>, <code class="docutils literal notranslate"><span class="pre">ttb-rtl</span></code>, <code class="docutils literal notranslate"><span class="pre">ttb-ltr</span></code>. <em>Default: auto</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--reading_order</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-reading_order</span></code>: Linearizes the content in reading order (JSON &amp; hOCR exports). <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--escape</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-escape</span></code>: Escapes the characters carrying a structural meaning (Markdown &amp; AsciiDoc exports). <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--include_furniture</span></code>, <code class="docutils literal notranslate"><span class="pre">--no-include_furniture</span></code>: Includes page headers, page footers and footnotes (text-like exports). <em>Default: True</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--file_title</span></code>: Title of the exported hOCR files. <em>Default: docTR - XML export (hOCR)</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--indent</span></code>: Indentation of the JSON export. <em>Default: 4</em></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--quiet</span></code>: Only logs errors. <em>Default: False</em></p></li>
+</ul>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading">¶</a></h2>
+<p><strong>Running OCR on an image:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>image.jpg<span class="w"> </span>--output<span class="w"> </span>ocr_res.json
+</pre></div>
+</div>
+<p><strong>Running OCR on several files at once:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>page1.jpg<span class="w"> </span>page2.jpg<span class="w"> </span>scan.pdf<span class="w"> </span>--output<span class="w"> </span>ocr_res.json
+</pre></div>
+</div>
+<p><strong>Using a specific detection architecture and straightening pages:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--det_arch<span class="w"> </span>db_mobilenet_v3_large<span class="w"> </span>--straighten_pages
+</pre></div>
+</div>
+<p><strong>Exporting the text as Markdown, with tables and layout:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--detect_tables<span class="w"> </span>--output<span class="w"> </span>doc.md
+</pre></div>
+</div>
+<p><strong>Exporting as hOCR on the GPU, ignoring the pictures of the document:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>doctr-cli<span class="w"> </span>--input_path<span class="w"> </span>doc.pdf<span class="w"> </span>--device<span class="w"> </span>cuda:0<span class="w"> </span>--ignore_regions<span class="w"> </span>Picture<span class="w"> </span>--output<span class="w"> </span>doc.xml
+</pre></div>
+</div>
+</section>
+<section id="output-format">
+<h2>Output Format<a class="headerlink" href="#output-format" title="Link to this heading">¶</a></h2>
+<p>By default, the results are exported in a structured JSON format containing:</p>
+<ul class="simple">
+<li><p><strong>Pages</strong>: Dimensions, orientation, language and layout regions.</p></li>
+<li><p><strong>Blocks</strong>: Grouping of lines.</p></li>
+<li><p><strong>Lines</strong>: Grouping of words.</p></li>
+<li><p><strong>Words</strong>: The actual text content with confidence scores and bounding box coordinates.</p></li>
+<li><p><strong>Tables</strong>: The structured tables, when <code class="docutils literal notranslate"><span class="pre">--detect_tables</span></code> is used.</p></li>
+</ul>
+<p>The text-like formats (<code class="docutils literal notranslate"><span class="pre">txt</span></code>, <code class="docutils literal notranslate"><span class="pre">md</span></code>, <code class="docutils literal notranslate"><span class="pre">adoc</span></code>, <code class="docutils literal notranslate"><span class="pre">html</span></code>) are written to a single file. Since hOCR describes a single page per file, the <code class="docutils literal notranslate"><span class="pre">xml</span></code> export writes one file per page: an <code class="docutils literal notranslate"><span class="pre">--output</span></code> of <code class="docutils literal notranslate"><span class="pre">doc.xml</span></code> on a 3-page document produces <code class="docutils literal notranslate"><span class="pre">doc_page_1.xml</span></code>, <code class="docutils literal notranslate"><span class="pre">doc_page_2.xml</span></code> and <code class="docutils literal notranslate"><span class="pre">doc_page_3.xml</span></code>.</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="../community/resources.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Community Resources</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="running_on_aws.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">AWS Lambda</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2021-2026, Mindee
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Using the CLI for Optical Character Recognition</a><ul>
+<li><a class="reference internal" href="#basic-usage">Basic Usage</a></li>
+<li><a class="reference internal" href="#arguments">Arguments</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#output-format">Output Format</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=73c82100"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/js/custom.js?v=72a87924"></script>
+    </body>
+</html>

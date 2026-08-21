@@ -221,6 +221,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -232,6 +233,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -297,7 +299,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PIL</span><span class="w"> </span><span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">ImageOps</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">torchvision.transforms.functional</span><span class="w"> </span><span class="kn">import</span> <span class="n">to_tensor</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.common_types</span><span class="w"> </span><span class="kn">import</span> <span class="n">AbstractPath</span>
@@ -339,7 +341,9 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">img_path</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
+        <span class="c1"># Apply the EXIF orientation before decoding, to stay consistent with `read_img_as_numpy`</span>
+        <span class="c1"># (OpenCV applies EXIF orientation automatically, PIL does not)</span>
+        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
 
 
 
@@ -359,7 +363,7 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"insupported value for dtype"</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">img_content</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"r"</span><span class="p">)</span> <span class="k">as</span> <span class="n">pil_img</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">pil_img</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">tensor_from_pil</span><span class="p">(</span><span class="n">ImageOps</span><span class="o">.</span><span class="n">exif_transpose</span><span class="p">(</span><span class="n">pil_img</span><span class="p">)</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="s2">"RGB"</span><span class="p">),</span> <span class="n">dtype</span><span class="p">)</span></div>
 
 
 
@@ -424,12 +428,12 @@
       
     </aside>
   </div>
-</div><script src="../../../../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../../../../_static/documentation_options.js?v=73c82100"></script>
     <script src="../../../../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../../../../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../../_static/copybutton.js?v=f281be69"></script>
-    <script src="../../../../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../../../../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

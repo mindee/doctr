@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -233,6 +234,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -313,7 +315,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on ImageNet</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on ImageNet</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the VGG architecture</p></li>
 </ul>
 </dd>
@@ -337,7 +339,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the ResNet architecture</p></li>
 </ul>
 </dd>
@@ -361,7 +363,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the ResNet architecture</p></li>
 </ul>
 </dd>
@@ -385,7 +387,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the ResNet architecture</p></li>
 </ul>
 </dd>
@@ -410,7 +412,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the ResNet architecture</p></li>
 </ul>
 </dd>
@@ -435,7 +437,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the MobileNetV3 architecture</p></li>
 </ul>
 </dd>
@@ -460,7 +462,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the MobileNetV3 architecture</p></li>
 </ul>
 </dd>
@@ -485,7 +487,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the MobileNetV3 architecture</p></li>
 </ul>
 </dd>
@@ -510,7 +512,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the MobileNetV3 architecture</p></li>
 </ul>
 </dd>
@@ -535,7 +537,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the MobileNetV3 architecture</p></li>
 </ul>
 </dd>
@@ -560,7 +562,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the MobileNetV3 architecture</p></li>
 </ul>
 </dd>
@@ -585,7 +587,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the ResNet architecture</p></li>
 </ul>
 </dd>
@@ -611,7 +613,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the VisionTransformer architecture</p></li>
 </ul>
 </dd>
@@ -636,7 +638,7 @@ classification head.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the VisionTransformer architecture</p></li>
 </ul>
 </dd>
@@ -662,7 +664,7 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the TextNet architecture</p></li>
 </ul>
 </dd>
@@ -688,7 +690,7 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the TextNet architecture</p></li>
 </ul>
 </dd>
@@ -714,7 +716,7 @@ Implementation based on the official Pytorch implementation: &lt;<a class="refer
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the TextNet architecture</p></li>
 </ul>
 </dd>
@@ -733,7 +735,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – whether to load pretrained weights</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – optional arguments</p></li>
 </ul>
 </dd>
@@ -752,12 +754,87 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> – whether to load pretrained weights</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
 <li><p><strong>**kwargs</strong> – optional arguments</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>VIPNet model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.vit_det_s">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">vit_det_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">VisionDetectionTransformer</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/vit_det/pytorch.html#vit_det_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.vit_det_s" title="Link to this definition">¶</a></dt>
+<dd><p>VisionDetectionTransformer-S architecture
+<a class="reference external" href="https://arxiv.org/abs/2203.16527">“Exploring Plain Vision Transformer Backbones for Object Detection”,</a>.</p>
+<p>NOTE: Modified for LW-DETR</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vit_det_s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">vit_det_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the VisionDetectionTransformer architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A feature extractor model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.vit_det_m">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">vit_det_m</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">VisionDetectionTransformer</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/vit_det/pytorch.html#vit_det_m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.vit_det_m" title="Link to this definition">¶</a></dt>
+<dd><p>VisionDetectionTransformer-B architecture as described in
+<a class="reference external" href="https://arxiv.org/abs/2203.16527">“Exploring Plain Vision Transformer Backbones for Object Detection”,</a>.</p>
+<p>NOTE: Modified for LW-DETR</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">vit_det_m</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">vit_det_m</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our classification dataset</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the VisionTransformer architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A feature extractor model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.classification.starnet_s3">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.classification.</span></span><span class="sig-name descname"><span class="pre">starnet_s3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">StarNet</span></span></span><a class="reference internal" href="../_modules/doctr/models/classification/starnet/pytorch.html#starnet_s3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.classification.starnet_s3" title="Link to this definition">¶</a></dt>
+<dd><p>StarNet-S3 from <a class="reference external" href="https://arxiv.org/abs/2403.19967">“Rewrite the Stars”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">starnet_s3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">starnet_s3</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the StarNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A StarNet-S3 model</p>
 </dd>
 </dl>
 </dd></dl>
@@ -831,7 +908,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
 </ul>
 </dd>
@@ -855,7 +932,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
 </ul>
 </dd>
@@ -879,7 +956,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
 </ul>
 </dd>
@@ -903,7 +980,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the DBNet architecture</p></li>
 </ul>
 </dd>
@@ -927,7 +1004,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the DBNet architecture</p></li>
 </ul>
 </dd>
@@ -951,7 +1028,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the DBNet architecture</p></li>
 </ul>
 </dd>
@@ -975,7 +1052,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the DBNet architecture</p></li>
 </ul>
 </dd>
@@ -999,7 +1076,7 @@ in the official implementation:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the DBNet architecture</p></li>
 </ul>
 </dd>
@@ -1040,6 +1117,143 @@ running the detection model on it</p></li>
 </dd></dl>
 
 </section>
+<section id="doctr-models-layout">
+<h2>doctr.models.layout<a class="headerlink" href="#doctr-models-layout" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.layout.lw_detr_s">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.layout.</span></span><span class="sig-name descname"><span class="pre">lw_detr_s</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LWDETR</span></span></span><a class="reference internal" href="../_modules/doctr/models/layout/lw_detr/pytorch.html#lw_detr_s"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.layout.lw_detr_s" title="Link to this definition">¶</a></dt>
+<dd><p>LW-DETR as described in <a class="reference external" href="https://arxiv.org/pdf/2406.03459v1">“LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">lw_detr_s</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">lw_detr_s</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>text detection architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.layout.lw_detr_m">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.layout.</span></span><span class="sig-name descname"><span class="pre">lw_detr_m</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LWDETR</span></span></span><a class="reference internal" href="../_modules/doctr/models/layout/lw_detr/pytorch.html#lw_detr_m"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.layout.lw_detr_m" title="Link to this definition">¶</a></dt>
+<dd><p>LW-DETR as described in <a class="reference external" href="https://arxiv.org/pdf/2406.03459v1">“LW-DETR: A Transformer Replacement to YOLO for Real-Time Detection”</a>.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">lw_detr_m</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">lw_detr_m</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_tensor</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text detection dataset</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the LinkNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>text detection architecture</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.layout.layout_predictor">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.layout.</span></span><span class="sig-name descname"><span class="pre">layout_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'lw_detr_s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">LayoutPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/layout/zoo.html#layout_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.layout.layout_predictor" title="Link to this definition">¶</a></dt>
+<dd><p>Layout prediction architecture.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">layout_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s1">'lw_detr_s'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arch</strong> – name of the architecture or model itself to use (e.g. ‘lw_detr_s’)</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our layout prediction dataset</p></li>
+<li><p><strong>assume_straight_pages</strong> – If True, fit straight boxes to the page</p></li>
+<li><p><strong>preserve_aspect_ratio</strong> – If True, pad the input document image to preserve the aspect ratio before
+running the detection model on it</p></li>
+<li><p><strong>symmetric_pad</strong> – if True, pad the image symmetrically instead of padding at the bottom-right</p></li>
+<li><p><strong>batch_size</strong> – number of samples the model processes in parallel</p></li>
+<li><p><strong>**kwargs</strong> – optional keyword arguments passed to the architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Layout predictor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="doctr-models-table-structure">
+<h2>doctr.models.table_structure<a class="headerlink" href="#doctr-models-table-structure" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.table_structure.tablecenternet">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.table_structure.</span></span><span class="sig-name descname"><span class="pre">tablecenternet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TableCenterNet</span></span></span><a class="reference internal" href="../_modules/doctr/models/table_structure/tablecenternet/pytorch.html#tablecenternet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.table_structure.tablecenternet" title="Link to this definition">¶</a></dt>
+<dd><p>TableCenterNet with a StarNet-S3 backbone, matching the official checkpoint.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">tablecenternet</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">tablecenternet</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">1024</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">return_preds</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>pretrained</strong> – boolean, True if model is pretrained</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments of the TableCenterNet architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A TableCenterNet model with a StarNet-S3 backbone</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.table_structure.table_predictor">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.table_structure.</span></span><span class="sig-name descname"><span class="pre">table_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'tablecenternet'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">TablePredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/table_structure/zoo.html#table_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.table_structure.table_predictor" title="Link to this definition">¶</a></dt>
+<dd><p>Table structure recognition architecture.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">table_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">table_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="s1">'tablecenternet'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arch</strong> – name of the architecture or model itself to use (e.g. ‘tablecenternet’)</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on a table structure recognition dataset</p></li>
+<li><p><strong>assume_straight_pages</strong> – if True, fit straight boxes to the detected cells</p></li>
+<li><p><strong>preserve_aspect_ratio</strong> – if True, pad the input document image to preserve the aspect ratio before
+running the model on it</p></li>
+<li><p><strong>symmetric_pad</strong> – if True, pad the image symmetrically instead of padding at the bottom-right</p></li>
+<li><p><strong>batch_size</strong> – number of samples the model processes in parallel</p></li>
+<li><p><strong>**kwargs</strong> – optional keyword arguments passed to the architecture</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Table structure recognition predictor</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="doctr-models-recognition">
 <h2>doctr.models.recognition<a class="headerlink" href="#doctr-models-recognition" title="Link to this heading">¶</a></h2>
 <dl class="py function">
@@ -1057,7 +1271,7 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the CRNN architecture</p></li>
 </ul>
 </dd>
@@ -1082,7 +1296,7 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the CRNN architecture</p></li>
 </ul>
 </dd>
@@ -1107,7 +1321,7 @@ Sequence Recognition and Its Application to Scene Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the CRNN architecture</p></li>
 </ul>
 </dd>
@@ -1132,7 +1346,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the SAR architecture</p></li>
 </ul>
 </dd>
@@ -1156,7 +1370,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keywoard arguments passed to the MASTER architecture</p></li>
 </ul>
 </dd>
@@ -1180,7 +1394,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>kwargs</strong> – keyword arguments of the ViTSTR architecture</p></li>
 </ul>
 </dd>
@@ -1204,7 +1418,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>kwargs</strong> – keyword arguments of the ViTSTR architecture</p></li>
 </ul>
 </dd>
@@ -1229,7 +1443,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the PARSeq architecture</p></li>
 </ul>
 </dd>
@@ -1253,7 +1467,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>pretrained</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If True, returns a model pre-trained on our text recognition dataset</p></li>
+<li><p><strong>pretrained</strong> – If True, returns a model pre-trained on our text recognition dataset</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments of the VIPTR architecture</p></li>
 </ul>
 </dd>
@@ -1270,16 +1484,13 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <dt class="sig sig-object py" id="doctr.models.recognition.recognition_predictor">
 <span class="sig-prename descclassname"><span class="pre">doctr.models.recognition.</span></span><span class="sig-name descname"><span class="pre">recognition_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">128</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RecognitionPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/recognition/zoo.html#recognition_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.recognition.recognition_predictor" title="Link to this definition">¶</a></dt>
 <dd><p>Text recognition architecture.</p>
-<dl>
-<dt>Example::</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">recognition_predictor</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">recognition_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">128</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
 </div>
-</dd>
-</dl>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -1301,7 +1512,7 @@ Baseline for Irregular Text Recognition”</a>.</p>
 <h2>doctr.models.zoo<a class="headerlink" href="#doctr-models-zoo" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.ocr_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">ocr_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">straighten_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OCRPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#ocr_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.ocr_predictor" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">ocr_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">straighten_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'lw_detr_s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_regions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_tables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">OCRPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#ocr_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.ocr_predictor" title="Link to this definition">¶</a></dt>
 <dd><p>End-to-end OCR architecture using one model for localization, and another for text recognition.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
@@ -1334,6 +1545,17 @@ Then, rotates page before passing it again to the deep learning detection module
 Doing so will improve performances for documents with page-uniform rotations.</p></li>
 <li><p><strong>detect_language</strong> – if True, the language prediction will be added to the predictions for each
 page. Doing so will slightly deteriorate the overall latency.</p></li>
+<li><p><strong>detect_layout</strong> – if True, a layout detection model is run on each page and the detected regions are attached
+to each page.
+Doing so will slightly deteriorate the overall latency.</p></li>
+<li><p><strong>layout_arch</strong> – name of the layout architecture or the model itself to use.</p></li>
+<li><p><strong>ignore_regions</strong> – optional list of layout class names to ignore during detection/recognition. If provided, the
+layout model will be used to locate the regions of the specified classes, and these regions will
+be masked out (filled with black) before passing the pages to the detection/recognition modules.</p></li>
+<li><p><strong>detect_tables</strong> – if True, table regions found by the layout model are cropped and passed to a table
+structure model. Words falling inside a detected table are regrouped into a structured table
+(accessible via <cite>page.tables</cite>) and removed from the regular text output. This enables the layout
+model and slightly deteriorates the overall latency.</p></li>
 <li><p><strong>kwargs</strong> – keyword args of <cite>OCRPredictor</cite></p></li>
 </ul>
 </dd>
@@ -1345,11 +1567,11 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="doctr.models.kie_predictor">
-<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">kie_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">straighten_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">KIEPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#kie_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.kie_predictor" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">doctr.models.</span></span><span class="sig-name descname"><span class="pre">kie_predictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">det_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'fast_base'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reco_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'crnn_vgg16_bn'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pretrained_backbone</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_straight_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric_pad</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_as_straight_boxes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">straighten_pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">detect_layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_arch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'lw_detr_s'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_regions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">KIEPredictor</span></span></span><a class="reference internal" href="../_modules/doctr/models/zoo.html#kie_predictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.kie_predictor" title="Link to this definition">¶</a></dt>
 <dd><p>End-to-end KIE architecture using one model for localization, and another for text recognition.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">kie_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">kie_predictor</span><span class="p">(</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">input_page</span> <span class="o">=</span> <span class="p">(</span><span class="mi">255</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">600</span><span class="p">,</span> <span class="mi">800</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">model</span><span class="p">([</span><span class="n">input_page</span><span class="p">])</span>
 </pre></div>
@@ -1378,6 +1600,13 @@ Then, rotates page before passing it again to the deep learning detection module
 Doing so will improve performances for documents with page-uniform rotations.</p></li>
 <li><p><strong>detect_language</strong> – if True, the language prediction will be added to the predictions for each
 page. Doing so will slightly deteriorate the overall latency.</p></li>
+<li><p><strong>detect_layout</strong> – if True, a layout detection model is run on each page and the detected regions are attached
+to each page.
+Doing so will slightly deteriorate the overall latency.</p></li>
+<li><p><strong>layout_arch</strong> – name of the layout architecture or the model itself to use.</p></li>
+<li><p><strong>ignore_regions</strong> – optional list of layout class names to ignore during detection/recognition. If provided, the
+layout model will be used to locate the regions of the specified classes, and these regions will
+be masked out (filled with black) before passing the pages to the detection/recognition modules.</p></li>
 <li><p><strong>kwargs</strong> – keyword args of <cite>OCRPredictor</cite></p></li>
 </ul>
 </dd>
@@ -1435,6 +1664,288 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><p><strong>model_name</strong> – name of the model which is also the repository name</p></li>
 <li><p><strong>task</strong> – task name</p></li>
 <li><p><strong>**kwargs</strong> – keyword arguments for push_to_hf_hub</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="doctr-models-utils">
+<h2>doctr.models.utils<a class="headerlink" href="#doctr-models-utils" title="Link to this heading">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.utils.export_model_to_onnx">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.utils.</span></span><span class="sig-name descname"><span class="pre">export_model_to_onnx</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dummy_input</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tensor</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Tensor</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Tensor</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dynamic_axes</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/doctr/models/utils/pytorch.html#export_model_to_onnx"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.utils.export_model_to_onnx" title="Link to this definition">¶</a></dt>
+<dd><p>Export model to ONNX format.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.classification</span><span class="w"> </span><span class="kn">import</span> <span class="n">resnet18</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">export_model_to_onnx</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">resnet18</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">export_model_to_onnx</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">"my_model"</span><span class="p">,</span> <span class="n">dummy_input</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">))</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – the PyTorch model to be exported</p></li>
+<li><p><strong>model_name</strong> – the name for the exported model</p></li>
+<li><p><strong>dummy_input</strong> – the dummy input to the model</p></li>
+<li><p><strong>input_names</strong> – optional names for the model inputs. Defaults to <cite>[“input”]</cite> (or <cite>[“input”, “masks”]</cite>
+when <cite>dummy_input</cite> is a tuple).</p></li>
+<li><p><strong>output_names</strong> – optional names for the model outputs. Defaults to <cite>[“logits”]</cite> (or
+<cite>[“logits”, “pred_boxes”]</cite> when <cite>dummy_input</cite> is a tuple). Pass the names of every output when
+the model returns more than one tensor (e.g. a multi-head model).</p></li>
+<li><p><strong>dynamic_axes</strong> – optional dynamic axes. Defaults to a dynamic batch dimension on every input and output.</p></li>
+<li><p><strong>kwargs</strong> – additional arguments to be passed to torch.onnx.export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the path to the exported model</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.utils.add_whitelist">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.utils.</span></span><span class="sig-name descname"><span class="pre">add_whitelist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vocabs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">strategy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'mask'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mapping</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">WhitelistHandle</span></span></span><a class="reference internal" href="../_modules/doctr/models/utils/pytorch.html#add_whitelist"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.utils.add_whitelist" title="Link to this definition">¶</a></dt>
+<dd><p>Restrict a recognition model so it can only predict a subset of its vocabulary.</p>
+<p>The whitelist is enforced at the model’s final projection layer, before the decoding
+<cite>argmax</cite>. Because the projection is the single point every logit flows through, the
+constraint also applies inside the autoregressive decoding loop of SAR, MASTER and PARSeq,
+so a forbidden character can never be produced – not even fed back mid-word. The sequence
+terminator (CTC <cite>blank</cite> / attention <cite>&lt;eos&gt;</cite>) is always kept so decoding still
+terminates. It works with every recognition architecture and with any predictor wrapping
+one (<cite>ocr_predictor</cite>, <cite>kie_predictor</cite>, <cite>recognition_predictor</cite>).</p>
+<p>Two strategies are available:</p>
+<ul class="simple">
+<li><p><cite>“mask”</cite> (default): the logits of forbidden characters are set to <cite>-inf</cite>, so decoding
+falls back to the highest-scoring allowed character.</p></li>
+<li><p><cite>“nearest”</cite>: the score of each forbidden character is first reassigned to the closest
+allowed character (so e.g. <cite>ä</cite> folds onto <cite>a</cite>), then forbidden logits are masked.
+Forbidden characters without a mapping fall back to masking.</p></li>
+</ul>
+<p>A whitelist can only restrict a model to characters it already knows: characters that are
+not part of the model’s own vocabulary are silently ignored.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.datasets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VOCABS</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_whitelist</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handle</span> <span class="o">=</span> <span class="n">add_whitelist</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="p">[</span><span class="n">VOCABS</span><span class="p">[</span><span class="s2">"polish"</span><span class="p">],</span> <span class="n">VOCABS</span><span class="p">[</span><span class="s2">"german"</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># ... run the predictor; only Polish/German characters can be predicted ...</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">handle</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>  <span class="c1"># restore the original, unconstrained decoding</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> – an <cite>ocr_predictor</cite>, <cite>kie_predictor</cite>, <cite>recognition_predictor</cite>, or a recognition model.</p></li>
+<li><p><strong>vocabs</strong> – a vocabulary string (e.g. <cite>VOCABS[“german”]</cite>) or an iterable of vocabulary
+strings (e.g. <cite>[VOCABS[“polish”], VOCABS[“german”]]</cite>) whose characters are allowed.</p></li>
+<li><p><strong>strategy</strong> – <cite>“mask”</cite> (default) to drop forbidden characters, or <cite>“nearest”</cite> to fold
+them onto the closest allowed character.</p></li>
+<li><p><strong>mapping</strong> – only used when <cite>“strategy=”nearest”</cite>”. <cite>None</cite> or <cite>“anyascii”</cite> builds the
+forbidden-to-allowed map by transliteration (the default); <cite>“weights”</cite> derives it
+from the projection weights (the model’s own confusions); a <cite>dict</cite> of
+<cite>{forbidden_char: allowed_char}</cite> overrides specific characters on top of the
+transliteration map.</p></li>
+<li><p><strong>verbose</strong> – if True, log how many characters were kept, forbidden and reassigned per model.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a <code class="xref py py-class docutils literal notranslate"><span class="pre">WhitelistHandle</span></code>; call its <code class="xref py py-meth docutils literal notranslate"><span class="pre">remove()</span></code> method to restore
+the original, unconstrained decoding.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="doctr-models-reading-order">
+<h2>doctr.models.reading_order<a class="headerlink" href="#doctr-models-reading-order" title="Link to this heading">¶</a></h2>
+<p>Language-independent estimation of the reading order of the elements of a page, combining a column-following
+topological sort of their spatial relations with optional layout semantics (headers, footers, captions). The
+reading-order-aware export of a <a class="reference internal" href="io.html#doctr.io.Page" title="doctr.io.elements.Page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code></a> / <a class="reference internal" href="io.html#doctr.io.Document" title="doctr.io.elements.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a> to
+Markdown or AsciiDoc is exposed through the <code class="docutils literal notranslate"><span class="pre">export_as_markdown</span></code> / <code class="docutils literal notranslate"><span class="pre">export_as_asciidoc</span></code> methods of
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">doctr.io.elements</span></code>.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.reading_order.detect_text_direction">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.reading_order.</span></span><span class="sig-name descname"><span class="pre">detect_text_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">texts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Iterable" title="(in Python v3.14)"><span class="pre">Iterable</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/doctr/models/reading_order/base.html#detect_text_direction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.reading_order.detect_text_direction" title="Link to this definition">¶</a></dt>
+<dd><p>Infer the horizontal base direction of a document from its text content.</p>
+<p>The detection relies on the Unicode bidirectional property of each character: strong right-to-left
+characters (bidirectional categories <cite>R</cite> and <cite>AL</cite>, covering among others Hebrew, Arabic, Syriac,
+Thaana, N’Ko) are counted against strong left-to-right characters (category <cite>L</cite>). This makes the
+detection language-independent and robust to mixed content. When no strong character is found, the
+optional ISO 639 language code is used as a fallback hint.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.utils.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">detect_text_direction</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">detect_text_direction</span><span class="p">([</span><span class="s2">"Hello"</span><span class="p">,</span> <span class="s2">"world"</span><span class="p">])</span>
+<span class="go">'ltr'</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">detect_text_direction</span><span class="p">([</span><span class="s2">"مرحبا"</span><span class="p">,</span> <span class="s2">"بالعالم"</span><span class="p">])</span>
+<span class="go">'rtl'</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>texts</strong> – iterable of text strings (e.g. all the words of a page)</p></li>
+<li><p><strong>language</strong> – optional ISO 639 language code used as a fallback when the script is inconclusive</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>either “ltr” or “rtl”</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.reading_order.sort_reading_order">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.reading_order.</span></span><span class="sig-name descname"><span class="pre">sort_reading_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ltr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_overlap_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_overlap_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caption_max_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/models/reading_order/base.html#sort_reading_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.reading_order.sort_reading_order" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the reading order of document elements from their geometries (and optionally, layout labels).</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">sort_reading_order</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># A title spanning two columns of text</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geoms</span> <span class="o">=</span> <span class="p">[</span>
+<span class="gp">... </span>    <span class="p">((</span><span class="mf">0.55</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)),</span>  <span class="c1"># right column</span>
+<span class="gp">... </span>    <span class="p">((</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">)),</span>  <span class="c1"># title</span>
+<span class="gp">... </span>    <span class="p">((</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="p">(</span><span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">)),</span>  <span class="c1"># left column</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sort_reading_order</span><span class="p">(</span><span class="n">geoms</span><span class="p">)</span>
+<span class="go">[1, 2, 0]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geoms</strong> – sequence of geometries in any docTR format (((xmin, ymin), (xmax, ymax)) boxes, 4-point
+polygons, or a (N, 4) / (N, 4, 2) numpy array), in relative or absolute coordinates</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘ltr’ (Latin, Cyrillic, CJK horizontal, …), ‘rtl’ (Arabic,
+Hebrew, …), ‘ttb-rtl’ (vertical lines with columns ordered right-to-left, e.g. traditional
+Chinese/Japanese) or ‘ttb-ltr’ (vertical lines with columns ordered left-to-right)</p></li>
+<li><p><strong>labels</strong> – optional layout labels (one per geometry, e.g. DocLayNet classes from a docTR layout
+predictor). When provided, page headers are moved first, footnotes and page footers last, and
+captions are attached to the closest figure or table. Unknown or None labels are treated as body.</p></li>
+<li><p><strong>x_overlap_threshold</strong> – minimum relative horizontal overlap for two elements to be considered vertically
+stacked (same column)</p></li>
+<li><p><strong>y_overlap_threshold</strong> – minimum relative vertical overlap for two non-stacked elements to be considered
+on the same visual row</p></li>
+<li><p><strong>caption_max_distance</strong> – maximum relative distance between a caption and a float (table or figure) for
+the caption to be attached to it</p></li>
+<li><p><strong>page_shape</strong> – the page dimensions (height, width), used to de-skew rotated pages exactly (cf.
+<cite>deskew_reading_geometries</cite>)</p></li>
+<li><p><strong>angle_geoms</strong> – optional reading-oriented 4-point polygons (typically the page’s word polygons) used to
+estimate the page angle on rotated pages (cf. <cite>deskew_reading_geometries</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the permutation of the input indices which sorts the elements in reading order</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.reading_order.resolve_reading_segments">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.reading_order.</span></span><span class="sig-name descname"><span class="pre">resolve_reading_segments</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ltr'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_overlap_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_overlap_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caption_max_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">paragraph_gap</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.8</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/models/reading_order/base.html#resolve_reading_segments"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.reading_order.resolve_reading_segments" title="Link to this definition">¶</a></dt>
+<dd><p>Order elements in reading order and group consecutive ones into segments (paragraphs or regions).</p>
+<p>This is typically used to regroup individual lines into paragraphs once they have been put in reading
+order: two consecutive elements are merged into the same segment when they share the same (possibly None)
+layout label, belong to the same column and are vertically close enough.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geoms</strong> – sequence of geometries in any docTR format (cf. <cite>sort_reading_order</cite>)</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>labels</strong> – optional layout labels (one per geometry), cf. <cite>sort_reading_order</cite>. Elements with a ‘float’
+role (tables, pictures) are never merged with their neighbors.</p></li>
+<li><p><strong>x_overlap_threshold</strong> – minimum relative horizontal overlap for two elements to be considered vertically
+stacked (same column)</p></li>
+<li><p><strong>y_overlap_threshold</strong> – minimum relative vertical overlap for two non-stacked elements to be considered
+on the same visual row</p></li>
+<li><p><strong>caption_max_distance</strong> – maximum relative distance between a caption and a float (table or figure) for
+the caption to be attached to it</p></li>
+<li><p><strong>paragraph_gap</strong> – maximum vertical gap between two consecutive elements to belong to the same segment,
+as a multiple of the median element height</p></li>
+<li><p><strong>page_shape</strong> – the page dimensions (height, width), used to de-skew rotated pages exactly (cf.
+<cite>deskew_reading_geometries</cite>)</p></li>
+<li><p><strong>angle_geoms</strong> – optional reading-oriented 4-point polygons (typically the page’s word polygons) used to
+estimate the page angle on rotated pages (cf. <cite>deskew_reading_geometries</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a partition of the input indices into reading-ordered segments (each segment being itself in
+reading order)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.reading_order.assign_layout_labels">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.reading_order.</span></span><span class="sig-name descname"><span class="pre">assign_layout_labels</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout_labels</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_coverage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/models/reading_order/base.html#assign_layout_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.reading_order.assign_layout_labels" title="Link to this definition">¶</a></dt>
+<dd><p>Assign a layout label to each element based on its overlap with the detected layout regions.</p>
+<p>Each element receives the label of the region covering the largest share of its area, provided this share
+reaches <cite>min_coverage</cite>; otherwise its label is None (treated as regular body content).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geoms</strong> – geometries of the elements to label, in any docTR format</p></li>
+<li><p><strong>layout_geoms</strong> – geometries of the layout regions, in any docTR format</p></li>
+<li><p><strong>layout_labels</strong> – labels of the layout regions (e.g. <cite>[region.type for region in page.layout]</cite>)</p></li>
+<li><p><strong>min_coverage</strong> – minimum share of an element’s area a region must cover to assign its label</p></li>
+<li><p><strong>page_shape</strong> – the page dimensions (height, width), used to de-skew rotated pages exactly (cf.
+<cite>deskew_reading_geometries</cite>)</p></li>
+<li><p><strong>angle_geoms</strong> – optional reading-oriented 4-point polygons (typically the page’s word polygons) used to
+estimate the page angle on rotated pages (cf. <cite>deskew_reading_geometries</cite>)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the label of each element (None when no region covers it enough)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.models.reading_order.deskew_reading_geometries">
+<span class="sig-prename descclassname"><span class="pre">doctr.models.reading_order.</span></span><span class="sig-name descname"><span class="pre">deskew_reading_geometries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">angle_geoms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/collections.abc.html#collections.abc.Sequence" title="(in Python v3.14)"><span class="pre">Sequence</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_angle</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/models/reading_order/base.html#deskew_reading_geometries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.reading_order.deskew_reading_geometries" title="Link to this definition">¶</a></dt>
+<dd><p>De-skew rotated geometries so the reading order can be computed in an upright frame.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>geoms</strong> – geometries of the elements to order, in any docTR format (cf. <cite>sort_reading_order</cite>)</p></li>
+<li><p><strong>region_geoms</strong> – optional geometries of the layout regions, de-skewed together with the elements</p></li>
+<li><p><strong>page_shape</strong> – the page dimensions (height, width). Required for an exact angle on non-square pages with
+relative coordinates, since relative coordinates distort angles by the aspect ratio.</p></li>
+<li><p><strong>angle_geoms</strong> – optional reading-oriented 4-point polygons used to estimate the page angle</p></li>
+<li><p><strong>min_angle</strong> – minimum estimated angle (in degrees) to trigger the de-skew. Ordering is affected as soon
+as the drift along a line approaches the line height (about 1 degree for a page-wide line), and a
+small rigid rotation cannot change the order of an upright page, hence the low default. Beyond 45
+degrees the corner identification is ambiguous (an upstream orientation correction is needed) and
+nothing is done.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the (possibly de-skewed) element and region geometries</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.models.reading_order.ReadingOrderPredictor">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.models.reading_order.</span></span><span class="sig-name descname"><span class="pre">ReadingOrderPredictor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">x_overlap_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_overlap_threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">caption_max_distance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/models/reading_order/base.html#ReadingOrderPredictor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.models.reading_order.ReadingOrderPredictor" title="Link to this definition">¶</a></dt>
+<dd><p>Language-independent reading order estimation for document elements.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.reading_order</span><span class="w"> </span><span class="kn">import</span> <span class="n">ReadingOrderPredictor</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span> <span class="o">=</span> <span class="n">ReadingOrderPredictor</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">geoms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.55</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">,</span> <span class="mf">0.15</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.45</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">predictor</span><span class="p">(</span><span class="n">geoms</span><span class="p">,</span> <span class="n">texts</span><span class="o">=</span><span class="p">[</span><span class="s2">"First words of each element"</span><span class="p">,</span> <span class="s2">"of the page"</span><span class="p">,</span> <span class="s2">"to detect the direction"</span><span class="p">])</span>
+<span class="go">[1, 2, 0]</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’ (inferred from the text content), ‘ltr’, ‘rtl’, ‘ttb-rtl’
+or ‘ttb-ltr’ (cf. <cite>sort_reading_order</cite>). Automatic detection covers horizontal scripts only.</p></li>
+<li><p><strong>x_overlap_threshold</strong> – minimum relative horizontal overlap for two elements to be considered vertically
+stacked (same column)</p></li>
+<li><p><strong>y_overlap_threshold</strong> – minimum relative vertical overlap for two non-stacked elements to be considered
+on the same visual row</p></li>
+<li><p><strong>caption_max_distance</strong> – maximum relative distance between a caption and a float (table or figure) for
+the caption to be attached to it</p></li>
 </ul>
 </dd>
 </dl>
@@ -1519,6 +2030,9 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><a class="reference internal" href="#doctr.models.classification.textnet_base"><code class="docutils literal notranslate"><span class="pre">textnet_base()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.vip_tiny"><code class="docutils literal notranslate"><span class="pre">vip_tiny()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.vip_base"><code class="docutils literal notranslate"><span class="pre">vip_base()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.vit_det_s"><code class="docutils literal notranslate"><span class="pre">vit_det_s()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.vit_det_m"><code class="docutils literal notranslate"><span class="pre">vit_det_m()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.classification.starnet_s3"><code class="docutils literal notranslate"><span class="pre">starnet_s3()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.crop_orientation_predictor"><code class="docutils literal notranslate"><span class="pre">crop_orientation_predictor()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.classification.page_orientation_predictor"><code class="docutils literal notranslate"><span class="pre">page_orientation_predictor()</span></code></a></li>
 </ul>
@@ -1533,6 +2047,17 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><a class="reference internal" href="#doctr.models.detection.fast_small"><code class="docutils literal notranslate"><span class="pre">fast_small()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.fast_base"><code class="docutils literal notranslate"><span class="pre">fast_base()</span></code></a></li>
 <li><a class="reference internal" href="#doctr.models.detection.detection_predictor"><code class="docutils literal notranslate"><span class="pre">detection_predictor()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr-models-layout">doctr.models.layout</a><ul>
+<li><a class="reference internal" href="#doctr.models.layout.lw_detr_s"><code class="docutils literal notranslate"><span class="pre">lw_detr_s()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.layout.lw_detr_m"><code class="docutils literal notranslate"><span class="pre">lw_detr_m()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.layout.layout_predictor"><code class="docutils literal notranslate"><span class="pre">layout_predictor()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr-models-table-structure">doctr.models.table_structure</a><ul>
+<li><a class="reference internal" href="#doctr.models.table_structure.tablecenternet"><code class="docutils literal notranslate"><span class="pre">tablecenternet()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.table_structure.table_predictor"><code class="docutils literal notranslate"><span class="pre">table_predictor()</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#doctr-models-recognition">doctr.models.recognition</a><ul>
@@ -1559,6 +2084,20 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
 <li><a class="reference internal" href="#doctr.models.factory.push_to_hf_hub"><code class="docutils literal notranslate"><span class="pre">push_to_hf_hub()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#doctr-models-utils">doctr.models.utils</a><ul>
+<li><a class="reference internal" href="#doctr.models.utils.export_model_to_onnx"><code class="docutils literal notranslate"><span class="pre">export_model_to_onnx()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.utils.add_whitelist"><code class="docutils literal notranslate"><span class="pre">add_whitelist()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr-models-reading-order">doctr.models.reading_order</a><ul>
+<li><a class="reference internal" href="#doctr.models.reading_order.detect_text_direction"><code class="docutils literal notranslate"><span class="pre">detect_text_direction()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.reading_order.sort_reading_order"><code class="docutils literal notranslate"><span class="pre">sort_reading_order()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.reading_order.resolve_reading_segments"><code class="docutils literal notranslate"><span class="pre">resolve_reading_segments()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.reading_order.assign_layout_labels"><code class="docutils literal notranslate"><span class="pre">assign_layout_labels()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.reading_order.deskew_reading_geometries"><code class="docutils literal notranslate"><span class="pre">deskew_reading_geometries()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.models.reading_order.ReadingOrderPredictor"><code class="docutils literal notranslate"><span class="pre">ReadingOrderPredictor</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1570,12 +2109,12 @@ page. Doing so will slightly deteriorate the overall latency.</p></li>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../_static/documentation_options.js?v=73c82100"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

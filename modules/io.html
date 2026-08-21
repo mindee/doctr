@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -233,6 +234,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_model_export.html">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../using_doctr/running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../using_doctr/using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -313,13 +315,23 @@ results to structured formats.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>value</strong> – the text string of the word</p></li>
 <li><p><strong>confidence</strong> – the confidence associated with the text prediction</p></li>
-<li><p><strong>geometry</strong> – bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to</p></li>
-<li><p><strong>size</strong> (<em>the page's</em>)</p></li>
+<li><p><strong>geometry</strong> – bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
+the page’s size</p></li>
 <li><p><strong>objectness_score</strong> – the objectness score of the detection</p></li>
 <li><p><strong>crop_orientation</strong> – the general orientation of the crop in degrees and its confidence</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+</section>
+<section id="prediction">
+<h3>Prediction<a class="headerlink" href="#prediction" title="Link to this heading">¶</a></h3>
+<p>A Prediction is a Word with an additional crop orientation field indicating the detected text rotation angle.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.Prediction">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">Prediction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">objectness_score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Prediction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Prediction" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a prediction element</p>
 </dd></dl>
 
 </section>
@@ -363,6 +375,26 @@ the page’s size.</p></li>
 </dd></dl>
 
 </section>
+<section id="layoutelement">
+<h3>LayoutElement<a class="headerlink" href="#layoutelement" title="Link to this heading">¶</a></h3>
+<p>A LayoutElement is a region predicted by a layout detection model (e.g. Title, Text, Table, Page-header, Page-footer). Layout regions are attached to a <a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code></a> when the <code class="docutils literal notranslate"><span class="pre">ocr_predictor</span></code> / <code class="docutils literal notranslate"><span class="pre">kie_predictor</span></code> is run with <code class="docutils literal notranslate"><span class="pre">detect_layout=True</span></code>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.LayoutElement">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">LayoutElement</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">layout_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">confidence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">geometry</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#LayoutElement"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.LayoutElement" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a layout region predicted by a layout detection model</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>layout_type</strong> – the predicted region class (e.g. ‘Title’, ‘Text’, ‘Table’, ‘Page-header’)</p></li>
+<li><p><strong>confidence</strong> – the confidence of the region prediction</p></li>
+<li><p><strong>geometry</strong> – bounding box of the word in format ((xmin, ymin), (xmax, ymax)) where coordinates are relative to
+the page’s size</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="block">
 <h3>Block<a class="headerlink" href="#block" title="Link to this heading">¶</a></h3>
 <p>A Block is a collection of Lines (e.g. an address written on several lines) and Artefacts (e.g. a graph with its title underneath).</p>
@@ -389,7 +421,7 @@ all lines and artefacts in it.</p></li>
 <p>A Page is a collection of Blocks that were on the same physical page.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="doctr.io.Page">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">Page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Block" title="doctr.io.elements.Block"><span class="pre">Block</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page" title="Link to this definition">¶</a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">Page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">blocks</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Block" title="doctr.io.elements.Block"><span class="pre">Block</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.LayoutElement" title="doctr.io.elements.LayoutElement"><span class="pre">LayoutElement</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tables</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><span class="pre">Table</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#Page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Page" title="Link to this definition">¶</a></dt>
 <dd><p>Implements a page element as a collection of blocks</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -400,6 +432,8 @@ all lines and artefacts in it.</p></li>
 <li><p><strong>dimensions</strong> – the page size in pixels in format (height, width)</p></li>
 <li><p><strong>orientation</strong> – a dictionary with the value of the rotation angle in degress and confidence of the prediction</p></li>
 <li><p><strong>language</strong> – a dictionary with the language value and confidence of the prediction</p></li>
+<li><p><strong>layout</strong> – optional list of layout regions detected on the page</p></li>
+<li><p><strong>tables</strong> – optional list of tables recognized on the page. Words assigned to a table are removed from <cite>blocks</cite>.</p></li>
 </ul>
 </dd>
 </dl>
@@ -412,10 +446,286 @@ all lines and artefacts in it.</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>interactive</strong> – whether the display should be interactive</p></li>
 <li><p><strong>preserve_aspect_ratio</strong> – pass True if you passed True to the predictor</p></li>
-<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the matplotlib.pyplot.show method</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the matplotlib.pyplot.show method
+(e.g. <cite>display_layout=False</cite> to hide detected layout regions)</p></li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.items_in_reading_order">
+<span class="sig-name descname"><span class="pre">items_in_reading_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Block" title="doctr.io.Block"><span class="pre">Block</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Table</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.Page.items_in_reading_order" title="Link to this definition">¶</a></dt>
+<dd><p>Return the content of the page (blocks &amp; tables) sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of blocks &amp; tables in reading order</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.export_as_markdown">
+<span class="sig-name descname"><span class="pre">export_as_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Page.export_as_markdown" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page as Markdown, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters carrying a structural meaning in Markdown should be escaped</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a Markdown string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.export_as_asciidoc">
+<span class="sig-name descname"><span class="pre">export_as_asciidoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Page.export_as_asciidoc" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page as AsciiDoc, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters and line markers carrying a structural meaning in AsciiDoc should
+be escaped</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an AsciiDoc string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.export_as_html">
+<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Page.export_as_html" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page as semantic HTML, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an HTML string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.export_as_xml">
+<span class="sig-name descname"><span class="pre">export_as_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'docTR</span> <span class="pre">-</span> <span class="pre">XML</span> <span class="pre">export</span> <span class="pre">(hOCR)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree" title="(in Python v3.14)"><span class="pre">ElementTree</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.Page.export_as_xml" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page as XML (hOCR-format), with its content sorted in reading order
+convention: <a class="reference external" href="https://github.com/kba/hocr-spec/blob/master/1.2/spec.md">https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_title</strong> – the title of the XML file</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>reading_order</strong> – whether the content should be linearized in reading order</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of the XML byte string, and its ElementTree</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.Page.export" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page into a nested dict, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reading_order</strong> – whether the blocks should be linearized in reading order, exactly like the
+Markdown / HTML / AsciiDoc / hOCR exports. Pass False to serialize <cite>page.blocks</cite> as stored.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a JSON-serializable dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\n\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Page.render" title="Link to this definition">¶</a></dt>
+<dd><p>Renders the full text of the page, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>block_break</strong> – the string inserted between two blocks</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the text of the page</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Page.export_as">
+<span class="sig-name descname"><span class="pre">export_as</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#doctr.io.Page.export_as" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page in the requested format.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>format</strong> – one of ‘markdown’/’md’, ‘asciidoc’/’adoc’, ‘html’, ‘text’/’txt’, ‘json’/’dict’,
+‘xml’/’hocr’</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the format-specific export method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="kiepage">
+<h3>KIEPage<a class="headerlink" href="#kiepage" title="Link to this heading">¶</a></h3>
+<p>A KIEPage is returned by the <a class="reference internal" href="models.html#doctr.models.kie_predictor" title="doctr.models.kie_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kie_predictor</span></code></a>. It groups predictions by
+semantic class rather than by spatial layout.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.KIEPage">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">KIEPage</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.Prediction" title="doctr.io.elements.Prediction"><span class="pre">Prediction</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><span class="pre">int</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.LayoutElement" title="doctr.io.elements.LayoutElement"><span class="pre">LayoutElement</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#KIEPage"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.KIEPage" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a KIE page element as a collection of predictions</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>predictions</strong> – Dictionary with list of block elements for each detection class</p></li>
+<li><p><strong>page</strong> – image encoded as a numpy array in uint8</p></li>
+<li><p><strong>page_idx</strong> – the index of the page in the input raw document</p></li>
+<li><p><strong>dimensions</strong> – the page size in pixels in format (height, width)</p></li>
+<li><p><strong>orientation</strong> – a dictionary with the value of the rotation angle in degress and confidence of the prediction</p></li>
+<li><p><strong>language</strong> – a dictionary with the language value and confidence of the prediction</p></li>
+<li><p><strong>layout</strong> – optional list of layout regions detected on the page</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interactive</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">preserve_aspect_ratio</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/elements.html#KIEPage.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.KIEPage.show" title="Link to this definition">¶</a></dt>
+<dd><p>Overlay the result on a given image</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interactive</strong> – whether the display should be interactive</p></li>
+<li><p><strong>preserve_aspect_ratio</strong> – pass True if you passed True to the predictor</p></li>
+<li><p><strong>**kwargs</strong> – keyword arguments passed to the matplotlib.pyplot.show method</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_markdown">
+<span class="sig-name descname"><span class="pre">export_as_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.KIEPage.export_as_markdown" title="Link to this definition">¶</a></dt>
+<dd><p>Export the KIE page as Markdown, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters carrying a structural meaning in Markdown should be escaped</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a Markdown string with one section per detection class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_asciidoc">
+<span class="sig-name descname"><span class="pre">export_as_asciidoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.KIEPage.export_as_asciidoc" title="Link to this definition">¶</a></dt>
+<dd><p>Export the KIE page as AsciiDoc, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters and line markers carrying a structural meaning in AsciiDoc should
+be escaped</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an AsciiDoc string with one section per detection class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_html">
+<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.KIEPage.export_as_html" title="Link to this definition">¶</a></dt>
+<dd><p>Export the KIE page as semantic HTML, with the predictions of each class sorted in reading order</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.export_as_xml">
+<span class="sig-name descname"><span class="pre">export_as_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'docTR</span> <span class="pre">-</span> <span class="pre">XML</span> <span class="pre">export</span> <span class="pre">(hOCR)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree" title="(in Python v3.14)"><span class="pre">ElementTree</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.KIEPage.export_as_xml" title="Link to this definition">¶</a></dt>
+<dd><p>Export the page as XML (hOCR-format), with the predictions of each class in reading order
+convention: <a class="reference external" href="https://github.com/kba/hocr-spec/blob/master/1.2/spec.md">https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>file_title</strong> – the title of the XML file</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>reading_order</strong> – whether the predictions of each class should be sorted in reading order</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of the XML byte string, and its ElementTree</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.KIEPage.export" title="Link to this definition">¶</a></dt>
+<dd><p>Export the KIE page into a nested dict, with the predictions of each class in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reading_order</strong> – whether the predictions of each class should be sorted in reading order</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a JSON-serializable dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prediction_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\n\n'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.KIEPage.render" title="Link to this definition">¶</a></dt>
+<dd><p>Renders the full text of the page, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prediction_break</strong> – the string inserted between two predictions</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the text of the page, one section per detection class with its predictions in reading order</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEPage.export_as">
+<span class="sig-name descname"><span class="pre">export_as</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#doctr.io.KIEPage.export_as" title="Link to this definition">¶</a></dt>
+<dd><p>Export the KIE page in the requested format (‘markdown’/’md’, ‘asciidoc’/’adoc’, ‘html’,
+‘text’/’txt’, ‘json’/’dict’, ‘xml’/’hocr’).</p>
 </dd></dl>
 
 </dd></dl>
@@ -436,6 +746,131 @@ all lines and artefacts in it.</p></li>
 <dl class="py method">
 <dt class="sig sig-object py" id="doctr.io.Document.show">
 <span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/elements.html#Document.show"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.Document.show" title="Link to this definition">¶</a></dt>
+<dd><p>Overlay the result on a given image</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.export_as_markdown">
+<span class="sig-name descname"><span class="pre">export_as_markdown</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\n\n---\n\n'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Document.export_as_markdown" title="Link to this definition">¶</a></dt>
+<dd><p>Export the document as Markdown, with the content of each page sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page_break</strong> – the string inserted between two pages (a thematic break by default)</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the <cite>Page.export_as_markdown</cite> method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a Markdown string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.export_as_asciidoc">
+<span class="sig-name descname"><span class="pre">export_as_asciidoc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\n\n&lt;&lt;&lt;\n\n'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Document.export_as_asciidoc" title="Link to this definition">¶</a></dt>
+<dd><p>Export the document as AsciiDoc, with the content of each page sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page_break</strong> – the string inserted between two pages (an AsciiDoc page break by default)</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the <cite>Page.export_as_asciidoc</cite> method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an AsciiDoc string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.export_as_xml">
+<span class="sig-name descname"><span class="pre">export_as_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree" title="(in Python v3.14)"><span class="pre">ElementTree</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.Document.export_as_xml" title="Link to this definition">¶</a></dt>
+<dd><p>Export the document as XML (hOCR-format)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>**kwargs</strong> – additional keyword arguments passed to the XML page export</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of tuple of (bytes, ElementTree)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.export_as_html">
+<span class="sig-name descname"><span class="pre">export_as_html</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'&lt;hr&gt;'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Document.export_as_html" title="Link to this definition">¶</a></dt>
+<dd><p>Export the document as semantic HTML, with the content of each page sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page_break</strong> – the HTML snippet inserted between two pages</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the page export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>an HTML string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.export">
+<span class="sig-name descname"><span class="pre">export</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><span class="pre">dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#doctr.io.Document.export" title="Link to this definition">¶</a></dt>
+<dd><p>Export the document into a nested dict, with the content of each page sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reading_order</strong> – whether the content of each page should be linearized in reading order</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a JSON-serializable dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.render">
+<span class="sig-name descname"><span class="pre">render</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'\n\n\n\n'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.Document.render" title="Link to this definition">¶</a></dt>
+<dd><p>Renders the full text of the document, with the content of each page sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page_break</strong> – the string inserted between two pages</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the <cite>Page.render</cite> / <cite>KIEPage.render</cite> method</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the text of the document</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.Document.export_as">
+<span class="sig-name descname"><span class="pre">export_as</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></span><a class="headerlink" href="#doctr.io.Document.export_as" title="Link to this definition">¶</a></dt>
+<dd><p>Export the document in the requested format (‘markdown’/’md’, ‘asciidoc’/’adoc’, ‘html’,
+‘text’/’txt’, ‘json’/’dict’, ‘xml’/’hocr’).</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="kiedocument">
+<h3>KIEDocument<a class="headerlink" href="#kiedocument" title="Link to this heading">¶</a></h3>
+<p>A KIEDocument is a collection of <a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><code class="xref py py-class docutils literal notranslate"><span class="pre">KIEPage</span></code></a> elements, returned by the
+<a class="reference internal" href="models.html#doctr.models.kie_predictor" title="doctr.models.kie_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kie_predictor</span></code></a>.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.KIEDocument">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">KIEDocument</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pages</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.elements.KIEPage"><span class="pre">KIEPage</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/doctr/io/elements.html#KIEDocument"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.KIEDocument" title="Link to this definition">¶</a></dt>
+<dd><p>Implements a document element as a collection of pages</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>pages</strong> – list of page elements</p>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.KIEDocument.show">
+<span class="sig-name descname"><span class="pre">show</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="headerlink" href="#doctr.io.KIEDocument.show" title="Link to this definition">¶</a></dt>
 <dd><p>Overlay the result on a given image</p>
 </dd></dl>
 
@@ -617,6 +1052,409 @@ all lines and artefacts in it.</p></li>
 </dd></dl>
 
 </section>
+<section id="reading-order">
+<span id="id2"></span><h2>Reading order<a class="headerlink" href="#reading-order" title="Link to this heading">¶</a></h2>
+<p>The reading-order-aware export of a <a class="reference internal" href="#doctr.io.Document" title="doctr.io.Document"><code class="xref py py-class docutils literal notranslate"><span class="pre">Document</span></code></a> / <a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><code class="xref py py-class docutils literal notranslate"><span class="pre">Page</span></code></a> to Markdown, AsciiDoc, HTML, or XML is available
+through the <code class="docutils literal notranslate"><span class="pre">export_as_markdown</span></code> / <code class="docutils literal notranslate"><span class="pre">export_as_asciidoc</span></code> / <code class="docutils literal notranslate"><span class="pre">export_as_html</span></code> / <code class="docutils literal notranslate"><span class="pre">export_as_xml</span></code> / <code class="docutils literal notranslate"><span class="pre">export_as</span></code> / <code class="docutils literal notranslate"><span class="pre">export</span></code> / <code class="docutils literal notranslate"><span class="pre">render</span></code> methods documented above, which
+delegate to the exporters of <code class="xref py py-mod docutils literal notranslate"><span class="pre">doctr.io.exporters</span></code>.
+The underlying ordering primitives live in <code class="xref py py-mod docutils literal notranslate"><span class="pre">doctr.models.reading_order</span></code>.</p>
+<p>Every export path shares the same linearization, so <code class="docutils literal notranslate"><span class="pre">render()</span></code>, <code class="docutils literal notranslate"><span class="pre">export()</span></code>, <code class="docutils literal notranslate"><span class="pre">export_as_xml()</span></code> and the
+Markdown / AsciiDoc / HTML exports all present the content in the same order. The result is memoized on the
+page, so exporting one page to several formats orders it only once.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.TextExporter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">TextExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#TextExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.TextExporter" title="Link to this definition">¶</a></dt>
+<dd><p>Export OCR results to plain text, with the content sorted in reading order.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">TextExporter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">text</span> <span class="o">=</span> <span class="n">TextExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.TextExporter.export_document">
+<span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.TextExporter.export_document" title="Link to this definition">¶</a></dt>
+<dd><p>Export a document page by page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document</strong> – the document to export</p></li>
+<li><p><strong>page_break</strong> – the string inserted between two pages (a format-specific default when None)</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the page export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported document as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.TextExporter.export_kie_page">
+<span class="sig-name descname"><span class="pre">export_kie_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><span class="pre">KIEPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.TextExporter.export_kie_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a KIE page, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the KIE page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string, with one section per detection class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.TextExporter.export_page">
+<span class="sig-name descname"><span class="pre">export_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><span class="pre">Page</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.TextExporter.export_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a page, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+<li><p><strong>block_break</strong> – the string inserted between two blocks (the format-specific default when None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.MarkdownExporter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">MarkdownExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#MarkdownExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.MarkdownExporter" title="Link to this definition">¶</a></dt>
+<dd><p>Export OCR results to Markdown, with the content sorted in reading order.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">MarkdownExporter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">markdown</span> <span class="o">=</span> <span class="n">MarkdownExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.MarkdownExporter.export_document">
+<span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.MarkdownExporter.export_document" title="Link to this definition">¶</a></dt>
+<dd><p>Export a document page by page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document</strong> – the document to export</p></li>
+<li><p><strong>page_break</strong> – the string inserted between two pages (a format-specific default when None)</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the page export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported document as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.MarkdownExporter.export_kie_page">
+<span class="sig-name descname"><span class="pre">export_kie_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><span class="pre">KIEPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.MarkdownExporter.export_kie_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a KIE page, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the KIE page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string, with one section per detection class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.MarkdownExporter.export_page">
+<span class="sig-name descname"><span class="pre">export_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><span class="pre">Page</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.MarkdownExporter.export_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a page, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+<li><p><strong>block_break</strong> – the string inserted between two blocks (the format-specific default when None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.AsciiDocExporter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">AsciiDocExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#AsciiDocExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.AsciiDocExporter" title="Link to this definition">¶</a></dt>
+<dd><p>Export OCR results to AsciiDoc, with the content sorted in reading order.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">AsciiDocExporter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">asciidoc</span> <span class="o">=</span> <span class="n">AsciiDocExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.AsciiDocExporter.export_document">
+<span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.AsciiDocExporter.export_document" title="Link to this definition">¶</a></dt>
+<dd><p>Export a document page by page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document</strong> – the document to export</p></li>
+<li><p><strong>page_break</strong> – the string inserted between two pages (a format-specific default when None)</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the page export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported document as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.AsciiDocExporter.export_kie_page">
+<span class="sig-name descname"><span class="pre">export_kie_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><span class="pre">KIEPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.AsciiDocExporter.export_kie_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a KIE page, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the KIE page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string, with one section per detection class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.AsciiDocExporter.export_page">
+<span class="sig-name descname"><span class="pre">export_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><span class="pre">Page</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.AsciiDocExporter.export_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a page, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+<li><p><strong>block_break</strong> – the string inserted between two blocks (the format-specific default when None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.HTMLExporter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">HTMLExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter" title="Link to this definition">¶</a></dt>
+<dd><p>Export OCR results to semantic HTML, with the content sorted in reading order.</p>
+<p>Headings map to <cite>&lt;h1&gt;</cite>/<cite>&lt;h2&gt;</cite>, list items to <cite>&lt;ul&gt;&lt;li&gt;</cite>, recognized tables to <cite>&lt;table&gt;</cite> and
+paragraphs to <cite>&lt;p&gt;</cite> (with <cite>&lt;br&gt;</cite> between the visual lines of a paragraph). The output is a
+fragment, not a full document: it carries no doctype, <cite>&lt;html&gt;</cite> or charset declaration.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The recognized text is HTML-escaped by default. Passing <code class="docutils literal notranslate"><span class="pre">escape=False</span></code> interpolates the OCR
+output into the markup verbatim, so a document containing markup yields active HTML.
+Only disable escaping for output that is never rendered in a browser.</p>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTMLExporter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">html</span> <span class="o">=</span> <span class="n">HTMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.HTMLExporter.export_document">
+<span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">page_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="headerlink" href="#doctr.io.HTMLExporter.export_document" title="Link to this definition">¶</a></dt>
+<dd><p>Export a document page by page.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document</strong> – the document to export</p></li>
+<li><p><strong>page_break</strong> – the string inserted between two pages (a format-specific default when None)</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the page export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported document as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.HTMLExporter.export_kie_page">
+<span class="sig-name descname"><span class="pre">export_kie_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><span class="pre">KIEPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter.export_kie_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter.export_kie_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a KIE page, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the KIE page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string, with one section per detection class</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.HTMLExporter.export_page">
+<span class="sig-name descname"><span class="pre">export_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><span class="pre">Page</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">escape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">include_furniture</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">block_break</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#HTMLExporter.export_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.HTMLExporter.export_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a page, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the page to export</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>escape</strong> – whether the characters or markers carrying a structural meaning should be neutralized</p></li>
+<li><p><strong>include_furniture</strong> – whether page headers, page footers and footnotes should be included</p></li>
+<li><p><strong>block_break</strong> – the string inserted between two blocks (the format-specific default when None)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the exported page as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="doctr.io.XMLExporter">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">doctr.io.</span></span><span class="sig-name descname"><span class="pre">XMLExporter</span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter" title="Link to this definition">¶</a></dt>
+<dd><p>hOCR (XML) exporter for pages, KIE pages and documents.
+See the hOCR 1.2 specification for the XML convention: <a class="reference external" href="https://github.com/kba/hocr-spec/blob/master/1.2/spec.md">https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</a></p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">XMLExporter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xml_bytes</span><span class="p">,</span> <span class="n">xml_tree</span> <span class="o">=</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.XMLExporter.export_document">
+<span class="sig-name descname"><span class="pre">export_document</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">document</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree" title="(in Python v3.14)"><span class="pre">ElementTree</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter.export_document"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter.export_document" title="Link to this definition">¶</a></dt>
+<dd><p>Export a document as a list of hOCR pages.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>document</strong> – the document to export</p></li>
+<li><p><strong>**kwargs</strong> – additional keyword arguments passed to the page export</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>list of tuple of (bytes, ElementTree), one per page</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.XMLExporter.export_kie_page">
+<span class="sig-name descname"><span class="pre">export_kie_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><span class="pre">KIEPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'docTR</span> <span class="pre">-</span> <span class="pre">XML</span> <span class="pre">export</span> <span class="pre">(hOCR)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree" title="(in Python v3.14)"><span class="pre">ElementTree</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter.export_kie_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter.export_kie_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a KIE page as hOCR XML, with the predictions of each class sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the KIE page to export</p></li>
+<li><p><strong>file_title</strong> – the title of the XML file</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>reading_order</strong> – whether the predictions of each class should be sorted in reading order</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of the XML byte string, and its ElementTree</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="doctr.io.XMLExporter.export_page">
+<span class="sig-name descname"><span class="pre">export_page</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><span class="pre">Page</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'docTR</span> <span class="pre">-</span> <span class="pre">XML</span> <span class="pre">export</span> <span class="pre">(hOCR)'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reading_order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#bytes" title="(in Python v3.14)"><span class="pre">bytes</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/xml.etree.elementtree.html#xml.etree.ElementTree.ElementTree" title="(in Python v3.14)"><span class="pre">ElementTree</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#XMLExporter.export_page"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.XMLExporter.export_page" title="Link to this definition">¶</a></dt>
+<dd><p>Export a page as hOCR XML, with its content sorted in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the page to export</p></li>
+<li><p><strong>file_title</strong> – the title of the XML file</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+<li><p><strong>reading_order</strong> – whether the content should be linearized in reading order. Pass False to serialize
+<cite>page.blocks</cite> then <cite>page.tables</cite> in their raw order.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple of the XML byte string, and its ElementTree</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.io.exporters.page_reading_order">
+<span class="sig-prename descclassname"><span class="pre">doctr.io.exporters.</span></span><span class="sig-name descname"><span class="pre">page_reading_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.Page" title="doctr.io.Page"><span class="pre">Page</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.14)"><span class="pre">tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#page_reading_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.exporters.page_reading_order" title="Link to this definition">¶</a></dt>
+<dd><p>Linearize the content of a page (blocks &amp; tables) in reading order.</p>
+<p>The result is memoized on the page: every exporter calls this, so a page exported to several formats
+(or built with <cite>keep_reading_order=True</cite> and then exported) orders its content once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the page to linearize</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>a tuple with the ordered items (blocks &amp; tables), their layout label (None without layout) and the
+effective reading direction</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.io.exporters.predictions_in_reading_order">
+<span class="sig-prename descclassname"><span class="pre">doctr.io.exporters.</span></span><span class="sig-name descname"><span class="pre">predictions_in_reading_order</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">page</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#doctr.io.KIEPage" title="doctr.io.KIEPage"><span class="pre">KIEPage</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">predictions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><span class="pre">str</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><span class="pre">list</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#predictions_in_reading_order"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.exporters.predictions_in_reading_order" title="Link to this definition">¶</a></dt>
+<dd><p>Sort the predictions of a single KIE detection class in reading order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>page</strong> – the KIE page the predictions belong to (used for its dimensions and detected language)</p></li>
+<li><p><strong>predictions</strong> – the predictions of one detection class</p></li>
+<li><p><strong>direction</strong> – reading direction, one of ‘auto’, ‘ltr’, ‘rtl’, ‘ttb-rtl’ or ‘ttb-ltr’</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the predictions, ordered logically</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="doctr.io.exporters.to_json_safe">
+<span class="sig-prename descclassname"><span class="pre">doctr.io.exporters.</span></span><span class="sig-name descname"><span class="pre">to_json_safe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.14)"><span class="pre">Any</span></a></span></span><a class="reference internal" href="../_modules/doctr/io/exporters.html#to_json_safe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#doctr.io.exporters.to_json_safe" title="Link to this definition">¶</a></dt>
+<dd><p>Recursively convert NumPy containers and scalars into built-in Python types.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>value</strong> – any exported value</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>the same value with every NumPy array converted to nested tuples and every NumPy scalar to its
+Python equivalent</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 </section>
 
         </article>
@@ -680,12 +1518,20 @@ all lines and artefacts in it.</p></li>
 <li><a class="reference internal" href="#doctr.io.Word"><code class="docutils literal notranslate"><span class="pre">Word</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#prediction">Prediction</a><ul>
+<li><a class="reference internal" href="#doctr.io.Prediction"><code class="docutils literal notranslate"><span class="pre">Prediction</span></code></a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#line">Line</a><ul>
 <li><a class="reference internal" href="#doctr.io.Line"><code class="docutils literal notranslate"><span class="pre">Line</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#artefact">Artefact</a><ul>
 <li><a class="reference internal" href="#doctr.io.Artefact"><code class="docutils literal notranslate"><span class="pre">Artefact</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#layoutelement">LayoutElement</a><ul>
+<li><a class="reference internal" href="#doctr.io.LayoutElement"><code class="docutils literal notranslate"><span class="pre">LayoutElement</span></code></a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#block">Block</a><ul>
@@ -695,6 +1541,28 @@ all lines and artefacts in it.</p></li>
 <li><a class="reference internal" href="#page">Page</a><ul>
 <li><a class="reference internal" href="#doctr.io.Page"><code class="docutils literal notranslate"><span class="pre">Page</span></code></a><ul>
 <li><a class="reference internal" href="#doctr.io.Page.show"><code class="docutils literal notranslate"><span class="pre">Page.show()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.items_in_reading_order"><code class="docutils literal notranslate"><span class="pre">Page.items_in_reading_order()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.export_as_markdown"><code class="docutils literal notranslate"><span class="pre">Page.export_as_markdown()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.export_as_asciidoc"><code class="docutils literal notranslate"><span class="pre">Page.export_as_asciidoc()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.export_as_html"><code class="docutils literal notranslate"><span class="pre">Page.export_as_html()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.export_as_xml"><code class="docutils literal notranslate"><span class="pre">Page.export_as_xml()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.export"><code class="docutils literal notranslate"><span class="pre">Page.export()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.render"><code class="docutils literal notranslate"><span class="pre">Page.render()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Page.export_as"><code class="docutils literal notranslate"><span class="pre">Page.export_as()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#kiepage">KIEPage</a><ul>
+<li><a class="reference internal" href="#doctr.io.KIEPage"><code class="docutils literal notranslate"><span class="pre">KIEPage</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.KIEPage.show"><code class="docutils literal notranslate"><span class="pre">KIEPage.show()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.export_as_markdown"><code class="docutils literal notranslate"><span class="pre">KIEPage.export_as_markdown()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.export_as_asciidoc"><code class="docutils literal notranslate"><span class="pre">KIEPage.export_as_asciidoc()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.export_as_html"><code class="docutils literal notranslate"><span class="pre">KIEPage.export_as_html()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.export_as_xml"><code class="docutils literal notranslate"><span class="pre">KIEPage.export_as_xml()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.export"><code class="docutils literal notranslate"><span class="pre">KIEPage.export()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.render"><code class="docutils literal notranslate"><span class="pre">KIEPage.render()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.KIEPage.export_as"><code class="docutils literal notranslate"><span class="pre">KIEPage.export_as()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -702,6 +1570,20 @@ all lines and artefacts in it.</p></li>
 <li><a class="reference internal" href="#document">Document</a><ul>
 <li><a class="reference internal" href="#doctr.io.Document"><code class="docutils literal notranslate"><span class="pre">Document</span></code></a><ul>
 <li><a class="reference internal" href="#doctr.io.Document.show"><code class="docutils literal notranslate"><span class="pre">Document.show()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.export_as_markdown"><code class="docutils literal notranslate"><span class="pre">Document.export_as_markdown()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.export_as_asciidoc"><code class="docutils literal notranslate"><span class="pre">Document.export_as_asciidoc()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.export_as_xml"><code class="docutils literal notranslate"><span class="pre">Document.export_as_xml()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.export_as_html"><code class="docutils literal notranslate"><span class="pre">Document.export_as_html()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.export"><code class="docutils literal notranslate"><span class="pre">Document.export()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.render"><code class="docutils literal notranslate"><span class="pre">Document.render()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.Document.export_as"><code class="docutils literal notranslate"><span class="pre">Document.export_as()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#kiedocument">KIEDocument</a><ul>
+<li><a class="reference internal" href="#doctr.io.KIEDocument"><code class="docutils literal notranslate"><span class="pre">KIEDocument</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.KIEDocument.show"><code class="docutils literal notranslate"><span class="pre">KIEDocument.show()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -722,6 +1604,42 @@ all lines and artefacts in it.</p></li>
 </li>
 </ul>
 </li>
+<li><a class="reference internal" href="#reading-order">Reading order</a><ul>
+<li><a class="reference internal" href="#doctr.io.TextExporter"><code class="docutils literal notranslate"><span class="pre">TextExporter</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.TextExporter.export_document"><code class="docutils literal notranslate"><span class="pre">TextExporter.export_document()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.TextExporter.export_kie_page"><code class="docutils literal notranslate"><span class="pre">TextExporter.export_kie_page()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.TextExporter.export_page"><code class="docutils literal notranslate"><span class="pre">TextExporter.export_page()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.io.MarkdownExporter"><code class="docutils literal notranslate"><span class="pre">MarkdownExporter</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.MarkdownExporter.export_document"><code class="docutils literal notranslate"><span class="pre">MarkdownExporter.export_document()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.MarkdownExporter.export_kie_page"><code class="docutils literal notranslate"><span class="pre">MarkdownExporter.export_kie_page()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.MarkdownExporter.export_page"><code class="docutils literal notranslate"><span class="pre">MarkdownExporter.export_page()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.io.AsciiDocExporter"><code class="docutils literal notranslate"><span class="pre">AsciiDocExporter</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.AsciiDocExporter.export_document"><code class="docutils literal notranslate"><span class="pre">AsciiDocExporter.export_document()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.AsciiDocExporter.export_kie_page"><code class="docutils literal notranslate"><span class="pre">AsciiDocExporter.export_kie_page()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.AsciiDocExporter.export_page"><code class="docutils literal notranslate"><span class="pre">AsciiDocExporter.export_page()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.io.HTMLExporter"><code class="docutils literal notranslate"><span class="pre">HTMLExporter</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.HTMLExporter.export_document"><code class="docutils literal notranslate"><span class="pre">HTMLExporter.export_document()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.HTMLExporter.export_kie_page"><code class="docutils literal notranslate"><span class="pre">HTMLExporter.export_kie_page()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.HTMLExporter.export_page"><code class="docutils literal notranslate"><span class="pre">HTMLExporter.export_page()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.io.XMLExporter"><code class="docutils literal notranslate"><span class="pre">XMLExporter</span></code></a><ul>
+<li><a class="reference internal" href="#doctr.io.XMLExporter.export_document"><code class="docutils literal notranslate"><span class="pre">XMLExporter.export_document()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.XMLExporter.export_kie_page"><code class="docutils literal notranslate"><span class="pre">XMLExporter.export_kie_page()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.XMLExporter.export_page"><code class="docutils literal notranslate"><span class="pre">XMLExporter.export_page()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#doctr.io.exporters.page_reading_order"><code class="docutils literal notranslate"><span class="pre">page_reading_order()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.exporters.predictions_in_reading_order"><code class="docutils literal notranslate"><span class="pre">predictions_in_reading_order()</span></code></a></li>
+<li><a class="reference internal" href="#doctr.io.exporters.to_json_safe"><code class="docutils literal notranslate"><span class="pre">to_json_safe()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -733,12 +1651,12 @@ all lines and artefacts in it.</p></li>
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../_static/documentation_options.js?v=73c82100"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>

@@ -222,6 +222,7 @@
   <p class="caption" role="heading"><span class="caption-text">Getting started</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../getting_started/installing.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started/quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../notebooks.html">docTR Notebooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Using docTR</span></p>
@@ -233,6 +234,7 @@
 <li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Preparing your model for inference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="custom_models_training.html">Train your own model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="running_on_aws.html">AWS Lambda</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_cli.html">Using the CLI for Optical Character Recognition</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Community</span></p>
 <ul>
@@ -301,20 +303,28 @@
 <h2>Model optimization<a class="headerlink" href="#model-optimization" title="Link to this heading">¶</a></h2>
 <p>This section is meant to help you perform inference with optimized versions of your model.</p>
 <section id="half-precision">
-<h3>Half-precision<a class="headerlink" href="#half-precision" title="Link to this heading">¶</a></h3>
+<span id="id1"></span><h3>Half-precision<a class="headerlink" href="#half-precision" title="Link to this heading">¶</a></h3>
 <p><strong>NOTE:</strong> We support half-precision inference for PyTorch models only on <strong>GPU devices</strong>.</p>
-<p>Half-precision (or FP16) is a binary floating-point format that occupies 16 bits in computer memory.</p>
+<p>Half-precision formats occupy 16 bits in computer memory instead of the 32 bits used by
+single-precision (FP32). Two formats are supported:</p>
+<ul class="simple">
+<li><p><strong>BF16</strong> (<code class="docutils literal notranslate"><span class="pre">bfloat16</span></code>): keeps the same exponent range as FP32 with a reduced mantissa.</p></li>
+<li><p><strong>FP16</strong> (<code class="docutils literal notranslate"><span class="pre">float16</span></code>): higher precision than BF16, but a much narrower dynamic range.</p></li>
+</ul>
 <p>Advantages:</p>
 <ul class="simple">
 <li><p>Faster inference</p></li>
 <li><p>Less memory usage</p></li>
 </ul>
+<p>We recommend <strong>BF16 over FP16</strong>. Because it retains the full FP32 exponent range, BF16 is far
+less prone to overflow and underflow. BF16 requires an Ampere-generation GPU or newer
+(compute capability 8.0+); on older hardware, use FP16 instead.</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
 <span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">reco_arch</span><span class="o">=</span><span class="s2">"crnn_mobilenet_v3_small"</span><span class="p">,</span>
     <span class="n">det_arch</span><span class="o">=</span><span class="s2">"linknet_resnet34"</span><span class="p">,</span>
     <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span>
-<span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span><span class="o">.</span><span class="n">half</span><span class="p">()</span>
+<span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span><span class="o">.</span><span class="n">bfloat16</span><span class="p">()</span>  <span class="c1"># or .half() for FP16</span>
 <span class="n">res</span> <span class="o">=</span> <span class="n">predictor</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -355,7 +365,7 @@ This process can make inference faster and reduce memory overhead during executi
     <span class="n">mobilenet_v3_small_page_orientation</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
 <span class="p">)</span>
 
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">models</span><span class="o">.</span><span class="n">ocr_predictor</span><span class="p">(</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span>
     <span class="n">detection_model</span><span class="p">,</span> <span class="n">recognition_model</span><span class="p">,</span> <span class="n">assume_straight_pages</span><span class="o">=</span><span class="kc">False</span>
 <span class="p">)</span>
 <span class="c1"># NOTE: Only required for non-straight pages (`assume_straight_pages=False`) and non-disabled orientation classification</span>
@@ -493,12 +503,12 @@ It is simple and easy-to-use (with the same interface you know already from docT
       
     </aside>
   </div>
-</div><script src="../_static/documentation_options.js?v=097e9aef"></script>
+</div><script src="../_static/documentation_options.js?v=73c82100"></script>
     <script src="../_static/doctools.js?v=fd6eb6e6"></script>
     <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
     <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../_static/copybutton.js?v=f281be69"></script>
-    <script src="../_static/js/custom.js?v=0f24a18d"></script>
+    <script src="../_static/js/custom.js?v=72a87924"></script>
     </body>
 </html>
