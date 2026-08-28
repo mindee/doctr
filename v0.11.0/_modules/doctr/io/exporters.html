@@ -959,6 +959,22 @@
     <span class="p">)</span>
 
 
+<span class="k">def</span><span class="w"> </span><span class="nf">_hocr_text_size</span><span class="p">(</span><span class="n">geometry</span><span class="p">:</span> <span class="n">BoundingBox</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Estimate the hOCR `x_size` and `x_fsize` properties from the height of a relative bounding box.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        geometry: the relative bounding box ((xmin, ymin), (xmax, ymax))</span>
+<span class="sd">        height: the page height in pixels</span>
+<span class="sd">        dpi: the page resolution in dots per inch, used to convert the text height to font points</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        a tuple of the text height in pixels (`x_size`), and the estimated font size in points (`x_fsize`)</span>
+<span class="sd">    """</span>
+    <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">ymin</span><span class="p">),</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span> <span class="o">=</span> <span class="n">geometry</span>
+    <span class="n">x_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="n">ymax</span> <span class="o">-</span> <span class="n">ymin</span><span class="p">)</span> <span class="o">*</span> <span class="n">height</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">x_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">x_size</span> <span class="o">*</span> <span class="mi">72</span> <span class="o">/</span> <span class="n">dpi</span><span class="p">))</span>
+
+
 <div class="viewcode-block" id="XMLExporter">
 <a class="viewcode-back" href="../../../modules/io.html#doctr.io.XMLExporter">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">XMLExporter</span><span class="p">:</span>
@@ -985,7 +1001,9 @@
         <span class="n">SubElement</span><span class="p">(</span><span class="n">head</span><span class="p">,</span> <span class="s2">"meta"</span><span class="p">,</span> <span class="n">attrib</span><span class="o">=</span><span class="p">{</span><span class="s2">"name"</span><span class="p">:</span> <span class="s2">"ocr-capabilities"</span><span class="p">,</span> <span class="s2">"content"</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ocr_capabilities</span><span class="p">})</span>
         <span class="k">return</span> <span class="n">root</span><span class="p">,</span> <span class="n">SubElement</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="s2">"body"</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_add_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">page_div</span><span class="p">:</span> <span class="n">ETElement</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="s2">"Table"</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">table_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_table</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">page_div</span><span class="p">:</span> <span class="n">ETElement</span><span class="p">,</span> <span class="n">table</span><span class="p">:</span> <span class="s2">"Table"</span><span class="p">,</span> <span class="n">width</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">height</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">table_count</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">"""Serialize a recognized table as an hOCR text area, with one `ocr_line` per row.</span>
 
 <span class="sd">        Args:</span>
@@ -994,6 +1012,7 @@
 <span class="sd">            width: the page width in pixels</span>
 <span class="sd">            height: the page height in pixels</span>
 <span class="sd">            table_count: the 1-based index of the table on the page</span>
+<span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            the index of the next table</span>
@@ -1014,14 +1033,19 @@
             <span class="n">cells</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rows</span><span class="p">[</span><span class="n">row_idx</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">cell</span><span class="p">:</span> <span class="n">cell</span><span class="o">.</span><span class="n">col_start</span><span class="p">)</span>
             <span class="n">xs</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">cells</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">geometry</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">cell</span><span class="o">.</span><span class="n">geometry</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">])]</span>
             <span class="n">ys</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span> <span class="k">for</span> <span class="n">cell</span> <span class="ow">in</span> <span class="n">cells</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">geometry</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">cell</span><span class="o">.</span><span class="n">geometry</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])]</span>
-            <span class="n">row_bbox</span> <span class="o">=</span> <span class="n">_hocr_bbox</span><span class="p">(((</span><span class="nb">min</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">ys</span><span class="p">)),</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ys</span><span class="p">))),</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+            <span class="n">row_geometry</span> <span class="o">=</span> <span class="p">((</span><span class="nb">min</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">ys</span><span class="p">)),</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">xs</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">ys</span><span class="p">)))</span>
+            <span class="n">row_bbox</span> <span class="o">=</span> <span class="n">_hocr_bbox</span><span class="p">(</span><span class="n">row_geometry</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+            <span class="n">row_x_size</span><span class="p">,</span> <span class="n">row_x_fsize</span> <span class="o">=</span> <span class="n">_hocr_text_size</span><span class="p">(</span><span class="n">row_geometry</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">dpi</span><span class="p">)</span>
             <span class="n">line_span</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
                 <span class="n">paragraph</span><span class="p">,</span>
                 <span class="s2">"span"</span><span class="p">,</span>
                 <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
                     <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_line"</span><span class="p">,</span>
                     <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"table_</span><span class="si">{</span><span class="n">table_count</span><span class="si">}</span><span class="s2">_row_</span><span class="si">{</span><span class="n">row_idx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                    <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">row_bbox</span><span class="si">}</span><span class="s2">; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"</span><span class="p">,</span>
+                    <span class="s2">"title"</span><span class="p">:</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">row_bbox</span><span class="si">}</span><span class="s2">; baseline 0 0; x_size </span><span class="si">{</span><span class="n">row_x_size</span><span class="si">}</span><span class="s2">; x_fsize </span><span class="si">{</span><span class="n">row_x_fsize</span><span class="si">}</span><span class="s2">; "</span>
+                        <span class="s2">"x_descenders 0; x_ascenders 0"</span>
+                    <span class="p">),</span>
                 <span class="p">},</span>
             <span class="p">)</span>
             <span class="k">for</span> <span class="n">col_idx</span><span class="p">,</span> <span class="n">cell</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cells</span><span class="p">):</span>
@@ -1047,6 +1071,7 @@
         <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"docTR - XML export (hOCR)"</span><span class="p">,</span>
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">reading_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export a page as hOCR XML, with its content sorted in reading order.</span>
 
@@ -1056,6 +1081,7 @@
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the content should be linearized in reading order. Pass False to serialize</span>
 <span class="sd">                `page.blocks` then `page.tables` in their raw order.</span>
+<span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
@@ -1085,7 +1111,7 @@
         <span class="c1"># iterate over the blocks / lines / words and create the XML elements line by line with the attributes</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
-                <span class="n">table_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_table</span><span class="p">(</span><span class="n">page_div</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">table_count</span><span class="p">)</span>
+                <span class="n">table_count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_table</span><span class="p">(</span><span class="n">page_div</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">table_count</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">)</span>
                 <span class="k">continue</span>
             <span class="n">block</span> <span class="o">=</span> <span class="n">item</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
@@ -1103,7 +1129,9 @@
             <span class="p">)</span>
             <span class="n">block_count</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">block</span><span class="o">.</span><span class="n">lines</span><span class="p">:</span>
-                <span class="c1"># NOTE: baseline, x_size, x_descenders, x_ascenders is currently initalized to 0</span>
+                <span class="c1"># NOTE: baseline, x_descenders, x_ascenders are currently initialized to 0,</span>
+                <span class="c1"># while x_size and x_fsize are estimated from the line box height</span>
+                <span class="n">x_size</span><span class="p">,</span> <span class="n">x_fsize</span> <span class="o">=</span> <span class="n">_hocr_text_size</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">dpi</span><span class="p">)</span>
                 <span class="n">line_span</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
                     <span class="n">paragraph</span><span class="p">,</span>
                     <span class="s2">"span"</span><span class="p">,</span>
@@ -1112,7 +1140,7 @@
                         <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"line_</span><span class="si">{</span><span class="n">line_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
                         <span class="s2">"title"</span><span class="p">:</span> <span class="p">(</span>
                             <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">_hocr_bbox</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">)</span><span class="si">}</span><span class="s2">; "</span>
-                            <span class="s2">"baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"</span>
+                            <span class="sa">f</span><span class="s2">"baseline 0 0; x_size </span><span class="si">{</span><span class="n">x_size</span><span class="si">}</span><span class="s2">; x_fsize </span><span class="si">{</span><span class="n">x_fsize</span><span class="si">}</span><span class="s2">; x_descenders 0; x_ascenders 0"</span>
                         <span class="p">),</span>
                     <span class="p">},</span>
                 <span class="p">)</span>
@@ -1143,6 +1171,7 @@
         <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"docTR - XML export (hOCR)"</span><span class="p">,</span>
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">reading_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export a KIE page as hOCR XML, with the predictions of each class sorted in reading order.</span>
 
@@ -1151,6 +1180,7 @@
 <span class="sd">            file_title: the title of the XML file</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the predictions of each class should be sorted in reading order</span>
+<span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
@@ -1174,6 +1204,7 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">geometry</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">"XML export is only available for straight bounding boxes for now."</span><span class="p">)</span>
                 <span class="n">prediction_bbox</span> <span class="o">=</span> <span class="n">_hocr_bbox</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
+                <span class="n">x_size</span><span class="p">,</span> <span class="n">x_fsize</span> <span class="o">=</span> <span class="n">_hocr_text_size</span><span class="p">(</span><span class="n">prediction</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">dpi</span><span class="p">)</span>  <span class="c1"># type: ignore[arg-type]</span>
                 <span class="n">prediction_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
                     <span class="n">body</span><span class="p">,</span>
                     <span class="s2">"div"</span><span class="p">,</span>
@@ -1200,7 +1231,10 @@
                     <span class="n">attrib</span><span class="o">=</span><span class="p">{</span>
                         <span class="s2">"class"</span><span class="p">:</span> <span class="s2">"ocr_line"</span><span class="p">,</span>
                         <span class="s2">"id"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">_line_</span><span class="si">{</span><span class="n">prediction_count</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
-                        <span class="s2">"title"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prediction_bbox</span><span class="si">}</span><span class="s2">; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0"</span><span class="p">,</span>
+                        <span class="s2">"title"</span><span class="p">:</span> <span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prediction_bbox</span><span class="si">}</span><span class="s2">; baseline 0 0; x_size </span><span class="si">{</span><span class="n">x_size</span><span class="si">}</span><span class="s2">; x_fsize </span><span class="si">{</span><span class="n">x_fsize</span><span class="si">}</span><span class="s2">; "</span>
+                            <span class="s2">"x_descenders 0; x_ascenders 0"</span>
+                        <span class="p">),</span>
                     <span class="p">},</span>
                 <span class="p">)</span>
                 <span class="n">word_div</span> <span class="o">=</span> <span class="n">SubElement</span><span class="p">(</span>
@@ -1291,6 +1325,7 @@
         <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"docTR - XML export (hOCR)"</span><span class="p">,</span>
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">reading_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export the page as XML (hOCR-format), with its content sorted in reading order</span>
 <span class="sd">        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</span>
@@ -1299,12 +1334,13 @@
 <span class="sd">            file_title: the title of the XML file</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the content should be linearized in reading order</span>
+<span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_page</span><span class="p">(</span>
-            <span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">file_title</span><span class="o">=</span><span class="n">file_title</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span>
+            <span class="n">cast</span><span class="p">(</span><span class="s2">"Page"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">file_title</span><span class="o">=</span><span class="n">file_title</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">items_in_reading_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="s2">"Block | Table"</span><span class="p">]:</span>
@@ -1444,6 +1480,7 @@
         <span class="n">file_title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"docTR - XML export (hOCR)"</span><span class="p">,</span>
         <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span>
         <span class="n">reading_order</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">dpi</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">72</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">bytes</span><span class="p">,</span> <span class="n">ET</span><span class="o">.</span><span class="n">ElementTree</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">"""Export the page as XML (hOCR-format), with the predictions of each class in reading order</span>
 <span class="sd">        convention: https://github.com/kba/hocr-spec/blob/master/1.2/spec.md</span>
@@ -1452,12 +1489,13 @@
 <span class="sd">            file_title: the title of the XML file</span>
 <span class="sd">            direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'</span>
 <span class="sd">            reading_order: whether the predictions of each class should be sorted in reading order</span>
+<span class="sd">            dpi: the page resolution in dots per inch, used to estimate font sizes (`x_size`, `x_fsize`)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            a tuple of the XML byte string, and its ElementTree</span>
 <span class="sd">        """</span>
         <span class="k">return</span> <span class="n">XMLExporter</span><span class="p">()</span><span class="o">.</span><span class="n">export_kie_page</span><span class="p">(</span>
-            <span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">file_title</span><span class="o">=</span><span class="n">file_title</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span>
+            <span class="n">cast</span><span class="p">(</span><span class="s2">"KIEPage"</span><span class="p">,</span> <span class="bp">self</span><span class="p">),</span> <span class="n">file_title</span><span class="o">=</span><span class="n">file_title</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span> <span class="n">reading_order</span><span class="o">=</span><span class="n">reading_order</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span>
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">export_as_markdown</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"auto"</span><span class="p">,</span> <span class="n">escape</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
