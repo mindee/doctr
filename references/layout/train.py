@@ -576,7 +576,7 @@ def main(args):
     global_step = 0  # Shared global step counter
 
     # W&B
-    if args.wb:
+    if rank == 0 and args.wb:
         import wandb
 
         run = wandb.init(name=exp_name, project="layout-detection", config=config)
@@ -589,7 +589,7 @@ def main(args):
             })
 
     # ClearML
-    if args.clearml:
+    if rank == 0 and args.clearml:
         from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/layout-detection", task_name=exp_name, reuse_last_task_id=False)
@@ -623,9 +623,9 @@ def main(args):
     # Unified logger
     def log_at_step(train_loss=None, val_loss=None, lr=None):
         global global_step
-        if args.wb:
+        if args.wb and rank == 0:
             wandb_log_at_step(train_loss, val_loss, lr)
-        if args.clearml:
+        if args.clearml and rank == 0:
             clearml_log_at_step(train_loss, val_loss, lr)
         global_step += 1  # Increment the shared global step counter
 
@@ -702,9 +702,8 @@ def main(args):
                 pbar.write("Training halted early due to reaching patience limit.")
                 break
 
-    if rank == 0:
-        if args.wb:
-            run.finish()
+    if rank == 0 and args.wb:
+        run.finish()
 
         if args.push_to_hub:
             push_to_hf_hub(model, exp_name, task="layout", run_config=args)

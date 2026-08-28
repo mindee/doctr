@@ -547,9 +547,9 @@ def main(args):
 
     def log_at_step(train_loss=None, val_loss=None, lr=None):
         global global_step
-        if args.wb:
+        if args.wb and rank == 0:
             wandb_log_at_step(train_loss, val_loss, lr)
-        if args.clearml:
+        if args.clearml and rank == 0:
             clearml_log_at_step(train_loss, val_loss, lr)
         global_step += 1  # Increment the shared global step counter
 
