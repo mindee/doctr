@@ -579,6 +579,47 @@ def test_xml_exporter_class():
     assert len(doc_xml) == 2 and doc.export_as_xml()[0][0] == doc_xml[0][0]
 
 
+def test_xml_export_text_size():
+    # x_size (text height in pixels) and x_fsize (font size in points) are estimated from the
+    # element box height; the dpi kwarg scales the pixel-to-point conversion (default 72)
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("one two", 0.1, 0.1, 0.9, 0.2)])],
+        0,
+        (1000, 800),
+    )
+    xml = page.export_as_xml()[0].decode()
+    # the line spans y=0.1..0.2 of a 1000px-high page -> 100px text height, 100pt at 72 dpi
+    assert "x_size 100; x_fsize 100;" in xml
+    assert "x_size 0;" not in xml
+    xml = page.export_as_xml(dpi=144)[0].decode()
+    assert "x_size 100; x_fsize 50;" in xml
+
+    # table rows and KIE predictions carry the estimated sizes as well
+    cells = [
+        elements.TableCell("head", 0.9, ((0.1, 0.6), (0.4, 0.65)), 0, 0, 0, 0),
+        elements.TableCell("body", 0.9, ((0.1, 0.66), (0.4, 0.71)), 1, 1, 0, 0),
+    ]
+    table = elements.Table(cells=cells, num_rows=2, num_cols=1, geometry=((0.1, 0.6), (0.4, 0.71)))
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8),
+        [elements.Block(lines=[_line_at("intro line", 0.1, 0.1, 0.9, 0.15)])],
+        0,
+        (1000, 800),
+        tables=[table],
+    )
+    xml = page.export_as_xml()[0].decode()
+    # row 0 spans y=0.6..0.65 -> 50px, row 1 spans y=0.66..0.71 -> 50px
+    assert "x_size 50; x_fsize 50;" in xml
+
+    predictions = {
+        CLASS_NAME: [elements.Prediction("hi", 0.9, ((0.1, 0.1), (0.9, 0.2)), 0.9, {"value": 0, "confidence": None})]
+    }
+    kie = elements.KIEPage(np.zeros((10, 10, 3), dtype=np.uint8), predictions, 0, (1000, 800))
+    xml = kie.export_as_xml()[0].decode()
+    assert "x_size 100; x_fsize 100;" in xml
+
+
 def _table_page(num_rows=2, num_cols=1, rotated=False):
     """A page with an intro line and one recognized table"""
     geo = ((0.1, 0.6), (0.4, 0.66), (0.4, 0.71), (0.1, 0.71)) if rotated else ((0.1, 0.6), (0.4, 0.71))
