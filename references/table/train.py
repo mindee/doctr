@@ -423,7 +423,7 @@ def main(args):
     global global_step
     global_step = 0
 
-    if args.wb:
+    if rank == 0 and args.wb:
         import wandb
 
         run = wandb.init(name=exp_name, project="table-structure-recognition", config=config)
@@ -435,7 +435,7 @@ def main(args):
                 **({"step_lr": lr} if lr is not None else {}),
             })
 
-    if args.clearml:
+    if rank == 0 and args.clearml:
         from clearml import Logger, Task
 
         task = Task.init(project_name="docTR/table-structure-recognition", task_name=exp_name, reuse_last_task_id=False)
@@ -456,9 +456,9 @@ def main(args):
 
     def log_at_step(train_loss=None, val_loss=None, lr=None):
         global global_step
-        if args.wb:
+        if args.wb and rank == 0:
             wandb_log_at_step(train_loss, val_loss, lr)
-        if args.clearml:
+        if args.clearml and rank == 0:
             clearml_log_at_step(train_loss, val_loss, lr)
         global_step += 1
 
