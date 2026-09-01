@@ -34,6 +34,8 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from ddp_utils import barrier_download, is_main_rank, reduce_sum, sync_val_metric
+
 from doctr import transforms as T
 from doctr.datasets import TableStructureDataset
 from doctr.models import table_structure
@@ -149,7 +151,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
     model.eval()
     val_metric.reset()
     val_loss, batch_cnt = 0, 0
-    pbar = tqdm(val_loader, dynamic_ncols=True)
+    pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -175,6 +177,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
         val_loss += out["loss"].item()
         batch_cnt += 1
 
+    val_loss, batch_cnt = reduce_sum([val_loss, float(batch_cnt)])
+    sync_val_metric(
+        val_metric,
+        counters=("num_gts", "num_preds", "matches", "struct_matches"),
+    )
     val_loss /= batch_cnt
     metrics = val_metric.summary()
     return val_loss, metrics["recall"], metrics["precision"], metrics["f1"], metrics["structure_acc"]
@@ -224,66 +231,74 @@ def main(args):
 
     # Validation data
     val_hash = None
+    st = time.time()
+    # Validation sample transforms (shared by both data sources)
+    val_sample_transforms = T.SampleCompose(
+        (
+            [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+            if not args.rotation or args.eval_straight
+            else []
+        )
+        + (
+            [
+                T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+            if args.rotation and not args.eval_straight
+            else []
+        )
+    )
+    val_set = TableStructureDataset(
+        img_folder=os.path.join(args.val_path, "images"),
+        label_path=os.path.join(args.val_path, "labels.json"),
+        sample_transforms=val_sample_transforms,
+        use_polygons=args.rotation and not args.eval_straight,
+    )
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        sampler=DistributedSampler(val_set, rank=rank, shuffle=False, drop_last=False)
+        if distributed
+        else SequentialSampler(val_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
+    )
     if rank == 0:
-        st = time.time()
-        # Validation sample transforms (shared by both data sources)
-        val_sample_transforms = T.SampleCompose(
-            (
-                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
-                if not args.rotation or args.eval_straight
-                else []
-            )
-            + (
-                [
-                    T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
-                    T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-                ]
-                if args.rotation and not args.eval_straight
-                else []
-            )
-        )
-        val_set = TableStructureDataset(
-            img_folder=os.path.join(args.val_path, "images"),
-            label_path=os.path.join(args.val_path, "labels.json"),
-            sample_transforms=val_sample_transforms,
-            use_polygons=args.rotation and not args.eval_straight,
-        )
-        val_loader = DataLoader(
-            val_set,
-            batch_size=args.batch_size,
-            drop_last=False,
-            num_workers=args.workers,
-            sampler=SequentialSampler(val_set),
-            pin_memory=torch.cuda.is_available(),
-            collate_fn=val_set.collate_fn,
-        )
         pbar.write(
             f"Validation set loaded in {time.time() - st:.4f}s ({len(val_set)} samples in {len(val_loader)} batches)"
         )
-        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-            val_hash = hashlib.sha256(f.read()).hexdigest()
+    with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
     batch_transforms = Normalize(mean=mean, std=std)
 
-    model = table_structure.__dict__[args.arch](pretrained=args.pretrained, assume_straight_pages=not args.rotation)
+    with barrier_download(rank, distributed):
+        model = table_structure.__dict__[args.arch](pretrained=args.pretrained, assume_straight_pages=not args.rotation)
+
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
         model.from_pretrained(args.resume)
 
-    if rank == 0:
-        val_metric = TableCellMetric(iou_thresh=args.iou_thresh, use_polygons=args.rotation and not args.eval_straight)
+    # Metrics
+    val_metric = TableCellMetric(iou_thresh=args.iou_thresh, use_polygons=args.rotation and not args.eval_straight)
 
-    if rank == 0 and args.test_only:
-        pbar.write("Running evaluation")
+    if args.test_only:
+        if rank == 0:
+            pbar.write("Running evaluation")
         model = model.to(device)
         val_loss, recall, precision, f1, struct = evaluate(
             model, val_loader, batch_transforms, val_metric, amp=args.amp
         )
-        pbar.write(
-            f"Validation loss: {val_loss:.6f} | Recall: {(recall or 0):.2%} | Precision: {(precision or 0):.2%} "
-            f"| F1: {(f1 or 0):.2%} | Structure acc: {(struct or 0):.2%}"
-        )
+        if rank == 0:
+            pbar.write(
+                f"Validation loss: {val_loss:.6f} | Recall: {(recall or 0):.2%} | Precision: {(precision or 0):.2%} "
+                f"| F1: {(f1 or 0):.2%} | Structure acc: {(struct or 0):.2%}"
+            )
+        if distributed:
+            dist.destroy_process_group()
         return
 
     st = time.time()
@@ -473,11 +488,13 @@ def main(args):
             model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
         )
 
+        # Validation loop at the end of each epoch
+        val_loss, recall, precision, f1, struct = evaluate(
+            model, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
+        )
+
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6f} | LR: {actual_lr:.6f}")
-            val_loss, recall, precision, f1, struct = evaluate(
-                model, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
-            )
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6f} --> {val_loss:.6f}: saving state...")
@@ -504,9 +521,11 @@ def main(args):
                     "f1": f1,
                     "structure_acc": struct,
                 })
-            if args.early_stop and early_stopper.early_stop(val_loss):
+
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            if rank == 0:
                 pbar.write("Training halted early due to reaching patience limit.")
-                break
+            break
 
     if rank == 0 and args.wb:
         run.finish()

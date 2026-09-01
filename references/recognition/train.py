@@ -31,6 +31,8 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from ddp_utils import barrier_download, is_main_rank, reduce_sum, sync_val_metric
+
 from doctr import datasets
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -162,7 +164,7 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    pbar = tqdm(val_loader, dynamic_ncols=True)
+    pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         images = images.to(device)
         images = batch_transforms(images)
@@ -185,6 +187,11 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         val_loss += out["loss"].item()
         batch_cnt += 1
 
+    val_loss, batch_cnt = reduce_sum([val_loss, float(batch_cnt)])
+    sync_val_metric(
+        val_metric,
+        counters=("raw", "caseless", "anyascii", "unicase", "total"),
+    )
     val_loss /= batch_cnt
     result = val_metric.summary()
     return val_loss, result["raw"], result["unicase"]
@@ -239,67 +246,69 @@ def main(args):
     vocab = VOCABS[args.vocab]
     fonts = args.font.split(",")
 
-    if rank == 0:
-        # Load val data generator
-        st = time.time()
-        if isinstance(args.val_path, str):
-            with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-                val_hash = hashlib.sha256(f.read()).hexdigest()
+    # Load val data generator
+    st = time.time()
+    if isinstance(args.val_path, str):
+        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+            val_hash = hashlib.sha256(f.read()).hexdigest()
 
-            val_set = RecognitionDataset(
-                img_folder=os.path.join(args.val_path, "images"),
-                labels_path=os.path.join(args.val_path, "labels.json"),
-                img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-            )
-        elif args.val_datasets:
-            val_hash = None
-            val_datasets = args.val_datasets
-
-            val_set = datasets.__dict__[val_datasets[0]](
-                train=False,
-                download=True,
-                recognition_task=True,
-                use_polygons=True,
-                img_transforms=Compose([
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Augmentations
-                    T.RandomApply(T.ColorInversion(), 0.1),
-                ]),
-            )
-            if len(val_datasets) > 1:
-                for dataset_name in val_datasets[1:]:
-                    _ds = datasets.__dict__[dataset_name](
-                        train=False,
-                        download=True,
-                        recognition_task=True,
-                        use_polygons=True,
-                    )
-                    val_set.data.extend((np_img, target) for np_img, target in _ds.data)
-        else:
-            val_hash = None
-            # Load synthetic data generator
-            val_set = WordGenerator(
-                vocab=vocab,
-                min_chars=args.min_chars,
-                max_chars=args.max_chars,
-                num_samples=args.val_samples * len(vocab),
-                font_family=fonts,
-                img_transforms=Compose([
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                ]),
-            )
-
-        val_loader = DataLoader(
-            val_set,
-            batch_size=args.batch_size,
-            drop_last=False,
-            num_workers=args.workers,
-            sampler=SequentialSampler(val_set),
-            pin_memory=torch.cuda.is_available(),
-            collate_fn=val_set.collate_fn,
+        val_set = RecognitionDataset(
+            img_folder=os.path.join(args.val_path, "images"),
+            labels_path=os.path.join(args.val_path, "labels.json"),
+            img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
         )
+    elif args.val_datasets:
+        val_hash = None
+        val_datasets = args.val_datasets
+
+        val_set = datasets.__dict__[val_datasets[0]](
+            train=False,
+            download=True,
+            recognition_task=True,
+            use_polygons=True,
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Augmentations
+                T.RandomApply(T.ColorInversion(), 0.1),
+            ]),
+        )
+        if len(val_datasets) > 1:
+            for dataset_name in val_datasets[1:]:
+                _ds = datasets.__dict__[dataset_name](
+                    train=False,
+                    download=True,
+                    recognition_task=True,
+                    use_polygons=True,
+                )
+                val_set.data.extend((np_img, target) for np_img, target in _ds.data)
+    else:
+        val_hash = None
+        # Load synthetic data generator
+        val_set = WordGenerator(
+            vocab=vocab,
+            min_chars=args.min_chars,
+            max_chars=args.max_chars,
+            num_samples=args.val_samples * len(vocab),
+            font_family=fonts,
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+            ]),
+        )
+
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        sampler=DistributedSampler(val_set, rank=rank, shuffle=False, drop_last=False)
+        if distributed
+        else SequentialSampler(val_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
+    )
+    if rank == 0:
         pbar.write(
             f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
         )
@@ -307,7 +316,8 @@ def main(args):
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
+    with barrier_download(rank, distributed):
+        model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -327,16 +337,19 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
-    if rank == 0:
-        # Metrics
-        val_metric = TextMatch()
+    # Metrics
+    val_metric = TextMatch()
 
-    if rank == 0 and args.test_only:
-        pbar.write("Running evaluation")
+    if args.test_only:
+        if rank == 0:
+            pbar.write("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(
             model, device, val_loader, batch_transforms, val_metric, amp=args.amp
         )
-        pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        if rank == 0:
+            pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        if distributed:
+            dist.destroy_process_group()
         return
 
     st = time.time()
@@ -573,13 +586,13 @@ def main(args):
             rank=rank,
         )
 
+        # Validation loop at the end of each epoch
+        val_loss, exact_match, partial_match = evaluate(
+            model, device, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
+        )
+
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
-
-            # Validation loop at the end of each epoch
-            val_loss, exact_match, partial_match = evaluate(
-                model, device, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
-            )
             if val_loss < min_loss:
                 # All processes should see same parameters as they all start from same
                 # random parameters and gradients are synchronized in backward passes.
@@ -616,9 +629,10 @@ def main(args):
                     title="Partial Match", series="partial_match", value=partial_match, iteration=epoch
                 )
 
-            if args.early_stop and early_stopper.early_stop(val_loss):
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            if rank == 0:
                 pbar.write("Training halted early due to reaching patience limit.")
-                break
+            break
 
     if rank == 0:
         if args.wb:

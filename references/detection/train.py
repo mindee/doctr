@@ -27,6 +27,8 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from ddp_utils import barrier_download, is_main_rank, reduce_sum, sync_val_metric
+
 from doctr import datasets
 from doctr import transforms as T
 from doctr.datasets import DetectionDataset
@@ -178,7 +180,7 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
     val_metric.reset()
     # Validation loop
     val_loss, batch_cnt = 0, 0
-    pbar = tqdm(val_loader, dynamic_ncols=True)
+    pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         if torch.cuda.is_available():
             images = images.cuda()
@@ -205,6 +207,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
         val_loss += out["loss"].item()
         batch_cnt += 1
 
+    val_loss, batch_cnt = reduce_sum([val_loss, float(batch_cnt)])
+    sync_val_metric(
+        val_metric,
+        counters=("num_gts", "num_preds", "matches", "tot_iou"),
+    )
     val_loss /= batch_cnt
     recall, precision, mean_iou = val_metric.summary()
     return val_loss, recall, precision, mean_iou
@@ -257,68 +264,71 @@ def main(args):
     torch.backends.cudnn.benchmark = True
     # placeholder for class names
     cls_container = [None]
+    # validation dataset related code
+    st = time.time()
+    # Validation sample transforms (shared by both data sources)
+    val_sample_transforms = T.SampleCompose(
+        (
+            [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
+            if not args.rotation or args.eval_straight
+            else []
+        )
+        + (
+            [
+                T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
+                T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
+            ]
+            if args.rotation and not args.eval_straight
+            else []
+        )
+    )
+    if args.val_path:
+        val_set = DetectionDataset(
+            img_folder=os.path.join(args.val_path, "images"),
+            label_path=os.path.join(args.val_path, "labels.json"),
+            sample_transforms=val_sample_transforms,
+            use_polygons=args.rotation and not args.eval_straight,
+        )
+        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+            val_hash = hashlib.sha256(f.read()).hexdigest()
+        cls_container[0] = val_set.class_names
+    else:
+        # Built-in datasets: load the first one and extend it with the remaining ones
+        val_datasets = args.val_datasets
+        val_set = datasets.__dict__[val_datasets[0]](
+            train=False,
+            download=True,
+            use_polygons=args.rotation and not args.eval_straight,
+            detection_task=True,
+            sample_transforms=val_sample_transforms,
+        )
+        if len(val_datasets) > 1:
+            for dataset_name in val_datasets[1:]:
+                _ds = datasets.__dict__[dataset_name](
+                    train=False,
+                    download=True,
+                    use_polygons=args.rotation and not args.eval_straight,
+                    detection_task=True,
+                )
+                # Use absolute image paths so they resolve against each dataset's own root
+                val_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
+        val_hash = None
+        # Built-in datasets only provide the default "words" class
+        cls_container[0] = [CLASS_NAME]
+
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        sampler=DistributedSampler(val_set, rank=rank, shuffle=False, drop_last=False)
+        if distributed
+        else SequentialSampler(val_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
+    )
     if rank == 0:
-        # validation dataset related code
-        st = time.time()
-        # Validation sample transforms (shared by both data sources)
-        val_sample_transforms = T.SampleCompose(
-            (
-                [T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True)]
-                if not args.rotation or args.eval_straight
-                else []
-            )
-            + (
-                [
-                    T.Resize(args.input_size, preserve_aspect_ratio=True),  # This does not pad
-                    T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                    T.Resize((args.input_size, args.input_size), preserve_aspect_ratio=True, symmetric_pad=True),
-                ]
-                if args.rotation and not args.eval_straight
-                else []
-            )
-        )
-        if args.val_path:
-            val_set = DetectionDataset(
-                img_folder=os.path.join(args.val_path, "images"),
-                label_path=os.path.join(args.val_path, "labels.json"),
-                sample_transforms=val_sample_transforms,
-                use_polygons=args.rotation and not args.eval_straight,
-            )
-            with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-                val_hash = hashlib.sha256(f.read()).hexdigest()
-            cls_container[0] = val_set.class_names
-        else:
-            # Built-in datasets: load the first one and extend it with the remaining ones
-            val_datasets = args.val_datasets
-            val_set = datasets.__dict__[val_datasets[0]](
-                train=False,
-                download=True,
-                use_polygons=args.rotation and not args.eval_straight,
-                detection_task=True,
-                sample_transforms=val_sample_transforms,
-            )
-            if len(val_datasets) > 1:
-                for dataset_name in val_datasets[1:]:
-                    _ds = datasets.__dict__[dataset_name](
-                        train=False,
-                        download=True,
-                        use_polygons=args.rotation and not args.eval_straight,
-                        detection_task=True,
-                    )
-                    # Use absolute image paths so they resolve against each dataset's own root
-                    val_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
-            val_hash = None
-            # Built-in datasets only provide the default "words" class
-            cls_container[0] = [CLASS_NAME]
-        val_loader = DataLoader(
-            val_set,
-            batch_size=args.batch_size,
-            drop_last=False,
-            num_workers=args.workers,
-            sampler=SequentialSampler(val_set),
-            pin_memory=torch.cuda.is_available(),
-            collate_fn=val_set.collate_fn,
-        )
         pbar.write(
             f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
         )
@@ -331,30 +341,34 @@ def main(args):
     batch_transforms = Normalize(mean=(0.798, 0.785, 0.772), std=(0.264, 0.2749, 0.287))
 
     # Load docTR model
-    model = detection.__dict__[args.arch](
-        pretrained=args.pretrained,
-        assume_straight_pages=not args.rotation,
-        class_names=class_names,
-    )
+    with barrier_download(rank, distributed):
+        model = detection.__dict__[args.arch](
+            pretrained=args.pretrained,
+            assume_straight_pages=not args.rotation,
+            class_names=class_names,
+        )
 
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
         model.from_pretrained(args.resume)
 
-    if rank == 0:
-        # Metrics
-        val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
+    # Metrics
+    val_metric = LocalizationConfusion(use_polygons=args.rotation and not args.eval_straight)
 
-    if rank == 0 and args.test_only:
-        pbar.write("Running evaluation")
+    if args.test_only:
+        if rank == 0:
+            pbar.write("Running evaluation")
         val_loss, recall, precision, mean_iou = evaluate(
             model, val_loader, batch_transforms, val_metric, args, amp=args.amp
         )
-        pbar.write(
-            f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
-            f"Mean IoU: {mean_iou:.2%})"
-        )
+        if rank == 0:
+            pbar.write(
+                f"Validation loss: {val_loss:.6} (Recall: {recall:.2%} | Precision: {precision:.2%} | "
+                f"Mean IoU: {mean_iou:.2%})"
+            )
+        if distributed:
+            dist.destroy_process_group()
         return
 
     st = time.time()
@@ -592,13 +606,13 @@ def main(args):
         train_loss, actual_lr = fit_one_epoch(
             model, train_loader, batch_transforms, optimizer, scheduler, amp=args.amp, log=log_at_step, rank=rank
         )
+        # Validation loop at the end of each epoch
+        val_loss, recall, precision, mean_iou = evaluate(
+            model, val_loader, batch_transforms, val_metric, args, amp=args.amp, log=log_at_step
+        )
+
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
-
-            # Validation loop at the end of each epoch
-            val_loss, recall, precision, mean_iou = evaluate(
-                model, val_loader, batch_transforms, val_metric, args, amp=args.amp, log=log_at_step
-            )
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
@@ -637,9 +651,10 @@ def main(args):
                 logger.report_scalar(title="Precision", series="precision", value=precision, iteration=epoch)
                 logger.report_scalar(title="Mean IoU", series="mean_iou", value=mean_iou, iteration=epoch)
 
-            if args.early_stop and early_stopper.early_stop(val_loss):
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            if rank == 0:
                 pbar.write("Training halted early due to reaching patience limit.")
-                break
+            break
 
     if rank == 0:
         if args.wb:
