@@ -1,22 +1,3 @@
-"""Helpers to keep every rank in lockstep during distributed training.
-
-The reference training scripts used to run validation on rank 0 only. Because the
-other ranks skipped the validation loop entirely, they marched straight into the next
-epoch and issued the gradient all-reduce of `fit_one_epoch` while rank 0 was still
-evaluating. NCCL's watchdog aborts a collective that waits longer than its timeout
-(600s by default), so any validation set that takes more than ~10 minutes killed the
-job with:
-
-    Watchdog caught collective operation timeout:
-    WorkNCCL(..., OpType=ALLREDUCE, ...) ran for 600067 milliseconds before timing out.
-
-The fix is to shard validation across all ranks and pool the results, so that every
-rank reaches every collective. As a bonus, validation wall-clock is divided by the
-number of ranks.
-"""
-
-from __future__ import annotations
-
 from collections.abc import Iterable, Sequence
 from typing import Any
 
