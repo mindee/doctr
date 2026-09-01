@@ -31,7 +31,7 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
-from ddp_utils import barrier_download, is_main_rank, reduce_sum, sync_val_metric
+from ddp_utils import ShardSampler, barrier_download, is_main_rank, reduce_sum, sync_val_metric
 
 from doctr import datasets
 from doctr import transforms as T
@@ -158,6 +158,9 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
 
 @torch.no_grad()
 def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False, log=None):
+    # Evaluate the underlying module: DDP's forward hooks add nothing under no_grad and
+    # would otherwise tie every rank to an identical number of batches.
+    model = model.module if hasattr(model, "module") else model
     # Model in eval mode
     model.eval()
     # Reset val metric
@@ -302,9 +305,8 @@ def main(args):
         batch_size=args.batch_size,
         drop_last=False,
         num_workers=args.workers,
-        sampler=DistributedSampler(val_set, rank=rank, shuffle=False, drop_last=False)
-        if distributed
-        else SequentialSampler(val_set),
+        # Shard without padding so no sample is validated twice (see ShardSampler)
+        sampler=ShardSampler(val_set, rank=rank) if distributed else SequentialSampler(val_set),
         pin_memory=torch.cuda.is_available(),
         collate_fn=val_set.collate_fn,
     )

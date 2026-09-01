@@ -1,10 +1,16 @@
-from collections.abc import Iterable, Sequence
+# Copyright (C) 2021-2026, Mindee.
+
+# This program is licensed under the Apache License 2.0.
+# See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
+
+from collections.abc import Iterable, Iterator, Sequence, Sized
 from typing import Any
 
 import torch
 import torch.distributed as dist
+from torch.utils.data import Sampler
 
-__all__ = ["ddp_device", "is_distributed", "is_main_rank", "reduce_sum", "sync_val_metric"]
+__all__ = ["ShardSampler", "ddp_device", "is_distributed", "is_main_rank", "reduce_sum", "sync_val_metric"]
 
 
 def is_distributed() -> bool:
@@ -82,3 +88,21 @@ def barrier_download(rank: int, distributed: bool):
             return False
 
     return _BarrierDownload()
+
+
+class ShardSampler(Sampler[int]):
+    """Split a dataset across ranks without padding, so no sample is evaluated twice"""
+
+    def __init__(self, dataset: Sized, rank: int | None = None, num_replicas: int | None = None):
+        if num_replicas is None:
+            num_replicas = dist.get_world_size() if is_distributed() else 1
+        if rank is None:
+            rank = dist.get_rank() if is_distributed() else 0
+        # Strided split: rank 0 takes 0, N, 2N - Every index appears on exactly one rank.
+        self.indices = list(range(rank, len(dataset), num_replicas))
+
+    def __iter__(self) -> Iterator[int]:
+        return iter(self.indices)
+
+    def __len__(self) -> int:
+        return len(self.indices)
