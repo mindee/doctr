@@ -166,7 +166,8 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
     # Reset val metric
     val_metric.reset()
     # Validation loop
-    val_loss, batch_cnt = 0, 0
+    # Weight by samples, not batches, so the result is independent of the sharding
+    val_loss, sample_cnt = 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         images = images.to(device)
@@ -187,15 +188,15 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         if log:
             log(val_loss=out["loss"].item())
 
-        val_loss += out["loss"].item()
-        batch_cnt += 1
+        val_loss += out["loss"].item() * images.shape[0]
+        sample_cnt += images.shape[0]
 
-    val_loss, batch_cnt = reduce_sum([val_loss, float(batch_cnt)])
+    val_loss, sample_cnt = reduce_sum([val_loss, float(sample_cnt)])
     sync_val_metric(
         val_metric,
         counters=("raw", "caseless", "anyascii", "unicase", "total"),
     )
-    val_loss /= batch_cnt
+    val_loss /= sample_cnt
     result = val_metric.summary()
     return val_loss, result["raw"], result["unicase"]
 
@@ -264,26 +265,27 @@ def main(args):
         val_hash = None
         val_datasets = args.val_datasets
 
-        val_set = datasets.__dict__[val_datasets[0]](
-            train=False,
-            download=True,
-            recognition_task=True,
-            use_polygons=True,
-            img_transforms=Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.1),
-            ]),
-        )
-        if len(val_datasets) > 1:
-            for dataset_name in val_datasets[1:]:
-                _ds = datasets.__dict__[dataset_name](
-                    train=False,
-                    download=True,
-                    recognition_task=True,
-                    use_polygons=True,
-                )
-                val_set.data.extend((np_img, target) for np_img, target in _ds.data)
+        with barrier_download(rank, distributed):
+            val_set = datasets.__dict__[val_datasets[0]](
+                train=False,
+                download=True,
+                recognition_task=True,
+                use_polygons=True,
+                img_transforms=Compose([
+                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                    # Augmentations
+                    T.RandomApply(T.ColorInversion(), 0.1),
+                ]),
+            )
+            if len(val_datasets) > 1:
+                for dataset_name in val_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=False,
+                        download=True,
+                        recognition_task=True,
+                        use_polygons=True,
+                    )
+                    val_set.data.extend((np_img, target) for np_img, target in _ds.data)
     else:
         val_hash = None
         # Load synthetic data generator
@@ -311,9 +313,8 @@ def main(args):
         collate_fn=val_set.collate_fn,
     )
     if rank == 0:
-        pbar.write(
-            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
-        )
+        batch_info = f"{len(val_loader)} batches/rank" if distributed else f"{len(val_loader)} batches"
+        pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {batch_info})")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
@@ -391,26 +392,27 @@ def main(args):
         train_hash = None
         train_datasets = args.train_datasets
 
-        train_set = datasets.__dict__[train_datasets[0]](
-            train=True,
-            download=True,
-            recognition_task=True,
-            use_polygons=True,
-            img_transforms=Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.1),
-            ]),
-        )
-        if len(train_datasets) > 1:
-            for dataset_name in train_datasets[1:]:
-                _ds = datasets.__dict__[dataset_name](
-                    train=True,
-                    download=True,
-                    recognition_task=True,
-                    use_polygons=True,
-                )
-                train_set.data.extend((np_img, target) for np_img, target in _ds.data)
+        with barrier_download(rank, distributed):
+            train_set = datasets.__dict__[train_datasets[0]](
+                train=True,
+                download=True,
+                recognition_task=True,
+                use_polygons=True,
+                img_transforms=Compose([
+                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                    # Augmentations
+                    T.RandomApply(T.ColorInversion(), 0.1),
+                ]),
+            )
+            if len(train_datasets) > 1:
+                for dataset_name in train_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=True,
+                        download=True,
+                        recognition_task=True,
+                        use_polygons=True,
+                    )
+                    train_set.data.extend((np_img, target) for np_img, target in _ds.data)
     else:
         train_hash = None
         # Load synthetic data generator
@@ -451,9 +453,14 @@ def main(args):
             f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
         )
 
-    if rank == 0 and args.show_samples:
-        x, target = next(iter(train_loader))
-        plot_samples(x, target)
+    if args.show_samples:
+        if rank == 0:
+            x, target = next(iter(train_loader))
+            plot_samples(x, target)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Optimizer
@@ -475,9 +482,21 @@ def main(args):
         )
 
     # LR finder
-    if rank == 0 and args.find_lr:
-        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
-        plot_recorder(lrs, losses)
+    if args.find_lr:
+        if rank == 0:
+            # Unwrap DDP: rank 0 runs alone here, gradient sync would deadlock
+            lrs, losses = record_lr(
+                model.module if hasattr(model, "module") else model,
+                train_loader,
+                batch_transforms,
+                optimizer,
+                amp=args.amp,
+            )
+            plot_recorder(lrs, losses)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Scheduler
@@ -642,6 +661,9 @@ def main(args):
 
         if args.push_to_hub:
             push_to_hf_hub(model, exp_name, task="recognition", run_config=args)
+
+    if distributed:
+        dist.destroy_process_group()
 
 
 def parse_args():

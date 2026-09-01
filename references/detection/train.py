@@ -182,7 +182,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
     # Reset val metric
     val_metric.reset()
     # Validation loop
-    val_loss, batch_cnt = 0, 0
+    # Weight by samples, not batches, so the result is independent of the sharding
+    val_loss, sample_cnt = 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         if torch.cuda.is_available():
@@ -207,15 +208,15 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
         if log:
             log(val_loss=out["loss"].item())
 
-        val_loss += out["loss"].item()
-        batch_cnt += 1
+        val_loss += out["loss"].item() * images.shape[0]
+        sample_cnt += images.shape[0]
 
-    val_loss, batch_cnt = reduce_sum([val_loss, float(batch_cnt)])
+    val_loss, sample_cnt = reduce_sum([val_loss, float(sample_cnt)])
     sync_val_metric(
         val_metric,
         counters=("num_gts", "num_preds", "matches", "tot_iou"),
     )
-    val_loss /= batch_cnt
+    val_loss /= sample_cnt
     recall, precision, mean_iou = val_metric.summary()
     return val_loss, recall, precision, mean_iou
 
@@ -299,23 +300,24 @@ def main(args):
     else:
         # Built-in datasets: load the first one and extend it with the remaining ones
         val_datasets = args.val_datasets
-        val_set = datasets.__dict__[val_datasets[0]](
-            train=False,
-            download=True,
-            use_polygons=args.rotation and not args.eval_straight,
-            detection_task=True,
-            sample_transforms=val_sample_transforms,
-        )
-        if len(val_datasets) > 1:
-            for dataset_name in val_datasets[1:]:
-                _ds = datasets.__dict__[dataset_name](
-                    train=False,
-                    download=True,
-                    use_polygons=args.rotation and not args.eval_straight,
-                    detection_task=True,
-                )
-                # Use absolute image paths so they resolve against each dataset's own root
-                val_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
+        with barrier_download(rank, distributed):
+            val_set = datasets.__dict__[val_datasets[0]](
+                train=False,
+                download=True,
+                use_polygons=args.rotation and not args.eval_straight,
+                detection_task=True,
+                sample_transforms=val_sample_transforms,
+            )
+            if len(val_datasets) > 1:
+                for dataset_name in val_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=False,
+                        download=True,
+                        use_polygons=args.rotation and not args.eval_straight,
+                        detection_task=True,
+                    )
+                    # Use absolute image paths so they resolve against each dataset's own root
+                    val_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
         val_hash = None
         # Built-in datasets only provide the default "words" class
         cls_container[0] = [CLASS_NAME]
@@ -331,9 +333,8 @@ def main(args):
         collate_fn=val_set.collate_fn,
     )
     if rank == 0:
-        pbar.write(
-            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
-        )
+        batch_info = f"{len(val_loader)} batches/rank" if distributed else f"{len(val_loader)} batches"
+        pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {batch_info})")
     if distributed:
         # broadcast class names to all ranks
         dist.broadcast_object_list(cls_container, src=0)
@@ -361,6 +362,10 @@ def main(args):
     if args.test_only:
         if rank == 0:
             pbar.write("Running evaluation")
+        # Only moved further down, past this early return
+        if torch.cuda.is_available():
+            torch.cuda.set_device(device)
+            model = model.to(device)
         val_loss, recall, precision, mean_iou = evaluate(
             model, val_loader, batch_transforms, val_metric, args, amp=args.amp
         )
@@ -430,24 +435,25 @@ def main(args):
     else:
         # Built-in datasets: load the first one and extend it with the remaining ones
         train_datasets = args.train_datasets
-        train_set = datasets.__dict__[train_datasets[0]](
-            train=True,
-            download=True,
-            use_polygons=args.rotation,
-            detection_task=True,
-            img_transforms=img_transforms,
-            sample_transforms=sample_transforms,
-        )
-        if len(train_datasets) > 1:
-            for dataset_name in train_datasets[1:]:
-                _ds = datasets.__dict__[dataset_name](
-                    train=True,
-                    download=True,
-                    use_polygons=args.rotation,
-                    detection_task=True,
-                )
-                # Use absolute image paths so they resolve against each dataset's own root
-                train_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
+        with barrier_download(rank, distributed):
+            train_set = datasets.__dict__[train_datasets[0]](
+                train=True,
+                download=True,
+                use_polygons=args.rotation,
+                detection_task=True,
+                img_transforms=img_transforms,
+                sample_transforms=sample_transforms,
+            )
+            if len(train_datasets) > 1:
+                for dataset_name in train_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=True,
+                        download=True,
+                        use_polygons=args.rotation,
+                        detection_task=True,
+                    )
+                    # Use absolute image paths so they resolve against each dataset's own root
+                    train_set.data.extend((os.path.join(_ds.root, name), target) for name, target in _ds.data)
         train_hash = None
 
     if distributed:
@@ -469,9 +475,14 @@ def main(args):
             f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
         )
 
-    if rank == 0 and args.show_samples:
-        x, target = next(iter(train_loader))
-        plot_samples(x, convert_to_multiclass_targets(target))
+    if args.show_samples:
+        if rank == 0:
+            x, target = next(iter(train_loader))
+            plot_samples(x, convert_to_multiclass_targets(target))
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Backbone freezing
@@ -505,9 +516,21 @@ def main(args):
         )
 
     # LR Finder
-    if rank == 0 and args.find_lr:
-        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
-        plot_recorder(lrs, losses)
+    if args.find_lr:
+        if rank == 0:
+            # Unwrap DDP: rank 0 runs alone here, gradient sync would deadlock
+            lrs, losses = record_lr(
+                model.module if hasattr(model, "module") else model,
+                train_loader,
+                batch_transforms,
+                optimizer,
+                amp=args.amp,
+            )
+            plot_recorder(lrs, losses)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Scheduler
@@ -664,6 +687,9 @@ def main(args):
 
         if args.push_to_hub:
             push_to_hf_hub(model, exp_name, task="detection", run_config=args)
+
+    if distributed:
+        dist.destroy_process_group()
 
 
 def parse_args():

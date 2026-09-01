@@ -10,7 +10,15 @@ import torch
 import torch.distributed as dist
 from torch.utils.data import Sampler
 
-__all__ = ["ShardSampler", "ddp_device", "is_distributed", "is_main_rank", "reduce_sum", "sync_val_metric"]
+__all__ = [
+    "ShardSampler",
+    "barrier_download",
+    "ddp_device",
+    "is_distributed",
+    "is_main_rank",
+    "reduce_sum",
+    "sync_val_metric",
+]
 
 
 def is_distributed() -> bool:

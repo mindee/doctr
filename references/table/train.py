@@ -153,7 +153,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
     model = model.module if hasattr(model, "module") else model
     model.eval()
     val_metric.reset()
-    val_loss, batch_cnt = 0, 0
+    # Weight by samples, not batches, so the result is independent of the sharding
+    val_loss, sample_cnt = 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         if torch.cuda.is_available():
@@ -177,15 +178,15 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
         pbar.set_description(f"Validation loss: {out['loss'].item():.6f}")
         if log:
             log(val_loss=out["loss"].item())
-        val_loss += out["loss"].item()
-        batch_cnt += 1
+        val_loss += out["loss"].item() * images.shape[0]
+        sample_cnt += images.shape[0]
 
-    val_loss, batch_cnt = reduce_sum([val_loss, float(batch_cnt)])
+    val_loss, sample_cnt = reduce_sum([val_loss, float(sample_cnt)])
     sync_val_metric(
         val_metric,
         counters=("num_gts", "num_preds", "matches", "struct_matches"),
     )
-    val_loss /= batch_cnt
+    val_loss /= sample_cnt
     metrics = val_metric.summary()
     return val_loss, metrics["recall"], metrics["precision"], metrics["f1"], metrics["structure_acc"]
 
@@ -268,9 +269,8 @@ def main(args):
         collate_fn=val_set.collate_fn,
     )
     if rank == 0:
-        pbar.write(
-            f"Validation set loaded in {time.time() - st:.4f}s ({len(val_set)} samples in {len(val_loader)} batches)"
-        )
+        batch_info = f"{len(val_loader)} batches/rank" if distributed else f"{len(val_loader)} batches"
+        pbar.write(f"Validation set loaded in {time.time() - st:.4f}s ({len(val_set)} samples in {batch_info})")
     with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
         val_hash = hashlib.sha256(f.read()).hexdigest()
 
@@ -289,7 +289,10 @@ def main(args):
     if args.test_only:
         if rank == 0:
             pbar.write("Running evaluation")
-        model = model.to(device)
+        # Only moved further down, past this early return
+        if torch.cuda.is_available():
+            torch.cuda.set_device(device)
+            model = model.to(device)
         val_loss, recall, precision, f1, struct = evaluate(
             model, val_loader, batch_transforms, val_metric, amp=args.amp
         )
@@ -365,9 +368,14 @@ def main(args):
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
 
-    if rank == 0 and args.show_samples:
-        images, targets = next(iter(train_loader))
-        plot_samples(images, targets)
+    if args.show_samples:
+        if rank == 0:
+            images, targets = next(iter(train_loader))
+            plot_samples(images, targets)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     if args.freeze_backbone:
@@ -389,9 +397,21 @@ def main(args):
         else torch.optim.Adam(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
     )
 
-    if rank == 0 and args.find_lr:
-        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
-        plot_recorder(lrs, losses)
+    if args.find_lr:
+        if rank == 0:
+            # Unwrap DDP: rank 0 runs alone here, gradient sync would deadlock
+            lrs, losses = record_lr(
+                model.module if hasattr(model, "module") else model,
+                train_loader,
+                batch_transforms,
+                optimizer,
+                amp=args.amp,
+            )
+            plot_recorder(lrs, losses)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     total_steps = args.epochs * len(train_loader)
