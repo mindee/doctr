@@ -34,6 +34,8 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from ddp_utils import ShardSampler, barrier_download, is_main_rank, reduce_sum, sync_val_metric
+
 from doctr import transforms as T
 from doctr.datasets import LayoutDataset
 from doctr.models import layout, login_to_hub, push_to_hf_hub
@@ -163,13 +165,17 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
 
 @torch.no_grad()
 def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=None):
+    # Evaluate the underlying module: DDP's forward hooks add nothing under no_grad and
+    # would otherwise tie every rank to an identical number of batches.
+    model = model.module if hasattr(model, "module") else model
     # Model in eval mode
     model.eval()
     # Reset val metric
     val_metric.reset()
     # Validation loop
-    val_loss, batch_cnt = 0, 0
-    pbar = tqdm(val_loader, dynamic_ncols=True)
+    # Weight by samples, not batches, so the result is independent of the sharding
+    val_loss, sample_cnt = 0, 0
+    pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         imgs, padding_masks = images
         if torch.cuda.is_available():
@@ -200,10 +206,15 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False, log=Non
         if log:
             log(val_loss=out["loss"].item())
 
-        val_loss += out["loss"].item()
-        batch_cnt += 1
+        val_loss += out["loss"].item() * imgs.shape[0]
+        sample_cnt += imgs.shape[0]
 
-    val_loss /= batch_cnt
+    val_loss, sample_cnt = reduce_sum([val_loss, float(sample_cnt)])
+    sync_val_metric(
+        val_metric,
+        buffers=("_gts", "_preds"),
+    )
+    val_loss /= sample_cnt
     metrics = val_metric.summary()
     return (
         val_loss,
@@ -268,61 +279,61 @@ def main(args):
 
     # placeholder for class names
     cls_container = [None]
+    # validation dataset related code
+    st = time.time()
+    val_set = LayoutDataset(
+        img_folder=os.path.join(args.val_path, "images"),
+        label_path=os.path.join(args.val_path, "labels.json"),
+        sample_transforms=T.SampleCompose(
+            (
+                # Important to return padding masks for layout models
+                [
+                    T.Resize(
+                        (args.input_size, args.input_size),
+                        preserve_aspect_ratio=True,
+                        symmetric_pad=True,
+                        return_padding_mask=True,
+                    )
+                ]
+                if not args.rotation or args.eval_straight
+                else []
+            )
+            + (
+                [
+                    T.Resize(
+                        args.input_size, preserve_aspect_ratio=True, return_padding_mask=True
+                    ),  # This does not pad
+                    T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
+                    T.Resize(
+                        (args.input_size, args.input_size),
+                        preserve_aspect_ratio=True,
+                        symmetric_pad=True,
+                        return_padding_mask=True,
+                    ),
+                ]
+                if args.rotation and not args.eval_straight
+                else []
+            )
+        ),
+        use_polygons=args.rotation and not args.eval_straight,
+    )
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        # Shard without padding so no sample is validated twice (see ShardSampler)
+        sampler=ShardSampler(val_set, rank=rank) if distributed else SequentialSampler(val_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
+    )
     if rank == 0:
-        # validation dataset related code
-        st = time.time()
-        val_set = LayoutDataset(
-            img_folder=os.path.join(args.val_path, "images"),
-            label_path=os.path.join(args.val_path, "labels.json"),
-            sample_transforms=T.SampleCompose(
-                (
-                    # Important to return padding masks for layout models
-                    [
-                        T.Resize(
-                            (args.input_size, args.input_size),
-                            preserve_aspect_ratio=True,
-                            symmetric_pad=True,
-                            return_padding_mask=True,
-                        )
-                    ]
-                    if not args.rotation or args.eval_straight
-                    else []
-                )
-                + (
-                    [
-                        T.Resize(
-                            args.input_size, preserve_aspect_ratio=True, return_padding_mask=True
-                        ),  # This does not pad
-                        T.RandomApply(T.RandomRotate(90, expand=True), 0.5),
-                        T.Resize(
-                            (args.input_size, args.input_size),
-                            preserve_aspect_ratio=True,
-                            symmetric_pad=True,
-                            return_padding_mask=True,
-                        ),
-                    ]
-                    if args.rotation and not args.eval_straight
-                    else []
-                )
-            ),
-            use_polygons=args.rotation and not args.eval_straight,
-        )
-        val_loader = DataLoader(
-            val_set,
-            batch_size=args.batch_size,
-            drop_last=False,
-            num_workers=args.workers,
-            sampler=SequentialSampler(val_set),
-            pin_memory=torch.cuda.is_available(),
-            collate_fn=val_set.collate_fn,
-        )
-        pbar.write(
-            f"Validation set loaded in {time.time() - st:.4f}s ({len(val_set)} samples in {len(val_loader)} batches)"
-        )
-        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-            val_hash = hashlib.sha256(f.read()).hexdigest()
+        batch_info = f"{len(val_loader)} batches/rank" if distributed else f"{len(val_loader)} batches"
+        pbar.write(f"Validation set loaded in {time.time() - st:.4f}s ({len(val_set)} samples in {batch_info})")
+    with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+        val_hash = hashlib.sha256(f.read()).hexdigest()
 
-        cls_container[0] = val_set.class_names
+    cls_container[0] = val_set.class_names
     if distributed:
         # broadcast class names to all ranks
         dist.broadcast_object_list(cls_container, src=0)
@@ -332,26 +343,31 @@ def main(args):
     batch_transforms = Normalize(mean=mean, std=std)
 
     # Load docTR model
-    model = layout.__dict__[args.arch](
-        pretrained=args.pretrained,
-        assume_straight_pages=not args.rotation,
-        class_names=class_names,
-    )
+    with barrier_download(rank, distributed):
+        model = layout.__dict__[args.arch](
+            pretrained=args.pretrained,
+            assume_straight_pages=not args.rotation,
+            class_names=class_names,
+        )
 
     # Resume weights
     if isinstance(args.resume, str):
         pbar.write(f"Resuming {args.resume}")
         model.from_pretrained(args.resume)
 
-    if rank == 0:
-        # Metrics
-        val_metric = ObjectDetectionMetric(
-            num_classes=len(class_names),
-            use_polygons=args.rotation and not args.eval_straight,
-        )
+    # Metrics
+    val_metric = ObjectDetectionMetric(
+        num_classes=len(class_names),
+        use_polygons=args.rotation and not args.eval_straight,
+    )
 
-    if rank == 0 and args.test_only:
-        pbar.write("Running evaluation")
+    if args.test_only:
+        if rank == 0:
+            pbar.write("Running evaluation")
+        # Only moved further down, past this early return
+        if torch.cuda.is_available():
+            torch.cuda.set_device(device)
+            model = model.to(device)
         val_loss, map5095, ap50, ap75 = evaluate(
             model,
             val_loader,
@@ -359,12 +375,15 @@ def main(args):
             val_metric,
             amp=args.amp,
         )
-        pbar.write(
-            f"Validation loss: {val_loss:.6f} | "
-            f"mAP@[.5:.95]: {map5095:.2%} | "
-            f"AP@[.5]: {ap50:.2%} | "
-            f"AP@[.75]: {ap75:.2%}"
-        )
+        if rank == 0:
+            pbar.write(
+                f"Validation loss: {val_loss:.6f} | "
+                f"mAP@[.5:.95]: {map5095:.2%} | "
+                f"AP@[.5]: {ap50:.2%} | "
+                f"AP@[.75]: {ap75:.2%}"
+            )
+        if distributed:
+            dist.destroy_process_group()
         return
 
     st = time.time()
@@ -460,10 +479,15 @@ def main(args):
     with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
         train_hash = hashlib.sha256(f.read()).hexdigest()
 
-    if rank == 0 and args.show_samples:
-        x, target = next(iter(train_loader))
-        img, masks = x
-        plot_samples(img, target, masks)
+    if args.show_samples:
+        if rank == 0:
+            x, target = next(iter(train_loader))
+            img, masks = x
+            plot_samples(img, target, masks)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Backbone freezing
@@ -493,9 +517,21 @@ def main(args):
         optimizer = torch.optim.AdamW(param_groups, lr=args.lr, betas=(0.9, 0.999), eps=1e-8)
 
     # LR Finder
-    if rank == 0 and args.find_lr:
-        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
-        plot_recorder(lrs, losses)
+    if args.find_lr:
+        if rank == 0:
+            # Unwrap DDP: rank 0 runs alone here, gradient sync would deadlock
+            lrs, losses = record_lr(
+                model.module if hasattr(model, "module") else model,
+                train_loader,
+                batch_transforms,
+                optimizer,
+                amp=args.amp,
+            )
+            plot_recorder(lrs, losses)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Scheduler
@@ -648,19 +684,18 @@ def main(args):
             log=log_at_step,
             rank=rank,
         )
+        # Validation loop at the end of each epoch
+        val_loss, map5095, ap50, ap75 = evaluate(
+            model,
+            val_loader,
+            batch_transforms,
+            val_metric,
+            amp=args.amp,
+            log=log_at_step,
+        )
 
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6f} | LR: {actual_lr:.6f}")
-
-            # Validation loop at the end of each epoch
-            val_loss, map5095, ap50, ap75 = evaluate(
-                model,
-                val_loader,
-                batch_transforms,
-                val_metric,
-                amp=args.amp,
-                log=log_at_step,
-            )
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6f} --> {val_loss:.6f}: saving state...")
@@ -698,15 +733,20 @@ def main(args):
                 logger.report_scalar(title="AP@[.5]", series="AP@[.5]", value=ap50, iteration=epoch)
                 logger.report_scalar(title="AP@[.75]", series="AP@[.75]", value=ap75, iteration=epoch)
 
-            if args.early_stop and early_stopper.early_stop(val_loss):
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            if rank == 0:
                 pbar.write("Training halted early due to reaching patience limit.")
-                break
+            break
 
-    if rank == 0 and args.wb:
-        run.finish()
+    if rank == 0:
+        if args.wb:
+            run.finish()
 
         if args.push_to_hub:
             push_to_hf_hub(model, exp_name, task="layout", run_config=args)
+
+    if distributed:
+        dist.destroy_process_group()
 
 
 def parse_args():

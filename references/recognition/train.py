@@ -31,6 +31,8 @@ if os.getenv("TQDM_SLACK_TOKEN") and os.getenv("TQDM_SLACK_CHANNEL"):
 else:
     from tqdm.auto import tqdm
 
+from ddp_utils import ShardSampler, barrier_download, is_main_rank, reduce_sum, sync_val_metric
+
 from doctr import datasets
 from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
@@ -156,13 +158,17 @@ def fit_one_epoch(model, device, train_loader, batch_transforms, optimizer, sche
 
 @torch.no_grad()
 def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False, log=None):
+    # Evaluate the underlying module: DDP's forward hooks add nothing under no_grad and
+    # would otherwise tie every rank to an identical number of batches.
+    model = model.module if hasattr(model, "module") else model
     # Model in eval mode
     model.eval()
     # Reset val metric
     val_metric.reset()
     # Validation loop
-    val_loss, batch_cnt = 0, 0
-    pbar = tqdm(val_loader, dynamic_ncols=True)
+    # Weight by samples, not batches, so the result is independent of the sharding
+    val_loss, sample_cnt = 0, 0
+    pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
         images = images.to(device)
         images = batch_transforms(images)
@@ -182,10 +188,15 @@ def evaluate(model, device, val_loader, batch_transforms, val_metric, amp=False,
         if log:
             log(val_loss=out["loss"].item())
 
-        val_loss += out["loss"].item()
-        batch_cnt += 1
+        val_loss += out["loss"].item() * images.shape[0]
+        sample_cnt += images.shape[0]
 
-    val_loss /= batch_cnt
+    val_loss, sample_cnt = reduce_sum([val_loss, float(sample_cnt)])
+    sync_val_metric(
+        val_metric,
+        counters=("raw", "caseless", "anyascii", "unicase", "total"),
+    )
+    val_loss /= sample_cnt
     result = val_metric.summary()
     return val_loss, result["raw"], result["unicase"]
 
@@ -239,22 +250,22 @@ def main(args):
     vocab = VOCABS[args.vocab]
     fonts = args.font.split(",")
 
-    if rank == 0:
-        # Load val data generator
-        st = time.time()
-        if isinstance(args.val_path, str):
-            with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
-                val_hash = hashlib.sha256(f.read()).hexdigest()
+    # Load val data generator
+    st = time.time()
+    if isinstance(args.val_path, str):
+        with open(os.path.join(args.val_path, "labels.json"), "rb") as f:
+            val_hash = hashlib.sha256(f.read()).hexdigest()
 
-            val_set = RecognitionDataset(
-                img_folder=os.path.join(args.val_path, "images"),
-                labels_path=os.path.join(args.val_path, "labels.json"),
-                img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-            )
-        elif args.val_datasets:
-            val_hash = None
-            val_datasets = args.val_datasets
+        val_set = RecognitionDataset(
+            img_folder=os.path.join(args.val_path, "images"),
+            labels_path=os.path.join(args.val_path, "labels.json"),
+            img_transforms=T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+        )
+    elif args.val_datasets:
+        val_hash = None
+        val_datasets = args.val_datasets
 
+        with barrier_download(rank, distributed):
             val_set = datasets.__dict__[val_datasets[0]](
                 train=False,
                 download=True,
@@ -275,39 +286,41 @@ def main(args):
                         use_polygons=True,
                     )
                     val_set.data.extend((np_img, target) for np_img, target in _ds.data)
-        else:
-            val_hash = None
-            # Load synthetic data generator
-            val_set = WordGenerator(
-                vocab=vocab,
-                min_chars=args.min_chars,
-                max_chars=args.max_chars,
-                num_samples=args.val_samples * len(vocab),
-                font_family=fonts,
-                img_transforms=Compose([
-                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                    # Ensure we have a 90% split of white-background images
-                    T.RandomApply(T.ColorInversion(), 0.9),
-                ]),
-            )
+    else:
+        val_hash = None
+        # Load synthetic data generator
+        val_set = WordGenerator(
+            vocab=vocab,
+            min_chars=args.min_chars,
+            max_chars=args.max_chars,
+            num_samples=args.val_samples * len(vocab),
+            font_family=fonts,
+            img_transforms=Compose([
+                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                # Ensure we have a 90% split of white-background images
+                T.RandomApply(T.ColorInversion(), 0.9),
+            ]),
+        )
 
-        val_loader = DataLoader(
-            val_set,
-            batch_size=args.batch_size,
-            drop_last=False,
-            num_workers=args.workers,
-            sampler=SequentialSampler(val_set),
-            pin_memory=torch.cuda.is_available(),
-            collate_fn=val_set.collate_fn,
-        )
-        pbar.write(
-            f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)"
-        )
+    val_loader = DataLoader(
+        val_set,
+        batch_size=args.batch_size,
+        drop_last=False,
+        num_workers=args.workers,
+        # Shard without padding so no sample is validated twice (see ShardSampler)
+        sampler=ShardSampler(val_set, rank=rank) if distributed else SequentialSampler(val_set),
+        pin_memory=torch.cuda.is_available(),
+        collate_fn=val_set.collate_fn,
+    )
+    if rank == 0:
+        batch_info = f"{len(val_loader)} batches/rank" if distributed else f"{len(val_loader)} batches"
+        pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {batch_info})")
 
     batch_transforms = Normalize(mean=(0.694, 0.695, 0.693), std=(0.299, 0.296, 0.301))
 
     # Load doctr model
-    model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
+    with barrier_download(rank, distributed):
+        model = recognition.__dict__[args.arch](pretrained=args.pretrained, vocab=vocab)
 
     # Resume weights
     if isinstance(args.resume, str):
@@ -327,16 +340,19 @@ def main(args):
         # construct DDP model
         model = DDP(model, device_ids=[rank])
 
-    if rank == 0:
-        # Metrics
-        val_metric = TextMatch()
+    # Metrics
+    val_metric = TextMatch()
 
-    if rank == 0 and args.test_only:
-        pbar.write("Running evaluation")
+    if args.test_only:
+        if rank == 0:
+            pbar.write("Running evaluation")
         val_loss, exact_match, partial_match = evaluate(
             model, device, val_loader, batch_transforms, val_metric, amp=args.amp
         )
-        pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        if rank == 0:
+            pbar.write(f"Validation loss: {val_loss:.6} (Exact: {exact_match:.2%} | Partial: {partial_match:.2%})")
+        if distributed:
+            dist.destroy_process_group()
         return
 
     st = time.time()
@@ -376,26 +392,27 @@ def main(args):
         train_hash = None
         train_datasets = args.train_datasets
 
-        train_set = datasets.__dict__[train_datasets[0]](
-            train=True,
-            download=True,
-            recognition_task=True,
-            use_polygons=True,
-            img_transforms=Compose([
-                T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
-                # Augmentations
-                T.RandomApply(T.ColorInversion(), 0.1),
-            ]),
-        )
-        if len(train_datasets) > 1:
-            for dataset_name in train_datasets[1:]:
-                _ds = datasets.__dict__[dataset_name](
-                    train=True,
-                    download=True,
-                    recognition_task=True,
-                    use_polygons=True,
-                )
-                train_set.data.extend((np_img, target) for np_img, target in _ds.data)
+        with barrier_download(rank, distributed):
+            train_set = datasets.__dict__[train_datasets[0]](
+                train=True,
+                download=True,
+                recognition_task=True,
+                use_polygons=True,
+                img_transforms=Compose([
+                    T.Resize((args.input_size, 4 * args.input_size), preserve_aspect_ratio=True),
+                    # Augmentations
+                    T.RandomApply(T.ColorInversion(), 0.1),
+                ]),
+            )
+            if len(train_datasets) > 1:
+                for dataset_name in train_datasets[1:]:
+                    _ds = datasets.__dict__[dataset_name](
+                        train=True,
+                        download=True,
+                        recognition_task=True,
+                        use_polygons=True,
+                    )
+                    train_set.data.extend((np_img, target) for np_img, target in _ds.data)
     else:
         train_hash = None
         # Load synthetic data generator
@@ -436,9 +453,14 @@ def main(args):
             f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)"
         )
 
-    if rank == 0 and args.show_samples:
-        x, target = next(iter(train_loader))
-        plot_samples(x, target)
+    if args.show_samples:
+        if rank == 0:
+            x, target = next(iter(train_loader))
+            plot_samples(x, target)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Optimizer
@@ -460,9 +482,21 @@ def main(args):
         )
 
     # LR finder
-    if rank == 0 and args.find_lr:
-        lrs, losses = record_lr(model, train_loader, batch_transforms, optimizer, amp=args.amp)
-        plot_recorder(lrs, losses)
+    if args.find_lr:
+        if rank == 0:
+            # Unwrap DDP: rank 0 runs alone here, gradient sync would deadlock
+            lrs, losses = record_lr(
+                model.module if hasattr(model, "module") else model,
+                train_loader,
+                batch_transforms,
+                optimizer,
+                amp=args.amp,
+            )
+            plot_recorder(lrs, losses)
+        # Rank 0 arrives late here, so rendezvous before every rank leaves
+        if distributed:
+            dist.barrier()
+            dist.destroy_process_group()
         return
 
     # Scheduler
@@ -573,13 +607,13 @@ def main(args):
             rank=rank,
         )
 
+        # Validation loop at the end of each epoch
+        val_loss, exact_match, partial_match = evaluate(
+            model, device, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
+        )
+
         if rank == 0:
             pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Training loss: {train_loss:.6} | LR: {actual_lr:.6}")
-
-            # Validation loop at the end of each epoch
-            val_loss, exact_match, partial_match = evaluate(
-                model, device, val_loader, batch_transforms, val_metric, amp=args.amp, log=log_at_step
-            )
             if val_loss < min_loss:
                 # All processes should see same parameters as they all start from same
                 # random parameters and gradients are synchronized in backward passes.
@@ -616,9 +650,10 @@ def main(args):
                     title="Partial Match", series="partial_match", value=partial_match, iteration=epoch
                 )
 
-            if args.early_stop and early_stopper.early_stop(val_loss):
+        if args.early_stop and early_stopper.early_stop(val_loss):
+            if rank == 0:
                 pbar.write("Training halted early due to reaching patience limit.")
-                break
+            break
 
     if rank == 0:
         if args.wb:
@@ -626,6 +661,9 @@ def main(args):
 
         if args.push_to_hub:
             push_to_hf_hub(model, exp_name, task="recognition", run_config=args)
+
+    if distributed:
+        dist.destroy_process_group()
 
 
 def parse_args():
