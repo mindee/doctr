@@ -233,9 +233,9 @@ def main(args):
     # GPU setup
     if distributed:
         rank = int(os.environ.get("LOCAL_RANK", 0))
-        dist.init_process_group(backend=args.backend)
         device = torch.device("cuda", rank)
         torch.cuda.set_device(device)
+        dist.init_process_group(backend=args.backend, device_id=device)
     else:
         # single process
         rank = 0
