@@ -84,15 +84,21 @@ def sync_val_metric(
 def barrier_download(rank: int, distributed: bool):
     """Context manager that lets rank 0 populate the docTR cache before the others read it"""
 
+    def _barrier():
+        if torch.cuda.is_available() and dist.get_backend() == "nccl":
+            dist.barrier(device_ids=[torch.cuda.current_device()])
+        else:
+            dist.barrier()
+
     class _BarrierDownload:
         def __enter__(self):
             if distributed and rank != 0:
-                dist.barrier()  # wait for rank 0 to finish downloading
+                _barrier()  # wait for rank 0 to finish downloading
             return self
 
         def __exit__(self, *exc_info):
             if distributed and rank == 0:
-                dist.barrier()  # release the other ranks
+                _barrier()  # release the other ranks
             return False
 
     return _BarrierDownload()
