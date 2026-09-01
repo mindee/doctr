@@ -177,3 +177,47 @@ page, so exporting one page to several formats orders it only once.
 .. autofunction:: doctr.io.exporters.predictions_in_reading_order
 
 .. autofunction:: doctr.io.exporters.to_json_safe
+
+Figures
+-------
+
+When the predictor runs with ``detect_layout=True``, the figures found by the layout model take part in the
+reading order and are materialized by the Markdown, AsciiDoc and HTML exports. How they are materialized is
+controlled by the ``images`` argument, which accepts either an image mode or a configured
+:class:`FigureEncoder`:
+
+* ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels
+* ``'none'``: the figures are dropped entirely
+* ``'embedded'``: each figure is cropped out of the page and inlined as a base64 data URI
+* ``'referenced'``: each crop is written next to the export and referenced by a relative path
+
+.. code:: python
+
+    from doctr.io import DocumentFile, FigureEncoder
+    from doctr.models import ocr_predictor
+
+    predictor = ocr_predictor(pretrained=True, detect_layout=True)
+    doc = predictor(DocumentFile.from_pdf("report.pdf"))
+
+    # A self-contained Markdown file
+    markdown = doc.export_as_markdown(images="embedded")
+    # ... or one that points at the crops on disk
+    markdown = doc.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets", path_prefix="assets/"))
+
+A caption detected next to a figure becomes its alternative text (and its ``<figcaption>`` in HTML) as soon as
+the export carries the pixels. Plain text and the hOCR export never inline an image: hOCR positions each figure
+as an ``ocr_photo`` area instead. Pages restored from a JSON export carry no pixels, so their figures fall back
+to a placeholder.
+
+.. autoclass:: FigureEncoder
+    :members: resolve, source, enabled, materializes, materializes_on
+
+.. autofunction:: crop_layout_region
+
+.. autofunction:: encode_crop
+
+.. autofunction:: picture_regions
+
+.. autofunction:: is_picture_region
+
+.. autofunction:: is_picture_label
