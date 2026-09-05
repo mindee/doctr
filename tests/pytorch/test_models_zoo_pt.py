@@ -124,6 +124,47 @@ def test_ocrpredictor(
     assert out.pages[0].orientation["value"] == orientation
 
 
+def test_predictors_on_empty_batch(mock_vocab):
+    """An empty page list must yield an empty Document instead of raising.
+
+    Filtering a batch down to nothing is ordinary caller code, and
+    `RecognitionPredictor` (and `OrientationPredictor` since #2069) already
+    return empty results for it. The detection and end-to-end predictors did
+    not, so they crashed deep in the stack -- `IndexError` from `samples[0]` in
+    `PreProcessor.batch_inputs`, then `ValueError` from `zip(*...)` in
+    `detach_scores`, then `IndexError` from `x[0]` in `invert_data_structure`
+    on the KIE path -- none of which names the empty input.
+    """
+    det_predictor = DetectionPredictor(
+        PreProcessor(output_size=(512, 512), batch_size=2),
+        detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, assume_straight_pages=True),
+    )
+    reco_predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        recognition.crnn_vgg16_bn(pretrained=False, pretrained_backbone=False, vocab=mock_vocab),
+    )
+
+    # Detection keeps the shape its `return_maps` contract promises.
+    assert det_predictor([]) == []
+    assert det_predictor([], return_maps=True) == ([], [])
+
+    # The recognition predictor already behaved; asserted here so the three
+    # stay consistent if one of them is touched again.
+    assert reco_predictor([]) == []
+
+    for predictor, expected_type in (
+        (OCRPredictor(det_predictor, reco_predictor, assume_straight_pages=True), Document),
+        (KIEPredictor(det_predictor, reco_predictor, assume_straight_pages=True), KIEDocument),
+    ):
+        out = predictor([])
+        # Exact type, not isinstance: KIEDocument subclasses Document, so an
+        # isinstance check would not notice the KIE path degrading to the base
+        # class and dropping the per-class prediction shape.
+        assert type(out) is expected_type
+        assert out.pages == []
+        assert out.export() == {"pages": []}
+
+
 def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=2),
