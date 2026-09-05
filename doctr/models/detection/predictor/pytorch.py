@@ -40,6 +40,9 @@ class DetectionPredictor(nn.Module):
         return_maps: bool = False,
         **kwargs: Any,
     ) -> list[dict[str, np.ndarray]] | tuple[list[dict[str, np.ndarray]], list[np.ndarray]]:
+        if len(pages) == 0:
+            return ([], []) if return_maps else []
+
         # Extract parameters from the preprocessor
         preserve_aspect_ratio = self.pre_processor.resize.preserve_aspect_ratio
         symmetric_pad = self.pre_processor.resize.symmetric_pad

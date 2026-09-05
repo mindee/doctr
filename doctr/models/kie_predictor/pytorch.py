@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from doctr.io.elements import Document
+from doctr.io.elements import Document, KIEDocument
 from doctr.models._utils import get_language, invert_data_structure
 from doctr.models.detection.predictor import DetectionPredictor
 from doctr.models.layout.predictor import LayoutPredictor
@@ -79,6 +79,9 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         pages: list[np.ndarray],
         **kwargs: Any,
     ) -> Document:
+        if len(pages) == 0:
+            return KIEDocument(pages=[])
+
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
