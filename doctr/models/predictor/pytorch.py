@@ -93,6 +93,9 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         pages: list[np.ndarray],
         **kwargs: Any,
     ) -> Document:
+        if len(pages) == 0:
+            return Document(pages=[])
+
         # Dimension check
         if any(page.ndim != 3 for page in pages):
             raise ValueError("incorrect input shape: all pages are expected to be multi-channel 2D images.")
