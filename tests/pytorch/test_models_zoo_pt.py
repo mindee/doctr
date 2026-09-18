@@ -125,16 +125,6 @@ def test_ocrpredictor(
 
 
 def test_predictors_on_empty_batch(mock_vocab):
-    """An empty page list must yield an empty Document instead of raising.
-
-    Filtering a batch down to nothing is ordinary caller code, and
-    `RecognitionPredictor` (and `OrientationPredictor` since #2069) already
-    return empty results for it. The detection and end-to-end predictors did
-    not, so they crashed deep in the stack -- `IndexError` from `samples[0]` in
-    `PreProcessor.batch_inputs`, then `ValueError` from `zip(*...)` in
-    `detach_scores`, then `IndexError` from `x[0]` in `invert_data_structure`
-    on the KIE path -- none of which names the empty input.
-    """
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=2),
         detection.db_mobilenet_v3_large(pretrained=False, pretrained_backbone=False, assume_straight_pages=True),
