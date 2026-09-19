@@ -148,6 +148,7 @@ class _FAST(BaseModel):
     """
 
     min_size_box: int = 3
+    mask_empty_classes: bool = True
     assume_straight_pages: bool = True
     shrink_ratio = 0.4
 
@@ -183,8 +184,10 @@ class _FAST(BaseModel):
         for idx, tgt in enumerate(target):
             for class_idx, _tgt in enumerate(tgt.values()):
                 # Draw each polygon on gt
-                if _tgt.shape[0] == 0:
-                    # Empty image, full masked
+                if _tgt.shape[0] == 0 and self.mask_empty_classes:
+                    # No box for this class: ignore the channel entirely (the class may simply be unannotated).
+                    # With `mask_empty_classes=False` the channel is kept as supervised background instead,
+                    # which is what exhaustive (KIE-style) annotations call for.
                     seg_mask[idx, class_idx] = False
 
                 # Absolute bounding boxes

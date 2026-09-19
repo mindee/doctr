@@ -106,6 +106,8 @@ class DBNet(_DBNet, nn.Module):
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
         class_names: list of class names
+        mask_empty_classes: if True (default), a class without any box in a sample is ignored in the loss.
+            Set it to False when annotations are exhaustive so that an absent class is learnt as background.
     """
 
     def __init__(
@@ -119,9 +121,11 @@ class DBNet(_DBNet, nn.Module):
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
         class_names: list[str] = [CLASS_NAME],
+        mask_empty_classes: bool = True,
     ) -> None:
         super().__init__()
         self.class_names = class_names
+        self.mask_empty_classes = mask_empty_classes
         num_classes: int = len(self.class_names)
         self.cfg = cfg
 

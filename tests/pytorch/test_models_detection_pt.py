@@ -224,3 +224,33 @@ def test_torch_compiled_models(arch_name, mock_payslip):
     assert all(
         np.allclose(seg_map, compiled_seg_map, atol=1e-4) for seg_map, compiled_seg_map in zip(seg_maps, seg_maps)
     )
+
+
+@pytest.mark.parametrize("arch_name", ["db_mobilenet_v3_large", "fast_tiny"])
+@pytest.mark.parametrize("mask_empty_classes", [True, False])
+def test_detection_multiclass_empty_class_target(arch_name, mask_empty_classes):
+    class_names = ["cuenta", "fecha", "valor"]
+    model = detection.__dict__[arch_name](
+        pretrained=False, class_names=class_names, mask_empty_classes=mask_empty_classes
+    ).train()
+    assert model.mask_empty_classes is mask_empty_classes
+    box = np.array([[0.1, 0.1, 0.5, 0.3]], dtype=np.float32)
+    empty = np.zeros((0, 4), dtype=np.float32)
+    target = [
+        {"cuenta": box, "fecha": empty, "valor": box},
+        {"cuenta": empty, "fecha": empty, "valor": empty},  # document without any field
+    ]
+
+    built = model.build_target(target, (len(class_names), 128, 128))
+    seg_target, seg_mask = built[0], built[1]
+    assert seg_target.shape == seg_mask.shape == (2, 3, 128, 128)
+    # Channels with boxes are supervised and contain positives
+    assert seg_mask[0, 0].all() and seg_target[0, 0].any()
+    # Channels without boxes: ignored by default, supervised as background when annotations are exhaustive
+    assert not seg_target[0, 1].any() and not seg_target[1].any()
+    assert seg_mask[0, 1].any() is np.bool_(not mask_empty_classes)
+    assert seg_mask[1].any() is np.bool_(not mask_empty_classes)
+
+    out = model(torch.rand((2, 3, 128, 128)), target)
+    assert torch.isfinite(out["loss"])
+    out["loss"].backward()

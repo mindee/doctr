@@ -218,20 +218,28 @@ def crop_bboxes_from_image(img_path: str | Path, geoms: np.ndarray) -> list[np.n
     raise ValueError("Invalid geometry format")
 
 
-def pre_transform_multiclass(img, target: tuple[np.ndarray, list]) -> tuple[np.ndarray, dict[str, list]]:
+def pre_transform_multiclass(
+    img, target: tuple[np.ndarray, list], class_names: list[str] | None = None
+) -> tuple[np.ndarray, dict[str, np.ndarray]]:
     """Converts multiclass target to relative coordinates.
 
     Args:
         img: Image
         target: tuple of target polygons and their classes names
+        class_names: if given, the returned dictionary contains exactly these classes, in this order.
+            Classes without any box in this sample map to an empty array. This keeps the class -> channel
+            mapping stable across samples, which the detection models rely on.
 
     Returns:
         Image and dictionary of boxes, with class names as keys
     """
     boxes = convert_to_relative_coords(target[0], get_img_shape(img))
     boxes_classes = target[1]
-    boxes_dict: dict = {k: [] for k in sorted(set(boxes_classes))}
+    keys = list(class_names) if class_names is not None else sorted(set(boxes_classes))
+    boxes_dict: dict[str, list] = {k: [] for k in keys}
     for k, poly in zip(boxes_classes, boxes):
+        if k not in boxes_dict:
+            raise ValueError(f"unknown class '{k}', expected one of {keys}")
         boxes_dict[k].append(poly)
-    boxes_dict = {k: np.stack(v, axis=0) for k, v in boxes_dict.items()}
-    return img, boxes_dict
+    empty = np.zeros((0, *boxes.shape[1:]), dtype=boxes.dtype)
+    return img, {k: np.stack(v, axis=0) if v else empty for k, v in boxes_dict.items()}

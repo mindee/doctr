@@ -118,6 +118,10 @@ labels.json
 }
 ```
 
+Every class must appear in **every** `labels.json` (train and val); use an empty list for a class that has no box in a given image. The class → channel mapping is derived from the sorted set of class names, and the script aborts if train and val expose different classes.
+
+By default a class without any box in an image is *ignored* by the loss (the image may simply not be annotated for it). When your annotations are exhaustive, i.e. "no box" means "this class is not on the page", pass `--exhaustive-labels` so the absence is learnt as background.
+
 ## Slack Logging with tqdm
 
 To enable Slack logging using `tqdm`, you need to set the following environment variables:
