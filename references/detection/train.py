@@ -349,6 +349,8 @@ def main(args):
             pretrained=args.pretrained,
             assume_straight_pages=not args.rotation,
             class_names=class_names,
+            # With exhaustive annotations a class without box in a page is a true negative, not "unannotated"
+            mask_empty_classes=not args.exhaustive_labels,
         )
 
     # Resume weights
@@ -432,6 +434,11 @@ def main(args):
         )
         with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
             train_hash = hashlib.sha256(f.read()).hexdigest()
+        if train_set.class_names != class_names:
+            raise ValueError(
+                f"train and validation sets expose different classes: {train_set.class_names} vs {class_names}. "
+                "Every class must appear in both labels.json files (use an empty list for images without it)."
+            )
     else:
         # Built-in datasets: load the first one and extend it with the remaining ones
         train_datasets = args.train_datasets
@@ -756,6 +763,12 @@ def parse_args():
         help="Load pretrained parameters before starting the training",
     )
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="train with rotated documents")
+    parser.add_argument(
+        "--exhaustive-labels",
+        action="store_true",
+        help="annotations are exhaustive: a class without any box in an image is trained as background instead of "
+        "being ignored (recommended for multi-class detection)",
+    )
     parser.add_argument(
         "--eval-straight",
         action="store_true",

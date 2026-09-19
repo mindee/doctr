@@ -5,6 +5,7 @@
 
 import json
 import os
+from functools import partial
 from typing import Any
 
 import numpy as np
@@ -90,6 +91,9 @@ class LayoutDataset(AbstractDataset):
                 ),
             ))
 
+        # Expose every class in every sample so the class -> channel mapping never shifts
+        self._pre_transforms = partial(pre_transform_multiclass, class_names=self.class_names)
+
     def format_polygons(
         self,
         polygons: list,
@@ -111,7 +115,9 @@ class LayoutDataset(AbstractDataset):
         """
         self._class_names += class_names
 
-        _polygons: np.ndarray = np.asarray(polygons, dtype=np_dtype)
+        _polygons: np.ndarray = (
+            np.asarray(polygons, dtype=np_dtype) if len(polygons) else np.zeros((0, 4, 2), dtype=np_dtype)
+        )  # an image without any region is a valid (all-background) sample
         if _polygons.ndim != 3 or _polygons.shape[1:] != (4, 2):
             raise ValueError(f"polygons are expected to have shape (N, 4, 2), got {_polygons.shape}")
         geoms = _polygons if use_polygons else np.concatenate((_polygons.min(axis=1), _polygons.max(axis=1)), axis=1)
