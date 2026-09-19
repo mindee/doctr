@@ -577,37 +577,29 @@ class LWDETR(nn.Module, _LWDETR):
             # ProbIoU is computed in pixel coordinates
             box_scale = float(max(input.shape[-2], input.shape[-1]))
 
-            # Main loss from final decoder layer (group DETR: each group is matched independently)
-            split_logits = logits.chunk(group_detr, dim=1)
-            split_boxes = pred_boxes.chunk(group_detr, dim=1)
-
-            main_loss: float | torch.Tensor = 0.0
-            for g_logits, g_boxes in zip(split_logits, split_boxes):
-                main_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
-            loss = main_loss / group_detr
-
-            # Auxiliary losses from intermediate decoder layers
-            # (`intermediate_reference_points[i]` is the reference INPUT to decoder layer i)
+            # Every prediction set supervised by the loss, each holding (B, num_queries, ...) tensors:
+            # the final decoder layer split by group, the intermediate decoder layers split by group
+            # (`intermediate_reference_points[i]` is the reference INPUT to decoder layer i) and the selected
+            # encoder proposals of every group. They are all weighted 1 / group_detr, so they can be matched and
+            # scored in one batched pass instead of one Hungarian matching per (set, sample).
+            logits_sets = list(logits.chunk(group_detr, dim=1))
+            boxes_sets = list(pred_boxes.chunk(group_detr, dim=1))
             for i in range(intermediate.shape[0] - 1):
                 aux_logits = self.class_embed(intermediate[i])
                 aux_boxes_delta = self.bbox_embed(intermediate[i])
                 aux_boxes = refine_obb_boxes(intermediate_reference_points[i], aux_boxes_delta)
+                logits_sets.extend(aux_logits.chunk(group_detr, dim=1))
+                boxes_sets.extend(aux_boxes.chunk(group_detr, dim=1))
+            logits_sets.extend(all_group_enc_logits)
+            boxes_sets.extend(all_group_enc_coords)
 
-                split_aux_logits = aux_logits.chunk(group_detr, dim=1)
-                split_aux_boxes = aux_boxes.chunk(group_detr, dim=1)
-
-                aux_loss: float | torch.Tensor = 0.0
-                for g_logits, g_boxes in zip(split_aux_logits, split_aux_boxes):
-                    aux_loss += self.compute_loss(g_logits, g_boxes, processed_targets, box_scale=box_scale)
-                loss += aux_loss / group_detr
-
-            # Auxiliary losses for the selected encoder proposals
-            enc_loss: float | torch.Tensor = 0.0
-            for group_logits, group_coords in zip(all_group_enc_logits, all_group_enc_coords):
-                enc_loss += self.compute_loss(group_logits, group_coords, processed_targets, box_scale=box_scale)
-            loss += enc_loss / group_detr
-
-            out["loss"] = loss
+            out["loss"] = self._compute_sets_loss(
+                torch.stack([t.float() for t in logits_sets]),
+                torch.stack([t.float() for t in boxes_sets]),
+                processed_targets,
+                box_scale=box_scale,
+                set_weight=1.0 / group_detr,
+            )
 
         return out
 
@@ -650,90 +642,146 @@ class LWDETR(nn.Module, _LWDETR):
         Returns:
             loss: the computed loss value
         """
+        return self._compute_sets_loss(
+            logits.float().unsqueeze(0),
+            pred_boxes.float().unsqueeze(0),
+            targets,
+            cls_loss_weight=cls_loss_weight,
+            l1_loss_weight=l1_loss_weight,
+            iou_loss_weight=iou_loss_weight,
+            box_scale=box_scale,
+        )
+
+    @staticmethod
+    def _pad_targets(
+        targets: list[dict[str, np.ndarray]], device: torch.device
+    ) -> tuple[torch.Tensor, torch.Tensor, list[int]]:
+        """Stack the per-sample targets into padded tensors with a single host-to-device transfer.
+
+        Returns:
+            boxes: (B, Nmax, 6) float tensor (zero padded), labels: (B, Nmax) long tensor (zero padded),
+            counts: number of real boxes of every sample
+        """
+        counts = [int(np.asarray(sample["labels"]).size) for sample in targets]
+        n_max = max(max(counts), 1)
+        boxes = np.zeros((len(targets), n_max, 6), dtype=np.float32)
+        labels = np.zeros((len(targets), n_max), dtype=np.int64)
+        for b, (sample, n) in enumerate(zip(targets, counts)):
+            if n:
+                boxes[b, :n] = np.asarray(sample["boxes"], dtype=np.float32).reshape(-1, 6)
+                labels[b, :n] = np.asarray(sample["labels"], dtype=np.int64).reshape(-1)
+        packed = torch.from_numpy(np.concatenate([boxes.reshape(len(targets), -1), labels.astype(np.float32)], 1))
+        packed = packed.to(device)  # one transfer for boxes and labels
+        boxes_t = packed[:, : n_max * 6].reshape(len(targets), n_max, 6)
+        labels_t = packed[:, n_max * 6 :].long()
+        return boxes_t, labels_t, counts
+
+    def _compute_sets_loss(
+        self,
+        logits: torch.Tensor,
+        pred_boxes: torch.Tensor,
+        targets: list[dict[str, np.ndarray]],
+        cls_loss_weight: float = 1.0,
+        l1_loss_weight: float = 5.0,
+        iou_loss_weight: float = 2.0,
+        box_scale: float = 1024.0,
+        set_weight: float = 1.0,
+    ) -> torch.Tensor:
+        """Batched version of `compute_loss` over S prediction sets sharing the same targets.
+
+        The Hungarian costs of every (set, sample) pair are computed on the device in one go and copied to the
+        host once; the matched pairs are then scored with a handful of vectorized operations. The result equals
+        `set_weight * sum(compute_loss(logits[s], pred_boxes[s], targets) for s in range(S))` up to float
+        summation order, without the S * B device synchronizations of the per-set formulation.
+
+        Args:
+            logits: (S, B, Q, C) class logits of every prediction set
+            pred_boxes: (S, B, Q, 6) oriented boxes of every prediction set
+            targets: list of B dictionaries with keys "boxes" ((N, 6) OBB) and "labels" ((N,) class indices)
+            cls_loss_weight: weight of the classification loss
+            l1_loss_weight: weight of the L1 box regression loss
+            iou_loss_weight: weight of the ProbIoU loss
+            box_scale: image size used to rescale normalized boxes to pixel coordinates for ProbIoU computation
+            set_weight: factor applied to the sum of the per-set losses
+
+        Returns:
+            the loss value
+        """
         alpha, gamma, eps = 0.25, 2.0, 1e-8
-        # AMP safe-guard
-        logits = logits.float()
-        pred_boxes = pred_boxes.float()
         device = logits.device
-        batch_size = logits.shape[0]
+        n_sets, batch_size, _num_queries, _num_classes = logits.shape
 
-        tgt_boxes_list: list[torch.Tensor] = []
-        tgt_labels_list: list[torch.Tensor] = []
-        for sample in targets:
-            tgt_boxes_list.append(
-                torch.as_tensor(sample["boxes"], device=device, dtype=pred_boxes.dtype).reshape(-1, 6)
-            )
-            tgt_labels_list.append(torch.as_tensor(sample["labels"], device=device, dtype=torch.long).reshape(-1))
-
+        tgt_boxes, tgt_labels, counts = self._pad_targets(targets, device)
         # Number of target boxes in the batch, for loss normalization
-        num_boxes = max(sum(int(labels.numel()) for labels in tgt_labels_list), 1)
-
-        # Hungarian matching (one-to-one), performed independently for each sample
-        indices: list[tuple[torch.Tensor, torch.Tensor]] = []
-        with torch.no_grad():
-            prob = logits.sigmoid()
-            for b in range(batch_size):
-                tgt_boxes, tgt_labels = tgt_boxes_list[b], tgt_labels_list[b]
-                if tgt_labels.numel() == 0:
-                    empty = torch.empty(0, dtype=torch.long, device=device)
-                    indices.append((empty, empty))
-                    continue
-
-                out_prob = prob[b]
-                out_boxes = pred_boxes[b]
-
-                # Focal-style classification cost
-                neg_cost = (1 - alpha) * out_prob.pow(gamma) * (-(1 - out_prob + eps).log())
-                pos_cost = alpha * (1 - out_prob).pow(gamma) * (-(out_prob + eps).log())
-                cost_class = pos_cost[:, tgt_labels] - neg_cost[:, tgt_labels]
-
-                # L1 cost on normalized (cx, cy, w, h)
-                cost_bbox = torch.cdist(out_boxes[:, :4].float(), tgt_boxes[:, :4].float(), p=1)
-
-                # Rotated IoU cost, computed in pixel coordinates
-                # this term also carries the angle signal for the matching
-                cost_iou = -_probiou(out_boxes, tgt_boxes, pairwise=True, scale=box_scale)
-
-                cost = 2.0 * cost_class + 5.0 * cost_bbox + 2.0 * cost_iou
-
-                query_idx, tgt_idx = linear_sum_assignment(cost.detach().cpu().numpy())
-                indices.append((
-                    torch.as_tensor(query_idx, dtype=torch.long, device=device),
-                    torch.as_tensor(tgt_idx, dtype=torch.long, device=device),
-                ))
-
-        # Flatten the matched pairs across the batch
-        batch_idx = torch.cat([torch.full_like(src, b) for b, (src, _) in enumerate(indices)])
-        query_idx = torch.cat([src for (src, _) in indices])
-        matched_tgt_boxes = torch.cat([tgt_boxes_list[b][tgt] for b, (_, tgt) in enumerate(indices)])
-        matched_tgt_labels = torch.cat([tgt_labels_list[b][tgt] for b, (_, tgt) in enumerate(indices)])
-        matched_pred_boxes = pred_boxes[batch_idx, query_idx]
+        num_boxes = max(sum(counts), 1)
 
         prob = logits.sigmoid()
+
+        # Hungarian matching (one-to-one), independent for every (set, sample) pair but computed together
+        with torch.no_grad():
+            # Focal-style classification cost, gathered for the (padded) target labels: (S, B, Q, Nmax)
+            neg_cost = (1 - alpha) * prob.pow(gamma) * (-(1 - prob + eps).log())
+            pos_cost = alpha * (1 - prob).pow(gamma) * (-(prob + eps).log())
+            label_idx = tgt_labels[None, :, None, :].expand(n_sets, -1, prob.shape[2], -1)
+            cost_class = pos_cost.gather(-1, label_idx) - neg_cost.gather(-1, label_idx)
+
+            # L1 cost on normalized (cx, cy, w, h)
+            cost_bbox = torch.cdist(
+                pred_boxes[..., :4].reshape(n_sets * batch_size, -1, 4),
+                tgt_boxes[None, :, :, :4].expand(n_sets, -1, -1, -1).reshape(n_sets * batch_size, -1, 4),
+                p=1,
+            ).reshape(n_sets, batch_size, -1, tgt_boxes.shape[1])
+
+            # Rotated IoU cost, computed in pixel coordinates (also carries the angle signal for the matching)
+            cost_iou = -_probiou(
+                pred_boxes, tgt_boxes.unsqueeze(0).expand(n_sets, -1, -1, -1), pairwise=True, scale=box_scale
+            )
+
+            cost = (2.0 * cost_class + 5.0 * cost_bbox + 2.0 * cost_iou).cpu().numpy()  # the only sync
+
+        set_idx, batch_idx, query_idx, tgt_idx = [], [], [], []
+        for b, n in enumerate(counts):
+            if n == 0:
+                continue
+            for s in range(n_sets):
+                q_ind, t_ind = linear_sum_assignment(cost[s, b, :, :n])
+                set_idx.append(np.full_like(q_ind, s))
+                batch_idx.append(np.full_like(q_ind, b))
+                query_idx.append(q_ind)
+                tgt_idx.append(t_ind)
+        if set_idx:
+            index = torch.from_numpy(np.stack([np.concatenate(i) for i in (set_idx, batch_idx, query_idx, tgt_idx)]))
+            index = index.to(device, dtype=torch.long)  # one transfer for every matched pair
+            s_i, b_i, q_i, t_i = index
+        else:
+            s_i = b_i = q_i = t_i = torch.empty(0, dtype=torch.long, device=device)
+
+        matched_pred_boxes = pred_boxes[s_i, b_i, q_i]
+        matched_tgt_boxes = tgt_boxes[b_i, t_i]
+        matched_tgt_labels = tgt_labels[b_i, t_i]
 
         # IoU-aware BCE classification loss (IA-BCE)
         pos_weights = torch.zeros_like(logits)
         neg_weights = prob.pow(gamma)
-        if len(batch_idx) > 0:
+        if len(s_i) > 0:
             with torch.no_grad():
                 ious = _probiou(matched_pred_boxes, matched_tgt_boxes, scale=box_scale).clamp(min=0.0, max=1.0)
-                t = prob[batch_idx, query_idx, matched_tgt_labels].pow(alpha) * ious.pow(1 - alpha)
+                t = prob[s_i, b_i, q_i, matched_tgt_labels].pow(alpha) * ious.pow(1 - alpha)
                 t = t.clamp(min=0.01)
-            pos_weights[batch_idx, query_idx, matched_tgt_labels] = t
-            neg_weights[batch_idx, query_idx, matched_tgt_labels] = 1 - t
+            pos_weights[s_i, b_i, q_i, matched_tgt_labels] = t
+            neg_weights[s_i, b_i, q_i, matched_tgt_labels] = 1 - t
 
         cls_loss = -(pos_weights * (prob + eps).log() + neg_weights * (1 - prob + eps).log())
         loss = cls_loss_weight * cls_loss.sum() / num_boxes
 
-        if len(batch_idx) == 0:
-            return loss
+        if len(s_i) > 0:
+            # L1 loss on normalized (cx, cy, w, h)
+            l1_loss = F.l1_loss(matched_pred_boxes[:, :4], matched_tgt_boxes[:, :4], reduction="sum") / num_boxes
+            # ProbIoU loss on the whole oriented box (position, size and rotation), in pixel coordinates
+            probiou_loss = (1 - _probiou(matched_pred_boxes, matched_tgt_boxes, scale=box_scale)).sum() / num_boxes
+            loss = loss + l1_loss_weight * l1_loss + iou_loss_weight * probiou_loss
 
-        # L1 loss on normalized (cx, cy, w, h)
-        l1_loss = F.l1_loss(matched_pred_boxes[:, :4], matched_tgt_boxes[:, :4], reduction="sum") / num_boxes
-        # ProbIoU loss on the whole oriented box (position, size and rotation), in pixel coordinates
-        probiou_loss = (1 - _probiou(matched_pred_boxes, matched_tgt_boxes, scale=box_scale)).sum() / num_boxes
-
-        return loss + l1_loss_weight * l1_loss + iou_loss_weight * probiou_loss
+        return loss * set_weight
 
 
 def _lw_detr(
