@@ -185,3 +185,40 @@ def test_torch_compiled_models(arch_name, mock_payslip):
     # assert out[0]["class_names"] == compiled_out[0]["class_names"]
     # assert np.allclose(out[0]["boxes"], compiled_out[0]["boxes"], atol=1e-4)
     # assert np.allclose(out[0]["scores"], compiled_out[0]["scores"], atol=1e-4)
+
+
+def test_lw_detr_batched_loss_matches_per_set():
+    # The batched loss over S prediction sets must equal the sum of the per-set losses (up to float ordering)
+    torch.manual_seed(0)
+    np.random.seed(0)
+    model = layout.lw_detr_s(pretrained=False, class_names=["a", "b", "c"]).train()
+    n_sets, batch_size, num_queries, num_classes = 4, 3, 20, 3
+    logits = torch.randn(n_sets, batch_size, num_queries, num_classes, requires_grad=True)
+    boxes = torch.cat(
+        [
+            torch.rand(n_sets, batch_size, num_queries, 4) * 0.5 + 0.1,
+            torch.zeros(n_sets, batch_size, num_queries, 1),
+            torch.ones(n_sets, batch_size, num_queries, 1),
+        ],
+        dim=-1,
+    ).requires_grad_(True)
+
+    def boxes_xyxy(n):
+        xy = np.random.rand(n, 2).astype(np.float32) * 0.6
+        return np.concatenate([xy, xy + 0.1], axis=1)
+
+    empty = np.zeros((0, 4), dtype=np.float32)
+    raw = [
+        {"a": boxes_xyxy(2), "b": boxes_xyxy(1), "c": empty},
+        {"a": empty, "b": empty, "c": empty},
+        {"a": boxes_xyxy(3)},
+    ]
+    targets = model.build_target(raw, model.class_names)
+
+    per_set = sum(model.compute_loss(logits[s], boxes[s], targets) for s in range(n_sets)) * 0.5
+    batched = model._compute_sets_loss(logits, boxes, targets, set_weight=0.5)
+    assert torch.allclose(per_set, batched, rtol=1e-5, atol=1e-6)
+    g_per_set = torch.autograd.grad(per_set, (logits, boxes))
+    g_batched = torch.autograd.grad(batched, (logits, boxes))
+    for a, b in zip(g_per_set, g_batched):
+        assert torch.allclose(a, b, rtol=1e-4, atol=1e-6)
