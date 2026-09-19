@@ -86,6 +86,8 @@ labels.json
 }
 ```
 
+`--device` accepts a CUDA index, `cuda:N`, `mps` or `cpu` (default: CUDA, then MPS, then CPU); `--amp-dtype bfloat16` avoids the float16 overflows of the Hungarian matching cost on Ampere or newer GPUs; `--no-hflip` disables horizontal flips; `--labels-name` selects another label file inside the split folders. Every checkpoint is written with a `<name>.json` sidecar (architecture, class names, input size, dataset hashes, git revision, arguments).
+
 ## Slack Logging with tqdm
 
 To enable Slack logging using `tqdm`, you need to set the following environment variables:

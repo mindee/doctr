@@ -19,6 +19,21 @@ You can start your training in PyTorch:
 python references/detection/train.py db_resnet50 --train_path path/to/your/train_set --val_path path/to/your/val_set --epochs 5
 ```
 
+### Device selection (CUDA, Apple Silicon MPS, CPU)
+
+`--device` accepts a CUDA index (`0`), `cuda:N`, `mps` (Apple Silicon GPU) or `cpu`. Without it the script picks CUDA, then MPS, then CPU. `--amp` is only supported on CUDA; `--amp-dtype bfloat16` (Ampere or newer GPUs) avoids float16 overflows and needs no loss scaling.
+
+```shell
+# NVIDIA GPU
+python references/detection/train.py db_resnet50 --train_path path/to/train --val_path path/to/val --device 0 --amp
+# Apple Silicon (set the fallback so the few ops MPS lacks run on CPU)
+PYTORCH_ENABLE_MPS_FALLBACK=1 python references/detection/train.py db_resnet50 --train_path path/to/train --val_path path/to/val --device mps
+```
+
+`--no-hflip` disables the horizontal flip augmentation (mirrored text is misleading when the classes are semantic regions whose position matters).
+
+Every checkpoint `<name>.pt` is written together with a `<name>.json` sidecar (architecture, ordered class names, input size, dataset hashes, git revision, versions and the full argument list), so that a checkpoint can be reloaded for inference without remembering how it was trained.
+
 Alternatively, instead of providing local folders you can train directly on one or several built-in datasets, which are downloaded automatically. When several are passed, the first one is loaded and extended with the others:
 
 ```shell
