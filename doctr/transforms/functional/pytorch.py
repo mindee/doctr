@@ -5,6 +5,7 @@
 
 from copy import deepcopy
 
+import cv2
 import numpy as np
 import torch
 from scipy.ndimage import gaussian_filter
@@ -14,7 +15,15 @@ from doctr.utils.geometry import rotate_abs_geoms
 
 from .base import create_shadow_mask, crop_boxes
 
-__all__ = ["invert_colors", "rotate_sample", "crop_detection", "random_shadow"]
+__all__ = [
+    "invert_colors",
+    "rotate_sample",
+    "crop_detection",
+    "random_shadow",
+    "random_glare",
+    "random_lighting",
+    "perspective_sample",
+]
 
 
 def invert_colors(img: torch.Tensor, min_val: float = 0.6) -> torch.Tensor:
@@ -135,3 +144,120 @@ def random_shadow(img: torch.Tensor, opacity_range: tuple[float, float], **kwarg
     shadow_tensor = shadow_tensor.to(img.device).unsqueeze(0)  # Add channel dimension
 
     return opacity * shadow_tensor * img + (1 - opacity) * img
+
+
+def random_glare(
+    img: torch.Tensor, opacity_range: tuple[float, float], num_spots: tuple[int, int] = (1, 3)
+) -> torch.Tensor:
+    """Add soft bright spots, like the specular reflections of a light source on a photographed screen or a glossy
+    sheet.
+
+    Args:
+        img: image to modify (C, H, W), float in [0, 1]
+        opacity_range: minimum and maximum strength of the reflections
+        num_spots: minimum and maximum number of reflections
+
+    Returns:
+        the image with the reflections blended towards white (same shape as input)
+    """
+    _, h, w = img.shape
+    ys, xs = np.mgrid[0:h, 0:w].astype(np.float32)
+    mask = np.zeros((h, w), dtype=np.float32)
+    for _ in range(np.random.randint(num_spots[0], num_spots[1] + 1)):
+        cx, cy = np.random.uniform(0, w), np.random.uniform(0, h)
+        rx, ry = np.random.uniform(0.08, 0.35) * w, np.random.uniform(0.08, 0.35) * h
+        theta = np.random.uniform(0, np.pi)
+        dx, dy = xs - cx, ys - cy
+        u = dx * np.cos(theta) + dy * np.sin(theta)
+        v = -dx * np.sin(theta) + dy * np.cos(theta)
+        mask = np.maximum(mask, np.exp(-((u / rx) ** 2 + (v / ry) ** 2)))
+    opacity = float(np.random.uniform(*opacity_range))
+    glare = torch.from_numpy(mask).to(device=img.device, dtype=img.dtype).unsqueeze(0) * opacity
+    return img + glare * (1 - img)
+
+
+def random_lighting(
+    img: torch.Tensor, strength_range: tuple[float, float], grid: tuple[int, int] = (2, 4)
+) -> torch.Tensor:
+    """Multiply the image by a smooth, low-frequency brightness field: uneven lighting, the shading of a crumpled
+    or curved sheet, vignetting.
+
+    Args:
+        img: image to modify (C, H, W), float in [0, 1]
+        strength_range: minimum and maximum amplitude of the field (0.3 = brightness between 0.7 and 1.3)
+        grid: minimum and maximum size of the random grid that is upsampled into the field
+
+    Returns:
+        the modulated image (same shape as input)
+    """
+    _, h, w = img.shape
+    n = np.random.randint(grid[0], grid[1] + 1)
+    strength = np.random.uniform(*strength_range)
+    coarse = np.random.uniform(-1, 1, size=(n, n)).astype(np.float32)
+    field = cv2.resize(coarse, (w, h), interpolation=cv2.INTER_CUBIC)
+    field = (1 + strength * np.clip(field, -1, 1)).astype(np.float32)
+    return (img * torch.from_numpy(field).to(device=img.device, dtype=img.dtype).unsqueeze(0)).clamp(0, 1)
+
+
+def perspective_sample(
+    img: torch.Tensor,
+    geoms: np.ndarray,
+    distortion: float,
+    mask: torch.Tensor | None = None,
+) -> tuple[torch.Tensor, np.ndarray, torch.Tensor | None]:
+    """Warp an image (and its boxes / polygons) with a random perspective, as if it were photographed at an angle.
+
+    The four corners of the image are moved inwards by up to `distortion` times the image size, and the image is
+    warped so that the original corners land on the moved ones (the content shrinks, the borders are filled with
+    zeros like a background around a photographed page).
+
+    Args:
+        img: image to warp (C, H, W)
+        geoms: relative boxes (N, 4) or polygons (N, 4, 2) in [0, 1]
+        distortion: maximum relative displacement of every corner
+        mask: optional (H, W) boolean validity mask warped alongside
+
+    Returns:
+        the warped image, the warped geometries (same format, clipped to [0, 1]) and the warped mask
+    """
+    _, h, w = img.shape
+    start = np.array([[0, 0], [w - 1, 0], [w - 1, h - 1], [0, h - 1]], dtype=np.float32)
+    dx, dy = distortion * w, distortion * h
+    end = start + np.array(
+        [
+            [np.random.uniform(0, dx), np.random.uniform(0, dy)],
+            [-np.random.uniform(0, dx), np.random.uniform(0, dy)],
+            [-np.random.uniform(0, dx), -np.random.uniform(0, dy)],
+            [np.random.uniform(0, dx), -np.random.uniform(0, dy)],
+        ],
+        dtype=np.float32,
+    )
+    warped = F.perspective(img, start.tolist(), end.tolist(), interpolation=F.InterpolationMode.BILINEAR, fill=0)
+    warped_mask = None
+    if mask is not None:
+        warped_mask = (
+            F
+            .perspective(
+                mask.unsqueeze(0).to(torch.uint8), start.tolist(), end.tolist(), F.InterpolationMode.NEAREST, fill=0
+            )
+            .squeeze(0)
+            .to(torch.bool)
+        )
+    if geoms.shape[0] == 0:
+        return warped, geoms.copy(), warped_mask
+
+    matrix = cv2.getPerspectiveTransform(start, end)
+    is_polygon = geoms.ndim == 3
+    if is_polygon:
+        pts = geoms.astype(np.float32).reshape(-1, 4, 2)
+    else:
+        x1, y1, x2, y2 = (geoms[:, i].astype(np.float32) for i in range(4))
+        pts = np.stack([np.stack([x1, y1], 1), np.stack([x2, y1], 1), np.stack([x2, y2], 1), np.stack([x1, y2], 1)], 1)
+    abs_pts = pts * np.array([w, h], dtype=np.float32)
+    out = cv2.perspectiveTransform(abs_pts.reshape(-1, 1, 2), matrix).reshape(-1, 4, 2)
+    rel = out / np.array([w, h], dtype=np.float32)
+    rel = np.clip(rel, 0, 1)
+    if is_polygon:
+        return warped, rel.astype(geoms.dtype), warped_mask
+    boxes = np.concatenate([rel.min(axis=1), rel.max(axis=1)], axis=1).astype(geoms.dtype)
+    return warped, boxes, warped_mask

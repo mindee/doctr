@@ -15,7 +15,10 @@ from doctr.transforms import (
     OneOf,
     RandomApply,
     RandomCrop,
+    RandomGlare,
     RandomHorizontalFlip,
+    RandomLighting,
+    RandomPerspective,
     RandomResize,
     RandomRotate,
     RandomShadow,
@@ -799,3 +802,54 @@ def test_samplecompose_end_to_end_polygons():
             dtype=np.float32,
         ),
     )
+
+
+@pytest.mark.parametrize("input_dtype", [torch.float32, torch.uint8])
+def test_random_glare_and_lighting(input_dtype):
+    img = (
+        torch.rand((3, 64, 96))
+        if input_dtype == torch.float32
+        else torch.randint(0, 255, (3, 64, 96), dtype=torch.uint8)
+    )
+    for transfo in (RandomGlare((0.2, 0.7)), RandomLighting((0.1, 0.4))):
+        out = transfo(Sample(image=img)).image
+        assert out.shape == img.shape and out.dtype == input_dtype
+        if input_dtype == torch.float32:
+            assert float(out.min()) >= 0 and float(out.max()) <= 1
+        assert "range" in repr(transfo)
+
+
+@pytest.mark.parametrize("use_polygons", [False, True])
+def test_random_perspective(use_polygons):
+    np.random.seed(0)
+    img = torch.rand((3, 100, 150))
+    boxes = np.array([[0.1, 0.1, 0.4, 0.3], [0.5, 0.6, 0.9, 0.8]], dtype=np.float32)
+    if use_polygons:
+        target = np.stack(
+            [
+                np.stack([boxes[:, 0], boxes[:, 1]], 1),
+                np.stack([boxes[:, 2], boxes[:, 1]], 1),
+                np.stack([boxes[:, 2], boxes[:, 3]], 1),
+                np.stack([boxes[:, 0], boxes[:, 3]], 1),
+            ],
+            axis=1,
+        )
+    else:
+        target = boxes
+    mask = torch.ones((100, 150), dtype=torch.bool)
+
+    # no distortion: identity on the geometries
+    out = RandomPerspective(0.0)(Sample(image=img, target=target, mask=mask))
+    assert np.allclose(out.target, target, atol=1e-3) and bool(out.mask.all())
+
+    # distortion: content shrinks, geometries stay in [0, 1] with the same format, padding is masked out
+    out = RandomPerspective(0.25)(Sample(image=img, target=target, mask=mask))
+    assert out.image.shape == img.shape and out.target.shape == target.shape
+    assert out.target.min() >= 0 and out.target.max() <= 1 and not bool(out.mask.all())
+    if not use_polygons:
+        assert np.all(out.target[:, 2:] > out.target[:, :2])
+
+    # multi-class dict: every class gets the same warp, empty classes are kept
+    out = RandomPerspective(0.25)(Sample(image=img, target={"a": boxes, "b": boxes.copy(), "c": np.zeros((0, 4))}))
+    assert np.allclose(out.target["a"], out.target["b"]) and out.target["c"].shape == (0, 4)
+    assert not np.allclose(out.target["a"], boxes)
