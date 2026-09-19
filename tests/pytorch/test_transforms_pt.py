@@ -23,6 +23,7 @@ from doctr.transforms import (
     SampleCompose,
 )
 from doctr.transforms.functional import crop_detection, rotate_sample
+from doctr.transforms.functional.base import create_shadow_mask
 from doctr.utils import Sample
 
 
@@ -630,6 +631,42 @@ def test_random_shadow(input_dtype, input_shape):
         assert torch.all(transformed <= 255)
     else:
         assert torch.all(transformed <= 1.0)
+
+
+@pytest.mark.parametrize(
+    "direction,expected_quadrant",
+    [
+        [0.1, 0],  # top -> bottom
+        [0.3, 1],  # left -> right
+        [0.6, 2],  # bottom -> top
+        [0.9, 3],  # right -> left
+    ],
+)
+def test_create_shadow_mask_covers_every_direction(monkeypatch, direction, expected_quadrant):
+    # `create_shadow_mask` picks one of four intensity gradients from an unseeded
+    # `np.random.rand(1)`, so a normal run exercises only one of them and which
+    # lines execute changes between runs. Pin the draw instead, so all four
+    # gradients are exercised on every run.
+    calls = {"n": 0}
+
+    def fake_rand(*shape):
+        calls["n"] += 1
+        # First draw shapes the contour, second one picks the direction.
+        if calls["n"] == 1:
+            return np.full(6, 0.5, dtype=float)
+        return np.array([direction], dtype=float)
+
+    monkeypatch.setattr(np.random, "rand", fake_rand)
+
+    target_shape = (32, 48)
+    mask = create_shadow_mask(target_shape)
+
+    assert int(direction / 0.25) == expected_quadrant
+    assert calls["n"] == 2
+    assert mask.shape == target_shape
+    assert np.all((mask >= 0.0) & (mask <= 1.0))
+    # A gradient, not a constant plane: the mask must actually vary.
+    assert mask.min() < mask.max()
 
 
 @pytest.mark.parametrize(
