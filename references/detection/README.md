@@ -118,9 +118,9 @@ labels.json
 }
 ```
 
-Every class must appear in **every** `labels.json` (train and val); use an empty list for a class that has no box in a given image. The class → channel mapping is derived from the sorted set of class names, and the script aborts if train and val expose different classes.
+Every class of the dataset must appear somewhere in each split (train and val); inside an image, a class that has no box is written as an empty list. The class → channel mapping is derived from the sorted set of class names, and the script aborts if train and val expose different classes.
 
-By default a class without any box in an image is *ignored* by the loss (the image may simply not be annotated for it). When your annotations are exhaustive, i.e. "no box" means "this class is not on the page", pass `--exhaustive-labels` so the absence is learnt as background.
+An image without any box, or a class absent from an image, is trained as background: what the labels say is the truth. If your data is only partially annotated (some classes were not labelled on some images), pass `--mask-empty-classes` so that those channels are ignored by the loss instead.
 
 ## Slack Logging with tqdm
 

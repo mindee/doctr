@@ -226,19 +226,19 @@ def test_torch_compiled_models(arch_name, mock_payslip):
     )
 
 
-@pytest.mark.parametrize("arch_name", ["db_mobilenet_v3_large", "fast_tiny"])
-@pytest.mark.parametrize("mask_empty_classes", [True, False])
+@pytest.mark.parametrize("arch_name", ["db_mobilenet_v3_large", "fast_tiny", "linknet_resnet18"])
+@pytest.mark.parametrize("mask_empty_classes", [False, True])
 def test_detection_multiclass_empty_class_target(arch_name, mask_empty_classes):
     class_names = ["cuenta", "fecha", "valor"]
     model = detection.__dict__[arch_name](
-        pretrained=False, class_names=class_names, mask_empty_classes=mask_empty_classes
+        pretrained=False, pretrained_backbone=False, class_names=class_names, mask_empty_classes=mask_empty_classes
     ).train()
     assert model.mask_empty_classes is mask_empty_classes
     box = np.array([[0.1, 0.1, 0.5, 0.3]], dtype=np.float32)
     empty = np.zeros((0, 4), dtype=np.float32)
     target = [
         {"cuenta": box, "fecha": empty, "valor": box},
-        {"cuenta": empty, "fecha": empty, "valor": empty},  # document without any field
+        {"cuenta": empty, "fecha": empty, "valor": empty},  # image without any box
     ]
 
     built = model.build_target(target, (len(class_names), 128, 128))
@@ -246,11 +246,31 @@ def test_detection_multiclass_empty_class_target(arch_name, mask_empty_classes):
     assert seg_target.shape == seg_mask.shape == (2, 3, 128, 128)
     # Channels with boxes are supervised and contain positives
     assert seg_mask[0, 0].all() and seg_target[0, 0].any()
-    # Channels without boxes: ignored by default, supervised as background when annotations are exhaustive
+    # Channels without boxes: supervised as background by default, ignored with mask_empty_classes
     assert not seg_target[0, 1].any() and not seg_target[1].any()
-    assert seg_mask[0, 1].any() is np.bool_(not mask_empty_classes)
-    assert seg_mask[1].any() is np.bool_(not mask_empty_classes)
+    assert bool(seg_mask[0, 1].any()) == (not mask_empty_classes)
+    assert bool(seg_mask[1].any()) == (not mask_empty_classes)
 
     out = model(torch.rand((2, 3, 128, 128)), target)
     assert torch.isfinite(out["loss"])
     out["loss"].backward()
+
+    # A batch made only of empty images must not crash, whatever the masking mode
+    out = model(torch.rand((1, 3, 128, 128)), [target[1]])
+    assert torch.isfinite(out["loss"])
+    out["loss"].backward()
+
+
+@pytest.mark.parametrize("arch_name", ["db_mobilenet_v3_large", "fast_tiny", "linknet_resnet18"])
+def test_detection_multiclass_target_channels_by_name(arch_name):
+    # Channels follow the model's class names, not the order of the target dict; wrong keys are rejected
+    model = detection.__dict__[arch_name](pretrained=False, pretrained_backbone=False, class_names=["a", "b"])
+    box_a = np.array([[0.1, 0.1, 0.4, 0.3]], dtype=np.float32)
+    box_b = np.array([[0.6, 0.6, 0.9, 0.9]], dtype=np.float32)
+    seg_target = model.build_target([{"b": box_b, "a": box_a}], (2, 64, 64))[0]
+    assert seg_target[0, 0, 5:20, 5:26].any() and not seg_target[0, 0, 40:, 40:].any()  # channel 0 = "a"
+    assert seg_target[0, 1, 40:, 40:].any() and not seg_target[0, 1, 5:20, 5:26].any()  # channel 1 = "b"
+    with pytest.raises(ValueError, match="unknown"):
+        model.build_target([{"a": box_a, "b": box_b, "c": box_a}], (2, 64, 64))
+    with pytest.raises(ValueError, match="missing"):
+        model.build_target([{"a": box_a}], (2, 64, 64))

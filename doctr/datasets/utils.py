@@ -241,5 +241,7 @@ def pre_transform_multiclass(
         if k not in boxes_dict:
             raise ValueError(f"unknown class '{k}', expected one of {keys}")
         boxes_dict[k].append(poly)
-    empty = np.zeros((0, *boxes.shape[1:]), dtype=boxes.dtype)
-    return img, {k: np.stack(v, axis=0) if v else empty for k, v in boxes_dict.items()}
+    return img, {
+        k: np.stack(v, axis=0) if v else np.zeros((0, *boxes.shape[1:]), dtype=boxes.dtype)
+        for k, v in boxes_dict.items()
+    }

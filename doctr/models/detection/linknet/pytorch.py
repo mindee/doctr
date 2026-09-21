@@ -98,6 +98,8 @@ class LinkNet(nn.Module, _LinkNet):
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
         class_names: list of class names
+        mask_empty_classes: if True, a class without any box in an image is masked out of the loss (use it for
+            partially annotated data); by default the absence is supervised as background
     """
 
     def __init__(
@@ -110,9 +112,11 @@ class LinkNet(nn.Module, _LinkNet):
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
         class_names: list[str] = [CLASS_NAME],
+        mask_empty_classes: bool = False,
     ) -> None:
         super().__init__()
         self.class_names = class_names
+        self.mask_empty_classes = mask_empty_classes
         num_classes: int = len(self.class_names)
         self.cfg = cfg
         self.exportable = exportable
@@ -235,6 +239,9 @@ class LinkNet(nn.Module, _LinkNet):
         seg_target, seg_mask = torch.from_numpy(_target).to(dtype=out_map.dtype), torch.from_numpy(_mask)
         seg_target, seg_mask = seg_target.to(out_map.device), seg_mask.to(out_map.device)
         seg_mask = seg_mask.to(dtype=torch.float32)
+        if not torch.any(seg_mask):
+            # Fully masked batch: nothing to supervise
+            return out_map.sum() * 0
 
         bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
         proba_map = torch.sigmoid(out_map)

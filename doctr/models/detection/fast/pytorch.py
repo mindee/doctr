@@ -112,8 +112,8 @@ class FAST(_FAST, nn.Module):
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
         class_names: list of class names
-        mask_empty_classes: if True (default), a class without any box in a sample is ignored in the loss.
-            Set it to False when annotations are exhaustive so that an absent class is learnt as background.
+        mask_empty_classes: if True, a class without any box in an image is masked out of the loss (use it for
+            partially annotated data); by default the absence is supervised as background
     """
 
     def __init__(
@@ -127,7 +127,7 @@ class FAST(_FAST, nn.Module):
         exportable: bool = False,
         cfg: dict[str, Any] = {},
         class_names: list[str] = [CLASS_NAME],
-        mask_empty_classes: bool = True,
+        mask_empty_classes: bool = False,
     ) -> None:
         super().__init__()
         self.class_names = class_names

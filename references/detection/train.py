@@ -349,8 +349,7 @@ def main(args):
             pretrained=args.pretrained,
             assume_straight_pages=not args.rotation,
             class_names=class_names,
-            # With exhaustive annotations a class without box in a page is a true negative, not "unannotated"
-            mask_empty_classes=not args.exhaustive_labels,
+            mask_empty_classes=args.mask_empty_classes,
         )
 
     # Resume weights
@@ -764,10 +763,10 @@ def parse_args():
     )
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="train with rotated documents")
     parser.add_argument(
-        "--exhaustive-labels",
+        "--mask-empty-classes",
         action="store_true",
-        help="annotations are exhaustive: a class without any box in an image is trained as background instead of "
-        "being ignored (recommended for multi-class detection)",
+        help="ignore (mask out of the loss) a class that has no box in an image instead of training it as "
+        "background; use it for partially annotated data",
     )
     parser.add_argument(
         "--eval-straight",
