@@ -39,11 +39,7 @@ from utils import EarlyStopper, plot_recorder, plot_samples
 
 
 def identity(x):
-    """No-op augmentation.
-
-    A module-level function instead of `lambda x: x`: DataLoader workers pickle the transforms under the `spawn`
-    start method (macOS, Windows), and a lambda cannot be pickled, which made `-j > 0` fail there.
-    """
+    """No-op augmentation."""
     return x
 
 
