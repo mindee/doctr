@@ -38,6 +38,11 @@ from doctr.utils.metrics import LocalizationConfusion
 from utils import EarlyStopper, plot_recorder, plot_samples
 
 
+def identity(x):
+    """No-op augmentation."""
+    return x
+
+
 def convert_to_multiclass_targets(targets: list) -> list[dict[str, np.ndarray]]:
     """Convert detection targets to the multi-class format expected by the models.
 
@@ -393,7 +398,7 @@ def main(args):
             T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
         ]),
         T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
-        lambda x: x,  # Identity no transformation
+        identity,  # Identity no transformation
     ])
     # Image + target augmentations
     sample_transforms = T.SampleCompose(

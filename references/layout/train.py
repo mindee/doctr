@@ -43,6 +43,11 @@ from doctr.utils.metrics import ObjectDetectionMetric
 from utils import EarlyStopper, build_param_groups, convert_target, plot_recorder, plot_samples
 
 
+def identity(x):
+    """No-op augmentation."""
+    return x
+
+
 def record_lr(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -401,7 +406,7 @@ def main(args):
             T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
         ]),
         T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
-        lambda x: x,  # Identity no transformation
+        identity,  # Identity no transformation
     ])
     # Image + target augmentations
     sample_transforms = T.SampleCompose(
