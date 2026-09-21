@@ -35,7 +35,18 @@ from doctr.datasets import DetectionDataset
 from doctr.file_utils import CLASS_NAME
 from doctr.models import detection, login_to_hub, push_to_hf_hub
 from doctr.utils.metrics import LocalizationConfusion
-from utils import EarlyStopper, plot_recorder, plot_samples
+from utils import EarlyStopper, amp_dtype, model_device, plot_recorder, plot_samples, resolve_device
+
+AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
+
+
+def _autocast():
+    return torch.amp.autocast("cuda", dtype=AMP_DTYPE)
+
+
+def _scaler():
+    # bfloat16 has the range of float32: no loss scaling needed (GradScaler only makes sense for float16)
+    return torch.amp.GradScaler("cuda", enabled=AMP_DTYPE == torch.float16)
 
 
 def convert_to_multiclass_targets(targets: list) -> list[dict[str, np.ndarray]]:
@@ -84,11 +95,10 @@ def record_lr(
     loss_recorder = []
 
     if amp:
-        scaler = torch.amp.GradScaler("cuda")
+        scaler = _scaler()
 
     for batch_idx, (images, targets) in enumerate(train_loader):
-        if torch.cuda.is_available():
-            images = images.cuda()
+        images = images.to(model_device(model), non_blocking=True)
 
         images = batch_transforms(images)
         targets = convert_to_multiclass_targets(targets)
@@ -96,7 +106,7 @@ def record_lr(
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 train_loss = model(images, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
@@ -129,21 +139,20 @@ def record_lr(
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None, rank=0):
     if amp:
-        scaler = torch.amp.GradScaler("cuda")
+        scaler = _scaler()
 
     model.train()
     # Iterate over the batches of the dataset
     epoch_train_loss, batch_cnt = 0, 0
     pbar = tqdm(train_loader, dynamic_ncols=True, disable=(rank != 0))
     for images, targets in pbar:
-        if torch.cuda.is_available():
-            images = images.cuda()
+        images = images.to(model_device(model), non_blocking=True)
         images = batch_transforms(images)
         targets = convert_to_multiclass_targets(targets)
 
         optimizer.zero_grad()
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 train_loss = model(images, targets)["loss"]
             scaler.scale(train_loss).backward()
             # Gradient clipping
@@ -186,12 +195,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
     val_loss, sample_cnt = 0, 0
     pbar = tqdm(val_loader, dynamic_ncols=True, disable=not is_main_rank())
     for images, targets in pbar:
-        if torch.cuda.is_available():
-            images = images.cuda()
+        images = images.to(model_device(model), non_blocking=True)
         images = batch_transforms(images)
         targets = convert_to_multiclass_targets(targets)
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 out = model(images, targets, return_preds=True)
         else:
             out = model(images, targets, return_preds=True)
@@ -222,6 +230,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, args, amp=False, l
 
 
 def main(args):
+    global AMP_DTYPE
+    AMP_DTYPE = amp_dtype(args.amp_dtype)
     # Detect distributed setup
     # variable is set by torchrun
     world_size = int(os.environ.get("WORLD_SIZE", 1))
@@ -237,18 +247,12 @@ def main(args):
     else:
         # single process
         rank = 0
-        if isinstance(args.device, int):
-            if not torch.cuda.is_available():
-                raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-            if args.device >= torch.cuda.device_count():
-                raise ValueError("Invalid device index")
-            device = torch.device("cuda", args.device)
-        # Silent default switch to GPU if available
-        elif torch.cuda.is_available():
-            device = torch.device("cuda", 0)
-        else:
+        device = resolve_device(args.device)
+        if device.type == "cpu":
             logging.warning("No accessible GPU, target device set to CPU.")  # noqa: LOG015
-            device = torch.device("cpu")
+    if args.amp and device.type != "cuda":
+        raise ValueError("--amp (automatic mixed precision) is only supported on CUDA devices")
+    use_cuda = device.type == "cuda"
 
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
@@ -265,7 +269,8 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, multiprocessing.cpu_count())
 
-    torch.backends.cudnn.benchmark = True
+    if use_cuda:
+        torch.backends.cudnn.benchmark = True
     # placeholder for class names
     cls_container = [None]
     # validation dataset related code
@@ -329,7 +334,7 @@ def main(args):
         num_workers=args.workers,
         # Shard without padding so no sample is validated twice (see ShardSampler)
         sampler=ShardSampler(val_set, rank=rank) if distributed else SequentialSampler(val_set),
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=use_cuda,
         collate_fn=val_set.collate_fn,
     )
     if rank == 0:
@@ -363,9 +368,9 @@ def main(args):
         if rank == 0:
             pbar.write("Running evaluation")
         # Only moved further down, past this early return
-        if torch.cuda.is_available():
+        if use_cuda:
             torch.cuda.set_device(device)
-            model = model.to(device)
+        model = model.to(device)
         val_loss, recall, precision, mean_iou = evaluate(
             model, val_loader, batch_transforms, val_metric, args, amp=args.amp
         )
@@ -467,7 +472,7 @@ def main(args):
         drop_last=True,
         num_workers=args.workers,
         sampler=sampler,
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=use_cuda,
         collate_fn=train_set.collate_fn,
     )
     if rank == 0:
@@ -490,9 +495,9 @@ def main(args):
         for p in model.feat_extractor.parameters():
             p.requires_grad = False
 
-    if torch.cuda.is_available():
+    if use_cuda:
         torch.cuda.set_device(device)
-        model = model.to(device)
+    model = model.to(device)
 
     if distributed:
         # construct DDP model
@@ -705,8 +710,9 @@ def parse_args():
     parser.add_argument(
         "--device",
         default=None,
-        type=int,
-        help="Specify gpu device for single-gpu training. In distributed setting, this parameter is ignored",
+        type=str,
+        help="Device for single-process runs: a CUDA index (e.g. 0), 'cuda:N', 'mps' (Apple Silicon) or 'cpu'. "
+        "Default: CUDA if available, else MPS, else CPU.",
     )
     parser.add_argument("arch", type=str, help="text-detection model to train")
     parser.add_argument("--output_dir", type=str, default=".", help="path to save checkpoints and final model")
@@ -766,6 +772,12 @@ def parse_args():
         "--sched", type=str, default="poly", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument(
+        "--amp-dtype",
+        choices=["float16", "bfloat16"],
+        default="float16",
+        help="autocast dtype for --amp; bfloat16 (Ampere+ GPUs) avoids float16 overflows, no loss scaling",
+    )
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
     parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")

@@ -58,6 +58,19 @@ torchrun --nproc_per_node=2 references/table/train.py \
   --backend nccl
   ```
 
+## Device and mixed precision
+
+Every training and evaluation script accepts `--device`: a CUDA index (`0`), `cuda:N`, `mps` (Apple Silicon GPU) or `cpu`. Without it the script picks CUDA if available, then MPS, then CPU. In distributed mode (`torchrun`) the argument is ignored and each process uses its own GPU.
+
+`--amp` enables automatic mixed precision and is only supported on CUDA. `--amp-dtype bfloat16` (Ampere or newer GPUs) uses bfloat16 instead of float16: it has the range of float32, so it needs no loss scaling and avoids the overflows float16 can produce in some losses.
+
+```shell
+# Apple Silicon: set the fallback so the few ops MPS lacks run on CPU
+PYTORCH_ENABLE_MPS_FALLBACK=1 python references/table/train.py tablecenternet --train_path path/to/train --val_path path/to/val --epochs 5 --device mps
+# NVIDIA GPU with bfloat16 mixed precision
+python references/table/train.py tablecenternet --train_path path/to/train --val_path path/to/val --epochs 5 --device 0 --amp --amp-dtype bfloat16
+```
+
 ## Evaluation
 
 You can evaluate a model (the pretrained one by default, or your own checkpoint with `--resume`) on a dataset:

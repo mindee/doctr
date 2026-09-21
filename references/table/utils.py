@@ -9,6 +9,7 @@ from typing import Any
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 
 def plot_samples(images: list[Any], targets: list[dict[str, np.ndarray]], max_samples: int = 2) -> None:
@@ -151,3 +152,45 @@ class EarlyStopper:
             if self.counter >= self.patience:
                 return True
         return False
+
+
+def resolve_device(device: str | int | None) -> torch.device:
+    """Turn a CLI device spec (None, "cpu", "mps", "cuda", "cuda:1", 0) into a torch device.
+
+    With `None`, pick CUDA if available, then MPS, then CPU.
+
+    Args:
+        device: the device specification
+
+    Returns:
+        the resolved torch device
+    """
+    if device is None or device == "":
+        if torch.cuda.is_available():
+            return torch.device("cuda", 0)
+        if torch.backends.mps.is_available():
+            return torch.device("mps")
+        return torch.device("cpu")
+    if isinstance(device, int) or (isinstance(device, str) and device.isdigit()):
+        index = int(device)
+        if not torch.cuda.is_available():
+            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+        if index >= torch.cuda.device_count():
+            raise ValueError("Invalid device index")
+        return torch.device("cuda", index)
+    dev = torch.device(device)
+    if dev.type == "cuda" and not torch.cuda.is_available():
+        raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+    if dev.type == "mps" and not torch.backends.mps.is_available():
+        raise AssertionError("MPS backend is not available on this machine.")
+    return dev
+
+
+def model_device(model: torch.nn.Module) -> torch.device:
+    """Device holding the parameters of a model (works through DDP wrappers)."""
+    return next(model.parameters()).device
+
+
+def amp_dtype(name: str) -> torch.dtype:
+    """Autocast dtype for `--amp-dtype`."""
+    return torch.bfloat16 if name == "bfloat16" else torch.float16

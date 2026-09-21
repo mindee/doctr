@@ -21,6 +21,18 @@ from doctr import transforms as T
 from doctr.datasets import VOCABS
 from doctr.models import recognition
 from doctr.utils.metrics import TextMatch
+from utils import amp_dtype, model_device, resolve_device
+
+AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
+
+
+def _autocast():
+    return torch.amp.autocast("cuda", dtype=AMP_DTYPE)
+
+
+def _scaler():
+    # bfloat16 has the range of float32: no loss scaling needed (GradScaler only makes sense for float16)
+    return torch.amp.GradScaler("cuda", enabled=AMP_DTYPE == torch.float16)
 
 
 @torch.inference_mode()
@@ -34,11 +46,10 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     pbar = tqdm(val_loader)
     for images, targets in pbar:
         try:
-            if torch.cuda.is_available():
-                images = images.cuda()
+            images = images.to(model_device(model), non_blocking=True)
             images = batch_transforms(images)
             if amp:
-                with torch.amp.autocast("cuda"):
+                with _autocast():
                     out = model(images, targets, return_preds=True)
             else:
                 out = model(images, targets, return_preds=True)
@@ -61,6 +72,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
+    global AMP_DTYPE
+    AMP_DTYPE = amp_dtype(args.amp_dtype)
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
@@ -69,8 +82,12 @@ def main(args):
         # Monkey patch tqdm write method to send messages directly to Slack
         pbar.write = lambda msg: pbar.sio.client.chat_postMessage(channel=slack_channel, text=msg)
     pbar.write(str(args))
+    device = resolve_device(args.device)
+    if args.amp and device.type != "cuda":
+        raise ValueError("--amp (automatic mixed precision) is only supported on CUDA devices")
 
-    torch.backends.cudnn.benchmark = True
+    if device.type == "cuda":
+        torch.backends.cudnn.benchmark = True
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
@@ -111,7 +128,7 @@ def main(args):
         drop_last=False,
         num_workers=args.workers,
         sampler=SequentialSampler(ds),
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=device.type == "cuda",
         collate_fn=ds.collate_fn,
     )
     pbar.write(f"Test set loaded in {time.time() - st:.4}s ({len(ds)} samples in {len(test_loader)} batches)")
@@ -123,19 +140,11 @@ def main(args):
     val_metric = TextMatch()
 
     # GPU
-    if isinstance(args.device, int):
-        if not torch.cuda.is_available():
-            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-        if args.device >= torch.cuda.device_count():
-            raise ValueError("Invalid device index")
-    # Silent default switch to GPU if available
-    elif torch.cuda.is_available():
-        args.device = 0
-    else:
+    if device.type == "cpu":
         pbar.write("No accessible GPU, target device set to CPU.")
-    if torch.cuda.is_available():
-        torch.cuda.set_device(args.device)
-        model = model.cuda()
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
+    model = model.to(device)
 
     pbar.write("Running evaluation")
     val_loss, exact_match, partial_match = evaluate(model, test_loader, batch_transforms, val_metric, amp=args.amp)
@@ -153,7 +162,13 @@ def parse_args():
     parser.add_argument("arch", type=str, help="text-recognition model to evaluate")
     parser.add_argument("--vocab", type=str, default="french", help="Vocab to be used for evaluation")
     parser.add_argument("--dataset", type=str, default="FUNSD", help="Dataset to evaluate on")
-    parser.add_argument("--device", default=None, type=int, help="device")
+    parser.add_argument(
+        "--device",
+        default=None,
+        type=str,
+        help="Device for single-process runs: a CUDA index (e.g. 0), 'cuda:N', 'mps' (Apple Silicon) or 'cpu'. "
+        "Default: CUDA if available, else MPS, else CPU.",
+    )
     parser.add_argument("-b", "--batch_size", type=int, default=1, help="batch size for evaluation")
     parser.add_argument("--input_size", type=int, default=32, help="input size H for the model, W = 4*H")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
@@ -162,6 +177,12 @@ def parse_args():
     )
     parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument(
+        "--amp-dtype",
+        choices=["float16", "bfloat16"],
+        default="float16",
+        help="autocast dtype for --amp; bfloat16 (Ampere+ GPUs) avoids float16 overflows, no loss scaling",
+    )
     args = parser.parse_args()
 
     return args
