@@ -2,7 +2,7 @@
 
 ## Installation
 
-You will only need to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [Docker](https://docs.docker.com/get-docker/) and [poetry](https://python-poetry.org/docs/#installation). The container environment will be self-sufficient and install the remaining dependencies on its own.
+You will only need to install [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [Docker](https://docs.docker.com/get-docker/) and Python (only needed to resolve the dependencies with [uv](https://docs.astral.sh/uv/) via `make lock`). The container environment will be self-sufficient and install the remaining dependencies on its own.
 
 ## Usage
 

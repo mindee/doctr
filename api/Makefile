@@ -3,10 +3,9 @@
 .PHONY: lock run stop test
 # Pin the dependencies
 lock:
-	pip install poetry>=1.0 poetry-plugin-export
-	poetry lock
-	poetry export -f requirements.txt --without-hashes --output requirements.txt
-	poetry export -f requirements.txt --without-hashes --with dev --output requirements-dev.txt
+	pip install uv
+	uv pip compile pyproject.toml --universal --no-header -o requirements.txt
+	uv pip compile pyproject.toml --universal --no-header --group dev -o requirements-dev.txt
 
 # Run the docker
 run:
