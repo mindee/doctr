@@ -739,42 +739,51 @@ class LWDETR(nn.Module, _LWDETR):
 
             cost = (2.0 * cost_class + 5.0 * cost_bbox + 2.0 * cost_iou).cpu().numpy()  # the only sync
 
-        set_idx, batch_idx, query_idx, tgt_idx = [], [], [], []
-        for b, n in enumerate(counts):
-            if n == 0:
+        # Solve the (small) assignment problems on the host and gather the matched (set, sample, query, target)
+        # quadruplets, then send them back to the device in a single transfer
+        matched_set_ids: list[np.ndarray] = []
+        matched_sample_ids: list[np.ndarray] = []
+        matched_query_ids: list[np.ndarray] = []
+        matched_target_ids: list[np.ndarray] = []
+        for sample_id, num_targets in enumerate(counts):
+            if num_targets == 0:
                 continue
-            for s in range(n_sets):
-                q_ind, t_ind = linear_sum_assignment(cost[s, b, :, :n])
-                set_idx.append(np.full_like(q_ind, s))
-                batch_idx.append(np.full_like(q_ind, b))
-                query_idx.append(q_ind)
-                tgt_idx.append(t_ind)
-        if set_idx:
-            index = torch.from_numpy(np.stack([np.concatenate(i) for i in (set_idx, batch_idx, query_idx, tgt_idx)]))
-            index = index.to(device, dtype=torch.long)  # one transfer for every matched pair
-            s_i, b_i, q_i, t_i = index
+            for set_id in range(n_sets):
+                query_ids, target_ids = linear_sum_assignment(cost[set_id, sample_id, :, :num_targets])
+                matched_set_ids.append(np.full_like(query_ids, set_id))
+                matched_sample_ids.append(np.full_like(query_ids, sample_id))
+                matched_query_ids.append(query_ids)
+                matched_target_ids.append(target_ids)
+        if matched_set_ids:
+            matched = torch.from_numpy(
+                np.stack([
+                    np.concatenate(ids)
+                    for ids in (matched_set_ids, matched_sample_ids, matched_query_ids, matched_target_ids)
+                ])
+            ).to(device, dtype=torch.long)
+            set_ids, sample_ids, query_ids_t, target_ids_t = matched
         else:
-            s_i = b_i = q_i = t_i = torch.empty(0, dtype=torch.long, device=device)
+            set_ids = sample_ids = query_ids_t = target_ids_t = torch.empty(0, dtype=torch.long, device=device)
 
-        matched_pred_boxes = pred_boxes[s_i, b_i, q_i]
-        matched_tgt_boxes = tgt_boxes[b_i, t_i]
-        matched_tgt_labels = tgt_labels[b_i, t_i]
+        matched_pred_boxes = pred_boxes[set_ids, sample_ids, query_ids_t]
+        matched_tgt_boxes = tgt_boxes[sample_ids, target_ids_t]
+        matched_tgt_labels = tgt_labels[sample_ids, target_ids_t]
 
         # IoU-aware BCE classification loss (IA-BCE)
         pos_weights = torch.zeros_like(logits)
         neg_weights = prob.pow(gamma)
-        if len(s_i) > 0:
+        if len(set_ids) > 0:
             with torch.no_grad():
                 ious = _probiou(matched_pred_boxes, matched_tgt_boxes, scale=box_scale).clamp(min=0.0, max=1.0)
-                t = prob[s_i, b_i, q_i, matched_tgt_labels].pow(alpha) * ious.pow(1 - alpha)
+                t = prob[set_ids, sample_ids, query_ids_t, matched_tgt_labels].pow(alpha) * ious.pow(1 - alpha)
                 t = t.clamp(min=0.01)
-            pos_weights[s_i, b_i, q_i, matched_tgt_labels] = t
-            neg_weights[s_i, b_i, q_i, matched_tgt_labels] = 1 - t
+            pos_weights[set_ids, sample_ids, query_ids_t, matched_tgt_labels] = t
+            neg_weights[set_ids, sample_ids, query_ids_t, matched_tgt_labels] = 1 - t
 
         cls_loss = -(pos_weights * (prob + eps).log() + neg_weights * (1 - prob + eps).log())
         loss = cls_loss_weight * cls_loss.sum() / num_boxes
 
-        if len(s_i) > 0:
+        if len(set_ids) > 0:
             # L1 loss on normalized (cx, cy, w, h)
             l1_loss = F.l1_loss(matched_pred_boxes[:, :4], matched_tgt_boxes[:, :4], reduction="sum") / num_boxes
             # ProbIoU loss on the whole oriented box (position, size and rotation), in pixel coordinates
