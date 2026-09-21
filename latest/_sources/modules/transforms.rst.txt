@@ -17,6 +17,12 @@ Here are all transformations that are available through docTR:
 .. autoclass:: ChannelShuffle
 .. autoclass:: RandomHorizontalFlip
 .. autoclass:: RandomShadow
+
+.. autoclass:: RandomGlare
+
+.. autoclass:: RandomLighting
+
+.. autoclass:: RandomPerspective
 .. autoclass:: RandomResize
 
 
