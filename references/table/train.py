@@ -43,6 +43,15 @@ from doctr.utils.metrics import TableCellMetric
 from utils import EarlyStopper, build_param_groups, plot_recorder, plot_samples
 
 
+def identity(x):
+    """No-op augmentation.
+
+    A module-level function instead of `lambda x: x`: DataLoader workers pickle the transforms under the `spawn`
+    start method (macOS, Windows), and a lambda cannot be pickled, which made `-j > 0` fail there.
+    """
+    return x
+
+
 def record_lr(
     model: torch.nn.Module,
     train_loader: DataLoader,
@@ -320,7 +329,7 @@ def main(args):
             T.ImageTorchvisionTransform(RandomGrayscale(p=0.15)),
         ]),
         T.ImageTorchvisionTransform(RandomPhotometricDistort(p=0.3)),
-        lambda x: x,  # Identity no transformation
+        identity,  # Identity no transformation
     ])
     # Image + target augmentations
     sample_transforms = T.SampleCompose(
