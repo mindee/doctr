@@ -9,7 +9,6 @@ import logging
 import multiprocessing
 import os
 import time
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -49,6 +48,8 @@ from utils import (
     plot_recorder,
     plot_samples,
     resolve_device,
+    run_metadata,
+    save_checkpoint,
 )
 
 AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
@@ -626,6 +627,10 @@ def main(args):
             "rotation": args.rotation,
             "amp": args.amp,
         }
+        checkpoint_metadata = {
+            **config,
+            **run_metadata(args, task="layout", class_names=list(class_names), assume_straight_pages=not args.rotation),
+        }
 
     global global_step
     global_step = 0  # Shared global step counter
@@ -718,11 +723,11 @@ def main(args):
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6f} --> {val_loss:.6f}: saving state...")
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
+                save_checkpoint(params, args.output_dir, exp_name, checkpoint_metadata)
                 min_loss = val_loss
             if args.save_interval_epoch:
                 pbar.write(f"Saving state at epoch: {epoch + 1}")
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
+                save_checkpoint(params, args.output_dir, f"{exp_name}_epoch{epoch + 1}", checkpoint_metadata)
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             if any(val is None for val in (map5095, ap50, ap75)):
                 log_msg += "(Undefined metric value, caused by empty GTs or predictions)"

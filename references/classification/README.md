@@ -42,6 +42,10 @@ PYTORCH_ENABLE_MPS_FALLBACK=1 python references/classification/train_character.p
 python references/classification/train_character.py mobilenet_v3_small --epochs 5 --device 0 --amp --amp-dtype bfloat16
 ```
 
+## Checkpoints
+
+Every checkpoint `<name>.pt` is written together with a `<name>.json` sidecar holding what is needed to rebuild the model for inference and to reproduce the run: the architecture and its task settings (`classes` / `vocab_name`), the dataset hashes when local data is used, the docTR / PyTorch versions, the git revision and the full list of arguments.
+
 ## Data format
 
 You need to provide both `train_path` and `val_path` arguments to start training.

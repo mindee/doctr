@@ -4,12 +4,17 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+import json
+import subprocess
+from pathlib import Path
 from typing import Any
 
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+
+import doctr
 
 
 def convert_target(target: dict[str, list], class_names: list[str]) -> tuple[np.ndarray, np.ndarray]:
@@ -229,3 +234,45 @@ def model_device(model: torch.nn.Module) -> torch.device:
 def amp_dtype(name: str) -> torch.dtype:
     """Autocast dtype for `--amp-dtype`."""
     return torch.bfloat16 if name == "bfloat16" else torch.float16
+
+
+def save_checkpoint(model: torch.nn.Module, output_dir: str, name: str, metadata: dict) -> Path:
+    """Save the model weights as `<output_dir>/<name>.pt` and the run metadata as `<name>.json` next to them.
+
+    The metadata (architecture, task settings such as class names or vocab, dataset hashes, versions, arguments)
+    is what is needed to rebuild the model for inference without remembering how it was trained.
+
+    Args:
+        model: the model to save (unwrapped from DDP if needed)
+        output_dir: destination folder, created if missing
+        name: file stem
+        metadata: JSON-serializable run description
+
+    Returns:
+        the path of the weights file
+    """
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    weights = out_dir / f"{name}.pt"
+    torch.save(model.state_dict(), weights)
+    with open(out_dir / f"{name}.json", "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=1, default=str)
+    return weights
+
+
+def run_metadata(args, **task_specific) -> dict:
+    """Common run description written next to every checkpoint: versions, git revision and the full arguments."""
+    try:
+        revision = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, text=True, cwd=Path(__file__).parent
+        ).strip()
+    except Exception:
+        revision = None
+    return {
+        "framework": "pytorch",
+        "doctr_version": doctr.__version__,
+        "torch_version": torch.__version__,
+        "git_revision": revision,
+        "args": dict(vars(args)),
+        **task_specific,
+    }
