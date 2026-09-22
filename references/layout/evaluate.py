@@ -21,7 +21,13 @@ from doctr import transforms as T
 from doctr.datasets import LayoutDataset
 from doctr.models import layout
 from doctr.utils.metrics import ObjectDetectionMetric
-from utils import convert_target
+from utils import amp_dtype, convert_target, model_device, resolve_device
+
+AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
+
+
+def _autocast():
+    return torch.amp.autocast("cuda", dtype=AMP_DTYPE)
 
 
 @torch.inference_mode()
@@ -34,12 +40,11 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     val_loss, batch_cnt = 0, 0
     for images, targets in tqdm(val_loader):
         imgs, padding_masks = images
-        if torch.cuda.is_available():
-            imgs = imgs.cuda()
-            padding_masks = padding_masks.cuda()
+        imgs = imgs.to(model_device(model), non_blocking=True)
+        padding_masks = padding_masks.to(model_device(model), non_blocking=True)
         imgs = batch_transforms(imgs)
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 out = model(imgs, padding_masks, targets, return_preds=True)
         else:
             out = model(imgs, padding_masks, targets, return_preds=True)
@@ -72,6 +77,8 @@ def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
 
 
 def main(args):
+    global AMP_DTYPE
+    AMP_DTYPE = amp_dtype(args.amp_dtype)
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
     pbar = tqdm(disable=False if slack_token and slack_channel else True)
@@ -82,11 +89,15 @@ def main(args):
             text=msg,
         )
     pbar.write(str(args))
+    device = resolve_device(args.device)
+    if args.amp and device.type != "cuda":
+        raise ValueError("--amp (automatic mixed precision) is only supported on CUDA devices")
 
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    torch.backends.cudnn.benchmark = True
+    if device.type == "cuda":
+        torch.backends.cudnn.benchmark = True
 
     # Temporary model to recover configuration
     tmp_model = layout.__dict__[args.arch](
@@ -120,7 +131,7 @@ def main(args):
         drop_last=False,
         num_workers=args.workers,
         sampler=SequentialSampler(ds),
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=device.type == "cuda",
         collate_fn=ds.collate_fn,
     )
 
@@ -141,20 +152,11 @@ def main(args):
         model.from_pretrained(args.resume)
 
     # GPU
-    if isinstance(args.device, int):
-        if not torch.cuda.is_available():
-            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-        if args.device >= torch.cuda.device_count():
-            raise ValueError("Invalid device index")
-    # Silent default switch to GPU if available
-    elif torch.cuda.is_available():
-        args.device = 0
-    else:
+    if device.type == "cpu":
         pbar.write("No accessible GPU, target device set to CPU.")
-
-    if torch.cuda.is_available():
-        torch.cuda.set_device(args.device)
-        model = model.cuda()
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
+    model = model.to(device)
 
     # Metrics
     metric = ObjectDetectionMetric(
@@ -186,7 +188,13 @@ def parse_args():
     parser.add_argument("arch", type=str, help="text-detection model to evaluate")
     parser.add_argument("dataset_path", type=str, help="path to the dataset to evaluate on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for evaluation")
-    parser.add_argument("--device", default=None, type=int, help="device")
+    parser.add_argument(
+        "--device",
+        default=None,
+        type=str,
+        help="Device for single-process runs: a CUDA index (e.g. 0), 'cuda:N', 'mps' (Apple Silicon) or 'cpu'. "
+        "Default: CUDA if available, else MPS, else CPU.",
+    )
     parser.add_argument("--size", type=int, default=None, help="model input size, H = W")
     parser.add_argument("--keep_ratio", action="store_true", help="keep the aspect ratio of the input image")
     parser.add_argument("--symmetric_pad", action="store_true", help="pad the image symmetrically")
@@ -194,6 +202,12 @@ def parse_args():
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="inference with rotated bbox")
     parser.add_argument("--resume", type=str, default=None, help="Checkpoint to resume")
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument(
+        "--amp-dtype",
+        choices=["float16", "bfloat16"],
+        default="float16",
+        help="autocast dtype for --amp; bfloat16 (Ampere+ GPUs) avoids float16 overflows, no loss scaling",
+    )
     args = parser.parse_args()
 
     return args

@@ -34,9 +34,21 @@ from doctr.datasets import OrientationDataset
 from doctr.models import classification, login_to_hub, push_to_hf_hub
 from doctr.models.utils import export_model_to_onnx
 from doctr.utils import Sample
-from utils import EarlyStopper, plot_recorder, plot_samples
+from utils import EarlyStopper, amp_dtype, model_device, plot_recorder, plot_samples, resolve_device
 
 CLASSES = [0, -90, 180, 90]
+
+
+AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
+
+
+def _autocast():
+    return torch.amp.autocast("cuda", dtype=AMP_DTYPE)
+
+
+def _scaler():
+    # bfloat16 has the range of float32: no loss scaling needed (GradScaler only makes sense for float16)
+    return torch.amp.GradScaler("cuda", enabled=AMP_DTYPE == torch.float16)
 
 
 def rnd_rotate(sample: Sample) -> Sample:
@@ -78,20 +90,19 @@ def record_lr(
     loss_recorder = []
 
     if amp:
-        scaler = torch.amp.GradScaler("cuda")
+        scaler = _scaler()
 
     for batch_idx, (images, targets) in enumerate(train_loader):
         targets = torch.tensor(targets)
-        if torch.cuda.is_available():
-            images = images.cuda()
-            targets = targets.cuda()
+        images = images.to(model_device(model), non_blocking=True)
+        targets = targets.to(model_device(model), non_blocking=True)
 
         images = batch_transforms(images)
 
         # Forward, Backward & update
         optimizer.zero_grad()
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 out = model(images)
                 train_loss = cross_entropy(out, targets)
             scaler.scale(train_loss).backward()
@@ -122,7 +133,7 @@ def record_lr(
 
 def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, amp=False, log=None):
     if amp:
-        scaler = torch.amp.GradScaler("cuda")
+        scaler = _scaler()
 
     model.train()
     # Iterate over the batches of the dataset
@@ -130,15 +141,14 @@ def fit_one_epoch(model, train_loader, batch_transforms, optimizer, scheduler, a
     pbar = tqdm(train_loader, dynamic_ncols=True)
     for images, targets in pbar:
         targets = torch.tensor(targets)
-        if torch.cuda.is_available():
-            images = images.cuda()
-            targets = targets.cuda()
+        images = images.to(model_device(model), non_blocking=True)
+        targets = targets.to(model_device(model), non_blocking=True)
 
         images = batch_transforms(images)
 
         optimizer.zero_grad()
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 out = model(images)
                 train_loss = cross_entropy(out, targets)
             scaler.scale(train_loss).backward()
@@ -175,12 +185,11 @@ def evaluate(model, val_loader, batch_transforms, amp=False, log=None):
         targets = torch.tensor(targets)
         images = batch_transforms(images)
 
-        if torch.cuda.is_available():
-            images = images.cuda()
-            targets = targets.cuda()
+        images = images.to(model_device(model), non_blocking=True)
+        targets = targets.to(model_device(model), non_blocking=True)
 
         if amp:
-            with torch.amp.autocast("cuda"):
+            with _autocast():
                 out = model(images)
                 loss = cross_entropy(out, targets)
         else:
@@ -202,6 +211,8 @@ def evaluate(model, val_loader, batch_transforms, amp=False, log=None):
 
 
 def main(args):
+    global AMP_DTYPE
+    AMP_DTYPE = amp_dtype(args.amp_dtype)
     slack_token = os.getenv("TQDM_SLACK_TOKEN")
     slack_channel = os.getenv("TQDM_SLACK_CHANNEL")
 
@@ -210,6 +221,9 @@ def main(args):
         # Monkey patch tqdm write method to send messages directly to Slack
         pbar.write = lambda msg: pbar.sio.client.chat_postMessage(channel=slack_channel, text=msg)
     pbar.write(str(args))
+    device = resolve_device(args.device)
+    if args.amp and device.type != "cuda":
+        raise ValueError("--amp (automatic mixed precision) is only supported on CUDA devices")
 
     if args.push_to_hub:
         login_to_hub()
@@ -217,7 +231,8 @@ def main(args):
     if not isinstance(args.workers, int):
         args.workers = min(16, mp.cpu_count())
 
-    torch.backends.cudnn.benchmark = True
+    if device.type == "cuda":
+        torch.backends.cudnn.benchmark = True
 
     input_size = (512, 512) if args.type == "page" else (256, 256)
 
@@ -239,7 +254,7 @@ def main(args):
         drop_last=False,
         num_workers=args.workers,
         sampler=SequentialSampler(val_set),
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=device.type == "cuda",
         collate_fn=val_set.collate_fn,
     )
     pbar.write(f"Validation set loaded in {time.time() - st:.4}s ({len(val_set)} samples in {len(val_loader)} batches)")
@@ -255,19 +270,11 @@ def main(args):
         model.from_pretrained(args.resume)
 
     # GPU
-    if isinstance(args.device, int):
-        if not torch.cuda.is_available():
-            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
-        if args.device >= torch.cuda.device_count():
-            raise ValueError("Invalid device index")
-    # Silent default switch to GPU if available
-    elif torch.cuda.is_available():
-        args.device = 0
-    else:
-        logging.warning("No accessible GPU, targe device set to CPU.")  # noqa: LOG015
-    if torch.cuda.is_available():
-        torch.cuda.set_device(args.device)
-        model = model.cuda()
+    if device.type == "cpu":
+        logging.warning("No accessible GPU, target device set to CPU.")  # noqa: LOG015
+    if device.type == "cuda":
+        torch.cuda.set_device(device)
+    model = model.to(device)
 
     if args.test_only:
         pbar.write("Running evaluation")
@@ -301,7 +308,7 @@ def main(args):
         drop_last=True,
         num_workers=args.workers,
         sampler=RandomSampler(train_set),
-        pin_memory=torch.cuda.is_available(),
+        pin_memory=device.type == "cuda",
         collate_fn=train_set.collate_fn,
     )
     pbar.write(f"Train set loaded in {time.time() - st:.4}s ({len(train_set)} samples in {len(train_loader)} batches)")
@@ -468,7 +475,7 @@ def main(args):
     if args.export_onnx:
         pbar.write("Exporting model to ONNX...")
         dummy_batch = next(iter(val_loader))
-        dummy_input = dummy_batch[0].cuda() if torch.cuda.is_available() else dummy_batch[0]
+        dummy_input = dummy_batch[0].to(device)
         model_path = export_model_to_onnx(model, exp_name, dummy_input)
         pbar.write(f"Exported model saved in {model_path}")
 
@@ -489,7 +496,13 @@ def parse_args():
     parser.add_argument("--name", type=str, default=None, help="Name of your training experiment")
     parser.add_argument("--epochs", type=int, default=10, help="number of epochs to train the model on")
     parser.add_argument("-b", "--batch_size", type=int, default=2, help="batch size for training")
-    parser.add_argument("--device", default=None, type=int, help="device")
+    parser.add_argument(
+        "--device",
+        default=None,
+        type=str,
+        help="Device for single-process runs: a CUDA index (e.g. 0), 'cuda:N', 'mps' (Apple Silicon) or 'cpu'. "
+        "Default: CUDA if available, else MPS, else CPU.",
+    )
     parser.add_argument("--lr", type=float, default=0.001, help="learning rate for the optimizer (Adam or AdamW)")
     parser.add_argument("--wd", "--weight-decay", default=0, type=float, help="weight decay", dest="weight_decay")
     parser.add_argument("-j", "--workers", type=int, default=None, help="number of workers used for dataloading")
@@ -513,6 +526,12 @@ def parse_args():
         "--sched", type=str, default="cosine", choices=["cosine", "onecycle", "poly"], help="scheduler to use"
     )
     parser.add_argument("--amp", dest="amp", help="Use Automatic Mixed Precision", action="store_true")
+    parser.add_argument(
+        "--amp-dtype",
+        choices=["float16", "bfloat16"],
+        default="float16",
+        help="autocast dtype for --amp; bfloat16 (Ampere+ GPUs) avoids float16 overflows, no loss scaling",
+    )
     parser.add_argument("--find-lr", action="store_true", help="Gridsearch the optimal LR")
     parser.add_argument("--early-stop", action="store_true", help="Enable early stopping")
     parser.add_argument("--early-stop-epochs", type=int, default=5, help="Patience for early stopping")
