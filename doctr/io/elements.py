@@ -386,11 +386,16 @@ class Block(Element):
 
     def __init__(
         self,
-        lines: list[Line] = [],
-        artefacts: list[Artefact] = [],
+        lines: list[Line] | None = None,
+        artefacts: list[Artefact] | None = None,
         geometry: BoundingBox | np.ndarray | None = None,
         objectness_score: float | None = None,
     ) -> None:
+        # Avoid shared mutable default arguments: each Block must own its lists.
+        if lines is None:
+            lines = []
+        if artefacts is None:
+            artefacts = []
         # Compute the objectness score of the line
         if objectness_score is None:
             objectness_score = float(np.mean([w.objectness_score for line in lines for w in line.words]))
