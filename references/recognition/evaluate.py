@@ -30,11 +30,6 @@ def _autocast():
     return torch.amp.autocast("cuda", dtype=AMP_DTYPE)
 
 
-def _scaler():
-    # bfloat16 has the range of float32: no loss scaling needed (GradScaler only makes sense for float16)
-    return torch.amp.GradScaler("cuda", enabled=AMP_DTYPE == torch.float16)
-
-
 @torch.inference_mode()
 def evaluate(model, val_loader, batch_transforms, val_metric, amp=False):
     # Model in eval mode

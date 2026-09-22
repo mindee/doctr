@@ -208,8 +208,14 @@ def resolve_device(device: str | int | None) -> torch.device:
             raise ValueError("Invalid device index")
         return torch.device("cuda", index)
     dev = torch.device(device)
-    if dev.type == "cuda" and not torch.cuda.is_available():
-        raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+    if dev.type == "cuda":
+        if not torch.cuda.is_available():
+            raise AssertionError("PyTorch cannot access your GPU. Please investigate!")
+        if dev.index is None:
+            # "cuda" without an index: pin it to the current device so that `torch.cuda.set_device` works
+            dev = torch.device("cuda", torch.cuda.current_device())
+        elif dev.index >= torch.cuda.device_count():
+            raise ValueError("Invalid device index")
     if dev.type == "mps" and not torch.backends.mps.is_available():
         raise AssertionError("MPS backend is not available on this machine.")
     return dev
