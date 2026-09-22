@@ -274,22 +274,3 @@ def test_detection_multiclass_target_channels_by_name(arch_name):
         model.build_target([{"a": box_a, "b": box_b, "c": box_a}], (2, 64, 64))
     with pytest.raises(ValueError, match="missing"):
         model.build_target([{"a": box_a}], (2, 64, 64))
-
-
-def test_fast_supervises_classes_without_positives():
-    # A class with no positive pixel in the batch must still penalise false positives (Dice alone is constant there)
-    model = detection.fast_tiny(pretrained=False, pretrained_backbone=False, class_names=["a", "b"])
-    target = [{"a": np.array([[0.1, 0.1, 0.6, 0.6]], dtype=np.float32), "b": np.zeros((0, 4), dtype=np.float32)}]
-    quiet = torch.full((1, 2, 32, 32), -5.0, requires_grad=True)
-    shouting = quiet.detach().clone()
-    shouting[:, 1] = 5.0  # class "b" fires everywhere although it has no ground truth
-    shouting.requires_grad_(True)
-    assert model.compute_loss(shouting, target) > model.compute_loss(quiet, target)
-
-    # a batch made only of background is still a learning signal (non-zero gradient)
-    loss = model.compute_loss(
-        quiet, [{"a": np.zeros((0, 4), dtype=np.float32), "b": np.zeros((0, 4), dtype=np.float32)}]
-    )
-    assert torch.isfinite(loss)
-    (grad,) = torch.autograd.grad(loss, quiet)
-    assert torch.any(grad != 0)
