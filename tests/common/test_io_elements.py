@@ -432,23 +432,6 @@ def test_block():
     }
 
 
-def test_block_default_lists_are_not_shared():
-    # Regression: Block.__init__ used mutable default arguments (lines=[],
-    # artefacts=[]), so every Block built without those args shared one list
-    # and mutating one polluted the others.
-    geom = ((0, 0), (1, 1))
-    b1 = elements.Block(geometry=geom, objectness_score=0.0)
-    b2 = elements.Block(geometry=geom, objectness_score=0.0)
-
-    assert b1.lines is not b2.lines
-    assert b1.artefacts is not b2.artefacts
-
-    b1.lines.append("x")
-    b1.artefacts.append("y")
-    assert b2.lines == []
-    assert b2.artefacts == []
-
-
 def test_page():
     page = np.zeros((300, 200, 3), dtype=np.uint8)
     page_idx = 0

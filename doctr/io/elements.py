@@ -391,7 +391,6 @@ class Block(Element):
         geometry: BoundingBox | np.ndarray | None = None,
         objectness_score: float | None = None,
     ) -> None:
-        # Avoid shared mutable default arguments: each Block must own its lists.
         if lines is None:
             lines = []
         if artefacts is None:
