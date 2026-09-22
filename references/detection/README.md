@@ -131,6 +131,10 @@ labels.json
 }
 ```
 
+Every class of the dataset must appear somewhere in each split (train and val); inside an image, a class that has no box is written as an empty list. The class → channel mapping is derived from the sorted set of class names, and the script aborts if train and val expose different classes.
+
+An image without any box, or a class absent from an image, is trained as background: what the labels say is the truth. If your data is only partially annotated (some classes were not labelled on some images), pass `--mask-empty-classes` so that those channels are ignored by the loss instead.
+
 ## Slack Logging with tqdm
 
 To enable Slack logging using `tqdm`, you need to set the following environment variables:

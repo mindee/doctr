@@ -112,6 +112,8 @@ class FAST(_FAST, nn.Module):
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
         class_names: list of class names
+        mask_empty_classes: if True, a class without any box in an image is masked out of the loss (use it for
+            partially annotated data); by default the absence is supervised as background
     """
 
     def __init__(
@@ -125,9 +127,11 @@ class FAST(_FAST, nn.Module):
         exportable: bool = False,
         cfg: dict[str, Any] = {},
         class_names: list[str] = [CLASS_NAME],
+        mask_empty_classes: bool = False,
     ) -> None:
         super().__init__()
         self.class_names = class_names
+        self.mask_empty_classes = mask_empty_classes
         num_classes: int = len(self.class_names)
         self.cfg = cfg
 
@@ -265,12 +269,13 @@ class FAST(_FAST, nn.Module):
             # combine all masks to shape (len(masks), H, W)
             return torch.stack(masks).unsqueeze(0).float()
 
-        if len(self.class_names) > 1:
-            kernels = torch.softmax(out_map, dim=1)
-            prob_map = torch.softmax(self.pooling(out_map), dim=1)
-        else:
-            kernels = torch.sigmoid(out_map)
-            prob_map = torch.sigmoid(self.pooling(out_map))
+        pooled_logits = self.pooling(out_map)
+        kernels = torch.sigmoid(out_map)
+        prob_map = torch.sigmoid(pooled_logits)
+
+        def masked_class_mean(per_class: torch.Tensor, valid: torch.Tensor) -> torch.Tensor:
+            # Average over the classes that have something to supervise; a graph-preserving zero if none has
+            return (per_class * valid).sum() / valid.sum().clamp(min=1)
 
         # As described in the paper, we use the Dice loss for the text segmentation map and the Dice loss scaled by 0.5.
         selected_masks = torch.cat(
@@ -278,13 +283,21 @@ class FAST(_FAST, nn.Module):
         ).float()
         inter = (selected_masks * prob_map * seg_target).sum((0, 2, 3))
         cardinality = (selected_masks * (prob_map + seg_target)).sum((0, 2, 3))
-        text_loss = (1 - 2 * inter / (cardinality + eps)).mean() * 0.5
+        text_dice = 1 - 2 * inter / (cardinality + eps)
+        # With no positive pixel in the batch, Dice is a constant with zero gradient: false positives of that class
+        # would never be penalised. Supervise such classes as background with a BCE on the selected pixels instead.
+        num_selected = selected_masks.sum((0, 2, 3))
+        has_pos = (selected_masks * seg_target).sum((0, 2, 3)) > 0
+        neg_bce = (selected_masks * F.softplus(pooled_logits)).sum((0, 2, 3)) / num_selected.clamp(min=1)
+        text_loss = masked_class_mean(torch.where(has_pos, text_dice, neg_bce), num_selected > 0) * 0.5
 
         # As described in the paper, we use the Dice loss for the text kernel map.
         selected_masks = seg_target * seg_mask
         inter = (selected_masks * kernels * shrunken_kernel).sum((0, 2, 3))  # noqa
         cardinality = (selected_masks * (kernels + shrunken_kernel)).sum((0, 2, 3))  # noqa
-        kernel_loss = (1 - 2 * inter / (cardinality + eps)).mean()
+        # The kernel map is only defined inside text regions: skip the classes without any in the batch
+        kernel_dice = 1 - 2 * inter / (cardinality + eps)
+        kernel_loss = masked_class_mean(kernel_dice, selected_masks.sum((0, 2, 3)) > 0)
 
         return text_loss + kernel_loss
 

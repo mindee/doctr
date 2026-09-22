@@ -106,6 +106,8 @@ class DBNet(_DBNet, nn.Module):
         exportable: onnx exportable returns only logits
         cfg: the configuration dict of the model
         class_names: list of class names
+        mask_empty_classes: if True, a class without any box in an image is masked out of the loss (use it for
+            partially annotated data); by default the absence is supervised as background
     """
 
     def __init__(
@@ -119,9 +121,11 @@ class DBNet(_DBNet, nn.Module):
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
         class_names: list[str] = [CLASS_NAME],
+        mask_empty_classes: bool = False,
     ) -> None:
         super().__init__()
         self.class_names = class_names
+        self.mask_empty_classes = mask_empty_classes
         num_classes: int = len(self.class_names)
         self.cfg = cfg
 
@@ -268,9 +272,11 @@ class DBNet(_DBNet, nn.Module):
         thresh_target, thresh_mask = torch.from_numpy(targets[2]), torch.from_numpy(targets[3])
         thresh_target, thresh_mask = thresh_target.to(out_map.device), thresh_mask.to(out_map.device)
 
+        # Every term defaults to a zero that keeps the graph, so a fully masked batch does not crash
+        focal_loss = dice_loss = l1_loss = out_map.sum() * 0
+        focal_scale = 10.0
         if torch.any(seg_mask):
             # Focal loss
-            focal_scale = 10.0
             bce_loss = F.binary_cross_entropy_with_logits(out_map, seg_target, reduction="none")
 
             p_t = prob_map * seg_target + (1 - prob_map) * (1 - seg_target)

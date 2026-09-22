@@ -137,3 +137,27 @@ def test_crop_bboxes_from_image(geoms, mock_image_path):
     # Data type and shape
     assert all(isinstance(crop, np.ndarray) for crop in cropped_imgs)
     assert all(crop.ndim == 3 for crop in cropped_imgs)
+
+
+def test_pre_transform_multiclass():
+    img = np.zeros((20, 40, 3), dtype=np.uint8)
+    boxes = np.array([[4, 2, 20, 10], [24, 4, 36, 16]], dtype=np.float32)
+    classes = ["b", "a"]
+
+    # without class_names, only the classes present in the sample, sorted
+    _, target = utils.pre_transform_multiclass(img, (boxes, classes))
+    assert list(target) == ["a", "b"]
+    assert target["a"].shape == target["b"].shape == (1, 4)
+    assert np.all((target["a"] >= 0) & (target["a"] <= 1))
+
+    # with class_names, every class in that order, empty array for the absent ones
+    _, target = utils.pre_transform_multiclass(img, (boxes, classes), class_names=["a", "b", "c"])
+    assert list(target) == ["a", "b", "c"]
+    assert target["c"].shape == (0, 4) and target["c"].dtype == boxes.dtype
+    # the empty arrays are not shared between classes
+    _, target = utils.pre_transform_multiclass(img, (np.zeros((0, 4), dtype=np.float32), []), class_names=["a", "b"])
+    assert target["a"] is not target["b"]
+
+    # a class outside class_names is an error, not a silently dropped box
+    with pytest.raises(ValueError, match="unknown class"):
+        utils.pre_transform_multiclass(img, (boxes, classes), class_names=["a"])

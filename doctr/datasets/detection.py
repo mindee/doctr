@@ -5,6 +5,7 @@
 
 import json
 import os
+from functools import partial
 from typing import Any
 
 import numpy as np
@@ -64,6 +65,10 @@ class DetectionDataset(AbstractDataset):
 
             self.data.append((img_name, (np.asarray(geoms, dtype=np_dtype), polygons_classes)))
 
+        # Every sample exposes the full (sorted) set of classes so that the class -> channel mapping
+        # is identical across samples, even when a class has no box in a given image.
+        self._pre_transforms = partial(pre_transform_multiclass, class_names=self.class_names)
+
     def format_polygons(
         self, polygons: list | dict, use_polygons: bool, np_dtype: type
     ) -> tuple[np.ndarray, list[str]]:
@@ -81,11 +86,16 @@ class DetectionDataset(AbstractDataset):
         if isinstance(polygons, list):
             self._class_names += [CLASS_NAME]
             polygons_classes = [CLASS_NAME for _ in polygons]
-            _polygons: np.ndarray = np.asarray(polygons, dtype=np_dtype)
+            _polygons: np.ndarray = (
+                np.asarray(polygons, dtype=np_dtype) if polygons else np.zeros((0, 4, 2), dtype=np_dtype)
+            )
         elif isinstance(polygons, dict):
             self._class_names += list(polygons.keys())
             polygons_classes = [k for k, v in polygons.items() for _ in v]
-            _polygons = np.concatenate([np.asarray(poly, dtype=np_dtype) for poly in polygons.values() if poly], axis=0)
+            arrays: list[np.ndarray] = [np.asarray(poly, dtype=np_dtype) for poly in polygons.values() if poly]
+            _polygons = (
+                np.concatenate(arrays, axis=0) if arrays else np.zeros((0, 4, 2), dtype=np_dtype)
+            )  # image without any box
         else:
             raise TypeError(f"polygons should be a dictionary or list, it was {type(polygons)}")
         geoms = _polygons if use_polygons else np.concatenate((_polygons.min(axis=1), _polygons.max(axis=1)), axis=1)

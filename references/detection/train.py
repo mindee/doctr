@@ -359,6 +359,7 @@ def main(args):
             pretrained=args.pretrained,
             assume_straight_pages=not args.rotation,
             class_names=class_names,
+            mask_empty_classes=args.mask_empty_classes,
         )
 
     # Resume weights
@@ -442,6 +443,11 @@ def main(args):
         )
         with open(os.path.join(args.train_path, "labels.json"), "rb") as f:
             train_hash = hashlib.sha256(f.read()).hexdigest()
+        if train_set.class_names != class_names:
+            raise ValueError(
+                f"train and validation sets expose different classes: {train_set.class_names} vs {class_names}. "
+                "Every class must appear in both labels.json files (use an empty list for images without it)."
+            )
     else:
         # Built-in datasets: load the first one and extend it with the remaining ones
         train_datasets = args.train_datasets
@@ -767,6 +773,12 @@ def parse_args():
         help="Load pretrained parameters before starting the training",
     )
     parser.add_argument("--rotation", dest="rotation", action="store_true", help="train with rotated documents")
+    parser.add_argument(
+        "--mask-empty-classes",
+        action="store_true",
+        help="ignore (mask out of the loss) a class that has no box in an image instead of training it as "
+        "background; use it for partially annotated data",
+    )
     parser.add_argument(
         "--eval-straight",
         action="store_true",
