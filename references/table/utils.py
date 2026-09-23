@@ -207,17 +207,13 @@ def amp_dtype(name: str) -> torch.dtype:
     return torch.bfloat16 if name == "bfloat16" else torch.float16
 
 
-def save_checkpoint(model: torch.nn.Module, output_dir: str, name: str, metadata: dict) -> Path:
-    """Save the model weights as `<output_dir>/<name>.pt` and the run metadata as `<name>.json` next to them.
-
-    The metadata (architecture, task settings such as class names or vocab, dataset hashes, versions, arguments)
-    is what is needed to rebuild the model for inference without remembering how it was trained.
+def save_checkpoint(model: torch.nn.Module, output_dir: str, name: str) -> Path:
+    """Save the model weights as `<output_dir>/<name>.pt`.
 
     Args:
         model: the model to save (unwrapped from DDP if needed)
         output_dir: destination folder, created if missing
         name: file stem
-        metadata: JSON-serializable run description
 
     Returns:
         the path of the weights file
@@ -226,9 +222,30 @@ def save_checkpoint(model: torch.nn.Module, output_dir: str, name: str, metadata
     out_dir.mkdir(parents=True, exist_ok=True)
     weights = out_dir / f"{name}.pt"
     torch.save(model.state_dict(), weights)
-    with open(out_dir / f"{name}.json", "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent=1, default=str)
     return weights
+
+
+def save_run_metadata(output_dir: str, name: str, metadata: dict) -> Path:
+    """Write the run metadata as `<output_dir>/<name>.json`.
+
+    The metadata (architecture, task settings such as class names or vocab, dataset hashes, versions, arguments)
+    is what is needed to rebuild the model for inference without remembering how it was trained. It describes the
+    run, not one of its checkpoints, so it is written once per run and shared by every checkpoint the run saves.
+
+    Args:
+        output_dir: destination folder, created if missing
+        name: file stem, the experiment name
+        metadata: JSON-serializable run description
+
+    Returns:
+        the path of the metadata file
+    """
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    path = out_dir / f"{name}.json"
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(metadata, f, indent=1, default=str)
+    return path
 
 
 def run_metadata(args, **task_specific) -> dict:

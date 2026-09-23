@@ -42,6 +42,7 @@ from utils import (
     resolve_device,
     run_metadata,
     save_checkpoint,
+    save_run_metadata,
 )
 
 AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
@@ -367,10 +368,12 @@ def main(args):
         "scheduler": args.sched,
         "pretrained": args.pretrained,
     }
-    checkpoint_metadata = {
-        **config,
-        **run_metadata(args, task="character_classification", classes=list(vocab), vocab_name=args.vocab),
-    }
+    # the run metadata describes the whole run: written once, next to the checkpoint `<exp_name>.pt`
+    save_run_metadata(
+        args.output_dir,
+        exp_name,
+        {**config, **run_metadata(args, task="character_classification", classes=list(vocab), vocab_name=args.vocab)},
+    )
 
     global global_step
     global_step = 0  # Shared global step counter
@@ -443,7 +446,7 @@ def main(args):
         val_loss, acc = evaluate(model, val_loader, batch_transforms, log=log_at_step)
         if val_loss < min_loss:
             pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-            save_checkpoint(model, args.output_dir, exp_name, checkpoint_metadata)
+            save_checkpoint(model, args.output_dir, exp_name)
             min_loss = val_loss
         pbar.write(f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} (Acc: {acc:.2%})")
 

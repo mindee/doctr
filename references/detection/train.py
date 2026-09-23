@@ -43,6 +43,7 @@ from utils import (
     resolve_device,
     run_metadata,
     save_checkpoint,
+    save_run_metadata,
 )
 
 AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
@@ -586,12 +587,17 @@ def main(args):
             "rotation": args.rotation,
             "amp": args.amp,
         }
-        checkpoint_metadata = {
-            **config,
-            **run_metadata(
-                args, task="detection", class_names=list(class_names), assume_straight_pages=not args.rotation
-            ),
-        }
+        # the run metadata describes the whole run: written once, next to the checkpoint `<exp_name>.pt`
+        save_run_metadata(
+            args.output_dir,
+            exp_name,
+            {
+                **config,
+                **run_metadata(
+                    args, task="detection", class_names=list(class_names), assume_straight_pages=not args.rotation
+                ),
+            },
+        )
 
     global global_step
     global_step = 0  # Shared global step counter
@@ -671,11 +677,11 @@ def main(args):
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
-                save_checkpoint(params, args.output_dir, exp_name, checkpoint_metadata)
+                save_checkpoint(params, args.output_dir, exp_name)
                 min_loss = val_loss
             if args.save_interval_epoch:
                 pbar.write(f"Saving state at epoch: {epoch + 1}")
-                save_checkpoint(params, args.output_dir, f"{exp_name}_epoch{epoch + 1}", checkpoint_metadata)
+                save_checkpoint(params, args.output_dir, f"{exp_name}_epoch{epoch + 1}")
 
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
             if any(val is None for val in (recall, precision, mean_iou)):

@@ -73,7 +73,7 @@ python references/table/train.py tablecenternet --train_path path/to/train --val
 
 ## Checkpoints
 
-Every checkpoint `<name>.pt` is written together with a `<name>.json` sidecar holding what is needed to rebuild the model for inference and to reproduce the run: the architecture and its task settings (`assume_straight_pages`), the dataset hashes when local data is used, the docTR / PyTorch versions, the git revision and the full list of arguments.
+Each run writes its metadata once, as `<experiment name>.json` next to the checkpoints it saves. It holds what is needed to rebuild the model for inference and to reproduce the run: the architecture and its task settings (`assume_straight_pages`), the dataset hashes when local data is used, the docTR / PyTorch versions, the git revision and the full list of arguments.
 
 ## Evaluation
 

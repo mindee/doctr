@@ -44,7 +44,7 @@ python references/classification/train_character.py mobilenet_v3_small --epochs 
 
 ## Checkpoints
 
-Every checkpoint `<name>.pt` is written together with a `<name>.json` sidecar holding what is needed to rebuild the model for inference and to reproduce the run: the architecture and its task settings (`classes` / `vocab_name`), the dataset hashes when local data is used, the docTR / PyTorch versions, the git revision and the full list of arguments.
+Each run writes its metadata once, as `<experiment name>.json` next to the checkpoints it saves. It holds what is needed to rebuild the model for inference and to reproduce the run: the architecture and its task settings (`classes` / `vocab_name`), the dataset hashes when local data is used, the docTR / PyTorch versions, the git revision and the full list of arguments.
 
 ## Data format
 
