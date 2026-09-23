@@ -43,9 +43,8 @@ def split_crops(
 
     for crop in crops:
         h, w = crop.shape[:2]
-        aspect_ratio = w / h
 
-        if aspect_ratio > max_ratio:
+        if h > 0 and w / h > max_ratio:
             split_width = max(1, math.ceil(h * target_ratio))
             overlap_width = max(0, math.floor(split_width * split_overlap_ratio))
 
@@ -131,6 +130,6 @@ def remap_preds(
             start_idx, end_idx, last_overlap = item
             text_parts, confidences = zip(*preds[start_idx:end_idx])
             merged_text = merge_multi_strings(list(text_parts), overlap_ratio, last_overlap)
-            merged_conf = sum(confidences) / len(confidences)  # average confidence
+            merged_conf = min((conf for text, conf in zip(text_parts, confidences) if text), default=min(confidences))
             remapped.append((merged_text, merged_conf))
     return remapped

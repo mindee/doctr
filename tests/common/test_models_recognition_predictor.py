@@ -25,8 +25,21 @@ def test_split_crops(crops, max_ratio, target_ratio, target_overlap_ratio, num_c
     [
         # Nothing to remap
         ([("hello", 0.5)], [0], 0.5, [("hello", 0.5)]),
-        # Merge
-        ([("hellowo", 0.5), ("loworld", 0.6)], [(0, 2, 0.5)], 0.5, [("helloworld", 0.55)]),
+        # Merge: the confidence of the merged word is the one of its weakest part
+        ([("hellowo", 0.5), ("loworld", 0.6)], [(0, 2, 0.5)], 0.5, [("helloworld", 0.5)]),
+        # A weak part must not be averaged away
+        ([("hello wor", 0.99), ("orld", 0.1)], [(0, 2, 0.5)], 0.5, [("hello world", 0.1)]),
+        # Parts without text (e.g. blank padding) are ignored for the confidence
+        ([("hello wor", 0.95), ("", 0.0)], [(0, 2, 0.99)], 0.5, [("hello wor", 0.95)]),
+        # Only empty parts
+        ([("", 0.2), ("", 0.4)], [(0, 2, 0.5)], 0.5, [("", 0.2)]),
+        # Mixed: unsplit and split crops
+        (
+            [("single", 0.9), ("hellowo", 0.8), ("loworld", 0.7)],
+            [0, (1, 3, 0.5)],
+            0.5,
+            [("single", 0.9), ("helloworld", 0.7)],
+        ),
     ],
 )
 def test_remap_preds(preds, crop_map, split_overlap_ratio, pred):
@@ -61,6 +74,8 @@ def test_remap_preds(preds, crop_map, split_overlap_ratio, pred):
         ([np.zeros((32, 192 * 2, 3))], 4, 6, 0.5, True, 3, (32, 192, 3), (0, 3, 0.5)),
         # Test fallback for empty splits
         ([np.empty((1, 0, 3))], -1, 4, 0.5, False, 1, (1, 0, 3), (0)),
+        # Zero-height crops are passed through instead of raising ZeroDivisionError
+        ([np.empty((0, 64, 3))], 4, 4, 0.5, False, 1, (0, 64, 3), (0)),
     ],
 )
 def test_split_crops_cases(
