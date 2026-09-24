@@ -5,6 +5,7 @@
 
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from urllib.parse import quote
 
 import cv2
 import numpy as np
@@ -134,7 +135,11 @@ def encode_crop(crop: np.ndarray, image_format: str = "png", quality: int = 95) 
         params = [int(cv2.IMWRITE_JPEG_QUALITY), int(quality)]
     elif extension == ".webp":
         params = [int(cv2.IMWRITE_WEBP_QUALITY), int(quality)]
-    array = cv2.cvtColor(crop, cv2.COLOR_RGB2BGR) if crop.ndim == 3 and crop.shape[2] == 3 else crop
+    array = crop
+    if crop.ndim == 3 and crop.shape[2] == 3:
+        array = cv2.cvtColor(crop, cv2.COLOR_RGB2BGR)
+    elif crop.ndim == 3 and crop.shape[2] == 4:
+        array = cv2.cvtColor(crop, cv2.COLOR_RGBA2BGRA)
     success, buffer = cv2.imencode(extension, array, params)
     if not success:  # pragma: no cover
         raise RuntimeError(f"failed to encode a figure crop as '{image_format}'")
@@ -152,6 +157,8 @@ class FigureEncoder:
     * ``embedded``: the crop is inlined as a base64 data URI, so the export stays a single file
     * ``referenced``: the crop is written to ``image_dir`` and referenced by a relative path
 
+    Each figure is encoded (and written) once per encoder, and colliding file names get a numbered suffix.
+
     >>> from doctr.io import FigureEncoder
     >>> markdown = page.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets"))
 
@@ -159,7 +166,8 @@ class FigureEncoder:
         mode: one of 'none', 'placeholder', 'embedded' or 'referenced'
         image_dir: the directory the crops are written to (required in 'referenced' mode)
         path_prefix: prepended to the file names in 'referenced' mode, to match the location the export
-            is rendered from (e.g. 'assets/' when the Markdown file sits next to the `assets` directory)
+            is rendered from (e.g. 'assets/' when the Markdown file sits next to the `assets` directory).
+            The resulting path is percent-encoded.
         image_format: one of 'png', 'jpg'/'jpeg' or 'webp'
         quality: the encoding quality of the lossy formats
         padding: relative margin added around each region, useful to catch the axis labels of a plot
@@ -188,6 +196,9 @@ class FigureEncoder:
         self.padding = padding
         # The files written so far, in emission order (empty unless the mode is 'referenced')
         self.written: list[Path] = []
+        # Keeps a reference to the page and region, so their ids cannot be recycled while cached
+        self._sources: dict[tuple[int, int], tuple[Any, Any, str | None]] = {}
+        self._names: set[str] = set()
 
     @classmethod
     def resolve(cls, images: "str | FigureEncoder | None") -> "FigureEncoder":
@@ -243,6 +254,16 @@ class FigureEncoder:
         """
         if self.mode in ("none", "placeholder"):
             return None
+        key = (id(page), id(region))
+        cached = self._sources.get(key)
+        if cached is not None:
+            return cached[2]
+        source = self._encode(page, region, index)
+        self._sources[key] = (page, region, source)
+        return source
+
+    def _encode(self, page: "Page", region: "LayoutElement", index: int) -> str | None:
+        """Crop, encode and (in 'referenced' mode) write a figure"""
         crop = crop_layout_region(getattr(page, "page", None), region.geometry, self.padding)
         if crop is None:
             return None
@@ -253,13 +274,18 @@ class FigureEncoder:
 
             return f"data:image/{mime};base64,{b64encode(payload).decode('ascii')}"
         extension = "jpg" if mime == "jpeg" else mime
-        name = f"page{getattr(page, 'page_idx', 0) + 1}_figure{index}.{extension}"
+        stem = f"page{getattr(page, 'page_idx', 0) + 1}_figure{index}"
+        name, suffix = f"{stem}.{extension}", 1
+        while name in self._names:
+            suffix += 1
+            name = f"{stem}_{suffix}.{extension}"
+        self._names.add(name)
         assert self.image_dir is not None  # guaranteed by __init__ in 'referenced' mode
         self.image_dir.mkdir(parents=True, exist_ok=True)
         path = self.image_dir / name
         path.write_bytes(payload)
         self.written.append(path)
-        return f"{self.path_prefix}{name}"
+        return quote(f"{self.path_prefix}{name}", safe="/:")
 
     def __repr__(self) -> str:
         return (

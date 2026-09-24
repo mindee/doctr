@@ -1003,8 +1003,9 @@ def test_page_export_as_xml_figures():
 
 
 def test_document_export_passes_images_through(tmp_path):
-    page = _figure_page()
-    doc = elements.Document([page, page])
+    first, second = _figure_page(), _figure_page()
+    second.page_idx = 1
+    doc = elements.Document([first, second])
     assert doc.export_as_markdown().count("<!-- image -->") == 2
     assert doc.export_as_markdown(images="none").count("<!-- image -->") == 0
     encoder = FigureEncoder("referenced", image_dir=tmp_path)

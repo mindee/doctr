@@ -289,8 +289,16 @@ def _attach_captions(
 ) -> list[int]:
     """Insert captions right before (resp. after) the closest float they sit above (resp. below).
 
+    A caption read after its float also comes after the elements detected inside that float.
     Captions without a float within reach keep their natural spatial position in the body.
     """
+
+    def _inside(idx: int, target: int, min_coverage: float = 0.5) -> bool:
+        x0, y0, x1, y1 = boxes[idx]
+        tx0, ty0, tx1, ty1 = boxes[target]
+        inter = max(min(x1, tx1) - max(x0, tx0), 0.0) * max(min(y1, ty1) - max(y0, ty0), 0.0)
+        return inter >= min_coverage * max((x1 - x0) * (y1 - y0), 1e-9)
+
     float_idcs = [idx for idx in order if labels[idx] in _FLOAT_LABELS]
     for cap in caption_idcs:
         cx0, cy0, cx1, cy1 = boxes[cap]
@@ -307,7 +315,11 @@ def _attach_captions(
             pos = order.index(best_target)
             # A caption located above (the center of) its float is read before it, otherwise after
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
-            order.insert(pos if above else pos + 1, cap)
+            if not above:
+                pos += 1
+                while pos < len(order) and order[pos] not in caption_idcs and _inside(order[pos], best_target):
+                    pos += 1
+            order.insert(pos, cap)
         else:  # fallback: insert at the natural spatial position
             cap_y0 = boxes[cap, 1]
             pos = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cap_y0), len(order))
