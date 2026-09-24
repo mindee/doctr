@@ -66,6 +66,7 @@ def test_crop_layout_region():
     assert crop_layout_region(None, ((0.1, 0.2), (0.5, 0.6))) is None
     assert crop_layout_region(np.zeros((0, 0, 3), dtype=np.uint8), ((0.1, 0.2), (0.5, 0.6))) is None
     assert crop_layout_region(image, ((0.5, 0.5), (0.5, 0.5))) is None
+    assert crop_layout_region(image, np.zeros((3, 2), dtype=np.float32)) is None
 
 
 @pytest.mark.parametrize("image_format", ["png", "jpg", "jpeg", "webp"])
@@ -76,6 +77,9 @@ def test_encode_crop(image_format):
     decoded = cv2.imdecode(np.frombuffer(payload, dtype=np.uint8), cv2.IMREAD_COLOR)
     assert decoded.shape == crop.shape
     # docTR pages are RGB: the red rectangle must survive the RGB -> BGR -> file -> BGR round trip
+    assert decoded[..., 2].mean() > decoded[..., 0].mean()
+    rgba = np.dstack([crop, np.full(crop.shape[:2], 255, dtype=np.uint8)])
+    decoded = cv2.imdecode(np.frombuffer(encode_crop(rgba, image_format), dtype=np.uint8), cv2.IMREAD_COLOR)
     assert decoded[..., 2].mean() > decoded[..., 0].mean()
 
     with pytest.raises(ValueError):
@@ -112,10 +116,15 @@ def test_figure_encoder_modes(tmp_path):
     assert embedded.startswith("data:image/png;base64,")
     assert FigureEncoder("embedded", image_format="jpg").source(page, region, 1).startswith("data:image/jpeg;base64,")
 
-    encoder = FigureEncoder("referenced", image_dir=tmp_path / "assets", path_prefix="assets/")
-    assert encoder.source(page, region, 3) == "assets/page1_figure3.png"
+    encoder = FigureEncoder("referenced", image_dir=tmp_path / "assets", path_prefix="my assets/")
+    assert encoder.source(page, region, 3) == "my%20assets/page1_figure3.png"
     assert encoder.written == [tmp_path / "assets" / "page1_figure3.png"]
     assert encoder.written[0].read_bytes()[:4] == b"\x89PNG"
+    # Each figure is written once, and a name taken by another page gets a suffix
+    assert encoder.source(page, region, 3) == "my%20assets/page1_figure3.png"
+    other = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
+    assert encoder.source(other, region, 3) == "my%20assets/page1_figure3_2.png"
+    assert [path.name for path in encoder.written] == ["page1_figure3.png", "page1_figure3_2.png"]
 
     # A page restored from a JSON export carries no pixels: the figures degrade to a placeholder
     restored = elements.Page.from_dict(page.export())

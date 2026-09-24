@@ -387,7 +387,7 @@ class _PageTextExporter:
         Returns:
             the figure markup keyed by item index, and the indices of the absorbed captions
         """
-        from doctr.io.elements import Block, LayoutElement
+        from doctr.io.elements import Block, LayoutElement, Table
         from doctr.models.reading_order import normalize_layout_label
 
         markup: dict[int, str] = {}
@@ -413,11 +413,16 @@ class _PageTextExporter:
             if after < len(items) and _is_caption(after):
                 claims.setdefault(after, []).append(idx)
 
-        # Each caption goes to its closest figure, and each figure keeps its closest caption
+        # Each caption goes to its closest float (an adjacent table keeps its own caption), and each figure
+        # keeps its closest caption
         captions: dict[int, int] = {}
         for cap_idx, candidates in claims.items():
             cap_box = _xyxy(items[cap_idx].geometry)
-            best = min(candidates, key=lambda fig: _caption_distance(cap_box, _xyxy(items[fig].geometry)))
+            neighbors = (cap_idx - 1, cap_idx + 1)
+            tables = [idx for idx in neighbors if 0 <= idx < len(items) and isinstance(items[idx], Table)]
+            best = min([*candidates, *tables], key=lambda elt: _caption_distance(cap_box, _xyxy(items[elt].geometry)))
+            if best in tables:
+                continue
             if best in captions:
                 prev_box = _xyxy(items[captions[best]].geometry)
                 fig_box = _xyxy(items[best].geometry)

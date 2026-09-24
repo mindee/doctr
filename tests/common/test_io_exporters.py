@@ -1,4 +1,5 @@
 import json
+import re
 
 import cv2
 import numpy as np
@@ -877,7 +878,7 @@ def test_every_format_is_reachable_from_a_document():
     assert kie_page.export_as_html(direction="rtl") == kie_page.export_as_html()
 
 
-def _figure_page():
+def _figure_page(caption="Figure 1 quarterly revenue", picture=((0.12, 0.30), (0.88, 0.60))):
     """A title, a paragraph, a figure with a caption underneath, and a closing paragraph."""
     image = np.zeros((1000, 800, 3), dtype=np.uint8)
     image[300:600, 100:700] = (255, 0, 0)
@@ -885,16 +886,17 @@ def _figure_page():
         _line_at("Annual Report", 0.2, 0.04, 0.8, 0.08),
         _line_at("Revenue grew steadily", 0.1, 0.12, 0.9, 0.16),
         _line_at("axis label", 0.15, 0.45, 0.35, 0.48),  # text detected inside the figure
-        _line_at("Figure 1 quarterly revenue", 0.2, 0.63, 0.8, 0.66),
         _line_at("The trend continued", 0.1, 0.72, 0.9, 0.76),
     ]
     layout = [
         elements.LayoutElement("Title", 0.99, ((0.15, 0.03), (0.85, 0.09))),
         elements.LayoutElement("Text", 0.98, ((0.08, 0.11), (0.92, 0.17))),
-        elements.LayoutElement("Picture", 0.97, ((0.12, 0.30), (0.88, 0.60))),
-        elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.67))),
+        elements.LayoutElement("Picture", 0.97, picture),
         elements.LayoutElement("Text", 0.98, ((0.08, 0.71), (0.92, 0.77))),
     ]
+    if caption is not None:
+        lines.append(_line_at(caption, 0.2, 0.63, 0.8, 0.66))
+        layout.append(elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.67))))
     return elements.Page(image, [elements.Block(lines=lines)], 0, (1000, 800), layout=layout)
 
 
@@ -908,7 +910,8 @@ def test_page_reading_order_with_figures():
     # The figure is read after the paragraph above it and before its caption
     rendered = [item.render(line_break=" ") if isinstance(item, elements.Block) else None for item in items]
     assert rendered.index("Revenue grew steadily") < figure_idx
-    assert figure_idx < rendered.index("Figure 1 quarterly revenue")
+    assert figure_idx < rendered.index("axis label") < rendered.index("Figure 1 quarterly revenue")
+    assert page.items_in_reading_order() == items
     # A page without layout keeps yielding blocks only
     plain = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), page.blocks, 0, (1000, 800))
     assert all(isinstance(item, elements.Block) for item in plain.items_in_reading_order())
@@ -968,6 +971,89 @@ def test_page_export_asciidoc_and_html_images():
     assert 'alt=""' in page.export_as_html(images="embedded")
 
 
+@pytest.mark.parametrize(
+    "exporter, escape, caption, expected",
+    [
+        (MarkdownExporter, True, 'Fig [1], "a" <b>', ['![Fig \\[1\\], "a" \\<b\\>](data:image/png;base64,']),
+        (MarkdownExporter, False, 'Fig [1], "a" <b>', ['![Fig \\[1\\], "a" <b>](data:image/png;base64,']),
+        (
+            AsciiDocExporter,
+            True,
+            'Fig [1], "a" <b>',
+            ['.Fig [1], "a" \\<b\\>\nimage::data:image/png;base64,', '["Fig [1], \\"a\\" <b>"]'],
+        ),
+        (AsciiDocExporter, True, "... continued", [".{empty}... continued\nimage::data:image/png;base64,"]),
+        (AsciiDocExporter, True, None, ["image::data:image/png;base64,", "[]\n\nThe trend continued"]),
+        (
+            HTMLExporter,
+            True,
+            'Fig [1], "a" <b>',
+            ['alt="Fig [1], &quot;a&quot; &lt;b&gt;"', '<figcaption>Fig [1], "a" &lt;b&gt;</figcaption>'],
+        ),
+    ],
+)
+def test_page_export_figure_captions(exporter, escape, caption, expected):
+    exported = exporter().export_page(_figure_page(caption=caption), escape=escape, images="embedded")
+    assert all(part in exported for part in expected)
+
+
+@pytest.mark.parametrize(
+    "lines, layout, expected",
+    [
+        (
+            [("Figure 1", 0.2, 0.25, 0.8, 0.28)],
+            [("Caption", ((0.18, 0.24), (0.82, 0.29))), ("Picture", ((0.1, 0.3), (0.9, 0.6)))],
+            "![Figure 1](...)",
+        ),
+        (
+            [("Figure 2", 0.2, 0.52, 0.8, 0.55)],
+            [
+                ("Picture", ((0.1, 0.1), (0.9, 0.4))),
+                ("Caption", ((0.18, 0.51), (0.82, 0.56))),
+                ("Picture", ((0.1, 0.58), (0.9, 0.9))),
+            ],
+            "![](...)\n\n![Figure 2](...)",
+        ),
+        (
+            [("Figure A", 0.2, 0.26, 0.8, 0.29), ("Figure B", 0.2, 0.62, 0.8, 0.65)],
+            [
+                ("Caption", ((0.18, 0.255), (0.82, 0.295))),
+                ("Picture", ((0.1, 0.3), (0.9, 0.6))),
+                ("Caption", ((0.18, 0.615), (0.82, 0.655))),
+            ],
+            "![Figure A](...)\n\nFigure B",
+        ),
+        (
+            [("Table 1", 0.2, 0.21, 0.8, 0.24)],
+            [
+                ("Table", ((0.1, 0.1), (0.9, 0.2))),
+                ("Caption", ((0.18, 0.205), (0.82, 0.245))),
+                ("Picture", ((0.1, 0.4), (0.9, 0.8))),
+            ],
+            "| A | B |\n| --- | --- |\n\nTable 1\n\n![](...)",
+        ),
+    ],
+    ids=["above", "closest_figure", "closest_caption", "table_caption"],
+)
+def test_page_export_figure_caption_pairing(lines, layout, expected):
+    tables = []
+    if any(label == "Table" for label, _ in layout):
+        cells = [
+            elements.TableCell("A", 0.9, ((0.1, 0.1), (0.5, 0.2)), 0, 0, 0, 0),
+            elements.TableCell("B", 0.9, ((0.5, 0.1), (0.9, 0.2)), 0, 0, 1, 1),
+        ]
+        tables = [elements.Table(cells, 1, 2, ((0.1, 0.1), (0.9, 0.2)), 0.9)]
+    page = elements.Page(
+        np.full((1000, 800, 3), 255, dtype=np.uint8),
+        [elements.Block(lines=[_line_at(*line) for line in lines])],
+        0,
+        (1000, 800),
+        layout=[elements.LayoutElement(label, 0.9, geometry) for label, geometry in layout],
+        tables=tables,
+    )
+    assert re.sub(r"\(data:[^)]+\)", "(...)", page.export_as_markdown(images="embedded")) == expected
+
+
 def test_page_export_images_without_page_image():
     # A page restored from a JSON export carries no pixels: the figures degrade to a placeholder, and the
     # text detected inside them is kept, since nothing else would carry it
@@ -991,8 +1077,15 @@ def test_text_and_json_exports_ignore_figures():
     json.dumps(exported)
 
 
-def test_page_export_as_xml_figures():
-    page = _figure_page()
+@pytest.mark.parametrize(
+    "picture",
+    [
+        ((0.12, 0.30), (0.88, 0.60)),
+        ((0.12, 0.30), (0.88, 0.30), (0.88, 0.60), (0.12, 0.60)),
+    ],
+)
+def test_page_export_as_xml_figures(picture):
+    page = _figure_page(picture=picture)
     xml_bytes, _ = page.export_as_xml()
     xml = xml_bytes.decode()
     assert 'class="ocr_photo" id="figure_1"' in xml
