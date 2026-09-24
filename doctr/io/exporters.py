@@ -70,24 +70,17 @@ _ADOC_LINE_MARKERS = "=*.-/+"
 
 
 def _covering_region_indices(geoms: list[Any], region_geoms: list[Any], min_coverage: float = 0.5) -> list[int]:
-    """For each element geometry, the index of the layout region covering the largest share of its area.
+    """For each element geometry, the index of the layout region it is assigned to.
 
     Uses the same area-coverage criterion as :func:`doctr.models.reading_order.assign_layout_labels`, and
     returns -1 when no region covers the element by at least `min_coverage`. The geometries are expected to
     be in the same (upright) frame.
     """
-    from doctr.models.reading_order.base import _to_boxes
+    from doctr.models.reading_order.base import _covering_regions, _to_boxes
 
     if len(region_geoms) == 0 or len(geoms) == 0:
         return [-1] * len(geoms)
-    boxes, regions = _to_boxes(geoms), _to_boxes(region_geoms)
-    inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
-    inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
-    inter = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None)
-    areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
-    coverage = inter / areas[:, None]
-    best = coverage.argmax(axis=1)
-    return [int(reg) if coverage[i, reg] >= min_coverage else -1 for i, reg in enumerate(best)]
+    return _covering_regions(_to_boxes(geoms), _to_boxes(region_geoms), min_coverage)
 
 
 def _xyxy(geometry: Any) -> tuple[float, float, float, float]:

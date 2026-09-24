@@ -300,6 +300,7 @@ def _attach_captions(
         return inter >= min_coverage * max((x1 - x0) * (y1 - y0), 1e-9)
 
     float_idcs = [idx for idx in order if labels[idx] in _FLOAT_LABELS]
+    below: dict[int, set[int]] = {}  # captions already read after each float
     for cap in caption_idcs:
         cx0, cy0, cx1, cy1 = boxes[cap]
         best_target, best_dist = -1, float("inf")
@@ -316,9 +317,14 @@ def _attach_captions(
             # A caption located above (the center of) its float is read before it, otherwise after
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
             if not above:
+                # Keep the lines of a multi-line caption in order
+                attached = below.setdefault(best_target, set())
                 pos += 1
-                while pos < len(order) and order[pos] not in caption_idcs and _inside(order[pos], best_target):
+                while pos < len(order) and (
+                    order[pos] in attached or (order[pos] not in caption_idcs and _inside(order[pos], best_target))
+                ):
                     pos += 1
+                attached.add(cap)
             order.insert(pos, cap)
         else:  # fallback: insert at the natural spatial position
             cap_y0 = boxes[cap, 1]
@@ -553,8 +559,8 @@ def assign_layout_labels(
 ) -> list[str | None]:
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
-    Each element receives the label of the region covering the largest share of its area, provided this share
-    reaches `min_coverage`; otherwise its label is None (treated as regular body content).
+    Each element receives the label of the region covering at least `min_coverage` of its area (the smallest one
+    when several do, e.g. a caption inside a picture); otherwise its label is None (treated as regular body content).
 
     Args:
         geoms: geometries of the elements to label, in any docTR format
@@ -577,17 +583,26 @@ def assign_layout_labels(
     if boxes.shape[0] == 0 or regions.shape[0] == 0:
         return [None] * boxes.shape[0]
 
+    return [
+        str(layout_labels[reg_idx]) if reg_idx >= 0 else None
+        for reg_idx in _covering_regions(boxes, regions, min_coverage)
+    ]
+
+
+def _covering_regions(boxes: np.ndarray, regions: np.ndarray, min_coverage: float) -> list[int]:
+    """Index of the region covering each (N, 4) box by at least `min_coverage` of its area, -1 if none.
+
+    When several regions qualify (nested regions, e.g. a caption inside a picture), the smallest one wins.
+    """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
     inter = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None)
     areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
     coverage = inter / areas[:, None]
-
-    best = coverage.argmax(axis=1)
-    return [
-        str(layout_labels[reg_idx]) if coverage[box_idx, reg_idx] >= min_coverage else None
-        for box_idx, reg_idx in enumerate(best)
-    ]
+    region_areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+    ranked = np.where(coverage >= min_coverage, region_areas[None, :], np.inf)
+    best = ranked.argmin(axis=1)
+    return [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]
 
 
 class ReadingOrderPredictor(NestedObject):
