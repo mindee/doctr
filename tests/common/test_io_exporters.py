@@ -1032,8 +1032,18 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
             ],
             "| A | B |\n| --- | --- |\n\nTable 1\n\n![](...)",
         ),
+        (
+            [("Figure 1: first line", 0.1, 0.62, 0.9, 0.645), ("second line", 0.1, 0.65, 0.9, 0.675)],
+            [("Picture", ((0.1, 0.2), (0.9, 0.6))), ("Caption", ((0.08, 0.615), (0.92, 0.68)))],
+            "![Figure 1: first line second line](...)",
+        ),
+        (
+            [("Figure 1", 0.2, 0.63, 0.8, 0.66)],
+            [("Picture", ((0.1, 0.2), (0.9, 0.8))), ("Caption", ((0.18, 0.62), (0.82, 0.67)))],
+            "![Figure 1](...)",
+        ),
     ],
-    ids=["above", "closest_figure", "closest_caption", "table_caption"],
+    ids=["above", "closest_figure", "closest_caption", "table_caption", "multi_line_caption", "nested_caption"],
 )
 def test_page_export_figure_caption_pairing(lines, layout, expected):
     tables = []
