@@ -90,6 +90,19 @@ def _covering_region_indices(geoms: list[Any], region_geoms: list[Any], min_cove
     return [int(reg) if coverage[i, reg] >= min_coverage else -1 for i, reg in enumerate(best)]
 
 
+def _xyxy(geometry: Any) -> tuple[float, float, float, float]:
+    """The enclosing straight box (xmin, ymin, xmax, ymax) of a box or a polygon."""
+    pts = np.asarray(geometry, dtype=np.float64).reshape(-1, 2)
+    return float(pts[:, 0].min()), float(pts[:, 1].min()), float(pts[:, 0].max()), float(pts[:, 1].max())
+
+
+def _caption_distance(caption: tuple[float, ...], target: tuple[float, ...]) -> float:
+    """Caption-to-float distance, as used by the reading order to attach captions."""
+    x_gap = max(target[0] - caption[2], caption[0] - target[2], 0.0)
+    y_gap = max(target[1] - caption[3], caption[1] - target[3], 0.0)
+    return y_gap + 2 * x_gap
+
+
 def _reading_order_signature(page: "Page", direction: str) -> tuple[Any, ...]:
     """A cheap structural fingerprint of a page, used to invalidate the reading-order cache.
 
@@ -314,18 +327,36 @@ class _PageTextExporter:
         """Render a recognized table in the target format"""
         raise NotImplementedError
 
-    def render_figure(self, source: str | None, caption: str | None = None) -> str:
+    def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure detected by the layout model in the target format.
 
         Args:
             source: the image source (a data URI or a relative path), or None when the pixels were not
                 materialized, in which case the placeholder is emitted
-            caption: the caption detected next to the figure, if any
+            caption: the unescaped caption detected next to the figure, if any
+            escape: whether the characters carrying a structural meaning should be escaped
 
         Returns:
             the figure markup, or an empty string when the format cannot carry it
         """
         return self.figure_placeholder
+
+    def render_heading(self, norm_label: str, lines: list[str], escape: bool = True) -> str:
+        """Render a heading in the target format"""
+        return self.headings[norm_label] + " ".join(lines)
+
+    def render_list_item(self, lines: list[str], escape: bool = True) -> str:
+        """Render a list item in the target format"""
+        text = " ".join(lines)
+        return self.bullet + (self.finalize_line(text) if escape else text)
+
+    def render_list(self, items: list[str]) -> str:
+        """Render a list of rendered items in the target format"""
+        return "\n".join(items)
+
+    def render_paragraph(self, lines: list[str], escape: bool = True) -> str:
+        """Render a paragraph in the target format"""
+        return "\n".join(self.finalize_line(line) if escape else line for line in lines)
 
     def class_header(self, class_name: str, escape: bool = True) -> str:
         """Render the header of a detection class in a KIE export"""
@@ -341,37 +372,68 @@ class _PageTextExporter:
         lines = [self._line_text(line, _line_render_direction(line, direction, auto), escape) for line in block.lines]
         return [line for line in lines if line.strip()]
 
-    def _figure_markup(
+    def _plan_figures(
         self,
         page: "Page",
         items: list[Any],
         labels: list[str | None],
-        index: int,
         encoder: FigureEncoder,
-        figure_count: int,
         direction: str,
         escape: bool,
         auto: bool,
-    ) -> tuple[str, int]:
-        """Render the figure at `items[index]`, absorbing its caption when it carries the pixels.
-
-        The caption is only consumed when the figure actually has a source: a placeholder cannot display
-        it, so it has to stay in the text flow as a regular paragraph.
+    ) -> tuple[dict[int, str], set[int]]:
+        """Render the figures of a page, absorbing their caption (above or below) when they carry the pixels.
 
         Returns:
-            the figure markup and the index of the next item to process
+            the figure markup keyed by item index, and the indices of the absorbed captions
         """
+        from doctr.io.elements import Block, LayoutElement
         from doctr.models.reading_order import normalize_layout_label
 
-        source = encoder.source(page, items[index], figure_count)
-        index += 1
-        caption = None
-        if source is not None and index < len(items) and normalize_layout_label(labels[index]) == "caption":
-            caption_lines = self._block_lines(items[index], direction, escape, auto)
-            if caption_lines:
-                caption = " ".join(caption_lines)
-                index += 1
-        return self.render_figure(source, caption), index
+        markup: dict[int, str] = {}
+        if not (self.supports_figures and encoder.enabled):
+            return markup, set()
+
+        figure_idcs = [idx for idx, item in enumerate(items) if isinstance(item, LayoutElement)]
+        sources = {idx: encoder.source(page, items[idx], rank) for rank, idx in enumerate(figure_idcs, start=1)}
+
+        def _is_caption(idx: int) -> bool:
+            return isinstance(items[idx], Block) and normalize_layout_label(labels[idx]) == "caption"
+
+        # Candidates: the item right before the figure, and the first one after the text inside it
+        claims: dict[int, list[int]] = {}
+        for idx in figure_idcs:
+            if sources[idx] is None:
+                continue
+            if idx > 0 and _is_caption(idx - 1):
+                claims.setdefault(idx - 1, []).append(idx)
+            after = idx + 1
+            while after < len(items) and isinstance(items[after], Block) and is_picture_label(labels[after]):
+                after += 1
+            if after < len(items) and _is_caption(after):
+                claims.setdefault(after, []).append(idx)
+
+        # Each caption goes to its closest figure, and each figure keeps its closest caption
+        captions: dict[int, int] = {}
+        for cap_idx, candidates in claims.items():
+            cap_box = _xyxy(items[cap_idx].geometry)
+            best = min(candidates, key=lambda fig: _caption_distance(cap_box, _xyxy(items[fig].geometry)))
+            if best in captions:
+                prev_box = _xyxy(items[captions[best]].geometry)
+                fig_box = _xyxy(items[best].geometry)
+                if _caption_distance(prev_box, fig_box) <= _caption_distance(cap_box, fig_box):
+                    continue
+            captions[best] = cap_idx
+
+        consumed: set[int] = set()
+        for idx in figure_idcs:
+            caption = None
+            if idx in captions:
+                caption = " ".join(self._block_lines(items[captions[idx]], direction, False, auto)) or None
+                if caption is not None:
+                    consumed.add(captions[idx])
+            markup[idx] = self.render_figure(sources[idx], caption, escape=escape)
+        return markup, consumed
 
     def export_page(
         self,
@@ -405,34 +467,25 @@ class _PageTextExporter:
         # The text detected inside a figure is only redundant once the figure carries its own pixels
         drop_figure_text = self.supports_figures and encoder.materializes_on(page)
         items, labels, direction = page_reading_order(page, direction)
+        figures, absorbed_captions = self._plan_figures(page, items, labels, encoder, direction, escape, auto)
         parts: list[str] = []
         list_group: list[str] = []
-        figure_count = 0
 
         def _flush_list() -> None:
             if list_group:
-                parts.append("\n".join(list_group))
+                parts.append(self.render_list(list_group))
                 list_group.clear()
 
-        index = 0
-        while index < len(items):
-            item, label = items[index], labels[index]
+        for index, (item, label) in enumerate(zip(items, labels)):
             if not include_furniture and layout_label_role(label) in ("header", "footer", "footnote"):
-                index += 1
                 continue
             if isinstance(item, LayoutElement):  # a figure detected by the layout model
-                if not (encoder.enabled and self.supports_figures):
-                    index += 1
-                    continue
-                _flush_list()
-                figure_count += 1
-                rendered, index = self._figure_markup(
-                    page, items, labels, index, encoder, figure_count, direction, escape, auto
-                )
-                if rendered:
-                    parts.append(rendered)
+                if figures.get(index):
+                    _flush_list()
+                    parts.append(figures[index])
                 continue
-            index += 1
+            if index in absorbed_captions:
+                continue
             if isinstance(item, Table):
                 _flush_list()
                 rendered = self.render_table(item, escape=escape)
@@ -447,14 +500,13 @@ class _PageTextExporter:
             norm_label = normalize_layout_label(label)
             if norm_label in self.headings:
                 _flush_list()
-                parts.append(self.headings[norm_label] + " ".join(item_lines))
+                parts.append(self.render_heading(norm_label, item_lines, escape))
             elif norm_label in _LIST_LABELS:
                 # A list item (possibly wrapped over several lines) renders as a single bullet
-                text = " ".join(item_lines)
-                list_group.append(self.bullet + (self.finalize_line(text) if escape else text))
+                list_group.append(self.render_list_item(item_lines, escape))
             else:
                 _flush_list()
-                parts.append("\n".join(self.finalize_line(line) if escape else line for line in item_lines))
+                parts.append(self.render_paragraph(item_lines, escape))
         _flush_list()
         return (self.block_break if block_break is None else block_break).join(parts)
 
@@ -556,12 +608,16 @@ class MarkdownExporter(_PageTextExporter):
         separator = "| " + " | ".join("---" for _ in grid[0]) + " |"
         return "\n".join([rows[0], separator, *rows[1:]])
 
-    def render_figure(self, source: str | None, caption: str | None = None) -> str:
+    def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure as an image, using its caption as the alternative text"""
         if source is None:
             return self.figure_placeholder
-        # The alternative text sits inside a link label: only the delimiters have to be neutralized
-        alt = (caption or "").replace("[", "\\[").replace("]", "\\]")
+        caption = caption or ""
+        # Without escaping, the link label delimiters still have to be neutralized
+        if escape:
+            alt = self.escape_text(caption)
+        else:
+            alt = caption.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
         return f"![{alt}]({source})"
 
     def class_header(self, class_name: str, escape: bool = True) -> str:
@@ -604,14 +660,18 @@ class AsciiDocExporter(_PageTextExporter):
 
         return "\n".join(["|===", _row(grid[0]), "", *[_row(row) for row in grid[1:]], "|==="])
 
-    def render_figure(self, source: str | None, caption: str | None = None) -> str:
+    def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure as a block image macro, titled with its caption"""
         if source is None:
             return self.figure_placeholder
-        title = f".{caption}\n" if caption else ""
-        # The alternative text sits between the brackets of the macro: only those have to be neutralized
-        alt = (caption or "").replace("[", "\\[").replace("]", "\\]")
-        return f"{title}image::{source}[{alt}]"
+        if not caption:
+            return f"image::{source}[]"
+        title = self.escape_text(caption) if escape else caption
+        if title.startswith("."):  # would open a literal block
+            title = "{empty}" + title
+        # Quoted, so that commas do not split the alternative text into several attributes
+        alt = caption.replace('"', '\\"')
+        return f'.{title}\nimage::{source}["{alt}"]'
 
     def class_header(self, class_name: str, escape: bool = True) -> str:
         return f"*{self.escape_text(class_name) if escape else class_name}*"
@@ -642,83 +702,25 @@ class HTMLExporter(_PageTextExporter):
     def escape_text(self, text: str) -> str:
         return _html_escape(text, quote=False)
 
-    def export_page(
-        self,
-        page: "Page",
-        direction: str = "auto",
-        escape: bool = True,
-        include_furniture: bool = True,
-        block_break: str | None = None,
-        images: "str | FigureEncoder | None" = "placeholder",
-    ) -> str:
-        from doctr.io.elements import LayoutElement, Table
-        from doctr.models.reading_order import layout_label_role, normalize_layout_label
+    def render_heading(self, norm_label: str, lines: list[str], escape: bool = True) -> str:
+        tag = self.headings[norm_label]
+        return f"<{tag}>{' '.join(lines)}</{tag}>"
 
-        auto = direction == "auto"
-        encoder = FigureEncoder.resolve(images)
-        # The text detected inside a figure is only redundant once the figure carries its own pixels
-        drop_figure_text = self.supports_figures and encoder.materializes_on(page)
-        items, labels, direction = page_reading_order(page, direction)
-        parts: list[str] = []
-        list_group: list[str] = []
-        figure_count = 0
+    def render_list_item(self, lines: list[str], escape: bool = True) -> str:
+        return f"<li>{' '.join(lines)}</li>"
 
-        def _flush_list() -> None:
-            if list_group:
-                parts.append("<ul>\n" + "\n".join(list_group) + "\n</ul>")
-                list_group.clear()
+    def render_list(self, items: list[str]) -> str:
+        return "<ul>\n" + "\n".join(items) + "\n</ul>"
 
-        index = 0
-        while index < len(items):
-            item, label = items[index], labels[index]
-            if not include_furniture and layout_label_role(label) in ("header", "footer", "footnote"):
-                index += 1
-                continue
-            if isinstance(item, LayoutElement):  # a figure detected by the layout model
-                if not (encoder.enabled and self.supports_figures):
-                    index += 1
-                    continue
-                _flush_list()
-                figure_count += 1
-                rendered, index = self._figure_markup(
-                    page, items, labels, index, encoder, figure_count, direction, escape, auto
-                )
-                if rendered:
-                    parts.append(rendered)
-                continue
-            index += 1
-            if isinstance(item, Table):
-                _flush_list()
-                rendered = self.render_table(item, escape=escape)
-                if rendered:
-                    parts.append(rendered)
-                continue
-            if drop_figure_text and is_picture_label(label):
-                continue  # this text is inside a figure, and already visible in the emitted image
-            item_lines = self._block_lines(item, direction, escape, auto)
-            if len(item_lines) == 0:
-                continue
-            norm_label = normalize_layout_label(label)
-            if norm_label in self.headings:
-                _flush_list()
-                tag = self.headings[norm_label]
-                parts.append(f"<{tag}>{' '.join(item_lines)}</{tag}>")
-            elif norm_label in _LIST_LABELS:
-                list_group.append(f"<li>{' '.join(item_lines)}</li>")
-            else:
-                _flush_list()
-                parts.append("<p>" + "<br>\n".join(item_lines) + "</p>")
-        _flush_list()
-        return (self.block_break if block_break is None else block_break).join(parts)
+    def render_paragraph(self, lines: list[str], escape: bool = True) -> str:
+        return "<p>" + "<br>\n".join(lines) + "</p>"
 
-    def render_figure(self, source: str | None, caption: str | None = None) -> str:
+    def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
         """Render a figure as a `<figure>` element, with its caption as a `<figcaption>`"""
         if source is None:
             return self.figure_placeholder
-        # The caption reaches this point already escaped (`escape=True`), but it lands in an attribute
-        # value, where the double quote also has to be neutralized
-        alt = (caption or "").replace('"', "&quot;")
-        figcaption = f"\n<figcaption>{caption}</figcaption>" if caption else ""
+        alt = _html_escape(caption or "", quote=True)
+        figcaption = f"\n<figcaption>{self.escape_text(caption) if escape else caption}</figcaption>" if caption else ""
         return f'<figure><img src="{_html_escape(source, quote=True)}" alt="{alt}">{figcaption}</figure>'
 
     def render_table(self, table: "Table", escape: bool = True) -> str:
@@ -887,7 +889,8 @@ class XMLExporter:
     ) -> int:
         """Serialize a figure detected by the layout model as an hOCR `ocr_photo` area.
 
-        The pixels stay in the page image: hOCR describes the region, it does not carry it.
+        The pixels stay in the page image: hOCR describes the region, it does not carry it. Rotated regions
+        are serialized with their enclosing box.
 
         Args:
             page_div: the `ocr_page` element the figure is appended to
@@ -899,15 +902,14 @@ class XMLExporter:
         Returns:
             the index of the next figure
         """
-        if len(region.geometry) != 2:
-            raise TypeError("XML export is only available for straight bounding boxes for now.")
+        xmin, ymin, xmax, ymax = _xyxy(region.geometry)
         SubElement(
             page_div,
             "div",
             attrib={
                 "class": "ocr_photo",
                 "id": f"figure_{figure_count}",
-                "title": _hocr_bbox(region.geometry, width, height),  # type: ignore[arg-type]
+                "title": _hocr_bbox(((xmin, ymin), (xmax, ymax)), width, height),
             },
         )
         return figure_count + 1
