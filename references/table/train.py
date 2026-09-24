@@ -9,7 +9,6 @@ import logging
 import multiprocessing
 import os
 import time
-from pathlib import Path
 
 import numpy as np
 import torch
@@ -40,7 +39,18 @@ from doctr import transforms as T
 from doctr.datasets import TableStructureDataset
 from doctr.models import table_structure
 from doctr.utils.metrics import TableCellMetric
-from utils import EarlyStopper, amp_dtype, build_param_groups, model_device, plot_recorder, plot_samples, resolve_device
+from utils import (
+    EarlyStopper,
+    amp_dtype,
+    build_param_groups,
+    model_device,
+    plot_recorder,
+    plot_samples,
+    resolve_device,
+    run_metadata,
+    save_checkpoint,
+    save_run_metadata,
+)
 
 AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
 
@@ -466,6 +476,12 @@ def main(args):
             "rotation": args.rotation,
             "amp": args.amp,
         }
+        # the run metadata describes the whole run: written once, next to the checkpoint `<exp_name>.pt`
+        save_run_metadata(
+            args.output_dir,
+            exp_name,
+            {**config, **run_metadata(args, task="table_structure", assume_straight_pages=not args.rotation)},
+        )
 
     global global_step
     global_step = 0
@@ -530,10 +546,10 @@ def main(args):
             params = model.module if hasattr(model, "module") else model
             if val_loss < min_loss:
                 pbar.write(f"Validation loss decreased {min_loss:.6f} --> {val_loss:.6f}: saving state...")
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
+                save_checkpoint(params, args.output_dir, exp_name)
                 min_loss = val_loss
             if args.save_interval_epoch:
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}_epoch{epoch + 1}.pt")
+                save_checkpoint(params, args.output_dir, f"{exp_name}_epoch{epoch + 1}")
             log_msg = f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6f} "
             if any(v is None for v in (recall, precision, f1)):
                 log_msg += "(Undefined metric value, caused by empty GTs or predictions)"

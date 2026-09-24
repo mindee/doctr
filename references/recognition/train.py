@@ -38,7 +38,17 @@ from doctr import transforms as T
 from doctr.datasets import VOCABS, RecognitionDataset, WordGenerator
 from doctr.models import login_to_hub, push_to_hf_hub, recognition
 from doctr.utils.metrics import TextMatch
-from utils import EarlyStopper, amp_dtype, model_device, plot_recorder, plot_samples, resolve_device
+from utils import (
+    EarlyStopper,
+    amp_dtype,
+    model_device,
+    plot_recorder,
+    plot_samples,
+    resolve_device,
+    run_metadata,
+    save_checkpoint,
+    save_run_metadata,
+)
 
 AMP_DTYPE = torch.float16  # set from --amp-dtype in main()
 
@@ -533,6 +543,12 @@ def main(args):
             "pretrained": args.pretrained,
             "amp": args.amp,
         }
+        # the run metadata describes the whole run: written once, next to the checkpoint `<exp_name>.pt`
+        save_run_metadata(
+            args.output_dir,
+            exp_name,
+            {**config, **run_metadata(args, task="recognition", vocab=vocab, vocab_name=args.vocab)},
+        )
 
     global global_step
     global_step = 0  # Shared global step counter
@@ -626,7 +642,7 @@ def main(args):
                 pbar.write(f"Validation loss decreased {min_loss:.6} --> {val_loss:.6}: saving state...")
                 params = model.module if hasattr(model, "module") else model
 
-                torch.save(params.state_dict(), Path(args.output_dir) / f"{exp_name}.pt")
+                save_checkpoint(params, args.output_dir, exp_name)
                 min_loss = val_loss
             pbar.write(
                 f"Epoch {epoch + 1}/{args.epochs} - Validation loss: {val_loss:.6} "
