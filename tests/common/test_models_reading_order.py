@@ -90,6 +90,11 @@ def test_sort_reading_order_columns():
         perm = rng.permutation(8).tolist()
         order = sort_reading_order([boxes[idx] for idx in perm])
         assert [perm[idx] for idx in order] == list(range(8))
+    # A page-wide figure left out of the column detection does not hide the columns below it
+    geoms = [((0.1, 0.02), (0.9, 0.06)), ((0.05, 0.1), (0.95, 0.6))]
+    geoms += [((0.1, 0.7 + 0.05 * i), (0.4, 0.73 + 0.05 * i)) for i in range(3)]
+    geoms += [((0.6, 0.7 + 0.05 * i), (0.9, 0.73 + 0.05 * i)) for i in range(3)]
+    assert sort_reading_order(geoms, column_voters=[True, False] + [True] * 6) == list(range(8))
 
 
 def test_sort_reading_order_input_formats():
@@ -177,6 +182,9 @@ def test_assign_layout_labels():
     poly_regions = np.asarray([[(0.05, 0.05), (0.45, 0.05), (0.45, 0.25), (0.05, 0.25)]])
     assert assign_layout_labels(geoms[:1], poly_regions, ["Table"]) == ["Table"]
     assert assign_layout_labels([], regions, ["Title", "Text"]) == []
+    # Nested regions: the smallest one covering the element wins
+    nested = [((0.0, 0.0), (1.0, 1.0)), ((0.08, 0.08), (0.5, 0.3))]
+    assert assign_layout_labels(geoms[:1], nested, ["Picture", "Caption"]) == ["Caption"]
     with pytest.raises(ValueError):
         assign_layout_labels(geoms, regions, ["Title"])
 

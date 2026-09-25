@@ -177,7 +177,9 @@ def _strict_rank(primary: np.ndarray, secondary: np.ndarray) -> np.ndarray:
     return ranks
 
 
-def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_threshold: float) -> list[int]:
+def _topological_order(
+    boxes: np.ndarray, x_overlap_threshold: float, y_overlap_threshold: float, voters: np.ndarray | None = None
+) -> list[int]:
     """Order boxes (already in canonical LTR space) with a column-following topological sort.
 
     Two families of "reads-before" relations are used (cf. Breuel 2003):
@@ -189,7 +191,7 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     The relations are resolved with Kahn's algorithm; among the available elements, the traversal favors the
     continuation of the current column (the closest element below the last emitted one with a horizontal
     overlap), which keeps multi-column bodies intact even for non-Manhattan layouts where recursive XY-cuts
-    fail to find a valid split.
+    fail to find a valid split. `voters` optionally restricts the boxes used to detect a multi-column page.
     """
     num_boxes = boxes.shape[0]
     if num_boxes <= 1:
@@ -237,15 +239,18 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     # favor the continuation of the current column when traversing the graph, which keeps multi-column bodies intact
     # even for non-Manhattan layouts where recursive XY-cuts fail to find a valid split.
     multi_column = False
-    if num_boxes >= 3:
+    if voters is None or np.count_nonzero(voters) < 3:
+        voters = np.ones(num_boxes, dtype=bool)
+    vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
+    if num_voters >= 3:
         span = page_width
-        tolerance = max(1, int(0.05 * num_boxes))
-        centers = (x0 + x1) / 2
+        tolerance = max(1, int(0.05 * num_voters))
+        centers = (vx0 + vx1) / 2
         lo, hi = x0.min() + 0.25 * span, x0.min() + 0.75 * span
-        for split in np.unique(x1[(x1 >= lo) & (x1 <= hi)]):
-            crossing = int(np.count_nonzero(np.minimum(x1 - split, split - x0) > 0.02 * span))
+        for split in np.unique(vx1[(vx1 >= lo) & (vx1 <= hi)]):
+            crossing = int(np.count_nonzero(np.minimum(vx1 - split, split - vx0) > 0.02 * span))
             left = int(np.count_nonzero(centers <= split))
-            if crossing <= tolerance and left >= 0.25 * num_boxes and num_boxes - left >= 0.25 * num_boxes:
+            if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
                 multi_column = True
                 break
 
@@ -289,9 +294,23 @@ def _attach_captions(
 ) -> list[int]:
     """Insert captions right before (resp. after) the closest float they sit above (resp. below).
 
-    Captions without a float within reach keep their natural spatial position in the body.
+    The elements detected inside a float (e.g. the text of a figure) stay between the float and its captions,
+    and are never caption targets themselves. Captions without a float within reach keep their natural spatial
+    position in the body.
     """
-    float_idcs = [idx for idx in order if labels[idx] in _FLOAT_LABELS]
+
+    def _inside(idx: int, target: int, min_coverage: float = 0.5) -> bool:
+        x0, y0, x1, y1 = boxes[idx]
+        tx0, ty0, tx1, ty1 = boxes[target]
+        inter = max(min(x1, tx1) - max(x0, tx0), 0.0) * max(min(y1, ty1) - max(y0, ty0), 0.0)
+        return inter >= min_coverage * max((x1 - x0) * (y1 - y0), 1e-9)
+
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    floats = [idx for idx in order if labels[idx] in _FLOAT_LABELS]
+    float_idcs = [
+        idx for idx in floats if not any(areas[other] > areas[idx] and _inside(idx, other) for other in floats)
+    ]
+    below: dict[int, set[int]] = {}  # captions already read after each float
     for cap in caption_idcs:
         cx0, cy0, cx1, cy1 = boxes[cap]
         best_target, best_dist = -1, float("inf")
@@ -307,7 +326,19 @@ def _attach_captions(
             pos = order.index(best_target)
             # A caption located above (the center of) its float is read before it, otherwise after
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
-            order.insert(pos if above else pos + 1, cap)
+            if above:
+                while pos > 0 and order[pos - 1] not in caption_idcs and _inside(order[pos - 1], best_target):
+                    pos -= 1
+            else:
+                # Keep the lines of a multi-line caption in order
+                attached = below.setdefault(best_target, set())
+                pos += 1
+                while pos < len(order) and (
+                    order[pos] in attached or (order[pos] not in caption_idcs and _inside(order[pos], best_target))
+                ):
+                    pos += 1
+                attached.add(cap)
+            order.insert(pos, cap)
         else:  # fallback: insert at the natural spatial position
             cap_y0 = boxes[cap, 1]
             pos = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cap_y0), len(order))
@@ -388,6 +419,7 @@ def sort_reading_order(
     caption_max_distance: float = 0.1,
     page_shape: tuple[int, int] | None = None,
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
+    column_voters: Sequence[bool] | None = None,
 ) -> list[int]:
     """Compute the reading order of document elements from their geometries (and optionally, layout labels).
 
@@ -420,6 +452,8 @@ def sort_reading_order(
             `deskew_reading_geometries`)
         angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
+        column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g.
+            to leave out the figures, which say nothing about the columns of the text
 
     Returns:
         the permutation of the input indices which sorts the elements in reading order
@@ -436,10 +470,12 @@ def sort_reading_order(
 
     canonical = _to_canonical_ltr(boxes, direction)
 
+    voters = np.ones(num_boxes, dtype=bool) if column_voters is None else np.asarray(column_voters, dtype=bool)
+
     def _order(idcs: list[int]) -> list[int]:
         if len(idcs) == 0:
             return []
-        sub_order = _topological_order(canonical[idcs], x_overlap_threshold, y_overlap_threshold)
+        sub_order = _topological_order(canonical[idcs], x_overlap_threshold, y_overlap_threshold, voters[idcs])
         return [idcs[i] for i in sub_order]
 
     if labels is None:
@@ -467,6 +503,7 @@ def resolve_reading_segments(
     paragraph_gap: float = 0.8,
     page_shape: tuple[int, int] | None = None,
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
+    column_voters: Sequence[bool] | None = None,
 ) -> list[list[int]]:
     """Order elements in reading order and group consecutive ones into segments (paragraphs or regions).
 
@@ -491,6 +528,8 @@ def resolve_reading_segments(
             `deskew_reading_geometries`)
         angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
+        column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g.
+            to leave out the figures, which say nothing about the columns of the text
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -505,6 +544,7 @@ def resolve_reading_segments(
         x_overlap_threshold=x_overlap_threshold,
         y_overlap_threshold=y_overlap_threshold,
         caption_max_distance=caption_max_distance,
+        column_voters=column_voters,
     )
     if len(order) == 0:
         return []
@@ -541,8 +581,8 @@ def assign_layout_labels(
 ) -> list[str | None]:
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
-    Each element receives the label of the region covering the largest share of its area, provided this share
-    reaches `min_coverage`; otherwise its label is None (treated as regular body content).
+    Each element receives the label of the region covering at least `min_coverage` of its area (the smallest one
+    when several do, e.g. a caption inside a picture); otherwise its label is None (treated as regular body content).
 
     Args:
         geoms: geometries of the elements to label, in any docTR format
@@ -565,17 +605,26 @@ def assign_layout_labels(
     if boxes.shape[0] == 0 or regions.shape[0] == 0:
         return [None] * boxes.shape[0]
 
+    return [
+        str(layout_labels[reg_idx]) if reg_idx >= 0 else None
+        for reg_idx in _covering_regions(boxes, regions, min_coverage)
+    ]
+
+
+def _covering_regions(boxes: np.ndarray, regions: np.ndarray, min_coverage: float) -> list[int]:
+    """Index of the region covering each (N, 4) box by at least `min_coverage` of its area, -1 if none.
+
+    When several regions qualify (nested regions, e.g. a caption inside a picture), the smallest one wins.
+    """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
     inter = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None)
     areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
     coverage = inter / areas[:, None]
-
-    best = coverage.argmax(axis=1)
-    return [
-        str(layout_labels[reg_idx]) if coverage[box_idx, reg_idx] >= min_coverage else None
-        for box_idx, reg_idx in enumerate(best)
-    ]
+    region_areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+    ranked = np.where(coverage >= min_coverage, region_areas[None, :], np.inf)
+    best = ranked.argmin(axis=1)
+    return [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]
 
 
 class ReadingOrderPredictor(NestedObject):

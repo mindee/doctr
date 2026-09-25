@@ -474,6 +474,21 @@ In addition to running the :py:meth:`layout_predictor <doctr.models.layout.layou
 
 The same ``detect_layout`` / ``layout_arch`` arguments are available for the :py:meth:`kie_predictor <doctr.models.kie_predictor>`.
 
+The figures found by the layout model also take part in the reading order, and the Markdown / AsciiDoc / HTML exports can materialize them, either inlined as base64 data URIs or written next to the export (see :ref:`Figures` for the details):
+
+.. code:: python3
+
+    # A self-contained Markdown file, figures included
+    markdown = result.export_as_markdown(images="embedded")
+
+    # ... or one referencing the crops written to an `assets` directory
+    from doctr.io import FigureEncoder
+
+    encoder = FigureEncoder("referenced", image_dir="assets", path_prefix="assets/")
+    markdown = result.export_as_markdown(images=encoder)
+
+By default (``images="placeholder"``) a comment marks the position of every detected figure, and ``images="none"`` drops them entirely.
+
 
 Running the predictors on GPU
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
