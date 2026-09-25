@@ -90,6 +90,11 @@ def test_sort_reading_order_columns():
         perm = rng.permutation(8).tolist()
         order = sort_reading_order([boxes[idx] for idx in perm])
         assert [perm[idx] for idx in order] == list(range(8))
+    # A page-wide figure left out of the column detection does not hide the columns below it
+    geoms = [((0.1, 0.02), (0.9, 0.06)), ((0.05, 0.1), (0.95, 0.6))]
+    geoms += [((0.1, 0.7 + 0.05 * i), (0.4, 0.73 + 0.05 * i)) for i in range(3)]
+    geoms += [((0.6, 0.7 + 0.05 * i), (0.9, 0.73 + 0.05 * i)) for i in range(3)]
+    assert sort_reading_order(geoms, column_voters=[True, False] + [True] * 6) == list(range(8))
 
 
 def test_sort_reading_order_input_formats():
