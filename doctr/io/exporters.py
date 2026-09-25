@@ -142,6 +142,7 @@ def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any]
         normalize_layout_label,
         resolve_reading_segments,
     )
+    from doctr.models.reading_order.base import _to_boxes
 
     signature = _reading_order_signature(page, direction)
     cached = getattr(page, "_reading_order_cache", None)
@@ -178,7 +179,13 @@ def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any]
         "Table" if isinstance(elt, Table) else elt.type if isinstance(elt, LayoutElement) else label
         for elt, label in zip(elements, elt_labels)
     ]
-    segments = resolve_reading_segments(elt_geoms, direction=direction, labels=elt_labels)
+    # A figure spanning the columns says nothing about them: it does not take part in the multi-column detection
+    boxes = _to_boxes(elt_geoms)
+    span = float(boxes[:, 2].max() - boxes[:, 0].min()) or 1.0
+    column_voters = [
+        not (isinstance(elt, LayoutElement) and box[2] - box[0] > 0.5 * span) for elt, box in zip(elements, boxes)
+    ]
+    segments = resolve_reading_segments(elt_geoms, direction=direction, labels=elt_labels, column_voters=column_voters)
 
     items = []
     labels = []
@@ -381,55 +388,95 @@ class _PageTextExporter:
             the figure markup keyed by item index, and the indices of the absorbed captions
         """
         from doctr.io.elements import Block, LayoutElement, Table
-        from doctr.models.reading_order import normalize_layout_label
+        from doctr.models.reading_order import deskew_reading_geometries, normalize_layout_label
 
         markup: dict[int, str] = {}
         if not (self.supports_figures and encoder.enabled):
             return markup, set()
 
         figure_idcs = [idx for idx, item in enumerate(items) if isinstance(item, LayoutElement)]
+        if not figure_idcs:
+            return markup, set()
         sources = {idx: encoder.source(page, items[idx], rank) for rank, idx in enumerate(figure_idcs, start=1)}
+        # Distances are measured in the same upright frame as the reading order
+        upright, upright_regions = deskew_reading_geometries(
+            [item.geometry for item in items],
+            [region.geometry for region in page.layout],
+            page_shape=page.dimensions,
+            angle_geoms=[word.geometry for block in page.blocks for line in block.lines for word in line.words],
+        )
+        boxes = [_xyxy(geom) for geom in upright]
+        region_of = _covering_region_indices(upright, upright_regions)
 
         def _is_caption(idx: int) -> bool:
             return isinstance(items[idx], Block) and normalize_layout_label(labels[idx]) == "caption"
 
-        # Candidates: the item right before the figure, and the first one after the text inside it
-        claims: dict[int, list[int]] = {}
+        def _is_inner_text(idx: int, fig_idx: int) -> bool:
+            if not isinstance(items[idx], Block) or _is_caption(idx):
+                return False
+            x0, y0, x1, y1 = boxes[idx]
+            fx0, fy0, fx1, fy1 = boxes[fig_idx]
+            inter = max(min(x1, fx1) - max(x0, fx0), 0.0) * max(min(y1, fy1) - max(y0, fy0), 0.0)
+            return is_picture_label(labels[idx]) or inter >= 0.5 * max((x1 - x0) * (y1 - y0), 1e-9)
+
+        def _caption_run(start: int) -> tuple[int, ...]:
+            # All the paragraphs of the caption region: a caption line split by the detection, or caption lines
+            # read apart, yield several paragraphs
+            if region_of[start] == -1:
+                return (start,)
+            return tuple(idx for idx in range(len(items)) if _is_caption(idx) and region_of[idx] == region_of[start])
+
+        def _run_box(run: tuple[int, ...]) -> tuple[float, ...]:
+            return tuple(func(boxes[idx][k] for idx in run) for k, func in enumerate((min, min, max, max)))
+
+        # Candidates: the captions right before and right after the figure, around the text detected inside it
+        claims: dict[tuple[int, ...], list[int]] = {}
         for idx in figure_idcs:
             if sources[idx] is None:
                 continue
-            if idx > 0 and _is_caption(idx - 1):
-                claims.setdefault(idx - 1, []).append(idx)
-            after = idx + 1
-            while after < len(items) and isinstance(items[after], Block) and is_picture_label(labels[after]):
+            before, after = idx - 1, idx + 1
+            while before >= 0 and _is_inner_text(before, idx):
+                before -= 1
+            while after < len(items) and _is_inner_text(after, idx):
                 after += 1
+            if before >= 0 and _is_caption(before):
+                claims.setdefault(_caption_run(before), []).append(idx)
             if after < len(items) and _is_caption(after):
-                claims.setdefault(after, []).append(idx)
+                claims.setdefault(_caption_run(after), []).append(idx)
+
+        def _table_without_caption(idx: int, run: tuple[int, ...]) -> bool:
+            # A table with a caption of its own on its other side does not compete for this one
+            if not (0 <= idx < len(items) and isinstance(items[idx], Table)):
+                return False
+            far = idx + 1 if idx > run[-1] else idx - 1
+            return not (0 <= far < len(items) and _is_caption(far))
 
         # Each caption goes to its closest float (an adjacent table keeps its own caption), and each figure
         # keeps its closest caption
-        captions: dict[int, int] = {}
-        for cap_idx, candidates in claims.items():
-            cap_box = _xyxy(items[cap_idx].geometry)
-            neighbors = (cap_idx - 1, cap_idx + 1)
-            tables = [idx for idx in neighbors if 0 <= idx < len(items) and isinstance(items[idx], Table)]
-            best = min([*candidates, *tables], key=lambda elt: _caption_distance(cap_box, _xyxy(items[elt].geometry)))
+        captions: dict[int, tuple[int, ...]] = {}
+        for run, candidates in claims.items():
+            cap_box = _run_box(run)
+            tables = [idx for idx in (run[0] - 1, run[-1] + 1) if _table_without_caption(idx, run)]
+            best = min([*candidates, *tables], key=lambda elt: _caption_distance(cap_box, boxes[elt]))
             if best in tables:
                 continue
-            if best in captions:
-                prev_box = _xyxy(items[captions[best]].geometry)
-                fig_box = _xyxy(items[best].geometry)
-                if _caption_distance(prev_box, fig_box) <= _caption_distance(cap_box, fig_box):
-                    continue
-            captions[best] = cap_idx
+            dist = _caption_distance(cap_box, boxes[best])
+            if best in captions and _caption_distance(_run_box(captions[best]), boxes[best]) <= dist:
+                continue
+            captions[best] = run
 
         consumed: set[int] = set()
         for idx in figure_idcs:
             caption = None
             if idx in captions:
-                caption = " ".join(self._block_lines(items[captions[idx]], direction, False, auto)) or None
+                lines = [
+                    line
+                    for cap_idx in captions[idx]
+                    for line in self._block_lines(items[cap_idx], direction, False, auto)
+                ]
+                caption = " ".join(lines) or None
                 if caption is not None:
-                    consumed.add(captions[idx])
+                    consumed.update(captions[idx])
             markup[idx] = self.render_figure(sources[idx], caption, escape=escape)
         return markup, consumed
 

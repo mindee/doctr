@@ -1024,13 +1024,14 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
             "![Figure A](...)\n\nFigure B",
         ),
         (
-            [("Table 1", 0.2, 0.21, 0.8, 0.24)],
+            [("Table 1", 0.2, 0.21, 0.8, 0.24), ("Figure 1", 0.2, 0.62, 0.8, 0.645)],
             [
                 ("Table", ((0.1, 0.1), (0.9, 0.2))),
                 ("Caption", ((0.18, 0.205), (0.82, 0.245))),
-                ("Picture", ((0.1, 0.4), (0.9, 0.8))),
+                ("Picture", ((0.1, 0.26), (0.9, 0.6))),
+                ("Caption", ((0.18, 0.615), (0.82, 0.65))),
             ],
-            "| A | B |\n| --- | --- |\n\nTable 1\n\n![](...)",
+            "| A | B |\n| --- | --- |\n\nTable 1\n\n![Figure 1](...)",
         ),
         (
             [("Figure 1: first line", 0.1, 0.62, 0.9, 0.645), ("second line", 0.1, 0.65, 0.9, 0.675)],
@@ -1042,23 +1043,102 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
             [("Picture", ((0.1, 0.2), (0.9, 0.8))), ("Caption", ((0.18, 0.62), (0.82, 0.67)))],
             "![Figure 1](...)",
         ),
+        (
+            [("axis label", 0.3, 0.4, 0.5, 0.43), ("Figure 1", 0.2, 0.62, 0.8, 0.645)],
+            [
+                ("Picture", ((0.1, 0.2), (0.9, 0.6))),
+                ("Text", ((0.28, 0.39), (0.52, 0.44))),
+                ("Caption", ((0.18, 0.615), (0.82, 0.65))),
+            ],
+            "![Figure 1](...)\n\naxis label",
+        ),
+        (
+            [
+                ("Figure 1: split", 0.1, 0.62, 0.45, 0.645),
+                ("line", 0.5, 0.62, 0.9, 0.645),
+                ("end", 0.1, 0.65, 0.9, 0.675),
+            ],
+            [("Picture", ((0.1, 0.2), (0.9, 0.6))), ("Caption", ((0.08, 0.615), (0.92, 0.68)))],
+            "![Figure 1: split line end](...)",
+        ),
+        (
+            [
+                ("Figure 1: first line", 0.1, 0.24, 0.9, 0.26),
+                ("end", 0.1, 0.265, 0.25, 0.285),
+                ("label", 0.1, 0.297, 0.2, 0.31),
+            ],
+            [("Caption", ((0.08, 0.235), (0.92, 0.29))), ("Picture", ((0.1, 0.3), (0.9, 0.6)))],
+            "![Figure 1: first line end](...)",
+        ),
+        (
+            [
+                ("Figure 1: first", 0.52, 0.259, 0.88, 0.279),
+                ("second", 0.52, 0.284, 0.88, 0.304),
+                *[(f"left {idx}", 0.06, 0.2 + 0.045 * idx, 0.46, 0.22 + 0.045 * idx) for idx in range(3)],
+            ],
+            [
+                ("Picture", ((0.5, 0.136), (0.94, 0.249))),
+                ("Caption", ((0.51, 0.254), (0.93, 0.309))),
+                ("Picture", ((0.5, 0.33), (0.94, 0.507))),
+            ],
+            "left 0\n\nleft 1\n\nleft 2\n\n![Figure 1: first second](...)\n\n![](...)",
+        ),
+        (
+            [("Figure 1", 0.2, 0.609, 0.8, 0.625), ("Table 1", 0.2, 0.755, 0.8, 0.77)],
+            [
+                ("Picture", ((0.1, 0.3), (0.9, 0.6))),
+                ("Caption", ((0.18, 0.605), (0.82, 0.628))),
+                ("Table", ((0.1, 0.63), (0.9, 0.75))),
+                ("Caption", ((0.18, 0.752), (0.82, 0.773))),
+            ],
+            "![Figure 1](...)\n\n| A | B |\n| --- | --- |\n\nTable 1",
+        ),
     ],
-    ids=["above", "closest_figure", "closest_caption", "table_caption", "multi_line_caption", "nested_caption"],
+    ids=[
+        "above",
+        "closest_figure",
+        "closest_caption",
+        "table_caption",
+        "multi_line_caption",
+        "nested_caption",
+        "text_region_in_figure",
+        "split_caption_line",
+        "text_at_figure_edge",
+        "caption_between_figures",
+        "table_with_own_caption",
+    ],
 )
-def test_page_export_figure_caption_pairing(lines, layout, expected):
+@pytest.mark.parametrize("angle", [0, 8])
+def test_page_export_figure_caption_pairing(lines, layout, expected, angle):
+    def _geom(geometry):
+        if not angle:
+            return geometry
+        pts = np.asarray(geometry, dtype=np.float32)
+        pts = np.array([pts[0], [pts[1, 0], pts[0, 1]], pts[1], [pts[0, 0], pts[1, 1]]], dtype=np.float32)
+        rad = np.deg2rad(angle)
+        rotation = np.array([[np.cos(rad), np.sin(rad)], [-np.sin(rad), np.cos(rad)]], dtype=np.float32)
+        return ((pts - 0.5) * (800, 1000) @ rotation / (800, 1000) + 0.5).astype(np.float32)
+
+    lines = [
+        elements.Line([
+            elements.Word(word.value, 0.9, _geom(word.geometry), 0.9, word.crop_orientation)
+            for word in _line_at(*line).words
+        ])
+        for line in lines
+    ]
     tables = []
-    if any(label == "Table" for label, _ in layout):
+    for (x0, y0), (x1, y1) in [geometry for label, geometry in layout if label == "Table"]:
         cells = [
-            elements.TableCell("A", 0.9, ((0.1, 0.1), (0.5, 0.2)), 0, 0, 0, 0),
-            elements.TableCell("B", 0.9, ((0.5, 0.1), (0.9, 0.2)), 0, 0, 1, 1),
+            elements.TableCell("A", 0.9, _geom(((x0, y0), ((x0 + x1) / 2, y1))), 0, 0, 0, 0),
+            elements.TableCell("B", 0.9, _geom((((x0 + x1) / 2, y0), (x1, y1))), 0, 0, 1, 1),
         ]
-        tables = [elements.Table(cells, 1, 2, ((0.1, 0.1), (0.9, 0.2)), 0.9)]
+        tables.append(elements.Table(cells, 1, 2, _geom(((x0, y0), (x1, y1))), 0.9))
     page = elements.Page(
         np.full((1000, 800, 3), 255, dtype=np.uint8),
-        [elements.Block(lines=[_line_at(*line) for line in lines])],
+        [elements.Block(lines=lines)],
         0,
         (1000, 800),
-        layout=[elements.LayoutElement(label, 0.9, geometry) for label, geometry in layout],
+        layout=[elements.LayoutElement(label, 0.9, _geom(geometry)) for label, geometry in layout],
         tables=tables,
     )
     assert re.sub(r"\(data:[^)]+\)", "(...)", page.export_as_markdown(images="embedded")) == expected
