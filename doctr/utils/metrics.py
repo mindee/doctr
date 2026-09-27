@@ -822,12 +822,13 @@ class ObjectDetectionMetric:
                             np.expand_dims(pred_box, axis=0),
                         )
 
-                    ious = iou_mat[:, 0]
+                    # Ground truths already matched by a higher-scored detection are not candidates anymore
+                    ious = np.where(gt_data["matched"], -1.0, iou_mat[:, 0])
 
                     best_gt = np.argmax(ious)
                     best_iou = ious[best_gt]
 
-                    if best_iou >= iou_thresh and not gt_data["matched"][best_gt]:
+                    if best_iou >= iou_thresh:
                         tp[det_idx] = 1
                         gt_data["matched"][best_gt] = True
                     else:
