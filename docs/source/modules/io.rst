@@ -187,9 +187,11 @@ controlled by the ``images`` argument, which accepts either an image mode or a c
 :class:`FigureEncoder`:
 
 * ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels
-* ``'none'``: the figures are dropped entirely
+* ``'none'``: the figures are left out of the export (they still take part in the reading order)
 * ``'embedded'``: each figure is cropped out of the page and inlined as a base64 data URI
-* ``'referenced'``: each crop is written next to the export and referenced by a relative path
+* ``'referenced'``: each crop is written next to the export and referenced by a relative path. The file names
+  carry the position of the figure and a hash of its content (e.g. ``page1_figure2-3fa2b1c9.png``), so several
+  documents can share the same image directory
 
 .. code:: python
 
@@ -207,7 +209,8 @@ controlled by the ``images`` argument, which accepts either an image mode or a c
 A caption detected next to a figure becomes its alternative text (and its ``<figcaption>`` in HTML) as soon as
 the export carries the pixels. Plain text and the hOCR export never inline an image: hOCR positions each figure
 as an ``ocr_photo`` area instead. Pages restored from a JSON export carry no pixels, so their figures fall back
-to a placeholder.
+to a placeholder. With ``include_furniture=False``, the figures lying in a page header or footer (e.g. a logo)
+are left out along with the rest of the page furniture.
 
 .. autoclass:: FigureEncoder
     :members: resolve, source, enabled, materializes, materializes_on
