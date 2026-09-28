@@ -1166,12 +1166,13 @@
                             <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">pred_box</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
                         <span class="p">)</span>
 
-                    <span class="n">ious</span> <span class="o">=</span> <span class="n">iou_mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="c1"># Ground truths already matched by a higher-scored detection are not candidates anymore</span>
+                    <span class="n">ious</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gt_data</span><span class="p">[</span><span class="s2">"matched"</span><span class="p">],</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">iou_mat</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
 
                     <span class="n">best_gt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">ious</span><span class="p">)</span>
                     <span class="n">best_iou</span> <span class="o">=</span> <span class="n">ious</span><span class="p">[</span><span class="n">best_gt</span><span class="p">]</span>
 
-                    <span class="k">if</span> <span class="n">best_iou</span> <span class="o">&gt;=</span> <span class="n">iou_thresh</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">gt_data</span><span class="p">[</span><span class="s2">"matched"</span><span class="p">][</span><span class="n">best_gt</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">best_iou</span> <span class="o">&gt;=</span> <span class="n">iou_thresh</span><span class="p">:</span>
                         <span class="n">tp</span><span class="p">[</span><span class="n">det_idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
                         <span class="n">gt_data</span><span class="p">[</span><span class="s2">"matched"</span><span class="p">][</span><span class="n">best_gt</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="k">else</span><span class="p">:</span>
