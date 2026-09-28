@@ -1,3 +1,7 @@
+import gc
+import re
+import weakref
+
 import cv2
 import numpy as np
 import pytest
@@ -94,6 +98,14 @@ def test_figure_encoder_validation(tmp_path):
     with pytest.raises(ValueError):  # 'referenced' needs somewhere to write
         FigureEncoder(mode="referenced")
     FigureEncoder(mode="referenced", image_dir=tmp_path)
+    # A negative padding would flip the region, and the encoders only accept a quality between 0 and 100
+    for kwargs in ({"padding": -0.1}, {"quality": 101}, {"quality": -1}):
+        with pytest.raises(ValueError):
+            FigureEncoder(mode="embedded", **kwargs)
+    with pytest.raises(ValueError):
+        crop_layout_region(_page_image(), ((0.1, 0.2), (0.5, 0.6)), padding=-0.6)
+    with pytest.raises(ValueError):
+        encode_crop(_page_image(), "jpg", quality=500)
 
     # `resolve` accepts a mode, an encoder, or None
     assert FigureEncoder.resolve("embedded").mode == "embedded"
@@ -117,14 +129,23 @@ def test_figure_encoder_modes(tmp_path):
     assert FigureEncoder("embedded", image_format="jpg").source(page, region, 1).startswith("data:image/jpeg;base64,")
 
     encoder = FigureEncoder("referenced", image_dir=tmp_path / "assets", path_prefix="my assets/")
-    assert encoder.source(page, region, 3) == "my%20assets/page1_figure3.png"
-    assert encoder.written == [tmp_path / "assets" / "page1_figure3.png"]
+    source = encoder.source(page, region, 3)
+    # The file is named after the figure position and a hash of its content
+    assert re.fullmatch(r"my%20assets/page1_figure3-[0-9a-f]{8}\.png", source)
+    name = source.rsplit("/", 1)[-1]
+    assert encoder.written == [tmp_path / "assets" / name]
     assert encoder.written[0].read_bytes()[:4] == b"\x89PNG"
-    # Each figure is written once, and a name taken by another page gets a suffix
-    assert encoder.source(page, region, 3) == "my%20assets/page1_figure3.png"
-    other = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
-    assert encoder.source(other, region, 3) == "my%20assets/page1_figure3_2.png"
-    assert [path.name for path in encoder.written] == ["page1_figure3.png", "page1_figure3_2.png"]
+    # Each figure is written once
+    assert encoder.source(page, region, 3) == source
+    assert len(encoder.written) == 1
+    # Another page at the same position gets its own file, unless it holds the very same pixels
+    other_img = _page_image()
+    other_img[..., 1] = 255
+    other = elements.Page(other_img, [], 0, (100, 200), layout=[region])
+    other_source = encoder.source(other, region, 3)
+    assert other_source != source and len(encoder.written) == 2
+    twin = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
+    assert encoder.source(twin, region, 3) == source
 
     # A page restored from a JSON export carries no pixels: the figures degrade to a placeholder
     restored = elements.Page.from_dict(page.export())
@@ -132,3 +153,41 @@ def test_figure_encoder_modes(tmp_path):
     assert FigureEncoder("embedded").materializes
     assert not FigureEncoder("embedded").materializes_on(restored)
     assert FigureEncoder("embedded").materializes_on(page)
+
+
+def test_figure_encoder_does_not_pin_pages():
+    # An encoder reused across a corpus must not keep every exported page (and its pixels) alive
+    encoder = FigureEncoder("embedded")
+    region = elements.LayoutElement("Picture", 0.9, ((0.1, 0.2), (0.5, 0.6)))
+    page = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
+    assert encoder.source(page, region, 1) is not None
+    page_ref = weakref.ref(page)
+    del page
+    gc.collect()
+    assert page_ref() is None
+    assert encoder._sources == {}  # the cached source went away with its page
+    # A new page (possibly recycling the id of the dead one) is encoded afresh
+    other_img = _page_image()
+    other_img[..., 2] = 255
+    other = elements.Page(other_img, [], 0, (100, 200), layout=[region])
+    assert encoder.source(other, region, 1) == FigureEncoder("embedded").source(other, region, 1)
+
+
+def test_referenced_figures_of_several_documents_share_a_directory(tmp_path):
+    # Two documents exported with their own encoder into the same directory must not overwrite each other
+    region = elements.LayoutElement("Picture", 0.9, ((0.1, 0.2), (0.5, 0.6)))
+    red, blue = np.zeros((100, 200, 3), dtype=np.uint8), np.zeros((100, 200, 3), dtype=np.uint8)
+    red[..., 0], blue[..., 2] = 255, 255
+    sources = []
+    for image in (red, blue):
+        page = elements.Page(image, [], 0, (100, 200), layout=[region])
+        sources.append(FigureEncoder("referenced", image_dir=tmp_path).source(page, region, 1))
+    assert sources[0] != sources[1]
+    assert len(list(tmp_path.iterdir())) == 2
+    # Each export still points at its own pixels (OpenCV reads BGR)
+    assert cv2.imread(str(tmp_path / sources[0]))[..., 2].mean() > 200
+    assert cv2.imread(str(tmp_path / sources[1]))[..., 0].mean() > 200
+    # Re-exporting rewrites the very same file
+    page = elements.Page(red, [], 0, (100, 200), layout=[region])
+    assert FigureEncoder("referenced", image_dir=tmp_path).source(page, region, 1) == sources[0]
+    assert len(list(tmp_path.iterdir())) == 2

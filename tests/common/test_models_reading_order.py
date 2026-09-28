@@ -366,3 +366,27 @@ def test_sort_reading_order_follows_columns_when_a_gutter_exists():
         _box(0.55, 0.22, 0.95, 0.26),  # 6 right column
     ]
     assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6]
+
+
+def test_sort_reading_order_caption_groups():
+    # A caption split over 3 lines below a figure (right column), whose last line is closer to the table of the
+    # left column: read line by line, it is torn away from its caption
+    geoms = [
+        ((0.526, 0.115), (0.903, 0.33)),  # 0: figure
+        ((0.102, 0.248), (0.477, 0.443)),  # 1: table
+        ((0.52, 0.352), (0.91, 0.366)),  # 2: caption line 1
+        ((0.52, 0.37), (0.91, 0.384)),  # 3: caption line 2
+        ((0.52, 0.419), (0.73, 0.434)),  # 4: caption line 3
+    ]
+    labels = ["Picture", "Table", "Caption", "Caption", "Caption"]
+    split = sort_reading_order(geoms, labels=labels)
+    assert split.index(4) == split.index(1) + 1  # the last line follows the table
+    # Grouped (e.g. by caption region), the lines follow the float closest to their union, in order
+    order = sort_reading_order(geoms, labels=labels, caption_groups=[-1, -1, 7, 7, 7])
+    assert order[order.index(0) + 1 : order.index(0) + 4] == [2, 3, 4]
+    with pytest.raises(ValueError):
+        sort_reading_order(geoms, labels=labels, caption_groups=[0, 1])
+    # resolve_reading_segments forwards the groups
+    segments = resolve_reading_segments(geoms, labels=labels, caption_groups=[-1, -1, 7, 7, 7])
+    flat = [idx for segment in segments for idx in segment]
+    assert flat[flat.index(0) + 1 : flat.index(0) + 4] == [2, 3, 4]

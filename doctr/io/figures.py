@@ -3,6 +3,9 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import hashlib
+import weakref
+from base64 import b64encode
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from urllib.parse import quote
@@ -69,6 +72,16 @@ def picture_regions(page: "Page") -> list["LayoutElement"]:
     return [region for region in (getattr(page, "layout", None) or []) if is_picture_region(region)]
 
 
+def _check_padding(padding: float) -> None:
+    if not padding >= 0:
+        raise ValueError(f"the padding should be a non-negative relative margin, got {padding}")
+
+
+def _check_quality(quality: int) -> None:
+    if not 0 <= quality <= 100:
+        raise ValueError(f"the encoding quality should be between 0 and 100, got {quality}")
+
+
 def _pad_geometry(points: np.ndarray, padding: float) -> np.ndarray:
     """Grow a geometry around its center by a relative margin, and clip it back to the page."""
     if padding == 0:
@@ -92,12 +105,13 @@ def crop_layout_region(
             JSON export) or None yields None.
         geometry: the region geometry, either a straight ((xmin, ymin), (xmax, ymax)) box or a (4, 2)
             polygon, with coordinates relative to the page size
-        padding: relative margin added around the region on each side (0.05 grows it by 5%)
+        padding: relative margin (non-negative) added around the region on each side (0.05 grows it by 5%)
 
     Returns:
         the cropped image, or None when the page carries no pixels or the region is degenerate (empty or
         smaller than 2x2 pixels)
     """
+    _check_padding(padding)
     if page_img is None or page_img.size == 0:
         return None
     points = np.asarray(geometry, dtype=np.float32).reshape(-1, 2)
@@ -122,13 +136,14 @@ def encode_crop(crop: np.ndarray, image_format: str = "png", quality: int = 95) 
     Args:
         crop: the RGB crop to encode (docTR pages are RGB, OpenCV expects BGR)
         image_format: one of 'png', 'jpg'/'jpeg' or 'webp'
-        quality: the encoding quality of the lossy formats ('jpg'/'jpeg' and 'webp')
+        quality: the encoding quality of the lossy formats ('jpg'/'jpeg' and 'webp'), between 0 and 100
 
     Returns:
         the encoded image bytes
     """
     if image_format not in IMAGE_FORMATS:
         raise ValueError(f"unsupported image format '{image_format}', should be one of {list(IMAGE_FORMATS)}")
+    _check_quality(quality)
     extension = ".jpg" if image_format in ("jpg", "jpeg") else f".{image_format}"
     params: list[int] = []
     if extension == ".jpg":
@@ -151,13 +166,17 @@ class FigureEncoder:
 
     Four modes are available:
 
-    * ``none``: figures are dropped entirely, as they were before this was implemented
+    * ``none``: figures are left out of the export (they still take part in the reading order, which keeps
+      their captions and the text detected inside them in place)
     * ``placeholder`` (default): a format-specific comment marks where a figure was detected, without
       touching the pixels
     * ``embedded``: the crop is inlined as a base64 data URI, so the export stays a single file
     * ``referenced``: the crop is written to ``image_dir`` and referenced by a relative path
 
-    Each figure is encoded (and written) once per encoder, and colliding file names get a numbered suffix.
+    Each figure is encoded (and written) once per encoder. In 'referenced' mode, the file name carries the
+    position of the figure and a hash of its content (e.g. ``page1_figure2-3fa2b1c9.png``): several documents can
+    share an ``image_dir`` without overwriting each other's figures, and re-exporting a document rewrites the very
+    same files.
 
     >>> from doctr.io import FigureEncoder
     >>> markdown = page.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets"))
@@ -169,8 +188,8 @@ class FigureEncoder:
             is rendered from (e.g. 'assets/' when the Markdown file sits next to the `assets` directory).
             The resulting path is percent-encoded.
         image_format: one of 'png', 'jpg'/'jpeg' or 'webp'
-        quality: the encoding quality of the lossy formats
-        padding: relative margin added around each region, useful to catch the axis labels of a plot
+        quality: the encoding quality of the lossy formats, between 0 and 100
+        padding: relative margin (non-negative) added around each region, useful to catch the axis labels of a plot
     """
 
     def __init__(
@@ -188,6 +207,8 @@ class FigureEncoder:
             raise ValueError(f"unsupported image format '{image_format}', should be one of {list(IMAGE_FORMATS)}")
         if mode == "referenced" and image_dir is None:
             raise ValueError("an 'image_dir' is required to export the figures in 'referenced' mode")
+        _check_quality(quality)
+        _check_padding(padding)
         self.mode = mode
         self.image_dir = Path(image_dir) if image_dir is not None else None
         self.path_prefix = path_prefix
@@ -196,9 +217,10 @@ class FigureEncoder:
         self.padding = padding
         # The files written so far, in emission order (empty unless the mode is 'referenced')
         self.written: list[Path] = []
-        # Keeps a reference to the page and region, so their ids cannot be recycled while cached
-        self._sources: dict[tuple[int, int], tuple[Any, Any, str | None]] = {}
-        self._names: set[str] = set()
+        # Sources keyed by the ids of the page and region. Weak references tell whether an id still denotes the
+        # object it was cached for (ids are recycled once an object dies), without keeping the pages (and their
+        # pixels) alive: an encoder reused across a whole corpus only retains the sources themselves.
+        self._sources: dict[tuple[int, int], tuple[weakref.ref, weakref.ref, str | None]] = {}
 
     @classmethod
     def resolve(cls, images: "str | FigureEncoder | None") -> "FigureEncoder":
@@ -225,11 +247,11 @@ class FigureEncoder:
         return self.mode in ("embedded", "referenced")
 
     def materializes_on(self, page: "Page") -> bool:
-        """Whether the figures of this page will actually carry their pixels.
+        """Whether the figures of this page can carry their pixels.
 
-        The exporters use this to decide whether the text detected inside a figure is redundant: it is
-        already visible in the emitted image, but it would be lost with a mere placeholder. A page
-        restored from a JSON export carries no pixels, so its inner text must be kept.
+        A page restored from a JSON export carries no pixels, so its figures fall back to a placeholder. The
+        exporters only drop the text detected inside a figure once that figure's source was actually resolved
+        (cf. :meth:`source`), since a single region can still fail to be cropped.
 
         Args:
             page: the page about to be exported
@@ -250,16 +272,18 @@ class FigureEncoder:
 
         Returns:
             a data URI, a relative path, or None when the pixels are unavailable (which happens in the
-            'none' and 'placeholder' modes, and on pages restored from a JSON export)
+            'none' and 'placeholder' modes, on pages restored from a JSON export, and on degenerate regions)
         """
         if self.mode in ("none", "placeholder"):
             return None
         key = (id(page), id(region))
         cached = self._sources.get(key)
-        if cached is not None:
+        if cached is not None and cached[0]() is page and cached[1]() is region:
             return cached[2]
         source = self._encode(page, region, index)
-        self._sources[key] = (page, region, source)
+        self._sources[key] = (weakref.ref(page), weakref.ref(region), source)
+        # Forget the source along with its page, so a long-lived encoder does not accumulate the data URIs
+        weakref.finalize(page, self._sources.pop, key, None)
         return source
 
     def _encode(self, page: "Page", region: "LayoutElement", index: int) -> str | None:
@@ -270,21 +294,16 @@ class FigureEncoder:
         payload = encode_crop(crop, self.image_format, self.quality)
         mime = "jpeg" if self.image_format in ("jpg", "jpeg") else self.image_format
         if self.mode == "embedded":
-            from base64 import b64encode
-
             return f"data:image/{mime};base64,{b64encode(payload).decode('ascii')}"
         extension = "jpg" if mime == "jpeg" else mime
-        stem = f"page{getattr(page, 'page_idx', 0) + 1}_figure{index}"
-        name, suffix = f"{stem}.{extension}", 1
-        while name in self._names:
-            suffix += 1
-            name = f"{stem}_{suffix}.{extension}"
-        self._names.add(name)
+        digest = hashlib.sha256(payload).hexdigest()[:8]
+        name = f"page{getattr(page, 'page_idx', 0) + 1}_figure{index}-{digest}.{extension}"
         assert self.image_dir is not None  # guaranteed by __init__ in 'referenced' mode
         self.image_dir.mkdir(parents=True, exist_ok=True)
         path = self.image_dir / name
         path.write_bytes(payload)
-        self.written.append(path)
+        if path not in self.written:
+            self.written.append(path)
         return quote(f"{self.path_prefix}{name}", safe="/:")
 
     def __repr__(self) -> str:

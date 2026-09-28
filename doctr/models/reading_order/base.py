@@ -321,27 +321,53 @@ def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dic
     return members
 
 
+def _caption_units(caption_idcs: list[int], caption_groups: Sequence[int] | None) -> list[list[int]]:
+    """Group the captions sharing a (non-negative) group id, keeping their reading order.
+
+    Units are ordered by the position of their first member, captions without a group form a unit of their own.
+    """
+    units: list[list[int]] = []
+    by_group: dict[int, list[int]] = {}
+    for cap in caption_idcs:
+        group = -1 if caption_groups is None else int(caption_groups[cap])
+        if group < 0:
+            units.append([cap])
+        elif group in by_group:
+            by_group[group].append(cap)
+        else:
+            by_group[group] = [cap]
+            units.append(by_group[group])
+    return units
+
+
 def _attach_captions(
     order: list[int],
     caption_idcs: list[int],
     boxes: np.ndarray,
     labels: list[str],
     max_distance: float,
+    caption_groups: Sequence[int] | None = None,
 ) -> list[int]:
     """Insert captions right before (resp. after) the closest float they sit above (resp. below).
 
     The elements detected inside a float (e.g. the text of a figure) stay between the float and its captions,
     and are never caption targets themselves. Captions without a float within reach keep their natural spatial
     position in the body.
+
+    The captions sharing a group (typically the lines of one caption region) move as a unit, attached to the float
+    closest to their union: otherwise a line of a caption can be claimed by a float in the neighboring column
+    while the rest of its caption goes to its own float.
     """
 
     def _inside(idx: int, target: int) -> bool:
         return _is_inside(boxes, idx, target)
 
+    captions = set(caption_idcs)
     float_idcs = _outer_floats(order, boxes, labels)
     below: dict[int, set[int]] = {}  # captions already read after each float
-    for cap in caption_idcs:
-        cx0, cy0, cx1, cy1 = boxes[cap]
+    for unit in _caption_units(caption_idcs, caption_groups):
+        cx0, cy0 = boxes[unit, 0].min(), boxes[unit, 1].min()
+        cx1, cy1 = boxes[unit, 2].max(), boxes[unit, 3].max()
         best_target, best_dist = -1, float("inf")
         for target in float_idcs:
             tx0, ty0, tx1, ty1 = boxes[target]
@@ -356,22 +382,20 @@ def _attach_captions(
             # A caption located above (the center of) its float is read before it, otherwise after
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
             if above:
-                while pos > 0 and order[pos - 1] not in caption_idcs and _inside(order[pos - 1], best_target):
+                while pos > 0 and order[pos - 1] not in captions and _inside(order[pos - 1], best_target):
                     pos -= 1
             else:
                 # Keep the lines of a multi-line caption in order
                 attached = below.setdefault(best_target, set())
                 pos += 1
                 while pos < len(order) and (
-                    order[pos] in attached or (order[pos] not in caption_idcs and _inside(order[pos], best_target))
+                    order[pos] in attached or (order[pos] not in captions and _inside(order[pos], best_target))
                 ):
                     pos += 1
-                attached.add(cap)
-            order.insert(pos, cap)
+                attached.update(unit)
         else:  # fallback: insert at the natural spatial position
-            cap_y0 = boxes[cap, 1]
-            pos = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cap_y0), len(order))
-            order.insert(pos, cap)
+            pos = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cy0), len(order))
+        order[pos:pos] = unit
     return order
 
 
@@ -449,6 +473,7 @@ def sort_reading_order(
     page_shape: tuple[int, int] | None = None,
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
     column_voters: Sequence[bool] | None = None,
+    caption_groups: Sequence[int] | None = None,
 ) -> list[int]:
     """Compute the reading order of document elements from their geometries (and optionally, layout labels).
 
@@ -483,6 +508,8 @@ def sort_reading_order(
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
         column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g.
             to leave out the figures, which say nothing about the columns of the text
+        caption_groups: optional group id of each element (-1 for none), typically the index of the layout region
+            it belongs to: the captions sharing a group are attached to a float as a unit, in their reading order
 
     Returns:
         the permutation of the input indices which sorts the elements in reading order
@@ -494,6 +521,8 @@ def sort_reading_order(
     num_boxes = boxes.shape[0]
     if labels is not None and len(labels) != num_boxes:
         raise ValueError(f"Incompatible number of labels ({len(labels)}) and geometries ({num_boxes})")
+    if caption_groups is not None and len(caption_groups) != num_boxes:
+        raise ValueError(f"Incompatible number of caption groups ({len(caption_groups)}) and geometries ({num_boxes})")
     if num_boxes <= 1:
         return list(range(num_boxes))
 
@@ -528,7 +557,9 @@ def sort_reading_order(
             if idx in owner:
                 read_inside[owner[idx]].append(idx)
         body_order = [elt for idx in body_order if idx not in owner for elt in (idx, *read_inside.get(idx, []))]
-    body_order = _attach_captions(body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance)
+    body_order = _attach_captions(
+        body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance, caption_groups
+    )
     return _order(groups["header"]) + body_order + _order(groups["footnote"]) + _order(groups["footer"])
 
 
@@ -543,6 +574,7 @@ def resolve_reading_segments(
     page_shape: tuple[int, int] | None = None,
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
     column_voters: Sequence[bool] | None = None,
+    caption_groups: Sequence[int] | None = None,
 ) -> list[list[int]]:
     """Order elements in reading order and group consecutive ones into segments (paragraphs or regions).
 
@@ -569,6 +601,8 @@ def resolve_reading_segments(
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
         column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g.
             to leave out the figures, which say nothing about the columns of the text
+        caption_groups: optional group id of each element (-1 for none), typically the index of the layout region
+            it belongs to: the captions sharing a group are attached to a float as a unit, in their reading order
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -584,6 +618,7 @@ def resolve_reading_segments(
         y_overlap_threshold=y_overlap_threshold,
         caption_max_distance=caption_max_distance,
         column_voters=column_voters,
+        caption_groups=caption_groups,
     )
     if len(order) == 0:
         return []

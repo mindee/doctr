@@ -4,7 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 from html import escape as _html_escape
-from typing import TYPE_CHECKING, Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, ClassVar, NamedTuple, cast
 from xml.etree import ElementTree as ET
 from xml.etree.ElementTree import Element as ETElement
 from xml.etree.ElementTree import SubElement
@@ -162,7 +162,6 @@ def page_reading_order(
     from doctr.io.elements import Block, LayoutElement, Table
     from doctr.models.reading_order import (
         ReadingOrderPredictor,
-        assign_layout_labels,
         deskew_reading_geometries,
         normalize_layout_label,
         resolve_reading_segments,
@@ -198,8 +197,11 @@ def page_reading_order(
         angle_geoms=[word.geometry for line in lines for word in line.words],
     )
     elt_labels: list[str | None] = [None] * len(elements)
+    # The layout region each element belongs to (same criterion as `assign_layout_labels`): the lines of one
+    # caption region are then attached to a float together
+    elt_regions = _covering_region_indices(elt_geoms, region_geoms)
     if len(region_geoms) > 0:
-        elt_labels = assign_layout_labels(elt_geoms, region_geoms, region_labels)
+        elt_labels = [str(region_labels[reg]) if reg >= 0 else None for reg in elt_regions]
     elt_labels = [
         "Table" if isinstance(elt, Table) else elt.type if isinstance(elt, LayoutElement) else label
         for elt, label in zip(elements, elt_labels)
@@ -210,7 +212,9 @@ def page_reading_order(
     column_voters = [
         not (isinstance(elt, LayoutElement) and box[2] - box[0] > 0.5 * span) for elt, box in zip(elements, boxes)
     ]
-    segments = resolve_reading_segments(elt_geoms, direction=direction, labels=elt_labels, column_voters=column_voters)
+    segments = resolve_reading_segments(
+        elt_geoms, direction=direction, labels=elt_labels, column_voters=column_voters, caption_groups=elt_regions
+    )
 
     items = []
     labels = []
@@ -335,6 +339,14 @@ def predictions_in_reading_order(page: "KIEPage", predictions: list[Any], direct
     return [predictions[idx] for idx in order]
 
 
+class _FigurePlan(NamedTuple):
+    """How the figures of a page are exported (cf. `_PageTextExporter._plan_figures`)"""
+
+    markup: dict[int, str]  # the figure markup, keyed by item index
+    captions: set[int]  # the item indices of the captions absorbed by their figure
+    hidden: set[int]  # the item indices of the text inside figures that must not be exported
+
+
 class _PageTextExporter:
     """Shared logic of the reading-order-aware text exporters.
 
@@ -418,23 +430,34 @@ class _PageTextExporter:
         direction: str,
         escape: bool,
         auto: bool,
-    ) -> tuple[dict[int, str], set[int]]:
+        include_furniture: bool = True,
+    ) -> "_FigurePlan":
         """Render the figures of a page, absorbing their caption (above or below) when they carry the pixels.
 
+        Args:
+            page: the page to export
+            items: the linearized page content, figures included
+            labels: the layout label of each item
+            encoder: resolves the image source of each figure
+            direction: the effective reading direction
+            escape: whether the characters carrying a structural meaning should be escaped
+            auto: whether the reading direction was detected automatically
+            include_furniture: whether page headers, page footers and footnotes are exported. When they are not,
+                the figures lying in them (e.g. a logo in the page header) are left out along with their text.
+
         Returns:
-            the figure markup keyed by item index, and the indices of the absorbed captions
+            the figure markup keyed by item index, the indices of the absorbed captions, and the indices of the
+            text detected inside figures that must not be exported (already visible in an emitted image, or part
+            of a figure left out as page furniture)
         """
         from doctr.io.elements import Block, LayoutElement, Table
-        from doctr.models.reading_order import deskew_reading_geometries, normalize_layout_label
-
-        markup: dict[int, str] = {}
-        if not (self.supports_figures and encoder.enabled):
-            return markup, set()
+        from doctr.models.reading_order import deskew_reading_geometries, layout_label_role, normalize_layout_label
 
         figure_idcs = [idx for idx, item in enumerate(items) if isinstance(item, LayoutElement)]
-        if not figure_idcs:
-            return markup, set()
-        sources = {idx: encoder.source(page, items[idx], rank) for rank, idx in enumerate(figure_idcs, start=1)}
+        render = self.supports_figures and encoder.enabled
+        if not figure_idcs or not (render or not include_furniture):
+            return _FigurePlan({}, set(), set())
+
         # Distances are measured in the same upright frame as the reading order
         upright, upright_regions = deskew_reading_geometries(
             [item.geometry for item in items],
@@ -443,6 +466,49 @@ class _PageTextExporter:
             angle_geoms=[word.geometry for block in page.blocks for line in block.lines for word in line.words],
         )
         boxes = [_xyxy(geom) for geom in upright]
+        region_boxes = [_xyxy(geom) for geom in upright_regions]
+
+        def _coverage(box: tuple[float, ...], target: tuple[float, ...]) -> float:
+            """The share of `box` covered by `target`"""
+            inter = max(min(box[2], target[2]) - max(box[0], target[0]), 0.0) * max(
+                min(box[3], target[3]) - max(box[1], target[1]), 0.0
+            )
+            return inter / max((box[2] - box[0]) * (box[3] - box[1]), 1e-9)
+
+        def _figure_text(fig_idx: int) -> set[int]:
+            """The text detected inside a figure (the lines labeled as part of a picture, covered by it)"""
+            return {
+                idx
+                for idx, item in enumerate(items)
+                if isinstance(item, Block)
+                and is_picture_label(labels[idx])
+                and _coverage(boxes[idx], boxes[fig_idx]) >= 0.5
+            }
+
+        hidden: set[int] = set()
+        if not include_furniture:
+            # A figure lying in a page header / footer / footnote region is page furniture (e.g. a logo)
+            furniture = [
+                box
+                for box, region in zip(region_boxes, page.layout)
+                if layout_label_role(region.type) in ("header", "footer", "footnote")
+            ]
+            kept = []
+            for idx in figure_idcs:
+                if any(_coverage(boxes[idx], box) >= 0.5 for box in furniture):
+                    hidden |= _figure_text(idx)
+                else:
+                    kept.append(idx)
+            figure_idcs = kept
+        if not render or not figure_idcs:
+            return _FigurePlan({}, set(), hidden)
+
+        sources = {idx: encoder.source(page, items[idx], rank) for rank, idx in enumerate(figure_idcs, start=1)}
+        # The text detected inside a figure is only redundant once that very figure carries its pixels: a figure
+        # whose source could not be resolved degrades to a placeholder, and its text is kept
+        for idx in figure_idcs:
+            if sources[idx] is not None:
+                hidden |= _figure_text(idx)
         region_of = _covering_region_indices(upright, upright_regions)
 
         def _is_caption(idx: int) -> bool:
@@ -451,14 +517,11 @@ class _PageTextExporter:
         def _is_inner_text(idx: int, fig_idx: int) -> bool:
             if not isinstance(items[idx], Block) or _is_caption(idx):
                 return False
-            x0, y0, x1, y1 = boxes[idx]
-            fx0, fy0, fx1, fy1 = boxes[fig_idx]
-            inter = max(min(x1, fx1) - max(x0, fx0), 0.0) * max(min(y1, fy1) - max(y0, fy0), 0.0)
-            return is_picture_label(labels[idx]) or inter >= 0.5 * max((x1 - x0) * (y1 - y0), 1e-9)
+            return is_picture_label(labels[idx]) or _coverage(boxes[idx], boxes[fig_idx]) >= 0.5
 
         def _caption_run(start: int) -> tuple[int, ...]:
-            # All the paragraphs of the caption region: a caption line split by the detection, or caption lines
-            # read apart, yield several paragraphs
+            # All the paragraphs of the caption region: a caption line split by the detection yields several
+            # paragraphs (the reading order keeps the lines of a caption region together)
             if region_of[start] == -1:
                 return (start,)
             return tuple(idx for idx in range(len(items)) if _is_caption(idx) and region_of[idx] == region_of[start])
@@ -502,6 +565,7 @@ class _PageTextExporter:
                 continue
             captions[best] = run
 
+        markup: dict[int, str] = {}
         consumed: set[int] = set()
         for idx in figure_idcs:
             caption = None
@@ -515,7 +579,7 @@ class _PageTextExporter:
                 if caption is not None:
                     consumed.update(captions[idx])
             markup[idx] = self.render_figure(sources[idx], caption, escape=escape)
-        return markup, consumed
+        return _FigurePlan(markup, consumed, hidden)
 
     def export_page(
         self,
@@ -546,10 +610,10 @@ class _PageTextExporter:
 
         auto = direction == "auto"
         encoder = FigureEncoder.resolve(images)
-        # The text detected inside a figure is only redundant once the figure carries its own pixels
-        drop_figure_text = self.supports_figures and encoder.materializes_on(page)
         items, labels, direction = page_reading_order(page, direction, include_figures=True)
-        figures, absorbed_captions = self._plan_figures(page, items, labels, encoder, direction, escape, auto)
+        figures, absorbed_captions, figure_text = self._plan_figures(
+            page, items, labels, encoder, direction, escape, auto, include_furniture=include_furniture
+        )
         parts: list[str] = []
         list_group: list[str] = []
 
@@ -566,16 +630,14 @@ class _PageTextExporter:
                     _flush_list()
                     parts.append(figures[index])
                 continue
-            if index in absorbed_captions:
-                continue
+            if index in absorbed_captions or index in figure_text:
+                continue  # rendered with its figure, or text inside a figure (already visible in its image)
             if isinstance(item, Table):
                 _flush_list()
                 rendered = self.render_table(item, escape=escape)
                 if rendered:
                     parts.append(rendered)
                 continue
-            if drop_figure_text and is_picture_label(label):
-                continue  # this text is inside a figure, and already visible in the emitted image
             item_lines = self._block_lines(item, direction, escape, auto)
             if len(item_lines) == 0:
                 continue

@@ -953,8 +953,8 @@ def test_page_export_referenced_images(tmp_path):
     page = _figure_page()
     encoder = FigureEncoder("referenced", image_dir=tmp_path, path_prefix="assets/")
     markdown = page.export_as_markdown(images=encoder)
-    assert "![Figure 1 quarterly revenue](assets/page1_figure1.png)" in markdown
-    assert encoder.written == [tmp_path / "page1_figure1.png"]
+    assert re.search(r"!\[Figure 1 quarterly revenue\]\(assets/page1_figure1-[0-9a-f]{8}\.png\)", markdown)
+    assert len(encoder.written) == 1 and encoder.written[0].name.startswith("page1_figure1-")
     # The crop holds the figure pixels, not the whole page
 
     crop = cv2.imread(str(encoder.written[0]))
@@ -1245,3 +1245,94 @@ def test_figure_caption_hyphenation():
     page.layout = [*page.layout, elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.705)))]
     assert "![Figure 1: quarterly revenue](data:image/png;base64," in page.export_as_markdown(images="embedded")
     assert "<figcaption>Figure 1: quarterly revenue</figcaption>" in page.export_as_html(images="embedded")
+
+
+@pytest.mark.parametrize("fmt", ["markdown", "asciidoc", "html"])
+def test_page_export_images_none(fmt):
+    # 'none' leaves the figures out, but keeps the text detected inside them and their caption
+    page = _figure_page()
+    exported = getattr(page, f"export_as_{fmt}")(images="none")
+    assert "image" not in exported and "base64" not in exported
+    assert "axis label" in exported
+    assert "Figure 1 quarterly revenue" in exported
+
+
+def test_page_export_unresolved_figure_keeps_its_text():
+    # A figure whose pixels could not be resolved degrades to a placeholder: the text detected inside it (and its
+    # caption) must be kept, since nothing else carries it
+    class SkippingEncoder(FigureEncoder):
+        def source(self, page, region, index):
+            return None
+
+    page = _figure_page()
+    markdown = page.export_as_markdown(images=SkippingEncoder("embedded"))
+    assert "<!-- image -->" in markdown
+    assert "axis label" in markdown
+    assert "Figure 1 quarterly revenue" in markdown
+    # ... while a figure carrying its pixels does make its inner text redundant
+    markdown = page.export_as_markdown(images="embedded")
+    assert "axis label" not in markdown
+
+
+def test_page_export_figures_in_page_furniture():
+    # A logo in the page header is page furniture: left out (with its text) along with the header
+    page = _figure_page()
+    page.page[10:40, 20:120] = (0, 0, 255)
+    page.blocks[0].lines.append(_line_at("ACME", 0.04, 0.015, 0.12, 0.035))
+    page.layout = [
+        *page.layout,
+        elements.LayoutElement("Page-header", 0.9, ((0.0, 0.0), (0.2, 0.05))),
+        elements.LayoutElement("Picture", 0.9, ((0.02, 0.01), (0.15, 0.04))),
+    ]
+    # Exported with the furniture: the logo is a figure like any other
+    embedded = page.export_as_markdown(images="embedded")
+    assert embedded.count("![") == 2 and "ACME" not in embedded  # the logo text is visible in its image
+    placeholder = page.export_as_markdown(images="placeholder")
+    assert placeholder.count("<!-- image -->") == 2 and "ACME" in placeholder
+    # Without the furniture: neither the logo nor its text
+    for images in ("none", "placeholder", "embedded"):
+        exported = page.export_as_markdown(images=images, include_furniture=False)
+        assert "ACME" not in exported
+        assert "Annual Report" in exported and "Figure 1 quarterly revenue" in exported
+    assert page.export_as_markdown(images="embedded", include_furniture=False).count("![") == 1
+    assert page.export_as_markdown(images="placeholder", include_furniture=False).count("<!-- image -->") == 1
+
+
+def test_page_export_caption_split_across_columns():
+    # From a two-column paper: the last line of a figure caption sits closer (with the horizontal penalty) to the
+    # table of the other column than to its own figure. The caption region moves as a unit with its figure.
+    image = np.full((1000, 800, 3), 255, dtype=np.uint8)
+    image[115:330, 420:720] = (0, 0, 255)
+    lines = [
+        _line_at("Figure 5: Prediction performance of a", 0.52, 0.352, 0.91, 0.366),
+        _line_at("network trained on increasing fractions", 0.52, 0.37, 0.91, 0.384),
+        _line_at("significantly better predictions.", 0.52, 0.419, 0.73, 0.434),
+        _line_at("Body text of the left column", 0.08, 0.47, 0.48, 0.49),
+    ]
+    cells = [
+        elements.TableCell("A", 0.9, ((0.102, 0.248), (0.29, 0.443)), 0, 0, 0, 0),
+        elements.TableCell("B", 0.9, ((0.29, 0.248), (0.477, 0.443)), 0, 0, 1, 1),
+    ]
+    page = elements.Page(
+        image,
+        [elements.Block(lines=lines)],
+        0,
+        (1000, 800),
+        layout=[
+            elements.LayoutElement("Picture", 0.9, ((0.526, 0.115), (0.903, 0.33))),
+            elements.LayoutElement("Caption", 0.9, ((0.515, 0.348), (0.918, 0.438))),
+            elements.LayoutElement("Table", 0.9, ((0.1, 0.245), (0.48, 0.445))),
+            elements.LayoutElement("Text", 0.9, ((0.07, 0.465), (0.49, 0.495))),
+        ],
+        tables=[elements.Table(cells, 1, 2, ((0.102, 0.248), (0.477, 0.443)), 0.9)],
+    )
+    caption = (
+        "Figure 5: Prediction performance of a network trained on increasing fractions "
+        "significantly better predictions."
+    )
+    html = page.export_as_html(images="embedded")
+    assert f"<figcaption>{caption}</figcaption>" in html
+    # In placeholder mode, the whole caption is read right after its figure, not after the table
+    markdown = page.export_as_markdown(images="placeholder")
+    figure, table = markdown.index("<!-- image -->"), markdown.index("| A | B |")
+    assert figure < markdown.index("Figure 5") < markdown.index("significantly better") < table
