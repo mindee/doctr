@@ -541,6 +541,19 @@ def test_object_detection_metric_cases():
     # Global ranking should place FP before TP therefore AP must be < 1
     assert summary["mAP@[.5:.95]"] < 1.0
 
+    # A detection whose best overlap is an already matched ground truth should fall back to the next unmatched one
+    metric = metrics.ObjectDetectionMetric(iou_thresholds=np.array([0.5]))
+    metric.update(
+        np.asarray([[0, 0, 1, 1], [0, 0, 1, 0.8]], dtype=float),
+        # IoUs of the second prediction: 0.9 with the first ground truth, ~0.89 with the second one
+        np.asarray([[0, 0, 1, 1], [0, 0, 1, 0.9]], dtype=float),
+        np.asarray([0, 0], dtype=np.int64),
+        np.asarray([0, 0], dtype=np.int64),
+        np.asarray([0.9, 0.8], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
+
 
 def _square(x, y):
     return [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]]
