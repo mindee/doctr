@@ -285,6 +285,42 @@ def _topological_order(
     return order
 
 
+def _is_inside(boxes: np.ndarray, idx: int, target: int, min_coverage: float = 0.5) -> bool:
+    """Whether the (N, 4) box `idx` lies inside the box `target`, by at least `min_coverage` of its area."""
+    x0, y0, x1, y1 = boxes[idx]
+    tx0, ty0, tx1, ty1 = boxes[target]
+    inter = max(min(x1, tx1) - max(x0, tx0), 0.0) * max(min(y1, ty1) - max(y0, ty0), 0.0)
+    return inter >= min_coverage * max((x1 - x0) * (y1 - y0), 1e-9)
+
+
+def _outer_floats(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> list[int]:
+    """The floats among `idcs` which are not nested inside a larger float (e.g. a figure, not its inner text)."""
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    floats = [idx for idx in idcs if labels[idx] in _FLOAT_LABELS]
+    return [
+        idx
+        for idx in floats
+        if not any(areas[other] > areas[idx] and _is_inside(boxes, idx, other) for other in floats)
+    ]
+
+
+def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dict[int, list[int]]:
+    """Map each outer float to the elements detected inside it (e.g. the text of a figure).
+
+    An element belongs to the smallest outer float covering at least half of its area.
+    """
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    outer = _outer_floats(idcs, boxes, labels)
+    members: dict[int, list[int]] = {}
+    for idx in idcs:
+        if idx in outer:
+            continue
+        containers = [flt for flt in outer if areas[flt] > areas[idx] and _is_inside(boxes, idx, flt)]
+        if containers:
+            members.setdefault(min(containers, key=lambda flt: areas[flt]), []).append(idx)
+    return members
+
+
 def _attach_captions(
     order: list[int],
     caption_idcs: list[int],
@@ -299,17 +335,10 @@ def _attach_captions(
     position in the body.
     """
 
-    def _inside(idx: int, target: int, min_coverage: float = 0.5) -> bool:
-        x0, y0, x1, y1 = boxes[idx]
-        tx0, ty0, tx1, ty1 = boxes[target]
-        inter = max(min(x1, tx1) - max(x0, tx0), 0.0) * max(min(y1, ty1) - max(y0, ty0), 0.0)
-        return inter >= min_coverage * max((x1 - x0) * (y1 - y0), 1e-9)
+    def _inside(idx: int, target: int) -> bool:
+        return _is_inside(boxes, idx, target)
 
-    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
-    floats = [idx for idx in order if labels[idx] in _FLOAT_LABELS]
-    float_idcs = [
-        idx for idx in floats if not any(areas[other] > areas[idx] and _inside(idx, other) for other in floats)
-    ]
+    float_idcs = _outer_floats(order, boxes, labels)
     below: dict[int, set[int]] = {}  # captions already read after each float
     for cap in caption_idcs:
         cx0, cy0, cx1, cy1 = boxes[cap]
@@ -487,9 +516,19 @@ def sort_reading_order(
         role = layout_label_role(label)
         groups["body" if role == "float" else role].append(idx)
 
-    body_order = _attach_captions(
-        _order(groups["body"]), _order(groups["caption"]), canonical, norm_labels, caption_max_distance
-    )
+    body_order = _order(groups["body"])
+    # The elements detected inside a float (e.g. the text of a figure) are moved right after it, in the order
+    # they were read: ordered along with the rest of the body, they can drift away from it (e.g. to the column
+    # they overlap), and interleave with the body text.
+    members = _float_members(groups["body"], canonical, norm_labels)
+    if members:
+        owner = {idx: flt for flt, idcs in members.items() for idx in idcs}
+        read_inside: dict[int, list[int]] = {flt: [] for flt in members}
+        for idx in body_order:
+            if idx in owner:
+                read_inside[owner[idx]].append(idx)
+        body_order = [elt for idx in body_order if idx not in owner for elt in (idx, *read_inside.get(idx, []))]
+    body_order = _attach_captions(body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance)
     return _order(groups["header"]) + body_order + _order(groups["footnote"]) + _order(groups["footer"])
 
 

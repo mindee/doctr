@@ -97,6 +97,30 @@ def test_sort_reading_order_columns():
     assert sort_reading_order(geoms, column_voters=[True, False] + [True] * 6) == list(range(8))
 
 
+def test_sort_reading_order_float_members():
+    # A page-wide figure whose inner text sits on both sides, then a figure in the left column and body text
+    geoms = [
+        ((0.10, 0.05), (0.90, 0.30)),  # 0: figure (page wide)
+        ((0.15, 0.10), (0.30, 0.12)),  # 1: text inside the figure, left side
+        ((0.70, 0.10), (0.85, 0.12)),  # 2: text inside the figure, right side
+        ((0.10, 0.32), (0.90, 0.35)),  # 3: its caption
+        ((0.10, 0.40), (0.45, 0.70)),  # 4: figure in the left column
+        ((0.10, 0.72), (0.45, 0.80)),  # 5: its caption
+    ]
+    labels = ["Picture", "Picture", "Picture", "Caption", "Picture", "Caption"]
+    geoms += [((0.55, 0.40 + 0.05 * i), (0.90, 0.43 + 0.05 * i)) for i in range(8)]  # 6-13: right column
+    geoms += [((0.10, 0.82 + 0.04 * i), (0.45, 0.85 + 0.04 * i)) for i in range(3)]  # 14-16: left column
+    labels += ["Text"] * 11
+    # The text inside a figure is read right after it (and before its caption), instead of drifting to the
+    # column it happens to overlap
+    assert sort_reading_order(geoms, labels=labels) == [0, 1, 2, 3, 4, 5, 14, 15, 16, *range(6, 14)]
+    # Text nested in a figure but labeled as body text (e.g. a smaller 'Text' region) follows the figure too
+    labels[2] = "Text"
+    assert sort_reading_order(geoms, labels=labels)[:4] == [0, 1, 2, 3]
+    # Without labels, nothing is a float
+    assert sorted(sort_reading_order(geoms)) == list(range(len(geoms)))
+
+
 def test_sort_reading_order_input_formats():
     boxes = _two_columns(2)
     expected = sort_reading_order(boxes)

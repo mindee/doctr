@@ -96,6 +96,25 @@ def _caption_distance(caption: tuple[float, ...], target: tuple[float, ...]) -> 
     return y_gap + 2 * x_gap
 
 
+def _join_caption_lines(lines: list[str]) -> str:
+    """Join the lines of a caption into a single line, mending the words hyphenated at a line break.
+
+    A line ending with a hyphenated lowercase fragment ("dif-") followed by a lowercase continuation
+    ("ferent") is mended into one word; compounds ("DocLayNet-" + "trained", "state-of-the-" + "art") keep
+    their hyphen, without the line-break space.
+    """
+    text = ""
+    for line in (line.strip() for line in lines):
+        if not line:
+            continue
+        if text.endswith("-") and line[0].islower():
+            fragment = text[:-1].rsplit(" ", 1)[-1]
+            text = text[:-1] + line if fragment.isalpha() and fragment.islower() else text + line
+        else:
+            text = f"{text} {line}" if text else line
+    return text
+
+
 def _reading_order_signature(page: "Page", direction: str) -> tuple[Any, ...]:
     """A cheap structural fingerprint of a page, used to invalidate the reading-order cache.
 
@@ -120,19 +139,25 @@ def _store_reading_order(page: "Page", signature: tuple[Any, ...], result: tuple
         pass
 
 
-def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any], list[str | None], str]:
-    """Linearize the content of a page (blocks, tables & figures) in reading order.
+def page_reading_order(
+    page: "Page", direction: str = "auto", include_figures: bool = False
+) -> tuple[list[Any], list[str | None], str]:
+    """Linearize the content of a page (blocks, tables and optionally figures) in reading order.
 
     The result is memoized on the page: every exporter calls this, so a page exported to several formats
-    (or built with `keep_reading_order=True` and then exported) orders its content once.
+    (or built with `keep_reading_order=True` and then exported) orders its content once. The figures always
+    take part in the ordering (they are floats which captions attach to), `include_figures` only controls
+    whether they are part of the returned items.
 
     Args:
         page: the page to linearize
         direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+        include_figures: whether the picture regions detected by the layout model (as
+            :class:`~doctr.io.elements.LayoutElement`) are returned along with the blocks and tables
 
     Returns:
-        a tuple with the ordered items (blocks, tables & picture regions), their layout label (None without
-        layout) and the effective reading direction
+        a tuple with the ordered items (blocks, tables and, if requested, picture regions), their layout label
+        (None without layout) and the effective reading direction
     """
     from doctr.io.elements import Block, LayoutElement, Table
     from doctr.models.reading_order import (
@@ -148,7 +173,7 @@ def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any]
     cached = getattr(page, "_reading_order_cache", None)
     if cached is not None and cached[0] == signature:
         items, labels, resolved = cached[1]
-        return list(items), list(labels), resolved
+        return _select_items(list(items), list(labels), resolved, include_figures)
 
     texts = [word.value for block in page.blocks for line in block.lines for word in line.words]
     language = page.language.get("value") if isinstance(page.language, dict) else None
@@ -236,7 +261,19 @@ def page_reading_order(page: "Page", direction: str = "auto") -> tuple[list[Any]
         if last_block is not None:
             last_block.artefacts = [*last_block.artefacts, *leftover]
     _store_reading_order(page, signature, (items, labels, direction))
-    return items, labels, direction
+    return _select_items(list(items), list(labels), direction, include_figures)
+
+
+def _select_items(
+    items: list[Any], labels: list[str | None], direction: str, include_figures: bool
+) -> tuple[list[Any], list[str | None], str]:
+    """Drop the picture regions from a linearization, unless they were requested."""
+    from doctr.io.elements import LayoutElement
+
+    if include_figures:
+        return items, labels, direction
+    kept = [(item, label) for item, label in zip(items, labels) if not isinstance(item, LayoutElement)]
+    return [item for item, _ in kept], [label for _, label in kept], direction
 
 
 def _line_render_direction(line: "Line", page_direction: str, auto: bool) -> str:
@@ -474,7 +511,7 @@ class _PageTextExporter:
                     for cap_idx in captions[idx]
                     for line in self._block_lines(items[cap_idx], direction, False, auto)
                 ]
-                caption = " ".join(lines) or None
+                caption = _join_caption_lines(lines) or None
                 if caption is not None:
                     consumed.update(captions[idx])
             markup[idx] = self.render_figure(sources[idx], caption, escape=escape)
@@ -511,7 +548,7 @@ class _PageTextExporter:
         encoder = FigureEncoder.resolve(images)
         # The text detected inside a figure is only redundant once the figure carries its own pixels
         drop_figure_text = self.supports_figures and encoder.materializes_on(page)
-        items, labels, direction = page_reading_order(page, direction)
+        items, labels, direction = page_reading_order(page, direction, include_figures=True)
         figures, absorbed_captions = self._plan_figures(page, items, labels, encoder, direction, escape, auto)
         parts: list[str] = []
         list_group: list[str] = []
@@ -716,7 +753,11 @@ class AsciiDocExporter(_PageTextExporter):
             title = "{empty}" + title
         # Quoted, so that commas do not split the alternative text into several attributes
         alt = caption.replace('"', '\\"')
-        return f'.{title}\nimage::{source}["{alt}"]'
+        if escape:  # attribute references are substituted in the attribute values too
+            alt = alt.replace("{", "\\{").replace("}", "\\}")
+        # The detected caption already carries its own label ("Figure 3: ..."): an empty `caption` attribute
+        # prevents Asciidoctor from prepending its automatic "Figure N." prefix to the title
+        return f'[caption=""]\n.{title}\nimage::{source}["{alt}"]'
 
     def class_header(self, class_name: str, escape: bool = True) -> str:
         return f"*{self.escape_text(class_name) if escape else class_name}*"
@@ -1003,7 +1044,7 @@ class XMLExporter:
         )
         auto = direction == "auto"
         if reading_order:
-            items, _, direction = page_reading_order(page, direction)
+            items, _, direction = page_reading_order(page, direction, include_figures=True)
         else:
             items = [*page.blocks, *page.tables, *picture_regions(page)]
         # iterate over the blocks / lines / words and create the XML elements line by line with the attributes
@@ -1237,16 +1278,20 @@ class PageExportsMixin:
             cast("Page", self), file_title=file_title, direction=direction, reading_order=reading_order, dpi=dpi
         )
 
-    def items_in_reading_order(self, direction: str = "auto") -> list["Block | Table | LayoutElement"]:
-        """Return the content of the page (blocks, tables & figures) sorted in reading order.
+    def items_in_reading_order(
+        self, direction: str = "auto", include_figures: bool = False
+    ) -> list["Block | Table | LayoutElement"]:
+        """Return the content of the page (blocks, tables and optionally figures) sorted in reading order.
 
         Args:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
+            include_figures: whether the picture regions detected by the layout model (as
+                :class:`~doctr.io.elements.LayoutElement`) are returned along with the blocks and tables
 
         Returns:
-            list of blocks, tables & picture regions in reading order
+            list of blocks, tables and, if requested, picture regions in reading order
         """
-        return page_reading_order(cast("Page", self), direction)[0]
+        return page_reading_order(cast("Page", self), direction, include_figures=include_figures)[0]
 
     def export_as_markdown(
         self,
@@ -1525,7 +1570,7 @@ class DocumentExportsMixin:
         Args:
             page_break: the string inserted between two pages (a thematic break by default)
             **kwargs: additional keyword arguments passed to the `Page.export_as_markdown` method, among which
-                `images` to control how the detected figures are materialized
+                `images` to control how the detected figures are materialized (not supported by KIE pages)
 
         Returns:
             a Markdown string
@@ -1538,7 +1583,7 @@ class DocumentExportsMixin:
         Args:
             page_break: the string inserted between two pages (an AsciiDoc page break by default)
             **kwargs: additional keyword arguments passed to the `Page.export_as_asciidoc` method, among which
-                `images` to control how the detected figures are materialized
+                `images` to control how the detected figures are materialized (not supported by KIE pages)
 
         Returns:
             an AsciiDoc string
@@ -1551,7 +1596,7 @@ class DocumentExportsMixin:
         Args:
             page_break: the HTML snippet inserted between two pages
             **kwargs: additional keyword arguments passed to the page export, among which `images` to
-                control how the detected figures are materialized
+                control how the detected figures are materialized (not supported by KIE pages)
 
         Returns:
             an HTML string

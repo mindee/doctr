@@ -13,6 +13,7 @@ from doctr.io.exporters import (
     MarkdownExporter,
     TextExporter,
     XMLExporter,
+    _join_caption_lines,
     ordered_line_words,
     page_reading_order,
     to_json_safe,
@@ -902,7 +903,7 @@ def _figure_page(caption="Figure 1 quarterly revenue", picture=((0.12, 0.30), (0
 
 def test_page_reading_order_with_figures():
     page = _figure_page()
-    items, labels, _ = page_reading_order(page)
+    items, labels, _ = page_reading_order(page, include_figures=True)
     kinds = [type(item).__name__ for item in items]
     assert kinds.count("LayoutElement") == 1
     figure_idx = kinds.index("LayoutElement")
@@ -911,10 +912,19 @@ def test_page_reading_order_with_figures():
     rendered = [item.render(line_break=" ") if isinstance(item, elements.Block) else None for item in items]
     assert rendered.index("Revenue grew steadily") < figure_idx
     assert figure_idx < rendered.index("axis label") < rendered.index("Figure 1 quarterly revenue")
-    assert page.items_in_reading_order() == items
+    assert page.items_in_reading_order(include_figures=True) == items
+    # By default the figures are left out, so the items are the blocks & tables as before
+    default_items, default_labels, _ = page_reading_order(page)
+    assert default_items == [item for item in items if not isinstance(item, elements.LayoutElement)]
+    assert len(default_labels) == len(default_items) and "Picture" not in default_labels[:1]
+    assert page.items_in_reading_order() == default_items
+    # ... which keeps the code written for blocks & tables working
+    assert all(hasattr(item, "lines") or isinstance(item, elements.Table) for item in page.items_in_reading_order())
+    # The cache holds the figures: requesting them after a default call still returns them
+    assert page_reading_order(page, include_figures=True)[0] == items
     # A page without layout keeps yielding blocks only
     plain = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), page.blocks, 0, (1000, 800))
-    assert all(isinstance(item, elements.Block) for item in plain.items_in_reading_order())
+    assert all(isinstance(item, elements.Block) for item in plain.items_in_reading_order(include_figures=True))
 
 
 def test_page_export_markdown_images():
@@ -1194,3 +1204,44 @@ def test_document_export_passes_images_through(tmp_path):
     encoder = FigureEncoder("referenced", image_dir=tmp_path)
     doc.export_as_html(images=encoder)
     assert len(encoder.written) == 2
+
+
+def test_asciidoc_figure_title_and_attributes():
+    page = _figure_page(caption="Figure 1: {author} revenue")
+    asciidoc = page.export_as_asciidoc(images="embedded")
+    # An empty caption attribute keeps Asciidoctor from prepending "Figure N." to the detected caption
+    assert '[caption=""]\n.Figure 1: \\{author\\} revenue\nimage::data:image/png;base64,' in asciidoc
+    # Attribute references are neutralized in the alternative text too
+    assert '["Figure 1: \\{author\\} revenue"]' in asciidoc
+    # Unescaped exports leave them untouched
+    raw = page.export_as_asciidoc(images="embedded", escape=False)
+    assert '[caption=""]\n.Figure 1: {author} revenue\n' in raw and '["Figure 1: {author} revenue"]' in raw
+    # Without a caption there is no title, hence nothing to neutralize
+    assert "[caption=" not in _figure_page(caption=None).export_as_asciidoc(images="embedded")
+
+
+@pytest.mark.parametrize(
+    "lines, expected",
+    [
+        (["Figure 1: examples across dif-", "ferent categories"], "Figure 1: examples across different categories"),
+        (["the Encoder pro-", "duces features"], "the Encoder produces features"),
+        (["models trained on DocLayNet-", "trained data"], "models trained on DocLayNet-trained data"),
+        (["a state-of-the-", "art model"], "a state-of-the-art model"),
+        (["ends with a dash -", "then more"], "ends with a dash -then more"),
+        (["Section 2-", "Results"], "Section 2- Results"),
+        (["one line"], "one line"),
+        (["", "  padded  ", ""], "padded"),
+        ([], ""),
+    ],
+)
+def test_join_caption_lines(lines, expected):
+    assert _join_caption_lines(lines) == expected
+
+
+def test_figure_caption_hyphenation():
+    page = _figure_page(caption=None)
+    caption_lines = [_line_at("Figure 1: quarterly rev-", 0.2, 0.63, 0.8, 0.66), _line_at("enue", 0.2, 0.67, 0.4, 0.7)]
+    page.blocks = [*page.blocks, elements.Block(lines=caption_lines)]
+    page.layout = [*page.layout, elements.LayoutElement("Caption", 0.96, ((0.18, 0.62), (0.82, 0.705)))]
+    assert "![Figure 1: quarterly revenue](data:image/png;base64," in page.export_as_markdown(images="embedded")
+    assert "<figcaption>Figure 1: quarterly revenue</figcaption>" in page.export_as_html(images="embedded")
