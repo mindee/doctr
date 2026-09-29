@@ -321,6 +321,53 @@ def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dic
     return members
 
 
+def _defer_floats(
+    order: list[int], labels: list[str], members: dict[int, list[int]], groups: Sequence[int]
+) -> list[int]:
+    """Move the floats which interrupt a layout region right after the end of that region.
+
+    A float standing beside a text column (e.g. a figure in the other column of a page not detected as
+    multi-column) only becomes available once the last line overlapping it vertically is read, and the same-row
+    preference of the traversal can then emit it before the remaining lines of the paragraph, splitting it
+    mid-sentence. A run of consecutive floats (with the elements read inside them) found between two elements of
+    the same region is moved after the last element of that region.
+
+    Args:
+        order: the body elements in reading order, the elements read inside a float right after it
+        labels: the normalized layout label of every element
+        members: the elements read inside each float (cf. `_float_members`)
+        groups: the layout region index of every element (-1 for none)
+
+    Returns:
+        the reordered body elements
+    """
+    inner = {idx for idcs in members.values() for idx in idcs}
+
+    def _is_float(idx: int) -> bool:
+        return labels[idx] in _FLOAT_LABELS or idx in inner
+
+    out = list(order)
+    pos = 0
+    while pos < len(out):
+        if not _is_float(out[pos]):
+            pos += 1
+            continue
+        end = pos
+        while end < len(out) and _is_float(out[end]):
+            end += 1
+        # out[pos:end] is a run of floats, and out[pos - 1] (if any) the regular element read before it
+        group = int(groups[out[pos - 1]]) if pos > 0 else -1
+        if group < 0 or end == len(out) or int(groups[out[end]]) != group:
+            pos = end
+            continue
+        stop = end
+        while stop < len(out) and not _is_float(out[stop]) and int(groups[out[stop]]) == group:
+            stop += 1
+        out[pos:stop] = out[end:stop] + out[pos:end]
+        pos = stop
+    return out
+
+
 def _caption_units(caption_idcs: list[int], caption_groups: Sequence[int] | None) -> list[list[int]]:
     """Group the captions sharing a (non-negative) group id, keeping their reading order.
 
@@ -509,7 +556,8 @@ def sort_reading_order(
         column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g.
             to leave out the figures, which say nothing about the columns of the text
         caption_groups: optional group id of each element (-1 for none), typically the index of the layout region
-            it belongs to: the captions sharing a group are attached to a float as a unit, in their reading order
+            it belongs to: the captions sharing a group are attached to a float as a unit, in their reading order,
+            and a float (table or figure) is never read between two elements of the same group
 
     Returns:
         the permutation of the input indices which sorts the elements in reading order
@@ -557,6 +605,9 @@ def sort_reading_order(
             if idx in owner:
                 read_inside[owner[idx]].append(idx)
         body_order = [elt for idx in body_order if idx not in owner for elt in (idx, *read_inside.get(idx, []))]
+    if caption_groups is not None:
+        # A float must not interrupt a region (e.g. a figure read before the last line of the paragraph beside it)
+        body_order = _defer_floats(body_order, norm_labels, members, caption_groups)
     body_order = _attach_captions(
         body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance, caption_groups
     )
@@ -602,7 +653,8 @@ def resolve_reading_segments(
         column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g.
             to leave out the figures, which say nothing about the columns of the text
         caption_groups: optional group id of each element (-1 for none), typically the index of the layout region
-            it belongs to: the captions sharing a group are attached to a float as a unit, in their reading order
+            it belongs to: the captions sharing a group are attached to a float as a unit, in their reading order,
+            and a float (table or figure) is never read between two elements of the same group
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in

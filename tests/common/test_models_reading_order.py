@@ -390,3 +390,66 @@ def test_sort_reading_order_caption_groups():
     segments = resolve_reading_segments(geoms, labels=labels, caption_groups=[-1, -1, 7, 7, 7])
     flat = [idx for segment in segments for idx in segment]
     assert flat[flat.index(0) + 1 : flat.index(0) + 4] == [2, 3, 4]
+
+
+def _paragraph_beside_a_figure():
+    """The first page of the DocLayNet paper, simplified: a 3-column author grid straddling the gutter makes the page
+    single-column, and the abstract (left) ends one line below the figure standing beside it (right)."""
+    geoms, labels, groups = [[0.1, 0.05, 0.9, 0.09]], ["Title"], [0]
+    for row in range(4):
+        for col, x in enumerate((0.15, 0.41, 0.68)):
+            geoms.append([x, 0.14 + row * 0.03, x + 0.18, 0.154 + row * 0.03])
+            labels.append(None)
+            groups.append(-1)
+    for y in np.linspace(0.30, 0.64, 12):
+        geoms.append([0.08, y, 0.48, y + 0.014])
+        labels.append("Text")
+        groups.append(1)
+    last = len(geoms)
+    geoms.append([0.08, 0.662, 0.35, 0.676])  # the last line of the abstract, below the bottom of the figure
+    labels.append("Text")
+    groups.append(1)
+    figure = len(geoms)
+    geoms.append([0.52, 0.31, 0.91, 0.667])
+    labels.append("Picture")
+    groups.append(2)
+    geoms.append([0.08, 0.70, 0.30, 0.712])
+    labels.append("Section-header")
+    groups.append(3)
+    geoms = [((x0, y0), (x1, y1)) for x0, y0, x1, y1 in geoms]
+    return geoms, labels, groups, last, figure
+
+
+def test_sort_reading_order_float_does_not_split_a_region():
+    geoms, labels, groups, last, figure = _paragraph_beside_a_figure()
+    # Without the region of each element, the figure is read as soon as the last line beside it is (legacy behavior)
+    order = sort_reading_order(geoms, labels=labels)
+    assert order.index(figure) < order.index(last)
+    # With them, the figure waits for the end of the paragraph it would split
+    order = sort_reading_order(geoms, labels=labels, caption_groups=groups)
+    assert order.index(last) < order.index(figure) < order.index(len(geoms) - 1)
+    assert sorted(order) == list(range(len(geoms)))
+    # The last line stays in the paragraph of the line above it
+    segments = resolve_reading_segments(geoms, labels=labels, caption_groups=groups)
+    assert [seg for seg in segments if last in seg][0][-2:] == [last - 1, last]
+
+
+def test_defer_floats():
+    from doctr.models.reading_order.base import _defer_floats
+
+    labels = ["text", "text", "picture", "text", "text", "table", "picture", "text", "text"]
+    groups = [0, 0, 1, 0, 3, 4, 5, 3, 6]
+    # a float interrupting region 0, then a run of two floats interrupting region 3
+    assert _defer_floats(list(range(9)), labels, {}, groups) == [0, 1, 3, 2, 4, 7, 5, 6, 8]
+    # the elements read inside a float move with it
+    labels = ["text", "picture", "picture", "text", "text"]
+    groups = [0, 1, 1, 0, 2]
+    assert _defer_floats([0, 1, 2, 3, 4], labels, {1: [2]}, groups) == [0, 3, 1, 2, 4]
+    # no region (-1), a float between two different regions, or at the edges: nothing moves
+    for labels, groups in [
+        (["text", "picture", "text"], [-1, 1, -1]),
+        (["text", "picture", "text"], [0, 1, 2]),
+        (["picture", "text", "text"], [1, 0, 0]),
+        (["text", "text", "picture"], [0, 0, 1]),
+    ]:
+        assert _defer_floats([0, 1, 2], labels, {}, groups) == [0, 1, 2]

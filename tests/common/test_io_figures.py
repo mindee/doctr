@@ -1,6 +1,7 @@
 import gc
 import re
 import weakref
+from pathlib import Path, PurePosixPath, PureWindowsPath
 
 import cv2
 import numpy as np
@@ -191,3 +192,34 @@ def test_referenced_figures_of_several_documents_share_a_directory(tmp_path):
     page = elements.Page(red, [], 0, (100, 200), layout=[region])
     assert FigureEncoder("referenced", image_dir=tmp_path).source(page, region, 1) == sources[0]
     assert len(list(tmp_path.iterdir())) == 2
+
+
+@pytest.mark.parametrize(
+    "path_prefix, expected",
+    [
+        ("", ""),
+        ("assets/", "assets/"),
+        ("assets", "assets/"),  # a directory, the separator is added
+        ("assets\\", "assets/"),  # Windows separators
+        ("out\\my assets", "out/my%20assets/"),
+        ("./assets", "./assets/"),
+        ("../shared/figs/", "../shared/figs/"),
+        (Path("assets"), "assets/"),
+        (Path("out") / "assets", "out/assets/"),
+        (PurePosixPath("out/assets"), "out/assets/"),
+        (PureWindowsPath("out\\assets"), "out/assets/"),  # str(Path(...)) on Windows
+        ("https://cdn.example.com/figs", "https://cdn.example.com/figs/"),
+    ],
+)
+def test_figure_encoder_path_prefix_is_portable(tmp_path, path_prefix, expected):
+    region = elements.LayoutElement("Picture", 0.9, ((0.1, 0.2), (0.5, 0.6)))
+    page = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
+    encoder = FigureEncoder("referenced", image_dir=tmp_path / "assets", path_prefix=path_prefix)
+    source = encoder.source(page, region, 1)
+    assert "\\" not in source and "%5C" not in source
+    assert re.fullmatch(re.escape(expected) + r"page1_figure1-[0-9a-f]{8}\.png", source), source
+    # The link resolves to the written file (relative prefixes)
+    if expected.startswith("assets/"):
+        from urllib.parse import unquote
+
+        assert (tmp_path / unquote(source)).is_file()

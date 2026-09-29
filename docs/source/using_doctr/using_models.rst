@@ -487,7 +487,7 @@ The figures found by the layout model also take part in the reading order, and t
     encoder = FigureEncoder("referenced", image_dir="assets", path_prefix="assets/")
     markdown = result.export_as_markdown(images=encoder)
 
-By default (``images="placeholder"``) a comment marks the position of every detected figure, and ``images="none"`` drops them entirely.
+By default (``images="placeholder"``) a comment marks the position of every detected figure, and ``images="none"`` drops them entirely. In ``"embedded"`` and ``"referenced"`` modes, the text recognized inside a figure is left out of the export, since the image already shows it.
 
 
 Running the predictors on GPU

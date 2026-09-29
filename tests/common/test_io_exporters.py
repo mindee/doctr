@@ -1336,3 +1336,33 @@ def test_page_export_caption_split_across_columns():
     markdown = page.export_as_markdown(images="placeholder")
     figure, table = markdown.index("<!-- image -->"), markdown.index("| A | B |")
     assert figure < markdown.index("Figure 5") < markdown.index("significantly better") < table
+
+
+def test_page_export_figure_does_not_split_a_paragraph():
+    """A figure beside a paragraph is exported after the paragraph's last line (DocLayNet paper, page 1)"""
+    lines = [_line_at("Wide title spanning the page", 0.1, 0.05, 0.9, 0.09)]
+    # A 3-column author grid straddling the gutter: the page is not detected as multi-column
+    for row in range(4):
+        y = 0.14 + row * 0.03
+        lines += [_line_at(f"author{row}{col}", x, y, x + 0.18, y + 0.014) for col, x in enumerate((0.15, 0.41, 0.68))]
+    ys = np.linspace(0.3, 0.64, 12)
+    lines += [_line_at(f"body line {idx}", 0.08, y, 0.48, y + 0.014) for idx, y in enumerate(ys)]
+    lines.append(_line_at("last line of the paragraph", 0.08, 0.662, 0.35, 0.676))
+    lines.append(_line_at("Next section", 0.08, 0.70, 0.30, 0.712))
+    layout = [
+        elements.LayoutElement("Title", 0.9, ((0.09, 0.04), (0.91, 0.10))),
+        elements.LayoutElement("Text", 0.9, ((0.07, 0.29), (0.49, 0.68))),
+        elements.LayoutElement("Picture", 0.9, ((0.52, 0.31), (0.91, 0.667))),
+        elements.LayoutElement("Section-header", 0.9, ((0.07, 0.695), (0.31, 0.715))),
+    ]
+    image = np.zeros((1000, 800, 3), dtype=np.uint8)
+    image[310:667, 416:728] = 255
+    page = elements.Page(image, [elements.Block(lines=lines)], 0, (1000, 800), layout=layout)
+    markdown = page.export_as_markdown(images="embedded")
+    assert (
+        markdown.index("last line of the paragraph")
+        < markdown.index("![](data:image/png")
+        < markdown.index("Next section")
+    )
+    # The paragraph is not split around the figure
+    assert "body line 11\nlast line of the paragraph" in markdown

@@ -4,6 +4,7 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import hashlib
+import os
 import weakref
 from base64 import b64encode
 from pathlib import Path
@@ -80,6 +81,19 @@ def _check_padding(padding: float) -> None:
 def _check_quality(quality: int) -> None:
     if not 0 <= quality <= 100:
         raise ValueError(f"the encoding quality should be between 0 and 100, got {quality}")
+
+
+def _normalize_path_prefix(path_prefix: "str | os.PathLike[str]") -> str:
+    """Turn a path prefix into the portable (forward-slash) directory prefix of the referenced figures.
+
+    The prefix locates the image directory as seen from the export, so it is a directory: a missing trailing
+    separator is added. Backslashes (Windows separators, e.g. `str(Path("assets"))` on Windows) are turned into
+    forward slashes, the only separator Markdown, AsciiDoc and HTML links understand on every platform.
+    """
+    prefix = os.fspath(path_prefix).replace("\\", "/")
+    if prefix and not prefix.endswith("/"):
+        prefix += "/"
+    return prefix
 
 
 def _pad_geometry(points: np.ndarray, padding: float) -> np.ndarray:
@@ -173,6 +187,9 @@ class FigureEncoder:
     * ``embedded``: the crop is inlined as a base64 data URI, so the export stays a single file
     * ``referenced``: the crop is written to ``image_dir`` and referenced by a relative path
 
+    In the 'embedded' and 'referenced' modes, the text recognized inside a figure is dropped from the export (the
+    image already shows it), unless that figure could not be cropped. The 'none' and 'placeholder' modes keep it.
+
     Each figure is encoded (and written) once per encoder. In 'referenced' mode, the file name carries the
     position of the figure and a hash of its content (e.g. ``page1_figure2-3fa2b1c9.png``): several documents can
     share an ``image_dir`` without overwriting each other's figures, and re-exporting a document rewrites the very
@@ -184,9 +201,10 @@ class FigureEncoder:
     Args:
         mode: one of 'none', 'placeholder', 'embedded' or 'referenced'
         image_dir: the directory the crops are written to (required in 'referenced' mode)
-        path_prefix: prepended to the file names in 'referenced' mode, to match the location the export
-            is rendered from (e.g. 'assets/' when the Markdown file sits next to the `assets` directory).
-            The resulting path is percent-encoded.
+        path_prefix: the location of ``image_dir`` as seen from the export, prepended to the file names in
+            'referenced' mode (e.g. 'assets' when the Markdown file sits next to the `assets` directory). A string or
+            a path, with or without a trailing separator: Windows backslashes are turned into forward slashes, so
+            the links work on every platform. The resulting path is percent-encoded.
         image_format: one of 'png', 'jpg'/'jpeg' or 'webp'
         quality: the encoding quality of the lossy formats, between 0 and 100
         padding: relative margin (non-negative) added around each region, useful to catch the axis labels of a plot
@@ -196,7 +214,7 @@ class FigureEncoder:
         self,
         mode: str = "placeholder",
         image_dir: str | Path | None = None,
-        path_prefix: str = "",
+        path_prefix: "str | os.PathLike[str]" = "",
         image_format: str = "png",
         quality: int = 95,
         padding: float = 0.0,
@@ -211,7 +229,7 @@ class FigureEncoder:
         _check_padding(padding)
         self.mode = mode
         self.image_dir = Path(image_dir) if image_dir is not None else None
-        self.path_prefix = path_prefix
+        self.path_prefix = _normalize_path_prefix(path_prefix)
         self.image_format = image_format
         self.quality = quality
         self.padding = padding

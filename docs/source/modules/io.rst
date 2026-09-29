@@ -186,12 +186,26 @@ reading order and are materialized by the Markdown, AsciiDoc and HTML exports. H
 controlled by the ``images`` argument, which accepts either an image mode or a configured
 :class:`FigureEncoder`:
 
-* ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels
-* ``'none'``: the figures are left out of the export (they still take part in the reading order)
-* ``'embedded'``: each figure is cropped out of the page and inlined as a base64 data URI
+* ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels.
+  The text recognized inside the figure is kept.
+* ``'none'``: the figures are left out of the export (they still take part in the reading order). The text
+  recognized inside the figure is kept.
+* ``'embedded'``: each figure is cropped out of the page and inlined as a base64 data URI. The text recognized
+  inside the figure is **dropped** from the export.
 * ``'referenced'``: each crop is written next to the export and referenced by a relative path. The file names
   carry the position of the figure and a hash of its content (e.g. ``page1_figure2-3fa2b1c9.png``), so several
-  documents can share the same image directory
+  documents can share the same image directory. The text recognized inside the figure is **dropped** from the
+  export. ``path_prefix`` accepts a string or a path, with or without a trailing separator, and Windows
+  backslashes are written as forward slashes, so the links work on Linux, macOS and Windows alike.
+
+.. note::
+    Once a figure carries its pixels (``'embedded'`` and ``'referenced'``), the text the OCR recognized inside it
+    (axis labels, legends, the words of a screenshot, often fragmented OCR noise) is already visible in the
+    image, so it is left out of the export rather than scattered through the body text. Only the lines labeled
+    as part of the picture by the layout model are dropped: the caption becomes the image's alternative text,
+    and the text of a figure which could not be cropped (a degenerate region, or a page restored from a JSON
+    export) is kept. Use ``'placeholder'`` or ``'none'`` to keep all the recognized text, and
+    ``page.items_in_reading_order(include_figures=True)`` to access it along with the figures.
 
 .. code:: python
 
@@ -204,7 +218,7 @@ controlled by the ``images`` argument, which accepts either an image mode or a c
     # A self-contained Markdown file
     markdown = doc.export_as_markdown(images="embedded")
     # ... or one that points at the crops on disk
-    markdown = doc.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets", path_prefix="assets/"))
+    markdown = doc.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets", path_prefix="assets"))
 
 A caption detected next to a figure becomes its alternative text (and its ``<figcaption>`` in HTML) as soon as
 the export carries the pixels. Plain text and the hOCR export never inline an image: hOCR positions each figure
