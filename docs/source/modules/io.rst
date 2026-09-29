@@ -186,13 +186,16 @@ reading order and are materialized by the Markdown, AsciiDoc and HTML exports. H
 controlled by the ``images`` argument, which accepts either an image mode or a configured
 :class:`FigureEncoder`:
 
-* ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels.
-  The text recognized inside the figure is kept.
+* ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels
+  (``<!-- image -->`` in Markdown and HTML, ``// image`` in AsciiDoc). The text recognized inside the figure is
+  kept. Pass ``images="none"`` to get the exports without any figure marker.
 * ``'none'``: the figures are left out of the export (they still take part in the reading order). The text
   recognized inside the figure is kept.
 * ``'embedded'``: each figure is cropped out of the page and inlined as a base64 data URI. The text recognized
   inside the figure is **dropped** from the export.
-* ``'referenced'``: each crop is written next to the export and referenced by a relative path. The file names
+* ``'referenced'``: each crop is written next to the export and referenced by a relative path. This mode needs a
+  directory to write to, so it is only available through a configured encoder:
+  ``images=FigureEncoder("referenced", image_dir=...)`` (the ``images="referenced"`` string raises). The file names
   carry the position of the figure and a hash of its content (e.g. ``page1_figure2-3fa2b1c9.png``), so several
   documents can share the same image directory. The text recognized inside the figure is **dropped** from the
   export. ``path_prefix`` accepts a string or a path, with or without a trailing separator, and Windows
@@ -220,11 +223,20 @@ controlled by the ``images`` argument, which accepts either an image mode or a c
     # ... or one that points at the crops on disk
     markdown = doc.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets", path_prefix="assets"))
 
-A caption detected next to a figure becomes its alternative text (and its ``<figcaption>`` in HTML) as soon as
-the export carries the pixels. Plain text and the hOCR export never inline an image: hOCR positions each figure
+A caption detected next to a figure becomes its alternative text as soon as the export carries the pixels, and
+stays visible: an italic paragraph right under the image in Markdown, a ``<figcaption>`` in HTML and a block title
+in AsciiDoc. Plain text and the hOCR export never inline an image: hOCR positions each figure
 as an ``ocr_photo`` area instead. Pages restored from a JSON export carry no pixels, so their figures fall back
 to a placeholder. With ``include_furniture=False``, the figures lying in a page header or footer (e.g. a logo)
 are left out along with the rest of the page furniture.
+
+The command line exposes the same options: ``--images`` picks the mode, and in ``referenced`` mode the crops are
+written to ``--image_dir`` (by default a ``<output name>_images`` directory next to the output file), in the
+``--image_format`` of your choice:
+
+.. code:: bash
+
+    doctr-cli --input_path report.pdf --detect_layout --output report.md --images referenced
 
 .. autoclass:: FigureEncoder
     :members: resolve, source, enabled, materializes, materializes_on

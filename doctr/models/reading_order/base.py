@@ -243,10 +243,13 @@ def _topological_order(
         voters = np.ones(num_boxes, dtype=bool)
     vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
     if num_voters >= 3:
-        span = page_width
+        # The search window and the crossing tolerance are measured on the voters only: a wide figure extending
+        # past the text margins must not shift where the column split is looked for
+        left_edge = float(vx0.min())
+        span = float(vx1.max()) - left_edge or 1.0
         tolerance = max(1, int(0.05 * num_voters))
         centers = (vx0 + vx1) / 2
-        lo, hi = x0.min() + 0.25 * span, x0.min() + 0.75 * span
+        lo, hi = left_edge + 0.25 * span, left_edge + 0.75 * span
         for split in np.unique(vx1[(vx1 >= lo) & (vx1 <= hi)]):
             crossing = int(np.count_nonzero(np.minimum(vx1 - split, split - vx0) > 0.02 * span))
             left = int(np.count_nonzero(centers <= split))
@@ -321,8 +324,42 @@ def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dic
     return members
 
 
+def _stands_beside(boxes: np.ndarray, run: list[int], region: list[int]) -> bool:
+    """Whether an element of a region shares rows with a run of floats while lying next to it horizontally.
+
+    This is the case of a figure beside a paragraph (which the traversal can read mid-paragraph). A float
+    stacked between the lines of a region (e.g. a loose text region enclosing a figure, with lines above and
+    below it) has no such neighbor, and is already read at the right place.
+
+    Args:
+        boxes: the (N, 4) boxes of every element (canonical LTR space)
+        run: the floats (and the elements read inside them) forming the run
+        region: the other elements of the region the run interrupts
+
+    Returns:
+        True when at least one element of the region stands beside the run
+    """
+    rx0, ry0 = boxes[run, 0].min(), boxes[run, 1].min()
+    rx1, ry1 = boxes[run, 2].max(), boxes[run, 3].max()
+    for idx in region:
+        x0, y0, x1, y1 = boxes[idx]
+        # at least half of the element's height is level with the run ...
+        v_inter = min(y1, ry1) - max(y0, ry0)
+        if v_inter < 0.5 * max(y1 - y0, 1e-9):
+            continue
+        # ... and at most a sliver (10% of the narrower of the two) overlaps it horizontally
+        h_inter = min(x1, rx1) - max(x0, rx0)
+        if h_inter <= 0.1 * max(min(x1 - x0, rx1 - rx0), 1e-9):
+            return True
+    return False
+
+
 def _defer_floats(
-    order: list[int], labels: list[str], members: dict[int, list[int]], groups: Sequence[int]
+    order: list[int],
+    labels: list[str],
+    members: dict[int, list[int]],
+    groups: Sequence[int],
+    boxes: np.ndarray | None = None,
 ) -> list[int]:
     """Move the floats which interrupt a layout region right after the end of that region.
 
@@ -332,11 +369,16 @@ def _defer_floats(
     mid-sentence. A run of consecutive floats (with the elements read inside them) found between two elements of
     the same region is moved after the last element of that region.
 
+    When the boxes are given, only the runs standing *beside* the region are moved (cf. `_stands_beside`): a float
+    stacked between the lines of a region that encloses it (a loose or wrong layout box) keeps its position.
+
     Args:
         order: the body elements in reading order, the elements read inside a float right after it
         labels: the normalized layout label of every element
         members: the elements read inside each float (cf. `_float_members`)
         groups: the layout region index of every element (-1 for none)
+        boxes: the (N, 4) boxes of every element (canonical LTR space), used to tell a float beside a region
+            from a float stacked inside it. Without them, every interrupting run is moved.
 
     Returns:
         the reordered body elements
@@ -363,6 +405,11 @@ def _defer_floats(
         stop = end
         while stop < len(out) and not _is_float(out[stop]) and int(groups[out[stop]]) == group:
             stop += 1
+        if boxes is not None:
+            region = [idx for idx in out if int(groups[idx]) == group and not _is_float(idx)]
+            if not _stands_beside(boxes, out[pos:end], region):
+                pos = end
+                continue
         out[pos:stop] = out[end:stop] + out[pos:end]
         pos = stop
     return out
@@ -607,7 +654,7 @@ def sort_reading_order(
         body_order = [elt for idx in body_order if idx not in owner for elt in (idx, *read_inside.get(idx, []))]
     if caption_groups is not None:
         # A float must not interrupt a region (e.g. a figure read before the last line of the paragraph beside it)
-        body_order = _defer_floats(body_order, norm_labels, members, caption_groups)
+        body_order = _defer_floats(body_order, norm_labels, members, caption_groups, canonical)
     body_order = _attach_captions(
         body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance, caption_groups
     )
@@ -707,8 +754,15 @@ def assign_layout_labels(
 ) -> list[str | None]:
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
-    Each element receives the label of the region covering at least `min_coverage` of its area (the smallest one
-    when several do, e.g. a caption inside a picture); otherwise its label is None (treated as regular body content).
+    Each element receives the label of the region covering at least `min_coverage` of its area; otherwise its label
+    is None (treated as regular body content). When several regions qualify (nested regions):
+
+    * the smallest one wins, e.g. a caption detected inside a picture is labeled 'Caption', not 'Picture'
+    * except when the smallest one is a float (picture, table, ...) nested in page furniture (header, footer or
+      footnote): the element then keeps the furniture label, e.g. the text of a logo in the page header is labeled
+      'Page-header', not 'Picture'
+
+    Nested regions used to be resolved by the largest coverage share (the first region listed on ties).
 
     Args:
         geoms: geometries of the elements to label, in any docTR format
@@ -733,14 +787,24 @@ def assign_layout_labels(
 
     return [
         str(layout_labels[reg_idx]) if reg_idx >= 0 else None
-        for reg_idx in _covering_regions(boxes, regions, min_coverage)
+        for reg_idx in _covering_regions(boxes, regions, min_coverage, layout_labels)
     ]
 
 
-def _covering_regions(boxes: np.ndarray, regions: np.ndarray, min_coverage: float) -> list[int]:
+_FURNITURE_ROLES = ("header", "footer", "footnote")
+
+
+def _covering_regions(
+    boxes: np.ndarray,
+    regions: np.ndarray,
+    min_coverage: float,
+    region_labels: Sequence[str | None] | None = None,
+) -> list[int]:
     """Index of the region covering each (N, 4) box by at least `min_coverage` of its area, -1 if none.
 
-    When several regions qualify (nested regions, e.g. a caption inside a picture), the smallest one wins.
+    When several regions qualify (nested regions, e.g. a caption inside a picture), the smallest one wins. With the
+    region labels, a float nested in page furniture does not win over it: the smallest qualifying furniture region
+    is picked instead (e.g. the page header around a logo).
     """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
@@ -748,9 +812,23 @@ def _covering_regions(boxes: np.ndarray, regions: np.ndarray, min_coverage: floa
     areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
     coverage = inter / areas[:, None]
     region_areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
-    ranked = np.where(coverage >= min_coverage, region_areas[None, :], np.inf)
+    qualifies = coverage >= min_coverage
+    ranked = np.where(qualifies, region_areas[None, :], np.inf)
     best = ranked.argmin(axis=1)
-    return [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]
+    result = [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]
+    if region_labels is None or len(region_labels) != regions.shape[0]:
+        return result
+
+    roles = [layout_label_role(label) for label in region_labels]
+    is_float = np.array([role == "float" for role in roles], dtype=bool)
+    is_furniture = np.array([role in _FURNITURE_ROLES for role in roles], dtype=bool)
+    if not (is_float.any() and is_furniture.any()):
+        return result
+    furniture_ranked = np.where(qualifies & is_furniture[None, :], region_areas[None, :], np.inf)
+    for idx, reg in enumerate(result):
+        if reg >= 0 and is_float[reg] and np.isfinite(furniture_ranked[idx].min()):
+            result[idx] = int(furniture_ranked[idx].argmin())
+    return result
 
 
 class ReadingOrderPredictor(NestedObject):

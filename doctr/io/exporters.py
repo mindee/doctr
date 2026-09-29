@@ -69,18 +69,23 @@ _ADOC_SPECIAL_CHARS = "\\`*_#^~|+{}<>"
 _ADOC_LINE_MARKERS = "=*.-/+"
 
 
-def _covering_region_indices(geoms: list[Any], region_geoms: list[Any], min_coverage: float = 0.5) -> list[int]:
+def _covering_region_indices(
+    geoms: list[Any],
+    region_geoms: list[Any],
+    min_coverage: float = 0.5,
+    region_labels: list[str] | None = None,
+) -> list[int]:
     """For each element geometry, the index of the layout region it is assigned to.
 
-    Uses the same area-coverage criterion as :func:`doctr.models.reading_order.assign_layout_labels`, and
-    returns -1 when no region covers the element by at least `min_coverage`. The geometries are expected to
-    be in the same (upright) frame.
+    Uses the same area-coverage criterion as :func:`doctr.models.reading_order.assign_layout_labels` (pass the
+    `region_labels` to apply its page furniture rule too), and returns -1 when no region covers the element by at
+    least `min_coverage`. The geometries are expected to be in the same (upright) frame.
     """
     from doctr.models.reading_order.base import _covering_regions, _to_boxes
 
     if len(region_geoms) == 0 or len(geoms) == 0:
         return [-1] * len(geoms)
-    return _covering_regions(_to_boxes(geoms), _to_boxes(region_geoms), min_coverage)
+    return _covering_regions(_to_boxes(geoms), _to_boxes(region_geoms), min_coverage, region_labels)
 
 
 def _xyxy(geometry: Any) -> tuple[float, float, float, float]:
@@ -163,6 +168,7 @@ def page_reading_order(
     from doctr.models.reading_order import (
         ReadingOrderPredictor,
         deskew_reading_geometries,
+        layout_label_role,
         normalize_layout_label,
         resolve_reading_segments,
     )
@@ -199,13 +205,19 @@ def page_reading_order(
     elt_labels: list[str | None] = [None] * len(elements)
     # The layout region each element belongs to (same criterion as `assign_layout_labels`): the lines of one
     # caption region are then attached to a float together
-    elt_regions = _covering_region_indices(elt_geoms, region_geoms)
+    elt_regions = _covering_region_indices(elt_geoms, region_geoms, region_labels=region_labels)
     if len(region_geoms) > 0:
         elt_labels = [str(region_labels[reg]) if reg >= 0 else None for reg in elt_regions]
-    elt_labels = [
-        "Table" if isinstance(elt, Table) else elt.type if isinstance(elt, LayoutElement) else label
-        for elt, label in zip(elements, elt_labels)
-    ]
+
+    def _element_label(elt: Any, label: str | None) -> str | None:
+        if isinstance(elt, Table):
+            return "Table"
+        if isinstance(elt, LayoutElement):
+            # A figure lying in page furniture (e.g. a logo in the page header) is read with that furniture
+            return label if layout_label_role(label) in ("header", "footer", "footnote") else elt.type
+        return label
+
+    elt_labels = [_element_label(elt, label) for elt, label in zip(elements, elt_labels)]
     # A figure spanning the columns says nothing about them: it does not take part in the multi-column detection
     boxes = _to_boxes(elt_geoms)
     span = float(boxes[:, 2].max() - boxes[:, 0].min()) or 1.0
@@ -215,6 +227,25 @@ def page_reading_order(
     segments = resolve_reading_segments(
         elt_geoms, direction=direction, labels=elt_labels, column_voters=column_voters, caption_groups=elt_regions
     )
+
+    def _is_float_item(idx: int) -> bool:
+        return isinstance(elements[idx], (Table, LayoutElement))
+
+    def _split_floats(segment: list[int]) -> list[list[int]]:
+        """Isolate the tables and figures of a segment: each one is an item of its own.
+
+        A figure lying in page furniture carries the furniture label, so it is not a float for the segmentation
+        and can be merged with the furniture text next to it (e.g. a logo and the header line beside it).
+        """
+        runs: list[list[int]] = []
+        for idx in segment:
+            if runs and not _is_float_item(idx) and not _is_float_item(runs[-1][-1]):
+                runs[-1].append(idx)
+            else:
+                runs.append([idx])
+        return runs
+
+    segments = [run for segment in segments for run in _split_floats(segment)]
 
     items = []
     labels = []
@@ -230,7 +261,7 @@ def page_reading_order(
         return claimed
 
     # Region index covering each element, used to group the lines of a wrapped list item under a single bullet
-    region_idx = _covering_region_indices(elt_geoms, region_geoms) if len(region_geoms) > 0 else [-1] * len(elements)
+    region_idx = elt_regions
     open_list_region: int | None = None  # region of the list bullet currently being built (None outside a list)
     for segment in segments:
         first = elements[segment[0]]
@@ -475,13 +506,23 @@ class _PageTextExporter:
             )
             return inter / max((box[2] - box[0]) * (box[3] - box[1]), 1e-9)
 
+        furniture_roles = ("header", "footer", "footnote")
+
         def _figure_text(fig_idx: int) -> set[int]:
-            """The text detected inside a figure (the lines labeled as part of a picture, covered by it)"""
+            """The text detected inside a figure (the lines labeled as part of a picture, covered by it).
+
+            The text of a figure lying in page furniture (e.g. a logo in the page header) carries the furniture
+            label (cf. `assign_layout_labels`), so for such a figure the furniture lines it covers are its text.
+            """
+            in_furniture = layout_label_role(labels[fig_idx]) in furniture_roles
             return {
                 idx
                 for idx, item in enumerate(items)
                 if isinstance(item, Block)
-                and is_picture_label(labels[idx])
+                and (
+                    is_picture_label(labels[idx])
+                    or (in_furniture and layout_label_role(labels[idx]) in furniture_roles)
+                )
                 and _coverage(boxes[idx], boxes[fig_idx]) >= 0.5
             }
 
@@ -509,7 +550,7 @@ class _PageTextExporter:
         for idx in figure_idcs:
             if sources[idx] is not None:
                 hidden |= _figure_text(idx)
-        region_of = _covering_region_indices(upright, upright_regions)
+        region_of = _covering_region_indices(upright, upright_regions, region_labels=[r.type for r in page.layout])
 
         def _is_caption(idx: int) -> bool:
             return isinstance(items[idx], Block) and normalize_layout_label(labels[idx]) == "caption"
@@ -599,8 +640,8 @@ class _PageTextExporter:
             include_furniture: whether page headers, page footers and footnotes should be included
             block_break: the string inserted between two blocks (the format-specific default when None)
             images: how the figures detected by the layout model are materialized, either an image mode
-                ('none', 'placeholder', 'embedded' or 'referenced') or a configured
-                :class:`~doctr.io.FigureEncoder`
+                ('none', 'placeholder' or 'embedded') or a configured :class:`~doctr.io.FigureEncoder`, which the
+                'referenced' mode requires (it needs an `image_dir` to write the crops to)
 
         Returns:
             the exported page as a string
@@ -753,7 +794,12 @@ class MarkdownExporter(_PageTextExporter):
         return "\n".join([rows[0], separator, *rows[1:]])
 
     def render_figure(self, source: str | None, caption: str | None = None, escape: bool = True) -> str:
-        """Render a figure as an image, using its caption as the alternative text"""
+        """Render a figure as an image, followed by its caption in italics.
+
+        The caption is also the alternative text of the image. Alternative text alone is not displayed by the
+        Markdown renderers, and is dropped by most Markdown-to-text pipelines: the caption paragraph keeps it
+        visible, as the `<figcaption>` of the HTML export and the block title of the AsciiDoc one do.
+        """
         if source is None:
             return self.figure_placeholder
         caption = caption or ""
@@ -762,7 +808,11 @@ class MarkdownExporter(_PageTextExporter):
             alt = self.escape_text(caption)
         else:
             alt = caption.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
-        return f"![{alt}]({source})"
+        image = f"![{alt}]({source})"
+        if not caption:
+            return image
+        # Escaped, `*` and `_` cannot close the emphasis early. Unescaped, the caption is written as detected.
+        return f"{image}\n\n*{self.escape_text(caption) if escape else caption}*"
 
     def class_header(self, class_name: str, escape: bool = True) -> str:
         return f"**{self.escape_text(class_name) if escape else class_name}**"
@@ -1369,8 +1419,8 @@ class PageExportsMixin:
             escape: whether the characters carrying a structural meaning in Markdown should be escaped
             include_furniture: whether page headers, page footers and footnotes should be included
             images: how the figures detected by the layout model are materialized, either an image mode
-                ('none', 'placeholder', 'embedded' or 'referenced') or a configured
-                :class:`~doctr.io.FigureEncoder`
+                ('none', 'placeholder' or 'embedded') or a configured :class:`~doctr.io.FigureEncoder`, which the
+                'referenced' mode requires (it needs an `image_dir` to write the crops to)
 
         Returns:
             a Markdown string
@@ -1398,8 +1448,8 @@ class PageExportsMixin:
                 be escaped
             include_furniture: whether page headers, page footers and footnotes should be included
             images: how the figures detected by the layout model are materialized, either an image mode
-                ('none', 'placeholder', 'embedded' or 'referenced') or a configured
-                :class:`~doctr.io.FigureEncoder`
+                ('none', 'placeholder' or 'embedded') or a configured :class:`~doctr.io.FigureEncoder`, which the
+                'referenced' mode requires (it needs an `image_dir` to write the crops to)
 
         Returns:
             an AsciiDoc string
@@ -1424,8 +1474,8 @@ class PageExportsMixin:
             direction: reading direction, one of 'auto', 'ltr', 'rtl', 'ttb-rtl' or 'ttb-ltr'
             include_furniture: whether page headers, page footers and footnotes should be included
             images: how the figures detected by the layout model are materialized, either an image mode
-                ('none', 'placeholder', 'embedded' or 'referenced') or a configured
-                :class:`~doctr.io.FigureEncoder`
+                ('none', 'placeholder' or 'embedded') or a configured :class:`~doctr.io.FigureEncoder`, which the
+                'referenced' mode requires (it needs an `image_dir` to write the crops to)
 
         Returns:
             an HTML string

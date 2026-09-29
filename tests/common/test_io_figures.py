@@ -111,6 +111,9 @@ def test_figure_encoder_validation(tmp_path):
     # `resolve` accepts a mode, an encoder, or None
     assert FigureEncoder.resolve("embedded").mode == "embedded"
     assert FigureEncoder.resolve(None).mode == "none"
+    # ... but not the 'referenced' mode, which needs an image directory: the error says how to configure it
+    with pytest.raises(ValueError, match=r"FigureEncoder\('referenced', image_dir="):
+        FigureEncoder.resolve("referenced")
     encoder = FigureEncoder("placeholder")
     assert FigureEncoder.resolve(encoder) is encoder
     assert "placeholder" in repr(encoder)

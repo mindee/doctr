@@ -6,6 +6,7 @@
 import argparse
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any
@@ -14,6 +15,7 @@ import numpy as np
 import torch
 
 from doctr.io import DocumentFile
+from doctr.io.figures import IMAGE_FORMATS, IMAGE_MODES, FigureEncoder
 from doctr.models import ocr_predictor
 from doctr.version import __version__
 
@@ -236,6 +238,42 @@ def _build_predictor(args: argparse.Namespace) -> Any:
     return _to_device(model, args)
 
 
+def _default_image_dir(output: str) -> Path:
+    """The directory the figures are written to in 'referenced' mode when `--image_dir` is not set
+
+    Args:
+        output: the `--output` value
+
+    Returns:
+        a `<output name>_images` directory next to the output file
+    """
+    path = Path(output)
+    return path.with_name(f"{path.stem}_images")
+
+
+def _figure_encoder(args: argparse.Namespace) -> FigureEncoder:
+    """Build the encoder materializing the detected figures in the Markdown / AsciiDoc / HTML exports
+
+    In 'referenced' mode, the links are made relative to the directory of the output file, so the export keeps
+    pointing at the crops wherever the pair is moved.
+
+    Args:
+        args: the parsed command-line arguments
+
+    Returns:
+        the figure encoder, shared by all the pages of the document
+    """
+    if args.images != "referenced":
+        return FigureEncoder(args.images, image_format=args.image_format)
+    image_dir = Path(args.image_dir) if args.image_dir is not None else _default_image_dir(args.output)
+    output_dir = Path(args.output).parent
+    try:
+        path_prefix = os.path.relpath(image_dir.absolute(), output_dir.absolute())
+    except ValueError:  # pragma: no cover  (Windows: the image directory is on another drive than the output)
+        path_prefix = str(image_dir.absolute())
+    return FigureEncoder("referenced", image_dir=image_dir, path_prefix=path_prefix, image_format=args.image_format)
+
+
 def _export_kwargs(fmt: str, args: argparse.Namespace) -> dict[str, Any]:
     """Build the keyword arguments accepted by the exporter of the requested format
 
@@ -257,6 +295,8 @@ def _export_kwargs(fmt: str, args: argparse.Namespace) -> dict[str, Any]:
         kwargs["escape"] = args.escape
     if fmt in {"txt", "md", "adoc", "html"}:
         kwargs["include_furniture"] = args.include_furniture
+    if fmt in {"md", "adoc", "html"}:
+        kwargs["images"] = _figure_encoder(args)
     return kwargs
 
 
@@ -284,11 +324,15 @@ def _save_results(result: Any, fmt: str, args: argparse.Namespace) -> None:
         fmt: the canonical export format
         args: the parsed command-line arguments
     """
+    kwargs = _export_kwargs(fmt, args)
     try:
-        exported = result.export_as(fmt, **_export_kwargs(fmt, args))
+        exported = result.export_as(fmt, **kwargs)
     except Exception as e:
         logger.error(f"Results could not be exported as '{fmt}': {e}")
         sys.exit(1)
+    encoder = kwargs.get("images")
+    if isinstance(encoder, FigureEncoder) and encoder.written:
+        logger.info(f"{len(encoder.written)} figure(s) saved to {encoder.image_dir}")
 
     try:
         if fmt == "xml":
@@ -487,12 +531,37 @@ def _parse_args(argv=None):
         help="include page headers, page footers and footnotes (text-like exports)",
     )
     parser.add_argument(
+        "--images",
+        type=str,
+        default="placeholder",
+        choices=list(IMAGE_MODES),
+        help="how the figures found by the layout model (--detect_layout) are materialized in the Markdown, "
+        "AsciiDoc & HTML exports: left out, marked by a comment, inlined as base64, or written to --image_dir",
+    )
+    parser.add_argument(
+        "--image_dir",
+        type=str,
+        default=None,
+        help="directory the figures are written to with --images referenced "
+        "(a '<output name>_images' directory next to the output when not set)",
+    )
+    parser.add_argument(
+        "--image_format",
+        type=str,
+        default="png",
+        choices=list(IMAGE_FORMATS),
+        help="file format of the figures (--images embedded or referenced)",
+    )
+    parser.add_argument(
         "--file_title", type=str, default="docTR - XML export (hOCR)", help="title of the exported hOCR files"
     )
     parser.add_argument("--indent", type=int, default=4, help="indentation of the JSON export")
     parser.add_argument("--quiet", action="store_true", help="only log errors")
 
     args = parser.parse_args(argv)
+
+    if args.image_dir is not None and args.images != "referenced":
+        parser.error("--image_dir is only used with --images referenced")
 
     for name in ("bin_thresh", "box_thresh"):
         value = getattr(args, name)

@@ -944,7 +944,13 @@ def test_page_export_markdown_images():
     embedded = page.export_as_markdown(images="embedded")
     assert "![Figure 1 quarterly revenue](data:image/png;base64," in embedded
     assert "axis label" not in embedded
-    assert embedded.count("Figure 1 quarterly revenue") == 1  # the caption is not repeated as a paragraph
+    # The caption is not left as a plain paragraph: it is the alternative text, and a visible italic line under
+    # the image (renderers do not display the alternative text, and most Markdown-to-text pipelines drop it)
+    assert "](data:image/png;base64," in embedded
+    assert embedded.count("Figure 1 quarterly revenue") == 2
+    assert re.search(
+        r"!\[Figure 1 quarterly revenue\]\(data:image/png;base64,[^)]+\)\n\n\*Figure 1 quarterly revenue\*", embedded
+    )
     jpeg = FigureEncoder("embedded", image_format="jpeg")
     assert "data:image/jpeg;base64," in page.export_as_markdown(images=jpeg)
 
@@ -1013,7 +1019,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
         (
             [("Figure 1", 0.2, 0.25, 0.8, 0.28)],
             [("Caption", ((0.18, 0.24), (0.82, 0.29))), ("Picture", ((0.1, 0.3), (0.9, 0.6)))],
-            "![Figure 1](...)",
+            "![Figure 1](...)\n\n*Figure 1*",
         ),
         (
             [("Figure 2", 0.2, 0.52, 0.8, 0.55)],
@@ -1022,7 +1028,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("Caption", ((0.18, 0.51), (0.82, 0.56))),
                 ("Picture", ((0.1, 0.58), (0.9, 0.9))),
             ],
-            "![](...)\n\n![Figure 2](...)",
+            "![](...)\n\n![Figure 2](...)\n\n*Figure 2*",
         ),
         (
             [("Figure A", 0.2, 0.26, 0.8, 0.29), ("Figure B", 0.2, 0.62, 0.8, 0.65)],
@@ -1031,7 +1037,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("Picture", ((0.1, 0.3), (0.9, 0.6))),
                 ("Caption", ((0.18, 0.615), (0.82, 0.655))),
             ],
-            "![Figure A](...)\n\nFigure B",
+            "![Figure A](...)\n\n*Figure A*\n\nFigure B",
         ),
         (
             [("Table 1", 0.2, 0.21, 0.8, 0.24), ("Figure 1", 0.2, 0.62, 0.8, 0.645)],
@@ -1041,17 +1047,17 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("Picture", ((0.1, 0.26), (0.9, 0.6))),
                 ("Caption", ((0.18, 0.615), (0.82, 0.65))),
             ],
-            "| A | B |\n| --- | --- |\n\nTable 1\n\n![Figure 1](...)",
+            "| A | B |\n| --- | --- |\n\nTable 1\n\n![Figure 1](...)\n\n*Figure 1*",
         ),
         (
             [("Figure 1: first line", 0.1, 0.62, 0.9, 0.645), ("second line", 0.1, 0.65, 0.9, 0.675)],
             [("Picture", ((0.1, 0.2), (0.9, 0.6))), ("Caption", ((0.08, 0.615), (0.92, 0.68)))],
-            "![Figure 1: first line second line](...)",
+            "![Figure 1: first line second line](...)\n\n*Figure 1: first line second line*",
         ),
         (
             [("Figure 1", 0.2, 0.63, 0.8, 0.66)],
             [("Picture", ((0.1, 0.2), (0.9, 0.8))), ("Caption", ((0.18, 0.62), (0.82, 0.67)))],
-            "![Figure 1](...)",
+            "![Figure 1](...)\n\n*Figure 1*",
         ),
         (
             [("axis label", 0.3, 0.4, 0.5, 0.43), ("Figure 1", 0.2, 0.62, 0.8, 0.645)],
@@ -1060,7 +1066,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("Text", ((0.28, 0.39), (0.52, 0.44))),
                 ("Caption", ((0.18, 0.615), (0.82, 0.65))),
             ],
-            "![Figure 1](...)\n\naxis label",
+            "![Figure 1](...)\n\n*Figure 1*\n\naxis label",
         ),
         (
             [
@@ -1069,7 +1075,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("end", 0.1, 0.65, 0.9, 0.675),
             ],
             [("Picture", ((0.1, 0.2), (0.9, 0.6))), ("Caption", ((0.08, 0.615), (0.92, 0.68)))],
-            "![Figure 1: split line end](...)",
+            "![Figure 1: split line end](...)\n\n*Figure 1: split line end*",
         ),
         (
             [
@@ -1078,7 +1084,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("label", 0.1, 0.297, 0.2, 0.31),
             ],
             [("Caption", ((0.08, 0.235), (0.92, 0.29))), ("Picture", ((0.1, 0.3), (0.9, 0.6)))],
-            "![Figure 1: first line end](...)",
+            "![Figure 1: first line end](...)\n\n*Figure 1: first line end*",
         ),
         (
             [
@@ -1091,7 +1097,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("Caption", ((0.51, 0.254), (0.93, 0.309))),
                 ("Picture", ((0.5, 0.33), (0.94, 0.507))),
             ],
-            "left 0\n\nleft 1\n\nleft 2\n\n![Figure 1: first second](...)\n\n![](...)",
+            "left 0\n\nleft 1\n\nleft 2\n\n![Figure 1: first second](...)\n\n*Figure 1: first second*\n\n![](...)",
         ),
         (
             [("Figure 1", 0.2, 0.609, 0.8, 0.625), ("Table 1", 0.2, 0.755, 0.8, 0.77)],
@@ -1101,7 +1107,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
                 ("Table", ((0.1, 0.63), (0.9, 0.75))),
                 ("Caption", ((0.18, 0.752), (0.82, 0.773))),
             ],
-            "![Figure 1](...)\n\n| A | B |\n| --- | --- |\n\nTable 1",
+            "![Figure 1](...)\n\n*Figure 1*\n\n| A | B |\n| --- | --- |\n\nTable 1",
         ),
     ],
     ids=[
@@ -1366,3 +1372,75 @@ def test_page_export_figure_does_not_split_a_paragraph():
     )
     # The paragraph is not split around the figure
     assert "body line 11\nlast line of the paragraph" in markdown
+
+
+def test_page_export_figure_stacked_in_a_loose_region():
+    """A text region enclosing a figure (loose or wrong layout box) does not push the figure after its last line"""
+    lines = [_line_at(f"above {idx}", 0.1, 0.1 + idx * 0.04, 0.9, 0.13 + idx * 0.04) for idx in range(3)]
+    lines += [_line_at(f"below {idx}", 0.1, 0.7 + idx * 0.04, 0.9, 0.73 + idx * 0.04) for idx in range(3)]
+    layout = [
+        elements.LayoutElement("Text", 0.9, ((0.08, 0.09), (0.92, 0.83))),
+        elements.LayoutElement("Picture", 0.9, ((0.2, 0.3), (0.8, 0.6))),
+    ]
+    page = elements.Page(
+        np.zeros((1000, 800, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), layout=layout
+    )
+    markdown = page.export_as_markdown()
+    assert markdown.index("above 2") < markdown.index("<!-- image -->") < markdown.index("below 0")
+
+
+@pytest.mark.parametrize(
+    "escape, caption, expected",
+    [
+        (True, "Figure 1: *bold* claim", "\n\n*Figure 1: \\*bold\\* claim*"),
+        (False, "Figure 1: plain", "\n\n*Figure 1: plain*"),
+    ],
+)
+def test_page_export_markdown_caption_paragraph(escape, caption, expected):
+    page = _figure_page(caption=caption)
+    markdown = page.export_as_markdown(images="embedded", escape=escape)
+    image_end = markdown.index(")", markdown.index("](data:image/png;base64,"))
+    # The caption is the alternative text, and a visible paragraph right under the image
+    assert markdown[image_end + 1 :].startswith(expected)
+    # Without a caption, or without pixels, no caption paragraph is invented
+    assert "\n\n*" not in _figure_page(caption=None).export_as_markdown(images="embedded")
+    placeholder = page.export_as_markdown(images="placeholder", escape=escape)
+    assert "<!-- image -->\n\n*" not in placeholder
+
+
+def test_page_reading_order_logo_in_page_header():
+    """A logo in the page header is read with the header, and its text is labeled as page furniture"""
+    page = _figure_page()
+    page.page[10:40, 20:120] = (0, 0, 255)
+    page.blocks[0].lines.append(_line_at("ACME", 0.04, 0.015, 0.12, 0.035))
+    page.blocks[0].lines.append(_line_at("Quarterly bulletin", 0.3, 0.015, 0.6, 0.035))
+    page.layout = [
+        *page.layout,
+        elements.LayoutElement("Page-header", 0.9, ((0.0, 0.0), (1.0, 0.05))),
+        elements.LayoutElement("Picture", 0.9, ((0.02, 0.01), (0.15, 0.04))),
+    ]
+    items, labels, _ = page_reading_order(page, include_figures=True)
+    rendered = [
+        item.type if isinstance(item, elements.LayoutElement) else item.render(line_break=" ") for item in items
+    ]
+    logo = next(
+        idx for idx, item in enumerate(items) if isinstance(item, elements.LayoutElement) and item.geometry[0][1] < 0.05
+    )
+    # The logo, its text and the header text are all labeled as page furniture, and none of them is lost
+    assert labels[logo] == "Page-header"
+    assert labels[rendered.index("ACME")] == "Page-header"
+    assert "Quarterly bulletin" in rendered
+    # The logo stays a figure in the exports that include the furniture, and its text stays out of the image one
+    embedded = page.export_as_markdown(images="embedded")
+    assert embedded.count("![") == 2 and "ACME" not in embedded and "Quarterly bulletin" in embedded
+    assert page.export_as_markdown(images="placeholder").count("<!-- image -->") == 2
+    # ... and they all disappear with the furniture
+    for images in ("none", "placeholder", "embedded"):
+        exported = page.export_as_markdown(images=images, include_furniture=False)
+        assert "ACME" not in exported and "Quarterly bulletin" not in exported
+
+
+def test_page_export_referenced_mode_needs_an_encoder():
+    page = _figure_page()
+    with pytest.raises(ValueError, match="image_dir"):
+        page.export_as_markdown(images="referenced")

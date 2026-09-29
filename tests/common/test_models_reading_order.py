@@ -453,3 +453,90 @@ def test_defer_floats():
         (["text", "text", "picture"], [0, 0, 1]),
     ]:
         assert _defer_floats([0, 1, 2], labels, {}, groups) == [0, 1, 2]
+
+
+def test_defer_floats_only_moves_a_float_standing_beside_its_region():
+    from doctr.models.reading_order.base import _defer_floats
+
+    labels, groups = ["text", "picture", "text"], [0, 1, 0]
+    # A loose text region enclosing a figure, with lines above and below it: the figure is already at its place
+    stacked = np.array([[0.1, 0.1, 0.9, 0.2], [0.2, 0.3, 0.8, 0.6], [0.1, 0.7, 0.9, 0.8]])
+    assert _defer_floats([0, 1, 2], labels, {}, groups, stacked) == [0, 1, 2]
+    # A figure standing beside the paragraph (sharing its rows, in the other half of the page) is moved after it
+    beside = np.array([[0.05, 0.3, 0.45, 0.32], [0.55, 0.3, 0.95, 0.6], [0.05, 0.62, 0.45, 0.64]])
+    assert _defer_floats([0, 1, 2], labels, {}, groups, beside) == [0, 2, 1]
+    # A line overlapping the figure horizontally does not make it "beside" (e.g. text crossing it)
+    crossing = np.array([[0.1, 0.3, 0.6, 0.32], [0.5, 0.3, 0.95, 0.6], [0.1, 0.7, 0.9, 0.8]])
+    assert _defer_floats([0, 1, 2], labels, {}, groups, crossing) == [0, 1, 2]
+    # Without the boxes, every interrupting run is moved (legacy behavior)
+    assert _defer_floats([0, 1, 2], labels, {}, groups) == [0, 2, 1]
+
+
+def test_sort_reading_order_float_stacked_in_a_loose_region():
+    # One text region spans the whole column and encloses a figure: the figure stays between the lines around it
+    geoms = [((0.1, 0.1 + 0.04 * idx), (0.9, 0.13 + 0.04 * idx)) for idx in range(3)]
+    geoms += [((0.2, 0.3), (0.8, 0.6))]
+    geoms += [((0.1, 0.7 + 0.04 * idx), (0.9, 0.73 + 0.04 * idx)) for idx in range(3)]
+    labels = ["Text"] * 3 + ["Picture"] + ["Text"] * 3
+    groups = [0, 0, 0, 1, 0, 0, 0]
+    assert sort_reading_order(geoms, labels=labels, caption_groups=groups) == list(range(7))
+    # ... while the paragraph beside a figure is still not split (cf. `_paragraph_beside_a_figure`)
+    geoms, labels, groups, last, figure = _paragraph_beside_a_figure()
+    order = sort_reading_order(geoms, labels=labels, caption_groups=groups)
+    assert order.index(last) < order.index(figure)
+
+
+def test_sort_reading_order_column_voters_define_the_search_window():
+    # Two text columns on the right half of the page, and a figure extending far past their left margin. The figure
+    # does not vote: the column split must be searched within the extent of the text, not of the whole page.
+    geoms, voters = [], []
+    for row in range(6):
+        y = 0.1 + 0.05 * row
+        geoms += [((0.55, y), (0.72, y + 0.02)), ((0.78, y), (0.95, y + 0.02))]
+        voters += [True, True]
+    geoms.append(((0.02, 0.1), (0.5, 0.4)))
+    voters.append(False)
+    order = sort_reading_order(geoms, labels=["Text"] * 12 + ["Picture"], column_voters=voters)
+    # The columns are read one after the other, not interleaved row by row
+    assert order == [12, 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11]
+
+
+def test_assign_layout_labels_nested_regions():
+    geoms = [
+        ((0.30, 0.52), (0.60, 0.55)),  # a caption detected inside the picture
+        ((0.20, 0.30), (0.40, 0.33)),  # text of the picture
+        ((0.03, 0.015), (0.12, 0.035)),  # text of a logo, inside the page header
+        ((0.30, 0.015), (0.60, 0.035)),  # header text beside the logo
+        ((0.10, 0.80), (0.90, 0.83)),  # body text, in no region
+    ]
+    regions = [
+        ((0.10, 0.20), (0.90, 0.60)),
+        ((0.25, 0.51), (0.65, 0.56)),
+        ((0.00, 0.00), (1.00, 0.05)),
+        ((0.02, 0.01), (0.15, 0.04)),
+    ]
+    region_labels = ["Picture", "Caption", "Page-header", "Picture"]
+    # The smallest region wins (the caption inside the picture), except for a float nested in page furniture
+    assert assign_layout_labels(geoms, regions, region_labels) == [
+        "Caption",
+        "Picture",
+        "Page-header",
+        "Page-header",
+        None,
+    ]
+    # The order of the regions does not matter
+    assert assign_layout_labels(geoms, regions[::-1], region_labels[::-1]) == [
+        "Caption",
+        "Picture",
+        "Page-header",
+        "Page-header",
+        None,
+    ]
+    # A title inside a (loose) page header keeps its own label: only floats yield to the furniture
+    assert assign_layout_labels(
+        [((0.3, 0.01), (0.7, 0.04))],
+        [((0.0, 0.0), (1.0, 0.05)), ((0.25, 0.005), (0.75, 0.045))],
+        ["Page-header", "Title"],
+    ) == ["Title"]
+    # Partial overlaps keep the coverage threshold: a region covering less than `min_coverage` never wins
+    assert assign_layout_labels([((0.0, 0.0), (0.4, 0.1))], [((0.3, 0.0), (0.5, 0.1))], ["Text"]) == [None]

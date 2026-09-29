@@ -245,13 +245,19 @@ class FigureEncoder:
         """Build an encoder from the `images` argument of an export method.
 
         Args:
-            images: an image mode, an already configured encoder, or None (equivalent to 'none')
+            images: an image mode ('none', 'placeholder' or 'embedded'), an already configured encoder, or None
+                (equivalent to 'none'). The 'referenced' mode needs an `image_dir`, so it takes a configured encoder.
 
         Returns:
             the encoder to use
         """
         if isinstance(images, FigureEncoder):
             return images
+        if images == "referenced":
+            raise ValueError(
+                "the 'referenced' mode writes the figures to a directory, pass a configured encoder instead: "
+                "images=FigureEncoder('referenced', image_dir='assets', path_prefix='assets')"
+            )
         return cls(mode="none" if images is None else images)
 
     @property
