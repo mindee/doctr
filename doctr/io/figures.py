@@ -64,13 +64,29 @@ def is_picture_region(region: "LayoutElement") -> bool:
 def picture_regions(page: "Page") -> list["LayoutElement"]:
     """The figure regions detected on a page, in the order the layout model returned them.
 
+    A picture lying inside a larger one (a sub-figure or a duplicate detection) is left out: the outer one shows it.
+
     Args:
         page: the page to inspect
 
     Returns:
         the list of picture regions (empty when the page carries no layout)
     """
-    return [region for region in (getattr(page, "layout", None) or []) if is_picture_region(region)]
+    from doctr.models.reading_order.base import _to_boxes
+
+    regions = [region for region in (getattr(page, "layout", None) or []) if is_picture_region(region)]
+    if len(regions) < 2:
+        return regions
+    boxes = _to_boxes([region.geometry for region in regions])
+    inter_w = np.minimum(boxes[:, None, 2], boxes[None, :, 2]) - np.maximum(boxes[:, None, 0], boxes[None, :, 0])
+    inter_h = np.minimum(boxes[:, None, 3], boxes[None, :, 3]) - np.maximum(boxes[:, None, 1], boxes[None, :, 1])
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    inside = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None) >= 0.5 * areas[:, None]
+    # Rank by decreasing area (first detected on ties): a region is nested when a higher ranked one covers it
+    rank = np.empty(len(regions), dtype=int)
+    rank[np.argsort(-areas, kind="stable")] = np.arange(len(regions))
+    nested = (inside & (rank[None, :] < rank[:, None])).any(axis=1)
+    return [region for region, skip in zip(regions, nested) if not skip]
 
 
 def _check_padding(padding: float) -> None:

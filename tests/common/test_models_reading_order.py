@@ -445,6 +445,10 @@ def test_defer_floats():
     labels = ["text", "picture", "picture", "text", "text"]
     groups = [0, 1, 1, 0, 2]
     assert _defer_floats([0, 1, 2, 3, 4], labels, {1: [2]}, groups) == [0, 3, 1, 2, 4]
+    # floats interleaved with the lines of a region (e.g. the rows of a table beside a paragraph) all wait for its end
+    labels = ["text", "table", "text", "table", "text", "table", "text"]
+    groups = [0, 1, 0, 2, 0, 3, 0]
+    assert _defer_floats(list(range(7)), labels, {}, groups) == [0, 2, 4, 6, 1, 3, 5]
     # no region (-1), a float between two different regions, or at the edges: nothing moves
     for labels, groups in [
         (["text", "picture", "text"], [-1, 1, -1]),
@@ -540,3 +544,13 @@ def test_assign_layout_labels_nested_regions():
     ) == ["Title"]
     # Partial overlaps keep the coverage threshold: a region covering less than `min_coverage` never wins
     assert assign_layout_labels([((0.0, 0.0), (0.4, 0.1))], [((0.3, 0.0), (0.5, 0.1))], ["Text"]) == [None]
+    # ... and a smaller region covering the element only partially does not win over the one containing it
+    assert assign_layout_labels(
+        [((0.1, 0.10), (0.9, 0.12))],
+        [((0.05, 0.05), (0.95, 0.5)), ((0.1, 0.09), (0.52, 0.13))],
+        ["Text", "Section-header"],
+    ) == ["Text"]
+    # A line slightly overflowing a caption nested in a picture still ties with the picture: the caption wins
+    assert assign_layout_labels(
+        [((0.30, 0.52), (0.60, 0.55))], [((0.10, 0.20), (0.90, 0.60)), ((0.31, 0.51), (0.65, 0.56))], region_labels[:2]
+    ) == ["Caption"]

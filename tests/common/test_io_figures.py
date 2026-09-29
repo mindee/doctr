@@ -51,6 +51,14 @@ def test_picture_regions():
     ]
     page = elements.Page(_page_image(), [], 0, (100, 200), layout=layout)
     assert [region.type for region in picture_regions(page)] == ["Picture"]
+    # A sub-figure and a duplicate detection inside a picture are left out, a picture beside it is kept
+    layout += [
+        elements.LayoutElement("Picture", 0.8, ((0.15, 0.25), (0.3, 0.4))),
+        elements.LayoutElement("Picture", 0.7, ((0.1, 0.2), (0.5, 0.6))),
+        elements.LayoutElement("Picture", 0.6, ((0.55, 0.2), (0.9, 0.6))),
+    ]
+    page = elements.Page(_page_image(), [], 0, (100, 200), layout=layout)
+    assert [region.confidence for region in picture_regions(page)] == [0.9, 0.6]
     # A page without layout has no figure
     assert picture_regions(elements.Page(_page_image(), [], 0, (100, 200))) == []
 

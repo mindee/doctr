@@ -411,7 +411,8 @@ def _defer_floats(
                 pos = end
                 continue
         out[pos:stop] = out[end:stop] + out[pos:end]
-        pos = stop
+        # Merged with the floats read after it, the moved run can interrupt the same region again
+        pos = stop - (end - pos)
     return out
 
 
@@ -754,15 +755,14 @@ def assign_layout_labels(
 ) -> list[str | None]:
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
-    Each element receives the label of the region covering at least `min_coverage` of its area; otherwise its label
-    is None (treated as regular body content). When several regions qualify (nested regions):
+    Each element receives the label of the region covering the largest share of its area, provided this share reaches
+    `min_coverage`; otherwise its label is None (treated as regular body content). When several regions cover it
+    (nearly) as much (nested regions):
 
     * the smallest one wins, e.g. a caption detected inside a picture is labeled 'Caption', not 'Picture'
     * except when the smallest one is a float (picture, table, ...) nested in page furniture (header, footer or
       footnote): the element then keeps the furniture label, e.g. the text of a logo in the page header is labeled
       'Page-header', not 'Picture'
-
-    Nested regions used to be resolved by the largest coverage share (the first region listed on ties).
 
     Args:
         geoms: geometries of the elements to label, in any docTR format
@@ -792,6 +792,8 @@ def assign_layout_labels(
 
 
 _FURNITURE_ROLES = ("header", "footer", "footnote")
+# Coverage gap below which two regions tie for an element (cf. `_covering_regions`)
+_COVERAGE_TIE = 0.1
 
 
 def _covering_regions(
@@ -800,11 +802,11 @@ def _covering_regions(
     min_coverage: float,
     region_labels: Sequence[str | None] | None = None,
 ) -> list[int]:
-    """Index of the region covering each (N, 4) box by at least `min_coverage` of its area, -1 if none.
+    """Index of the region covering each (N, 4) box the most, by at least `min_coverage` of its area, -1 if none.
 
-    When several regions qualify (nested regions, e.g. a caption inside a picture), the smallest one wins. With the
-    region labels, a float nested in page furniture does not win over it: the smallest qualifying furniture region
-    is picked instead (e.g. the page header around a logo).
+    Regions covering the box (nearly) as much as the best one tie (nested regions, e.g. a caption inside a picture),
+    and the smallest of them wins. With the region labels, a float nested in page furniture does not win over it: the
+    smallest tied furniture region is picked instead (e.g. the page header around a logo).
     """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
@@ -812,7 +814,7 @@ def _covering_regions(
     areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
     coverage = inter / areas[:, None]
     region_areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
-    qualifies = coverage >= min_coverage
+    qualifies = coverage >= np.maximum(coverage.max(axis=1, keepdims=True) - _COVERAGE_TIE, min_coverage)
     ranked = np.where(qualifies, region_areas[None, :], np.inf)
     best = ranked.argmin(axis=1)
     result = [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]

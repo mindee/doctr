@@ -181,9 +181,9 @@ page, so exporting one page to several formats orders it only once.
 Figures
 -------
 
-When the predictor runs with ``detect_layout=True``, the figures found by the layout model take part in the
-reading order and are materialized by the Markdown, AsciiDoc and HTML exports. How they are materialized is
-controlled by the ``images`` argument, which accepts either an image mode or a configured
+When the predictor runs the layout model (``detect_layout=True`` or ``detect_tables=True``), the figures it finds
+take part in the reading order and are materialized by the Markdown, AsciiDoc and HTML exports. How they are
+materialized is controlled by the ``images`` argument, which accepts either an image mode or a configured
 :class:`FigureEncoder`:
 
 * ``'placeholder'`` (the default): a comment marks where a figure was detected, without touching the pixels
