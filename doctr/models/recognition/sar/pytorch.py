@@ -104,7 +104,7 @@ class SARDecoder(nn.Module):
         self.max_length = max_length
 
         self.embed = nn.Linear(self.vocab_size + 1, embedding_units)
-        self.embed_tgt = nn.Embedding(embedding_units, self.vocab_size + 1)
+        self.embed_tgt = nn.Embedding(max(embedding_units, self.vocab_size + 1), self.vocab_size + 1)
         self.attention_module = AttentionModule(feat_chans, rnn_units, attention_units)
         self.lstm_cell = nn.LSTMCell(rnn_units, rnn_units)
         self.output_dense = nn.Linear(2 * rnn_units, self.vocab_size + 1)
