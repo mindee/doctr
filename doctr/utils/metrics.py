@@ -847,8 +847,10 @@ class ObjectDetectionMetric:
             ap_per_iou[float(iou_thresh)] = float(np.mean(class_aps)) if len(class_aps) > 0 else 0.0
 
         map_value = float(np.mean(list(ap_per_iou.values())))
-        ap50 = ap_per_iou.get(0.5, 0.0)
-        ap75 = ap_per_iou.get(0.75, 0.0)
+        # Match the thresholds with a tolerance: user-provided ones may carry floating-point noise
+        # (e.g. `np.arange(0.5, 1.0, 0.05)` yields 0.7500000000000002 instead of 0.75)
+        ap50 = next((ap for thresh, ap in ap_per_iou.items() if np.isclose(thresh, 0.5)), 0.0)
+        ap75 = next((ap for thresh, ap in ap_per_iou.items() if np.isclose(thresh, 0.75)), 0.0)
 
         return {
             "mAP@[.5:.95]": map_value,
