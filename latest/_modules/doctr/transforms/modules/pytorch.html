@@ -579,11 +579,11 @@
         <span class="c1"># Sample a random sigma value within the specified range</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">uniform_</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma_range</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
 
-        <span class="c1"># Apply Gaussian blur along spatial dimensions only</span>
+        <span class="c1"># Apply Gaussian blur along spatial dimensions only (a zero sigma leaves the leading channel axis untouched)</span>
         <span class="n">blurred</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span>
             <span class="n">gaussian_filter</span><span class="p">(</span>
                 <span class="n">sample</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span>
-                <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                <span class="n">sigma</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,)</span> <span class="o">*</span> <span class="p">(</span><span class="n">sample</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">ndim</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="n">sigma</span><span class="p">),</span>
                 <span class="n">mode</span><span class="o">=</span><span class="s2">"reflect"</span><span class="p">,</span>
                 <span class="n">truncate</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
             <span class="p">),</span>
