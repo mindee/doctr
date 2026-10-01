@@ -535,6 +535,14 @@ def test_gaussian_blur(input_dtype, input_shape):
         assert torch.all(blurred >= 0.0)
 
 
+def test_gaussian_blur_keeps_channels_separate():
+    # A uniform pure red image has no spatial variation: blurring it must leave it unchanged
+    img = torch.zeros((3, 16, 16), dtype=torch.float32)
+    img[0] = 1.0
+    blurred = GaussianBlur(sigma=(1.0, 1.0))(Sample(image=img)).image
+    assert torch.allclose(blurred, img)
+
+
 @pytest.mark.parametrize(
     "p,target",
     [
