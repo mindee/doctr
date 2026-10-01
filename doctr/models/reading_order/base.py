@@ -42,6 +42,10 @@ _FOOTNOTE_LABELS = {"footnote"}
 _CAPTION_LABELS = {"caption"}
 _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
+# Furniture regions (header, footer, footnote) are treated specially in the reading order: they are always
+# read before the body, and a float nested in them does not win over them (cf. `_covering_regions`)
+_FURNITURE_ROLES = ("header", "footer", "footnote")
+
 
 def normalize_layout_label(label: str | None) -> str:
     """Normalize a layout label to lower snake case (e.g. 'Page-header' -> 'page_header')
@@ -791,11 +795,6 @@ def assign_layout_labels(
     ]
 
 
-_FURNITURE_ROLES = ("header", "footer", "footnote")
-# Coverage gap below which two regions tie for an element (cf. `_covering_regions`)
-_COVERAGE_TIE = 0.1
-
-
 def _covering_regions(
     boxes: np.ndarray,
     regions: np.ndarray,
@@ -804,9 +803,13 @@ def _covering_regions(
 ) -> list[int]:
     """Index of the region covering each (N, 4) box the most, by at least `min_coverage` of its area, -1 if none.
 
-    Regions covering the box (nearly) as much as the best one tie (nested regions, e.g. a caption inside a picture),
-    and the smallest of them wins. With the region labels, a float nested in page furniture does not win over it: the
-    smallest tied furniture region is picked instead (e.g. the page header around a logo).
+    Several regions can cover a box (nearly) as much, typically nested ones. They tie when their coverage is within
+    0.1 of the best one, or when they lie inside the best region and cover at least 75% of the box (a caption box
+    inside a loose picture box often clips its first and last lines). Among tied regions:
+
+    * the smallest one wins, e.g. a caption inside a picture is labeled 'Caption', not 'Picture'
+    * except for a float (picture, table, ...) inside page furniture (header, footer or footnote): the furniture
+      region wins, e.g. the text of a logo in the page header is labeled 'Page-header', not 'Picture'
     """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
@@ -814,7 +817,14 @@ def _covering_regions(
     areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
     coverage = inter / areas[:, None]
     region_areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
-    qualifies = coverage >= np.maximum(coverage.max(axis=1, keepdims=True) - _COVERAGE_TIE, min_coverage)
+    qualifies = coverage >= np.maximum(coverage.max(axis=1, keepdims=True) - 0.1, min_coverage)
+    # Regions nested in the best region of a box also tie when they cover most of it
+    rx0, ry0, rx1, ry1 = regions[:, 0], regions[:, 1], regions[:, 2], regions[:, 3]
+    reg_inter_w = np.minimum(rx1[:, None], rx1[None, :]) - np.maximum(rx0[:, None], rx0[None, :])
+    reg_inter_h = np.minimum(ry1[:, None], ry1[None, :]) - np.maximum(ry0[:, None], ry0[None, :])
+    reg_inter = np.clip(reg_inter_w, 0, None) * np.clip(reg_inter_h, 0, None)
+    nested = reg_inter >= 0.9 * np.clip(region_areas, 1e-9, None)[:, None]  # nested[i, j]: region i lies inside j
+    qualifies |= (coverage >= max(min_coverage, 0.75)) & nested[:, coverage.argmax(axis=1)].T
     ranked = np.where(qualifies, region_areas[None, :], np.inf)
     best = ranked.argmin(axis=1)
     result = [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]
