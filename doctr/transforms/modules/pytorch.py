@@ -281,11 +281,11 @@ class GaussianBlur(torch.nn.Module):
         # Sample a random sigma value within the specified range
         sigma = torch.empty(1).uniform_(*self.sigma_range).item()
 
-        # Apply Gaussian blur along spatial dimensions only
+        # Apply Gaussian blur along spatial dimensions only (a zero sigma leaves the leading channel axis untouched)
         blurred = torch.tensor(
             gaussian_filter(
                 sample.image.numpy(),
-                sigma=sigma,
+                sigma=(0.0,) * (sample.image.ndim - 2) + (sigma, sigma),
                 mode="reflect",
                 truncate=4.0,
             ),
