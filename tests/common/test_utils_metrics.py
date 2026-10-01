@@ -554,6 +554,19 @@ def test_object_detection_metric_cases():
     summary = metric.summary()
     assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
 
+    # Thresholds built with `np.arange` carry floating-point noise (0.7500000000000002): AP@[.75] must still be found
+    metric = metrics.ObjectDetectionMetric(iou_thresholds=np.arange(0.5, 1.0, 0.05))
+    metric.update(
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([[0, 0, 1, 1]], dtype=float),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0], dtype=np.int64),
+        np.asarray([0.9], dtype=float),
+    )
+    summary = metric.summary()
+    assert summary["AP@[.5]"] == pytest.approx(1.0, abs=1e-6)
+    assert summary["AP@[.75]"] == pytest.approx(1.0, abs=1e-6)
+
 
 def _square(x, y):
     return [[x, y], [x + 1, y], [x + 1, y + 1], [x, y + 1]]
