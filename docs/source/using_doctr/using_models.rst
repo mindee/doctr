@@ -474,7 +474,7 @@ In addition to running the :py:meth:`layout_predictor <doctr.models.layout.layou
 
 The same ``detect_layout`` / ``layout_arch`` arguments are available for the :py:meth:`kie_predictor <doctr.models.kie_predictor>`.
 
-The figures found by the layout model also take part in the reading order, and the Markdown / AsciiDoc / HTML exports can materialize them, either inlined as base64 data URIs or written next to the export (see :ref:`Figures` for the details):
+The figures found by the layout model also take part in the reading order, and the Markdown / AsciiDoc / HTML exports can render them, inlined as base64 data URIs or written to an image directory (see :ref:`Figures`):
 
 .. code:: python3
 
@@ -484,10 +484,9 @@ The figures found by the layout model also take part in the reading order, and t
     # ... or one referencing the crops written to an `assets` directory
     from doctr.io import FigureEncoder
 
-    encoder = FigureEncoder("referenced", image_dir="assets", path_prefix="assets/")
-    markdown = result.export_as_markdown(images=encoder)
+    markdown = result.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets"))
 
-By default (``images="placeholder"``) a comment marks the position of every detected figure, and ``images="none"`` drops them entirely. The ``"referenced"`` mode needs an ``image_dir``, so it is only available through a :class:`~doctr.io.FigureEncoder`. In ``"embedded"`` and ``"referenced"`` modes, the text recognized inside a figure is left out of the export, since the image already shows it.
+By default (``images="placeholder"``), a comment marks each figure, and ``images="none"`` leaves them out. In the ``"embedded"`` and ``"referenced"`` modes, the text recognized inside a figure is left out of the export, since the image shows it.
 
 
 Running the predictors on GPU

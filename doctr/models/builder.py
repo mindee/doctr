@@ -675,9 +675,7 @@ class DocumentBuilder(NestedObject):
             groups = self._resolve_lines(self._words_to_boxes(words), page.dimensions)
             page.blocks = [Block([Line([words[idx] for idx in group]) for group in groups])]
 
-        # The full linearization (figures included) is requested on purpose: it is re-stored in the cache below,
-        # and the exports read the figures from that cache. Without them, a page built with
-        # `keep_reading_order=True` would export its figures (and their captions) as plain text.
+        # Include the figures: the result is re-stored in the cache below, and the exports read them from it
         items, labels, direction = page_reading_order(page, include_figures=True)
         blocks = [item for item in items if isinstance(item, Block)]
         page.blocks = (

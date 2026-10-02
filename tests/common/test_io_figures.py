@@ -163,8 +163,6 @@ def test_figure_encoder_modes(tmp_path):
     restored = elements.Page.from_dict(page.export())
     assert FigureEncoder("embedded").source(restored, region, 1) is None
     assert FigureEncoder("embedded").materializes
-    assert not FigureEncoder("embedded").materializes_on(restored)
-    assert FigureEncoder("embedded").materializes_on(page)
 
 
 def test_figure_encoder_does_not_pin_pages():
@@ -185,6 +183,24 @@ def test_figure_encoder_does_not_pin_pages():
     assert encoder.source(other, region, 1) == FigureEncoder("embedded").source(other, region, 1)
 
 
+def test_figure_encoder_releases_its_sources():
+    # A dropped encoder (e.g. one built per export from `images="embedded"`) must not leave its sources alive
+    class Source:
+        pass
+
+    class Encoder(FigureEncoder):
+        def _encode(self, page, region, index):
+            return Source()
+
+    region = elements.LayoutElement("Picture", 0.9, ((0.1, 0.2), (0.5, 0.6)))
+    page = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
+    encoder = Encoder("embedded")
+    source = weakref.ref(encoder.source(page, region, 1))
+    del encoder
+    gc.collect()
+    assert source() is None
+
+
 def test_referenced_figures_of_several_documents_share_a_directory(tmp_path):
     # Two documents exported with their own encoder into the same directory must not overwrite each other
     region = elements.LayoutElement("Picture", 0.9, ((0.1, 0.2), (0.5, 0.6)))
@@ -193,7 +209,7 @@ def test_referenced_figures_of_several_documents_share_a_directory(tmp_path):
     sources = []
     for image in (red, blue):
         page = elements.Page(image, [], 0, (100, 200), layout=[region])
-        sources.append(FigureEncoder("referenced", image_dir=tmp_path).source(page, region, 1))
+        sources.append(FigureEncoder("referenced", image_dir=tmp_path, path_prefix="").source(page, region, 1))
     assert sources[0] != sources[1]
     assert len(list(tmp_path.iterdir())) == 2
     # Each export still points at its own pixels (OpenCV reads BGR)
@@ -201,8 +217,26 @@ def test_referenced_figures_of_several_documents_share_a_directory(tmp_path):
     assert cv2.imread(str(tmp_path / sources[1]))[..., 0].mean() > 200
     # Re-exporting rewrites the very same file
     page = elements.Page(red, [], 0, (100, 200), layout=[region])
-    assert FigureEncoder("referenced", image_dir=tmp_path).source(page, region, 1) == sources[0]
+    assert FigureEncoder("referenced", image_dir=tmp_path, path_prefix="").source(page, region, 1) == sources[0]
     assert len(list(tmp_path.iterdir())) == 2
+
+
+@pytest.mark.parametrize(
+    "image_dir, expected",
+    [("assets", "assets/"), (Path("out") / "assets", "out/assets/"), ("my assets", "my%20assets/")],
+)
+def test_figure_encoder_path_prefix_defaults_to_image_dir(tmp_path, monkeypatch, image_dir, expected):
+    # Without a prefix, the links point at `image_dir` as given, i.e. from an export in the working directory
+    from urllib.parse import unquote
+
+    monkeypatch.chdir(tmp_path)
+    region = elements.LayoutElement("Picture", 0.9, ((0.1, 0.2), (0.5, 0.6)))
+    page = elements.Page(_page_image(), [], 0, (100, 200), layout=[region])
+    source = FigureEncoder("referenced", image_dir=image_dir).source(page, region, 1)
+    assert re.fullmatch(re.escape(expected) + r"page1_figure1-[0-9a-f]{8}\.png", source), source
+    assert (tmp_path / unquote(source)).is_file()
+    # The other modes link nothing
+    assert FigureEncoder("embedded").path_prefix == ""
 
 
 @pytest.mark.parametrize(

@@ -252,16 +252,15 @@ def _default_image_dir(output: str) -> Path:
 
 
 def _figure_encoder(args: argparse.Namespace) -> FigureEncoder:
-    """Build the encoder materializing the detected figures in the Markdown / AsciiDoc / HTML exports
+    """Build the figure encoder of the Markdown / AsciiDoc / HTML exports
 
-    In 'referenced' mode, the links are made relative to the directory of the output file, so the export keeps
-    pointing at the crops wherever the pair is moved.
+    In 'referenced' mode, the links are relative to the output file, so both can be moved together.
 
     Args:
         args: the parsed command-line arguments
 
     Returns:
-        the figure encoder, shared by all the pages of the document
+        the figure encoder, shared by all the pages
     """
     if args.images != "referenced":
         return FigureEncoder(args.images, image_format=args.image_format)

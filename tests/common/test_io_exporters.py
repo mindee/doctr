@@ -1109,6 +1109,15 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
             ],
             "![Figure 1](...)\n\n*Figure 1*\n\n| A | B |\n| --- | --- |\n\nTable 1",
         ),
+        (
+            [("axis A", 0.2, 0.2, 0.4, 0.23), ("Figure 2", 0.2, 0.62, 0.8, 0.645)],
+            [
+                ("Picture", ((0.1, 0.1), (0.9, 0.35))),
+                ("Picture", ((0.1, 0.4), (0.9, 0.6))),
+                ("Caption", ((0.18, 0.615), (0.82, 0.65))),
+            ],
+            "![](...)\n\n![Figure 2](...)\n\n*Figure 2*",
+        ),
     ],
     ids=[
         "above",
@@ -1122,6 +1131,7 @@ def test_page_export_figure_captions(exporter, escape, caption, expected):
         "text_at_figure_edge",
         "caption_between_figures",
         "table_with_own_caption",
+        "stacked_figures",
     ],
 )
 @pytest.mark.parametrize("angle", [0, 8])
@@ -1438,6 +1448,39 @@ def test_page_reading_order_logo_in_page_header():
     for images in ("none", "placeholder", "embedded"):
         exported = page.export_as_markdown(images=images, include_furniture=False)
         assert "ACME" not in exported and "Quarterly bulletin" not in exported
+
+
+@pytest.mark.parametrize("bottom, in_furniture", [(0.0967, True), (0.135, False)])
+def test_page_export_figure_partly_in_page_furniture(bottom, in_furniture):
+    # A chart overlapping the page header, by 60% or 40% of its area: the reading order and the exports agree on
+    # whether it is page furniture (at least half inside), and its text goes along with it
+    page = _figure_page()
+    page.page[30 : int(bottom * 1000), 320:480] = (0, 0, 255)
+    page.blocks[0].lines.append(_line_at("Quarterly bulletin", 0.62, 0.015, 0.9, 0.035))
+    page.blocks[0].lines.append(_line_at("tick", 0.42, 0.075, 0.5, 0.09))  # below the header region
+    page.layout = [
+        *page.layout,
+        elements.LayoutElement("Page-header", 0.9, ((0.0, 0.0), (1.0, 0.07))),
+        elements.LayoutElement("Picture", 0.9, ((0.4, 0.03), (0.6, bottom))),
+    ]
+    items, labels, _ = page_reading_order(page, include_figures=True)
+    chart = next(idx for idx, item in enumerate(items) if isinstance(item, elements.LayoutElement))
+    tick = next(idx for idx, item in enumerate(items) if isinstance(item, elements.Block) and "tick" in item.render())
+    expected = "Page-header" if in_furniture else "Picture"
+    assert labels[chart] == labels[tick] == expected
+    # The text of the chart is read right after it, before the title
+    assert tick == chart + 1
+    assert labels[tick + 1] == "Title"
+
+    for images, markers in (("placeholder", "<!-- image -->"), ("embedded", "![")):
+        exported = page.export_as_markdown(images=images)
+        assert exported.count(markers) == 2
+        assert ("tick" in exported) is (images == "placeholder")  # an embedded image shows it
+        # Without the furniture, the chart goes with it (and its text too), or stays as a regular figure
+        exported = page.export_as_markdown(images=images, include_furniture=False)
+        assert "Quarterly bulletin" not in exported
+        assert exported.count(markers) == (1 if in_furniture else 2)
+        assert ("tick" in exported) is (images == "placeholder" and not in_furniture)
 
 
 def test_page_export_referenced_mode_needs_an_encoder():

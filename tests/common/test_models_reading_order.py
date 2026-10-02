@@ -368,7 +368,7 @@ def test_sort_reading_order_follows_columns_when_a_gutter_exists():
     assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6]
 
 
-def test_sort_reading_order_caption_groups():
+def test_sort_reading_order_region_groups():
     # A caption split over 3 lines below a figure (right column), whose last line is closer to the table of the
     # left column: read line by line, it is torn away from its caption
     geoms = [
@@ -382,12 +382,12 @@ def test_sort_reading_order_caption_groups():
     split = sort_reading_order(geoms, labels=labels)
     assert split.index(4) == split.index(1) + 1  # the last line follows the table
     # Grouped (e.g. by caption region), the lines follow the float closest to their union, in order
-    order = sort_reading_order(geoms, labels=labels, caption_groups=[-1, -1, 7, 7, 7])
+    order = sort_reading_order(geoms, labels=labels, region_groups=[-1, -1, 7, 7, 7])
     assert order[order.index(0) + 1 : order.index(0) + 4] == [2, 3, 4]
     with pytest.raises(ValueError):
-        sort_reading_order(geoms, labels=labels, caption_groups=[0, 1])
+        sort_reading_order(geoms, labels=labels, region_groups=[0, 1])
     # resolve_reading_segments forwards the groups
-    segments = resolve_reading_segments(geoms, labels=labels, caption_groups=[-1, -1, 7, 7, 7])
+    segments = resolve_reading_segments(geoms, labels=labels, region_groups=[-1, -1, 7, 7, 7])
     flat = [idx for segment in segments for idx in segment]
     assert flat[flat.index(0) + 1 : flat.index(0) + 4] == [2, 3, 4]
 
@@ -426,11 +426,11 @@ def test_sort_reading_order_float_does_not_split_a_region():
     order = sort_reading_order(geoms, labels=labels)
     assert order.index(figure) < order.index(last)
     # With them, the figure waits for the end of the paragraph it would split
-    order = sort_reading_order(geoms, labels=labels, caption_groups=groups)
+    order = sort_reading_order(geoms, labels=labels, region_groups=groups)
     assert order.index(last) < order.index(figure) < order.index(len(geoms) - 1)
     assert sorted(order) == list(range(len(geoms)))
     # The last line stays in the paragraph of the line above it
-    segments = resolve_reading_segments(geoms, labels=labels, caption_groups=groups)
+    segments = resolve_reading_segments(geoms, labels=labels, region_groups=groups)
     assert [seg for seg in segments if last in seg][0][-2:] == [last - 1, last]
 
 
@@ -483,10 +483,10 @@ def test_sort_reading_order_float_stacked_in_a_loose_region():
     geoms += [((0.1, 0.7 + 0.04 * idx), (0.9, 0.73 + 0.04 * idx)) for idx in range(3)]
     labels = ["Text"] * 3 + ["Picture"] + ["Text"] * 3
     groups = [0, 0, 0, 1, 0, 0, 0]
-    assert sort_reading_order(geoms, labels=labels, caption_groups=groups) == list(range(7))
+    assert sort_reading_order(geoms, labels=labels, region_groups=groups) == list(range(7))
     # ... while the paragraph beside a figure is still not split (cf. `_paragraph_beside_a_figure`)
     geoms, labels, groups, last, figure = _paragraph_beside_a_figure()
-    order = sort_reading_order(geoms, labels=labels, caption_groups=groups)
+    order = sort_reading_order(geoms, labels=labels, region_groups=groups)
     assert order.index(last) < order.index(figure)
 
 
