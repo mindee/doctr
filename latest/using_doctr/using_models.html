@@ -977,6 +977,17 @@ Explanations about the metrics being used are available in <a class="reference i
 </pre></div>
 </div>
 <p>The same <code class="docutils literal notranslate"><span class="pre">detect_layout</span></code> / <code class="docutils literal notranslate"><span class="pre">layout_arch</span></code> arguments are available for the <a class="reference internal" href="../modules/models.html#doctr.models.kie_predictor" title="doctr.models.kie_predictor"><code class="xref py py-meth docutils literal notranslate"><span class="pre">kie_predictor</span></code></a>.</p>
+<p>The figures found by the layout model also take part in the reading order, and the Markdown / AsciiDoc / HTML exports can render them, inlined as base64 data URIs or written to an image directory (see <a class="reference internal" href="../modules/io.html#figures"><span class="std std-ref">Figures</span></a>):</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># A self-contained Markdown file, figures included</span>
+<span class="n">markdown</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_markdown</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="s2">"embedded"</span><span class="p">)</span>
+
+<span class="c1"># ... or one referencing the crops written to an `assets` directory</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">doctr.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">FigureEncoder</span>
+
+<span class="n">markdown</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">export_as_markdown</span><span class="p">(</span><span class="n">images</span><span class="o">=</span><span class="n">FigureEncoder</span><span class="p">(</span><span class="s2">"referenced"</span><span class="p">,</span> <span class="n">image_dir</span><span class="o">=</span><span class="s2">"assets"</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>By default (<code class="docutils literal notranslate"><span class="pre">images=&quot;placeholder&quot;</span></code>), a comment marks each figure, and <code class="docutils literal notranslate"><span class="pre">images=&quot;none&quot;</span></code> leaves them out. In the <code class="docutils literal notranslate"><span class="pre">&quot;embedded&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;referenced&quot;</span></code> modes, the text recognized inside a figure is left out of the export, since the image shows it.</p>
 </section>
 <section id="running-the-predictors-on-gpu">
 <h3>Running the predictors on GPU<a class="headerlink" href="#running-the-predictors-on-gpu" title="Link to this heading">¶</a></h3>
