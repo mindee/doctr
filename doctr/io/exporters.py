@@ -3,6 +3,7 @@
 # This program is licensed under the Apache License 2.0.
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
+import re
 from html import escape as _html_escape
 from typing import TYPE_CHECKING, Any, ClassVar, NamedTuple, cast
 from xml.etree import ElementTree as ET
@@ -65,6 +66,8 @@ _LIST_LABELS = {"list_item"}
 # Characters / line markers that carry a structural meaning and are escaped to preserve the raw OCR text
 _MD_SPECIAL_CHARS = "\\`*_[]|#<>"
 _MD_LINE_MARKERS = "-+>#=`"
+# An ordered list marker ("3." or "3)") at the start of a line
+_MD_ORDERED_MARKER = re.compile(r"^(\s*\d{1,9})([.)])(?=\s|$)")
 _ADOC_SPECIAL_CHARS = "\\`*_#^~|+{}<>"
 _ADOC_LINE_MARKERS = "=*.-/+"
 
@@ -748,9 +751,10 @@ class MarkdownExporter(_PageTextExporter):
 
     def finalize_line(self, line: str) -> str:
         stripped = line.lstrip()
-        if stripped and (stripped[0] in _MD_LINE_MARKERS or stripped.split(" ")[0].rstrip(".").isdigit()):
+        if stripped and stripped[0] in _MD_LINE_MARKERS:
             return f"\\{line}" if line[0] != "\\" else line
-        return line
+        # Escape the delimiter of an ordered list marker: a backslash before a digit is not a Markdown escape
+        return _MD_ORDERED_MARKER.sub(r"\1\\\2", line)
 
     def render_table(self, table: "Table", escape: bool = True) -> str:
         """Render a table as a GitHub-flavored Markdown table (first row used as header)"""

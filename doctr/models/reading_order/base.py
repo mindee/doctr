@@ -447,15 +447,23 @@ def _attach_captions(
 
     The captions sharing a group (e.g. the lines of a caption region) move as a unit, attached to the float closest
     to their union. The elements read inside a float stay between it and its captions. Captions without a float
-    within reach keep their natural spatial position.
+    within reach are read where they sit in their column, right after the closest element above them.
     """
-
-    def _inside(idx: int, target: int) -> bool:
-        return _is_inside(boxes, idx, target)
-
     captions = set(caption_idcs)
     float_idcs = _outer_floats(order, boxes, labels)
-    below: dict[int, set[int]] = {}  # captions already read after each float
+    below: dict[int, set[int]] = {}  # captions already read after each element
+
+    def _read_after(target: int, unit: list[int]) -> int:
+        """Position after `target`, the elements read inside it and the captions already read after it"""
+        attached = below.setdefault(target, set())
+        pos = order.index(target) + 1
+        while pos < len(order) and (
+            order[pos] in attached or (order[pos] not in captions and _is_inside(boxes, order[pos], target))
+        ):
+            pos += 1
+        attached.update(unit)
+        return pos
+
     for unit in _caption_units(caption_idcs, region_groups):
         cx0, cy0 = boxes[unit, 0].min(), boxes[unit, 1].min()
         cx1, cy1 = boxes[unit, 2].max(), boxes[unit, 3].max()
@@ -465,20 +473,17 @@ def _attach_captions(
             if dist < best_dist:
                 best_target, best_dist = target, dist
         if best_target >= 0 and best_dist <= max_distance:
-            pos = order.index(best_target)
             # A caption located above (the center of) its float is read right before it, otherwise after
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
-            if not above:
-                # After the elements read inside the float, and the captions already attached below it
-                attached = below.setdefault(best_target, set())
-                pos += 1
-                while pos < len(order) and (
-                    order[pos] in attached or (order[pos] not in captions and _inside(order[pos], best_target))
-                ):
-                    pos += 1
-                attached.update(unit)
-        else:  # fallback: insert at the natural spatial position
-            pos = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cy0), len(order))
+            pos = order.index(best_target) if above else _read_after(best_target, unit)
+        else:
+            in_column = [idx for idx in order if min(boxes[idx, 2], cx1) - max(boxes[idx, 0], cx0) > 0]
+            above_idcs = [idx for idx in in_column if (boxes[idx, 1] + boxes[idx, 3]) / 2 < cy0]
+            if above_idcs:
+                pos = _read_after(max(above_idcs, key=lambda idx: boxes[idx, 3]), unit)
+            else:  # at the top of its column
+                fallback = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cy0), len(order))
+                pos = min((order.index(idx) for idx in in_column), default=fallback)
         order[pos:pos] = unit
     return order
 

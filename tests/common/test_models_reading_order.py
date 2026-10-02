@@ -434,6 +434,18 @@ def test_sort_reading_order_float_does_not_split_a_region():
     assert [seg for seg in segments if last in seg][0][-2:] == [last - 1, last]
 
 
+def test_sort_reading_order_caption_out_of_reach_stays_in_its_column():
+    # A caption too far from any float (e.g. under a figure whose box the layout model cut short) is read where it
+    # sits in its own column, not between the lines of the other column at the same height
+    geoms = [((0.08, 0.1 + 0.05 * i), (0.46, 0.13 + 0.05 * i)) for i in range(8)]  # 0-7: left column
+    geoms += [((0.54, 0.1), (0.92, 0.3))]  # 8: figure, right column
+    geoms += [((0.54, 0.45), (0.92, 0.48))]  # 9: its caption, out of reach (0.15 below)
+    geoms += [((0.54, 0.55 + 0.05 * i), (0.92, 0.58 + 0.05 * i)) for i in range(3)]  # 10-12: right column
+    labels = ["Text"] * 8 + ["Picture", "Caption"] + ["Text"] * 3
+    order = sort_reading_order(geoms, labels=labels)
+    assert order == [*range(8), 8, 9, 10, 11, 12]
+
+
 def test_defer_floats():
     from doctr.models.reading_order.base import _defer_floats
 

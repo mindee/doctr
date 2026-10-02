@@ -97,6 +97,23 @@ def test_page_export_as_markdown():
     assert elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [], 0, (1000, 800)).export_as_markdown() == ""
 
 
+@pytest.mark.parametrize(
+    "line, expected",
+    [
+        ("3. not a list", "3\\. not a list"),
+        ("12) neither", "12\\) neither"),
+        ("  7.", "  7\\."),
+        ("3", "3"),  # a page number
+        ("2022 was a year", "2022 was a year"),
+        ("1.5 million", "1.5 million"),
+        ("- dash", "\\- dash"),
+        ("# hash", "\\# hash"),
+    ],
+)
+def test_markdown_finalize_line(line, expected):
+    assert MarkdownExporter().finalize_line(line) == expected
+
+
 def test_page_export_as_markdown_rtl():
     # Two columns of Arabic text: the right column is read first, and the words of each line are emitted
     # from the rightmost to the leftmost one
