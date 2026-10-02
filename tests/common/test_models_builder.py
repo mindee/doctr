@@ -644,8 +644,7 @@ def test_documentbuilder_keep_reading_order():
 
 
 def test_documentbuilder_keep_reading_order_keeps_figures():
-    # The builder re-stores its linearization in the page cache: the figures must survive it, otherwise a page built
-    # with `keep_reading_order=True` exports its figures (and their captions) as plain text
+    # The builder stores its linearization back in the page cache: the figures must be kept in it
     image = np.zeros((100, 100, 3), dtype=np.uint8)
     image[30:60, 10:90] = 255
     boxes = np.asarray([[0.1, 0.05, 0.9, 0.1], [0.3, 0.4, 0.5, 0.45], [0.2, 0.65, 0.8, 0.7], [0.1, 0.8, 0.9, 0.85]])
@@ -670,7 +669,7 @@ def test_documentbuilder_keep_reading_order_keeps_figures():
         exports[keep] = page.export_as_markdown(images="embedded")
     assert exports[True] == exports[False]
     assert exports[True].count("![caption](data:image/png;base64,") == 1
-    assert "inner" not in exports[True]  # the text inside the figure is visible in the image
+    assert "inner" not in exports[True]
 
 
 def _rot_poly(x0, y0, x1, y1, deg, cx=0.5, cy=0.5):

@@ -675,7 +675,7 @@ class DocumentBuilder(NestedObject):
             groups = self._resolve_lines(self._words_to_boxes(words), page.dimensions)
             page.blocks = [Block([Line([words[idx] for idx in group]) for group in groups])]
 
-        # Include the figures: the result is re-stored in the cache below, and the exports read them from it
+        # With the figures: the result is stored back in the cache read by the exports
         items, labels, direction = page_reading_order(page, include_figures=True)
         blocks = [item for item in items if isinstance(item, Block)]
         page.blocks = (

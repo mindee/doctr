@@ -55,7 +55,7 @@ def mock_payslip(tmpdir_factory):
 
 @pytest.fixture(scope="session")
 def mock_figure_page(mock_image_stream, tmpdir_factory):
-    # A page with a heading, two paragraphs and a photograph with its caption in between
+    # A heading, two paragraphs and a captioned photograph in between
     page = Image.new("RGB", (1240, 1754), (255, 255, 255))
     page.paste(Image.open(BytesIO(mock_image_stream)).convert("RGB").resize((800, 500)), (220, 400))
     for text, font_size, x, y in [

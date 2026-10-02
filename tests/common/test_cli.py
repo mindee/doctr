@@ -288,21 +288,20 @@ def test_export_kwargs(fmt, expected_keys):
 
 
 def test_export_kwargs_images(tmp_path):
-    # The figure mode reaches the Markdown / AsciiDoc / HTML exports as an encoder shared by all the pages
     encoder = cli._export_kwargs("md", _args("--images", "embedded", "--image_format", "jpg"))["images"]
     assert isinstance(encoder, FigureEncoder)
     assert (encoder.mode, encoder.image_format) == ("embedded", "jpg")
     assert cli._export_kwargs("html", _args())["images"].mode == "placeholder"
     assert cli._export_kwargs("adoc", _args("--images", "none"))["images"].mode == "none"
 
-    # 'referenced': a `<output name>_images` directory next to the output by default, linked relatively to it
+    # 'referenced': `<output name>_images` next to the output by default, linked relatively to it
     output = tmp_path / "out" / "report.md"
     encoder = cli._export_kwargs("md", _args("--images", "referenced", "--output", str(output)))["images"]
     assert encoder.mode == "referenced"
     assert encoder.image_dir == tmp_path / "out" / "report_images"
     assert encoder.path_prefix == "report_images/"
 
-    # ... or the requested directory, still linked relatively to the output
+    # A requested directory is also linked relatively to the output
     image_dir = tmp_path / "assets"
     args = _args("--images", "referenced", "--output", str(output), "--image_dir", str(image_dir))
     encoder = cli._export_kwargs("md", args)["images"]
@@ -311,7 +310,6 @@ def test_export_kwargs_images(tmp_path):
 
 
 def test_save_results_referenced_figures(tmp_path):
-    # A page with a figure detected by the layout model, exported from the command line with its crops on disk
     from doctr.io import elements
 
     image = np.zeros((1000, 800, 3), dtype=np.uint8)

@@ -239,28 +239,26 @@ def _build_predictor(args: argparse.Namespace) -> Any:
 
 
 def _default_image_dir(output: str) -> Path:
-    """The directory the figures are written to in 'referenced' mode when `--image_dir` is not set
+    """Return the default image directory in 'referenced' mode: `<output name>_images`, next to the output
 
     Args:
         output: the `--output` value
 
     Returns:
-        a `<output name>_images` directory next to the output file
+        the image directory
     """
     path = Path(output)
     return path.with_name(f"{path.stem}_images")
 
 
 def _figure_encoder(args: argparse.Namespace) -> FigureEncoder:
-    """Build the figure encoder of the Markdown / AsciiDoc / HTML exports
-
-    In 'referenced' mode, the links are relative to the output file, so both can be moved together.
+    """Build the figure encoder of the Markdown, AsciiDoc and HTML exports (links relative to the output file)
 
     Args:
         args: the parsed command-line arguments
 
     Returns:
-        the figure encoder, shared by all the pages
+        the figure encoder
     """
     if args.images != "referenced":
         return FigureEncoder(args.images, image_format=args.image_format)
@@ -268,7 +266,7 @@ def _figure_encoder(args: argparse.Namespace) -> FigureEncoder:
     output_dir = Path(args.output).parent
     try:
         path_prefix = os.path.relpath(image_dir.absolute(), output_dir.absolute())
-    except ValueError:  # pragma: no cover  (Windows: the image directory is on another drive than the output)
+    except ValueError:  # pragma: no cover (Windows: image directory on another drive)
         path_prefix = str(image_dir.absolute())
     return FigureEncoder("referenced", image_dir=image_dir, path_prefix=path_prefix, image_format=args.image_format)
 
@@ -534,15 +532,13 @@ def _parse_args(argv=None):
         type=str,
         default="placeholder",
         choices=list(IMAGE_MODES),
-        help="how the figures found by the layout model (--detect_layout) are materialized in the Markdown, "
-        "AsciiDoc & HTML exports: left out, marked by a comment, inlined as base64, or written to --image_dir",
+        help="how figures are rendered in the Markdown, AsciiDoc and HTML exports (requires the layout model)",
     )
     parser.add_argument(
         "--image_dir",
         type=str,
         default=None,
-        help="directory the figures are written to with --images referenced "
-        "(a '<output name>_images' directory next to the output when not set)",
+        help="directory of the figures with --images referenced (default: '<output name>_images' next to the output)",
     )
     parser.add_argument(
         "--image_format",

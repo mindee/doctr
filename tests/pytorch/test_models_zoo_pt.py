@@ -319,36 +319,33 @@ def test_ocr_predictor_figures(mock_figure_page, tmp_path, detect_layout, detect
     xml = page.export_as_xml()[0].decode()
 
     if not (detect_layout or detect_tables):
-        # No layout, no figure: the image modes leave the export untouched
+        # Without layout, the image modes change nothing
         assert page.layout == []
         assert len({*exports.values(), referenced}) == 1
         assert encoder.written == [] and 'class="ocr_photo"' not in xml
         return
 
-    # The layout model (also run for the tables) finds the photograph, which takes part in the reading order
+    # The layout model (also run for the tables) finds the photograph
     figures = [item for item in page.items_in_reading_order(include_figures=True) if isinstance(item, LayoutElement)]
     assert [figure.type for figure in figures] == ["Picture"]
     assert page.tables == []
     assert xml.count('class="ocr_photo"') == 1
-    # 'none' and 'placeholder' keep all the text, the placeholder marks the figure between the paragraphs
     assert exports["placeholder"].count("<!-- image -->") == 1
     assert exports["placeholder"].replace("<!-- image -->\n\n", "") == exports["none"]
-    # Once the figure carries its pixels, its caption is the alternative text and the paragraph below the image
+    # With its pixels, the caption is the alt text and a line below the image
     caption = next(part for part in exports["none"].split("\n\n") if part.startswith("Figure 1"))
     assert exports["embedded"].count("](data:image/png;base64,") == 1
     assert f"![{caption}](data:image/png;base64," in exports["embedded"]
     assert exports["embedded"].count(caption) == 2
     assert f"![{caption}](assets/{encoder.written[0].name})\n\n*{caption}*" in referenced
-    # The crop written to disk is the photograph
     crop = cv2.imread(str(encoder.written[0]))
     assert abs(crop.shape[0] - 500) < 25 and abs(crop.shape[1] - 800) < 40
-    # The text around the figure is unchanged
     assert exports["embedded"].split("\n\n")[:2] == exports["none"].split("\n\n")[:2]
     assert exports["embedded"].split("\n\n")[-1] == exports["none"].split("\n\n")[-1]
 
 
 def test_ocr_predictor_figures_ignore_regions(mock_figure_page):
-    # The ignored regions are masked for the text detection only: the figure keeps its pixels
+    # Ignored regions are only masked for the text detection: the figure keeps its pixels
     predictor = models.ocr_predictor(pretrained=True, detect_layout=True, ignore_regions=["Picture"])
     page = predictor(DocumentFile.from_images(mock_figure_page)).pages[0]
     figure = next(region for region in page.layout if region.type == "Picture")

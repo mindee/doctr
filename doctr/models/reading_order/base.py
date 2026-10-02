@@ -42,7 +42,6 @@ _FOOTNOTE_LABELS = {"footnote"}
 _CAPTION_LABELS = {"caption"}
 _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
-# Roles of the page furniture: a float nested in a furniture region takes its label (cf. `_covering_regions`)
 _FURNITURE_ROLES = ("header", "footer", "footnote")
 
 
@@ -246,7 +245,7 @@ def _topological_order(
         voters = np.ones(num_boxes, dtype=bool)
     vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
     if num_voters >= 3:
-        # Measured on the voters only, so a wide figure past the text margins does not shift the search window
+        # Measured on the voters only, so that a wide figure does not shift the search window
         left_edge = float(vx0.min())
         span = float(vx1.max()) - left_edge or 1.0
         tolerance = max(1, int(0.05 * num_voters))
@@ -291,7 +290,7 @@ def _topological_order(
 
 
 def _is_inside(boxes: np.ndarray, idx: int, target: int, min_coverage: float = 0.5) -> bool:
-    """Whether the (N, 4) box `idx` lies inside the box `target`, by at least `min_coverage` of its area."""
+    """Check whether box `idx` lies inside box `target`, by at least `min_coverage` of its area"""
     x0, y0, x1, y1 = boxes[idx]
     tx0, ty0, tx1, ty1 = boxes[target]
     inter = max(min(x1, tx1) - max(x0, tx0), 0.0) * max(min(y1, ty1) - max(y0, ty0), 0.0)
@@ -299,7 +298,7 @@ def _is_inside(boxes: np.ndarray, idx: int, target: int, min_coverage: float = 0
 
 
 def _outer_floats(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> list[int]:
-    """The floats among `idcs` which are not nested inside a larger float (e.g. a figure, not its inner text)."""
+    """Return the floats among `idcs` that are not nested in a larger float"""
     areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
     floats = [idx for idx in idcs if labels[idx] in _FLOAT_LABELS]
     return [
@@ -310,9 +309,9 @@ def _outer_floats(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> list
 
 
 def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dict[int, list[int]]:
-    """Map each outer float to the elements detected inside it (e.g. the text of a figure).
+    """Map each outer float to the elements inside it (e.g. the text of a figure)
 
-    An element belongs to the smallest outer float covering at least half of its area.
+    An element belongs to the smallest outer float covering at least half of it.
     """
     areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
     outer = _outer_floats(idcs, boxes, labels)
@@ -327,27 +326,25 @@ def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dic
 
 
 def _stands_beside(boxes: np.ndarray, run: list[int], region: list[int]) -> bool:
-    """Whether an element of a region stands beside a run of floats: level with it, without overlapping it.
-
-    True for a figure beside a paragraph, False for a figure stacked between the lines of a loose region.
+    """Check whether an element of a region stands beside a run of floats (level with it, not overlapping it)
 
     Args:
-        boxes: the (N, 4) boxes of every element (canonical LTR space)
-        run: the floats (and the elements read inside them) forming the run
-        region: the other elements of the region the run interrupts
+        boxes: the (N, 4) boxes of all elements
+        run: the floats of the run, with the elements read inside them
+        region: the other elements of the interrupted region
 
     Returns:
-        True if at least one element of the region stands beside the run
+        True if an element of the region stands beside the run
     """
     rx0, ry0 = boxes[run, 0].min(), boxes[run, 1].min()
     rx1, ry1 = boxes[run, 2].max(), boxes[run, 3].max()
     for idx in region:
         x0, y0, x1, y1 = boxes[idx]
-        # at least half of the element's height is level with the run ...
+        # Level with the run: at least half of the element height
         v_inter = min(y1, ry1) - max(y0, ry0)
         if v_inter < 0.5 * max(y1 - y0, 1e-9):
             continue
-        # ... and at most a sliver (10% of the narrower of the two) overlaps it horizontally
+        # Beside the run: horizontal overlap of at most 10% of the narrower width
         h_inter = min(x1, rx1) - max(x0, rx0)
         if h_inter <= 0.1 * max(min(x1 - x0, rx1 - rx0), 1e-9):
             return True
@@ -361,17 +358,16 @@ def _defer_floats(
     groups: Sequence[int],
     boxes: np.ndarray | None = None,
 ) -> list[int]:
-    """Move the runs of floats which interrupt a layout region right after the end of that region.
+    """Move the floats interrupting a layout region right after the end of that region
 
-    The traversal can read a figure standing beside a paragraph before the last lines of that paragraph. With
-    `boxes`, only the runs standing beside the region are moved (cf. `_stands_beside`).
+    The traversal can read a figure standing beside a paragraph before the last lines of that paragraph.
 
     Args:
-        order: the body elements in reading order, the elements read inside a float right after it
-        labels: the normalized layout label of every element
-        members: the elements read inside each float (cf. `_float_members`)
-        groups: the layout region index of every element (-1 for none)
-        boxes: the (N, 4) boxes of every element (canonical LTR space). Without them, every interrupting run moves.
+        order: the body elements in reading order, the elements inside a float right after it
+        labels: the normalized layout label of each element
+        members: the elements inside each float
+        groups: the layout region index of each element (-1 for none)
+        boxes: the (N, 4) boxes of all elements, to only move the floats standing beside the region
 
     Returns:
         the reordered body elements
@@ -390,7 +386,7 @@ def _defer_floats(
         end = pos
         while end < len(out) and _is_float(out[end]):
             end += 1
-        # out[pos:end] is a run of floats, and out[pos - 1] (if any) the regular element read before it
+        # out[pos:end] is a run of floats, read after the element out[pos - 1]
         group = int(groups[out[pos - 1]]) if pos > 0 else -1
         if group < 0 or end == len(out) or int(groups[out[end]]) != group:
             pos = end
@@ -404,23 +400,20 @@ def _defer_floats(
                 pos = end
                 continue
         out[pos:stop] = out[end:stop] + out[pos:end]
-        # Merged with the floats read after it, the moved run can interrupt the same region again
+        # Check the moved run again: it can interrupt the same region further down
         pos = stop - (end - pos)
     return out
 
 
 def _caption_distance(caption: Sequence[float], target: Sequence[float]) -> float:
-    """Distance from a caption box to a float box (x0, y0, x1, y1), penalizing horizontal shifts."""
+    """Distance from a caption box to a float box, penalizing horizontal shifts"""
     x_gap = max(target[0] - caption[2], caption[0] - target[2], 0.0)
     y_gap = max(target[1] - caption[3], caption[1] - target[3], 0.0)
     return y_gap + 2 * x_gap
 
 
 def _caption_units(caption_idcs: list[int], region_groups: Sequence[int] | None) -> list[list[int]]:
-    """Group the captions sharing a (non-negative) group id, keeping their reading order.
-
-    Units are ordered by the position of their first member, captions without a group form a unit of their own.
-    """
+    """Group the captions sharing a group id into units, in reading order (a caption without group is a unit)"""
     units: list[list[int]] = []
     by_group: dict[int, list[int]] = {}
     for cap in caption_idcs:
@@ -443,18 +436,17 @@ def _attach_captions(
     max_distance: float,
     region_groups: Sequence[int] | None = None,
 ) -> list[int]:
-    """Insert captions right before (resp. after) the closest float they sit above (resp. below).
+    """Insert the captions right before (resp. after) the closest float they sit above (resp. below)
 
-    The captions sharing a group (e.g. the lines of a caption region) move as a unit, attached to the float closest
-    to their union. The elements read inside a float stay between it and its captions. Captions without a float
-    within reach are read where they sit in their column, right after the closest element above them.
+    The captions of a group (e.g. the lines of a caption region) move as a unit. A caption without a float within
+    reach is read in its column, right after the closest element above it.
     """
     captions = set(caption_idcs)
     float_idcs = _outer_floats(order, boxes, labels)
     below: dict[int, set[int]] = {}  # captions already read after each element
 
     def _read_after(target: int, unit: list[int]) -> int:
-        """Position after `target`, the elements read inside it and the captions already read after it"""
+        """Return the position after `target`, the elements inside it and the captions already read after it"""
         attached = below.setdefault(target, set())
         pos = order.index(target) + 1
         while pos < len(order) and (
@@ -473,7 +465,7 @@ def _attach_captions(
             if dist < best_dist:
                 best_target, best_dist = target, dist
         if best_target >= 0 and best_dist <= max_distance:
-            # A caption located above (the center of) its float is read right before it, otherwise after
+            # Read right before the float when above its center, otherwise after it
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
             pos = order.index(best_target) if above else _read_after(best_target, unit)
         else:
@@ -595,11 +587,9 @@ def sort_reading_order(
             `deskew_reading_geometries`)
         angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
-        column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g. to
-            leave out the figures, which say nothing about the text columns
-        region_groups: optional group id of each element (-1 for none), typically its layout region index: the
-            captions of a group are attached to a float as a unit, and a float standing beside a group is not read
-            in the middle of it
+        column_voters: optional mask of the elements used to detect a multi-column page (all by default)
+        region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
+            a region as a unit and to read a float standing beside a region after it
 
     Returns:
         the permutation of the input indices which sorts the elements in reading order
@@ -636,8 +626,7 @@ def sort_reading_order(
         groups["body" if role == "float" else role].append(idx)
 
     body_order = _order(groups["body"])
-    # Read the elements detected inside a float (e.g. the text of a figure) right after it, so they cannot drift
-    # to the column they overlap
+    # Read the elements inside a float (e.g. the text of a figure) right after it
     members = _float_members(groups["body"], canonical, norm_labels)
     if members:
         owner = {idx: flt for flt, idcs in members.items() for idx in idcs}
@@ -647,7 +636,7 @@ def sort_reading_order(
                 read_inside[owner[idx]].append(idx)
         body_order = [elt for idx in body_order if idx not in owner for elt in (idx, *read_inside.get(idx, []))]
     if region_groups is not None:
-        # A float must not interrupt a region (e.g. a figure read before the last line of the paragraph beside it)
+        # A float standing beside a region must not interrupt it
         body_order = _defer_floats(body_order, norm_labels, members, region_groups, canonical)
     body_order = _attach_captions(
         body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance, region_groups
@@ -691,11 +680,9 @@ def resolve_reading_segments(
             `deskew_reading_geometries`)
         angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
-        column_voters: optional mask of the elements used to detect a multi-column page (all by default), e.g. to
-            leave out the figures, which say nothing about the text columns
-        region_groups: optional group id of each element (-1 for none), typically its layout region index: the
-            captions of a group are attached to a float as a unit, and a float standing beside a group is not read
-            in the middle of it
+        column_voters: optional mask of the elements used to detect a multi-column page (all by default)
+        region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
+            a region as a unit and to read a float standing beside a region after it
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -749,9 +736,9 @@ def assign_layout_labels(
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
     Each element receives the label of the region covering the largest share of its area, provided this share reaches
-    `min_coverage`; otherwise its label is None (treated as regular body content). Among nested regions covering it
-    (nearly) as much, the smallest one wins (e.g. 'Caption' over 'Picture'), unless it is a float nested in page
-    furniture: the furniture label wins (e.g. the text of a logo in the page header is labeled 'Page-header').
+    `min_coverage`; otherwise its label is None (treated as regular body content). Among nested regions, the smallest
+    one wins (e.g. 'Caption' over 'Picture'), except for a float nested in page furniture (e.g. a logo in the page
+    header): its text takes the furniture label.
 
     Args:
         geoms: geometries of the elements to label, in any docTR format
@@ -786,11 +773,10 @@ def _covering_regions(
     min_coverage: float,
     region_labels: Sequence[str | None] | None = None,
 ) -> list[int]:
-    """Index of the region covering each (N, 4) box by at least `min_coverage` of its area, -1 if none.
+    """Return the index of the region covering each (N, 4) box by at least `min_coverage`, -1 if none
 
-    Regions tie when their coverage is within 0.1 of the best one, or when they lie inside the best region and cover
-    at least 75% of the box (e.g. a caption region nested in a picture, clipping the edges of its lines). The smallest
-    tied region wins, except for a float tied with page furniture: the furniture region wins.
+    Regions covering a box (nearly) as much as the best one tie: the smallest one wins, unless it is a float tied with
+    page furniture.
     """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])

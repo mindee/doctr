@@ -30,19 +30,18 @@ __all__ = [
     "picture_regions",
 ]
 
-# How the figures are rendered in the Markdown / AsciiDoc / HTML exports
 IMAGE_MODES = ("none", "placeholder", "embedded", "referenced")
 IMAGE_FORMATS = ("png", "jpg", "jpeg", "webp")
 
 
 def is_picture_label(label: str | None) -> bool:
-    """Whether a layout label denotes a figure, i.e. a float which is not a table ('Picture', 'Chart', ...).
+    """Check whether a layout label denotes a figure, i.e. a float that is not a table (e.g. 'Picture', 'Chart')
 
     Args:
-        label: the layout label to inspect
+        label: the layout label
 
     Returns:
-        True if the label denotes a figure
+        True for a figure label
     """
     from doctr.models.reading_order import layout_label_role, normalize_layout_label
 
@@ -50,25 +49,25 @@ def is_picture_label(label: str | None) -> bool:
 
 
 def is_picture_region(region: "LayoutElement") -> bool:
-    """Whether a layout region is a figure (cf. `is_picture_label`).
+    """Check whether a layout region is a figure
 
     Args:
-        region: the layout region to inspect
+        region: the layout region
 
     Returns:
-        True if the region is a figure
+        True for a figure region
     """
     return is_picture_label(getattr(region, "type", None))
 
 
 def picture_regions(page: "Page") -> list["LayoutElement"]:
-    """The figure regions of a page in detection order, without the ones nested in a larger figure.
+    """Return the figure regions of a page, without those nested in a larger figure
 
     Args:
-        page: the page to inspect
+        page: the page
 
     Returns:
-        the figure regions (empty without layout)
+        the figure regions, in detection order
     """
     from doctr.models.reading_order.base import _to_boxes
 
@@ -80,7 +79,7 @@ def picture_regions(page: "Page") -> list["LayoutElement"]:
     inter_h = np.minimum(boxes[:, None, 3], boxes[None, :, 3]) - np.maximum(boxes[:, None, 1], boxes[None, :, 1])
     areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
     inside = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None) >= 0.5 * areas[:, None]
-    # A region is nested when a larger one (or an earlier one of the same area) covers half of it
+    # A region is nested when half of it lies in a larger region (or in an earlier one of the same area)
     rank = np.empty(len(regions), dtype=int)
     rank[np.argsort(-areas, kind="stable")] = np.arange(len(regions))
     nested = (inside & (rank[None, :] < rank[:, None])).any(axis=1)
@@ -98,7 +97,7 @@ def _check_quality(quality: int) -> None:
 
 
 def _normalize_path_prefix(path_prefix: "str | os.PathLike[str]") -> str:
-    """Turn a path prefix into a forward-slash directory prefix (with a trailing '/'), valid in any link."""
+    """Convert a path prefix to a directory prefix with forward slashes, valid in any link"""
     prefix = os.fspath(path_prefix).replace("\\", "/")
     if prefix and not prefix.endswith("/"):
         prefix += "/"
@@ -106,7 +105,7 @@ def _normalize_path_prefix(path_prefix: "str | os.PathLike[str]") -> str:
 
 
 def _pad_geometry(points: np.ndarray, padding: float) -> np.ndarray:
-    """Grow a geometry around its center by a relative margin, and clip it back to the page."""
+    """Grow a geometry around its center by a relative margin, clipped to the page"""
     if padding == 0:
         return points
     center = points.mean(axis=0, keepdims=True)
@@ -118,15 +117,15 @@ def crop_layout_region(
     geometry: Any,
     padding: float = 0.0,
 ) -> np.ndarray | None:
-    """Crop a layout region out of its page, de-rotating rotated polygons.
+    """Crop a layout region out of its page image, de-rotating rotated regions
 
     Args:
-        page_img: the page image (`Page.page`), empty or None for a page restored from a JSON export
-        geometry: the relative geometry of the region, a ((xmin, ymin), (xmax, ymax)) box or a (4, 2) polygon
-        padding: non-negative relative margin added on each side (0.05 grows the region by 5%)
+        page_img: the page image, None or empty when the page has no pixels
+        geometry: the relative geometry of the region, a straight box or a (4, 2) polygon
+        padding: relative margin added on each side
 
     Returns:
-        the crop, or None without pixels or for a degenerate region (smaller than 2x2 pixels)
+        the crop, or None without pixels or for a region smaller than 2x2 pixels
     """
     _check_padding(padding)
     if page_img is None or page_img.size == 0:
@@ -148,15 +147,15 @@ def crop_layout_region(
 
 
 def encode_crop(crop: np.ndarray, image_format: str = "png", quality: int = 95) -> bytes:
-    """Encode a crop into an image file format.
+    """Encode an RGB(A) crop into an image file format
 
     Args:
-        crop: the RGB (or RGBA) crop to encode
-        image_format: one of 'png', 'jpg' / 'jpeg' or 'webp'
-        quality: the quality of the lossy formats (jpg / jpeg and webp), between 0 and 100
+        crop: the crop to encode
+        image_format: one of 'png', 'jpg', 'jpeg' or 'webp'
+        quality: quality of the lossy formats, between 0 and 100
 
     Returns:
-        the encoded image bytes
+        the encoded image
     """
     if image_format not in IMAGE_FORMATS:
         raise ValueError(f"unsupported image format '{image_format}', should be one of {list(IMAGE_FORMATS)}")
@@ -180,30 +179,26 @@ def encode_crop(crop: np.ndarray, image_format: str = "png", quality: int = 95) 
 
 
 class FigureEncoder:
-    """Turn the figures detected by the layout model into image sources for the Markdown / AsciiDoc / HTML exports.
+    """Render the figures detected by the layout model in the Markdown, AsciiDoc and HTML exports
 
-    * ``none``: the figures are left out (they still take part in the reading order)
-    * ``placeholder`` (default): a comment marks each figure
+    * ``none``: no figures
+    * ``placeholder``: a comment marks each figure
     * ``embedded``: each crop is inlined as a base64 data URI
     * ``referenced``: each crop is written to ``image_dir`` and linked by its relative path
 
-    In the 'embedded' and 'referenced' modes, the text recognized inside a figure is dropped from the export (the
-    image shows it), unless the figure could not be cropped. Each figure is encoded once per encoder, and the written
-    files are named after their position and content (e.g. ``page1_figure2-3fa2b1c9.png``), so several documents
-    can share an ``image_dir``.
+    With their pixels ('embedded' or 'referenced'), the text recognized inside the figures is left out of the export.
+    Written files are named after the figure position and content, e.g. ``page1_figure2-3fa2b1c9.png``.
 
     >>> from doctr.io import FigureEncoder
     >>> markdown = page.export_as_markdown(images=FigureEncoder("referenced", image_dir="assets"))
 
     Args:
         mode: one of 'none', 'placeholder', 'embedded' or 'referenced'
-        image_dir: the directory the crops are written to (required in 'referenced' mode)
-        path_prefix: the location of ``image_dir`` relative to the export, prepended to the file names in
-            'referenced' mode (``image_dir`` itself by default, i.e. an export written to the working directory).
-            Written with forward slashes and percent-encoded, so the links work on any platform.
-        image_format: one of 'png', 'jpg' / 'jpeg' or 'webp'
-        quality: the quality of the lossy formats, between 0 and 100
-        padding: non-negative relative margin added around each region (e.g. to catch the axis labels of a plot)
+        image_dir: directory the crops are written to (required in 'referenced' mode)
+        path_prefix: location of ``image_dir`` relative to the export (``image_dir`` by default)
+        image_format: one of 'png', 'jpg', 'jpeg' or 'webp'
+        quality: quality of the lossy formats, between 0 and 100
+        padding: relative margin added around each region
     """
 
     def __init__(
@@ -231,23 +226,22 @@ class FigureEncoder:
         self.image_format = image_format
         self.quality = quality
         self.padding = padding
-        # Files written in 'referenced' mode, in emission order
+        # Files written in 'referenced' mode
         self.written: list[Path] = []
-        # Sources per page and region id: weak keys, so the cache neither keeps a page alive nor outlives the encoder
+        # Encoded sources per page and region id, with weak keys so the cache does not keep the pages alive
         self._sources: "weakref.WeakKeyDictionary[Page, dict[int, tuple[weakref.ref[LayoutElement], str | None]]]" = (
             weakref.WeakKeyDictionary()
         )
 
     @classmethod
     def resolve(cls, images: "str | FigureEncoder | None") -> "FigureEncoder":
-        """Build an encoder from the `images` argument of an export method.
+        """Build an encoder from the `images` argument of an export method
 
         Args:
-            images: an image mode, a configured encoder, or None (same as 'none'). The 'referenced' mode needs an
-                `image_dir`, hence a configured encoder.
+            images: an image mode, an encoder, or None (same as 'none')
 
         Returns:
-            the encoder to use
+            the encoder
         """
         if isinstance(images, FigureEncoder):
             return images
@@ -265,26 +259,25 @@ class FigureEncoder:
 
     @property
     def materializes(self) -> bool:
-        """Whether the figures carry their pixels (as opposed to a placeholder)"""
+        """Whether the figures are exported with their pixels"""
         return self.mode in ("embedded", "referenced")
 
     def source(self, page: "Page", region: "LayoutElement", index: int) -> str | None:
-        """Resolve the image source of a figure, encoding (and writing) it on first use.
+        """Return the image source of a figure, encoded (and written) on first use
 
         Args:
-            page: the page the figure belongs to
+            page: the page of the figure
             region: the figure region
-            index: the 1-based index of the figure on the page, used in the file name
+            index: 1-based index of the figure on the page, used in the file name
 
         Returns:
-            a data URI or a relative path, or None in the 'none' / 'placeholder' modes, without page pixels, or for
-            a degenerate region
+            a data URI or a relative path, None without pixels
         """
         if not self.materializes:
             return None
         cache = self._sources.setdefault(page, {})
         cached = cache.get(id(region))
-        # Region ids are recycled once a region dies: the weak reference tells whether the id is still valid
+        # Ids can be recycled: check that the cached one still denotes this region
         if cached is not None and cached[0]() is region:
             return cached[1]
         source = self._encode(page, region, index)
@@ -303,7 +296,7 @@ class FigureEncoder:
         extension = "jpg" if mime == "jpeg" else mime
         digest = hashlib.sha256(payload).hexdigest()[:8]
         name = f"page{getattr(page, 'page_idx', 0) + 1}_figure{index}-{digest}.{extension}"
-        assert self.image_dir is not None  # guaranteed by __init__ in 'referenced' mode
+        assert self.image_dir is not None  # set in 'referenced' mode
         self.image_dir.mkdir(parents=True, exist_ok=True)
         path = self.image_dir / name
         path.write_bytes(payload)
