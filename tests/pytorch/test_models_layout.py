@@ -181,10 +181,9 @@ def test_torch_compiled_models(arch_name, mock_payslip):
 
     # Compare that outputs are close
     assert len(out) == len(compiled_out) == 1
-    # TODO: Enable if the model has a pretrained version
-    # assert out[0]["class_names"] == compiled_out[0]["class_names"]
-    # assert np.allclose(out[0]["boxes"], compiled_out[0]["boxes"], atol=1e-4)
-    # assert np.allclose(out[0]["scores"], compiled_out[0]["scores"], atol=1e-4)
+    assert out[0]["class_names"] == compiled_out[0]["class_names"]
+    assert np.allclose(out[0]["boxes"], compiled_out[0]["boxes"], atol=1e-4)
+    assert np.allclose(out[0]["scores"], compiled_out[0]["scores"], atol=1e-4)
 
 
 def test_lw_detr_batched_loss_matches_per_set():
