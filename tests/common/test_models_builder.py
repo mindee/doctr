@@ -643,6 +643,35 @@ def test_documentbuilder_keep_reading_order():
     assert doc.pages[0].render(block_break=" ").split() == ["first", "second", "footer"]
 
 
+def test_documentbuilder_keep_reading_order_keeps_figures():
+    # The builder stores its linearization back in the page cache: the figures must be kept in it
+    image = np.zeros((100, 100, 3), dtype=np.uint8)
+    image[30:60, 10:90] = 255
+    boxes = np.asarray([[0.1, 0.05, 0.9, 0.1], [0.3, 0.4, 0.5, 0.45], [0.2, 0.65, 0.8, 0.7], [0.1, 0.8, 0.9, 0.85]])
+    words = [("intro", 0.9), ("inner", 0.9), ("caption", 0.9), ("outro", 0.9)]
+    regions = {
+        "boxes": np.asarray([[0.08, 0.28, 0.92, 0.62], [0.15, 0.63, 0.85, 0.72]]),
+        "class_names": ["Picture", "Caption"],
+        "scores": [0.9, 0.9],
+    }
+    args = (
+        [image],
+        [boxes],
+        [np.ones(4)],
+        [words],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 4],
+    )
+    exports = {}
+    for keep in (False, True):
+        page = builder.DocumentBuilder(resolve_blocks=True, keep_reading_order=keep)(*args, regions=[regions]).pages[0]
+        assert len(page.items_in_reading_order(include_figures=True)) > len(page.items_in_reading_order())
+        exports[keep] = page.export_as_markdown(images="embedded")
+    assert exports[True] == exports[False]
+    assert exports[True].count("![caption](data:image/png;base64,") == 1
+    assert "inner" not in exports[True]
+
+
 def _rot_poly(x0, y0, x1, y1, deg, cx=0.5, cy=0.5):
     a = np.deg2rad(deg)
     ca, sa = np.cos(a), np.sin(a)

@@ -54,6 +54,25 @@ def mock_payslip(tmpdir_factory):
 
 
 @pytest.fixture(scope="session")
+def mock_figure_page(mock_image_stream, tmpdir_factory):
+    # A heading, two paragraphs and a captioned photograph in between
+    page = Image.new("RGB", (1240, 1754), (255, 255, 255))
+    page.paste(Image.open(BytesIO(mock_image_stream)).convert("RGB").resize((800, 500)), (220, 400))
+    for text, font_size, x, y in [
+        ("A study of document figures", 48, 120, 100),
+        ("The layout model locates the pictures of a page, and the", 28, 120, 200),
+        ("exports can then embed them next to the recognized text.", 28, 120, 250),
+        ("Figure 1: A sample photograph.", 24, 220, 920),
+        ("The text after the figure continues the paragraph", 28, 120, 1000),
+        ("and closes the page with a last sentence.", 28, 120, 1050),
+    ]:
+        page.paste(synthesize_text_img(text, font_size, background_color=(255, 255, 255), text_color=(0, 0, 0)), (x, y))
+    fn = str(tmpdir_factory.mktemp("data").join("mock_figure_page.png"))
+    page.save(fn)
+    return fn
+
+
+@pytest.fixture(scope="session")
 def mock_tilted_payslip(mock_payslip, tmpdir_factory):
     image = reader.read_img_as_numpy(mock_payslip)
     image = geometry.rotate_image(image, 30, expand=True)

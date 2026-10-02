@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 import pytest
 import torch
@@ -5,7 +6,7 @@ from torch import nn
 
 from doctr import models
 from doctr.file_utils import CLASS_NAME
-from doctr.io import Document, DocumentFile
+from doctr.io import Document, DocumentFile, FigureEncoder, crop_layout_region
 from doctr.io.elements import KIEDocument, LayoutElement, Table
 from doctr.models import detection, layout, recognition
 from doctr.models.classification import mobilenet_v3_small_crop_orientation, mobilenet_v3_small_page_orientation
@@ -298,6 +299,59 @@ def test_ocrpredictor_tables_factory():
     # No tables by default
     predictor = models.ocr_predictor("db_mobilenet_v3_large", "crnn_vgg16_bn", pretrained=False)
     assert predictor.table_predictor is None
+
+
+@pytest.mark.parametrize(
+    "detect_layout, detect_tables",
+    [
+        [False, False],
+        [True, False],
+        [False, True],
+        [True, True],
+    ],
+)
+def test_ocr_predictor_figures(mock_figure_page, tmp_path, detect_layout, detect_tables):
+    predictor = models.ocr_predictor(pretrained=True, detect_layout=detect_layout, detect_tables=detect_tables)
+    page = predictor(DocumentFile.from_images(mock_figure_page)).pages[0]
+    exports = {images: page.export_as_markdown(images=images) for images in ("none", "placeholder", "embedded")}
+    encoder = FigureEncoder("referenced", image_dir=tmp_path, path_prefix="assets")
+    referenced = page.export_as_markdown(images=encoder)
+    xml = page.export_as_xml()[0].decode()
+
+    if not (detect_layout or detect_tables):
+        # Without layout, the image modes change nothing
+        assert page.layout == []
+        assert len({*exports.values(), referenced}) == 1
+        assert encoder.written == [] and 'class="ocr_photo"' not in xml
+        return
+
+    # The layout model (also run for the tables) finds the photograph
+    figures = [item for item in page.items_in_reading_order(include_figures=True) if isinstance(item, LayoutElement)]
+    assert [figure.type for figure in figures] == ["Picture"]
+    assert page.tables == []
+    assert xml.count('class="ocr_photo"') == 1
+    assert exports["placeholder"].count("<!-- image -->") == 1
+    assert exports["placeholder"].replace("<!-- image -->\n\n", "") == exports["none"]
+    # With its pixels, the caption is the alt text and a line below the image
+    caption = next(part for part in exports["none"].split("\n\n") if part.startswith("Figure 1"))
+    assert exports["embedded"].count("](data:image/png;base64,") == 1
+    assert f"![{caption}](data:image/png;base64," in exports["embedded"]
+    assert exports["embedded"].count(caption) == 2
+    assert f"![{caption}](assets/{encoder.written[0].name})\n\n*{caption}*" in referenced
+    crop = cv2.imread(str(encoder.written[0]))
+    assert abs(crop.shape[0] - 500) < 25 and abs(crop.shape[1] - 800) < 40
+    assert exports["embedded"].split("\n\n")[:2] == exports["none"].split("\n\n")[:2]
+    assert exports["embedded"].split("\n\n")[-1] == exports["none"].split("\n\n")[-1]
+
+
+def test_ocr_predictor_figures_ignore_regions(mock_figure_page):
+    # Ignored regions are only masked for the text detection: the figure keeps its pixels
+    predictor = models.ocr_predictor(pretrained=True, detect_layout=True, ignore_regions=["Picture"])
+    page = predictor(DocumentFile.from_images(mock_figure_page)).pages[0]
+    figure = next(region for region in page.layout if region.type == "Picture")
+    crop = crop_layout_region(page.page, figure.geometry)
+    assert crop is not None and crop.any()
+    assert page.export_as_markdown(images="embedded").count("](data:image/png;base64,") == 1
 
 
 def test_trained_ocr_predictor(mock_pdf, mock_vocab, mock_payslip):

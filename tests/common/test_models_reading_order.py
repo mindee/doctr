@@ -90,6 +90,32 @@ def test_sort_reading_order_columns():
         perm = rng.permutation(8).tolist()
         order = sort_reading_order([boxes[idx] for idx in perm])
         assert [perm[idx] for idx in order] == list(range(8))
+    # A page-wide figure that does not vote keeps the columns below it
+    geoms = [((0.1, 0.02), (0.9, 0.06)), ((0.05, 0.1), (0.95, 0.6))]
+    geoms += [((0.1, 0.7 + 0.05 * i), (0.4, 0.73 + 0.05 * i)) for i in range(3)]
+    geoms += [((0.6, 0.7 + 0.05 * i), (0.9, 0.73 + 0.05 * i)) for i in range(3)]
+    assert sort_reading_order(geoms, column_voters=[True, False] + [True] * 6) == list(range(8))
+
+
+def test_sort_reading_order_float_members():
+    geoms = [
+        ((0.10, 0.05), (0.90, 0.30)),  # 0: figure (page wide)
+        ((0.15, 0.10), (0.30, 0.12)),  # 1: text inside the figure, left side
+        ((0.70, 0.10), (0.85, 0.12)),  # 2: text inside the figure, right side
+        ((0.10, 0.32), (0.90, 0.35)),  # 3: its caption
+        ((0.10, 0.40), (0.45, 0.70)),  # 4: figure in the left column
+        ((0.10, 0.72), (0.45, 0.80)),  # 5: its caption
+    ]
+    labels = ["Picture", "Picture", "Picture", "Caption", "Picture", "Caption"]
+    geoms += [((0.55, 0.40 + 0.05 * i), (0.90, 0.43 + 0.05 * i)) for i in range(8)]  # 6-13: right column
+    geoms += [((0.10, 0.82 + 0.04 * i), (0.45, 0.85 + 0.04 * i)) for i in range(3)]  # 14-16: left column
+    labels += ["Text"] * 11
+    # The text inside a figure is read right after it, before its caption
+    assert sort_reading_order(geoms, labels=labels) == [0, 1, 2, 3, 4, 5, 14, 15, 16, *range(6, 14)]
+    # Also for text labeled as body text
+    labels[2] = "Text"
+    assert sort_reading_order(geoms, labels=labels)[:4] == [0, 1, 2, 3]
+    assert sorted(sort_reading_order(geoms)) == list(range(len(geoms)))
 
 
 def test_sort_reading_order_input_formats():
@@ -177,6 +203,9 @@ def test_assign_layout_labels():
     poly_regions = np.asarray([[(0.05, 0.05), (0.45, 0.05), (0.45, 0.25), (0.05, 0.25)]])
     assert assign_layout_labels(geoms[:1], poly_regions, ["Table"]) == ["Table"]
     assert assign_layout_labels([], regions, ["Title", "Text"]) == []
+    # The smallest nested region wins
+    nested = [((0.0, 0.0), (1.0, 1.0)), ((0.08, 0.08), (0.5, 0.3))]
+    assert assign_layout_labels(geoms[:1], nested, ["Picture", "Caption"]) == ["Caption"]
     with pytest.raises(ValueError):
         assign_layout_labels(geoms, regions, ["Title"])
 
@@ -334,3 +363,194 @@ def test_sort_reading_order_follows_columns_when_a_gutter_exists():
         _box(0.55, 0.22, 0.95, 0.26),  # 6 right column
     ]
     assert sort_reading_order(geoms) == [0, 1, 2, 3, 4, 5, 6]
+
+
+def test_sort_reading_order_region_groups():
+    # A 3-line caption whose last line is closer to the table of the other column
+    geoms = [
+        ((0.526, 0.115), (0.903, 0.33)),  # 0: figure
+        ((0.102, 0.248), (0.477, 0.443)),  # 1: table
+        ((0.52, 0.352), (0.91, 0.366)),  # 2: caption line 1
+        ((0.52, 0.37), (0.91, 0.384)),  # 3: caption line 2
+        ((0.52, 0.419), (0.73, 0.434)),  # 4: caption line 3
+    ]
+    labels = ["Picture", "Table", "Caption", "Caption", "Caption"]
+    split = sort_reading_order(geoms, labels=labels)
+    assert split.index(4) == split.index(1) + 1
+    # Grouped, the lines follow the float closest to their union
+    order = sort_reading_order(geoms, labels=labels, region_groups=[-1, -1, 7, 7, 7])
+    assert order[order.index(0) + 1 : order.index(0) + 4] == [2, 3, 4]
+    with pytest.raises(ValueError):
+        sort_reading_order(geoms, labels=labels, region_groups=[0, 1])
+    segments = resolve_reading_segments(geoms, labels=labels, region_groups=[-1, -1, 7, 7, 7])
+    flat = [idx for segment in segments for idx in segment]
+    assert flat[flat.index(0) + 1 : flat.index(0) + 4] == [2, 3, 4]
+
+
+def _paragraph_beside_a_figure():
+    """A single-column page (3-column author grid) with a paragraph ending one line below the figure beside it"""
+    geoms, labels, groups = [[0.1, 0.05, 0.9, 0.09]], ["Title"], [0]
+    for row in range(4):
+        for col, x in enumerate((0.15, 0.41, 0.68)):
+            geoms.append([x, 0.14 + row * 0.03, x + 0.18, 0.154 + row * 0.03])
+            labels.append(None)
+            groups.append(-1)
+    for y in np.linspace(0.30, 0.64, 12):
+        geoms.append([0.08, y, 0.48, y + 0.014])
+        labels.append("Text")
+        groups.append(1)
+    last = len(geoms)
+    geoms.append([0.08, 0.662, 0.35, 0.676])  # below the figure
+    labels.append("Text")
+    groups.append(1)
+    figure = len(geoms)
+    geoms.append([0.52, 0.31, 0.91, 0.667])
+    labels.append("Picture")
+    groups.append(2)
+    geoms.append([0.08, 0.70, 0.30, 0.712])
+    labels.append("Section-header")
+    groups.append(3)
+    geoms = [((x0, y0), (x1, y1)) for x0, y0, x1, y1 in geoms]
+    return geoms, labels, groups, last, figure
+
+
+def test_sort_reading_order_float_does_not_split_a_region():
+    geoms, labels, groups, last, figure = _paragraph_beside_a_figure()
+    # Without region groups, the figure splits the paragraph
+    order = sort_reading_order(geoms, labels=labels)
+    assert order.index(figure) < order.index(last)
+    order = sort_reading_order(geoms, labels=labels, region_groups=groups)
+    assert order.index(last) < order.index(figure) < order.index(len(geoms) - 1)
+    assert sorted(order) == list(range(len(geoms)))
+    segments = resolve_reading_segments(geoms, labels=labels, region_groups=groups)
+    assert [seg for seg in segments if last in seg][0][-2:] == [last - 1, last]
+
+
+def test_sort_reading_order_caption_out_of_reach_stays_in_its_column():
+    # A caption out of reach of any float is read in its own column
+    geoms = [((0.08, 0.1 + 0.05 * i), (0.46, 0.13 + 0.05 * i)) for i in range(8)]  # 0-7: left column
+    geoms += [((0.54, 0.1), (0.92, 0.3))]  # 8: figure, right column
+    geoms += [((0.54, 0.45), (0.92, 0.48))]  # 9: its caption, out of reach (0.15 below)
+    geoms += [((0.54, 0.55 + 0.05 * i), (0.92, 0.58 + 0.05 * i)) for i in range(3)]  # 10-12: right column
+    labels = ["Text"] * 8 + ["Picture", "Caption"] + ["Text"] * 3
+    order = sort_reading_order(geoms, labels=labels)
+    assert order == [*range(8), 8, 9, 10, 11, 12]
+
+
+def test_defer_floats():
+    from doctr.models.reading_order.base import _defer_floats
+
+    labels = ["text", "text", "picture", "text", "text", "table", "picture", "text", "text"]
+    groups = [0, 0, 1, 0, 3, 4, 5, 3, 6]
+    # A float interrupting region 0, then two floats interrupting region 3
+    assert _defer_floats(list(range(9)), labels, {}, groups) == [0, 1, 3, 2, 4, 7, 5, 6, 8]
+    # The elements inside a float move with it
+    labels = ["text", "picture", "picture", "text", "text"]
+    groups = [0, 1, 1, 0, 2]
+    assert _defer_floats([0, 1, 2, 3, 4], labels, {1: [2]}, groups) == [0, 3, 1, 2, 4]
+    # Floats interleaved with the lines of a region all wait for its end
+    labels = ["text", "table", "text", "table", "text", "table", "text"]
+    groups = [0, 1, 0, 2, 0, 3, 0]
+    assert _defer_floats(list(range(7)), labels, {}, groups) == [0, 2, 4, 6, 1, 3, 5]
+    # No region, a float between two regions or at the edges: nothing moves
+    for labels, groups in [
+        (["text", "picture", "text"], [-1, 1, -1]),
+        (["text", "picture", "text"], [0, 1, 2]),
+        (["picture", "text", "text"], [1, 0, 0]),
+        (["text", "text", "picture"], [0, 0, 1]),
+    ]:
+        assert _defer_floats([0, 1, 2], labels, {}, groups) == [0, 1, 2]
+
+
+def test_defer_floats_only_moves_a_float_standing_beside_its_region():
+    from doctr.models.reading_order.base import _defer_floats
+
+    labels, groups = ["text", "picture", "text"], [0, 1, 0]
+    # Figure stacked in a loose region
+    stacked = np.array([[0.1, 0.1, 0.9, 0.2], [0.2, 0.3, 0.8, 0.6], [0.1, 0.7, 0.9, 0.8]])
+    assert _defer_floats([0, 1, 2], labels, {}, groups, stacked) == [0, 1, 2]
+    # Figure beside the paragraph
+    beside = np.array([[0.05, 0.3, 0.45, 0.32], [0.55, 0.3, 0.95, 0.6], [0.05, 0.62, 0.45, 0.64]])
+    assert _defer_floats([0, 1, 2], labels, {}, groups, beside) == [0, 2, 1]
+    # Text crossing the figure
+    crossing = np.array([[0.1, 0.3, 0.6, 0.32], [0.5, 0.3, 0.95, 0.6], [0.1, 0.7, 0.9, 0.8]])
+    assert _defer_floats([0, 1, 2], labels, {}, groups, crossing) == [0, 1, 2]
+    # Without boxes, every interrupting float moves
+    assert _defer_floats([0, 1, 2], labels, {}, groups) == [0, 2, 1]
+
+
+def test_sort_reading_order_float_stacked_in_a_loose_region():
+    # A text region enclosing a figure: the figure stays between the lines around it
+    geoms = [((0.1, 0.1 + 0.04 * idx), (0.9, 0.13 + 0.04 * idx)) for idx in range(3)]
+    geoms += [((0.2, 0.3), (0.8, 0.6))]
+    geoms += [((0.1, 0.7 + 0.04 * idx), (0.9, 0.73 + 0.04 * idx)) for idx in range(3)]
+    labels = ["Text"] * 3 + ["Picture"] + ["Text"] * 3
+    groups = [0, 0, 0, 1, 0, 0, 0]
+    assert sort_reading_order(geoms, labels=labels, region_groups=groups) == list(range(7))
+    # A paragraph beside a figure is still not split
+    geoms, labels, groups, last, figure = _paragraph_beside_a_figure()
+    order = sort_reading_order(geoms, labels=labels, region_groups=groups)
+    assert order.index(last) < order.index(figure)
+
+
+def test_sort_reading_order_column_voters_define_the_search_window():
+    # Two text columns on the right half and a wide figure on the left that does not vote
+    geoms, voters = [], []
+    for row in range(6):
+        y = 0.1 + 0.05 * row
+        geoms += [((0.55, y), (0.72, y + 0.02)), ((0.78, y), (0.95, y + 0.02))]
+        voters += [True, True]
+    geoms.append(((0.02, 0.1), (0.5, 0.4)))
+    voters.append(False)
+    order = sort_reading_order(geoms, labels=["Text"] * 12 + ["Picture"], column_voters=voters)
+    assert order == [12, 0, 2, 4, 6, 8, 10, 1, 3, 5, 7, 9, 11]
+
+
+def test_assign_layout_labels_nested_regions():
+    geoms = [
+        ((0.30, 0.52), (0.60, 0.55)),  # caption inside the picture
+        ((0.20, 0.30), (0.40, 0.33)),  # picture text
+        ((0.03, 0.015), (0.12, 0.035)),  # logo text, in the page header
+        ((0.30, 0.015), (0.60, 0.035)),  # header text
+        ((0.10, 0.80), (0.90, 0.83)),  # body text
+    ]
+    regions = [
+        ((0.10, 0.20), (0.90, 0.60)),
+        ((0.25, 0.51), (0.65, 0.56)),
+        ((0.00, 0.00), (1.00, 0.05)),
+        ((0.02, 0.01), (0.15, 0.04)),
+    ]
+    region_labels = ["Picture", "Caption", "Page-header", "Picture"]
+    # The smallest region wins, except for a float nested in page furniture
+    assert assign_layout_labels(geoms, regions, region_labels) == [
+        "Caption",
+        "Picture",
+        "Page-header",
+        "Page-header",
+        None,
+    ]
+    assert assign_layout_labels(geoms, regions[::-1], region_labels[::-1]) == [
+        "Caption",
+        "Picture",
+        "Page-header",
+        "Page-header",
+        None,
+    ]
+    # Only floats yield to the furniture
+    assert assign_layout_labels(
+        [((0.3, 0.01), (0.7, 0.04))],
+        [((0.0, 0.0), (1.0, 0.05)), ((0.25, 0.005), (0.75, 0.045))],
+        ["Page-header", "Title"],
+    ) == ["Title"]
+    # A region covering less than `min_coverage` never wins
+    assert assign_layout_labels([((0.0, 0.0), (0.4, 0.1))], [((0.3, 0.0), (0.5, 0.1))], ["Text"]) == [None]
+    # A smaller region covering the element partially does not win over the one containing it
+    assert assign_layout_labels(
+        [((0.1, 0.10), (0.9, 0.12))],
+        [((0.05, 0.05), (0.95, 0.5)), ((0.1, 0.09), (0.52, 0.13))],
+        ["Text", "Section-header"],
+    ) == ["Text"]
+    # A line slightly overflowing a caption nested in a picture still gets the caption label
+    assert assign_layout_labels(
+        [((0.30, 0.52), (0.60, 0.55))], [((0.10, 0.20), (0.90, 0.60)), ((0.31, 0.51), (0.65, 0.56))], region_labels[:2]
+    ) == ["Caption"]

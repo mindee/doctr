@@ -12,7 +12,7 @@ import torch
 import doctr.cli.main as cli
 from doctr import __version__
 from doctr.datasets.generator.base import synthesize_text_img
-from doctr.io import DocumentFile
+from doctr.io import DocumentFile, FigureEncoder
 from doctr.io.exporters import DocumentExportsMixin
 from doctr.models import ocr_predictor
 from doctr.models.builder import DocumentBuilder
@@ -113,6 +113,9 @@ def test_parse_args_defaults():
     assert args.reading_order is True
     assert args.escape is True
     assert args.include_furniture is True
+    assert args.images == "placeholder"
+    assert args.image_dir is None
+    assert args.image_format == "png"
     assert args.file_title == "docTR - XML export (hOCR)"
     assert args.indent == 4
     assert args.quiet is False
@@ -271,9 +274,9 @@ def test_resolve_format_explicit_overrides_output(alias, expected):
         ("json", {"reading_order"}),
         ("xml", {"reading_order", "direction", "file_title"}),
         ("txt", {"direction", "include_furniture"}),
-        ("md", {"direction", "escape", "include_furniture"}),
-        ("adoc", {"direction", "escape", "include_furniture"}),
-        ("html", {"direction", "include_furniture"}),
+        ("md", {"direction", "escape", "include_furniture", "images"}),
+        ("adoc", {"direction", "escape", "include_furniture", "images"}),
+        ("html", {"direction", "include_furniture", "images"}),
     ],
 )
 def test_export_kwargs(fmt, expected_keys):
@@ -282,6 +285,57 @@ def test_export_kwargs(fmt, expected_keys):
     assert set(kwargs) == expected_keys
     assert kwargs.get("direction", "ltr") == "ltr"
     assert kwargs.get("escape", False) is False
+
+
+def test_export_kwargs_images(tmp_path):
+    encoder = cli._export_kwargs("md", _args("--images", "embedded", "--image_format", "jpg"))["images"]
+    assert isinstance(encoder, FigureEncoder)
+    assert (encoder.mode, encoder.image_format) == ("embedded", "jpg")
+    assert cli._export_kwargs("html", _args())["images"].mode == "placeholder"
+    assert cli._export_kwargs("adoc", _args("--images", "none"))["images"].mode == "none"
+
+    # 'referenced': `<output name>_images` next to the output by default, linked relatively to it
+    output = tmp_path / "out" / "report.md"
+    encoder = cli._export_kwargs("md", _args("--images", "referenced", "--output", str(output)))["images"]
+    assert encoder.mode == "referenced"
+    assert encoder.image_dir == tmp_path / "out" / "report_images"
+    assert encoder.path_prefix == "report_images/"
+
+    # A requested directory is also linked relatively to the output
+    image_dir = tmp_path / "assets"
+    args = _args("--images", "referenced", "--output", str(output), "--image_dir", str(image_dir))
+    encoder = cli._export_kwargs("md", args)["images"]
+    assert encoder.image_dir == image_dir
+    assert encoder.path_prefix == "../assets/"
+
+
+def test_save_results_referenced_figures(tmp_path):
+    from doctr.io import elements
+
+    image = np.zeros((1000, 800, 3), dtype=np.uint8)
+    image[300:600, 100:700] = (255, 0, 0)
+    words = [elements.Word("Revenue", 0.9, ((0.1, 0.1), (0.4, 0.13)), 0.9, {"value": 0, "confidence": None})]
+    page = elements.Page(
+        image,
+        [elements.Block(lines=[elements.Line(words)])],
+        0,
+        (1000, 800),
+        layout=[elements.LayoutElement("Picture", 0.9, ((0.12, 0.3), (0.88, 0.6)))],
+    )
+    output = tmp_path / "report.md"
+    cli._save_results(elements.Document([page]), "md", _args("--output", str(output), "--images", "referenced"))
+
+    written = list((tmp_path / "report_images").iterdir())
+    assert len(written) == 1 and written[0].suffix == ".png"
+    assert f"![](report_images/{written[0].name})" in output.read_text(encoding="utf-8")
+
+
+def test_parse_args_image_dir_needs_referenced_mode():
+    with pytest.raises(SystemExit):
+        _args("--image_dir", "assets")
+    with pytest.raises(SystemExit):
+        _args("--images", "unknown")
+    assert _args("--images", "referenced", "--image_dir", "assets").image_dir == "assets"
 
 
 @pytest.mark.parametrize(

@@ -42,6 +42,8 @@ _FOOTNOTE_LABELS = {"footnote"}
 _CAPTION_LABELS = {"caption"}
 _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
+_FURNITURE_ROLES = ("header", "footer", "footnote")
+
 
 def normalize_layout_label(label: str | None) -> str:
     """Normalize a layout label to lower snake case (e.g. 'Page-header' -> 'page_header')
@@ -177,7 +179,9 @@ def _strict_rank(primary: np.ndarray, secondary: np.ndarray) -> np.ndarray:
     return ranks
 
 
-def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_threshold: float) -> list[int]:
+def _topological_order(
+    boxes: np.ndarray, x_overlap_threshold: float, y_overlap_threshold: float, voters: np.ndarray | None = None
+) -> list[int]:
     """Order boxes (already in canonical LTR space) with a column-following topological sort.
 
     Two families of "reads-before" relations are used (cf. Breuel 2003):
@@ -189,7 +193,7 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     The relations are resolved with Kahn's algorithm; among the available elements, the traversal favors the
     continuation of the current column (the closest element below the last emitted one with a horizontal
     overlap), which keeps multi-column bodies intact even for non-Manhattan layouts where recursive XY-cuts
-    fail to find a valid split.
+    fail to find a valid split. `voters` optionally restricts the boxes used to detect a multi-column page.
     """
     num_boxes = boxes.shape[0]
     if num_boxes <= 1:
@@ -237,15 +241,20 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     # favor the continuation of the current column when traversing the graph, which keeps multi-column bodies intact
     # even for non-Manhattan layouts where recursive XY-cuts fail to find a valid split.
     multi_column = False
-    if num_boxes >= 3:
-        span = page_width
-        tolerance = max(1, int(0.05 * num_boxes))
-        centers = (x0 + x1) / 2
-        lo, hi = x0.min() + 0.25 * span, x0.min() + 0.75 * span
-        for split in np.unique(x1[(x1 >= lo) & (x1 <= hi)]):
-            crossing = int(np.count_nonzero(np.minimum(x1 - split, split - x0) > 0.02 * span))
+    if voters is None or np.count_nonzero(voters) < 3:
+        voters = np.ones(num_boxes, dtype=bool)
+    vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
+    if num_voters >= 3:
+        # Measured on the voters only, so that a wide figure does not shift the search window
+        left_edge = float(vx0.min())
+        span = float(vx1.max()) - left_edge or 1.0
+        tolerance = max(1, int(0.05 * num_voters))
+        centers = (vx0 + vx1) / 2
+        lo, hi = left_edge + 0.25 * span, left_edge + 0.75 * span
+        for split in np.unique(vx1[(vx1 >= lo) & (vx1 <= hi)]):
+            crossing = int(np.count_nonzero(np.minimum(vx1 - split, split - vx0) > 0.02 * span))
             left = int(np.count_nonzero(centers <= split))
-            if crossing <= tolerance and left >= 0.25 * num_boxes and num_boxes - left >= 0.25 * num_boxes:
+            if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
                 multi_column = True
                 break
 
@@ -280,38 +289,194 @@ def _topological_order(boxes: np.ndarray, x_overlap_threshold: float, y_overlap_
     return order
 
 
+def _is_inside(boxes: np.ndarray, idx: int, target: int, min_coverage: float = 0.5) -> bool:
+    """Check whether box `idx` lies inside box `target`, by at least `min_coverage` of its area"""
+    x0, y0, x1, y1 = boxes[idx]
+    tx0, ty0, tx1, ty1 = boxes[target]
+    inter = max(min(x1, tx1) - max(x0, tx0), 0.0) * max(min(y1, ty1) - max(y0, ty0), 0.0)
+    return inter >= min_coverage * max((x1 - x0) * (y1 - y0), 1e-9)
+
+
+def _outer_floats(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> list[int]:
+    """Return the floats among `idcs` that are not nested in a larger float"""
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    floats = [idx for idx in idcs if labels[idx] in _FLOAT_LABELS]
+    return [
+        idx
+        for idx in floats
+        if not any(areas[other] > areas[idx] and _is_inside(boxes, idx, other) for other in floats)
+    ]
+
+
+def _float_members(idcs: list[int], boxes: np.ndarray, labels: list[str]) -> dict[int, list[int]]:
+    """Map each outer float to the elements inside it (e.g. the text of a figure)
+
+    An element belongs to the smallest outer float covering at least half of it.
+    """
+    areas = (boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1])
+    outer = _outer_floats(idcs, boxes, labels)
+    members: dict[int, list[int]] = {}
+    for idx in idcs:
+        if idx in outer:
+            continue
+        containers = [flt for flt in outer if areas[flt] > areas[idx] and _is_inside(boxes, idx, flt)]
+        if containers:
+            members.setdefault(min(containers, key=lambda flt: areas[flt]), []).append(idx)
+    return members
+
+
+def _stands_beside(boxes: np.ndarray, run: list[int], region: list[int]) -> bool:
+    """Check whether an element of a region stands beside a run of floats (level with it, not overlapping it)
+
+    Args:
+        boxes: the (N, 4) boxes of all elements
+        run: the floats of the run, with the elements read inside them
+        region: the other elements of the interrupted region
+
+    Returns:
+        True if an element of the region stands beside the run
+    """
+    rx0, ry0 = boxes[run, 0].min(), boxes[run, 1].min()
+    rx1, ry1 = boxes[run, 2].max(), boxes[run, 3].max()
+    for idx in region:
+        x0, y0, x1, y1 = boxes[idx]
+        # Level with the run: at least half of the element height
+        v_inter = min(y1, ry1) - max(y0, ry0)
+        if v_inter < 0.5 * max(y1 - y0, 1e-9):
+            continue
+        # Beside the run: horizontal overlap of at most 10% of the narrower width
+        h_inter = min(x1, rx1) - max(x0, rx0)
+        if h_inter <= 0.1 * max(min(x1 - x0, rx1 - rx0), 1e-9):
+            return True
+    return False
+
+
+def _defer_floats(
+    order: list[int],
+    labels: list[str],
+    members: dict[int, list[int]],
+    groups: Sequence[int],
+    boxes: np.ndarray | None = None,
+) -> list[int]:
+    """Move the floats interrupting a layout region right after the end of that region
+
+    The traversal can read a figure standing beside a paragraph before the last lines of that paragraph.
+
+    Args:
+        order: the body elements in reading order, the elements inside a float right after it
+        labels: the normalized layout label of each element
+        members: the elements inside each float
+        groups: the layout region index of each element (-1 for none)
+        boxes: the (N, 4) boxes of all elements, to only move the floats standing beside the region
+
+    Returns:
+        the reordered body elements
+    """
+    inner = {idx for idcs in members.values() for idx in idcs}
+
+    def _is_float(idx: int) -> bool:
+        return labels[idx] in _FLOAT_LABELS or idx in inner
+
+    out = list(order)
+    pos = 0
+    while pos < len(out):
+        if not _is_float(out[pos]):
+            pos += 1
+            continue
+        end = pos
+        while end < len(out) and _is_float(out[end]):
+            end += 1
+        # out[pos:end] is a run of floats, read after the element out[pos - 1]
+        group = int(groups[out[pos - 1]]) if pos > 0 else -1
+        if group < 0 or end == len(out) or int(groups[out[end]]) != group:
+            pos = end
+            continue
+        stop = end
+        while stop < len(out) and not _is_float(out[stop]) and int(groups[out[stop]]) == group:
+            stop += 1
+        if boxes is not None:
+            region = [idx for idx in out if int(groups[idx]) == group and not _is_float(idx)]
+            if not _stands_beside(boxes, out[pos:end], region):
+                pos = end
+                continue
+        out[pos:stop] = out[end:stop] + out[pos:end]
+        # Check the moved run again: it can interrupt the same region further down
+        pos = stop - (end - pos)
+    return out
+
+
+def _caption_distance(caption: Sequence[float], target: Sequence[float]) -> float:
+    """Distance from a caption box to a float box, penalizing horizontal shifts"""
+    x_gap = max(target[0] - caption[2], caption[0] - target[2], 0.0)
+    y_gap = max(target[1] - caption[3], caption[1] - target[3], 0.0)
+    return y_gap + 2 * x_gap
+
+
+def _caption_units(caption_idcs: list[int], region_groups: Sequence[int] | None) -> list[list[int]]:
+    """Group the captions sharing a group id into units, in reading order (a caption without group is a unit)"""
+    units: list[list[int]] = []
+    by_group: dict[int, list[int]] = {}
+    for cap in caption_idcs:
+        group = -1 if region_groups is None else int(region_groups[cap])
+        if group < 0:
+            units.append([cap])
+        elif group in by_group:
+            by_group[group].append(cap)
+        else:
+            by_group[group] = [cap]
+            units.append(by_group[group])
+    return units
+
+
 def _attach_captions(
     order: list[int],
     caption_idcs: list[int],
     boxes: np.ndarray,
     labels: list[str],
     max_distance: float,
+    region_groups: Sequence[int] | None = None,
 ) -> list[int]:
-    """Insert captions right before (resp. after) the closest float they sit above (resp. below).
+    """Insert the captions right before (resp. after) the closest float they sit above (resp. below)
 
-    Captions without a float within reach keep their natural spatial position in the body.
+    The captions of a group (e.g. the lines of a caption region) move as a unit. A caption without a float within
+    reach is read in its column, right after the closest element above it.
     """
-    float_idcs = [idx for idx in order if labels[idx] in _FLOAT_LABELS]
-    for cap in caption_idcs:
-        cx0, cy0, cx1, cy1 = boxes[cap]
+    captions = set(caption_idcs)
+    float_idcs = _outer_floats(order, boxes, labels)
+    below: dict[int, set[int]] = {}  # captions already read after each element
+
+    def _read_after(target: int, unit: list[int]) -> int:
+        """Return the position after `target`, the elements inside it and the captions already read after it"""
+        attached = below.setdefault(target, set())
+        pos = order.index(target) + 1
+        while pos < len(order) and (
+            order[pos] in attached or (order[pos] not in captions and _is_inside(boxes, order[pos], target))
+        ):
+            pos += 1
+        attached.update(unit)
+        return pos
+
+    for unit in _caption_units(caption_idcs, region_groups):
+        cx0, cy0 = boxes[unit, 0].min(), boxes[unit, 1].min()
+        cx1, cy1 = boxes[unit, 2].max(), boxes[unit, 3].max()
         best_target, best_dist = -1, float("inf")
         for target in float_idcs:
-            tx0, ty0, tx1, ty1 = boxes[target]
-            x_gap = max(tx0 - cx1, cx0 - tx1, 0.0)
-            y_gap = max(ty0 - cy1, cy0 - ty1, 0.0)
-            # Captions are expected right above/below (or overlapping) their float: penalize horizontal shifts
-            dist = y_gap + 2 * x_gap
+            dist = _caption_distance((cx0, cy0, cx1, cy1), boxes[target])
             if dist < best_dist:
                 best_target, best_dist = target, dist
         if best_target >= 0 and best_dist <= max_distance:
-            pos = order.index(best_target)
-            # A caption located above (the center of) its float is read before it, otherwise after
+            # Read right before the float when above its center, otherwise after it
             above = (cy0 + cy1) / 2 <= (boxes[best_target, 1] + boxes[best_target, 3]) / 2
-            order.insert(pos if above else pos + 1, cap)
-        else:  # fallback: insert at the natural spatial position
-            cap_y0 = boxes[cap, 1]
-            pos = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cap_y0), len(order))
-            order.insert(pos, cap)
+            pos = order.index(best_target) if above else _read_after(best_target, unit)
+        else:
+            in_column = [idx for idx in order if min(boxes[idx, 2], cx1) - max(boxes[idx, 0], cx0) > 0]
+            above_idcs = [idx for idx in in_column if (boxes[idx, 1] + boxes[idx, 3]) / 2 < cy0]
+            if above_idcs:
+                pos = _read_after(max(above_idcs, key=lambda idx: boxes[idx, 3]), unit)
+            else:  # at the top of its column
+                fallback = next((i for i, idx in enumerate(order) if boxes[idx, 1] >= cy0), len(order))
+                pos = min((order.index(idx) for idx in in_column), default=fallback)
+        order[pos:pos] = unit
     return order
 
 
@@ -388,6 +553,8 @@ def sort_reading_order(
     caption_max_distance: float = 0.1,
     page_shape: tuple[int, int] | None = None,
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
+    column_voters: Sequence[bool] | None = None,
+    region_groups: Sequence[int] | None = None,
 ) -> list[int]:
     """Compute the reading order of document elements from their geometries (and optionally, layout labels).
 
@@ -420,6 +587,9 @@ def sort_reading_order(
             `deskew_reading_geometries`)
         angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
+        column_voters: optional mask of the elements used to detect a multi-column page (all by default)
+        region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
+            a region as a unit and to read a float standing beside a region after it
 
     Returns:
         the permutation of the input indices which sorts the elements in reading order
@@ -431,15 +601,19 @@ def sort_reading_order(
     num_boxes = boxes.shape[0]
     if labels is not None and len(labels) != num_boxes:
         raise ValueError(f"Incompatible number of labels ({len(labels)}) and geometries ({num_boxes})")
+    if region_groups is not None and len(region_groups) != num_boxes:
+        raise ValueError(f"Incompatible number of region groups ({len(region_groups)}) and geometries ({num_boxes})")
     if num_boxes <= 1:
         return list(range(num_boxes))
 
     canonical = _to_canonical_ltr(boxes, direction)
 
+    voters = np.ones(num_boxes, dtype=bool) if column_voters is None else np.asarray(column_voters, dtype=bool)
+
     def _order(idcs: list[int]) -> list[int]:
         if len(idcs) == 0:
             return []
-        sub_order = _topological_order(canonical[idcs], x_overlap_threshold, y_overlap_threshold)
+        sub_order = _topological_order(canonical[idcs], x_overlap_threshold, y_overlap_threshold, voters[idcs])
         return [idcs[i] for i in sub_order]
 
     if labels is None:
@@ -451,8 +625,21 @@ def sort_reading_order(
         role = layout_label_role(label)
         groups["body" if role == "float" else role].append(idx)
 
+    body_order = _order(groups["body"])
+    # Read the elements inside a float (e.g. the text of a figure) right after it
+    members = _float_members(groups["body"], canonical, norm_labels)
+    if members:
+        owner = {idx: flt for flt, idcs in members.items() for idx in idcs}
+        read_inside: dict[int, list[int]] = {flt: [] for flt in members}
+        for idx in body_order:
+            if idx in owner:
+                read_inside[owner[idx]].append(idx)
+        body_order = [elt for idx in body_order if idx not in owner for elt in (idx, *read_inside.get(idx, []))]
+    if region_groups is not None:
+        # A float standing beside a region must not interrupt it
+        body_order = _defer_floats(body_order, norm_labels, members, region_groups, canonical)
     body_order = _attach_captions(
-        _order(groups["body"]), _order(groups["caption"]), canonical, norm_labels, caption_max_distance
+        body_order, _order(groups["caption"]), canonical, norm_labels, caption_max_distance, region_groups
     )
     return _order(groups["header"]) + body_order + _order(groups["footnote"]) + _order(groups["footer"])
 
@@ -467,6 +654,8 @@ def resolve_reading_segments(
     paragraph_gap: float = 0.8,
     page_shape: tuple[int, int] | None = None,
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
+    column_voters: Sequence[bool] | None = None,
+    region_groups: Sequence[int] | None = None,
 ) -> list[list[int]]:
     """Order elements in reading order and group consecutive ones into segments (paragraphs or regions).
 
@@ -491,6 +680,9 @@ def resolve_reading_segments(
             `deskew_reading_geometries`)
         angle_geoms: optional reading-oriented 4-point polygons (typically the page's word polygons) used to
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
+        column_voters: optional mask of the elements used to detect a multi-column page (all by default)
+        region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
+            a region as a unit and to read a float standing beside a region after it
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -505,6 +697,8 @@ def resolve_reading_segments(
         x_overlap_threshold=x_overlap_threshold,
         y_overlap_threshold=y_overlap_threshold,
         caption_max_distance=caption_max_distance,
+        column_voters=column_voters,
+        region_groups=region_groups,
     )
     if len(order) == 0:
         return []
@@ -541,8 +735,10 @@ def assign_layout_labels(
 ) -> list[str | None]:
     """Assign a layout label to each element based on its overlap with the detected layout regions.
 
-    Each element receives the label of the region covering the largest share of its area, provided this share
-    reaches `min_coverage`; otherwise its label is None (treated as regular body content).
+    Each element receives the label of the region covering the largest share of its area, provided this share reaches
+    `min_coverage`; otherwise its label is None (treated as regular body content). Among nested regions, the smallest
+    one wins (e.g. 'Caption' over 'Picture'), except for a float nested in page furniture (e.g. a logo in the page
+    header): its text takes the furniture label.
 
     Args:
         geoms: geometries of the elements to label, in any docTR format
@@ -565,17 +761,53 @@ def assign_layout_labels(
     if boxes.shape[0] == 0 or regions.shape[0] == 0:
         return [None] * boxes.shape[0]
 
+    return [
+        str(layout_labels[reg_idx]) if reg_idx >= 0 else None
+        for reg_idx in _covering_regions(boxes, regions, min_coverage, layout_labels)
+    ]
+
+
+def _covering_regions(
+    boxes: np.ndarray,
+    regions: np.ndarray,
+    min_coverage: float,
+    region_labels: Sequence[str | None] | None = None,
+) -> list[int]:
+    """Return the index of the region covering each (N, 4) box by at least `min_coverage`, -1 if none
+
+    Regions covering a box (nearly) as much as the best one tie: the smallest one wins, unless it is a float tied with
+    page furniture.
+    """
     inter_w = np.minimum(boxes[:, None, 2], regions[None, :, 2]) - np.maximum(boxes[:, None, 0], regions[None, :, 0])
     inter_h = np.minimum(boxes[:, None, 3], regions[None, :, 3]) - np.maximum(boxes[:, None, 1], regions[None, :, 1])
     inter = np.clip(inter_w, 0, None) * np.clip(inter_h, 0, None)
     areas = np.clip((boxes[:, 2] - boxes[:, 0]) * (boxes[:, 3] - boxes[:, 1]), 1e-9, None)
     coverage = inter / areas[:, None]
+    region_areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+    qualifies = coverage >= np.maximum(coverage.max(axis=1, keepdims=True) - 0.1, min_coverage)
+    # Regions nested in the best region of a box also tie when they cover most of it
+    rx0, ry0, rx1, ry1 = regions[:, 0], regions[:, 1], regions[:, 2], regions[:, 3]
+    reg_inter_w = np.minimum(rx1[:, None], rx1[None, :]) - np.maximum(rx0[:, None], rx0[None, :])
+    reg_inter_h = np.minimum(ry1[:, None], ry1[None, :]) - np.maximum(ry0[:, None], ry0[None, :])
+    reg_inter = np.clip(reg_inter_w, 0, None) * np.clip(reg_inter_h, 0, None)
+    nested = reg_inter >= 0.9 * np.clip(region_areas, 1e-9, None)[:, None]  # nested[i, j]: region i lies inside j
+    qualifies |= (coverage >= max(min_coverage, 0.75)) & nested[:, coverage.argmax(axis=1)].T
+    ranked = np.where(qualifies, region_areas[None, :], np.inf)
+    best = ranked.argmin(axis=1)
+    result = [int(reg) if np.isfinite(ranked[idx, reg]) else -1 for idx, reg in enumerate(best)]
+    if region_labels is None or len(region_labels) != regions.shape[0]:
+        return result
 
-    best = coverage.argmax(axis=1)
-    return [
-        str(layout_labels[reg_idx]) if coverage[box_idx, reg_idx] >= min_coverage else None
-        for box_idx, reg_idx in enumerate(best)
-    ]
+    roles = [layout_label_role(label) for label in region_labels]
+    is_float = np.array([role == "float" for role in roles], dtype=bool)
+    is_furniture = np.array([role in _FURNITURE_ROLES for role in roles], dtype=bool)
+    if not (is_float.any() and is_furniture.any()):
+        return result
+    furniture_ranked = np.where(qualifies & is_furniture[None, :], region_areas[None, :], np.inf)
+    for idx, reg in enumerate(result):
+        if reg >= 0 and is_float[reg] and np.isfinite(furniture_ranked[idx].min()):
+            result[idx] = int(furniture_ranked[idx].argmin())
+    return result
 
 
 class ReadingOrderPredictor(NestedObject):
