@@ -630,7 +630,7 @@ For reference, here is a sample XML byte string output:
       <meta name="ocr-capabilities" content="ocr_page ocr_carea ocr_par ocr_line ocrx_word" />
     </head>
     <body>
-      <div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0" />
+      <div class="ocr_page" id="page_1" title="image; bbox 0 0 3456 3456; ppageno 0">
         <div class="ocr_carea" id="block_1_1" title="bbox 857 529 2504 2710">
           <p class="ocr_par" id="par_1_1" title="bbox 857 529 2504 2710">
             <span class="ocr_line" id="line_1_1" title="bbox 857 529 2504 2710; baseline 0 0; x_size 0; x_descenders 0; x_ascenders 0">
@@ -640,6 +640,7 @@ For reference, here is a sample XML byte string output:
             </span>
           </p>
         </div>
+      </div>
     </body>
   </html>
 
