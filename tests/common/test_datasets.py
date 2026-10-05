@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from PIL import Image, ImageDraw
 
 from doctr import datasets
 from doctr.datasets.generator import base
@@ -13,6 +14,22 @@ from doctr.utils.fonts import get_font_candidates
 def test_synthesize_text_img_rejects_inkless_text(text):
     with pytest.raises(ValueError):
         synthesize_text_img(text)
+
+
+@pytest.mark.parametrize("text", ["a", "g", ".", "_", "hello", "jedi!"])
+def test_synthesize_text_img_keeps_the_whole_glyph(text):
+    if not get_font_candidates():
+        pytest.skip("no recommended system font installed")
+    font = base._load_font(None, base.DEFAULT_FONT_SIZE)
+    # Reference ink: the same text drawn far from any border
+    canvas = Image.new("L", (400, 200))
+    ImageDraw.Draw(canvas).text((100, 50), text, font=font, fill=255)
+    expected_ink = np.count_nonzero(np.asarray(canvas))
+
+    img = np.asarray(synthesize_text_img(text).convert("L"))
+
+    # No part of the glyphs is cropped by the image borders
+    assert np.count_nonzero(img) == expected_ink
 
 
 def test_renders_char_smoke_on_a_real_font():
