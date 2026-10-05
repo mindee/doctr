@@ -626,14 +626,16 @@ def test_kie_document():
     xml_output = doc.export_as_xml()
     assert isinstance(xml_output, list) and len(xml_output) == len(pages)
     # Check that the XML is well-formed in hOCR format
-    for xml_bytes, xml_tree in xml_output:
+    for page, (xml_bytes, xml_tree) in zip(pages, xml_output):
         assert isinstance(xml_bytes, bytes)
         assert isinstance(xml_tree, ElementTree)
         root = xml_tree.getroot()
         assert root.tag == "html"
         assert root[0].tag == "head"
         assert root[1].tag == "body"
-        assert root[1][0].tag == "div" and root[1][0].attrib["class"] == "ocr_page"
+        assert len(root[1]) == 1 and root[1][0].tag == "div" and root[1][0].attrib["class"] == "ocr_page"
+        # Every prediction is nested in the page, not appended next to it
+        assert len(root[1][0]) == sum(len(preds) for preds in page.predictions.values())
         for block in root[1][0]:
             assert block.tag == "div" and block.attrib["class"] == "ocr_carea"
             assert block[0].tag == "p" and block[0].attrib["class"] == "ocr_par"

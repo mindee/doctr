@@ -1186,7 +1186,7 @@ class XMLExporter:
         prediction_count: int = 1
         height, width = page.dimensions
         page_hocr, body = self._new_document(file_title, _resolve_hocr_language(page.language))
-        SubElement(
+        page_div = SubElement(
             body,
             "div",
             attrib={
@@ -1204,7 +1204,7 @@ class XMLExporter:
                 prediction_bbox = _hocr_bbox(prediction.geometry, width, height)  # type: ignore[arg-type]
                 x_size, x_fsize = _hocr_text_size(prediction.geometry, height, dpi)  # type: ignore[arg-type]
                 prediction_div = SubElement(
-                    body,
+                    page_div,
                     "div",
                     attrib={
                         "class": "ocr_carea",
