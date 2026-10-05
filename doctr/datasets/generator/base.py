@@ -127,8 +127,8 @@ def synthesize_text_img(
     img = Image.new("RGB", img_size[::-1], color=background_color)
     d = ImageDraw.Draw(img)
 
-    # Offset so that the text is centered
-    text_pos = (int(round((img_size[1] - text_w) / 2)), int(round((img_size[0] - text_h) / 2)))
+    # Offset so that the text is centered: the ink starts at (left, top) from the drawing origin, not at (0, 0)
+    text_pos = (int(round((img_size[1] - text_w) / 2)) - left, int(round((img_size[0] - text_h) / 2)) - top)
     # Draw the text
     d.text(text_pos, text, font=font, fill=text_color)
     return img
