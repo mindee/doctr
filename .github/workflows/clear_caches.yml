@@ -10,6 +10,6 @@ jobs:
     name: Clear caches
     runs-on: ubuntu-latest
     steps:
-    - uses: MyAlbum/purge-cache@v2
+    - uses: MyAlbum/purge-cache@v3
       with:
         max-age: 604800 # Caches older than 7 days are deleted
