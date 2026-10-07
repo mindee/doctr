@@ -337,6 +337,23 @@ def test_random_rotate():
     assert r_img.ndim == input_t.ndim
     assert r_mask.ndim - 1 == input_m.ndim  # Mask should be 2D
 
+    # Empty targets with a mask: the image is still rotated and stays aligned with its mask
+    rotator = RandomRotate(max_angle=30.0, expand=True)
+    input_r = torch.ones((3, 40, 100), dtype=torch.float32)
+    mask_r = torch.ones((40, 100), dtype=torch.bool)
+    for empty_target in (
+        np.zeros((0, 4), dtype=np.float32),
+        np.zeros((0, 4, 2), dtype=np.float32),
+        {"words": np.zeros((0, 4, 2), dtype=np.float32)},
+    ):
+        data = rotator(Sample(image=input_r, mask=mask_r, target=empty_target))
+        assert data.image.shape[-2:] == data.mask.shape[-2:]
+        assert data.image.shape[-2:] != input_r.shape[-2:]
+        if isinstance(empty_target, dict):
+            assert data.target["words"].shape == (0, 4, 2)
+        else:
+            assert data.target.shape == empty_target.shape
+
     # Test without target
     data = rotator(Sample(image=input_t))
     r_img = data.image
@@ -445,6 +462,12 @@ def test_random_crop(target):
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
     assert mask.shape == img.shape[-2:]
     assert mask.dtype == torch.bool
+
+    # Test with an empty target
+    empty_target = np.zeros((0, *target.shape[1:]), dtype=np.float32)
+    sample = cropper(Sample(image=input_t, target=empty_target))
+    assert sample.image.shape == input_t.shape
+    assert sample.target.shape == empty_target.shape
 
     # Test without target
     sample = cropper(Sample(image=input_t))
