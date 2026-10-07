@@ -197,6 +197,11 @@ class RandomRotate(NestedObject):
     def extra_repr(self) -> str:
         return f"max_angle={self.max_angle}, expand={self.expand}"
 
+    def _rotate_image_only(self, img: Any, angle: float) -> Any:
+        dummy_box = np.array([[0, 0, 1, 1]], dtype=np.float32)
+        r_img, _ = F.rotate_sample(img, dummy_box, angle, self.expand)
+        return r_img
+
     def _rotate_array(self, img: Any, target: np.ndarray, angle: float):
         is_polygon = target.shape[1:] == (4, 2)
 
@@ -227,8 +232,7 @@ class RandomRotate(NestedObject):
             )
 
         if target is None:
-            r_img, _ = F.rotate_sample(img, np.array([[0, 0, 1, 1]], dtype=np.float32), angle, self.expand)
-            return sample.replace(image=r_img, mask=r_mask)
+            return sample.replace(image=self._rotate_image_only(img, angle), mask=r_mask)
 
         if isinstance(target, dict):
             rotated_targets = {}
@@ -244,8 +248,12 @@ class RandomRotate(NestedObject):
                     rotated_img = r_img
                 rotated_targets[cls_name] = r_arr
 
-            final_img = rotated_img if rotated_img is not None else img
+            # Every class may be empty: the image (and its mask) still have to be rotated
+            final_img = rotated_img if rotated_img is not None else self._rotate_image_only(img, angle)
             return sample.replace(image=final_img, mask=r_mask, target=rotated_targets)
+
+        if len(target) == 0:
+            return sample.replace(image=self._rotate_image_only(img, angle), mask=r_mask, target=target.copy())
 
         r_img, r_target = self._rotate_array(img, target, angle)
         return sample.replace(image=r_img, mask=r_mask, target=r_target)
@@ -381,6 +389,10 @@ class RandomCrop(NestedObject):
 
             r_mask = self._crop_image_only(mask, crop_box) if mask is not None else None
             return sample.replace(image=cropped_img, mask=r_mask, target=cropped_targets)
+
+        if len(target) == 0:
+            # Same as a dict target without any box: keep the sample as is
+            return sample.replace(image=img, mask=mask, target=target.copy())
 
         c_img, c_target = self._crop_array(img, target, crop_box)
         if c_img is img:

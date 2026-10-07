@@ -350,6 +350,37 @@ def test_random_rotate():
         assert r_img.dtype == torch.float16
 
 
+@pytest.mark.parametrize(
+    "target",
+    [
+        np.zeros((0, 4), dtype=np.float32),
+        np.zeros((0, 4, 2), dtype=np.float32),
+        {"words": np.zeros((0, 4, 2), dtype=np.float32)},
+    ],
+)
+def test_random_rotate_empty_target(target):
+    # A sample without any box is still rotated, and its image and mask stay aligned
+    rotator = RandomRotate(max_angle=30.0, expand=True)
+    input_t = torch.ones((3, 40, 100), dtype=torch.float32)
+    input_m = torch.ones((40, 100), dtype=torch.bool)
+    data = rotator(Sample(image=input_t, mask=input_m, target=target))
+    assert data.image.shape[-2:] == data.mask.shape[-2:]
+    assert data.image.shape[-2:] != input_t.shape[-2:]
+    if isinstance(target, dict):
+        assert data.target["words"].shape == (0, 4, 2)
+    else:
+        assert data.target.shape == target.shape
+
+
+@pytest.mark.parametrize("target", [np.zeros((0, 4), dtype=np.float32), np.zeros((0, 4, 2), dtype=np.float32)])
+def test_random_crop_empty_target(target):
+    cropper = RandomCrop(scale=(0.5, 1.0), ratio=(0.75, 1.33))
+    input_t = torch.ones((3, 50, 50), dtype=torch.float32)
+    data = cropper(Sample(image=input_t, target=target))
+    assert data.image.shape == input_t.shape
+    assert data.target.shape == target.shape
+
+
 def test_crop_detection():
     img = torch.ones((3, 50, 50), dtype=torch.float32)
     abs_boxes = np.array([
