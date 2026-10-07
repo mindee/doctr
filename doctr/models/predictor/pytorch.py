@@ -157,9 +157,10 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             loc_preds = hook(loc_preds)
 
         # Crop images
-        crops, loc_preds = self._prepare_crops(
+        crops, loc_preds, objectness_scores = self._prepare_crops(
             pages,
             loc_preds,
+            objectness_scores,
             assume_straight_pages=self.assume_straight_pages,
             assume_horizontal=self._page_orientation_disabled,
         )

@@ -149,9 +149,10 @@ class KIEPredictor(nn.Module, _KIEPredictor):
         # Crop images
         crops = {}
         for class_name in dict_loc_preds.keys():
-            crops[class_name], dict_loc_preds[class_name] = self._prepare_crops(
+            crops[class_name], dict_loc_preds[class_name], objectness_scores[class_name] = self._prepare_crops(
                 pages,
                 dict_loc_preds[class_name],
+                objectness_scores[class_name],
                 assume_straight_pages=self.assume_straight_pages,
                 assume_horizontal=self._page_orientation_disabled,
             )
