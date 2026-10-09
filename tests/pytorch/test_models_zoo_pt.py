@@ -156,6 +156,34 @@ def test_predictors_on_empty_batch(mock_vocab):
         assert out.export() == {"pages": []}
 
 
+@pytest.mark.parametrize("predictor_cls", [OCRPredictor, KIEPredictor])
+def test_predictors_keep_objectness_scores_aligned(predictor_cls):
+    # The middle box lies on the right border of the page: its crop is empty, so it is dropped before recognition
+    boxes = np.array(
+        [[0.1, 0.1, 0.3, 0.2, 0.9], [1.0, 0.5, 1.0, 0.6, 0.1], [0.5, 0.1, 0.7, 0.2, 0.8]],
+        dtype=np.float32,
+    )
+
+    class _FixedDetPredictor(nn.Module):
+        def forward(self, pages, **kwargs):
+            return [{CLASS_NAME: boxes.copy()} for _ in pages]
+
+    class _DummyRecoPredictor(nn.Module):
+        def forward(self, crops, **kwargs):
+            return [(f"word{idx}", 1.0) for idx in range(len(crops))]
+
+    predictor = predictor_cls(_FixedDetPredictor(), _DummyRecoPredictor(), assume_straight_pages=True)
+    page = predictor([np.full((100, 200, 3), 255, dtype=np.uint8)]).pages[0]
+    if predictor_cls is KIEPredictor:
+        words = page.predictions[CLASS_NAME]
+    else:
+        words = [word for block in page.blocks for line in block.lines for word in line.words]
+
+    # Each remaining word keeps the objectness score of its own box
+    assert [word.geometry[0][0] for word in words] == pytest.approx([0.1, 0.5])
+    assert [word.objectness_score for word in words] == pytest.approx([0.9, 0.8])
+
+
 def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=2),

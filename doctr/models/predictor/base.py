@@ -180,9 +180,10 @@ class _OCRPredictor:
     def _prepare_crops(
         pages: list[np.ndarray],
         loc_preds: list[np.ndarray],
+        objectness_scores: list[np.ndarray],
         assume_straight_pages: bool = False,
         assume_horizontal: bool = False,
-    ) -> tuple[list[list[np.ndarray]], list[np.ndarray]]:
+    ) -> tuple[list[list[np.ndarray]], list[np.ndarray], list[np.ndarray]]:
         crops = _OCRPredictor._generate_crops(pages, loc_preds, assume_straight_pages, assume_horizontal)
 
         # Avoid sending zero-sized crops
@@ -192,8 +193,10 @@ class _OCRPredictor:
             for page_crops, page_kept in zip(crops, is_kept)
         ]
         loc_preds = [_boxes[_kept] for _boxes, _kept in zip(loc_preds, is_kept)]
+        # Drop the scores of the discarded boxes too, so that each kept box keeps its own score
+        objectness_scores = [_scores[_kept] for _scores, _kept in zip(objectness_scores, is_kept)]
 
-        return crops, loc_preds
+        return crops, loc_preds, objectness_scores
 
     def _rectify_crops(
         self,
