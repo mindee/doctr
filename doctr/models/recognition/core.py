@@ -7,6 +7,11 @@
 import numpy as np
 
 from doctr.datasets import encode_sequences
+from doctr.models._utils import (
+    ConfidenceAggregation,
+    _confidence_aggregation_repr,
+    _resolve_confidence_aggregation,
+)
 from doctr.utils.repr import NestedObject
 
 __all__ = ["RecognitionPostProcessor", "RecognitionModel"]
@@ -41,14 +46,22 @@ class RecognitionPostProcessor(NestedObject):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: aggregation method of the character probabilities into the word confidence:
+            "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a callable
     """
 
     def __init__(
         self,
         vocab: str,
+        confidence_aggregation: ConfidenceAggregation = "mean",
     ) -> None:
+        _resolve_confidence_aggregation(confidence_aggregation)
         self.vocab = vocab
+        self.confidence_aggregation = confidence_aggregation
         self._embedding = list(self.vocab) + ["<eos>"]
 
     def extra_repr(self) -> str:
-        return f"vocab_size={len(self.vocab)}"
+        return (
+            f"vocab_size={len(self.vocab)}, "
+            f"confidence_aggregation={_confidence_aggregation_repr(self.confidence_aggregation)}"
+        )

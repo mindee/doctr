@@ -5,15 +5,16 @@
 
 from collections.abc import Callable
 from copy import deepcopy
-from itertools import groupby
 from typing import Any
 
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from doctr.datasets import VOCABS, decode_sequence
 
+from ..._utils import ConfidenceAggregation, aggregate_confidence
 from ...classification import mobilenet_v3_large_r, mobilenet_v3_small_r, vgg16_bn_r
 from ...utils import load_pretrained_params
 from ..core import RecognitionModel, RecognitionPostProcessor
@@ -50,13 +51,22 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: aggregation method of the character probabilities into the word confidence
     """
+
+    def __init__(
+        self,
+        vocab: str,
+        confidence_aggregation: ConfidenceAggregation = "min",
+    ) -> None:
+        super().__init__(vocab, confidence_aggregation)
 
     @staticmethod
     def ctc_best_path(
         logits: torch.Tensor,
         vocab: str = VOCABS["french"],
         blank: int = 0,
+        confidence_aggregation: ConfidenceAggregation = "min",
     ) -> list[tuple[str, float]]:
         """Implements best path decoding as shown by Graves (Dissertation, p63), highly inspired from
         <https://github.com/githubharald/CTCDecoder>`_.
@@ -65,18 +75,27 @@ class CTCPostProcessor(RecognitionPostProcessor):
             logits: model output, shape: N x T x C
             vocab: vocabulary to use
             blank: index of blank label
+            confidence_aggregation: aggregation method of the character probabilities into the word confidence
 
         Returns:
             A list of tuples: (word, confidence)
         """
-        # Gather the most confident characters, and assign the smallest conf among those to the sequence prob
-        probs = F.softmax(logits, dim=-1).max(dim=-1).values.min(dim=1).values
+        best_paths = logits.argmax(dim=-1).detach().cpu().numpy()
+        probs = F.softmax(logits.float(), dim=-1).max(dim=-1).values.detach().cpu().numpy()
 
-        # collapse best path (using itertools.groupby), map to chars, join char list to string
-        best_paths = torch.argmax(logits, dim=-1).detach().cpu().numpy()
-        words = [decode_sequence([k for k, _ in groupby(seq.tolist()) if k != blank], vocab) for seq in best_paths]
+        results = []
+        for path, path_probs in zip(best_paths, probs):
+            # Collapse the repeated labels: the probability of a character is the highest one within its run
+            run_starts = np.flatnonzero(np.r_[True, path[1:] != path[:-1]])
+            labels, label_probs = path[run_starts], np.maximum.reduceat(path_probs, run_starts)
+            # Remove the blanks
+            is_char = labels != blank
+            results.append((
+                decode_sequence(labels[is_char].tolist(), vocab),
+                aggregate_confidence(label_probs[is_char], confidence_aggregation),
+            ))
 
-        return list(zip(words, probs.tolist()))
+        return results
 
     def __call__(self, logits: torch.Tensor) -> list[tuple[str, float]]:
         """Performs decoding of raw output with CTC and decoding of CTC predictions
@@ -90,7 +109,12 @@ class CTCPostProcessor(RecognitionPostProcessor):
 
         """
         # Decode CTC
-        return self.ctc_best_path(logits=logits, vocab=self.vocab, blank=len(self.vocab))
+        return self.ctc_best_path(
+            logits=logits,
+            vocab=self.vocab,
+            blank=len(self.vocab),
+            confidence_aggregation=self.confidence_aggregation,
+        )
 
 
 class CRNN(RecognitionModel, nn.Module):
@@ -103,6 +127,7 @@ class CRNN(RecognitionModel, nn.Module):
         rnn_units: number of units in the LSTM layers
         exportable: onnx exportable returns only logits
         cfg: configuration dictionary
+        confidence_aggregation: aggregation method of the character probabilities into the word confidence
     """
 
     _children_names: list[str] = ["feat_extractor", "decoder", "linear", "postprocessor"]
@@ -115,6 +140,7 @@ class CRNN(RecognitionModel, nn.Module):
         input_shape: tuple[int, int, int] = (3, 32, 128),
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
+        confidence_aggregation: ConfidenceAggregation = "min",
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -139,7 +165,7 @@ class CRNN(RecognitionModel, nn.Module):
         # features units = 2 * rnn_units because bidirectional layers
         self.linear = nn.Linear(in_features=2 * rnn_units, out_features=len(vocab) + 1)
 
-        self.postprocessor = CTCPostProcessor(vocab=vocab)
+        self.postprocessor = CTCPostProcessor(vocab=vocab, confidence_aggregation=confidence_aggregation)
 
         for n, m in self.named_modules():
             # Don't override the initialization of the backbone

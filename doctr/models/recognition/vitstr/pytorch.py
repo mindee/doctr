@@ -14,6 +14,7 @@ from torchvision.models._utils import IntermediateLayerGetter
 
 from doctr.datasets import VOCABS
 
+from ..._utils import ConfidenceAggregation, aggregate_confidence
 from ...classification import vit_b, vit_s
 from ...utils import _bf16_to_float32, load_pretrained_params
 from .base import _ViTSTR, _ViTSTRPostProcessor
@@ -51,6 +52,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         input_shape: input shape of the image
         exportable: onnx exportable returns only logits
         cfg: dictionary containing information about the model
+        confidence_aggregation: aggregation method of the character probabilities into the word confidence
     """
 
     def __init__(
@@ -62,6 +64,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         input_shape: tuple[int, int, int] = (3, 32, 128),  # different from paper
         exportable: bool = False,
         cfg: dict[str, Any] | None = None,
+        confidence_aggregation: ConfidenceAggregation = "mean",
     ) -> None:
         super().__init__()
         self.vocab = vocab
@@ -72,7 +75,7 @@ class ViTSTR(_ViTSTR, nn.Module):
         self.feat_extractor = feature_extractor
         self.head = nn.Linear(embedding_units, len(self.vocab) + 1)  # +1 for EOS
 
-        self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab)
+        self.postprocessor = ViTSTRPostProcessor(vocab=self.vocab, confidence_aggregation=confidence_aggregation)
 
     def from_pretrained(self, path_or_url: str, **kwargs: Any) -> None:
         """Load pretrained parameters onto the model
@@ -181,9 +184,10 @@ class ViTSTRPostProcessor(_ViTSTRPostProcessor):
             "".join(self._embedding[idx] for idx in encoded_seq).split("<eos>")[0]
             for encoded_seq in out_idxs.detach().cpu().numpy()
         ]
-        # compute probabilties for each word up to the EOS token
+        # aggregate the character probabilities of each word up to the EOS token
         probs = [
-            float(preds_prob[i, : len(word)].clip(0, 1).mean()) if word else 0.0 for i, word in enumerate(word_values)
+            aggregate_confidence(preds_prob[i, : len(word)], self.confidence_aggregation)
+            for i, word in enumerate(word_values)
         ]
 
         return list(zip(word_values, probs))

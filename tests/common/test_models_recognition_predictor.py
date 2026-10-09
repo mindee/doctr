@@ -125,3 +125,13 @@ def test_invalid_split_overlap_ratio(split_overlap_ratio):
             target_ratio=4,
             split_overlap_ratio=split_overlap_ratio,
         )
+
+
+@pytest.mark.parametrize(
+    "confidence_aggregation, conf",
+    [("min", 0.1), ("mean", 0.5), ("geometric_mean", 0.3), (lambda confs: 0.42, 0.42)],
+)
+def test_remap_preds_confidence_aggregation(confidence_aggregation, conf):
+    # The empty part is ignored for the confidence
+    preds = [("hellowo", 0.9), ("", 0.0), ("loworld", 0.1)]
+    assert remap_preds(preds, [(0, 3, 0.5)], 0.5, confidence_aggregation) == [("helloworld", pytest.approx(conf))]

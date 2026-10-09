@@ -698,6 +698,42 @@ This is useful to detect (possible less) text regions more accurately with a hig
     out = predictor([input_page])
 
 
+* Modify how the word confidences are aggregated.
+
+The character probabilities of the recognition model are aggregated into the word confidence with `"mean"`, `"min"`,
+`"max"`, `"median"`, `"geometric_mean"`, `"harmonic_mean"` or a Python callable taking the
+1D array of probabilities and returning a float. The default is `"min"` for the CRNN, VIPTR, SAR and MASTER models and
+`"mean"` for the ViTSTR and PARSeq models.
+A mean can hide a single uncertain character: for `[0.99, 0.98, 0.12, 0.99]`, the mean is `0.77`, the geometric mean
+`0.58`, the harmonic mean `0.35` and the minimum `0.12`. `"max"` and `"median"` ignore most uncertain characters, so
+they hardly separate the misread words from the correct ones.
+
+Only the probabilities of the predicted characters are aggregated: the CTC blank frames (CRNN, VIPTR) and the
+positions from the end-of-sequence token onwards (SAR, MASTER) are ignored, a CTC character has the highest
+probability of its frames, and an empty prediction has a confidence of `0`. The parts of a split wide crop are
+aggregated with the `split_confidence_aggregation` of the recognition predictor (`"min"` by default).
+
+Pass `confidence_aggregation` to `ocr_predictor`, `kie_predictor` or `recognition_predictor` (a model instance passed
+to them is modified), or change it afterwards on the postprocessor of the recognition model.
+
+.. code:: python3
+
+    from doctr.models import ocr_predictor, parseq
+
+    # Aggregate the character probabilities into the word confidence with the mean
+    predictor = ocr_predictor(pretrained=True, confidence_aggregation="mean")
+
+    # Or modify the aggregation method of the recognition model afterwards
+    predictor = ocr_predictor('db_resnet50', 'crnn_vgg16_bn', pretrained=True)
+    predictor.reco_predictor.model.postprocessor.confidence_aggregation = "geometric_mean"
+
+    # Modify the aggregation of the confidences of the parts of a split wide crop
+    predictor.reco_predictor.split_confidence_aggregation = "mean"
+
+    # Or set it when instantiating a model
+    predictor = ocr_predictor('db_resnet50', parseq(pretrained=True, confidence_aggregation="min"), pretrained=True)
+
+
 * Disable page orientation classification
 
 If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.

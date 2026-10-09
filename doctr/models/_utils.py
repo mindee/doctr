@@ -4,17 +4,21 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 import heapq
-from math import floor
+from collections.abc import Callable, Sequence
+from math import floor, isnan
 from statistics import median_low
-from typing import Any
+from typing import Any, Literal, TypeAlias
 
 import cv2
 import numpy as np
+import torch
 from langdetect import LangDetectException, detect_langs
 
 from doctr.utils.geometry import rotate_image
 
 __all__ = [
+    "ConfidenceAggregation",
+    "aggregate_confidence",
     "estimate_orientation",
     "get_language",
     "invert_data_structure",
@@ -22,6 +26,89 @@ __all__ = [
     "rectify_crops",
     "rectify_loc_preds",
 ]
+
+ConfidenceAggregation: TypeAlias = (
+    Literal["mean", "min", "max", "median", "geometric_mean", "harmonic_mean"] | Callable[[np.ndarray], float]
+)
+
+
+def _geometric_mean(scores: np.ndarray) -> float:
+    # numerically stable form of prod(scores) ** (1 / N), a zero score yields 0
+    with np.errstate(divide="ignore"):
+        return float(np.exp(np.mean(np.log(scores, dtype=np.float64))))
+
+
+def _harmonic_mean(scores: np.ndarray) -> float:
+    # a zero score yields 0
+    with np.errstate(divide="ignore"):
+        return float(scores.size / np.sum(1.0 / scores.astype(np.float64)))
+
+
+_CONFIDENCE_AGGREGATIONS: dict[str, Callable[[np.ndarray], Any]] = {
+    "mean": np.mean,
+    "min": np.min,
+    "max": np.max,
+    "median": np.median,
+    "geometric_mean": _geometric_mean,
+    "harmonic_mean": _harmonic_mean,
+}
+
+
+def _resolve_confidence_aggregation(method: ConfidenceAggregation) -> Callable[[np.ndarray], Any]:
+    """Return the function of a confidence aggregation method, raise a `ValueError` if it is unknown"""
+    if isinstance(method, torch.nn.Module):
+        raise ValueError(
+            f"Unsupported confidence aggregation {type(method).__name__}: "
+            f"expected a Python callable or one of {list(_CONFIDENCE_AGGREGATIONS)}"
+        )
+    if callable(method):
+        return method
+    # the type check comes first: an unhashable value (e.g. a list) can not be looked up
+    if not isinstance(method, str) or method not in _CONFIDENCE_AGGREGATIONS:
+        raise ValueError(
+            f"Unknown confidence aggregation {method!r}, expected a callable or one of {list(_CONFIDENCE_AGGREGATIONS)}"
+        )
+    return _CONFIDENCE_AGGREGATIONS[method]
+
+
+def _confidence_aggregation_repr(method: ConfidenceAggregation) -> str:
+    """Return the name of a confidence aggregation method to display it in a `repr`"""
+    return repr(method) if isinstance(method, str) else getattr(method, "__name__", type(method).__name__)
+
+
+def aggregate_confidence(
+    scores: np.ndarray | Sequence[float],
+    method: ConfidenceAggregation = "mean",
+) -> float:
+    """Aggregate several scores (e.g. the character probabilities of a word) into a single confidence score
+
+    >>> from doctr.models._utils import aggregate_confidence
+    >>> aggregate_confidence([0.99, 0.98, 0.12, 0.99], "min")
+    0.12
+
+    Available methods:
+        - "mean": arithmetic mean, a single low score can be hidden by many high ones
+        - "min": the lowest score, a single low score is enough to lower the confidence
+        - "max": the highest score
+        - "median": the median score, robust to outliers
+        - "geometric_mean": `exp(mean(log(scores)))`, i.e. the exponential of the average log-probability
+        - "harmonic_mean": strongly penalizes low scores
+        - a Python callable taking the 1D array of scores and returning a float
+
+    Args:
+        scores: the scores to aggregate, expected in [0, 1]
+        method: the aggregation method
+
+    Returns:
+        the aggregated confidence clipped to [0, 1], 0 if there is no score or if the aggregation is NaN (e.g. a
+        callable averaging an empty selection)
+    """
+    aggregate = _resolve_confidence_aggregation(method)
+    scores = np.asarray(scores).ravel()
+    if scores.size == 0:
+        return 0.0
+    value = float(np.asarray(aggregate(scores)).squeeze())
+    return 0.0 if isnan(value) else min(max(value, 0.0), 1.0)
 
 
 def get_max_width_length_ratio(contour: np.ndarray) -> float:

@@ -9,10 +9,12 @@ import torch
 
 from doctr.io import DocumentFile
 from doctr.models import recognition
+from doctr.models.preprocessor import PreProcessor
 from doctr.models.recognition.crnn.pytorch import CTCPostProcessor
 from doctr.models.recognition.master.pytorch import MASTERPostProcessor
 from doctr.models.recognition.parseq.pytorch import PARSeqPostProcessor
 from doctr.models.recognition.predictor import RecognitionPredictor
+from doctr.models.recognition.predictor._utils import split_crops
 from doctr.models.recognition.sar.pytorch import SARPostProcessor
 from doctr.models.recognition.viptr.pytorch import VIPTRPostProcessor
 from doctr.models.recognition.vitstr.pytorch import ViTSTRPostProcessor
@@ -84,7 +86,122 @@ def test_reco_postprocessors(post_processor, input_shape, mock_vocab):
     assert len(decoded) == input_shape[0]
     assert all(char in mock_vocab for word, _ in decoded for char in word)
     # Repr
-    assert repr(processor) == f"{post_processor.__name__}(vocab_size={len(mock_vocab)})"
+    default = "mean" if post_processor in (ViTSTRPostProcessor, PARSeqPostProcessor) else "min"
+    assert repr(processor) == (
+        f"{post_processor.__name__}(vocab_size={len(mock_vocab)}, confidence_aggregation={default!r})"
+    )
+    assert "confidence_aggregation=<lambda>" in repr(post_processor(mock_vocab, confidence_aggregation=lambda p: 1.0))
+
+
+def _logits(probs: list[list[float]], num_classes: int) -> torch.Tensor:
+    probs_ = torch.zeros((1, len(probs), num_classes))
+    probs_[0, :, : len(probs[0])] = torch.tensor(probs)
+    return probs_.clamp_min(1e-9).log()
+
+
+@pytest.mark.parametrize(
+    "confidence_aggregation, ctc_conf, attention_conf",
+    [
+        ("mean", 0.75, 0.7),
+        ("min", 0.6, 0.5),
+        ("geometric_mean", 0.54**0.5, 0.45**0.5),
+        (lambda probs: 1.0, 1.0, 1.0),
+    ],
+)
+@pytest.mark.parametrize(
+    "post_processor, num_classes",
+    [
+        [CTCPostProcessor, 4],
+        [VIPTRPostProcessor, 4],
+        [SARPostProcessor, 4],
+        [ViTSTRPostProcessor, 5],
+        [MASTERPostProcessor, 6],
+        [PARSeqPostProcessor, 6],
+    ],
+)
+def test_reco_postprocessors_confidence_aggregation(
+    post_processor, num_classes, confidence_aggregation, ctc_conf, attention_conf
+):
+    processor = post_processor("abc", confidence_aggregation=confidence_aggregation)
+    if post_processor in (CTCPostProcessor, VIPTRPostProcessor):
+        # "a a <blank> b b <blank>": a character probability is the highest one within its run, blanks are ignored
+        probs = [[0.5, 0.2, 0.1, 0.2], [0.9, 0.05, 0.0, 0.05], [0.1, 0.1, 0.1, 0.7], [0.1, 0.4, 0.2, 0.3]]
+        probs += [[0.2, 0.6, 0.1, 0.1], [0.0, 0.0, 0.0, 1.0]]
+        word, conf = processor(_logits(probs, num_classes))[0]
+        assert (word, conf) == ("ab", pytest.approx(ctc_conf, abs=1e-5))
+    else:
+        # "a b <eos> a": the probabilities after the <eos> token are ignored
+        probs = [[0.9, 0.05, 0.03, 0.02], [0.1, 0.5, 0.2, 0.2], [0.1, 0.1, 0.1, 0.7], [0.4, 0.2, 0.2, 0.2]]
+        word, conf = processor(_logits(probs, num_classes))[0]
+        assert (word, conf) == ("ab", pytest.approx(attention_conf, abs=1e-5))
+    # Empty word
+    assert processor(_logits([[0.1, 0.1, 0.1, 0.7]] * 3, num_classes)) == [("", 0.0)]
+    for invalid in ["average", ["mean"], None]:
+        with pytest.raises(ValueError, match="Unknown confidence aggregation"):
+            post_processor("abc", confidence_aggregation=invalid)
+
+
+class _MockRecoModel(torch.nn.Module):
+    """Recognition model returning a predefined confidence for each crop it receives"""
+
+    def __init__(self, confidences: list[float], postprocessor=None) -> None:
+        super().__init__()
+        self.dummy = torch.nn.Parameter(torch.zeros(1))
+        self.confidences = confidences
+        if postprocessor is not None:
+            self.postprocessor = postprocessor
+
+    def forward(self, x: torch.Tensor, return_preds: bool = False, **kwargs):
+        return {"preds": [("ab", conf) for conf in self.confidences[: x.shape[0]]]}
+
+
+@pytest.mark.parametrize(
+    "postprocessor",
+    [
+        # The aggregation of the split parts is independent from the one of the character probabilities
+        CTCPostProcessor("abc", confidence_aggregation="max"),
+        PARSeqPostProcessor("abc"),
+        # A custom model does not have to provide a postprocessor with a confidence aggregation
+        None,
+    ],
+)
+def test_recognition_predictor_split_confidence_aggregation(postprocessor):
+    confidences = [0.9, 0.2, 0.7, 0.8, 0.6, 0.5]
+    predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        _MockRecoModel(confidences, postprocessor),
+    )
+    # A wide crop split into several parts
+    wide_crop = np.zeros((32, 32 * 20, 3), dtype=np.uint8)
+    num_parts = len(split_crops([wide_crop], predictor.critical_ar, predictor.target_ar, predictor.overlap_ratio)[0])
+    assert 2 <= num_parts <= len(confidences)
+    confidences = confidences[:num_parts]
+
+    # The lowest confidence of the parts by default
+    assert predictor.split_confidence_aggregation == "min"
+    assert predictor([wide_crop])[0][1] == pytest.approx(min(confidences))
+    predictor.split_confidence_aggregation = "mean"
+    assert predictor([wide_crop])[0][1] == pytest.approx(np.mean(confidences))
+    predictor.split_confidence_aggregation = lambda confs: float(confs.max())
+    assert predictor([wide_crop])[0][1] == pytest.approx(max(confidences))
+    # A crop which is not split keeps the confidence of the model
+    assert predictor([np.zeros((32, 128, 3), dtype=np.uint8)]) == [("ab", confidences[0])]
+    # An invalid method is rejected at the first call, even without a crop to split
+    predictor = RecognitionPredictor(
+        PreProcessor(output_size=(32, 128), batch_size=32, preserve_aspect_ratio=True),
+        _MockRecoModel(confidences, postprocessor),
+    )
+    predictor.split_confidence_aggregation = "average"
+    with pytest.raises(ValueError, match="Unknown confidence aggregation"):
+        predictor([np.zeros((32, 128, 3), dtype=np.uint8)])
+
+
+@pytest.mark.parametrize(
+    "arch_name", ["crnn_mobilenet_v3_small", "sar_resnet31", "master", "vitstr_small", "parseq", "viptr_tiny"]
+)
+def test_recognition_models_confidence_aggregation(arch_name, mock_vocab):
+    model = recognition.__dict__[arch_name](vocab=mock_vocab, pretrained_backbone=False, confidence_aggregation="max")
+    assert model.postprocessor.confidence_aggregation == "max"
 
 
 @pytest.mark.parametrize(

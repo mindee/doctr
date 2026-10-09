@@ -88,6 +88,7 @@ def test_parse_args_defaults():
     assert args.device == "auto"
     assert args.bin_thresh is None
     assert args.box_thresh is None
+    assert args.confidence_aggregation is None
     assert args.assume_straight_pages is True
     assert args.straighten_pages is False
     assert args.preserve_aspect_ratio is True
@@ -192,6 +193,8 @@ def test_parse_args_advanced_options():
         "--paragraph_break",
         "0.1",
         "--keep_reading_order",
+        "--confidence_aggregation",
+        "geometric_mean",
         "--direction",
         "rtl",
         "--indent",
@@ -211,6 +214,7 @@ def test_parse_args_advanced_options():
     assert args.resolve_blocks is True
     assert args.paragraph_break == 0.1
     assert args.keep_reading_order is True
+    assert args.confidence_aggregation == "geometric_mean"
     assert args.direction == "rtl"
     assert args.indent == 2
     assert args.quiet is True
@@ -233,6 +237,7 @@ def test_parse_args_version(capsys):
         ["--bin_thresh", "1.5"],
         ["--box_thresh", "-0.1"],
         ["--bin_thresh", "high"],
+        ["--confidence_aggregation", "average"],
     ],
 )
 def test_parse_args_invalid_values(argv):
@@ -416,6 +421,8 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "4",
         "--reco_bs",
         "64",
+        "--confidence_aggregation",
+        "geometric_mean",
         "--detect_orientation",
         "--detect_language",
         "--detect_layout",
@@ -450,6 +457,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
         "detect_tables": True,
         "det_bs": 4,
         "reco_bs": 64,
+        "confidence_aggregation": "geometric_mean",
         "disable_page_orientation": True,
         "disable_crop_orientation": True,
         "preserve_original_coords": True,
@@ -465,6 +473,7 @@ def test_build_predictor_forwards_every_option(recorded_predictor):
     assert model.table_predictor is not None
     assert model.det_predictor.pre_processor.batch_size == 4
     assert model.reco_predictor.pre_processor.batch_size == 64
+    assert model.reco_predictor.model.postprocessor.confidence_aggregation == "geometric_mean"
 
     builder = model.doc_builder
     assert (builder.resolve_lines, builder.resolve_blocks, builder.paragraph_break) == (False, True, 0.1)

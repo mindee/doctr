@@ -6,7 +6,13 @@ import pytest
 import requests
 
 from doctr.io import reader
-from doctr.models._utils import estimate_orientation, get_language, invert_data_structure, mask_boxes
+from doctr.models._utils import (
+    aggregate_confidence,
+    estimate_orientation,
+    get_language,
+    invert_data_structure,
+    mask_boxes,
+)
 from doctr.utils import geometry
 
 
@@ -142,3 +148,40 @@ def test_convert_list_dict():
 
     assert converted_dic == tar_dict
     assert converted_list == dic
+
+
+@pytest.mark.parametrize(
+    "method, expected",
+    [
+        ("mean", 0.77),
+        ("min", 0.12),
+        ("max", 0.99),
+        ("median", 0.985),
+        ("geometric_mean", 0.5827),
+        ("harmonic_mean", 0.3517),
+        (lambda scores: float(np.percentile(scores, 25)), 0.765),
+    ],
+)
+def test_aggregate_confidence(method, expected):
+    # One uncertain character among confident ones
+    scores = np.array([0.99, 0.98, 0.12, 0.99], dtype=np.float32)
+    assert aggregate_confidence(scores, method) == pytest.approx(expected, abs=1e-4)
+    assert aggregate_confidence(scores.tolist(), method) == pytest.approx(expected, abs=1e-4)
+    assert aggregate_confidence(scores.reshape(2, 2), method) == pytest.approx(expected, abs=1e-4)
+    assert aggregate_confidence([], method) == 0.0
+
+
+def test_aggregate_confidence_edge_cases():
+    # A zero score cancels the geometric and harmonic means
+    assert aggregate_confidence([0.0, 0.9], "geometric_mean") == 0.0
+    assert aggregate_confidence([0.0, 0.9], "harmonic_mean") == 0.0
+    # The result is clipped to [0, 1]
+    assert aggregate_confidence([0.5], lambda scores: -1.0) == 0.0
+    assert aggregate_confidence([0.5], lambda scores: 2.0) == 1.0
+    # A NaN aggregation (e.g. the mean of an empty selection) counts as no confidence, a 1-element array is accepted
+    assert aggregate_confidence([0.4, 0.5], lambda scores: np.mean(scores[scores > 0.6])) == 0.0
+    assert aggregate_confidence([0.4, 0.5], lambda scores: np.quantile(scores, [0.5])) == pytest.approx(0.45)
+    # Invalid methods, including values which are not hashable
+    for invalid in ["average", ["mean"], {"mean"}, None, 1]:
+        with pytest.raises(ValueError, match="Unknown confidence aggregation"):
+            aggregate_confidence([0.5], invalid)
