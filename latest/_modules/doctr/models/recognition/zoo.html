@@ -301,6 +301,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">_CompiledModule</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">..</span><span class="w"> </span><span class="kn">import</span> <span class="n">recognition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfidenceAggregation</span><span class="p">,</span> <span class="n">_resolve_confidence_aggregation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">RecognitionPredictor</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"recognition_predictor"</span><span class="p">]</span>
@@ -319,7 +320,15 @@
 <span class="p">]</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_predictor</span><span class="p">(</span>
+    <span class="n">arch</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+    <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+    <span class="n">confidence_aggregation</span><span class="p">:</span> <span class="n">ConfidenceAggregation</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">confidence_aggregation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_resolve_confidence_aggregation</span><span class="p">(</span><span class="n">confidence_aggregation</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arch</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">arch</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ARCHS</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture '</span><span class="si">{</span><span class="n">arch</span><span class="si">}</span><span class="s2">'"</span><span class="p">)</span>
@@ -343,6 +352,9 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"unknown architecture: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">arch</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
         <span class="n">_model</span> <span class="o">=</span> <span class="n">arch</span>
 
+    <span class="k">if</span> <span class="n">confidence_aggregation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">confidence_aggregation</span> <span class="o">=</span> <span class="n">confidence_aggregation</span>
+
     <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"pretrained_backbone"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="n">kwargs</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"mean"</span><span class="p">,</span> <span class="n">_model</span><span class="o">.</span><span class="n">cfg</span><span class="p">[</span><span class="s2">"mean"</span><span class="p">])</span>
@@ -361,6 +373,7 @@
     <span class="n">pretrained</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">symmetric_pad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">128</span><span class="p">,</span>
+    <span class="n">confidence_aggregation</span><span class="p">:</span> <span class="n">ConfidenceAggregation</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RecognitionPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""Text recognition architecture.</span>
@@ -376,12 +389,22 @@
 <span class="sd">        pretrained: If True, returns a model pre-trained on our text recognition dataset</span>
 <span class="sd">        symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right</span>
 <span class="sd">        batch_size: number of samples the model processes in parallel</span>
+<span class="sd">        confidence_aggregation: aggregation method of the character probabilities into the word confidence:</span>
+<span class="sd">            "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a callable. If None, the one of</span>
+<span class="sd">            the model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq by default)</span>
 <span class="sd">        **kwargs: optional parameters to be passed to the architecture</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">        Recognition predictor</span>
 <span class="sd">    """</span>
-    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span><span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span> <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">_predictor</span><span class="p">(</span>
+        <span class="n">arch</span><span class="o">=</span><span class="n">arch</span><span class="p">,</span>
+        <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
+        <span class="n">symmetric_pad</span><span class="o">=</span><span class="n">symmetric_pad</span><span class="p">,</span>
+        <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+        <span class="n">confidence_aggregation</span><span class="o">=</span><span class="n">confidence_aggregation</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span></div>
 
 </pre></div>
         </article>

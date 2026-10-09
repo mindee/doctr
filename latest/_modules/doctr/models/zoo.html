@@ -297,6 +297,7 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">._utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfidenceAggregation</span><span class="p">,</span> <span class="n">_resolve_confidence_aggregation</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.detection.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">detection_predictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.kie_predictor</span><span class="w"> </span><span class="kn">import</span> <span class="n">KIEPredictor</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.layout.zoo</span><span class="w"> </span><span class="kn">import</span> <span class="n">layout_predictor</span>
@@ -324,8 +325,13 @@
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">detect_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">confidence_aggregation</span><span class="p">:</span> <span class="n">ConfidenceAggregation</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">confidence_aggregation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Fail before building the models</span>
+        <span class="n">_resolve_confidence_aggregation</span><span class="p">(</span><span class="n">confidence_aggregation</span><span class="p">)</span>
+
     <span class="c1"># Detection</span>
     <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
         <span class="n">det_arch</span><span class="p">,</span>
@@ -343,6 +349,7 @@
         <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
         <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">,</span>
+        <span class="n">confidence_aggregation</span><span class="o">=</span><span class="n">confidence_aggregation</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># Layout - required for table detection, so build it whenever layout or tables are requested</span>
@@ -407,6 +414,7 @@
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="n">detect_tables</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">confidence_aggregation</span><span class="p">:</span> <span class="n">ConfidenceAggregation</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OCRPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""End-to-end OCR architecture using one model for localization, and another for text recognition.</span>
@@ -450,6 +458,11 @@
 <span class="sd">            structure model. Words falling inside a detected table are regrouped into a structured table</span>
 <span class="sd">            (accessible via `page.tables`) and removed from the regular text output. This enables the layout</span>
 <span class="sd">            model and slightly deteriorates the overall latency.</span>
+<span class="sd">        confidence_aggregation: aggregation method of the character probabilities of the recognition model into the</span>
+<span class="sd">            word confidence: "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a Python callable</span>
+<span class="sd">            taking the 1D array of probabilities and returning a float. If None (default), the method of the</span>
+<span class="sd">            recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).</span>
+<span class="sd">            A recognition model instance passed as `reco_arch` is modified.</span>
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
@@ -471,6 +484,7 @@
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
         <span class="n">detect_tables</span><span class="o">=</span><span class="n">detect_tables</span><span class="p">,</span>
         <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
+        <span class="n">confidence_aggregation</span><span class="o">=</span><span class="n">confidence_aggregation</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 
@@ -492,8 +506,13 @@
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">confidence_aggregation</span><span class="p">:</span> <span class="n">ConfidenceAggregation</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEPredictor</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">confidence_aggregation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Fail before building the models</span>
+        <span class="n">_resolve_confidence_aggregation</span><span class="p">(</span><span class="n">confidence_aggregation</span><span class="p">)</span>
+
     <span class="c1"># Detection</span>
     <span class="n">det_predictor</span> <span class="o">=</span> <span class="n">detection_predictor</span><span class="p">(</span>
         <span class="n">det_arch</span><span class="p">,</span>
@@ -511,6 +530,7 @@
         <span class="n">pretrained</span><span class="o">=</span><span class="n">pretrained</span><span class="p">,</span>
         <span class="n">pretrained_backbone</span><span class="o">=</span><span class="n">pretrained_backbone</span><span class="p">,</span>
         <span class="n">batch_size</span><span class="o">=</span><span class="n">reco_bs</span><span class="p">,</span>
+        <span class="n">confidence_aggregation</span><span class="o">=</span><span class="n">confidence_aggregation</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># Layout - optional</span>
@@ -559,6 +579,7 @@
     <span class="n">detect_layout</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">layout_arch</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="s2">"lw_detr_s"</span><span class="p">,</span>
     <span class="n">ignore_regions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">confidence_aggregation</span><span class="p">:</span> <span class="n">ConfidenceAggregation</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">KIEPredictor</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">"""End-to-end KIE architecture using one model for localization, and another for text recognition.</span>
@@ -598,6 +619,11 @@
 <span class="sd">        ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the</span>
 <span class="sd">            layout model will be used to locate the regions of the specified classes, and these regions will</span>
 <span class="sd">            be masked out (filled with black) before passing the pages to the detection/recognition modules.</span>
+<span class="sd">        confidence_aggregation: aggregation method of the character probabilities of the recognition model into the</span>
+<span class="sd">            word confidence: "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a Python callable</span>
+<span class="sd">            taking the 1D array of probabilities and returning a float. If None (default), the method of the</span>
+<span class="sd">            recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).</span>
+<span class="sd">            A recognition model instance passed as `reco_arch` is modified.</span>
 <span class="sd">        kwargs: keyword args of `OCRPredictor`</span>
 
 <span class="sd">    Returns:</span>
@@ -618,6 +644,7 @@
         <span class="n">detect_layout</span><span class="o">=</span><span class="n">detect_layout</span><span class="p">,</span>
         <span class="n">layout_arch</span><span class="o">=</span><span class="n">layout_arch</span><span class="p">,</span>
         <span class="n">ignore_regions</span><span class="o">=</span><span class="n">ignore_regions</span><span class="p">,</span>
+        <span class="n">confidence_aggregation</span><span class="o">=</span><span class="n">confidence_aggregation</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
     <span class="p">)</span></div>
 

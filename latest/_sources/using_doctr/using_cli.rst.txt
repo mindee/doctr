@@ -47,6 +47,7 @@ The CLI supports a variety of arguments to fine-tune the detection, recognition 
 * ``--reco_bs``: Batch size used for the recognition model. *Default: 128*
 * ``--bin_thresh``: Binarization threshold of the detection post-processing. *Default: the value of the architecture*
 * ``--box_thresh``: Minimum confidence of a detected box. *Default: the value of the architecture*
+* ``--confidence_aggregation``: Aggregation method of the character probabilities into the word confidence, one of ``mean``, ``min``, ``max``, ``median``, ``geometric_mean``, ``harmonic_mean``. *Default: the method of the recognition architecture*
 * ``--detect_orientation``: Enables automatic detection of page orientation. *Default: False*
 * ``--detect_language``: Enables language detection for the extracted text. *Default: False*
 * ``--detect_layout``: Attaches the detected layout regions to each page. *Default: False*

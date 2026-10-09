@@ -1182,6 +1182,38 @@ recognized tables, and to place the page furniture (headers, footers, footnotes)
 </pre></div>
 </div>
 <ul class="simple">
+<li><p>Modify how the word confidences are aggregated.</p></li>
+</ul>
+<p>The character probabilities of the recognition model are aggregated into the word confidence with <cite>“mean”</cite>, <cite>“min”</cite>,
+<cite>“max”</cite>, <cite>“median”</cite>, <cite>“geometric_mean”</cite>, <cite>“harmonic_mean”</cite> or a Python callable taking the
+1D array of probabilities and returning a float. The default is <cite>“min”</cite> for the CRNN, VIPTR, SAR and MASTER models and
+<cite>“mean”</cite> for the ViTSTR and PARSeq models.
+A mean can hide a single uncertain character: for <cite>[0.99, 0.98, 0.12, 0.99]</cite>, the mean is <cite>0.77</cite>, the geometric mean
+<cite>0.58</cite>, the harmonic mean <cite>0.35</cite> and the minimum <cite>0.12</cite>. <cite>“max”</cite> and <cite>“median”</cite> ignore most uncertain characters, so
+they hardly separate the misread words from the correct ones.</p>
+<p>Only the probabilities of the predicted characters are aggregated: the CTC blank frames (CRNN, VIPTR) and the
+positions from the end-of-sequence token onwards (SAR, MASTER) are ignored, a CTC character has the highest
+probability of its frames, and an empty prediction has a confidence of <cite>0</cite>. The parts of a split wide crop are
+aggregated with the <cite>split_confidence_aggregation</cite> of the recognition predictor (<cite>“min”</cite> by default).</p>
+<p>Pass <cite>confidence_aggregation</cite> to <cite>ocr_predictor</cite>, <cite>kie_predictor</cite> or <cite>recognition_predictor</cite> (a model instance passed
+to them is modified), or change it afterwards on the postprocessor of the recognition model.</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">doctr.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ocr_predictor</span><span class="p">,</span> <span class="n">parseq</span>
+
+<span class="c1"># Aggregate the character probabilities into the word confidence with the mean</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">confidence_aggregation</span><span class="o">=</span><span class="s2">"mean"</span><span class="p">)</span>
+
+<span class="c1"># Or modify the aggregation method of the recognition model afterwards</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="s1">'crnn_vgg16_bn'</span><span class="p">,</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">postprocessor</span><span class="o">.</span><span class="n">confidence_aggregation</span> <span class="o">=</span> <span class="s2">"geometric_mean"</span>
+
+<span class="c1"># Modify the aggregation of the confidences of the parts of a split wide crop</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">reco_predictor</span><span class="o">.</span><span class="n">split_confidence_aggregation</span> <span class="o">=</span> <span class="s2">"mean"</span>
+
+<span class="c1"># Or set it when instantiating a model</span>
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">ocr_predictor</span><span class="p">(</span><span class="s1">'db_resnet50'</span><span class="p">,</span> <span class="n">parseq</span><span class="p">(</span><span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">confidence_aggregation</span><span class="o">=</span><span class="s2">"min"</span><span class="p">),</span> <span class="n">pretrained</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<ul class="simple">
 <li><p>Disable page orientation classification</p></li>
 </ul>
 <p>If you deal with documents which contains only small rotations (~ -45 to 45 degrees), you can disable the page orientation classification to speed up the inference.</p>
