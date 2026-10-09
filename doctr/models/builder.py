@@ -555,6 +555,7 @@ class DocumentBuilder(NestedObject):
                         row_end=int(cell["row_end"]),
                         col_start=int(cell["col_start"]),
                         col_end=int(cell["col_end"]),
+                        objectness_score=float(cell["score"]),
                     )
                 )
 
@@ -565,7 +566,7 @@ class DocumentBuilder(NestedObject):
             table_geometry: Any = (
                 ((xmin, ymin), (xmax, ymax)) if straight else ((xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax))
             )
-            table_confidence = float(np.mean([cell["score"] for cell in cells]))
+            table_confidence = float(np.mean([float(cell["score"]) for cell in cells]))
 
             tables_out.append(
                 Table(

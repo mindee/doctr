@@ -566,6 +566,38 @@ def test_sort_boxes_degenerate_heights():
     assert sorted(np.asarray(idxs).tolist()) == [0, 1]
 
 
+def test_documentbuilder_table_cell_scores():
+    # Each cell keeps the score of the table structure model, next to the recognition confidence of its words
+    doc_builder = builder.DocumentBuilder()
+    boxes = np.array([[0.15, 0.14, 0.19, 0.16], [0.34, 0.14, 0.38, 0.16]], dtype=np.float32)
+    table = {
+        "cells": [
+            _table_cell(0.10, 0.10, 0.25, 0.20, 0, 0, 0, 0, score=0.8),
+            _table_cell(0.28, 0.10, 0.45, 0.20, 0, 0, 1, 1, score=0.6),
+            # no word inside this cell
+            _table_cell(0.10, 0.22, 0.25, 0.32, 1, 1, 0, 0, score=0.4),
+        ],
+        "num_rows": 2,
+        "num_cols": 2,
+    }
+    out = doc_builder(
+        [np.zeros((100, 100, 3))],
+        [boxes],
+        [np.array([0.9, 0.9])],
+        [[("Name", 0.95), ("Age", 0.85)]],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 2],
+        tables=[table],
+    )
+    cells = out.pages[0].tables[0].cells
+    assert [cell.value for cell in cells] == ["Name", "Age", ""]
+    assert [cell.objectness_score for cell in cells] == [0.8, 0.6, 0.4]
+    assert [cell.confidence for cell in cells] == pytest.approx([0.95, 0.85, 0.4])
+    assert out.pages[0].tables[0].confidence == pytest.approx(0.6)
+    exported = out.pages[0].export()["tables"][0]["cells"]
+    assert [cell["objectness_score"] for cell in exported] == [0.8, 0.6, 0.4]
+
+
 def test_documentbuilder_tables_empty_cells():
     # A table prediction with no cells (e.g. a false-positive "Table" region where the table model
     # finds nothing) must not crash the document build
