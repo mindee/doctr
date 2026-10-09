@@ -487,13 +487,15 @@
 
 <span class="sd">    Args:</span>
 <span class="sd">        value: the text content of the cell (words assigned to the cell, joined together)</span>
-<span class="sd">        confidence: the mean recognition confidence of the words assigned to the cell</span>
+<span class="sd">        confidence: the mean recognition confidence of the words assigned to the cell (its `objectness_score` if</span>
+<span class="sd">            no word is assigned to it)</span>
 <span class="sd">        geometry: bounding box of the cell in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon,</span>
 <span class="sd">            with coordinates relative to the page's size</span>
 <span class="sd">        row_start: index of the first row spanned by the cell (0-indexed)</span>
 <span class="sd">        row_end: index of the last row spanned by the cell (0-indexed, inclusive)</span>
 <span class="sd">        col_start: index of the first column spanned by the cell (0-indexed)</span>
 <span class="sd">        col_end: index of the last column spanned by the cell (0-indexed, inclusive)</span>
+<span class="sd">        objectness_score: the score of the cell predicted by the table structure model, None if unknown</span>
 <span class="sd">    """</span>
 
     <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
@@ -504,6 +506,7 @@
         <span class="s2">"row_end"</span><span class="p">,</span>
         <span class="s2">"col_start"</span><span class="p">,</span>
         <span class="s2">"col_end"</span><span class="p">,</span>
+        <span class="s2">"objectness_score"</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="n">_children_names</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -516,6 +519,7 @@
         <span class="n">row_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">col_start</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="n">col_end</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">objectness_score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">value</span>
@@ -525,6 +529,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">row_end</span> <span class="o">=</span> <span class="n">row_end</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_start</span> <span class="o">=</span> <span class="n">col_start</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">col_end</span> <span class="o">=</span> <span class="n">col_end</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectness_score</span> <span class="o">=</span> <span class="n">objectness_score</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">row_span</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
@@ -545,8 +550,9 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_dict</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">save_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span><span class="p">}</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># `objectness_score` is missing from the exports of earlier versions</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">save_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_exported_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="s2">"objectness_score"</span><span class="p">}</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">objectness_score</span><span class="o">=</span><span class="n">save_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"objectness_score"</span><span class="p">))</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">Table</span><span class="p">(</span><span class="n">Element</span><span class="p">):</span>
@@ -561,7 +567,7 @@
 <span class="sd">        num_rows: number of rows of the table</span>
 <span class="sd">        num_cols: number of columns of the table</span>
 <span class="sd">        geometry: bounding box enclosing the whole table, with coordinates relative to the page's size</span>
-<span class="sd">        confidence: the confidence of the table structure prediction</span>
+<span class="sd">        confidence: the confidence of the table structure prediction (mean of the `objectness_score` of its cells)</span>
 <span class="sd">    """</span>
 
     <span class="n">_exported_keys</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"geometry"</span><span class="p">,</span> <span class="s2">"num_rows"</span><span class="p">,</span> <span class="s2">"num_cols"</span><span class="p">,</span> <span class="s2">"confidence"</span><span class="p">]</span>
