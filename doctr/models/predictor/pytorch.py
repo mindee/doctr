@@ -152,10 +152,6 @@ class OCRPredictor(nn.Module, _OCRPredictor):
         # Detach objectness scores from loc_preds
         loc_preds, objectness_scores = detach_scores(loc_preds)
 
-        # Apply hooks to loc_preds if any
-        for hook in self.hooks:
-            loc_preds = hook(loc_preds)
-
         # Crop images
         crops, loc_preds, objectness_scores = self._prepare_crops(
             pages,
@@ -164,6 +160,11 @@ class OCRPredictor(nn.Module, _OCRPredictor):
             assume_straight_pages=self.assume_straight_pages,
             assume_horizontal=self._page_orientation_disabled,
         )
+
+        # Apply hooks to loc_preds if any
+        for hook in self.hooks:
+            loc_preds = hook(loc_preds)
+
         # Rectify crop orientation and get crop orientation predictions
         crop_orientations: Any = []
         if not self.assume_straight_pages:

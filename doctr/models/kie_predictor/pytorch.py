@@ -142,10 +142,6 @@ class KIEPredictor(nn.Module, _KIEPredictor):
             dict_loc_preds[class_name] = _loc_preds
             objectness_scores[class_name] = _scores
 
-        # Apply hooks to loc_preds if any
-        for hook in self.hooks:
-            dict_loc_preds = hook(dict_loc_preds)
-
         # Crop images
         crops = {}
         for class_name in dict_loc_preds.keys():
@@ -156,6 +152,11 @@ class KIEPredictor(nn.Module, _KIEPredictor):
                 assume_straight_pages=self.assume_straight_pages,
                 assume_horizontal=self._page_orientation_disabled,
             )
+
+        # Apply hooks to loc_preds if any
+        for hook in self.hooks:
+            dict_loc_preds = hook(dict_loc_preds)
+
         # Rectify crop orientation
         crop_orientations: Any = {}
         if not self.assume_straight_pages:
