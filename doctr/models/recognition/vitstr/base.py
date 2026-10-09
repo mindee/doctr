@@ -7,6 +7,7 @@
 import numpy as np
 
 from ....datasets import encode_sequences
+from ..._utils import ConfidenceAggregation
 from ..core import RecognitionPostProcessor
 
 
@@ -43,11 +44,13 @@ class _ViTSTRPostProcessor(RecognitionPostProcessor):
 
     Args:
         vocab: string containing the ordered sequence of supported characters
+        confidence_aggregation: aggregation method of the character probabilities into the word confidence
     """
 
     def __init__(
         self,
         vocab: str,
+        confidence_aggregation: ConfidenceAggregation = "mean",
     ) -> None:
-        super().__init__(vocab)
+        super().__init__(vocab, confidence_aggregation)
         self._embedding = list(vocab) + ["<eos>", "<sos>"]

@@ -5,6 +5,7 @@
 
 from typing import Any
 
+from ._utils import ConfidenceAggregation, _resolve_confidence_aggregation
 from .detection.zoo import detection_predictor
 from .kie_predictor import KIEPredictor
 from .layout.zoo import layout_predictor
@@ -32,8 +33,13 @@ def _predictor(
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
     detect_tables: bool = False,
+    confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs,
 ) -> OCRPredictor:
+    if confidence_aggregation is not None:
+        # Fail before building the models
+        _resolve_confidence_aggregation(confidence_aggregation)
+
     # Detection
     det_predictor = detection_predictor(
         det_arch,
@@ -51,6 +57,7 @@ def _predictor(
         pretrained=pretrained,
         pretrained_backbone=pretrained_backbone,
         batch_size=reco_bs,
+        confidence_aggregation=confidence_aggregation,
     )
 
     # Layout - required for table detection, so build it whenever layout or tables are requested
@@ -113,6 +120,7 @@ def ocr_predictor(
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
     detect_tables: bool = False,
+    confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs: Any,
 ) -> OCRPredictor:
     """End-to-end OCR architecture using one model for localization, and another for text recognition.
@@ -156,6 +164,11 @@ def ocr_predictor(
             structure model. Words falling inside a detected table are regrouped into a structured table
             (accessible via `page.tables`) and removed from the regular text output. This enables the layout
             model and slightly deteriorates the overall latency.
+        confidence_aggregation: aggregation method of the character probabilities of the recognition model into the
+            word confidence: "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a Python callable
+            taking the 1D array of probabilities and returning a float. If None (default), the method of the
+            recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).
+            A recognition model instance passed as `reco_arch` is modified.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -177,6 +190,7 @@ def ocr_predictor(
         layout_arch=layout_arch,
         detect_tables=detect_tables,
         ignore_regions=ignore_regions,
+        confidence_aggregation=confidence_aggregation,
         **kwargs,
     )
 
@@ -197,8 +211,13 @@ def _kie_predictor(
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
+    confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs,
 ) -> KIEPredictor:
+    if confidence_aggregation is not None:
+        # Fail before building the models
+        _resolve_confidence_aggregation(confidence_aggregation)
+
     # Detection
     det_predictor = detection_predictor(
         det_arch,
@@ -216,6 +235,7 @@ def _kie_predictor(
         pretrained=pretrained,
         pretrained_backbone=pretrained_backbone,
         batch_size=reco_bs,
+        confidence_aggregation=confidence_aggregation,
     )
 
     # Layout - optional
@@ -262,6 +282,7 @@ def kie_predictor(
     detect_layout: bool = False,
     layout_arch: Any = "lw_detr_s",
     ignore_regions: list[str] | None = None,
+    confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs: Any,
 ) -> KIEPredictor:
     """End-to-end KIE architecture using one model for localization, and another for text recognition.
@@ -301,6 +322,11 @@ def kie_predictor(
         ignore_regions: optional list of layout class names to ignore during detection/recognition. If provided, the
             layout model will be used to locate the regions of the specified classes, and these regions will
             be masked out (filled with black) before passing the pages to the detection/recognition modules.
+        confidence_aggregation: aggregation method of the character probabilities of the recognition model into the
+            word confidence: "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a Python callable
+            taking the 1D array of probabilities and returning a float. If None (default), the method of the
+            recognition model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq).
+            A recognition model instance passed as `reco_arch` is modified.
         kwargs: keyword args of `OCRPredictor`
 
     Returns:
@@ -321,5 +347,6 @@ def kie_predictor(
         detect_layout=detect_layout,
         layout_arch=layout_arch,
         ignore_regions=ignore_regions,
+        confidence_aggregation=confidence_aggregation,
         **kwargs,
     )

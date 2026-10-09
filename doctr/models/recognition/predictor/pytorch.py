@@ -10,6 +10,7 @@ import numpy as np
 import torch
 from torch import nn
 
+from doctr.models._utils import ConfidenceAggregation, _resolve_confidence_aggregation
 from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import set_device_and_dtype
 
@@ -40,6 +41,7 @@ class RecognitionPredictor(nn.Module):
         self.critical_ar = 8  # Critical aspect ratio
         self.overlap_ratio = 0.5  # Ratio of overlap between neighboring crops
         self.target_ar = 6  # Target aspect ratio
+        self.split_confidence_aggregation: ConfidenceAggregation = "min"  # Confidence aggregation for split crops
 
     @torch.inference_mode()
     def forward(
@@ -49,6 +51,7 @@ class RecognitionPredictor(nn.Module):
     ) -> list[tuple[str, float]]:
         if len(crops) == 0:
             return []
+        _resolve_confidence_aggregation(self.split_confidence_aggregation)
         # Dimension check
         if any(crop.ndim != 3 for crop in crops):
             raise ValueError("incorrect input shape: all crops are expected to be multi-channel 2D images.")
@@ -80,6 +83,6 @@ class RecognitionPredictor(nn.Module):
 
         # Remap crops
         if self.split_wide_crops and remapped:
-            out = remap_preds(out, crop_map, self.overlap_ratio)
+            out = remap_preds(out, crop_map, self.overlap_ratio, self.split_confidence_aggregation)
 
         return out
