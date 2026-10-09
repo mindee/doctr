@@ -9,6 +9,7 @@ from doctr.models.preprocessor import PreProcessor
 from doctr.models.utils import _CompiledModule
 
 from .. import recognition
+from .._utils import ConfidenceAggregation, _resolve_confidence_aggregation
 from .predictor import RecognitionPredictor
 
 __all__ = ["recognition_predictor"]
@@ -27,7 +28,15 @@ ARCHS: list[str] = [
 ]
 
 
-def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredictor:
+def _predictor(
+    arch: Any,
+    pretrained: bool,
+    confidence_aggregation: ConfidenceAggregation | None = None,
+    **kwargs: Any,
+) -> RecognitionPredictor:
+    if confidence_aggregation is not None:
+        _resolve_confidence_aggregation(confidence_aggregation)
+
     if isinstance(arch, str):
         if arch not in ARCHS:
             raise ValueError(f"unknown architecture '{arch}'")
@@ -51,6 +60,9 @@ def _predictor(arch: Any, pretrained: bool, **kwargs: Any) -> RecognitionPredict
             raise ValueError(f"unknown architecture: {type(arch)}")
         _model = arch
 
+    if confidence_aggregation is not None:
+        _model.postprocessor.confidence_aggregation = confidence_aggregation
+
     kwargs.pop("pretrained_backbone", None)
 
     kwargs["mean"] = kwargs.get("mean", _model.cfg["mean"])
@@ -67,6 +79,7 @@ def recognition_predictor(
     pretrained: bool = False,
     symmetric_pad: bool = False,
     batch_size: int = 128,
+    confidence_aggregation: ConfidenceAggregation | None = None,
     **kwargs: Any,
 ) -> RecognitionPredictor:
     """Text recognition architecture.
@@ -82,9 +95,19 @@ def recognition_predictor(
         pretrained: If True, returns a model pre-trained on our text recognition dataset
         symmetric_pad: if True, pad the image symmetrically instead of padding at the bottom-right
         batch_size: number of samples the model processes in parallel
+        confidence_aggregation: aggregation method of the character probabilities into the word confidence:
+            "mean", "min", "max", "median", "geometric_mean", "harmonic_mean" or a callable. If None, the one of
+            the model is kept ("min" for CRNN, VIPTR, SAR and MASTER, "mean" for ViTSTR and PARSeq by default)
         **kwargs: optional parameters to be passed to the architecture
 
     Returns:
         Recognition predictor
     """
-    return _predictor(arch=arch, pretrained=pretrained, symmetric_pad=symmetric_pad, batch_size=batch_size, **kwargs)
+    return _predictor(
+        arch=arch,
+        pretrained=pretrained,
+        symmetric_pad=symmetric_pad,
+        batch_size=batch_size,
+        confidence_aggregation=confidence_aggregation,
+        **kwargs,
+    )
