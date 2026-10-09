@@ -11,7 +11,6 @@ from typing import Any, Literal, TypeAlias
 
 import cv2
 import numpy as np
-import torch
 from langdetect import LangDetectException, detect_langs
 
 from doctr.utils.geometry import rotate_image
@@ -56,11 +55,6 @@ _CONFIDENCE_AGGREGATIONS: dict[str, Callable[[np.ndarray], Any]] = {
 
 def _resolve_confidence_aggregation(method: ConfidenceAggregation) -> Callable[[np.ndarray], Any]:
     """Return the function of a confidence aggregation method, raise a `ValueError` if it is unknown"""
-    if isinstance(method, torch.nn.Module):
-        raise ValueError(
-            f"Unsupported confidence aggregation {type(method).__name__}: "
-            f"expected a Python callable or one of {list(_CONFIDENCE_AGGREGATIONS)}"
-        )
     if callable(method):
         return method
     # the type check comes first: an unhashable value (e.g. a list) can not be looked up
