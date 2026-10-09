@@ -298,11 +298,21 @@ def test_table_cell():
         "row_end": 1,
         "col_start": 2,
         "col_end": 2,
+        "objectness_score": None,
     }
 
     # Class method
     cell2 = elements.TableCell.from_dict(cell.export())
     assert cell2.export() == cell.export()
+
+    # Score of the table structure model
+    cell = elements.TableCell("hello", 0.9, geom, 0, 1, 2, 2, objectness_score=0.8)
+    assert cell.objectness_score == 0.8
+    assert cell.export()["objectness_score"] == 0.8
+    assert elements.TableCell.from_dict(cell.export()).objectness_score == 0.8
+    # Exports of earlier versions have no objectness_score
+    legacy = {k: v for k, v in cell.export().items() if k != "objectness_score"}
+    assert elements.TableCell.from_dict(legacy).objectness_score is None
 
 
 def _mock_table():

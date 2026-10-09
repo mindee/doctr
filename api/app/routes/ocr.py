@@ -54,6 +54,9 @@ async def perform_ocr(request: OCRIn = Depends(), files: list[UploadFile] = [Fil
                             row_end=cell.row_end,
                             col_start=cell.col_start,
                             col_end=cell.col_end,
+                            objectness_score=(
+                                None if cell.objectness_score is None else round(cell.objectness_score, 2)
+                            ),
                         )
                         for cell in table.cells
                     ],

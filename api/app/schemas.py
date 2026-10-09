@@ -148,6 +148,7 @@ class TableCellOut(BaseModel):
     row_end: int = Field(..., examples=[0])
     col_start: int = Field(..., examples=[0])
     col_end: int = Field(..., examples=[0])
+    objectness_score: float | None = Field(..., examples=[0.99])
 
 
 class TableOut(BaseModel):
@@ -166,6 +167,7 @@ class TableOut(BaseModel):
                 "row_end": 0,
                 "col_start": 0,
                 "col_end": 0,
+                "objectness_score": 0.99,
             }
         ],
     )
@@ -198,6 +200,7 @@ class OCROut(BaseModel):
                             "row_end": 0,
                             "col_start": 0,
                             "col_end": 0,
+                            "objectness_score": 0.99,
                         }
                     ],
                 }

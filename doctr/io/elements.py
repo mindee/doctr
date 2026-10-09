@@ -186,13 +186,15 @@ class TableCell(Element):
 
     Args:
         value: the text content of the cell (words assigned to the cell, joined together)
-        confidence: the mean recognition confidence of the words assigned to the cell
+        confidence: the mean recognition confidence of the words assigned to the cell (its `objectness_score` if
+            no word is assigned to it)
         geometry: bounding box of the cell in format ((xmin, ymin), (xmax, ymax)) or a (4, 2) polygon,
             with coordinates relative to the page's size
         row_start: index of the first row spanned by the cell (0-indexed)
         row_end: index of the last row spanned by the cell (0-indexed, inclusive)
         col_start: index of the first column spanned by the cell (0-indexed)
         col_end: index of the last column spanned by the cell (0-indexed, inclusive)
+        objectness_score: the score of the cell predicted by the table structure model, None if unknown
     """
 
     _exported_keys: list[str] = [
@@ -203,6 +205,7 @@ class TableCell(Element):
         "row_end",
         "col_start",
         "col_end",
+        "objectness_score",
     ]
     _children_names: list[str] = []
 
@@ -215,6 +218,7 @@ class TableCell(Element):
         row_end: int,
         col_start: int,
         col_end: int,
+        objectness_score: float | None = None,
     ) -> None:
         super().__init__()
         self.value = value
@@ -224,6 +228,7 @@ class TableCell(Element):
         self.row_end = row_end
         self.col_start = col_start
         self.col_end = col_end
+        self.objectness_score = objectness_score
 
     @property
     def row_span(self) -> int:
@@ -244,8 +249,9 @@ class TableCell(Element):
 
     @classmethod
     def from_dict(cls, save_dict: dict[str, Any], **kwargs):
-        kwargs = {k: save_dict[k] for k in cls._exported_keys}
-        return cls(**kwargs)
+        # `objectness_score` is missing from the exports of earlier versions
+        kwargs = {k: save_dict[k] for k in cls._exported_keys if k != "objectness_score"}
+        return cls(**kwargs, objectness_score=save_dict.get("objectness_score"))
 
 
 class Table(Element):
@@ -260,7 +266,7 @@ class Table(Element):
         num_rows: number of rows of the table
         num_cols: number of columns of the table
         geometry: bounding box enclosing the whole table, with coordinates relative to the page's size
-        confidence: the confidence of the table structure prediction
+        confidence: the confidence of the table structure prediction (mean of the `objectness_score` of its cells)
     """
 
     _exported_keys: list[str] = ["geometry", "num_rows", "num_cols", "confidence"]

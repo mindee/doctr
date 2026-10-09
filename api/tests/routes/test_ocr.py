@@ -1,6 +1,8 @@
 import numpy as np
 import pytest
 
+from doctr.io.elements import Document, Page, Table, TableCell
+
 
 def common_test(json_response, expected_response):
     first_pred = json_response[0]  # it's enough to test for the first file because the same image is used twice
@@ -120,6 +122,26 @@ async def test_ocr_tables(test_app_asyncio, mock_detection_image):
             assert isinstance(cell["confidence"], (int, float))
             assert len(cell["geometry"]) in (4, 8)
             assert all(isinstance(cell[k], int) for k in ("row_start", "row_end", "col_start", "col_end"))
+            assert isinstance(cell["objectness_score"], (int, float))
+
+
+@pytest.mark.asyncio
+async def test_ocr_table_cells(test_app_asyncio, mock_detection_image, monkeypatch):
+    # The score of each cell of the table structure model is returned (None for the cells without a score)
+    geometry = ((0.1, 0.1), (0.5, 0.2))
+    cells = [
+        TableCell("a", 0.9, geometry, 0, 0, 0, 0, objectness_score=0.8123),
+        TableCell("", 0.4, geometry, 0, 0, 1, 1),
+    ]
+    table = Table(cells, num_rows=1, num_cols=2, geometry=((0.1, 0.1), (0.9, 0.2)), confidence=0.8123)
+    doc = Document([Page(np.zeros((100, 100, 3), dtype=np.uint8), [], 0, (100, 100), tables=[table])])
+    monkeypatch.setattr("app.routes.ocr.init_predictor", lambda request: lambda pages: doc)
+
+    files = [("files", ("test.jpg", mock_detection_image, "image/jpeg"))]
+    response = await test_app_asyncio.post("/ocr", files=files, headers={"accept": "application/json"})
+    assert response.status_code == 200
+    out_cells = response.json()[0]["tables"][0]["cells"]
+    assert [cell["objectness_score"] for cell in out_cells] == [0.81, None]
 
 
 @pytest.mark.asyncio
