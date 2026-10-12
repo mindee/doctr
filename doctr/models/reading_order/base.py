@@ -44,6 +44,10 @@ _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
 _FURNITURE_ROLES = ("header", "footer", "footnote")
 
+# Label suffix of the text lying in a float region without float element (e.g. 'Table text' for the text of a table
+# region without table structure): it is ordered and grouped like body text, but moved after a region like a float
+_FLOAT_TEXT_SUFFIX = " text"
+
 
 def normalize_layout_label(label: str | None) -> str:
     """Normalize a layout label to lower snake case (e.g. 'Page-header' -> 'page_header')
@@ -80,6 +84,17 @@ def layout_label_role(label: str | None) -> str:
     if norm in _FLOAT_LABELS:
         return "float"
     return "body"
+
+
+def _float_text_label(label: str) -> str:
+    """Return the label of a text element lying in a float region (e.g. 'Table' -> 'Table text')"""
+    return f"{label}{_FLOAT_TEXT_SUFFIX}"
+
+
+def _is_float_text(label: str | None) -> bool:
+    """Check whether a label is the one of a text element lying in a float region (cf. `_float_text_label`)"""
+    norm = normalize_layout_label(label)
+    return any(norm == normalize_layout_label(_float_text_label(float_label)) for float_label in _FLOAT_LABELS)
 
 
 def detect_text_direction(texts: Iterable[str], language: str | None = None) -> str:
@@ -215,6 +230,16 @@ def _topological_order(
     same_row = y_overlap > y_overlap_threshold
     same_row &= ~x_linked
     same_row &= x_rank[:, None] < x_rank[None, :]  # i is on the left of j
+    # An element belongs to the row it overlaps the most: an element shifted between two rows (e.g. an amount on a
+    # crumpled receipt) must not wait for the element on the left of the next row. Only the elements of another row
+    # than its best partner are dropped: a slightly lower cell of its own row is still read before it.
+    best_left = np.max(y_overlap, axis=0, where=same_row, initial=0.0)
+    weak_i, weak_j = np.nonzero(same_row & (y_overlap < best_left[None, :] - 0.1))
+    if weak_i.size > 0:
+        cols = np.unique(weak_j)
+        best = np.argmax(np.where(same_row[:, cols], y_overlap[:, cols], -1.0), axis=0)
+        other_row = y_overlap[weak_i, best[np.searchsorted(cols, weak_j)]] <= y_overlap_threshold
+        same_row[weak_i[other_row], weak_j[other_row]] = False
     edges |= same_row
     del same_row
     np.fill_diagonal(edges, False)
@@ -375,7 +400,7 @@ def _defer_floats(
     inner = {idx for idcs in members.values() for idx in idcs}
 
     def _is_float(idx: int) -> bool:
-        return labels[idx] in _FLOAT_LABELS or idx in inner
+        return labels[idx] in _FLOAT_LABELS or _is_float_text(labels[idx]) or idx in inner
 
     out = list(order)
     pos = 0
@@ -656,12 +681,14 @@ def resolve_reading_segments(
     angle_geoms: Sequence[Any] | np.ndarray | None = None,
     column_voters: Sequence[bool] | None = None,
     region_groups: Sequence[int] | None = None,
+    row_gap: float = 1.5,
 ) -> list[list[int]]:
     """Order elements in reading order and group consecutive ones into segments (paragraphs or regions).
 
     This is typically used to regroup individual lines into paragraphs once they have been put in reading
     order: two consecutive elements are merged into the same segment when they share the same (possibly None)
-    layout label, belong to the same column and are vertically close enough.
+    layout label and layout region, and either belong to the same column and are vertically close enough, or
+    continue the same visual row (e.g. the fragments of a line split at a wide word gap).
 
     Args:
         geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)
@@ -682,7 +709,12 @@ def resolve_reading_segments(
             estimate the page angle on rotated pages (cf. `deskew_reading_geometries`)
         column_voters: optional mask of the elements used to detect a multi-column page (all by default)
         region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
-            a region as a unit and to read a float standing beside a region after it
+            a region as a unit, to read a float standing beside a region after it, and to keep distinct regions in
+            distinct segments
+        row_gap: maximum horizontal gap between two consecutive elements of the same visual row to belong to the
+            same segment, as a multiple of the median element height (pass `page_shape` along with relative
+            coordinates of a non-square page, so that both are measured in the same unit). It does not apply to two
+            elements of body text in the same layout region.
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -704,24 +736,52 @@ def resolve_reading_segments(
         return []
     canonical = _to_canonical_ltr(_to_boxes(geoms), direction)
     median_height = float(np.median(canonical[:, 3] - canonical[:, 1]))
+    # Relative coordinates distort the horizontal distances on non-square pages: scale them to the height unit
+    aspect = 1.0
+    if page_shape is not None and page_shape[0] > 0 and page_shape[1] > 0:
+        aspect = page_shape[0] / page_shape[1] if direction.startswith("ttb") else page_shape[1] / page_shape[0]
     norm_labels = [normalize_layout_label(labels[idx] if labels is not None else None) for idx in range(len(order))]
 
     segments: list[list[int]] = [[order[0]]]
+    # Extent of the trailing visual row of the current segment (the fragments of a line split at wide word gaps)
+    row = canonical[order[0]].copy()
     for prev, cur in zip(order[:-1], order[1:]):
-        x_gap = min(canonical[prev, 2], canonical[cur, 2]) - max(canonical[prev, 0], canonical[cur, 0])
-        x_overlap = x_gap / max(
-            min(canonical[prev, 2] - canonical[prev, 0], canonical[cur, 2] - canonical[cur, 0]), 1e-9
+        box = canonical[cur]
+        x_gap = min(row[2], box[2]) - max(row[0], box[0])
+        x_overlap = x_gap / max(min(row[2] - row[0], box[2] - box[0]), 1e-9)
+        y_inter = min(canonical[prev, 3], box[3]) - max(canonical[prev, 1], box[1])
+        y_overlap = y_inter / max(min(canonical[prev, 3] - canonical[prev, 1], box[3] - box[1]), 1e-9)
+        stacked = x_overlap > x_overlap_threshold and box[1] - row[3] <= paragraph_gap * median_height
+        same_region = region_groups is None or region_groups[prev] == region_groups[cur]
+        # The next element on the right in the same visual row, e.g. the remainder of a line split at a wide word gap
+        # (whatever the gap within a region of body text: the layout model already grouped both)
+        same_row = (
+            y_overlap > y_overlap_threshold
+            and box[0] > canonical[prev, 0]
+            and (
+                (box[0] - canonical[prev, 2]) * aspect <= row_gap * median_height
+                or (
+                    region_groups is not None
+                    and region_groups[cur] >= 0
+                    and same_region
+                    and layout_label_role(norm_labels[cur]) == "body"
+                )
+            )
         )
         same_segment = (
             norm_labels[prev] == norm_labels[cur]
             and layout_label_role(norm_labels[cur]) != "float"
-            and x_overlap > x_overlap_threshold
-            and canonical[cur, 1] - canonical[prev, 3] <= paragraph_gap * median_height
+            and same_region
+            and (stacked or same_row)
         )
         if same_segment:
             segments[-1].append(cur)
         else:
             segments.append([cur])
+        if same_segment and same_row and not stacked:
+            row = np.concatenate((np.minimum(row[:2], box[:2]), np.maximum(row[2:], box[2:])))
+        else:
+            row = box.copy()
     return segments
 
 
@@ -765,6 +825,42 @@ def assign_layout_labels(
         str(layout_labels[reg_idx]) if reg_idx >= 0 else None
         for reg_idx in _covering_regions(boxes, regions, min_coverage, layout_labels)
     ]
+
+
+def _region_groups(regions: np.ndarray, labels: Sequence[str | None], min_overlap: float = 0.1) -> list[int]:
+    """Group the overlapping layout regions of the same label
+
+    Layout models can return overlapping regions for a single paragraph (e.g. a second region over the part of a
+    paragraph wrapping around a figure), which must not split it.
+
+    Args:
+        regions: the (R, 4) boxes of the layout regions
+        labels: the label of each region
+        min_overlap: minimum intersection of two regions, relative to the area of the smaller one, to group them
+
+    Returns:
+        the group of each region (the index of one of the regions of the group)
+    """
+    norm = [normalize_layout_label(label) for label in labels]
+    areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+    parent = list(range(regions.shape[0]))
+
+    def _find(idx: int) -> int:
+        while parent[idx] != idx:
+            parent[idx] = parent[parent[idx]]
+            idx = parent[idx]
+        return idx
+
+    for i in range(regions.shape[0]):
+        for j in range(i + 1, regions.shape[0]):
+            if norm[i] != norm[j]:
+                continue
+            inter = max(min(regions[i, 2], regions[j, 2]) - max(regions[i, 0], regions[j, 0]), 0.0) * max(
+                min(regions[i, 3], regions[j, 3]) - max(regions[i, 1], regions[j, 1]), 0.0
+            )
+            if inter > min_overlap * min(areas[i], areas[j]):
+                parent[_find(i)] = _find(j)
+    return [_find(idx) for idx in range(regions.shape[0])]
 
 
 def _covering_regions(

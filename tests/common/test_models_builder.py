@@ -449,6 +449,163 @@ def test_resolve_lines(input_boxes, lines):
     assert doc_builder._resolve_lines(np.asarray(input_boxes)) == lines
 
 
+def test_resolve_lines_offset_columns():
+    # Two columns whose baselines are offset by half a line (scanned page): the right column line must not lose a
+    # word to the next line of the left column
+    boxes = [
+        [0.1422, 0.5908, 0.2472, 0.6045],  # 0-4: left column, "Nichttragende Wände bestehen aus Kalk-"
+        [0.261, 0.5898, 0.3176, 0.6035],
+        [0.3314, 0.5898, 0.3978, 0.6035],
+        [0.413, 0.5928, 0.4406, 0.6035],
+        [0.4558, 0.5889, 0.4972, 0.6035],
+        [0.1394, 0.6055, 0.2099, 0.6182],  # 5-10: left column, "sandstein oder Vollwanddielen bzw. aus stabilen"
+        [0.2126, 0.6064, 0.2486, 0.6172],
+        [0.2513, 0.6055, 0.366, 0.6191],
+        [0.3674, 0.6045, 0.4047, 0.6191],
+        [0.4074, 0.6084, 0.4364, 0.6191],
+        [0.4378, 0.6055, 0.4972, 0.6191],
+        [0.5539, 0.5811, 0.5953, 0.5957],  # 11-13: right column, "Holz- oder Stahlkonstruktion."
+        [0.5953, 0.5811, 0.634, 0.5947],
+        [0.634, 0.5811, 0.7694, 0.5977],
+        [0.5539, 0.5967, 0.6755, 0.6133],  # 14-18: right column, "Hauseingangstür als Holz-/Glaselement mit Si-/"
+        [0.6782, 0.5977, 0.6989, 0.6104],
+        [0.7045, 0.5977, 0.8426, 0.6113],
+        [0.844, 0.5977, 0.8758, 0.6133],
+        [0.8772, 0.5977, 0.9089, 0.6123],
+    ]
+    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes), (2480, 1753))
+    assert sorted(lines) == [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9, 10], [11, 12, 13], [14, 15, 16, 17, 18]]
+
+
+def test_resolve_lines_slanted_line():
+    # A line rising to the right (perspective) by twice its height stays a single line, in reading order
+    boxes = [[0.05 + 0.11 * i, 0.485 - 0.007 * i, 0.15 + 0.11 * i, 0.515 - 0.007 * i] for i in range(8)]
+    boxes += [[0.05 + 0.11 * i, 0.70, 0.15 + 0.11 * i, 0.73] for i in range(8)]
+    assert builder.DocumentBuilder()._resolve_lines(np.asarray(boxes)) == [list(range(8)), list(range(8, 16))]
+
+
+@pytest.mark.parametrize("slope", [0.0045, -0.0045])  # down / up to the right (about 2 degrees of skew)
+def test_resolve_lines_slanted_lines_with_tight_leading(slope):
+    # The next line starts before the end of the current one: its first word must not take the last words of the
+    # current line, although it is better aligned with them than their own (lagging) neighbors
+    boxes = [
+        [0.05 + 0.11 * i, y + slope * i, 0.15 + 0.11 * i, y + 0.03 + slope * i] for y in (0.30, 0.339) for i in range(8)
+    ]
+    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes))
+    assert sorted(lines) == [list(range(8)), list(range(8, 16))]
+
+
+def test_resolve_lines_level_rows_of_other_columns():
+    # 3 columns whose baselines are slightly offset: the words of the last column stay together, although each of
+    # them is level with the row of another column
+    boxes = [
+        [0.05, 0.190, 0.12, 0.210],  # 0-2: column A
+        [0.13, 0.190, 0.20, 0.210],
+        [0.21, 0.190, 0.26, 0.210],
+        [0.36, 0.2005, 0.44, 0.2205],  # 3-5: column B
+        [0.45, 0.2005, 0.50, 0.2205],
+        [0.51, 0.2005, 0.56, 0.2205],
+        [0.66, 0.194, 0.74, 0.214],  # 6-7: column C
+        [0.75, 0.197, 0.83, 0.217],
+    ]
+    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes))
+    assert sorted(lines) == [[0, 1, 2], [3, 4, 5], [6, 7]]
+
+
+def test_resolve_lines_layout_regions():
+    # 3 columns separated by gutters as narrow as the word gaps of the justified lines
+    boxes, regions = [], []
+    for col in range(3):
+        x0 = 0.02 + 0.33 * col
+        regions.append(((x0 - 0.01, 0.05), (x0 + 0.31, 0.95)))
+        for row in range(2):
+            for word in range(3):
+                boxes.append([x0 + 0.105 * word, 0.4 + 0.05 * row, x0 + 0.095 + 0.105 * word, 0.43 + 0.05 * row])
+    boxes = np.asarray(boxes)
+    doc_builder = builder.DocumentBuilder()
+    # Without layout, each row spans the 3 columns
+    assert len(doc_builder._resolve_lines(boxes)) == 2
+    # With a layout region per column, a line never spans two of them
+    word_regions = doc_builder._word_regions(boxes, regions, ["Text"] * 3)
+    lines = doc_builder._resolve_lines(boxes, word_regions=word_regions)
+    assert sorted(lines) == [[6 * col + 3 * row + word for word in range(3)] for col in range(3) for row in range(2)]
+    # Overlapping regions of the same label (duplicates of a layout model) are one region
+    overlapping = [((0.0, 0.0), (0.6, 1.0)), ((0.3, 0.0), (1.0, 1.0))]
+    assert (
+        len(doc_builder._resolve_lines(boxes, word_regions=doc_builder._word_regions(boxes, overlapping, ["Text"] * 2)))
+        == 2
+    )
+    # Words outside any region do not split a line
+    assert doc_builder._word_regions(boxes, [((0.5, 0.0), (0.6, 0.1))], ["Text"])[0].tolist() == [-1] * 18
+    # End to end
+    doc = doc_builder(
+        [np.zeros((100, 100, 3), dtype=np.uint8)],
+        [boxes],
+        [np.ones(18)],
+        [[("word", 0.9)] * 18],
+        [(100, 100)],
+        [[{"value": 0, "confidence": None}] * 18],
+        regions=[{"boxes": np.asarray([[*p0, *p1] for p0, p1 in regions]), "class_names": ["Text"] * 3}],
+    )
+    assert [len(line.words) for block in doc.pages[0].blocks for line in block.lines] == [3] * 6
+
+
+def test_resolve_lines_nested_and_short_regions():
+    doc_builder = builder.DocumentBuilder()
+    # A line of 8 words in a Text region, with a Picture box over its last word (or an inline Formula box)
+    boxes = np.asarray([[0.10 + 0.1 * i, 0.20, 0.18 + 0.1 * i, 0.23] for i in range(8)])
+    text = ((0.08, 0.18), (0.92, 0.40))
+    for nested in [((0.78, 0.15), (0.95, 0.24)), ((0.38, 0.19), (0.59, 0.24))]:
+        word_regions = doc_builder._word_regions(boxes, [text, nested], ["Text", "Picture"])
+        assert doc_builder._resolve_lines(boxes, word_regions=word_regions) == [list(range(8))]
+    # Two columns whose regions start slightly below the first line of the right column (its words are 46% covered)
+    boxes = np.asarray([[0.05 + 0.1 * i, 0.30, 0.13 + 0.1 * i, 0.33] for i in range(4)])
+    boxes = np.concatenate([boxes, boxes + [0.42, 0.0, 0.42, 0.0]])
+    regions = [((0.03, 0.28), (0.45, 0.9)), ((0.46, 0.3162), (0.89, 0.9))]
+    word_regions = doc_builder._word_regions(boxes, regions, ["Text", "Text"])
+    assert sorted(doc_builder._resolve_lines(boxes, word_regions=word_regions)) == [[0, 1, 2, 3], [4, 5, 6, 7]]
+
+
+def test_resolve_lines_small_paragraph_break():
+    # A table whose cells are separated by one word height: a small `paragraph_break` still splits the cells
+    boxes = []
+    for row in range(3):
+        x, y = 0.1, 0.3 + 0.03 * row
+        for _ in range(4):
+            for _ in range(2):
+                boxes.append([x, y, x + 0.05, y + 0.015])
+                x += 0.054
+            x += 0.011
+    shape = (2339, 1654)
+    assert len(builder.DocumentBuilder()._resolve_lines(np.asarray(boxes), shape)) == 3
+    assert len(builder.DocumentBuilder(paragraph_break=0.01)._resolve_lines(np.asarray(boxes), shape)) == 12
+
+
+def test_resolve_lines_large_type_on_a_narrow_page():
+    # Justified lines in large type on a narrow crop: a word gap wider than `paragraph_break` (relative to the page
+    # width) but smaller than a word height does not split the line
+    def _line(y, gaps):
+        x, boxes = 0.05, []
+        for gap in [0.0, *gaps]:
+            x += gap
+            boxes.append([x, y, x + 0.12, y + 0.04])
+            x += 0.12
+        return boxes
+
+    boxes = _line(0.10, [0.019, 0.019, 0.040, 0.019, 0.019]) + _line(0.16, [0.019] * 5) + _line(0.22, [0.019] * 5)
+    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes), (643, 468))
+    assert lines == [list(range(6)), list(range(6, 12)), list(range(12, 18))]
+    # The page-relative paragraph break still applies on a page with regular type
+    assert len(builder.DocumentBuilder()._resolve_lines(np.asarray(boxes) * [1, 0.2, 1, 0.2], (643, 468))) == 4
+
+
+def test_resolve_sub_lines_nested_box():
+    # A box nested in a wider one (e.g. a punctuation mark detected twice) must not inflate the gap to the next word
+    boxes = np.asarray([[0.10, 0.1, 0.30, 0.14], [0.25, 0.11, 0.26, 0.13], [0.32, 0.1, 0.45, 0.14]])
+    assert builder.DocumentBuilder()._resolve_sub_lines(boxes, [0, 1, 2], 0.05) == [[0, 1, 2]]
+    assert builder.DocumentBuilder()._resolve_sub_lines(boxes, [0, 1, 2], 0.01) == [[0, 1], [2]]
+
+
 def test_points_in_polygons():
     polys = np.array(
         [
