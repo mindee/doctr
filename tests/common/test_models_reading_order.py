@@ -11,6 +11,7 @@ from doctr.models.reading_order import (
     resolve_reading_segments,
     sort_reading_order,
 )
+from doctr.models.reading_order.base import _region_groups
 
 
 @pytest.mark.parametrize(
@@ -192,6 +193,81 @@ def test_resolve_reading_segments():
     boxes = _two_columns()
     assert resolve_reading_segments(boxes) == [[0, 1, 2, 3], [4, 5, 6, 7]]
     assert resolve_reading_segments([]) == []
+
+
+def test_resolve_reading_segments_rows_and_regions():
+    # The fragments of a line split at a wide word gap belong to the paragraph of that line
+    geoms = [((0.10, 0.10), (0.40, 0.13)), ((0.43, 0.10), (0.90, 0.13)), ((0.10, 0.14), (0.90, 0.17))]
+    assert resolve_reading_segments(geoms) == [[0, 1, 2]]
+    # but not two elements separated by a gutter
+    assert resolve_reading_segments([((0.10, 0.10), (0.40, 0.13)), ((0.48, 0.10), (0.90, 0.13))]) == [[0], [1]]
+    # The gap is measured in the unit of the element heights, relative coordinates of a wide page being stretched
+    geoms = [((0.10, 0.10), (0.40, 0.13)), ((0.44, 0.10), (0.90, 0.13))]
+    assert resolve_reading_segments(geoms) == [[0, 1]]
+    assert resolve_reading_segments(geoms, page_shape=(500, 1000)) == [[0], [1]]
+    # Distinct layout regions are distinct segments
+    geoms = [((0.1, 0.1), (0.9, 0.13)), ((0.1, 0.14), (0.9, 0.17))]
+    assert resolve_reading_segments(geoms, region_groups=[0, 0]) == [[0, 1]]
+    assert resolve_reading_segments(geoms, region_groups=[0, 1]) == [[0], [1]]
+
+
+def test_sort_reading_order_values_shifted_between_rows():
+    # Receipt totals on a crumpled page (pixels): each amount sits lower than its label and also overlaps the label of
+    # the next row, but it overlaps its own label the most
+    geoms = [((60, 1200 + 60 * i), (600, 1240 + 60 * i)) for i in range(3)]  # 0-2: full-width lines
+    geoms += [
+        ((114, 1376), (282, 1420)),  # 3: label
+        ((420, 1388), (520, 1431)),  # 4: its amount
+        ((112, 1408), (226, 1451)),  # 5: label
+        ((420, 1422), (520, 1465)),  # 6: its amount
+        ((110, 1445), (162, 1483)),  # 7: label
+        ((410, 1456), (520, 1502)),  # 8: its amount
+        ((110, 1481), (162, 1518)),  # 9: last label
+    ]
+    geoms += [((60, 1560 + 60 * i), (600, 1600 + 60 * i)) for i in range(2)]  # 10-11: full-width lines
+    assert sort_reading_order(geoms) == list(range(12))
+    # The cells of a single row are still read left to right when the middle one sits a little lower
+    row = [((100, 100), (200, 120)), ((300, 103), (400, 123)), ((500, 100), (600, 120))]
+    assert sort_reading_order(row) == [0, 1, 2]
+    assert sort_reading_order(row + [((100, 140), (200, 160)), ((300, 140), (400, 160))]) == [0, 1, 2, 3, 4]
+
+
+def test_region_groups():
+    regions = np.asarray([
+        [0.0, 0.0, 0.5, 0.5],  # 0
+        [0.3, 0.3, 0.6, 0.6],  # 1: overlaps 0 by 44% of its area
+        [0.7, 0.0, 0.9, 0.2],  # 2: disjoint
+        [0.0, 0.0, 0.5, 0.5],  # 3: same box as 0, other label
+    ])
+    groups = _region_groups(regions, ["Text", "Text", "Text", "Picture"])
+    assert groups[0] == groups[1] and len({groups[0], groups[2], groups[3]}) == 3
+    # A small overlap does not group
+    assert len(set(_region_groups(regions[:2], ["Text"] * 2, min_overlap=0.5))) == 2
+
+
+def test_resolve_reading_segments_row_then_next_line():
+    # A line split into 3 fragments (words missed by the detection), then the short last line of its paragraph,
+    # then 2 more paragraphs (pixels)
+    boxes = [
+        [46, 30, 731, 70],
+        [769, 36, 819, 70],
+        [857, 31, 1233, 68],
+        [41, 89, 125, 121],
+        [42, 245, 1199, 288],
+        [39, 288, 1208, 338],
+        [41, 459, 774, 502],
+        [825, 457, 1236, 500],
+        [41, 518, 1208, 558],
+        [39, 576, 1019, 622],
+    ]
+    geoms = [((x0, y0), (x1, y1)) for x0, y0, x1, y1 in boxes]
+    assert resolve_reading_segments(geoms) == [[0, 1, 2, 3], [4, 5], [6, 7, 8, 9]]
+    # Within a layout region of body text, the fragments of a row belong together whatever the gap
+    geoms = [((0.05, 0.10), (0.30, 0.13)), ((0.70, 0.10), (0.95, 0.13)), ((0.05, 0.14), (0.95, 0.17))]
+    assert resolve_reading_segments(geoms) == [[0], [1, 2]]
+    assert resolve_reading_segments(geoms, labels=["Text"] * 3, region_groups=[0, 0, 0]) == [[0, 1, 2]]
+    # A degenerate page shape is ignored
+    assert resolve_reading_segments(geoms, page_shape=(0, 0)) == resolve_reading_segments(geoms)
 
 
 def test_assign_layout_labels():
