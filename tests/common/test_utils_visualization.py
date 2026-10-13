@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import pytest
 from test_io_elements import _mock_kie_pages, _mock_layout, _mock_pages
@@ -24,6 +26,28 @@ def test_visualize_page():
         visualization.create_obj_patch((1, 2), (100, 100))
     with pytest.raises(ValueError):
         visualization.create_obj_patch((1, 2, 3, 4, 5), (100, 100))
+
+
+def test_visualize_json_exports():
+    # A page export read back from a JSON file stores the geometries as lists instead of tuples
+    image = np.ones((300, 200, 3))
+    page_export = _mock_pages()[0].export()
+    page_export["layout"] = [region.export() for region in _mock_layout()]
+    page_export["blocks"][0]["lines"][0]["words"][0]["geometry"] = ((0.1, 0.1), (0.4, 0.1), (0.4, 0.2), (0.1, 0.2))
+    json_export = json.loads(json.dumps(page_export))
+    for interactive in (True, False):
+        visualization.visualize_page(json_export, image, words_only=False, interactive=interactive)
+        fig = visualization.visualize_page(page_export, image, words_only=False, interactive=interactive)
+        json_fig = visualization.visualize_page(json_export, image, words_only=False, interactive=interactive)
+        assert len(json_fig.axes[0].patches) == len(fig.axes[0].patches)
+        assert [text.get_text() for text in json_fig.axes[0].texts] == [text.get_text() for text in fig.axes[0].texts]
+
+    kie_export = json.loads(json.dumps(_mock_kie_pages()[0].export()))
+    fig = visualization.visualize_kie_page(kie_export, image, interactive=False, add_labels=True)
+    assert [text.get_text() for text in fig.axes[0].texts] == ["hello", "world"]
+
+    with pytest.raises(ValueError):
+        visualization.create_obj_patch([[0.1, 0.1], [0.2]], (100, 100))
 
 
 def test_visualize_kie_page():

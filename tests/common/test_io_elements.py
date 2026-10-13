@@ -689,6 +689,8 @@ def test_page_from_dict_restores_the_image():
     restored = elements.Page.from_dict(exported, page=page.page)
     assert np.array_equal(restored.page, page.page)
     assert elements.Page.from_dict(json.loads(json.dumps(exported))).render() == restored.render()
+    # A page restored from a JSON file can still be displayed
+    elements.Page.from_dict(json.loads(json.dumps(exported)), page=page.page).show(block=False)
 
 
 def test_kie_page_and_kie_document_from_dict():

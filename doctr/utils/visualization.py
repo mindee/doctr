@@ -42,7 +42,7 @@ def rect_patch(
     Returns:
         a rectangular Patch
     """
-    if len(geometry) != 2 or any(not isinstance(elt, tuple) or len(elt) != 2 for elt in geometry):
+    if len(geometry) != 2 or any(not isinstance(elt, (tuple, list)) or len(elt) != 2 for elt in geometry):
         raise ValueError("invalid geometry format")
 
     # Unpack
@@ -124,7 +124,8 @@ def create_obj_patch(
     Returns:
         a matplotlib Patch
     """
-    if isinstance(geometry, tuple):
+    # A page export read back from a JSON file stores the geometries as lists instead of tuples
+    if isinstance(geometry, (tuple, list)):
         if len(geometry) == 2:  # straight word BB (2 pts)
             return rect_patch(geometry, page_dimensions, **kwargs)
         elif len(geometry) == 4:  # rotated word BB (4 pts)
