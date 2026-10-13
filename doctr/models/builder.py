@@ -36,11 +36,9 @@ from doctr.utils.repr import NestedObject
 
 __all__ = ["DocumentBuilder"]
 
-# Median word height of body text on an A4 page, relative to the page width: `paragraph_break` is scaled up on pages
-# whose type is larger than that (e.g. a crop of a page)
+# Median word height of body text relative to the page width, above which `paragraph_break` is scaled up
 _BODY_WORD_HEIGHT = 0.02
-# Cost of the horizontal distance between a box and a row, relative to their vertical offset, when several rows are
-# level with the box: 50 units of horizontal distance weigh as much as 1 unit of vertical offset
+# Weight of the horizontal distance to a row, relative to the vertical offset, when several rows are level with a box
 _ROW_DISTANCE_WEIGHT = 0.02
 
 
@@ -50,9 +48,7 @@ class DocumentBuilder(NestedObject):
     Args:
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
-        paragraph_break: relative length of the minimum space separating paragraphs. It is scaled up on pages with
-            large type (e.g. a crop of a page), and lines can be split at a smaller distance adapted to the word
-            spacing of the page.
+        paragraph_break: relative length of the minimum space separating paragraphs (scaled up for large type)
         export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
             box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
         keep_reading_order: if True, arrange the content of every page in reading order (cf.
@@ -128,10 +124,8 @@ class DocumentBuilder(NestedObject):
             boxes: bounding boxes of shape (N, 4)
             word_idcs: list of indexes for the words of the line
             break_dist: horizontal distance above which the line is split (defaults to `self.paragraph_break`)
-            word_regions: optional layout region (group) of each box (-1 for none) and coverage of each box by each
-                region group (cf. `_word_regions`): the line is also split between two boxes of distinct regions (e.g.
-                two columns separated by a gutter as narrow as a word gap), unless one also lies in the region of the
-                other (nested or overlapping regions)
+            word_regions: optional region group of each box and coverage by each group (cf. `_word_regions`): the
+                line is also split between two distinct regions, unless one box lies in the region of the other
 
         Returns:
             A list of (sub-)lines computed from the original line (words)
@@ -146,9 +140,7 @@ class DocumentBuilder(NestedObject):
             lines.append(word_idcs)
         else:
             sub_line = [word_idcs[0]]
-            # Right edge of the current sub-line: a box can end before an earlier, wider one (e.g. a punctuation box
-            # nested in a word box), so the running max is tracked instead of the right edge of the last box
-            right = boxes[word_idcs[0], 2]
+            right = boxes[word_idcs[0], 2]  # a box can be nested in an earlier one: keep the max right edge
             groups, coverage = word_regions if word_regions is not None else (None, None)
             region = -1 if groups is None else int(groups[word_idcs[0]])  # region of the sub-line
             prev = word_idcs[0]
@@ -160,8 +152,7 @@ class DocumentBuilder(NestedObject):
                 # If distance between boxes is lower than the break distance, same sub-line
                 if dist < break_dist:
                     horiz_break = False
-                # Unless the box lies in another layout region than the sub-line, and neither the box lies in the
-                # region of the sub-line nor the previous box in the region of the box
+                # Unless the box and the sub-line lie in distinct regions (e.g. columns separated by a narrow gutter)
                 box_region = -1 if groups is None else int(groups[i])
                 if (
                     coverage is not None
@@ -195,10 +186,7 @@ class DocumentBuilder(NestedObject):
         region_labels: list[str],
         shape: tuple[int, int] | None = None,
     ) -> tuple[np.ndarray, np.ndarray] | None:
-        """Assign each box to the layout region covering it, overlapping regions of the same label being grouped
-
-        A box covered by no region by half (e.g. a word sticking out of a region slightly too short) is assigned to
-        the smallest region holding it horizontally and covering it at least partly vertically.
+        """Assign each box to the group of the layout region covering it (or holding it horizontally)
 
         Args:
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2)
@@ -207,8 +195,7 @@ class DocumentBuilder(NestedObject):
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly
 
         Returns:
-            the region group of each box (-1 for none) and the coverage of each box by each region group (indexed by
-            group), None without layout regions
+            the region group of each box (-1 for none) and the coverage of each box by each group, None without regions
         """
         from doctr.models.reading_order.base import (
             _covering_regions,
@@ -227,7 +214,6 @@ class DocumentBuilder(NestedObject):
         regions, words = _to_boxes(region_geoms), _to_boxes(word_geoms)
         groups = np.asarray(_region_groups(regions, region_labels))
         covering = np.asarray(_covering_regions(words, regions, 0.5, region_labels))
-        # Coverage of each box by each region, on both axes and in area
         inter_w = np.minimum(words[:, None, 2], regions[None, :, 2]) - np.maximum(
             words[:, None, 0], regions[None, :, 0]
         )
@@ -237,81 +223,90 @@ class DocumentBuilder(NestedObject):
         x_cov = np.clip(inter_w, 0, None) / np.clip(words[:, 2:3] - words[:, 0:1], 1e-9, None)
         y_cov = np.clip(inter_h, 0, None) / np.clip(words[:, 3:4] - words[:, 1:2], 1e-9, None)
         uncovered = np.flatnonzero(covering < 0)
-        if uncovered.size > 0:
+        if uncovered.size > 0:  # e.g. a word sticking out of a region slightly too short
             areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
             holding = (x_cov[uncovered] >= 0.9) & (y_cov[uncovered] >= 0.3)
             smallest = np.where(holding, areas[None, :], np.inf).argmin(axis=1)
             covering[uncovered] = np.where(holding.any(axis=1), smallest, -1)
         coverage = np.zeros((words.shape[0], regions.shape[0]))
-        np.maximum.at(coverage.T, groups, (x_cov * y_cov).T)  # coverage by a group: the max over its regions
+        np.maximum.at(coverage.T, groups, (x_cov * y_cov).T)
         return np.where(covering >= 0, groups[covering], -1), coverage
 
     @staticmethod
     def _resolve_rows(boxes: np.ndarray, idxs: np.ndarray, y_med: float) -> list[list[int]]:
         """Group straight boxes into visual rows
 
-        A box can join a row if its vertical center is close enough (less than half a median box height) to the median
-        center of its horizontally closest boxes in that row. Comparing a box with its neighbors rather than with the
-        mean of the whole row keeps a slanted line in a single row, and prevents a word from being drawn into the row
-        of another column whose baseline is slightly offset. When several rows are level with the box, the best
-        aligned one wins, the horizontal distance to the row being added as a small penalty.
+        A box joins the row whose horizontally closest boxes are the best aligned with it (less than half a median
+        height apart), which follows slanted lines and keeps the rows of offset columns apart.
 
         Args:
             boxes: straight bounding boxes of shape (N, 4)
-            idxs: the order in which the boxes are visited (cf. `_sort_boxes`: top to bottom, left to right)
+            idxs: the order in which the boxes are visited (cf. `_sort_boxes`)
             y_med: the median box height
 
         Returns:
             the rows (lists of box indices), from top to bottom
         """
-        if not y_med > 0:  # degenerate heights: no box is close enough to another one
+        if not y_med > 0:
             return [[idx] for idx in idxs.tolist()]
         lefts, rights = boxes[:, 0].tolist(), boxes[:, 2].tolist()
         centers = ((boxes[:, 1] + boxes[:, 3]) / 2).tolist()
-        rows: list[list[int]] = []
-        row_lefts: list[list[float]] = []  # left edges of the boxes of each row, sorted
+        row_lefts: list[list[float]] = []  # sorted left edges of the boxes of each row
         row_boxes: list[list[int]] = []  # boxes of each row, sorted by left edge
-        highest: list[float] = []  # highest box center of each row
-        lowest: list[float] = []  # lowest box center of each row
-        active: list[int] = []  # rows which can still receive a box
-        for idx in idxs.tolist():
+        spans: list[list[float]] = []  # highest and lowest box center of each row
+
+        def _best_row(idx: int, rows: list[int]) -> int:
             center, left, right = centers[idx], lefts[idx], rights[idx]
-            # Boxes come roughly top to bottom: a row whose lowest box is far above can no longer be joined
-            active = [row for row in active if lowest[row] > center - 2 * y_med]
             best, best_key = -1, (float("inf"), float("inf"))
-            for row in active:
-                # The neighbors of the box can only be level with it if the row spans its center
-                if highest[row] >= center + y_med / 2 or lowest[row] <= center - y_med / 2:
+            for row in rows:
+                if spans[row][0] >= center + y_med / 2 or spans[row][1] <= center - y_med / 2 or not row_boxes[row]:
                     continue
-                # The horizontally closest boxes of the row lie around the position of the box in that row. A few of
-                # them rather than a single one, so that a small mark (accent, punctuation) can't steer the box.
+                # A few neighbors rather than one, so that a small mark (accent, punctuation) can't steer the box
                 pos = bisect.bisect_left(row_lefts[row], left)
                 nearest = sorted(
                     (max(lefts[other] - right, left - rights[other], 0.0), other)
                     for other in row_boxes[row][max(pos - 3, 0) : pos + 3]
                 )[:3]
                 offset = abs(statistics.median(centers[other] for _, other in nearest) - center)
-                # On a slanted line, the next line can start before the end of the current one: the offset alone
-                # would let a distant row of similar height take the box
+                # The distance breaks ties on slanted lines, where the next line can start before this one ends
                 key = (offset + _ROW_DISTANCE_WEIGHT * nearest[0][0], nearest[0][0])
                 if offset < y_med / 2 and key < best_key:
                     best, best_key = row, key
-            if best < 0:
-                best = len(rows)
-                rows.append([])
+            return best
+
+        def _add(row: int, idx: int) -> None:
+            if row == len(row_boxes):
                 row_lefts.append([])
                 row_boxes.append([])
-                highest.append(center)
-                lowest.append(center)
-                active.append(best)
-            rows[best].append(idx)
-            pos = bisect.bisect_right(row_lefts[best], left)
-            row_lefts[best].insert(pos, left)
-            row_boxes[best].insert(pos, idx)
-            highest[best] = min(highest[best], center)
-            lowest[best] = max(lowest[best], center)
+                spans.append([centers[idx], centers[idx]])
+            pos = bisect.bisect_right(row_lefts[row], lefts[idx])
+            row_lefts[row].insert(pos, lefts[idx])
+            row_boxes[row].insert(pos, idx)
+            spans[row] = [min(spans[row][0], centers[idx]), max(spans[row][1], centers[idx])]
 
-        return rows
+        row_of: dict[int, int] = {}
+        active: list[int] = []  # rows which can still receive a box: the boxes come roughly top to bottom
+        for idx in idxs.tolist():
+            active = [row for row in active if spans[row][1] > centers[idx] - 2 * y_med]
+            row = _best_row(idx, active)
+            if row < 0:
+                row = len(row_boxes)
+                active.append(row)
+            _add(row, idx)
+            row_of[idx] = row
+        # Assign each box again once all rows exist: a box visited before the rest of its line (e.g. a short word
+        # ending higher) may have joined a level row of another column
+        highest, lowest = np.asarray(spans).T
+        for idx in idxs.tolist():
+            own = row_of[idx]
+            pos = row_boxes[own].index(idx)
+            del row_boxes[own][pos], row_lefts[own][pos]
+            candidates = np.flatnonzero((highest < centers[idx] + y_med / 2) & (lowest > centers[idx] - y_med / 2))
+            row = _best_row(idx, candidates.tolist())
+            row_of[idx] = own if row < 0 else row
+            _add(row_of[idx], idx)
+
+        return [row for row in row_boxes if row]
 
     def _resolve_lines(
         self,
@@ -324,8 +319,7 @@ class DocumentBuilder(NestedObject):
         Args:
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly
-            word_regions: optional layout region (group) of each box and coverage by each group (cf. `_word_regions`):
-                a line never spans two distinct regions
+            word_regions: optional region group of each box and coverage by each group (cf. `_word_regions`)
 
         Returns:
             nested list of box indices
@@ -349,14 +343,12 @@ class DocumentBuilder(NestedObject):
             row_idcs = np.asarray(row)
             row_idcs = row_idcs[np.argsort(boxes[row_idcs, 0], kind="stable")]
             n_pairs += row_idcs.shape[0] - 1
-            # Same gap definition as `_resolve_sub_lines`: distance to the right edge of everything on the left
             gap_chunks.append(boxes[row_idcs[1:], 0] - np.maximum.accumulate(boxes[row_idcs, 2])[:-1])
         all_gaps = np.concatenate(gap_chunks) if gap_chunks else np.empty(0, dtype=boxes.dtype)
         pos_gaps = all_gaps[all_gaps > 0]
         # Median word height, converted to width units
         aspect = (shape[0] / shape[1]) if shape is not None else 1.0
         floor = float(y_med) * aspect
-        # The width-relative paragraph break grows with the type size (large type on a narrow page or crop)
         cap = self.paragraph_break * max(1.0, floor / _BODY_WORD_HEIGHT)
         if pos_gaps.shape[0] >= 5 and pos_gaps.shape[0] >= 0.5 * n_pairs:
             break_dist = min(cap, max(3.0 * float(np.median(pos_gaps)), floor))
@@ -752,7 +744,7 @@ class DocumentBuilder(NestedObject):
                 the general orientation (orientations + confidences) of the crops
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly when
                 resolving lines
-            layout: optional layout regions of the page: a line never spans two of them
+            layout: optional layout regions of the page
 
         Returns:
             list of block elements
@@ -985,9 +977,7 @@ class KIEDocumentBuilder(DocumentBuilder):
     Args:
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
-        paragraph_break: relative length of the minimum space separating paragraphs. It is scaled up on pages with
-            large type (e.g. a crop of a page), and lines can be split at a smaller distance adapted to the word
-            spacing of the page.
+        paragraph_break: relative length of the minimum space separating paragraphs (scaled up for large type)
         export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
             box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
         keep_reading_order: if True, arrange the content of every page in reading order (cf.

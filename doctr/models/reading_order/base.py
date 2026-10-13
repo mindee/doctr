@@ -44,8 +44,7 @@ _FLOAT_LABELS = {"table", "picture", "figure", "image", "chart", "graphic"}
 
 _FURNITURE_ROLES = ("header", "footer", "footnote")
 
-# Label suffix of the text lying in a float region without float element (e.g. 'Table text' for the text of a table
-# region without table structure): it is ordered and grouped like body text, but moved after a region like a float
+# Label suffix of the text lying in a float region without float element (e.g. a table without structure)
 _FLOAT_TEXT_SUFFIX = " text"
 
 
@@ -92,7 +91,7 @@ def _float_text_label(label: str) -> str:
 
 
 def _is_float_text(label: str | None) -> bool:
-    """Check whether a label is the one of a text element lying in a float region (cf. `_float_text_label`)"""
+    """Check whether a label is the one of a text element lying in a float region"""
     norm = normalize_layout_label(label)
     return any(norm == normalize_layout_label(_float_text_label(float_label)) for float_label in _FLOAT_LABELS)
 
@@ -230,9 +229,7 @@ def _topological_order(
     same_row = y_overlap > y_overlap_threshold
     same_row &= ~x_linked
     same_row &= x_rank[:, None] < x_rank[None, :]  # i is on the left of j
-    # An element belongs to the row it overlaps the most: an element shifted between two rows (e.g. an amount on a
-    # crumpled receipt) must not wait for the element on the left of the next row. Only the elements of another row
-    # than its best partner are dropped: a slightly lower cell of its own row is still read before it.
+    # An element shifted between two rows (e.g. an amount on a crumpled receipt) only waits for the row it overlaps most
     best_left = np.max(y_overlap, axis=0, where=same_row, initial=0.0)
     weak_i, weak_j = np.nonzero(same_row & (y_overlap < best_left[None, :] - 0.1))
     if weak_i.size > 0:
@@ -249,23 +246,14 @@ def _topological_order(
     order: list[int] = []
     last = -1
 
-    # Column components: elements connected through horizontal overlap, ignoring page-spanning lines (e.g.
-    # titles) which would otherwise merge separate columns. This keeps the traversal inside a column even when
-    # the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.
-    page_width = float(x1.max() - x0.min()) or 1.0
-    spanning = (x1 - x0) > 0.5 * page_width
-
-    # Reuse the horizontal-overlap matrix; keep the upper triangle only, so each pair is visited once
-    col_edges = np.triu(x_linked, 1)
-    col_edges &= ~spanning[:, None]
-    col_edges &= ~spanning[None, :]
-    component = connected_components(csr_matrix(col_edges), directed=False, return_labels=True)[1]
-
     # Detect whether the page is multi-column: if a vertical line can be drawn that separates the boxes into two
     # groups with a small number of crossing boxes, the page is considered multi-column. This is used to
     # favor the continuation of the current column when traversing the graph, which keeps multi-column bodies intact
     # even for non-Manhattan layouts where recursive XY-cuts fail to find a valid split.
     multi_column = False
+    page_width = float(x1.max() - x0.min()) or 1.0
+    spanning = (x1 - x0) > 0.5 * page_width
+    bridging = spanning.copy()  # elements which must not merge the columns: page-wide or crossing the gutter
     if voters is None or np.count_nonzero(voters) < 3:
         voters = np.ones(num_boxes, dtype=bool)
     vx0, vx1, num_voters = x0[voters], x1[voters], int(np.count_nonzero(voters))
@@ -281,7 +269,15 @@ def _topological_order(
             left = int(np.count_nonzero(centers <= split))
             if crossing <= tolerance and left >= 0.25 * num_voters and num_voters - left >= 0.25 * num_voters:
                 multi_column = True
+                bridging |= np.minimum(x1 - split, split - x0) > 0.02 * span
                 break
+
+    # Column components: elements connected through horizontal overlap. This keeps the traversal inside a column even
+    # when the direct top-to-bottom continuation is momentarily broken by a fragmented or misaligned OCR line.
+    col_edges = np.triu(x_linked, 1)  # each pair once
+    col_edges &= ~bridging[:, None]
+    col_edges &= ~bridging[None, :]
+    component = connected_components(csr_matrix(col_edges), directed=False, return_labels=True)[1]
 
     while len(order) < num_boxes:
         ready = np.flatnonzero((in_degree == 0) & ~emitted)
@@ -688,7 +684,7 @@ def resolve_reading_segments(
     This is typically used to regroup individual lines into paragraphs once they have been put in reading
     order: two consecutive elements are merged into the same segment when they share the same (possibly None)
     layout label and layout region, and either belong to the same column and are vertically close enough, or
-    continue the same visual row (e.g. the fragments of a line split at a wide word gap).
+    continue the same visual row.
 
     Args:
         geoms: sequence of geometries in any docTR format (cf. `sort_reading_order`)
@@ -711,10 +707,8 @@ def resolve_reading_segments(
         region_groups: optional layout region index of each element (-1 for none), used to attach the captions of
             a region as a unit, to read a float standing beside a region after it, and to keep distinct regions in
             distinct segments
-        row_gap: maximum horizontal gap between two consecutive elements of the same visual row to belong to the
-            same segment, as a multiple of the median element height (pass `page_shape` along with relative
-            coordinates of a non-square page, so that both are measured in the same unit). It does not apply to two
-            elements of body text in the same layout region.
+        row_gap: maximum horizontal gap between two consecutive elements of a visual row to join them, as a multiple
+            of the median element height (not applied to body text of the same layout region)
 
     Returns:
         a partition of the input indices into reading-ordered segments (each segment being itself in
@@ -736,15 +730,13 @@ def resolve_reading_segments(
         return []
     canonical = _to_canonical_ltr(_to_boxes(geoms), direction)
     median_height = float(np.median(canonical[:, 3] - canonical[:, 1]))
-    # Relative coordinates distort the horizontal distances on non-square pages: scale them to the height unit
-    aspect = 1.0
+    aspect = 1.0  # horizontal distances in the height unit
     if page_shape is not None and page_shape[0] > 0 and page_shape[1] > 0:
         aspect = page_shape[0] / page_shape[1] if direction.startswith("ttb") else page_shape[1] / page_shape[0]
     norm_labels = [normalize_layout_label(labels[idx] if labels is not None else None) for idx in range(len(order))]
 
     segments: list[list[int]] = [[order[0]]]
-    # Extent of the trailing visual row of the current segment (the fragments of a line split at wide word gaps)
-    row = canonical[order[0]].copy()
+    row = canonical[order[0]].copy()  # extent of the last visual row of the current segment
     for prev, cur in zip(order[:-1], order[1:]):
         box = canonical[cur]
         x_gap = min(row[2], box[2]) - max(row[0], box[0])
@@ -753,8 +745,7 @@ def resolve_reading_segments(
         y_overlap = y_inter / max(min(canonical[prev, 3] - canonical[prev, 1], box[3] - box[1]), 1e-9)
         stacked = x_overlap > x_overlap_threshold and box[1] - row[3] <= paragraph_gap * median_height
         same_region = region_groups is None or region_groups[prev] == region_groups[cur]
-        # The next element on the right in the same visual row, e.g. the remainder of a line split at a wide word gap
-        # (whatever the gap within a region of body text: the layout model already grouped both)
+        # The rest of a line split at a wide word gap (any gap within a region of body text)
         same_row = (
             y_overlap > y_overlap_threshold
             and box[0] > canonical[prev, 0]
@@ -828,10 +819,7 @@ def assign_layout_labels(
 
 
 def _region_groups(regions: np.ndarray, labels: Sequence[str | None], min_overlap: float = 0.1) -> list[int]:
-    """Group the overlapping layout regions of the same label
-
-    Layout models can return overlapping regions for a single paragraph (e.g. a second region over the part of a
-    paragraph wrapping around a figure), which must not split it.
+    """Group the overlapping layout regions of the same label (e.g. two regions for a paragraph around a figure)
 
     Args:
         regions: the (R, 4) boxes of the layout regions

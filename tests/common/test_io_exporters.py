@@ -35,6 +35,10 @@ def _line_at(text, x0, y0, x1, y1, rtl=False):
     ])
 
 
+def _texts(items):
+    return [[" ".join(word.value for word in line.words) for line in item.lines] for item in items]
+
+
 def _reading_order_page():
     """A page in the default builder configuration (single block) with a title, 2 columns & a footer"""
     lines = [_line_at("A Two Column Study", 0.2, 0.05, 0.8, 0.09)]
@@ -70,6 +74,14 @@ def test_page_items_in_reading_order():
     bottom = elements.Block([_line_at("last words", 0.1, 0.5, 0.9, 0.55)])
     page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [bottom, top], 0, (1000, 800))
     assert [block.render() for block in page.items_in_reading_order()] == ["first words", "last words"]
+    # Degenerate page dimensions
+    lines = [_line_at("first line here", 0.1, 0.1, 0.5, 0.13), _line_at("second part", 0.6, 0.1, 0.9, 0.13)]
+    for dims in [(0, 0), (0, 100), (100, 0)]:
+        page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, dims)
+        assert [text for item in _texts(page_reading_order(page)[0]) for text in item] == [
+            "first line here",
+            "second part",
+        ]
 
 
 def test_page_export_as_markdown():
@@ -128,7 +140,7 @@ def test_page_export_as_markdown_rtl():
     assert page.export_as_markdown(direction="ltr").startswith("الأيسر")
 
 
-def test_page_reading_order_text_in_a_table_region():
+def test_page_reading_order_table_region_text():
     # A table region from the layout model, without table structure (`detect_tables=False`): its lines keep the
     # region label, but they are not floats themselves, so they are neither nested into each other nor isolated
     lines = [
@@ -149,15 +161,9 @@ def test_page_reading_order_text_in_a_table_region():
     assert texts == ["Pos Datum Einzelpreis Gesamt", "pro UE", "EUR", "1 Deutsch 22,50 22,50"]
     assert labels == ["Table"] * len(items)
     assert len(items) < len(lines)
-
-
-def _texts(items):
-    return [[" ".join(word.value for word in line.words) for line in item.lines] for item in items]
-
-
-def test_page_reading_order_table_region_beside_a_paragraph():
-    # The rows of a table region (without table structure) level with the lines of the paragraph beside it are read
-    # after that paragraph, not interleaved with its lines
+    # Rendered like the rows of a table: one paragraph per line
+    assert page.export_as_markdown().split("\n\n") == texts
+    # The rows of a table region level with the paragraph beside it are read after that paragraph
     lines = [_line_at(f"intro line {i} of the body", 0.08, 0.05 + 0.04 * i, 0.92, 0.08 + 0.04 * i) for i in range(6)]
     lines += [
         _line_at(f"para line {i} beside the table", 0.08, 0.30 + 0.04 * i, 0.55, 0.33 + 0.04 * i) for i in range(4)
@@ -180,59 +186,6 @@ def test_page_reading_order_table_region_beside_a_paragraph():
     assert paragraph == list(range(paragraph[0], paragraph[0] + 4))
     assert rows == list(range(paragraph[-1] + 1, paragraph[-1] + 5))
     assert {label for item, label in zip(_texts(items), labels) if item[0].startswith("Row")} == {"Table"}
-
-
-def test_page_reading_order_overlapping_text_regions():
-    # The layout model returns a second, overlapping region for the lines of a paragraph wrapping around a figure:
-    # the paragraph is not split where the lines switch from one region to the other
-    lines = [
-        _line_at("one two three four five six", 0.05, 0.10, 0.90, 0.13),
-        _line_at("seven eight nine ten eleven", 0.05, 0.14, 0.90, 0.17),
-        _line_at("twelve thirteen fourteen fifteen", 0.05, 0.18, 0.90, 0.21),
-        _line_at("sixteen seventeen", 0.05, 0.22, 0.50, 0.25),
-        _line_at("eighteen nineteen", 0.05, 0.26, 0.50, 0.29),
-        _line_at("twenty end.", 0.05, 0.30, 0.50, 0.33),
-    ]
-    layout = [
-        elements.LayoutElement("Text", 0.90, ((0.04, 0.09), (0.91, 0.215))),
-        elements.LayoutElement("Text", 0.59, ((0.04, 0.16), (0.51, 0.34))),
-        elements.LayoutElement("Picture", 0.86, ((0.55, 0.22), (0.90, 0.34))),
-    ]
-    page = elements.Page(
-        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1810, 1280), layout=layout
-    )
-    items, _, _ = page_reading_order(page)
-    assert len(items) == 1 and len(items[0].lines) == 6
-
-
-def test_page_export_hides_figure_text_sticking_out_as_a_block():
-    # Each line of the figure text lies in the figure, but the box of the block they form sticks out of it
-    lines = [
-        _line_at("Body text above the chart spanning the page", 0.05, 0.05, 0.95, 0.09),
-        _line_at("AXIS", 0.30, 0.185, 0.40, 0.225),
-        _line_at("LABEL", 0.45, 0.20, 0.45 + 0.299 / 0.9, 0.24),
-        _line_at("Body text below the chart spanning the page", 0.05, 0.70, 0.95, 0.74),
-    ]
-    page = elements.Page(
-        np.full((100, 80, 3), 200, dtype=np.uint8),
-        [elements.Block(lines=lines)],
-        0,
-        (1000, 800),
-        layout=[elements.LayoutElement("Picture", 0.9, ((0.20, 0.20), (0.60, 0.60)))],
-    )
-    markdown = page.export_as_markdown(images="embedded")
-    assert "![" in markdown
-    assert "AXIS" not in markdown and "LABEL" not in markdown
-
-
-def test_page_reading_order_degenerate_dimensions():
-    lines = [_line_at("first line here", 0.1, 0.1, 0.5, 0.13), _line_at("second part", 0.6, 0.1, 0.9, 0.13)]
-    for dims in [(0, 0), (0, 100), (100, 0)]:
-        page = elements.Page(np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, dims)
-        assert [text for item in _texts(page_reading_order(page)[0]) for text in item] == [
-            "first line here",
-            "second part",
-        ]
 
 
 def test_page_export_with_tables():
@@ -259,6 +212,20 @@ def test_page_export_with_tables():
     asciidoc = page.export_as_asciidoc()
     assert "|===\n|Name |Qty\n\n|Bolt |12\\|3\n|===" in asciidoc
     assert asciidoc.index("before the table") < asciidoc.index("|===") < asciidoc.index("after the table")
+    # A page-wide table does not prevent the columns above and below it from being detected
+    lines = [_line_at("A title over both columns", 0.2, 0.02, 0.8, 0.06)]
+    for col, x in (("left", 0.05), ("right", 0.55)):
+        lines += [_line_at(f"{col} {i}", x, 0.1 + 0.05 * i, x + 0.4, 0.13 + 0.05 * i) for i in range(3)]
+        lines += [_line_at(f"{col} {i}", x, 0.3 + 0.05 * i, x + 0.4, 0.33 + 0.05 * i) for i in range(3, 6)]
+    table = elements.Table(cells, 2, 2, ((0.05, 0.25), (0.95, 0.28)), 0.95)
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1000, 800), tables=[table]
+    )
+    blocks = [item for item in page.items_in_reading_order() if isinstance(item, elements.Block)]
+    texts = [text for item in _texts(blocks) for text in item]
+    # Each section is read column after column
+    sections = [[f"{col} {i}" for col in ("left", "right") for i in idcs] for idcs in (range(3), range(3, 6))]
+    assert texts == ["A title over both columns", *sections[0], *sections[1]]
 
 
 def test_page_export_as_asciidoc():
@@ -1072,6 +1039,23 @@ def test_page_export_markdown_images():
     )
     jpeg = FigureEncoder("embedded", image_format="jpeg")
     assert "data:image/jpeg;base64," in page.export_as_markdown(images=jpeg)
+    # Also when each line lies in the figure, but not the box of the block they form
+    lines = [
+        _line_at("Body text above the chart spanning the page", 0.05, 0.05, 0.95, 0.09),
+        _line_at("AXIS", 0.30, 0.185, 0.40, 0.225),
+        _line_at("LABEL", 0.45, 0.20, 0.45 + 0.299 / 0.9, 0.24),
+        _line_at("Body text below the chart spanning the page", 0.05, 0.70, 0.95, 0.74),
+    ]
+    page = elements.Page(
+        np.full((100, 80, 3), 200, dtype=np.uint8),
+        [elements.Block(lines=lines)],
+        0,
+        (1000, 800),
+        layout=[elements.LayoutElement("Picture", 0.9, ((0.20, 0.20), (0.60, 0.60)))],
+    )
+    markdown = page.export_as_markdown(images="embedded")
+    assert "![" in markdown
+    assert "AXIS" not in markdown and "LABEL" not in markdown
 
 
 def test_page_export_referenced_images(tmp_path):
@@ -1488,6 +1472,25 @@ def test_page_export_figure_does_not_split_a_paragraph():
         < markdown.index("Next section")
     )
     assert "body line 11\nlast line of the paragraph" in markdown
+    # A second, overlapping region over the lines wrapping around the figure does not split the paragraph
+    lines = [
+        _line_at("one two three four five six", 0.05, 0.10, 0.90, 0.13),
+        _line_at("seven eight nine ten eleven", 0.05, 0.14, 0.90, 0.17),
+        _line_at("twelve thirteen fourteen fifteen", 0.05, 0.18, 0.90, 0.21),
+        _line_at("sixteen seventeen", 0.05, 0.22, 0.50, 0.25),
+        _line_at("eighteen nineteen", 0.05, 0.26, 0.50, 0.29),
+        _line_at("twenty end.", 0.05, 0.30, 0.50, 0.33),
+    ]
+    layout = [
+        elements.LayoutElement("Text", 0.90, ((0.04, 0.09), (0.91, 0.215))),
+        elements.LayoutElement("Text", 0.59, ((0.04, 0.16), (0.51, 0.34))),
+        elements.LayoutElement("Picture", 0.86, ((0.55, 0.22), (0.90, 0.34))),
+    ]
+    page = elements.Page(
+        np.zeros((10, 10, 3), dtype=np.uint8), [elements.Block(lines=lines)], 0, (1810, 1280), layout=layout
+    )
+    items, _, _ = page_reading_order(page)
+    assert len(items) == 1 and len(items[0].lines) == 6
 
 
 def test_page_export_figure_stacked_in_a_loose_region():
