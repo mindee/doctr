@@ -90,7 +90,7 @@ def _covering_region_indices(
 
 
 def _merge_overlapping_regions(elt_regions: list[int], region_geoms: list[Any], region_labels: list[str]) -> list[int]:
-    """Map the layout region of each element to a group shared by the overlapping regions of the same label
+    """Map the layout region of each element to its group of overlapping regions of the same label
 
     Args:
         elt_regions: the layout region index of each element (-1 for none)
@@ -225,14 +225,14 @@ def page_reading_order(
             elt_labels[idx] = "Table"
         elif not isinstance(elt, LayoutElement) and elt_regions[idx] in furniture_labels:
             elt_labels[idx] = furniture_labels[elt_regions[idx]]
-    # Page-wide figures do not vote in the multi-column detection
+    # Page-wide figures and tables do not vote in the multi-column detection
     boxes = _to_boxes(elt_geoms)
     span = float(boxes[:, 2].max() - boxes[:, 0].min()) or 1.0
     column_voters = [
-        not (isinstance(elt, LayoutElement) and box[2] - box[0] > 0.5 * span) for elt, box in zip(elements, boxes)
+        not (isinstance(elt, (LayoutElement, Table)) and box[2] - box[0] > 0.5 * span)
+        for elt, box in zip(elements, boxes)
     ]
-    # A text line lying in a table or a figure region keeps the label of its region, but it is not a float itself:
-    # it is grouped into paragraphs like regular text (and still read right after its figure)
+    # A text line in a table or figure region keeps its label, but is grouped into paragraphs like regular text
     order_labels = [
         _float_text_label(str(label))
         if not isinstance(elt, (Table, LayoutElement)) and layout_label_role(label) == "float"
@@ -681,7 +681,11 @@ class _PageTextExporter:
             if len(item_lines) == 0:
                 continue
             norm_label = normalize_layout_label(label)
-            if norm_label in self.headings:
+            if layout_label_role(label) == "float":
+                # Text of a table or figure region without structure: one paragraph per row
+                _flush_list()
+                parts.extend(self.render_paragraph([line], escape) for line in item_lines)
+            elif norm_label in self.headings:
                 _flush_list()
                 parts.append(self.render_heading(norm_label, item_lines, escape))
             elif norm_label in _LIST_LABELS:

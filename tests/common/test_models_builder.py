@@ -426,90 +426,79 @@ def test_sort_boxes(input_boxes, sorted_idxs):
     assert doc_builder._sort_boxes(np.asarray(input_boxes))[0].tolist() == sorted_idxs
 
 
+# Two columns whose baselines are offset by half a line (scanned page)
+_OFFSET_COLUMNS = [
+    [0.1422, 0.5908, 0.2472, 0.6045],  # 0-4: left column, "Nichttragende Wände bestehen aus Kalk-"
+    [0.261, 0.5898, 0.3176, 0.6035],
+    [0.3314, 0.5898, 0.3978, 0.6035],
+    [0.413, 0.5928, 0.4406, 0.6035],
+    [0.4558, 0.5889, 0.4972, 0.6035],
+    [0.1394, 0.6055, 0.2099, 0.6182],  # 5-10: left column, "sandstein oder Vollwanddielen bzw. aus stabilen"
+    [0.2126, 0.6064, 0.2486, 0.6172],
+    [0.2513, 0.6055, 0.366, 0.6191],
+    [0.3674, 0.6045, 0.4047, 0.6191],
+    [0.4074, 0.6084, 0.4364, 0.6191],
+    [0.4378, 0.6055, 0.4972, 0.6191],
+    [0.5539, 0.5811, 0.5953, 0.5957],  # 11-13: right column, "Holz- oder Stahlkonstruktion."
+    [0.5953, 0.5811, 0.634, 0.5947],
+    [0.634, 0.5811, 0.7694, 0.5977],
+    [0.5539, 0.5967, 0.6755, 0.6133],  # 14-18: right column, "Hauseingangstür als Holz-/Glaselement mit Si-/"
+    [0.6782, 0.5977, 0.6989, 0.6104],
+    [0.7045, 0.5977, 0.8426, 0.6113],
+    [0.844, 0.5977, 0.8758, 0.6133],
+    [0.8772, 0.5977, 0.9089, 0.6123],
+]
+
+
+def _slanted_lines(slope, ys):
+    return [[0.05 + 0.11 * i, y + slope * i, 0.15 + 0.11 * i, y + 0.03 + slope * i] for y in ys for i in range(8)]
+
+
 @pytest.mark.parametrize(
-    "input_boxes, lines",
+    "input_boxes, shape, lines",
     [
-        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], [[2], [1], [0]]],  # vertical
-        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], [[2], [1], [0]]],  # diagonal
-        [[[0, 0.5, 0.14, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], [[0, 1], [2]]],  # same line, 2p
-        [[[0, 0.5, 0.18, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], [[0, 1], [2]]],  # ~same line
-        [[[0, 0.3, 0.48, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], [[0, 1], [2]]],  # 2 lines
-        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], [[0], [1], [2]]],  # 2 lines
+        [[[0, 0.5, 0.1, 0.6], [0, 0.3, 0.2, 0.4], [0, 0, 0.1, 0.1]], None, [[2], [1], [0]]],  # vertical
+        [[[0.7, 0.5, 0.85, 0.6], [0.2, 0.3, 0.4, 0.4], [0, 0, 0.1, 0.1]], None, [[2], [1], [0]]],  # diagonal
+        [[[0, 0.5, 0.14, 0.6], [0.15, 0.5, 0.25, 0.6], [0.5, 0.5, 0.6, 0.6]], None, [[0, 1], [2]]],  # same line, 2p
+        [[[0, 0.5, 0.18, 0.6], [0.2, 0.48, 0.35, 0.58], [0.8, 0.52, 0.9, 0.63]], None, [[0, 1], [2]]],  # ~same line
+        [[[0, 0.3, 0.48, 0.45], [0.5, 0.28, 0.75, 0.42], [0, 0.45, 0.1, 0.55]], None, [[0, 1], [2]]],  # 2 lines
+        [[[0, 0.3, 0.4, 0.35], [0.75, 0.28, 0.95, 0.42], [0, 0.45, 0.1, 0.55]], None, [[0], [1], [2]]],  # 2 lines
         [
             [
                 [[0.1, 0.1], [0.2, 0.2], [0.15, 0.25], [0.05, 0.15]],
                 [[0.5, 0.5], [0.6, 0.6], [0.55, 0.65], [0.45, 0.55]],
             ],
+            None,
             [[0], [1]],
         ],  # rot
+        # Offset columns: a line does not lose a word to the next line of the other column
+        [_OFFSET_COLUMNS, (2480, 1753), [[11, 12, 13], [0, 1, 2, 3, 4], [14, 15, 16, 17, 18], [5, 6, 7, 8, 9, 10]]],
+        # A line rising by twice its height (perspective)
+        [_slanted_lines(-0.007, [0.485]) + _slanted_lines(0, [0.7]), None, [list(range(8)), list(range(8, 16))]],
+        # About 2 degrees of skew: the next line starts before the end of the current one
+        [_slanted_lines(0.0045, [0.3, 0.339]), None, [list(range(8)), list(range(8, 16))]],
+        [_slanted_lines(-0.0045, [0.3, 0.339]), None, [list(range(8)), list(range(8, 16))]],
+        # 3 columns whose baselines are slightly offset
+        [
+            [[0.05, 0.19, 0.12, 0.21], [0.13, 0.19, 0.2, 0.21], [0.21, 0.19, 0.26, 0.21]]
+            + [[0.36, 0.2005, 0.44, 0.2205], [0.45, 0.2005, 0.5, 0.2205], [0.51, 0.2005, 0.56, 0.2205]]
+            + [[0.66, 0.194, 0.74, 0.214], [0.75, 0.197, 0.83, 0.217]],
+            None,
+            [[0, 1, 2], [6, 7], [3, 4, 5]],
+        ],
+        # A short word ending higher than its line is level with the label of the previous column (form)
+        [
+            [[0.1179, 0.2285, 0.1956, 0.2461], [0.1956, 0.2295, 0.2241, 0.2451]]  # "source OF"
+            + [[0.3122, 0.2383, 0.3549, 0.2529], [0.3575, 0.2383, 0.4327, 0.252], [0.4378, 0.2363, 0.5518, 0.2529]]
+            + [[0.557, 0.2373, 0.579, 0.249]],  # "HALL RODECAP, NOBLESVILLE, IN"
+            (1000, 754),
+            [[0, 1], [2, 3, 4, 5]],
+        ],
     ],
 )
-def test_resolve_lines(input_boxes, lines):
+def test_resolve_lines(input_boxes, shape, lines):
     doc_builder = builder.DocumentBuilder()
-    assert doc_builder._resolve_lines(np.asarray(input_boxes)) == lines
-
-
-def test_resolve_lines_offset_columns():
-    # Two columns whose baselines are offset by half a line (scanned page): the right column line must not lose a
-    # word to the next line of the left column
-    boxes = [
-        [0.1422, 0.5908, 0.2472, 0.6045],  # 0-4: left column, "Nichttragende Wände bestehen aus Kalk-"
-        [0.261, 0.5898, 0.3176, 0.6035],
-        [0.3314, 0.5898, 0.3978, 0.6035],
-        [0.413, 0.5928, 0.4406, 0.6035],
-        [0.4558, 0.5889, 0.4972, 0.6035],
-        [0.1394, 0.6055, 0.2099, 0.6182],  # 5-10: left column, "sandstein oder Vollwanddielen bzw. aus stabilen"
-        [0.2126, 0.6064, 0.2486, 0.6172],
-        [0.2513, 0.6055, 0.366, 0.6191],
-        [0.3674, 0.6045, 0.4047, 0.6191],
-        [0.4074, 0.6084, 0.4364, 0.6191],
-        [0.4378, 0.6055, 0.4972, 0.6191],
-        [0.5539, 0.5811, 0.5953, 0.5957],  # 11-13: right column, "Holz- oder Stahlkonstruktion."
-        [0.5953, 0.5811, 0.634, 0.5947],
-        [0.634, 0.5811, 0.7694, 0.5977],
-        [0.5539, 0.5967, 0.6755, 0.6133],  # 14-18: right column, "Hauseingangstür als Holz-/Glaselement mit Si-/"
-        [0.6782, 0.5977, 0.6989, 0.6104],
-        [0.7045, 0.5977, 0.8426, 0.6113],
-        [0.844, 0.5977, 0.8758, 0.6133],
-        [0.8772, 0.5977, 0.9089, 0.6123],
-    ]
-    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes), (2480, 1753))
-    assert sorted(lines) == [[0, 1, 2, 3, 4], [5, 6, 7, 8, 9, 10], [11, 12, 13], [14, 15, 16, 17, 18]]
-
-
-def test_resolve_lines_slanted_line():
-    # A line rising to the right (perspective) by twice its height stays a single line, in reading order
-    boxes = [[0.05 + 0.11 * i, 0.485 - 0.007 * i, 0.15 + 0.11 * i, 0.515 - 0.007 * i] for i in range(8)]
-    boxes += [[0.05 + 0.11 * i, 0.70, 0.15 + 0.11 * i, 0.73] for i in range(8)]
-    assert builder.DocumentBuilder()._resolve_lines(np.asarray(boxes)) == [list(range(8)), list(range(8, 16))]
-
-
-@pytest.mark.parametrize("slope", [0.0045, -0.0045])  # down / up to the right (about 2 degrees of skew)
-def test_resolve_lines_slanted_lines_with_tight_leading(slope):
-    # The next line starts before the end of the current one: its first word must not take the last words of the
-    # current line, although it is better aligned with them than their own (lagging) neighbors
-    boxes = [
-        [0.05 + 0.11 * i, y + slope * i, 0.15 + 0.11 * i, y + 0.03 + slope * i] for y in (0.30, 0.339) for i in range(8)
-    ]
-    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes))
-    assert sorted(lines) == [list(range(8)), list(range(8, 16))]
-
-
-def test_resolve_lines_level_rows_of_other_columns():
-    # 3 columns whose baselines are slightly offset: the words of the last column stay together, although each of
-    # them is level with the row of another column
-    boxes = [
-        [0.05, 0.190, 0.12, 0.210],  # 0-2: column A
-        [0.13, 0.190, 0.20, 0.210],
-        [0.21, 0.190, 0.26, 0.210],
-        [0.36, 0.2005, 0.44, 0.2205],  # 3-5: column B
-        [0.45, 0.2005, 0.50, 0.2205],
-        [0.51, 0.2005, 0.56, 0.2205],
-        [0.66, 0.194, 0.74, 0.214],  # 6-7: column C
-        [0.75, 0.197, 0.83, 0.217],
-    ]
-    lines = builder.DocumentBuilder()._resolve_lines(np.asarray(boxes))
-    assert sorted(lines) == [[0, 1, 2], [3, 4, 5], [6, 7]]
+    assert doc_builder._resolve_lines(np.asarray(input_boxes), shape) == lines
 
 
 def test_resolve_lines_layout_regions():
@@ -548,10 +537,6 @@ def test_resolve_lines_layout_regions():
         regions=[{"boxes": np.asarray([[*p0, *p1] for p0, p1 in regions]), "class_names": ["Text"] * 3}],
     )
     assert [len(line.words) for block in doc.pages[0].blocks for line in block.lines] == [3] * 6
-
-
-def test_resolve_lines_nested_and_short_regions():
-    doc_builder = builder.DocumentBuilder()
     # A line of 8 words in a Text region, with a Picture box over its last word (or an inline Formula box)
     boxes = np.asarray([[0.10 + 0.1 * i, 0.20, 0.18 + 0.1 * i, 0.23] for i in range(8)])
     text = ((0.08, 0.18), (0.92, 0.40))
@@ -566,7 +551,7 @@ def test_resolve_lines_nested_and_short_regions():
     assert sorted(doc_builder._resolve_lines(boxes, word_regions=word_regions)) == [[0, 1, 2, 3], [4, 5, 6, 7]]
 
 
-def test_resolve_lines_small_paragraph_break():
+def test_resolve_lines_break_distance():
     # A table whose cells are separated by one word height: a small `paragraph_break` still splits the cells
     boxes = []
     for row in range(3):
@@ -580,8 +565,6 @@ def test_resolve_lines_small_paragraph_break():
     assert len(builder.DocumentBuilder()._resolve_lines(np.asarray(boxes), shape)) == 3
     assert len(builder.DocumentBuilder(paragraph_break=0.01)._resolve_lines(np.asarray(boxes), shape)) == 12
 
-
-def test_resolve_lines_large_type_on_a_narrow_page():
     # Justified lines in large type on a narrow crop: a word gap wider than `paragraph_break` (relative to the page
     # width) but smaller than a word height does not split the line
     def _line(y, gaps):
@@ -597,10 +580,7 @@ def test_resolve_lines_large_type_on_a_narrow_page():
     assert lines == [list(range(6)), list(range(6, 12)), list(range(12, 18))]
     # The page-relative paragraph break still applies on a page with regular type
     assert len(builder.DocumentBuilder()._resolve_lines(np.asarray(boxes) * [1, 0.2, 1, 0.2], (643, 468))) == 4
-
-
-def test_resolve_sub_lines_nested_box():
-    # A box nested in a wider one (e.g. a punctuation mark detected twice) must not inflate the gap to the next word
+    # A box nested in a wider one (e.g. a punctuation mark detected twice) does not inflate the gap to the next word
     boxes = np.asarray([[0.10, 0.1, 0.30, 0.14], [0.25, 0.11, 0.26, 0.13], [0.32, 0.1, 0.45, 0.14]])
     assert builder.DocumentBuilder()._resolve_sub_lines(boxes, [0, 1, 2], 0.05) == [[0, 1, 2]]
     assert builder.DocumentBuilder()._resolve_sub_lines(boxes, [0, 1, 2], 0.01) == [[0, 1], [2]]
