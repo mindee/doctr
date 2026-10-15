@@ -51,6 +51,7 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
           extras: viz,html,testing
+          cache-compile: "true"
       - name: Run unittests
         run: pytest tests/pytorch/ -rs --cov --cov-report=xml:coverage-pt.xml
       - uses: actions/upload-artifact@v7
