@@ -214,7 +214,7 @@ def test_torch_compiled_models(arch_name, mock_payslip):
     compiled_model = torch.compile(detection.__dict__[arch_name](pretrained=True).eval())
     assert isinstance(compiled_model, _CompiledModule)
     compiled_predictor = detection.zoo.detection_predictor(compiled_model)
-    compiled_out, seg_maps = compiled_predictor(doc, return_maps=True)
+    compiled_out, compiled_seg_maps = compiled_predictor(doc, return_maps=True)
 
     # Compare
     assert all(
@@ -222,7 +222,8 @@ def test_torch_compiled_models(arch_name, mock_payslip):
         for out_boxes, compiled_out_boxes in zip(out, compiled_out)
     )
     assert all(
-        np.allclose(seg_map, compiled_seg_map, atol=1e-4) for seg_map, compiled_seg_map in zip(seg_maps, seg_maps)
+        np.allclose(seg_map, compiled_seg_map, atol=1e-4)
+        for seg_map, compiled_seg_map in zip(seg_maps, compiled_seg_maps)
     )
 
 
