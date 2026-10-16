@@ -570,6 +570,9 @@ def extract_rcrops(
             # Divide the points into left and right
             left_points = box[box[:, 0] < centroid[0]]
             right_points = box[box[:, 0] >= centroid[0]]
+            if len(left_points) == 0 or len(right_points) == 0:
+                crops.append(np.zeros((0, 0, *img.shape[2:]), dtype=img.dtype))
+                continue
 
             # Sort the left points according to the y-axis
             left_points = left_points[np.argsort(left_points[:, 1])]

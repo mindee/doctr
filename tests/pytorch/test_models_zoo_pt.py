@@ -184,6 +184,74 @@ def test_predictors_keep_objectness_scores_aligned(predictor_cls):
     assert [word.objectness_score for word in words] == pytest.approx([0.9, 0.8])
 
 
+@pytest.mark.parametrize(
+    "predictor_cls, all_collapsed",
+    [
+        pytest.param(OCRPredictor, False, id="ocr-mixed"),
+        pytest.param(OCRPredictor, True, id="ocr-all-collapsed"),
+        pytest.param(KIEPredictor, False, id="kie-mixed"),
+        pytest.param(KIEPredictor, True, id="kie-all-collapsed"),
+    ],
+)
+def test_predictors_drop_zero_width_quadrilaterals(predictor_cls, all_collapsed):
+    polygons = np.array(
+        [
+            [[0.125, 0.25], [0.25, 0.25], [0.25, 0.75], [0.125, 0.75]],
+            [[0.5, 0.25], [0.5, 0.25], [0.5, 0.75], [0.5, 0.75]],
+            [[0.625, 0.25], [0.75, 0.25], [0.75, 0.75], [0.625, 0.75]],
+        ],
+        dtype=np.float32,
+    )
+    score_points = np.zeros((3, 1, 2), dtype=np.float32)
+    score_points[:, 0, 1] = [0.9, 0.1, 0.8]
+    detections = np.concatenate([polygons, score_points], axis=1)
+    if all_collapsed:
+        detections = detections[1:2].copy()
+
+    class _FixedDetPredictor(nn.Module):
+        def forward(self, pages, **kwargs):
+            return [{CLASS_NAME: detections.copy()} for _ in pages]
+
+    class _CheckingRecoPredictor(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.counts = []
+
+        def forward(self, crops, **kwargs):
+            assert all(crop.size > 0 for crop in crops)
+            self.counts.append(len(crops))
+            return [(f"word{idx}", 1.0) for idx in range(len(crops))]
+
+    reco = _CheckingRecoPredictor()
+    predictor = predictor_cls(
+        _FixedDetPredictor(),
+        reco,
+        assume_straight_pages=False,
+        disable_page_orientation=True,
+        disable_crop_orientation=True,
+        detect_orientation=False,
+        straighten_pages=False,
+        resolve_lines=False,
+        resolve_blocks=False,
+    )
+    result = predictor([np.full((100, 200, 3), 255, dtype=np.uint8)])
+    assert type(result) is (KIEDocument if predictor_cls is KIEPredictor else Document)
+    assert len(result.pages) == 1
+    page = result.pages[0]
+    words = (
+        page.predictions.get(CLASS_NAME, [])
+        if predictor_cls is KIEPredictor
+        else [word for block in page.blocks for line in block.lines for word in line.words]
+    )
+    words = sorted(words, key=lambda word: min(point[0] for point in word.geometry))
+    assert [min(point[0] for point in word.geometry) for word in words] == pytest.approx(
+        [] if all_collapsed else [0.125, 0.625]
+    )
+    assert [word.objectness_score for word in words] == pytest.approx([] if all_collapsed else [0.9, 0.8])
+    assert [word.value for word in words] == ([] if all_collapsed else ["word0", "word1"])
+    assert reco.counts == ([0] if all_collapsed else [2])
+
+
 def test_ocrpredictor_layout(mock_pdf, mock_vocab, mock_payslip):
     det_predictor = DetectionPredictor(
         PreProcessor(output_size=(512, 512), batch_size=2),
