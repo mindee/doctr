@@ -1,7 +1,7 @@
 # Shared environment setup for all docTR CI jobs.
 
 name: "Setup docTR environment"
-description: "Python setup with pip caching, CPU-only PyTorch, package install and optional pretrained model cache"
+description: "Python setup with pip caching, CPU-only PyTorch, package install and optional pretrained model and torch.compile caches"
 
 inputs:
   python-version:
@@ -20,11 +20,16 @@ inputs:
     description: "Cache pretrained models (~/.cache/doctr) across runs"
     required: false
     default: "true"
+  cache-compile:
+    description: "Cache TorchInductor (torch.compile) artifacts across runs"
+    required: false
+    default: "false"
 
 runs:
   using: composite
   steps:
     - name: Set up Python
+      id: setup-python
       uses: actions/setup-python@v6
       with:
         python-version: ${{ inputs.python-version }}
@@ -63,3 +68,29 @@ runs:
         if [ -n "${{ inputs.extra-requirements }}" ]; then
           pip install -r "${{ inputs.extra-requirements }}"
         fi
+
+    - name: Resolve torch.compile cache key
+      if: inputs.cache-compile == 'true'
+      id: compile-cache
+      shell: bash
+      run: |
+        echo "TORCHINDUCTOR_CACHE_DIR=$HOME/.cache/torchinductor" >> "$GITHUB_ENV"
+        TORCH_ISA=$(python - <<'EOF'
+        import torch
+        try:
+            from torch._inductor.cpu_vec_isa import pick_vec_isa
+            isa = type(pick_vec_isa()).__name__
+        except ImportError:
+            isa = torch.backends.cpu.get_cpu_capability()
+        print(f"{torch.__version__}-{isa}")
+        EOF
+        )
+        echo "prefix=torchinductor-${ImageOS}-py${{ steps.setup-python.outputs.python-version }}-${TORCH_ISA}" >> "$GITHUB_OUTPUT"
+
+    - name: Cache torch.compile artifacts
+      if: inputs.cache-compile == 'true'
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/torchinductor
+        key: ${{ steps.compile-cache.outputs.prefix }}-${{ hashFiles('doctr/**/*.py') }}
+        restore-keys: ${{ steps.compile-cache.outputs.prefix }}-
