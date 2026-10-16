@@ -4,6 +4,8 @@
 # See LICENSE or go to <https://opensource.org/licenses/Apache-2.0> for full license details.
 
 
+import bisect
+import statistics
 from collections.abc import Sequence
 from typing import Any
 
@@ -34,6 +36,11 @@ from doctr.utils.repr import NestedObject
 
 __all__ = ["DocumentBuilder"]
 
+# Median word height of body text relative to the page width, above which `paragraph_break` is scaled up
+_BODY_WORD_HEIGHT = 0.02
+# Weight of the horizontal distance to a row, relative to the vertical offset, when several rows are level with a box
+_ROW_DISTANCE_WEIGHT = 0.02
+
 
 class DocumentBuilder(NestedObject):
     """Implements a document builder
@@ -41,7 +48,7 @@ class DocumentBuilder(NestedObject):
     Args:
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
-        paragraph_break: relative length of the minimum space separating paragraphs
+        paragraph_break: relative length of the minimum space separating paragraphs (scaled up for large type)
         export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
             box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
         keep_reading_order: if True, arrange the content of every page in reading order (cf.
@@ -105,7 +112,11 @@ class DocumentBuilder(NestedObject):
         return (boxes[:, 0] + 2 * boxes[:, 3] / med_height).argsort(), boxes
 
     def _resolve_sub_lines(
-        self, boxes: np.ndarray, word_idcs: list[int], break_dist: float | None = None
+        self,
+        boxes: np.ndarray,
+        word_idcs: list[int],
+        break_dist: float | None = None,
+        word_regions: tuple[np.ndarray, np.ndarray] | None = None,
     ) -> list[list[int]]:
         """Split a line in sub_lines
 
@@ -113,6 +124,8 @@ class DocumentBuilder(NestedObject):
             boxes: bounding boxes of shape (N, 4)
             word_idcs: list of indexes for the words of the line
             break_dist: horizontal distance above which the line is split (defaults to `self.paragraph_break`)
+            word_regions: optional region group of each box and coverage by each group (cf. `_word_regions`): the
+                line is also split between two distinct regions, unless one box lies in the region of the other
 
         Returns:
             A list of (sub-)lines computed from the original line (words)
@@ -127,31 +140,186 @@ class DocumentBuilder(NestedObject):
             lines.append(word_idcs)
         else:
             sub_line = [word_idcs[0]]
+            right = boxes[word_idcs[0], 2]  # a box can be nested in an earlier one: keep the max right edge
+            groups, coverage = word_regions if word_regions is not None else (None, None)
+            region = -1 if groups is None else int(groups[word_idcs[0]])  # region of the sub-line
+            prev = word_idcs[0]
             for i in word_idcs[1:]:
                 horiz_break = True
 
-                prev_box = boxes[sub_line[-1]]
-                # Compute distance between boxes
-                dist = boxes[i, 0] - prev_box[2]
+                # Compute distance between the sub-line and the box
+                dist = boxes[i, 0] - right
                 # If distance between boxes is lower than the break distance, same sub-line
                 if dist < break_dist:
                     horiz_break = False
+                # Unless the box and the sub-line lie in distinct regions (e.g. columns separated by a narrow gutter)
+                box_region = -1 if groups is None else int(groups[i])
+                if (
+                    coverage is not None
+                    and box_region >= 0
+                    and region >= 0
+                    and box_region != region
+                    and coverage[i, region] < 0.5
+                    and coverage[prev, box_region] < 0.5
+                ):
+                    horiz_break = True
 
                 if horiz_break:
                     lines.append(sub_line)
                     sub_line = []
+                    right = boxes[i, 2]
+                    region = -1
 
                 sub_line.append(i)
+                right = max(right, boxes[i, 2])
+                if region < 0:
+                    region = box_region
+                prev = i
             lines.append(sub_line)
 
         return lines
 
-    def _resolve_lines(self, boxes: np.ndarray, shape: tuple[int, int] | None = None) -> list[list[int]]:
+    @staticmethod
+    def _word_regions(
+        boxes: np.ndarray,
+        region_geoms: list[Any],
+        region_labels: list[str],
+        shape: tuple[int, int] | None = None,
+    ) -> tuple[np.ndarray, np.ndarray] | None:
+        """Assign each box to the group of the layout region covering it (or holding it horizontally)
+
+        Args:
+            boxes: bounding boxes of shape (N, 4) or (N, 4, 2)
+            region_geoms: the geometries of the layout regions
+            region_labels: the labels of the layout regions
+            shape: the page dimensions (height, width), used to de-skew rotated pages exactly
+
+        Returns:
+            the region group of each box (-1 for none) and the coverage of each box by each group, None without regions
+        """
+        from doctr.models.reading_order.base import (
+            _covering_regions,
+            _region_groups,
+            _to_boxes,
+            deskew_reading_geometries,
+        )
+
+        if len(region_geoms) == 0 or boxes.shape[0] == 0:
+            return None
+        word_geoms: Any = boxes
+        if boxes.ndim == 3:  # de-skew the words and the regions together
+            word_geoms, region_geoms = deskew_reading_geometries(
+                list(boxes), region_geoms, page_shape=shape, angle_geoms=list(boxes)
+            )
+        regions, words = _to_boxes(region_geoms), _to_boxes(word_geoms)
+        groups = np.asarray(_region_groups(regions, region_labels))
+        covering = np.asarray(_covering_regions(words, regions, 0.5, region_labels))
+        inter_w = np.minimum(words[:, None, 2], regions[None, :, 2]) - np.maximum(
+            words[:, None, 0], regions[None, :, 0]
+        )
+        inter_h = np.minimum(words[:, None, 3], regions[None, :, 3]) - np.maximum(
+            words[:, None, 1], regions[None, :, 1]
+        )
+        x_cov = np.clip(inter_w, 0, None) / np.clip(words[:, 2:3] - words[:, 0:1], 1e-9, None)
+        y_cov = np.clip(inter_h, 0, None) / np.clip(words[:, 3:4] - words[:, 1:2], 1e-9, None)
+        uncovered = np.flatnonzero(covering < 0)
+        if uncovered.size > 0:  # e.g. a word sticking out of a region slightly too short
+            areas = (regions[:, 2] - regions[:, 0]) * (regions[:, 3] - regions[:, 1])
+            holding = (x_cov[uncovered] >= 0.9) & (y_cov[uncovered] >= 0.3)
+            smallest = np.where(holding, areas[None, :], np.inf).argmin(axis=1)
+            covering[uncovered] = np.where(holding.any(axis=1), smallest, -1)
+        coverage = np.zeros((words.shape[0], regions.shape[0]))
+        np.maximum.at(coverage.T, groups, (x_cov * y_cov).T)
+        return np.where(covering >= 0, groups[covering], -1), coverage
+
+    @staticmethod
+    def _resolve_rows(boxes: np.ndarray, idxs: np.ndarray, y_med: float) -> list[list[int]]:
+        """Group straight boxes into visual rows
+
+        A box joins the row whose horizontally closest boxes are the best aligned with it (less than half a median
+        height apart), which follows slanted lines and keeps the rows of offset columns apart.
+
+        Args:
+            boxes: straight bounding boxes of shape (N, 4)
+            idxs: the order in which the boxes are visited (cf. `_sort_boxes`)
+            y_med: the median box height
+
+        Returns:
+            the rows (lists of box indices), from top to bottom
+        """
+        if not y_med > 0:
+            return [[idx] for idx in idxs.tolist()]
+        lefts, rights = boxes[:, 0].tolist(), boxes[:, 2].tolist()
+        centers = ((boxes[:, 1] + boxes[:, 3]) / 2).tolist()
+        row_lefts: list[list[float]] = []  # sorted left edges of the boxes of each row
+        row_boxes: list[list[int]] = []  # boxes of each row, sorted by left edge
+        spans: list[list[float]] = []  # highest and lowest box center of each row
+
+        def _best_row(idx: int, rows: list[int]) -> int:
+            center, left, right = centers[idx], lefts[idx], rights[idx]
+            best, best_key = -1, (float("inf"), float("inf"))
+            for row in rows:
+                if spans[row][0] >= center + y_med / 2 or spans[row][1] <= center - y_med / 2 or not row_boxes[row]:
+                    continue
+                # A few neighbors rather than one, so that a small mark (accent, punctuation) can't steer the box
+                pos = bisect.bisect_left(row_lefts[row], left)
+                nearest = sorted(
+                    (max(lefts[other] - right, left - rights[other], 0.0), other)
+                    for other in row_boxes[row][max(pos - 3, 0) : pos + 3]
+                )[:3]
+                offset = abs(statistics.median(centers[other] for _, other in nearest) - center)
+                # The distance breaks ties on slanted lines, where the next line can start before this one ends
+                key = (offset + _ROW_DISTANCE_WEIGHT * nearest[0][0], nearest[0][0])
+                if offset < y_med / 2 and key < best_key:
+                    best, best_key = row, key
+            return best
+
+        def _add(row: int, idx: int) -> None:
+            if row == len(row_boxes):
+                row_lefts.append([])
+                row_boxes.append([])
+                spans.append([centers[idx], centers[idx]])
+            pos = bisect.bisect_right(row_lefts[row], lefts[idx])
+            row_lefts[row].insert(pos, lefts[idx])
+            row_boxes[row].insert(pos, idx)
+            spans[row] = [min(spans[row][0], centers[idx]), max(spans[row][1], centers[idx])]
+
+        row_of: dict[int, int] = {}
+        active: list[int] = []  # rows which can still receive a box: the boxes come roughly top to bottom
+        for idx in idxs.tolist():
+            active = [row for row in active if spans[row][1] > centers[idx] - 2 * y_med]
+            row = _best_row(idx, active)
+            if row < 0:
+                row = len(row_boxes)
+                active.append(row)
+            _add(row, idx)
+            row_of[idx] = row
+        # Assign each box again once all rows exist: a box visited before the rest of its line (e.g. a short word
+        # ending higher) may have joined a level row of another column
+        highest, lowest = np.asarray(spans).T
+        for idx in idxs.tolist():
+            own = row_of[idx]
+            pos = row_boxes[own].index(idx)
+            del row_boxes[own][pos], row_lefts[own][pos]
+            candidates = np.flatnonzero((highest < centers[idx] + y_med / 2) & (lowest > centers[idx] - y_med / 2))
+            row = _best_row(idx, candidates.tolist())
+            row_of[idx] = own if row < 0 else row
+            _add(row_of[idx], idx)
+
+        return [row for row in row_boxes if row]
+
+    def _resolve_lines(
+        self,
+        boxes: np.ndarray,
+        shape: tuple[int, int] | None = None,
+        word_regions: tuple[np.ndarray, np.ndarray] | None = None,
+    ) -> list[list[int]]:
         """Order boxes to group them in lines
 
         Args:
             boxes: bounding boxes of shape (N, 4) or (N, 4, 2) in case of rotated bbox
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly
+            word_regions: optional region group of each box and coverage by each group (cf. `_word_regions`)
 
         Returns:
             nested list of box indices
@@ -163,31 +331,7 @@ class DocumentBuilder(NestedObject):
         y_med = np.median(boxes[:, 3] - boxes[:, 1])
 
         # Group the words into visual rows
-        rows = []
-        words = [idxs[0]]  # Assign the top-left word to the first line
-        # Define a mean y-center for the line
-        y_center_sum = boxes[idxs[0]][[1, 3]].mean()
-
-        for idx in idxs[1:]:
-            vert_break = True
-
-            # Compute y_dist
-            y_dist = abs(boxes[idx][[1, 3]].mean() - y_center_sum / len(words))
-            # If y-center of the box is close enough to mean y-center of the line, same line
-            if y_dist < y_med / 2:
-                vert_break = False
-
-            if vert_break:
-                rows.append(words)
-                words = []
-                y_center_sum = 0
-
-            words.append(idx)
-            y_center_sum += boxes[idx][[1, 3]].mean()
-
-        # Use the remaining words to form the last row
-        if len(words) > 0:
-            rows.append(words)
+        rows = self._resolve_rows(boxes, idxs, float(y_med))
 
         # Split the rows horizontally, using a break distance adapted to the page spacing.
         # The gaps are collected with one vectorized pass per row (the loop is over rows, not word pairs).
@@ -199,22 +343,23 @@ class DocumentBuilder(NestedObject):
             row_idcs = np.asarray(row)
             row_idcs = row_idcs[np.argsort(boxes[row_idcs, 0], kind="stable")]
             n_pairs += row_idcs.shape[0] - 1
-            gap_chunks.append(boxes[row_idcs[1:], 0] - boxes[row_idcs[:-1], 2])
+            gap_chunks.append(boxes[row_idcs[1:], 0] - np.maximum.accumulate(boxes[row_idcs, 2])[:-1])
         all_gaps = np.concatenate(gap_chunks) if gap_chunks else np.empty(0, dtype=boxes.dtype)
         pos_gaps = all_gaps[all_gaps > 0]
         # Median word height, converted to width units
         aspect = (shape[0] / shape[1]) if shape is not None else 1.0
         floor = float(y_med) * aspect
+        cap = self.paragraph_break * max(1.0, floor / _BODY_WORD_HEIGHT)
         if pos_gaps.shape[0] >= 5 and pos_gaps.shape[0] >= 0.5 * n_pairs:
-            break_dist = min(self.paragraph_break, max(3.0 * float(np.median(pos_gaps)), floor))
+            break_dist = min(cap, max(3.0 * float(np.median(pos_gaps)), floor))
         elif n_pairs >= 5:
-            break_dist = min(self.paragraph_break, floor)
+            break_dist = min(cap, floor)
         else:
             break_dist = self.paragraph_break
 
         lines = []
         for row in rows:
-            lines.extend(self._resolve_sub_lines(boxes, row, break_dist))
+            lines.extend(self._resolve_sub_lines(boxes, row, break_dist, word_regions))
 
         return lines
 
@@ -587,6 +732,7 @@ class DocumentBuilder(NestedObject):
         word_preds: list[tuple[str, float]],
         crop_orientations: list[dict[str, Any]],
         shape: tuple[int, int] | None = None,
+        layout: list[LayoutElement] | None = None,
     ) -> list[Block]:
         """Gather independent words in structured blocks
 
@@ -598,6 +744,7 @@ class DocumentBuilder(NestedObject):
                 the general orientation (orientations + confidences) of the crops
             shape: the page dimensions (height, width), used to de-skew rotated pages exactly when
                 resolving lines
+            layout: optional layout regions of the page
 
         Returns:
             list of block elements
@@ -611,7 +758,12 @@ class DocumentBuilder(NestedObject):
         # Decide whether we try to form lines
         _boxes = boxes
         if self.resolve_lines:
-            lines = self._resolve_lines(_boxes if _boxes.ndim == 3 else _boxes[:, :4], shape)
+            word_regions = (
+                self._word_regions(_boxes, [elt.geometry for elt in layout], [elt.type for elt in layout], shape)
+                if layout
+                else None
+            )
+            lines = self._resolve_lines(_boxes if _boxes.ndim == 3 else _boxes[:, :4], shape, word_regions)
             # Decide whether we try to form blocks
             if self.resolve_blocks and len(lines) > 1:
                 _blocks = self._resolve_blocks(_boxes if _boxes.ndim == 3 else _boxes[:, :4], lines)
@@ -673,7 +825,11 @@ class DocumentBuilder(NestedObject):
             words = [word for block in page.blocks for line in block.lines for word in line.words]
             if len(words) < 2:
                 return
-            groups = self._resolve_lines(self._words_to_boxes(words), page.dimensions)
+            word_boxes = self._words_to_boxes(words)
+            word_regions = self._word_regions(
+                word_boxes, [elt.geometry for elt in page.layout], [elt.type for elt in page.layout], page.dimensions
+            )
+            groups = self._resolve_lines(word_boxes, page.dimensions, word_regions)
             page.blocks = [Block([Line([words[idx] for idx in group]) for group in groups])]
 
         # With the figures: the result is stored back in the cache read by the exports
@@ -788,12 +944,14 @@ class DocumentBuilder(NestedObject):
                 word_preds = [wp for wp, k in zip(word_preds, keep) if k]
                 word_crop_orientations = [co for co, k in zip(word_crop_orientations, keep) if k]
 
+            page_layout = self._build_layout_elements(page_regions)
             page_blocks = self._build_blocks(
                 page_boxes,
                 loc_scores,
                 word_preds,
                 word_crop_orientations,
                 shape,
+                page_layout,
             )
             _page = Page(
                 page,
@@ -802,7 +960,7 @@ class DocumentBuilder(NestedObject):
                 shape,
                 orientation,
                 language,
-                self._build_layout_elements(page_regions),
+                page_layout,
                 page_tables,
             )
             if self.keep_reading_order:
@@ -819,7 +977,7 @@ class KIEDocumentBuilder(DocumentBuilder):
     Args:
         resolve_lines: whether words should be automatically grouped into lines
         resolve_blocks: whether lines should be automatically grouped into blocks
-        paragraph_break: relative length of the minimum space separating paragraphs
+        paragraph_break: relative length of the minimum space separating paragraphs (scaled up for large type)
         export_as_straight_boxes: if True, force straight boxes in the export (fit a rectangle
             box to all rotated boxes). Else, keep the boxes format unchanged, no matter what it is.
         keep_reading_order: if True, arrange the content of every page in reading order (cf.
