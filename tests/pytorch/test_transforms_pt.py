@@ -375,7 +375,7 @@ def test_crop_detection():
     ])
     crop_box = (12 / 50, 23 / 50, 50 / 50, 50 / 50)
     c_img, c_boxes = crop_detection(img, abs_boxes, crop_box)
-    assert c_img.shape == (3, 26, 37)
+    assert c_img.shape == (3, 27, 38)
     assert c_boxes.shape == (1, 4)
     assert np.all(c_boxes == np.array([15 - 12, 0, 35 - 12, 30 - 23])[None, ...])
 
@@ -385,9 +385,20 @@ def test_crop_detection():
     ])
     crop_box = (0.24, 0.46, 1.0, 1.0)
     c_img, c_boxes = crop_detection(img, rel_boxes, crop_box)
-    assert c_img.shape == (3, 26, 37)
+    assert c_img.shape == (3, 27, 38)
     assert c_boxes.shape == (1, 4)
     assert np.abs(c_boxes - np.array([0.06 / 0.76, 0.0, 0.46 / 0.76, 0.14 / 0.54])[None, ...]).mean() < 1e-7
+
+    # The image crop covers exactly the region described by `crop_box`
+    img = torch.arange(4 * 6, dtype=torch.float32).reshape(1, 4, 6)
+    c_img, c_boxes = crop_detection(img, np.array([[0.0, 0.0, 1.0, 1.0]]), (0.0, 0.0, 1.0, 1.0))
+    assert torch.equal(c_img, img)
+    assert np.all(c_boxes == np.array([[0.0, 0.0, 1.0, 1.0]]))
+    c_img, _ = crop_detection(img, np.array([[0.0, 0.0, 1.0, 1.0]]), (0.5, 0.5, 1.0, 1.0))
+    assert torch.equal(c_img, img[:, 2:, 3:])
+    c_img, c_boxes = crop_detection(img, np.array([[0, 0, 6, 4]]), (0.5, 0.5, 1.0, 1.0))
+    assert torch.equal(c_img, img[:, 2:, 3:])
+    assert np.all(c_boxes == np.array([[0, 0, 3, 2]]))
 
     # FP16
     img = torch.ones((3, 50, 50), dtype=torch.float16)
@@ -474,6 +485,14 @@ def test_random_crop(target):
     img = sample.image
     assert img.shape[-1] * img.shape[-2] >= 0.4 * input_t.shape[-1] * input_t.shape[-2]
     assert 0.65 <= img.shape[-2] / img.shape[-1] <= 1.6
+
+    # A crop of the whole image keeps every pixel and the mask aligned with it
+    full_cropper = RandomCrop(scale=(1.0, 1.0), ratio=(1.0, 1.0))
+    rel_target = original_target / 50
+    sample = full_cropper(Sample(image=input_t, mask=input_m, target=rel_target.copy()))
+    assert sample.image.shape == input_t.shape
+    assert sample.mask.shape == input_m.shape
+    assert np.allclose(sample.target, rel_target)
 
 
 @pytest.mark.parametrize(
