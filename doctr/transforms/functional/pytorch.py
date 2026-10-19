@@ -113,8 +113,8 @@ def crop_detection(
     if any(val < 0 or val > 1 for val in crop_box):
         raise AssertionError("coordinates of arg `crop_box` should be relative")
     h, w = img.shape[-2:]
-    xmin, ymin = int(round(crop_box[0] * (w - 1))), int(round(crop_box[1] * (h - 1)))
-    xmax, ymax = int(round(crop_box[2] * (w - 1))), int(round(crop_box[3] * (h - 1)))
+    xmin, ymin = int(round(crop_box[0] * w)), int(round(crop_box[1] * h))
+    xmax, ymax = int(round(crop_box[2] * w)), int(round(crop_box[3] * h))
     cropped_img = F.crop(img, ymin, xmin, ymax - ymin, xmax - xmin)
     # Crop the box
     boxes = crop_boxes(boxes, crop_box if boxes.max() <= 1 else (xmin, ymin, xmax, ymax))
