@@ -70,7 +70,7 @@ def load_pretrained_params(
     )
 
     # Read state_dict
-    state_dict = torch.load(archive_path, map_location="cpu")
+    state_dict = torch.load(archive_path, map_location="cpu", weights_only=True)
 
     # Remove weights from the state_dict
     if ignore_keys is not None and len(ignore_keys) > 0:
