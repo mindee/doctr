@@ -25,6 +25,7 @@ def crop_boxes(
     Returns:
         the cropped boxes
     """
+    boxes = boxes.copy()
     is_box_rel = boxes.max() <= 1
     is_crop_rel = max(crop_box) <= 1
 
